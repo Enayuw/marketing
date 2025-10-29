@@ -14,10 +14,7 @@ import com.br.marketing.dto.xiecheng.XieChengReportMessageDTO;
 import com.br.marketing.entity.CallRecord;
 import com.br.marketing.entity.SmsCallbackAtOnceExample;
 import com.br.marketing.entity.XieChengData;
-import com.br.marketing.enums.SmsCallBackTypeEnum;
-import com.br.marketing.enums.XcReportPushStatusEnum;
-import com.br.marketing.enums.XcReportStatusEnum;
-import com.br.marketing.enums.XcReportTypeEnum;
+import com.br.marketing.enums.*;
 import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.mapper.SmsCallbackAtOnceMapper;
 import com.br.marketing.mapper.XieChengDataMapper;
@@ -26,6 +23,7 @@ import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.VariableAllocationService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.RandomUtil;
+import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -33,6 +31,7 @@ import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -68,6 +67,9 @@ public class XieChengReportServiceImpl implements XieChengReportService {
     @Resource
     private SmsCallbackAtOnceMapper smsCallbackAtOnceMapper;
 
+    @Resource
+    private DingDingRobotHookService dingDingRobotHookService;
+
     private static final String ACTIONTYPE_IVR = "IVR";
 
     private static final String ACTIONTYPE_SMS = "SMS";
@@ -85,18 +87,21 @@ public class XieChengReportServiceImpl implements XieChengReportService {
             callRecord = callRecordMapper.selectByPrimaryKey(sourceId);
             if (callRecord == null) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
-                        , "携程上报异常，未查询到通话明细，callRecoordId=" + sourceId));
+                        , "携程上报异常，未查询到通话明细，callRecordId=" + sourceId));
                 return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
             }
             //2.插入【b_xiecheng_data】
             xieChengData = keepRecord(callRecord, messageDTO);
         } catch (DuplicateKeyException exception) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
-                    , "携程上报异常，消息重复消费入库，callRecoordId=" + sourceId));
-            throw exception;
+            String msg = "携程上报异常，消息重复消费入库，callRecordId=" + sourceId
+                    + "，idempotentKey=" + messageDTO.getIdempotentKey();
+            Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
+            Map<String, Object> groupInfo = webHookInfo.get(DingDingAlarmFunctionEnum.P_OF_VIP_GROUP.toString());
+            dingDingRobotHookService.sendDingDingTextMessage(msg, groupInfo);
+            return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
         } catch (Exception exception) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
-                    , "携程上报异常，通话明细查询或携程上报插入异常，消息将退回队列中，callRecoordId=" + sourceId));
+                    , "携程上报异常，通话明细查询或携程上报插入异常，消息将退回队列中，callRecordId=" + sourceId));
             throw exception;
         }
         try {
@@ -130,9 +135,9 @@ public class XieChengReportServiceImpl implements XieChengReportService {
             context.getAdReqDTO().setClickId(clickId);
             Result result = xieChengService.pushXieChengDataNew(context.getAdReqDTO(), context.getPushConfig().getMock());
             if (result.getCode().equals(ResultCode.SUCCESS.getValue())) {
-                context.getResultData().setPushStatus(2);
+                context.getResultData().setPushStatus(XcReportPushStatusEnum.PUSHED.getValue());
             } else {
-                context.getResultData().setPushStatus(3);
+                context.getResultData().setPushStatus(XcReportPushStatusEnum.PUSH_FAIL.getValue());
             }
             context.getResultData().setClickId(clickId);
             context.getResultData().setDataMessage(result.getMessage());

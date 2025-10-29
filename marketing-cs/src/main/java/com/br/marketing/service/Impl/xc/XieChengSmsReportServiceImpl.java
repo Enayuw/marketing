@@ -13,9 +13,9 @@ import com.br.marketing.context.XieChengReportContext;
 import com.br.marketing.dto.xiecheng.XieChengReportMessageDTO;
 import com.br.marketing.entity.SmsCallbackAtOnce;
 import com.br.marketing.entity.XieChengData;
+import com.br.marketing.enums.DingDingAlarmFunctionEnum;
 import com.br.marketing.enums.XcReportPushStatusEnum;
 import com.br.marketing.enums.XcReportStatusEnum;
-import com.br.marketing.enums.XcReportTypeEnum;
 import com.br.marketing.mapper.SmsCallbackAtOnceMapper;
 import com.br.marketing.mapper.XieChengDataMapper;
 import com.br.marketing.retry.DatabaseOperationService;
@@ -23,14 +23,15 @@ import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.VariableAllocationService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.RandomUtil;
+import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
-
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -65,6 +66,9 @@ public class XieChengSmsReportServiceImpl implements XieChengSmsReportService {
     @Resource
     private SmsCallbackAtOnceMapper smsCallbackAtOnceMapper;
 
+    @Resource
+    private DingDingRobotHookService dingDingRobotHookService;
+
     private static final String ACTIONTYPE_IVR = "IVR";
 
     @Override
@@ -84,9 +88,12 @@ public class XieChengSmsReportServiceImpl implements XieChengSmsReportService {
             }
             xieChengData = keepRecord(smsCallbackAtOnce, messageDTO);
         } catch (DuplicateKeyException exception) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
-                    , "携程短信上报异常，消息重复消费入库，SmsCallbackAtOnceId=" + sourceId));
-            throw exception;
+            String msg = "携程上报异常，消息重复消费入库，SmsCallbackAtOnceId=" + sourceId
+                    + "，idempotentKey=" + messageDTO.getIdempotentKey();
+            Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
+            Map<String, Object> groupInfo = webHookInfo.get(DingDingAlarmFunctionEnum.P_OF_VIP_GROUP.toString());
+            dingDingRobotHookService.sendDingDingTextMessage(msg, groupInfo);
+            return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
         } catch (Exception exception) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
                     , "携程短信上报异常，通话明细查询或携程短信上报插入异常，消息将退回队列中，SmsCallbackAtOnceId=" + sourceId));
@@ -123,9 +130,9 @@ public class XieChengSmsReportServiceImpl implements XieChengSmsReportService {
             context.getAdReqDTO().setClickId(clickId);
             Result result = xieChengService.pushXieChengDataNew(context.getAdReqDTO(), context.getPushConfig().getMock());
             if (result.getCode().equals(ResultCode.SUCCESS.getValue())) {
-                context.getResultData().setPushStatus(2);
+                context.getResultData().setPushStatus(XcReportPushStatusEnum.PUSHED.getValue());
             } else {
-                context.getResultData().setPushStatus(3);
+                context.getResultData().setPushStatus(XcReportPushStatusEnum.PUSH_FAIL.getValue());
             }
             context.getResultData().setClickId(clickId);
             context.getResultData().setDataMessage(result.getMessage());
