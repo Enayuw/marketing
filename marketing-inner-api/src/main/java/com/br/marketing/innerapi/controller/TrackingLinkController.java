@@ -124,7 +124,7 @@ public class TrackingLinkController {
         }
     }
 
-    @PostMapping("/deleteLink")
+    @GetMapping("/deleteLink")
     @ApiOperation(value = "删除链路", notes = "删除链路")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "ids", value = "查询参数", required = true, dataType = "ids")
