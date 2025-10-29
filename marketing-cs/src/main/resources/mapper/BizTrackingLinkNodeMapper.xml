@@ -16,7 +16,7 @@
             nd.node_type AS nodeType,
             nd.node_name AS nodeName
         FROM biz_tracking_link_node ln
-                 INNER JOIN biz_tracking_node_dict nd ON ln.node_dict_id = nd.id
+                 INNER JOIN biz_tracking_node_dict nd ON ln.node_dict_id = nd.id AND ln.status = 1
         WHERE ln.link_id = #{linkId}
     </select>
 
