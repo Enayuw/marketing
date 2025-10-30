@@ -1,4 +1,4 @@
-package com.br.marketing.bridge.mapper;
+package com.br.marketing.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
