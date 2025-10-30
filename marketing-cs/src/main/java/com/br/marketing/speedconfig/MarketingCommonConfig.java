@@ -3499,4 +3499,10 @@ public class MarketingCommonConfig {
      */
     private List<String> assignedGroups;
 
+    /**
+     * 钉钉AI表格数据同步接口配置
+     * {"b_dd_data_line_cost_price":{"appKey":"","appSecret":"","operatorId":"","baseId":"","sheetId":""},"b_dd_data_sms_cost_price":{"appKey":"","appSecret":"","operatorId":"","baseId":"","sheetId":""}}
+     */
+    private JSONObject dingDingTableConfig;
+
 }
