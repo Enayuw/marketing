@@ -293,4 +293,11 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
 
     List<MarketingSyncUser> getMarketingSyncInfoByRequestBatch(@Param("apiCode") String apiCode, @Param("requestBatch") String requestBatch);
 
+    List<MarketingSyncUser> getMarketingSyncByCondition(@Param("apiCode") String apiCode, @Param("operateType") String operateType, @Param("appletDate") String appletDate
+            , @Param("userType") String userType,@Param("createTime") Date createTime, @Param("filterCondition") String filterCondition, @Param("minId") Long minId);
+
+
+
+    List<MarketingSyncUser> getCustNumRepeatUserByCondition(@Param("apiCode") String apiCode,@Param("syncReportList") List<MarketingSyncReport> syncReportList,
+                                                            @Param("filterCondition") String filterCondition,@Param("createTime") Date createTime);
 }

@@ -1,5 +1,6 @@
 package com.br.marketing.mapper;
 
+import com.br.marketing.dto.SyncOperateTypeDTO;
 import com.br.marketing.dto.SyncUserTypeNumDTO;
 import com.br.marketing.entity.MarketingDataValidConfig;
 import com.br.marketing.entity.MarketingSyncReport;
@@ -127,4 +128,9 @@ public interface MarketingSyncReportMapper extends MarketingSyncReportMapperBase
      * 查询指定id列表对应的数据
      */
     List<MarketingSyncReportVO> selectByIdList(@Param("idList")List<Long> selectIdList);
+
+
+    List<SyncOperateTypeDTO> selectOperateTypeGroup(@Param("apiCode") String apiCode,
+                                                    @Param("syncReportList") List<MarketingSyncReport> syncReportList);
+
 }
