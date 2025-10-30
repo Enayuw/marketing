@@ -20,5 +20,5 @@ public interface MarketingTaskExtendService {
      * @param ids
      * @return
      */
-    Map getProducts(String ids);
+    Map getProducts(String ids,Integer taskType);
 }
