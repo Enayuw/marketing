@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.bridge.mapper.DingDingTableSyncMapper">
+    
+    <!-- 删除表中所有数据 -->
+    <delete id="deleteAll">
+        DELETE FROM ${tableName}
+    </delete>
+    
+    <!-- 批量插入数据 -->
+    <insert id="batchInsert">
+        INSERT INTO ${tableName} (
+            <foreach collection="fieldNames" item="fieldName" separator=",">
+                ${fieldName}
+            </foreach>
+        ) VALUES
+        <foreach collection="records" item="record" separator=",">
+            (
+                <foreach collection="fieldNames" item="fieldName" separator=",">
+                    #{record[${fieldName}]}
+                </foreach>
+            )
+        </foreach>
+    </insert>
+    
+    <!-- 查询表建表语句 -->
+    <select id="getCreateTableSql" resultType="java.util.HashMap">
+        SHOW CREATE TABLE ${tableName}
+    </select>
+    
+    <!-- 插入异常记录 -->
+    <insert id="insertExceptionRecord">
+        INSERT INTO b_cost_price_ex_record (type, json_data, reason, extend)
+        VALUES (#{type}, #{jsonData}, #{reason}, #{extend})
+    </insert>
+    
+</mapper>
+

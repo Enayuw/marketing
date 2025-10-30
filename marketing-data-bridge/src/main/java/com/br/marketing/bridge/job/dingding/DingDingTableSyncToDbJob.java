@@ -4,12 +4,11 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.bridge.client.DingDingAiTableClient;
+import com.br.marketing.bridge.mapper.DingDingTableSyncMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.jdbc.core.BatchPreparedStatementSetter;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -21,7 +20,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @Description 钉钉AI表格数据同步作业
@@ -39,7 +37,7 @@ public class DingDingTableSyncToDbJob extends AbstractSimpleElasticJob {
     private DingDingAiTableClient dingDingAiTableClient;
     
     @Resource
-    private JdbcTemplate jdbcTemplate;
+    private DingDingTableSyncMapper dingDingTableSyncMapper;
     
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
@@ -89,47 +87,52 @@ public class DingDingTableSyncToDbJob extends AbstractSimpleElasticJob {
         String baseId = tableConfig.getString("baseId");
         String sheetId = tableConfig.getString("sheetId");
         
-        // 获取字段顺序配置（可选）
-        JSONArray fieldOrder = tableConfig.getJSONArray("fieldOrder");
-        
         if (StringUtils.isEmpty(appKey) || StringUtils.isEmpty(appSecret) || 
             StringUtils.isEmpty(baseId) || StringUtils.isEmpty(sheetId)) {
             log.warn("表{}配置参数不完整，跳过同步", tableName);
             return;
         }
         
-        // 获取AccessToken
+        // 1. 查询数据库表建表语句
+        Map<String, Object> createTableResult = dingDingTableSyncMapper.getCreateTableSql(tableName);
+        if (CollectionUtils.isEmpty(createTableResult)) {
+            log.warn("获取表{}建表语句失败，跳过同步", tableName);
+            return;
+        }
+        
+        // SHOW CREATE TABLE 返回的Map中，key为"Create Table"，value为建表SQL
+        String createTableSql = (String) createTableResult.get("Create Table");
+        if (StringUtils.isEmpty(createTableSql)) {
+            log.warn("解析表{}建表语句失败，跳过同步", tableName);
+            return;
+        }
+        
+        log.warn("表{}建表语句: {}", tableName, createTableSql.substring(0, Math.min(200, createTableSql.length())) + "...");
+        
+        // 2. 解析建表语句，获取字段和注释
+        // 并区分业务字段和系统字段
+        Map<String, String> commentToFieldMap = new LinkedHashMap<>();  // 中文 -> 英文
+        List<String> businessFields = new ArrayList<>();  // 业务字段（id后到created_by前）
+        List<String> systemFields = new ArrayList<>();    // 系统字段（created_by及之后）
+        
+        parseCreateTableSql(createTableSql, commentToFieldMap, businessFields, systemFields);
+        
+        log.warn("表{}业务字段: {}", tableName, businessFields);
+        log.warn("表{}系统字段: {}", tableName, systemFields);
+        log.warn("表{}中文列名映射: {}", tableName, commentToFieldMap);
+        
+        // 3. 获取AccessToken
         String accessToken = dingDingAiTableClient.getAccessToken(appKey, appSecret);
         if (StringUtils.isEmpty(accessToken)) {
             log.error("获取AccessToken失败，跳过同步表: {}", tableName);
             return;
         }
         
-        // 获取表格字段信息
-        List<Map<String, Object>> fields = dingDingAiTableClient.getSheetFields(
-                accessToken, baseId, sheetId, operatorId);
-        
-        if (CollectionUtils.isEmpty(fields)) {
-            log.warn("获取表{}的字段信息失败，跳过同步", tableName);
-            return;
-        }
-        
-        // 构建字段名称映射（钉钉字段名 -> 数据库字段名）
-        List<String> fieldNames = new ArrayList<>();
-        if (fieldOrder != null && !fieldOrder.isEmpty()) {
-            // 使用配置的字段顺序
-            fieldNames = fieldOrder.toJavaList(String.class);
-        } else {
-            // 使用钉钉返回的字段顺序
-            fieldNames = fields.stream()
-                    .map(f -> (String) f.get("name"))
-                    .collect(Collectors.toList());
-        }
-        
-        log.warn("表{}字段顺序: {}", tableName, fieldNames);
-        
-        // 获取所有数据记录
-        List<List<Object>> allRecords = fetchAllRecords(accessToken, baseId, sheetId, operatorId, fieldNames);
+        // 4. 获取钉钉数据记录
+        List<String> allFieldNames = new ArrayList<>(businessFields);
+        allFieldNames.addAll(systemFields);
+        List<Map<String, Object>> allRecords = fetchAllRecordsWithMapping(
+                accessToken, baseId, sheetId, operatorId, commentToFieldMap, systemFields);
         
         if (CollectionUtils.isEmpty(allRecords)) {
             log.warn("表{}没有数据记录，跳过写入", tableName);
@@ -138,32 +141,83 @@ public class DingDingTableSyncToDbJob extends AbstractSimpleElasticJob {
         
         log.warn("表{}获取到{}条数据记录", tableName, allRecords.size());
         
-        // 删除旧数据
-        String deleteSql = String.format("DELETE FROM %s", tableName);
-        int deleteCount = jdbcTemplate.update(deleteSql);
+        // 5. 删除旧数据
+        int deleteCount = dingDingTableSyncMapper.deleteAll(tableName);
         log.warn("删除表{}旧数据，删除条数: {}", tableName, deleteCount);
         
-        // 批量插入新数据
-        batchInsertRecords(tableName, fieldNames, allRecords);
+        // 6. 批量插入新数据
+        batchInsertRecords(tableName, allFieldNames, allRecords);
         
         log.warn("表{}数据同步完成，插入条数: {}", tableName, allRecords.size());
     }
     
     /**
-     * 获取所有数据记录（分页查询）
+     * 解析建表语句，提取字段和注释
+     * 
+     * @param createTableSql 建表语句
+     * @param commentToFieldMap 中文注释到英文字段名的映射（输出）
+     * @param businessFields 业务字段列表（输出）
+     * @param systemFields 系统字段列表（输出）
+     */
+    private void parseCreateTableSql(String createTableSql, Map<String, String> commentToFieldMap,
+                                      List<String> businessFields, List<String> systemFields) {
+        // 正则表达式匹配字段定义：`字段名` 类型 [约束] [comment '注释']
+        // 示例：`line_supplier` varchar(255) null comment '供应商名称',
+        String fieldPattern = "`(\\w+)`[^,]*?(?:comment\\s+'([^']*)')?[,)]";
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(fieldPattern, java.util.regex.Pattern.CASE_INSENSITIVE);
+        java.util.regex.Matcher matcher = pattern.matcher(createTableSql);
+        
+        boolean isBusinessField = false;
+        boolean isSystemField = false;
+        
+        while (matcher.find()) {
+            String fieldName = matcher.group(1);
+            String fieldComment = matcher.group(2);
+            
+            // 跳过id字段
+            if ("id".equalsIgnoreCase(fieldName)) {
+                isBusinessField = true;
+                continue;
+            }
+            
+            // created_by及之后的字段是系统字段
+            if ("created_by".equalsIgnoreCase(fieldName)) {
+                isSystemField = true;
+                isBusinessField = false;
+            }
+            
+            if (isBusinessField && !isSystemField) {
+                businessFields.add(fieldName);
+                if (!StringUtils.isEmpty(fieldComment)) {
+                    commentToFieldMap.put(fieldComment, fieldName);
+                }
+            } else if (isSystemField) {
+                systemFields.add(fieldName);
+            }
+        }
+    }
+    
+    /**
+     * 获取所有数据记录（分页查询，带字段映射）
      * 
      * @param accessToken 访问令牌
      * @param baseId Base ID
      * @param sheetId Sheet ID
      * @param operatorId 操作人ID
-     * @param fieldNames 字段名称列表
-     * @return 所有记录
+     * @param commentToFieldMap 中文列名到英文字段名的映射
+     * @param systemFields 系统字段列表
+     * @return 所有记录（Map形式）
      */
-    private List<List<Object>> fetchAllRecords(String accessToken, String baseId, String sheetId, 
-                                                String operatorId, List<String> fieldNames) {
-        List<List<Object>> allRecords = new ArrayList<>();
+    private List<Map<String, Object>> fetchAllRecordsWithMapping(String accessToken, String baseId, String sheetId, 
+                                                                  String operatorId, Map<String, String> commentToFieldMap,
+                                                                  List<String> systemFields) {
+        List<Map<String, Object>> allRecords = new ArrayList<>();
         String nextToken = null;
         int pageNum = 0;
+        
+        // 用户信息缓存，避免重复调用钉钉接口
+        Map<String, String> unionIdToUserIdCache = new HashMap<>();  // unionId -> userId
+        Map<String, String> userIdToNameCache = new HashMap<>();     // userId -> userName
         
         do {
             pageNum++;
@@ -187,12 +241,117 @@ public class DingDingTableSyncToDbJob extends AbstractSimpleElasticJob {
                 JSONObject record = records.getJSONObject(i);
                 JSONObject fieldsData = record.getJSONObject("fields");
                 
-                // 按照字段顺序提取值
-                List<Object> rowValues = extractRowValues(fieldsData, fieldNames);
+                // 映射数据：中文列名 -> 英文字段名
+                Map<String, Object> rowData = new LinkedHashMap<>();
+                
+                // 1. 处理业务字段（从fields中用中文列名取值）
+                for (Map.Entry<String, String> entry : commentToFieldMap.entrySet()) {
+                    String chineseColumnName = entry.getKey();  // 中文列名（COMMENT）
+                    String englishFieldName = entry.getValue(); // 英文字段名
+                    
+                    Object value = fieldsData.get(chineseColumnName);
+                    
+                    // 处理选择类型（singleSelect等），取name值
+                    if (value instanceof JSONObject) {
+                        JSONObject valueObj = (JSONObject) value;
+                        String name = valueObj.getString("name");
+                        if (!StringUtils.isEmpty(name)) {
+                            value = name;
+                        } else {
+                            value = valueObj.toJSONString();
+                        }
+                    }
+                    
+                    // 处理日期类型
+                    if (value instanceof Number) {
+                        try {
+                            long timestamp = ((Number) value).longValue();
+                            if (timestamp > 10000000000L) {
+                                Instant instant = Instant.ofEpochMilli(timestamp);
+                                value = formatByDingDingFormatter(instant, null);
+                            }
+                        } catch (Exception e) {
+                            // 保持原值
+                        }
+                    }
+                    
+                    // 转换为字符串（除了null）
+                    rowData.put(englishFieldName, value == null ? null : String.valueOf(value));
+                }
+                
+                // 2. 处理系统字段（从record元数据中获取）
+                if (!CollectionUtils.isEmpty(systemFields)) {
+                    // 创建人unionId
+                    JSONObject createdBy = record.getJSONObject("createdBy");
+                    String createdByUnionId = null;
+                    if (createdBy != null) {
+                        createdByUnionId = createdBy.getString("unionId");
+                    }
+                    if (systemFields.contains("created_by")) {
+                        rowData.put("created_by", createdByUnionId);
+                    }
+                    
+                    // 创建时间
+                    if (systemFields.contains("created_time")) {
+                        Long createdTime = record.getLong("createdTime");
+                        if (createdTime != null) {
+                            rowData.put("created_time", formatByDingDingFormatter(
+                                    Instant.ofEpochMilli(createdTime), null));
+                        }
+                    }
+                    
+                    // 最近修改人unionId
+                    JSONObject lastModifiedBy = record.getJSONObject("lastModifiedBy");
+                    String lastModifiedByUnionId = null;
+                    if (lastModifiedBy != null) {
+                        lastModifiedByUnionId = lastModifiedBy.getString("unionId");
+                    }
+                    if (systemFields.contains("last_modified_by")) {
+                        rowData.put("last_modified_by", lastModifiedByUnionId);
+                    }
+                    
+                    // 最近修改时间
+                    if (systemFields.contains("last_modified_time")) {
+                        Long lastModifiedTime = record.getLong("lastModifiedTime");
+                        if (lastModifiedTime != null) {
+                            rowData.put("last_modified_time", formatByDingDingFormatter(
+                                    Instant.ofEpochMilli(lastModifiedTime), null));
+                        }
+                    }
+                    
+                    // 最近修改人userId（通过unionId调用钉钉接口获取，使用缓存）
+                    String lastModifiedUserId = null;
+                    if (systemFields.contains("last_modified_user_id") && !StringUtils.isEmpty(lastModifiedByUnionId)) {
+                        // 先查缓存
+                        lastModifiedUserId = unionIdToUserIdCache.get(lastModifiedByUnionId);
+                        if (StringUtils.isEmpty(lastModifiedUserId)) {
+                            // 缓存中没有，调用钉钉接口
+                            lastModifiedUserId = dingDingAiTableClient.getUserIdByUnionId(accessToken, lastModifiedByUnionId);
+                            if (!StringUtils.isEmpty(lastModifiedUserId)) {
+                                unionIdToUserIdCache.put(lastModifiedByUnionId, lastModifiedUserId);
+                            }
+                        }
+                        rowData.put("last_modified_user_id", lastModifiedUserId);
+                    }
+                    
+                    // 最近修改人name（通过userId调用钉钉接口获取，使用缓存）
+                    if (systemFields.contains("last_modified_user_name") && !StringUtils.isEmpty(lastModifiedUserId)) {
+                        // 先查缓存
+                        String lastModifiedUserName = userIdToNameCache.get(lastModifiedUserId);
+                        if (StringUtils.isEmpty(lastModifiedUserName)) {
+                            // 缓存中没有，调用钉钉接口
+                            lastModifiedUserName = dingDingAiTableClient.getUserNameByUserId(accessToken, lastModifiedUserId);
+                            if (!StringUtils.isEmpty(lastModifiedUserName)) {
+                                userIdToNameCache.put(lastModifiedUserId, lastModifiedUserName);
+                            }
+                        }
+                        rowData.put("last_modified_user_name", lastModifiedUserName);
+                    }
+                }
                 
                 // 过滤空行
-                if (!isEmptyRow(rowValues)) {
-                    allRecords.add(rowValues);
+                if (!isEmptyRow(rowData)) {
+                    allRecords.add(rowData);
                 }
             }
             
@@ -202,42 +361,11 @@ public class DingDingTableSyncToDbJob extends AbstractSimpleElasticJob {
             
         } while (!StringUtils.isEmpty(nextToken));
         
+        // 打印缓存统计
+        log.warn("用户信息缓存统计 - unionId->userId缓存数: {}, userId->name缓存数: {}", 
+                unionIdToUserIdCache.size(), userIdToNameCache.size());
+        
         return allRecords;
-    }
-    
-    /**
-     * 按照字段顺序提取一行数据的值
-     * 
-     * @param fieldsData 字段数据
-     * @param fieldNames 字段名称列表
-     * @return 值列表
-     */
-    private List<Object> extractRowValues(JSONObject fieldsData, List<String> fieldNames) {
-        List<Object> values = new ArrayList<>();
-        
-        for (String fieldName : fieldNames) {
-            Object value = fieldsData.get(fieldName);
-            
-            // 处理日期类型
-            if (value instanceof Number) {
-                // 可能是时间戳，尝试格式化
-                try {
-                    long timestamp = ((Number) value).longValue();
-                    // 判断是否是时间戳（毫秒）
-                    if (timestamp > 10000000000L) {
-                        Instant instant = Instant.ofEpochMilli(timestamp);
-                        value = formatByDingDingFormatter(instant, null);
-                    }
-                } catch (Exception e) {
-                    // 保持原值
-                }
-            }
-            
-            // 转换为字符串（除了null）
-            values.add(value == null ? null : String.valueOf(value));
-        }
-        
-        return values;
     }
     
     /**
@@ -245,19 +373,14 @@ public class DingDingTableSyncToDbJob extends AbstractSimpleElasticJob {
      * 
      * @param tableName 表名
      * @param fieldNames 字段名称列表
-     * @param records 记录列表
+     * @param records 记录列表（Map形式）
      */
-    private void batchInsertRecords(String tableName, List<String> fieldNames, List<List<Object>> records) {
+    private void batchInsertRecords(String tableName, List<String> fieldNames, List<Map<String, Object>> records) {
         if (CollectionUtils.isEmpty(records)) {
             return;
         }
         
-        // 构建INSERT SQL
-        String columns = String.join(", ", fieldNames);
-        String placeholders = fieldNames.stream().map(f -> "?").collect(Collectors.joining(", "));
-        String sql = String.format("INSERT INTO %s (%s) VALUES (%s)", tableName, columns, placeholders);
-        
-        log.warn("批量插入SQL: {}", sql);
+        log.warn("开始批量插入数据，表名: {}, 字段数: {}, 记录数: {}", tableName, fieldNames.size(), records.size());
         
         // 分批插入（每批500条）
         int batchSize = 500;
@@ -266,24 +389,11 @@ public class DingDingTableSyncToDbJob extends AbstractSimpleElasticJob {
         for (int i = 0; i < totalBatches; i++) {
             int fromIndex = i * batchSize;
             int toIndex = Math.min((i + 1) * batchSize, records.size());
-            List<List<Object>> batch = records.subList(fromIndex, toIndex);
+            List<Map<String, Object>> batch = records.subList(fromIndex, toIndex);
             
             try {
-                jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
-                    @Override
-                    public void setValues(java.sql.PreparedStatement ps, int j) throws java.sql.SQLException {
-                        List<Object> row = batch.get(j);
-                        for (int k = 0; k < row.size(); k++) {
-                            ps.setObject(k + 1, row.get(k));
-                        }
-                    }
-                    
-                    @Override
-                    public int getBatchSize() {
-                        return batch.size();
-                    }
-                });
-                log.warn("批量插入第{}/{}批，插入条数: {}", i + 1, totalBatches, batch.size());
+                int insertCount = dingDingTableSyncMapper.batchInsert(tableName, fieldNames, batch);
+                log.warn("批量插入第{}/{}批，插入条数: {}", i + 1, totalBatches, insertCount);
             } catch (Exception e) {
                 log.error("批量插入第{}批失败", i + 1, e);
                 saveExceptionRecord(tableName, JSON.toJSONString(batch), e.getMessage());
@@ -294,15 +404,15 @@ public class DingDingTableSyncToDbJob extends AbstractSimpleElasticJob {
     /**
      * 判断是否为空行（所有字段都为空）
      * 
-     * @param rowValues 行值列表
+     * @param rowData 行数据（Map形式）
      * @return true-空行，false-非空行
      */
-    private boolean isEmptyRow(List<Object> rowValues) {
-        if (CollectionUtils.isEmpty(rowValues)) {
+    private boolean isEmptyRow(Map<String, Object> rowData) {
+        if (CollectionUtils.isEmpty(rowData)) {
             return true;
         }
         
-        for (Object value : rowValues) {
+        for (Object value : rowData.values()) {
             if (value != null && !StringUtils.isEmpty(String.valueOf(value).trim())) {
                 return false;
             }
@@ -370,8 +480,8 @@ public class DingDingTableSyncToDbJob extends AbstractSimpleElasticJob {
             // 根据表名判断类型
             Integer type = tableName.contains("sms") ? 1 : 2;
             
-            String sql = "INSERT INTO b_cost_price_ex_record (type, json_data, reason, extend) VALUES (?, ?, ?, ?)";
-            jdbcTemplate.update(sql, type, jsonData, reason, tableName);
+            dingDingTableSyncMapper.insertExceptionRecord(type, jsonData, reason, tableName);
+            log.warn("保存异常记录成功，表名: {}, 类型: {}", tableName, type);
         } catch (Exception e) {
             log.error("保存异常记录失败", e);
         }
