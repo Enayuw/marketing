@@ -356,7 +356,10 @@ public class TrackingLinkServiceImpl implements TrackingLinkService {
     }
 
     private LocalDateTime convertToLocalDateTime(Object timeObj) {
-        return ((Timestamp) timeObj).toLocalDateTime();
+        if(timeObj != null){
+            return ((Timestamp) timeObj).toLocalDateTime();
+        }
+        return null;
     }
 }
 
