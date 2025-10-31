@@ -557,8 +557,8 @@
 
     <job:simple id="【bridge】-DingDingTableSyncToDbJob"
                 class="com.br.marketing.bridge.job.dingding.DingDingTableSyncToDbJob"
-                cron="0 0 15,18 * * ?"
-                description="钉钉AI表格数据同步作业，每天15点和18点执行"
+                cron="0 0/30 * * * ?"
+                description="钉钉AI表格数据同步作业"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
                 sharding-item-parameters="0=A"
