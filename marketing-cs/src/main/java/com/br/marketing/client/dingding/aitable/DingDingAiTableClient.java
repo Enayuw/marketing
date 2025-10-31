@@ -217,14 +217,17 @@ public class DingDingAiTableClient {
                         return userId;
                     }
                 }
-                log.error("获取userId失败，响应: {}", body);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "调用钉钉API获取userId异常"
+                        , "钉钉AI表格数据同步作业异常"));
                 return null;
             } else {
-                log.error("获取userId失败，状态码: {}, 响应: {}", statusCode, body);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "调用钉钉API获取userId异常"
+                        , "钉钉AI表格数据同步作业异常"));
                 return null;
             }
         } catch (Exception e) {
-            log.error("调用钉钉API获取userId异常", e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "调用钉钉API获取userId异常" + e.getMessage()
+                    , "钉钉AI表格数据同步作业异常"), e);
             return null;
         }
     }
@@ -273,14 +276,17 @@ public class DingDingAiTableClient {
                         return name;
                     }
                 }
-                log.error("获取用户姓名失败，响应: {}", body);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "调用钉钉API获取用户姓名异常"
+                        , "钉钉AI表格数据同步作业异常"));
                 return null;
             } else {
-                log.error("获取用户姓名失败，状态码: {}, 响应: {}", statusCode, body);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "调用钉钉API获取用户姓名异常"
+                        , "钉钉AI表格数据同步作业异常"));
                 return null;
             }
         } catch (Exception e) {
-            log.error("调用钉钉API获取用户姓名异常", e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "调用钉钉API获取用户姓名异常" + e.getMessage()
+                    , "钉钉AI表格数据同步作业异常"), e);
             return null;
         }
     }
@@ -336,11 +342,12 @@ public class DingDingAiTableClient {
             if (statusCode == 200) {
                 return JSON.parseObject(body, DingDingAiTableRecordsResponse.class);
             } else {
-                log.error("获取钉钉AI表格数据失败，状态码: {}, 响应: {}", statusCode, body);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "调用钉钉API获取数据异常", "钉钉AI表格数据同步作业异常"));
                 return null;
             }
         } catch (Exception e) {
-            log.error("调用钉钉API获取数据异常", e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "调用钉钉API获取数据异常" + e.getMessage()
+                    , "钉钉AI表格数据同步作业异常"), e);
             return null;
         }
     }

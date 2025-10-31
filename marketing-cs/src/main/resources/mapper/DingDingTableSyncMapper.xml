@@ -7,29 +7,26 @@
         DELETE FROM ${tableName}
     </delete>
     
-    <!-- 单条插入数据 -->
-    <insert id="insertRecord">
+    <!-- 批量插入数据 -->
+    <insert id="batchInsertByValues">
         INSERT INTO ${tableName} (
             <foreach collection="fieldNames" item="fieldName" separator=",">
                 ${fieldName}
             </foreach>
-        ) VALUES (
-            <foreach collection="fieldNames" item="fieldName" separator=",">
-                #{record.${fieldName}}
-            </foreach>
-        )
+        ) VALUES
+        <foreach collection="valuesList" item="values" separator=",">
+            (
+                <foreach collection="values" item="value" separator=",">
+                    #{value}
+                </foreach>
+            )
+        </foreach>
     </insert>
     
     <!-- 查询表建表语句 -->
     <select id="getCreateTableSql" resultType="java.util.HashMap">
         SHOW CREATE TABLE ${tableName}
     </select>
-    
-    <!-- 插入异常记录 -->
-    <insert id="insertExceptionRecord">
-        INSERT INTO b_cost_price_ex_record (type, json_data, reason, extend)
-        VALUES (#{type}, #{jsonData}, #{reason}, #{extend})
-    </insert>
-    
+
 </mapper>
 
