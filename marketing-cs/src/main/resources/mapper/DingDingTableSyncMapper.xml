@@ -7,20 +7,17 @@
         DELETE FROM ${tableName}
     </delete>
     
-    <!-- 批量插入数据 -->
-    <insert id="batchInsert">
+    <!-- 单条插入数据 -->
+    <insert id="insertRecord">
         INSERT INTO ${tableName} (
             <foreach collection="fieldNames" item="fieldName" separator=",">
                 ${fieldName}
             </foreach>
-        ) VALUES
-        <foreach collection="records" item="record" separator=",">
-            (
-                <foreach collection="fieldNames" item="fieldName" separator=",">
-                    #{record[${fieldName}]}
-                </foreach>
-            )
-        </foreach>
+        ) VALUES (
+            <foreach collection="fieldNames" item="fieldName" separator=",">
+                #{record.${fieldName}}
+            </foreach>
+        )
     </insert>
     
     <!-- 查询表建表语句 -->

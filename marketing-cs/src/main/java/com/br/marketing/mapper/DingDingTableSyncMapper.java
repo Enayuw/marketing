@@ -24,16 +24,16 @@ public interface DingDingTableSyncMapper {
     int deleteAll(@Param("tableName") String tableName);
     
     /**
-     * 批量插入数据
+     * 批量插入数据（单条INSERT）
      * 
      * @param tableName 表名
      * @param fieldNames 字段名列表
-     * @param records 记录列表（Map形式，key为字段名，value为字段值）
+     * @param record 单条记录（Map形式，key为字段名，value为字段值）
      * @return 插入条数
      */
-    int batchInsert(@Param("tableName") String tableName, 
-                    @Param("fieldNames") List<String> fieldNames, 
-                    @Param("records") List<Map<String, Object>> records);
+    int insertRecord(@Param("tableName") String tableName, 
+                     @Param("fieldNames") List<String> fieldNames, 
+                     @Param("record") Map<String, Object> record);
     
     /**
      * 查询表建表语句
