@@ -114,8 +114,11 @@ otherConfig:
         outsideSecretKey: 11e6a1a63c10d2855d662a0265ea91c4
         outsideAppName: marketing-out
   userCenter:
-        appName: loan-strategy
-        appSecretKey: 7357430aa11febfe81d45945c02706b3
+    appName: marketing-api
+    appSecretKey: 77786bf195aa73044af33f8fce6c0441
+  encodeMapping:
+    appName: marketing
+    appSecretKey: d37f90c97204a2ef3fe774fc5f106cf5
   warning:
         pageSize: 5000
         apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
@@ -124,9 +127,6 @@ otherConfig:
         sftpPort: 9999
         sftpUser: BRmarketing
         sftpPwd: gKjTC62qUJMKigEyvn01@_2021.06.07
-  encodeMapping:
-        appName: loan-warning
-        appSecretKey: a938d0e974746651a11ddcdbcea31404
   proxy:
     proxy_host: squid-proxy2.brapp.com
     proxy_port: 3128

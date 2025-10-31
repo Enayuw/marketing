@@ -5,7 +5,6 @@ import com.br.cloud.counter.EnableBrCounter;
 import com.br.cloud.jvm.EnablePrometheusJvm;
 import com.br.cloud.web.EnablePrometheusTiming;
 import com.br.grpc.utils.BrGrpcUtils;
-import com.br.marketing.config.autoinject.druid.EnableDruidPrometheus;
 import com.br.marketing.service.Impl.ConsumerService;
 import io.shardingsphere.shardingjdbc.spring.boot.SpringBootConfiguration;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +29,6 @@ import org.springframework.context.annotation.ImportResource;
 @EnablePrometheusJvm
 @EnablePrometheusTiming
 @EnableBrCounter(namespace = "marketing_check")
-@EnableDruidPrometheus
 @Slf4j
 public class CkeckApplication {
     public static ConfigurableApplicationContext ac;
