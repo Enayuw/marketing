@@ -375,7 +375,7 @@ public class DingDingTableSyncToDbJob extends AbstractSimpleElasticJob {
         log.warn("开始批量插入数据，表名: {}, 字段数: {}, 记录数: {}", tableName, fieldNames.size(), records.size());
 
         // 分批插入（每批2000条）
-        int batchSize = 2000;
+        int batchSize = 500;
         int totalBatches = (records.size() + batchSize - 1) / batchSize;
         
         for (int i = 0; i < totalBatches; i++) {
