@@ -3505,4 +3505,10 @@ public class MarketingCommonConfig {
      */
     private JSONObject dingDingTableConfig;
 
+    /**
+     * 钉钉AI表格数据同步接口配置
+     * {"searchSize":50000}
+     */
+    private JSONObject linsSmsCostToDbConfig;
+
 }
