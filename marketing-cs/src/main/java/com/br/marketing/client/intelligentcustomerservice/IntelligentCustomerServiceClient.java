@@ -95,7 +95,7 @@ public class IntelligentCustomerServiceClient {
                     //调用数量监控
                     BrCounter.count(PrometheusMonitorUtils.COUNT_POLICY_API_METRIC_NAME, dto.getApiCode(), "policy-api",
                             pushNum);
-                    trackingService.track(
+                    trackingService.trackDetailedLog(
                             DataFlowDirection.OUT
                             , dto.getApiCode()
                             , "推送决策"
@@ -157,7 +157,7 @@ public class IntelligentCustomerServiceClient {
                     PushMarketingUserTaskInfoDTO taskInfoDTO = (PushMarketingUserTaskInfoDTO) dto.getJsonData();
                     BrCounter.count(PrometheusMonitorUtils.COUNT_POLICY_API_METRIC_NAME, dto.getApiCode(), "policy-api",
                             taskInfoDTO.getData().size());
-                    trackingService.track(
+                    trackingService.trackDetailedLog(
                             DataFlowDirection.OUT
                             , dto.getApiCode()
                             , "推送决策"

@@ -143,6 +143,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
 import com.marketingkit.tracking.model.indicator.DataFlowDirection;
 
 @Service
@@ -776,7 +777,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         try {
             tagDataDetailMapper.refreshbI_("refresh catalog es");
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("refresh catalog es异常");
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("refresh catalog es异常");
         }
@@ -2529,7 +2530,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (!dbException) {
             boolean intoAiQueue = routeToAiQueue(apiCode, syncInfoId, jsonData);
             // 非ai客户
-            if(Objects.equals(intoAiQueue,false)){
+            if (Objects.equals(intoAiQueue, false)) {
                 if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE)) {
                     sendToRocketMqByConfig(apiCode, MarketingUploadConstants.TOPIC
                             , MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
@@ -2540,20 +2541,17 @@ public class PushRuleServiceImpl implements PushRuleService {
             sendJsonParseMq(apiCode, syncInfoId, dataSourceType);
         }
         // 埋点
-        try {
-            log.warn("开始埋点调用 - apiCode: {}, event: marketing_pre_user_receive, syncInfoId: {}", apiCode, syncInfoId);
-            trackingService.trackBusinessLog(DataFlowDirection.IN
-                    , apiCode
-                    , "通用上传接口上传数据"
-                    ,"b_marketing_sync_info"
-                    , dto.getJsonData().getRequestId()
-                    , Long.valueOf(size)
-                    , TrackingContext.generateBatchId());
-            log.warn("埋点调用成功 - apiCode: {}, event: marketing_pre_user_receive, syncInfoId: {}", apiCode, syncInfoId);
-        } catch (Exception e) {
-            log.error("埋点调用失败 - apiCode: {}, event: marketing_pre_user_receive, syncInfoId: {}, error: {}", 
-                    apiCode, syncInfoId, e.getMessage(), e);
-        }
+        log.warn("开始埋点调用 - apiCode: {}, event: marketing_pre_user_receive, syncInfoId: {}", apiCode, syncInfoId);
+        JSONObject condition = new JSONObject();
+        condition.put("request_batch", dto.getJsonData().getRequestId());
+        trackingService.trackBusinessLog(DataFlowDirection.IN
+                , apiCode
+                , "通用上传接口"
+                , "b_marketing_sync_info"
+                , JSON.toJSONString(condition)
+                , Long.valueOf(size)
+                , TrackingContext.generateBatchId());
+        log.warn("埋点调用成功 - apiCode: {}, event: marketing_pre_user_receive, syncInfoId: {}", apiCode, syncInfoId);
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
 
@@ -2657,6 +2655,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     /**
      * 根据apiCode与operateType，区分AI与非AI客户，AI客户返回true，并发送到AI队列，非AI客户返回false
      * 使用范围：上传数据入库mq队列、pulsar队列
+     *
      * @param apiCode    API代码
      * @param syncInfoId 同步信息ID
      * @param jsonData   JSON数据
@@ -3367,13 +3366,13 @@ public class PushRuleServiceImpl implements PushRuleService {
                 taskApiCodeSet.add(concat);
             }
         }
-        
+
         trackingService.trackPointLog(DataFlowDirection.IN
-                    , apiCode
-                    , "通用上传接口明细入库"
-                    , Long.valueOf(dto.getDataItems().size()-errorSize)
-                    , "通用上传接口明细入库"
-                    , TrackingContext.generateBatchId());
+                , apiCode
+                , "通用上传接口明细入库"
+                , Long.valueOf(dto.getDataItems().size() - errorSize)
+                , "通用上传接口明细入库"
+                , TrackingContext.generateBatchId());
 
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
     }
@@ -3511,7 +3510,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Override
     public Result<Boolean> consumerSyncInfo(String msg) {
         boolean b = pulsarConsumerSkipUtil.shouldSkipBusinessLogic(PulsarSubscription.upLoadSubscription);
-        if(b){
+        if (b) {
             log.warn("【pulsar】标准上传数据执行跳过逻辑");
             return new Result<>().setCode(ResultCode.SUCCESS.getValue());
         }
@@ -3584,7 +3583,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (!dbException) {
             boolean intoAiQueue = routeToAiQueue(apiCode, syncInfoId, jdStr);
             // 非ai客户
-            if(Objects.equals(intoAiQueue,false)){
+            if (Objects.equals(intoAiQueue, false)) {
                 if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE)) {
                     sendToRocketMqByConfig(apiCode, MarketingUploadConstants.TOPIC
                             , MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
@@ -3722,17 +3721,30 @@ public class PushRuleServiceImpl implements PushRuleService {
                 sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE, transferInfoId, CustomerQueueEnum.ORG_TRANSFER);
             }
         }
+
+        // 埋点
+        JSONObject condition = new JSONObject();
+        condition.put("request_id", transferDataDTO.getRequestId());
+
+        trackingService.trackBusinessLog(DataFlowDirection.IN
+                , apiCode
+                , "通用转化接口上传数据"
+                , "b_marketing_transfer_info"
+                , JSON.toJSONString(condition)
+                , Long.valueOf(size)
+                , TrackingContext.generateBatchId());
+
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
 
     @Override
     public Result<Boolean> consumerTransferInfo(String msg) {
         boolean b = pulsarConsumerSkipUtil.shouldSkipBusinessLogic(PulsarSubscription.transferSubscription);
-        if(b){
-            log.warn("【pulsar】标准转化数据执行跳过逻辑："+PulsarSubscription.transferSubscription);
+        if (b) {
+            log.warn("【pulsar】标准转化数据执行跳过逻辑：" + PulsarSubscription.transferSubscription);
             return new Result<>().setCode(ResultCode.SUCCESS.getValue());
         }
-        
+
         JSONObject jb = JSON.parseObject(msg);
         String apiCode = jb.getString("apiCode");
         String jsonData = jb.getString("jsonData");

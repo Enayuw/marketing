@@ -20,6 +20,9 @@ import com.br.marketing.common.constants.rocketmq.MarketingUploadConstants;
 import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.enums.clean.DataSourceTypeEnum;
 import com.br.marketing.service.PushRuleService;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
@@ -87,6 +90,9 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
 
     @Autowired
     PushRuleService pushRuleService;
+
+    @Resource
+    TrackingService trackingService;
 
     private static final ThreadPoolExecutor BR_EXECUTORS = BrExecutors.getThreadPool(1, 2);
     private final String title = "数禾转化数据定制化清洗入库";
@@ -277,6 +283,17 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
             }
         }
         BR_EXECUTORS.execute(() -> checkField(uploadDataDTO, listInfo, apiCode, requestId));
+        // 埋点
+        JSONObject condition = new JSONObject();
+        condition.put("request_id", shuheUploadData.getRequestId());
+
+        trackingService.trackBusinessLog(DataFlowDirection.IN
+                , apiCode
+                , "数禾定制上传接口"
+                ,"b_case_shuhe_upload_data"
+                , JSON.toJSONString(condition)
+                , 1L
+                , TrackingContext.generateBatchId());
         return response2ShuheDTO.success();
     }
 

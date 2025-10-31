@@ -28,6 +28,9 @@ import com.br.marketing.mapper.CustomerTransferDataReceiveMapper;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.ApiFieldCheckUtils;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -72,6 +75,9 @@ public class CustomerTransferDataServiceImpl implements CustomerTransferDataServ
 
     @Resource
     private RedisChgService redisChgService;
+
+    @Resource
+    private TrackingService trackingService;
 
     private static final ThreadPoolExecutor BR_EXECUTORS = BrExecutors.getThreadPool(1, 10
             , "订制转化数据接入字段检查");
@@ -148,6 +154,19 @@ public class CustomerTransferDataServiceImpl implements CustomerTransferDataServ
                 // 6.1 数据库容灾
                 respCustomer = sendMq(customDataHandleImpl, receive, respCustomer);
             }
+
+            // 埋点
+            JSONObject condition = new JSONObject();
+            condition.put("request_id", receive.getRequestId());
+
+            trackingService.trackBusinessLog(DataFlowDirection.IN
+                    , apiCode
+                    , "定制通用转化接口"
+                    ,"b_customer_transfer_data_receive"
+                    , JSON.toJSONString(condition)
+                    , Long.valueOf(receive.getBizDataNumber())
+                    , TrackingContext.generateBatchId());
+
             // 8. 返回响应
             return respCustomer.getResponseCustomDTO();
         } catch (Exception e) {

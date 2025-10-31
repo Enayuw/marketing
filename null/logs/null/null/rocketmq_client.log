@@ -37887,3 +37887,204 @@ java.util.concurrent.CompletionException: org.apache.rocketmq.remoting.exception
 Caused by: org.apache.rocketmq.remoting.exception.RemotingSendRequestException: send request to </10.100.123.171:11911> failed
 	... 8 common frames omitted
 2025-10-16 16:47:15.220 WARN  [18116] [NettyClientPublicExecutor_11] [o.a.r.c.i.c.PullMessageService#?:?] - PullMessageServiceScheduledThread has shutdown
+2025-10-30 18:01:24.393 WARN  [38924] [pool-14-thread-1] [i.l.c.ConnectionBuilder#?:?] - Cannot apply extended TCP keepalive options to channel type io.netty.channel.socket.nio.NioSocketChannel
+2025-10-30 18:01:25.024 WARN  [38924] [pool-14-thread-1] [i.l.c.ConnectionBuilder#?:?] - Cannot apply extended TCP keepalive options to channel type io.netty.channel.socket.nio.NioSocketChannel
+2025-10-30 18:01:25.080 WARN  [38924] [pool-14-thread-1] [i.l.c.ConnectionBuilder#?:?] - Cannot apply extended TCP keepalive options to channel type io.netty.channel.socket.nio.NioSocketChannel
+2025-10-30 19:08:20.154 WARN  [38924] [NettyClientWorkerThread_2] [RocketmqRemoting#?:?] - NETTY CLIENT PIPELINE: IDLE exception channel[addr=10.100.123.171:11911, id=45dd2777]
+2025-10-30 19:08:20.155 WARN  [38924] [NettyClientWorkerThread_1] [RocketmqRemoting#?:?] - NETTY CLIENT PIPELINE: IDLE exception channel[addr=10.100.123.172:9876, id=f87f606a]
+2025-10-30 19:08:20.167 WARN  [38924] [MQClientFactoryScheduledThread] [RocketmqRemoting#?:?] - invokeSync: send request exception, so close the channel[10.100.123.171:11911]
+2025-10-30 19:08:20.169 WARN  [38924] [NettyClientSelector_1] [RocketmqRemoting#?:?] - send a request command to channel <10.100.123.171:11911>, channelId=45dd2777, failed.
+2025-10-30 19:08:20.168 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - send heart beat to broker[rocketmq-pre-group1 0 10.100.123.171:11911] failed
+org.apache.rocketmq.remoting.exception.RemotingSendRequestException: send request to </10.100.123.171:11911> failed
+	at org.apache.rocketmq.remoting.netty.NettyRemotingAbstract.invokeSyncImpl(NettyRemotingAbstract.java:503)
+	at org.apache.rocketmq.remoting.netty.NettyRemotingClient.invokeSync(NettyRemotingClient.java:553)
+	at org.apache.rocketmq.client.impl.MQClientAPIImpl.sendHeartbeat(MQClientAPIImpl.java:1542)
+	at org.apache.rocketmq.client.impl.factory.MQClientInstance.sendHeartbeatToBroker(MQClientInstance.java:625)
+	at org.apache.rocketmq.client.impl.factory.MQClientInstance.sendHeartbeatToAllBroker(MQClientInstance.java:675)
+	at org.apache.rocketmq.client.impl.factory.MQClientInstance.sendHeartbeatToAllBrokerWithLock(MQClientInstance.java:538)
+	at org.apache.rocketmq.client.impl.factory.MQClientInstance.lambda$startScheduledTask$4(MQClientInstance.java:354)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
+	at java.util.concurrent.FutureTask.runAndReset$$$capture(FutureTask.java:308)
+	at java.util.concurrent.FutureTask.runAndReset(FutureTask.java)
+	at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.access$301(ScheduledThreadPoolExecutor.java:180)
+	at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:294)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:748)
+Caused by: org.apache.rocketmq.remoting.exception.RemotingSendRequestException: send request to </10.100.123.171:11911> failed
+	at org.apache.rocketmq.remoting.netty.ResponseFuture.executeInvokeCallback(ResponseFuture.java:70)
+	at org.apache.rocketmq.remoting.netty.NettyRemotingAbstract.lambda$executeInvokeCallback$2(NettyRemotingAbstract.java:410)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
+	at java.util.concurrent.FutureTask.run$$$capture(FutureTask.java:266)
+	at java.util.concurrent.FutureTask.run(FutureTask.java)
+	... 3 common frames omitted
+2025-10-30 19:08:20.245 WARN  [38924] [NettyEventExecutor] [o.a.r.c.i.f.MQClientInstance#?:?] - lock heartBeat, but failed. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.341 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - lock heartBeat, but failed. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.369 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.369 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.370 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.370 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.370 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.370 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.370 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.371 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.371 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.371 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.371 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.371 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.371 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.371 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.371 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.371 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.371 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.371 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.371 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.371 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.371 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.371 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.371 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.371 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.371 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.371 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.371 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.371 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.371 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.371 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.371 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.371 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.372 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.372 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.372 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.372 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.372 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.372 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.372 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.372 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.372 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.372 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.372 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.372 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.372 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.372 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.372 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.372 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.372 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.372 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.372 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.372 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.373 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.373 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.373 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.373 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.373 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.373 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.373 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.373 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.373 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.373 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.373 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.373 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.374 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.374 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.374 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.374 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.374 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.374 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.374 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.374 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.374 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.374 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.374 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.374 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.374 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.374 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.375 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.375 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.375 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.375 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.375 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.375 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.375 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.375 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.375 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.375 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.375 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.375 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.376 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.376 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.376 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.376 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.376 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.376 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.376 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.376 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.376 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.376 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.376 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.376 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.376 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.376 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.376 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.376 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.376 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.376 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.376 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.376 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.376 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.377 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.377 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.377 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.377 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.377 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.377 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.377 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.377 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:08:20.377 WARN  [38924] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - sending heartbeat, but no consumer and no producer. [172.0.3.165@38924#274209866630600]
+2025-10-30 19:09:58.296 WARN  [30004] [pool-14-thread-1] [i.l.c.ConnectionBuilder#?:?] - Cannot apply extended TCP keepalive options to channel type io.netty.channel.socket.nio.NioSocketChannel
+2025-10-30 19:09:58.890 WARN  [30004] [pool-14-thread-1] [i.l.c.ConnectionBuilder#?:?] - Cannot apply extended TCP keepalive options to channel type io.netty.channel.socket.nio.NioSocketChannel
+2025-10-30 19:09:58.938 WARN  [30004] [pool-14-thread-1] [i.l.c.ConnectionBuilder#?:?] - Cannot apply extended TCP keepalive options to channel type io.netty.channel.socket.nio.NioSocketChannel
+2025-10-30 19:56:49.511 WARN  [30004] [ClientHouseKeepingService] [RocketmqRemoting#?:?] - remove timeout request, ResponseFuture [responseCommand=null, sendRequestOK=true, cause=null, opaque=32, timeoutMillis=3000, invokeCallback=org.apache.rocketmq.remoting.netty.NettyRemotingAbstract$1@41017ea5, beginTimestamp=1761825362111, countDownLatch=java.util.concurrent.CountDownLatch@4fc688f5[Count = 1]]
+2025-10-30 19:57:49.624 WARN  [30004] [NettyClientWorkerThread_2] [RocketmqRemoting#?:?] - NETTY CLIENT PIPELINE: IDLE exception channel[addr=10.100.123.171:11911, id=b5ff7aaa]
+2025-10-30 19:57:20.479 WARN  [30004] [MQClientFactoryScheduledThread] [RocketmqRemoting#?:?] - invokeSync: close socket because of timeout, 3000ms, channel[addr=10.100.123.173:9876, id=f7dcfae8]
+2025-10-30 19:57:07.256 WARN  [30004] [NettyClientWorkerThread_1] [RocketmqRemoting#?:?] - receive response, cmd=RemotingCommand [code=0, language=JAVA, version=475, opaque=32, flag(B)=1, remark=null, extFields=null, serializeTypeCurrentRPC=JSON], but not matched any request, address=10.100.123.173:9876, channelId=f7dcfae8
+2025-10-30 19:57:49.625 WARN  [30004] [MQClientFactoryScheduledThread] [RocketmqRemoting#?:?] - invokeSync: wait response timeout exception, the channel[addr=10.100.123.173:9876, id=f7dcfae8]
+2025-10-30 19:57:49.625 ERROR [30004] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - updateTopicRouteInfoFromNameServer Exception
+org.apache.rocketmq.remoting.exception.RemotingTimeoutException: wait response on the channel </10.100.123.173:9876> timeout, 3000(ms)
+	at org.apache.rocketmq.remoting.netty.NettyRemotingAbstract.invokeSyncImpl(NettyRemotingAbstract.java:505)
+	at org.apache.rocketmq.remoting.netty.NettyRemotingClient.invokeSync(NettyRemotingClient.java:553)
+	at org.apache.rocketmq.client.impl.MQClientAPIImpl.getTopicRouteInfoFromNameServer(MQClientAPIImpl.java:2050)
+	at org.apache.rocketmq.client.impl.MQClientAPIImpl.getTopicRouteInfoFromNameServer(MQClientAPIImpl.java:2041)
+	at org.apache.rocketmq.client.impl.factory.MQClientInstance.updateTopicRouteInfoFromNameServer(MQClientInstance.java:782)
+	at org.apache.rocketmq.client.impl.factory.MQClientInstance.updateTopicRouteInfoFromNameServer(MQClientInstance.java:574)
+	at org.apache.rocketmq.client.impl.factory.MQClientInstance.updateTopicRouteInfoFromNameServer(MQClientInstance.java:411)
+	at org.apache.rocketmq.client.impl.factory.MQClientInstance.lambda$startScheduledTask$3(MQClientInstance.java:345)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
+	at java.util.concurrent.FutureTask.runAndReset$$$capture(FutureTask.java:308)
+	at java.util.concurrent.FutureTask.runAndReset(FutureTask.java)
+	at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.access$301(ScheduledThreadPoolExecutor.java:180)
+	at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:294)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:748)
+2025-10-30 19:57:49.629 ERROR [30004] [MQClientFactoryScheduledThread] [o.a.r.c.i.f.MQClientInstance#?:?] - ScheduledTask updateTopicRouteInfoFromNameServer exception
+java.lang.IllegalStateException: org.apache.rocketmq.remoting.exception.RemotingTimeoutException: wait response on the channel </10.100.123.173:9876> timeout, 3000(ms)
+	at org.apache.rocketmq.client.impl.factory.MQClientInstance.updateTopicRouteInfoFromNameServer(MQClientInstance.java:843)
+	at org.apache.rocketmq.client.impl.factory.MQClientInstance.updateTopicRouteInfoFromNameServer(MQClientInstance.java:574)
+	at org.apache.rocketmq.client.impl.factory.MQClientInstance.updateTopicRouteInfoFromNameServer(MQClientInstance.java:411)
+	at org.apache.rocketmq.client.impl.factory.MQClientInstance.lambda$startScheduledTask$3(MQClientInstance.java:345)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511)
+	at java.util.concurrent.FutureTask.runAndReset$$$capture(FutureTask.java:308)
+	at java.util.concurrent.FutureTask.runAndReset(FutureTask.java)
+	at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.access$301(ScheduledThreadPoolExecutor.java:180)
+	at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:294)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:748)
+Caused by: org.apache.rocketmq.remoting.exception.RemotingTimeoutException: wait response on the channel </10.100.123.173:9876> timeout, 3000(ms)
+	at org.apache.rocketmq.remoting.netty.NettyRemotingAbstract.invokeSyncImpl(NettyRemotingAbstract.java:505)
+	at org.apache.rocketmq.remoting.netty.NettyRemotingClient.invokeSync(NettyRemotingClient.java:553)
+	at org.apache.rocketmq.client.impl.MQClientAPIImpl.getTopicRouteInfoFromNameServer(MQClientAPIImpl.java:2050)
+	at org.apache.rocketmq.client.impl.MQClientAPIImpl.getTopicRouteInfoFromNameServer(MQClientAPIImpl.java:2041)
+	at org.apache.rocketmq.client.impl.factory.MQClientInstance.updateTopicRouteInfoFromNameServer(MQClientInstance.java:782)
+	... 11 common frames omitted
+2025-10-30 19:57:49.641 WARN  [30004] [NettyEventExecutor] [o.a.r.c.i.f.MQClientInstance#?:?] - lock heartBeat, but failed. [172.0.3.165@30004#278324009035900]
