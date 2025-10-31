@@ -34,47 +34,47 @@ import java.util.*;
 @Component
 @Slf4j
 public class DingDingTableSyncToDbJob extends AbstractSimpleElasticJob {
-    
+
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
-    
+
     @Resource
     private DingDingAiTableClient dingDingAiTableClient;
-    
+
     @Resource
     private DingDingTableSyncMapper dingDingTableSyncMapper;
-    
+
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         log.warn("钉钉AI表格数据同步作业开始执行");
         long startTime = System.currentTimeMillis();
-        
+
         try {
             JSONObject dingDingTableConfig = marketingCommonConfig.getDingDingTableConfig();
             if (CollectionUtils.isEmpty(dingDingTableConfig)) {
                 return;
             }
-            
+
             for (Map.Entry<String, Object> entry : dingDingTableConfig.entrySet()) {
                 String tableName = entry.getKey();
                 JSONObject tableConfig = (JSONObject) entry.getValue();
-                
+
                 try {
                     syncTableData(tableName, tableConfig);
                 } catch (Exception e) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage()
-                            , "钉钉AI表格数据同步作业异常，tableName：" + tableName), e);
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage(),
+                            "钉钉AI表格数据同步作业异常，tableName:" + tableName), e);
                 }
             }
-            
+
             long endTime = System.currentTimeMillis();
             log.warn("钉钉AI表格数据同步作业执行完成，耗时:{}ms", (endTime - startTime));
         } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage()
-                    , "钉钉AI表格数据同步作业异常"), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage(),
+                    "钉钉AI表格数据同步作业异常"), e);
         }
     }
-    
+
     /**
      * 同步单个表的数据
      * @param tableName   表名
@@ -87,9 +87,9 @@ public class DingDingTableSyncToDbJob extends AbstractSimpleElasticJob {
         String operatorId = tableConfig.getString("operatorId");
         String baseId = tableConfig.getString("baseId");
         String sheetId = tableConfig.getString("sheetId");
-        
-        if (StringUtils.isEmpty(appKey) || StringUtils.isEmpty(appSecret) || 
-            StringUtils.isEmpty(baseId) || StringUtils.isEmpty(sheetId)) {
+
+        if (StringUtils.isEmpty(appKey) || StringUtils.isEmpty(appSecret) ||
+                StringUtils.isEmpty(baseId) || StringUtils.isEmpty(sheetId)) {
             log.warn("表{}配置参数不完整，跳过同步", tableName);
             return;
         }
@@ -97,7 +97,8 @@ public class DingDingTableSyncToDbJob extends AbstractSimpleElasticJob {
         // 查询数据库表建表语句
         Map<String, Object> createTableResult = dingDingTableSyncMapper.getCreateTableSql(tableName);
         if (CollectionUtils.isEmpty(createTableResult)) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "获取表{" + tableName + "}建表语句失败，跳过同步"
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                    "获取表{" + tableName + "}建表语句失败，跳过同步"
                     , "钉钉AI表格数据同步作业异常"));
             return;
         }
@@ -115,17 +116,17 @@ public class DingDingTableSyncToDbJob extends AbstractSimpleElasticJob {
         List<String> systemFields = new ArrayList<>();
         // 解析建表语句，获取字段和注释
         parseCreateTableSql(createTableSql, commentToFieldMap, businessFields, systemFields);
-        
+
         // 获取AccessToken
         String accessToken = dingDingAiTableClient.getAccessToken(appKey, appSecret);
         if (StringUtils.isEmpty(accessToken)) {
             return;
         }
-        
+
         // 获取钉钉表格字段信息
         DingDingAiTableFieldsResponse fieldsResponse = dingDingAiTableClient.getSheetFields(
                 accessToken, baseId, sheetId, operatorId);
-        
+
         // 构建字段名到formatter的映射
         Map<String, String> fieldFormatterMap = new HashMap<>();
         if (fieldsResponse != null && !CollectionUtils.isEmpty(fieldsResponse.getValue())) {
@@ -136,7 +137,6 @@ public class DingDingTableSyncToDbJob extends AbstractSimpleElasticJob {
                 }
             }
         }
-        log.warn("表{}字段formatter映射: {}", tableName, fieldFormatterMap);
 
         // 获取钉钉数据记录
         List<String> allFieldNames = new ArrayList<>(businessFields);
@@ -144,23 +144,23 @@ public class DingDingTableSyncToDbJob extends AbstractSimpleElasticJob {
         List<Map<String, Object>> allRecords = fetchAllRecordsWithMapping(
                 accessToken, baseId, sheetId, operatorId, commentToFieldMap,
                 businessFields, fieldFormatterMap);
-        
+
         if (CollectionUtils.isEmpty(allRecords)) {
             return;
         }
-        
+
         log.warn("表{}获取到{}条数据记录", tableName, allRecords.size());
-        
+
         // 删除旧数据
         int deleteCount = dingDingTableSyncMapper.deleteAll(tableName);
         log.warn("删除表{}旧数据，删除条数: {}", tableName, deleteCount);
-        
+
         // 批量插入新数据
         batchInsertRecords(tableName, allFieldNames, allRecords);
-        
+
         log.warn("表{}数据同步完成，插入条数: {}", tableName, allRecords.size());
     }
-    
+
     /**
      * 解析建表语句，提取字段和注释
      * @param createTableSql    建表语句
@@ -249,16 +249,16 @@ public class DingDingTableSyncToDbJob extends AbstractSimpleElasticJob {
         // 用户信息缓存，避免重复调用钉钉接口
         Map<String, String> unionIdToUserIdCache = new HashMap<>();  // unionId -> userId
         Map<String, String> userIdToNameCache = new HashMap<>();     // userId -> userName
-        
+
         do {
             pageNum++;
             DingDingAiTableRecordsResponse response = dingDingAiTableClient.getSheetRecords(
                     accessToken, baseId, sheetId, operatorId, nextToken, 100);
-            
+
             if (response == null || CollectionUtils.isEmpty(response.getRecords())) {
                 break;
             }
-            
+
             log.warn("获取第{}页数据，记录数: {}", pageNum, response.getRecords().size());
 
             // 解析每条记录
@@ -347,20 +347,20 @@ public class DingDingTableSyncToDbJob extends AbstractSimpleElasticJob {
                     allRecords.add(rowData);
                 }
             }
-            
+
             // 检查是否有下一页
             nextToken = response.getHasMore() != null && response.getHasMore() ?
                     response.getNextToken() : null;
-            
+
         } while (!StringUtils.isEmpty(nextToken));
-        
+
         // 打印缓存统计
         log.warn("用户信息缓存统计 - unionId->userId缓存数: {}, userId->name缓存数: {}",
                 unionIdToUserIdCache.size(), userIdToNameCache.size());
 
         return allRecords;
     }
-    
+
     /**
      * 批量插入记录（使用MyBatis批量插入，每2000条一批）
      * @param tableName  表名
@@ -371,13 +371,13 @@ public class DingDingTableSyncToDbJob extends AbstractSimpleElasticJob {
         if (CollectionUtils.isEmpty(records)) {
             return;
         }
-        
+
         log.warn("开始批量插入数据，表名: {}, 字段数: {}, 记录数: {}", tableName, fieldNames.size(), records.size());
 
         // 分批插入（每批2000条）
         int batchSize = 500;
         int totalBatches = (records.size() + batchSize - 1) / batchSize;
-        
+
         for (int i = 0; i < totalBatches; i++) {
             int fromIndex = i * batchSize;
             int toIndex = Math.min((i + 1) * batchSize, records.size());
@@ -393,10 +393,10 @@ public class DingDingTableSyncToDbJob extends AbstractSimpleElasticJob {
                     }
                     valuesList.add(values);
                 }
-                
+
                 // 使用MyBatis批量插入
                 int insertCount = dingDingTableSyncMapper.batchInsertByValues(tableName, fieldNames, valuesList);
-                
+
                 log.warn("批量插入第{}/{}批，插入条数: {}", i + 1, totalBatches, insertCount);
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "批量写入数据异常" + e.getMessage()
@@ -404,7 +404,7 @@ public class DingDingTableSyncToDbJob extends AbstractSimpleElasticJob {
             }
         }
     }
-    
+
     /**
      * 判断是否为空行（只判断业务字段是否都为空）
      * @param rowData        行数据（Map形式）
@@ -415,7 +415,7 @@ public class DingDingTableSyncToDbJob extends AbstractSimpleElasticJob {
         if (CollectionUtils.isEmpty(rowData)) {
             return true;
         }
-        
+
         // 只判断业务字段是否都为空
         for (String businessField : businessFields) {
             Object value = rowData.get(businessField);
@@ -423,10 +423,10 @@ public class DingDingTableSyncToDbJob extends AbstractSimpleElasticJob {
                 return false;  // 只要有一个业务字段不为空，就不是空行
             }
         }
-        
+
         return true;  // 所有业务字段都为空
     }
-    
+
     /**
      * 格式化钉钉日期数据
      */
@@ -436,38 +436,38 @@ public class DingDingTableSyncToDbJob extends AbstractSimpleElasticJob {
             LocalDateTime dateTime = instant.atZone(ZoneId.systemDefault()).toLocalDateTime();
             return dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         }
-        
+
         LocalDateTime dateTime = instant.atZone(ZoneId.systemDefault()).toLocalDateTime();
         LocalDate date = dateTime.toLocalDate();
-        
+
         switch (formatter) {
             case "YYYY-MM-DD":
                 return date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-                
+
             case "YYYY-MM-DD HH:mm":
                 return dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-                
+
             case "YYYY-MM-DD HH:mm:ss":
                 return dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-                
+
             case "YYYY/MM/DD":
                 return date.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
-                
+
             case "YYYY/MM/DD HH:mm":
                 return dateTime.format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm"));
-                
+
             case "YYYY/MM/DD HH:mm:ss":
                 return dateTime.format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"));
-                
+
             case "YYYY年MM月DD日":
                 return date.format(DateTimeFormatter.ofPattern("yyyy年MM月dd日"));
-                
+
             case "YYYY年MM月":
                 return date.format(DateTimeFormatter.ofPattern("yyyy年MM月"));
-                
+
             case "MM月DD日":
                 return date.format(DateTimeFormatter.ofPattern("MM月dd日"));
-                
+
             default:
                 log.warn("未知的formatter格式: {}, 使用默认格式", formatter);
                 return dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
