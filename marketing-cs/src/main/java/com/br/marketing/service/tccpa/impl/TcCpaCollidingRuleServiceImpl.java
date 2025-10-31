@@ -17,9 +17,11 @@ import com.br.marketing.mapper.*;
 import com.br.marketing.service.tccpa.TcCpaCollidingRuleService;
 import com.br.marketing.service.tccpa.TcCpaCommonService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.vo.tccpa.TcyrCpaDeleteRuleVO;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -223,7 +225,8 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
                 taskDTO.setReleaseTimes(String.join(",", releaseTimeSet));
             }
         }
-        return PageResultReturn.setPageResult(dtos, dto.getCurrent(), dto.getSize());
+        PageInfo<TcyrCpaCollidingTask> pageInfo = new PageInfo<>(taskList);
+        return PageResultReturn.setPageResult(dtos, dto.getCurrent(), dto.getSize(), pageInfo.getTotal());
     }
 
     @Override
