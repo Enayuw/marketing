@@ -89,6 +89,11 @@ public class PushCustomerDTO {
     @ApiModelProperty(value = "推送系统类型")
     private Integer pushTarget;
 
+    @ApiModelProperty(value = "任务类型 0：跑分任务，1：上传任务")
+    private Integer taskType;
+
+    @ApiModelProperty(value = "上传记录id，多个用，分割")
+    private String uploadReportId;
 
     public Integer getmPrePlanNum() {
         return mPrePlanNum;
@@ -274,4 +279,21 @@ public class PushCustomerDTO {
     public void setPushTarget(Integer pushTarget) {
         this.pushTarget = pushTarget;
     }
+
+    public Integer getTaskType() {
+        return taskType;
+    }
+
+    public void setTaskType(Integer taskType) {
+        this.taskType = taskType;
+    }
+
+    public String getUploadReportId() {
+        return uploadReportId;
+    }
+
+    public void setUploadReportId(String uploadReportId) {
+        this.uploadReportId = uploadReportId;
+    }
+
 }

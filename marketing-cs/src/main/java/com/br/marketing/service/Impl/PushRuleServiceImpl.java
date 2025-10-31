@@ -634,36 +634,46 @@ public class PushRuleServiceImpl implements PushRuleService {
     private Result<PushViewVO> getTotal(PushCustomerDTO dto) {
         int total;
         PushViewVO pushViewVO = new PushViewVO();
-        if (isXieChengData(dto)) {
-            total = getXieChengDataNum(dto.getmRuleCondition(), dto.getBatchNumberList(), pushViewVO);
-        } else if (Objects.nonNull(dto.getIsScoreMerge()) && dto.getIsScoreMerge()) {
-            //合并跑分计算
-            long start = System.currentTimeMillis();
-            // 组装查询sql
-            String countSql = "SELECT COUNT(1) ".concat(ruleCenterLabelService.scoreMergeAssemble(dto));
-            // 执行查询获取统计数量
-            Integer count = tagDataRuleCalculateMapper.getCountbI_(countSql);
-            log.warn("跑分合并预览量级查询sql={}，耗时={}ms", countSql, System.currentTimeMillis() - start);
-            total = (count != null ? count : 0);
-        } else {
-            Result<PushViewVO> pushViewVOResult = this.queryFederation(dto, pushViewVO);
-            if (!ResultCode.SUCCESS.getValue().equals(pushViewVOResult.getCode())) {
-                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage(pushViewVOResult.getMessage());
+        Integer taskType = dto.getTaskType();
+        // 跑分任务
+        if(taskType == 0){
+            if (isXieChengData(dto)) {
+                total = getXieChengDataNum(dto.getmRuleCondition(), dto.getBatchNumberList(), pushViewVO);
+            } else if (Objects.nonNull(dto.getIsScoreMerge()) && dto.getIsScoreMerge()) {
+                //合并跑分计算
+                long start = System.currentTimeMillis();
+                // 组装查询sql
+                String countSql = "SELECT COUNT(1) ".concat(ruleCenterLabelService.scoreMergeAssemble(dto));
+                // 执行查询获取统计数量
+                Integer count = tagDataRuleCalculateMapper.getCountbI_(countSql);
+                log.warn("跑分合并预览量级查询sql={}，耗时={}ms", countSql, System.currentTimeMillis() - start);
+                total = (count != null ? count : 0);
+            } else {
+                Result<PushViewVO> pushViewVOResult = this.queryFederation(dto, pushViewVO);
+                if (!ResultCode.SUCCESS.getValue().equals(pushViewVOResult.getCode())) {
+                    return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage(pushViewVOResult.getMessage());
+                }
+                total = pushViewVOResult.getData().getTotal();
             }
-            total = pushViewVOResult.getData().getTotal();
-        }
-        if (total <= 0) {
-            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("无符合的数据");
-        }
-        if (dto.getmPercentage() != null) {
-            if (dto.getmPercentage().compareTo(new BigDecimal(0)) <= 0) {
-                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("百分比不能小于等于0");
+            if (total <= 0) {
+                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("无符合的数据");
             }
-            Integer res = dto.getmPercentage().multiply(new BigDecimal(total)).setScale(0, RoundingMode.UP).intValue();
-            return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
+            if (dto.getmPercentage() != null) {
+                if (dto.getmPercentage().compareTo(new BigDecimal(0)) <= 0) {
+                    return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("百分比不能小于等于0");
+                }
+                Integer res = dto.getmPercentage().multiply(new BigDecimal(total)).setScale(0, RoundingMode.UP).intValue();
+                return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
+            }
+            pushViewVO.setTotal(total);
+            return new Result<PushViewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushViewVO);
+        }else {
+            String uploadReportId = dto.getUploadReportId();
+
+
+
+            return new Result<PushViewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushViewVO);
         }
-        pushViewVO.setTotal(total);
-        return new Result<PushViewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushViewVO);
     }
 
     @Override
