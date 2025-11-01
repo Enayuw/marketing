@@ -85,6 +85,7 @@ import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.service.rulecenter.IEsActionService;
 import com.br.marketing.service.rulecenter.IRuleCenterFilterTemplateService;
 import com.br.marketing.service.rulecenter.RuleCenterBySourceTypeFactory;
+import com.br.marketing.service.rulecenter.enums.RuleCenterPushTargetEnum;
 import com.br.marketing.service.rulecenter.impl.push.UploadRePushPolicyStrategy;
 import com.br.marketing.service.tag.calculate.TagHandleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -556,6 +557,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (dto.getmPercentage() != null && dto.getmPercentage().compareTo(new BigDecimal(0)) <= 0) {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("百分比不能小于等于0");
         }
+
+        Integer taskType = dto.getTaskType();
         StraHisFileExample fileExample = new StraHisFileExample();
         fileExample.createCriteria().andIdIn(dto.getFileIdList());
         List<StraHisFile> files = straHisFileMapper.selectByExample(fileExample);
@@ -605,6 +608,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (Objects.nonNull(dto.getIsScoreMerge()) && dto.getIsScoreMerge()) {
             customerInfoPushMain.setPushTarget(2);
             customerInfoPushMain.setExtend(dto.getScoreMergeField());
+        }else if(taskType == 1){
+            customerInfoPushMain.setPushTarget(RuleCenterPushTargetEnum.UPLOAD_REPUSH_POLICY.getCode());
         }
         customerInfoPushMainMapper.insertSelective(customerInfoPushMain);
         //数据集名称更新

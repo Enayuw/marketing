@@ -62,7 +62,12 @@ public class PushInfoServiceImpl implements PushInfoService {
     public PageResultReturn getPushInfoList(PushInfoFilterDTO dto) {
         final char ch = ',';
         PageHelper.startPage(dto.getCurrent(), dto.getSize());
-        List<PushInfoListVO> list = customerInfoPushMainMapper.getPushInfoList(dto);
+        List<PushInfoListVO> list= new ArrayList<>();
+        if(dto.getTaskType() == 1){
+            list = customerInfoPushMainMapper.getPushInfoListByType(dto);
+        }else {
+            list = customerInfoPushMainMapper.getPushInfoList(dto);
+        }
         List<Long> ids = list.stream().map(t -> t.getId()).collect(Collectors.toList());
         List<String> failStatusIds =list.stream().filter(t->t.getmStatus().equals(5)).map(t->String.valueOf(t.getId())).collect(Collectors.toList());
         if(ids.size()>0) {
