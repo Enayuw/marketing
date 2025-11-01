@@ -608,7 +608,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (Objects.nonNull(dto.getIsScoreMerge()) && dto.getIsScoreMerge()) {
             customerInfoPushMain.setPushTarget(2);
             customerInfoPushMain.setExtend(dto.getScoreMergeField());
-        }else if(taskType == 1){
+        }else if(Objects.equals(taskType, TaskTypeEnum.UPLOAD_TASKS.getValue())){
             customerInfoPushMain.setPushTarget(RuleCenterPushTargetEnum.UPLOAD_REPUSH_POLICY.getCode());
         }
         customerInfoPushMainMapper.insertSelective(customerInfoPushMain);
@@ -648,7 +648,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         PushViewVO pushViewVO = new PushViewVO();
         Integer taskType = dto.getTaskType();
         // 跑分任务
-        if(taskType == 0){
+        if(Objects.equals(taskType, TaskTypeEnum.SCORE_TASK.getValue())){
             if (isXieChengData(dto)) {
                 total = getXieChengDataNum(dto.getmRuleCondition(), dto.getBatchNumberList(), pushViewVO);
             } else if (Objects.nonNull(dto.getIsScoreMerge()) && dto.getIsScoreMerge()) {
