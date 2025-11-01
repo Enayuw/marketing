@@ -396,7 +396,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                     CostPriceExRecord costPriceExRecord = new CostPriceExRecord();
                     costPriceExRecord.setJsonData(JSONObject.toJSONString(lineCost));
                     costPriceExRecord.setType(2);
-                    costPriceExRecord.setReason("供应商" + lineCost.getLineSupplier() + "主叫号码:" + lineCost.getCaller()+",在线路侧不存在");
+                    costPriceExRecord.setReason("供应商:" + lineCost.getLineSupplier() + "主叫号码:" + lineCost.getCaller()+",在线路侧不存在");
                     costPriceExRecordMapper.insert(costPriceExRecord);
                     List<CostPriceExRecord> costPriceExRecordList = linsCostAlarmDto.getCostPriceExRecordList();
                     costPriceExRecordList.add(costPriceExRecord);
@@ -420,7 +420,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                                 CostPriceExRecord costPriceExRecord = new CostPriceExRecord();
                                 costPriceExRecord.setJsonData(JSONObject.toJSONString(lineCost));
                                 costPriceExRecord.setType(2);
-                                costPriceExRecord.setReason("供应商:" + lineCost.getLineSupplier() + "主叫项目:" + lineCost.getCaller()  + ",新增失败,请检查");
+                                costPriceExRecord.setReason("供应商:" + lineCost.getLineSupplier() + "主叫号码:" + lineCost.getCaller()  + ",新增失败,请检查");
                                 JSONObject extendObj = JSONObject.parseObject(JSONObject.toJSONString(lineDto));
                                 extendObj.put("failMsg", result.getMessage());
                                 costPriceExRecord.setExtend(extendObj.toJSONString());
@@ -540,6 +540,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
             List<CostPriceExRecord> costPriceExRecordList = smsCostAlarmDto.getCostPriceExRecordList();
             costPriceExRecordList.add(costPriceExRecord);
             smsCostAlarmDto.setCostPriceExRecordList(costPriceExRecordList);
+            return false;
         }
         return true;
     }
@@ -580,7 +581,6 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                 }
             }
             reasonBuilder.append(",请检查");
-
             costPriceExRecord.setReason(reasonBuilder.toString());
             costPriceExRecordMapper.insert(costPriceExRecord);
             List<CostPriceExRecord> costPriceExRecordList = linsCostAlarmDto.getCostPriceExRecordList();
