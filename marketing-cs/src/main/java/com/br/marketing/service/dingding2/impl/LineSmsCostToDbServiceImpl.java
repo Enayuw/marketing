@@ -513,21 +513,21 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                 if (lineNameInvalid) {
                     reasonBuilder.append("供应商/短信线路名称为空");
                 } else {
-                    reasonBuilder.append("短信线路").append(smsCost.getLineName()).append("的供应商为空");
+                    reasonBuilder.append("短信线路").append(smsCost.getLineName()).append("的供应商");
                     if (effectDateInvalid) {
-                        reasonBuilder.append("/有效期为空");
+                        reasonBuilder.append("/有效期");
                     }
                     if (priceInvalid) {
-                        reasonBuilder.append("/单价为空或不合法");
+                        reasonBuilder.append("/单价为空或格式不合法");
                     }
                 }
             } else {
                 reasonBuilder.append("供应商").append(smsCost.getLineSupplier()).append("的");
                 if (lineNameInvalid) {
-                    reasonBuilder.append("短信线路名称为空");
+                    reasonBuilder.append("短信线路名称");
                 }
                 if (priceInvalid) {
-                    reasonBuilder.append("/单价为空");
+                    reasonBuilder.append("/单价");
                 }
                 if (effectDateInvalid) {
                     reasonBuilder.append("/有效期为空或格式不合法");
@@ -560,9 +560,9 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                 if (callerInvalid) {
                     reasonBuilder.append("供应商/主叫号码为空");
                 }else {
-                    reasonBuilder.append("主叫号码").append(lineCost.getCaller()).append("的供应商为空");
+                    reasonBuilder.append("主叫号码").append(lineCost.getCaller()).append("的供应商");
                     if (priceInvalid) {
-                        reasonBuilder.append("/单价为空");
+                        reasonBuilder.append("/单价");
                     }
                     if (dateInvalid) {
                         reasonBuilder.append("/有效期为空或不合法");
@@ -570,10 +570,10 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                 }
             }else {
                 if (callerInvalid) {
-                    reasonBuilder.append("供应商").append(lineCost.getLineSupplier()).append("的主叫号码为空");
+                    reasonBuilder.append("供应商").append(lineCost.getLineSupplier()).append("的主叫号码");
                 }
                 if (priceInvalid) {
-                    reasonBuilder.append("/单价为空");
+                    reasonBuilder.append("/单价");
                 }
                 if (dateInvalid) {
                     reasonBuilder.append("/有效期为空或不合法");
