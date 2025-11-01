@@ -2,6 +2,7 @@ package com.br.marketing.service.dingding2.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.MiddleHeavenAviatorScriptApiClient;
 import com.br.marketing.client.ibmpapi.IbmpApiServiceClient;
 import com.br.marketing.client.ibmpapi.outpu.TransferIbmpOutboundVO;
@@ -10,6 +11,7 @@ import com.br.marketing.client.robotaiapi.input.TransferJsonDataDTO;
 import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.dto.DdLineBaseInfoDto;
@@ -42,6 +44,8 @@ import java.util.stream.Collectors;
 @Component
 @Slf4j
 public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
+
+    private final static String TITLE = "【短信/线路-钉钉文档配置入库任务】";
 
     private static final String smsMethod ="getSmsVendors";
     private static final String smsApiCode = "3710012";
@@ -305,61 +309,67 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
 
     private void smsCostCompareAndDbDeal(List<DdDataSmsCostPrice> ddDataSmsCostPriceList, List<DdSmsBaseInfoDto>  smsBaseInfoList, DdLinsSmsCostAlarmDto smsCostAlarmDto) {
         ddDataSmsCostPriceList.forEach(smsCost -> {
-            //1.钉钉文档参数校验
-            boolean smsDdParamCheck = smsDdParamCheck(smsCost,smsCostAlarmDto);
-            if (!smsDdParamCheck) {
-                return;
-            }
-
-            //2.数据过滤
-            List<DdSmsBaseInfoDto> filterList = smsBaseInfoList.stream()
-                    .filter(dto -> smsCost.getLineSupplier().equals(dto.getVendorName())
-                            && smsCost.getLineName().equals(dto.getChannelName()))
-                    .collect(Collectors.toList());
-            //3.配置数据在"短信基础信息接口"不存在
-            if (filterList.isEmpty()) {
-                CostPriceExRecord costPriceExRecord = new CostPriceExRecord();
-                costPriceExRecord.setJsonData(JSONObject.toJSONString(smsCost));
-                costPriceExRecord.setType(1);
-                costPriceExRecord.setReason("供应商:"+smsCost.getLineSupplier()+"线路:"+smsCost.getLineName()+",在短信侧不存在");
-                costPriceExRecordMapper.insert(costPriceExRecord);
-                List<CostPriceExRecord> costPriceExRecordList = smsCostAlarmDto.getCostPriceExRecordList();
-                costPriceExRecordList.add(costPriceExRecord);
-                smsCostAlarmDto.setCostPriceExRecordList(costPriceExRecordList);
-                smsCostAlarmDto.setFailCount(smsCostAlarmDto.getFailCount() + 1);
-                return;
-            }
-            filterList.forEach(smsDto -> {
-                // 4.判断数据库配置 是否存在(存在跳过，不存在插入)
-                Long count = smsAccountDetailMapper.selectCount(smsDto.getVendorId(),smsDto.getChannelId());
-                if (count == 0) {
-                    fillThreadLocalUserInfo(0,smsCost.getLastModifiedUserName(),smsCost.getLastModifiedUserId());
-                    SmsAccountDto smsAccountDto = fillSmsAccountInfo(smsCost,smsDto);
-                    try {
-                        Result result = lineSmsAccountService.addSmsAccount(smsAccountDto);
-                        if (result.isSuccess()) {
-                            smsCostAlarmDto.setSuccessCost(smsCostAlarmDto.getSuccessCost() + 1);
-                        }else {
-                            // TODO 记录因为保存失败导致存储失败
-                            CostPriceExRecord costPriceExRecord = new CostPriceExRecord();
-                            costPriceExRecord.setJsonData(JSONObject.toJSONString(smsCost));
-                            costPriceExRecord.setType(1);
-                            costPriceExRecord.setReason("供应商:"+smsCost.getLineSupplier()+"线路:"+smsCost.getLineName()+"新增失败,请检查");
-                            JSONObject extendObj =JSONObject.parseObject(JSONObject.toJSONString(smsDto));
-                            extendObj.put("failMsg",result.getMessage());
-                            costPriceExRecord.setExtend(extendObj.toJSONString());
-                            //costPriceExRecordMapper.insert(costPriceExRecord);
-                            List<CostPriceExRecord> costPriceExRecordList = smsCostAlarmDto.getCostPriceExRecordList();
-                            costPriceExRecordList.add(costPriceExRecord);
-                            smsCostAlarmDto.setCostPriceExRecordList(costPriceExRecordList);
-                            smsCostAlarmDto.setFailCount(smsCostAlarmDto.getFailCount() + 1);
-                        }
-                    ThreadContextInfo.removeUser();
-                    } catch (Exception e) {
-                            //TODO 日志
-                    }
+            try{
+                //1.钉钉文档参数校验
+                boolean smsDdParamCheck = smsDdParamCheck(smsCost,smsCostAlarmDto);
+                if (!smsDdParamCheck) {
+                    return;
                 }
-            });
+
+                //2.数据过滤
+                List<DdSmsBaseInfoDto> filterList = smsBaseInfoList.stream()
+                        .filter(dto -> smsCost.getLineSupplier().equals(dto.getVendorName())
+                                && smsCost.getLineName().equals(dto.getChannelName()))
+                        .collect(Collectors.toList());
+                //3.配置数据在"短信基础信息接口"不存在
+                if (filterList.isEmpty()) {
+                    CostPriceExRecord costPriceExRecord = new CostPriceExRecord();
+                    costPriceExRecord.setJsonData(JSONObject.toJSONString(smsCost));
+                    costPriceExRecord.setType(1);
+                    costPriceExRecord.setReason("供应商:"+smsCost.getLineSupplier()+"线路:"+smsCost.getLineName()+",在短信侧不存在");
+                    costPriceExRecordMapper.insert(costPriceExRecord);
+                    List<CostPriceExRecord> costPriceExRecordList = smsCostAlarmDto.getCostPriceExRecordList();
+                    costPriceExRecordList.add(costPriceExRecord);
+                    smsCostAlarmDto.setCostPriceExRecordList(costPriceExRecordList);
+                    smsCostAlarmDto.setFailCount(smsCostAlarmDto.getFailCount() + 1);
+                    return;
+                }
+                filterList.forEach(smsDto -> {
+                    // 4.判断数据库配置 是否存在(存在跳过，不存在插入)
+                    Long count = smsAccountDetailMapper.selectCount(smsDto.getVendorId(),smsDto.getChannelId());
+                    if (count == 0) {
+                        fillThreadLocalUserInfo(0,smsCost.getLastModifiedUserName(),smsCost.getLastModifiedUserId());
+                        SmsAccountDto smsAccountDto = fillSmsAccountInfo(smsCost,smsDto);
+                        try {
+                            Result result = lineSmsAccountService.addSmsAccount(smsAccountDto);
+                            if (result.isSuccess()) {
+                                smsCostAlarmDto.setSuccessCost(smsCostAlarmDto.getSuccessCost() + 1);
+                            }else {
+                                // TODO 记录因为保存失败导致存储失败
+                                CostPriceExRecord costPriceExRecord = new CostPriceExRecord();
+                                costPriceExRecord.setJsonData(JSONObject.toJSONString(smsCost));
+                                costPriceExRecord.setType(1);
+                                costPriceExRecord.setReason("供应商:"+smsCost.getLineSupplier()+"线路:"+smsCost.getLineName()+"新增失败,请检查");
+                                JSONObject extendObj =JSONObject.parseObject(JSONObject.toJSONString(smsDto));
+                                extendObj.put("failMsg",result.getMessage());
+                                costPriceExRecord.setExtend(extendObj.toJSONString());
+                                //costPriceExRecordMapper.insert(costPriceExRecord);
+                                List<CostPriceExRecord> costPriceExRecordList = smsCostAlarmDto.getCostPriceExRecordList();
+                                costPriceExRecordList.add(costPriceExRecord);
+                                smsCostAlarmDto.setCostPriceExRecordList(costPriceExRecordList);
+                                smsCostAlarmDto.setFailCount(smsCostAlarmDto.getFailCount() + 1);
+                            }
+                            ThreadContextInfo.removeUser();
+                        } catch (Exception e) {
+                            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MARKETING_AVIATORSCRIPT_LINESMS_ERROR.getCode(),
+                                    JSONObject.toJSONString(smsCost)+e.getMessage(), TITLE), e);
+                        }
+                    }
+                });
+            }catch (Exception e){
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MARKETING_AVIATORSCRIPT_LINESMS_ERROR.getCode(),
+                        JSONObject.toJSONString(smsCost)+e.getMessage(), TITLE), e);
+            }
         });
     }
 
@@ -367,64 +377,71 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
 
     private void lineCostCompareAndDbDeal(List<DdDataLineCostPrice> ddDataLineCostPriceList, List<DdLineBaseInfoDto> ddLineBaseInfoDtoList, DdLinsSmsCostAlarmDto linsCostAlarmDto) {
         ddDataLineCostPriceList.forEach(lineCost -> {
-            // 1. 钉钉文档参数校验
-            boolean lineDdParamCheck = lineDdParamCheck(lineCost, linsCostAlarmDto);
-            if (!lineDdParamCheck) {
-                return;
-            }
-            // 2. 数据过滤
-            List<DdLineBaseInfoDto> filterList = ddLineBaseInfoDtoList.stream()
-                    .filter(dto -> lineCost.getLineSupplier().equals(dto.getLineSupplier())
-                            && lineCost.getCaller().equals(dto.getCaller())
-                            && (lineCost.getProjectName() == null || lineCost.getProjectName().equals("") ||
-                            lineCost.getProjectName().equals(dto.getProjectName())))
-                    .collect(Collectors.toList());
-
-            // 3. 配置数据在"线路基础信息接口"不存在
-            if (filterList.isEmpty()) {
-                CostPriceExRecord costPriceExRecord = new CostPriceExRecord();
-                costPriceExRecord.setJsonData(JSONObject.toJSONString(lineCost));
-                costPriceExRecord.setType(2);
-                costPriceExRecord.setReason("供应商" + lineCost.getLineSupplier() + "主叫号码:" + lineCost.getCaller()+",在线路侧不存在");
-                costPriceExRecordMapper.insert(costPriceExRecord);
-                List<CostPriceExRecord> costPriceExRecordList = linsCostAlarmDto.getCostPriceExRecordList();
-                costPriceExRecordList.add(costPriceExRecord);
-                linsCostAlarmDto.setCostPriceExRecordList(costPriceExRecordList);
-                linsCostAlarmDto.setFailCount(linsCostAlarmDto.getFailCount() + 1);
-                return;
-            }
-
-            // 4. 判断数据库配置 是否存在(存在跳过，不存在插入)
-            filterList.forEach(lineDto -> {
-                Long count = lineAccountDetailMapper.selectCount(lineDto.getGatewayId());
-                if (count == 0) {
-                    fillThreadLocalUserInfo(0,lineCost.getLastModifiedUserName(),lineCost.getLastModifiedUserId());
-                    LineAccountDto lineAccountDto = fillLineAccountInfo(lineCost, lineDto);
-                    try {
-                        Result result = lineSmsAccountService.addLineAccount(lineAccountDto);
-                        if (result.isSuccess()) {
-                            linsCostAlarmDto.setSuccessCost(linsCostAlarmDto.getSuccessCost() + 1);
-                        } else {
-                            // 记录因为保存失败导致存储失败
-                            CostPriceExRecord costPriceExRecord = new CostPriceExRecord();
-                            costPriceExRecord.setJsonData(JSONObject.toJSONString(lineCost));
-                            costPriceExRecord.setType(2);
-                            costPriceExRecord.setReason("供应商:" + lineCost.getLineSupplier() + "主叫项目:" + lineCost.getCaller()  + ",新增失败,请检查");
-                            JSONObject extendObj = JSONObject.parseObject(JSONObject.toJSONString(lineDto));
-                            extendObj.put("failMsg", result.getMessage());
-                            costPriceExRecord.setExtend(extendObj.toJSONString());
-                            //costPriceExRecordMapper.insert(costPriceExRecord);
-                            List<CostPriceExRecord> costPriceExRecordList = linsCostAlarmDto.getCostPriceExRecordList();
-                            costPriceExRecordList.add(costPriceExRecord);
-                            linsCostAlarmDto.setCostPriceExRecordList(costPriceExRecordList);
-                            linsCostAlarmDto.setFailCount(linsCostAlarmDto.getFailCount() + 1);
-                        }
-                    ThreadContextInfo.removeUser();
-                    } catch (Exception e) {
-                        log.error("lineCostCompareAndDbDeal exception", e);
-                    }
+            try{
+                // 1. 钉钉文档参数校验
+                boolean lineDdParamCheck = lineDdParamCheck(lineCost, linsCostAlarmDto);
+                if (!lineDdParamCheck) {
+                    return;
                 }
-            });
+                // 2. 数据过滤
+                List<DdLineBaseInfoDto> filterList = ddLineBaseInfoDtoList.stream()
+                        .filter(dto -> lineCost.getLineSupplier().equals(dto.getLineSupplier())
+                                && lineCost.getCaller().equals(dto.getCaller())
+                                && (lineCost.getProjectName() == null || lineCost.getProjectName().equals("") ||
+                                lineCost.getProjectName().equals(dto.getProjectName())))
+                        .collect(Collectors.toList());
+
+                // 3. 配置数据在"线路基础信息接口"不存在
+                if (filterList.isEmpty()) {
+                    CostPriceExRecord costPriceExRecord = new CostPriceExRecord();
+                    costPriceExRecord.setJsonData(JSONObject.toJSONString(lineCost));
+                    costPriceExRecord.setType(2);
+                    costPriceExRecord.setReason("供应商" + lineCost.getLineSupplier() + "主叫号码:" + lineCost.getCaller()+",在线路侧不存在");
+                    costPriceExRecordMapper.insert(costPriceExRecord);
+                    List<CostPriceExRecord> costPriceExRecordList = linsCostAlarmDto.getCostPriceExRecordList();
+                    costPriceExRecordList.add(costPriceExRecord);
+                    linsCostAlarmDto.setCostPriceExRecordList(costPriceExRecordList);
+                    linsCostAlarmDto.setFailCount(linsCostAlarmDto.getFailCount() + 1);
+                    return;
+                }
+
+                // 4. 判断数据库配置 是否存在(存在跳过，不存在插入)
+                filterList.forEach(lineDto -> {
+                    Long count = lineAccountDetailMapper.selectCount(lineDto.getGatewayId());
+                    if (count == 0) {
+                        fillThreadLocalUserInfo(0,lineCost.getLastModifiedUserName(),lineCost.getLastModifiedUserId());
+                        LineAccountDto lineAccountDto = fillLineAccountInfo(lineCost, lineDto);
+                        try {
+                            Result result = lineSmsAccountService.addLineAccount(lineAccountDto);
+                            if (result.isSuccess()) {
+                                linsCostAlarmDto.setSuccessCost(linsCostAlarmDto.getSuccessCost() + 1);
+                            } else {
+                                // 记录因为保存失败导致存储失败
+                                CostPriceExRecord costPriceExRecord = new CostPriceExRecord();
+                                costPriceExRecord.setJsonData(JSONObject.toJSONString(lineCost));
+                                costPriceExRecord.setType(2);
+                                costPriceExRecord.setReason("供应商:" + lineCost.getLineSupplier() + "主叫项目:" + lineCost.getCaller()  + ",新增失败,请检查");
+                                JSONObject extendObj = JSONObject.parseObject(JSONObject.toJSONString(lineDto));
+                                extendObj.put("failMsg", result.getMessage());
+                                costPriceExRecord.setExtend(extendObj.toJSONString());
+                                //costPriceExRecordMapper.insert(costPriceExRecord);
+                                List<CostPriceExRecord> costPriceExRecordList = linsCostAlarmDto.getCostPriceExRecordList();
+                                costPriceExRecordList.add(costPriceExRecord);
+                                linsCostAlarmDto.setCostPriceExRecordList(costPriceExRecordList);
+                                linsCostAlarmDto.setFailCount(linsCostAlarmDto.getFailCount() + 1);
+                            }
+                            ThreadContextInfo.removeUser();
+                        } catch (Exception e) {
+                            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MARKETING_AVIATORSCRIPT_LINESMS_ERROR.getCode(),
+                                    JSONObject.toJSONString(lineCost)+e.getMessage(), TITLE), e);
+                        }
+                    }
+                });
+            }catch (Exception e){
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MARKETING_AVIATORSCRIPT_LINESMS_ERROR.getCode(),
+                        JSONObject.toJSONString(lineCost)+e.getMessage(), TITLE), e);
+            }
+
         });
     }
 
@@ -496,33 +513,33 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                 if (lineNameInvalid) {
                     reasonBuilder.append("供应商/短信线路名称为空");
                 } else {
-                    reasonBuilder.append("短信线路名称").append(smsCost.getLineName()).append("的供应商为空");
+                    reasonBuilder.append("短信线路").append(smsCost.getLineName()).append("的供应商为空");
                     if (effectDateInvalid) {
-                        reasonBuilder.append(",有效期为空");
+                        reasonBuilder.append("/有效期为空");
                     }
                     if (priceInvalid) {
-                        reasonBuilder.append(",单价为空/不合法");
+                        reasonBuilder.append("/单价为空或不合法");
                     }
                 }
             } else {
+                reasonBuilder.append("供应商").append(smsCost.getLineSupplier()).append("的");
                 if (lineNameInvalid) {
-                    reasonBuilder.append("供应商").append(smsCost.getLineSupplier()).append("的短信线路名称为空");
+                    reasonBuilder.append("短信线路名称为空");
                 }
                 if (priceInvalid) {
-                    reasonBuilder.append(",单价为空");
+                    reasonBuilder.append("/单价为空");
                 }
                 if (effectDateInvalid) {
-                    reasonBuilder.append(",有效期为空/格式不合法");
+                    reasonBuilder.append("/有效期为空或格式不合法");
                 }
                 reasonBuilder.append(",请检查");
-                costPriceExRecord.setReason(reasonBuilder.toString());
-                costPriceExRecordMapper.insertSelective(costPriceExRecord);
-
-                smsCostAlarmDto.setFailCount(smsCostAlarmDto.getFailCount() + 1);
-                List<CostPriceExRecord> costPriceExRecordList = smsCostAlarmDto.getCostPriceExRecordList();
-                costPriceExRecordList.add(costPriceExRecord);
-                smsCostAlarmDto.setCostPriceExRecordList(costPriceExRecordList);
             }
+            costPriceExRecord.setReason(reasonBuilder.toString());
+            costPriceExRecordMapper.insertSelective(costPriceExRecord);
+            smsCostAlarmDto.setFailCount(smsCostAlarmDto.getFailCount() + 1);
+            List<CostPriceExRecord> costPriceExRecordList = smsCostAlarmDto.getCostPriceExRecordList();
+            costPriceExRecordList.add(costPriceExRecord);
+            smsCostAlarmDto.setCostPriceExRecordList(costPriceExRecordList);
         }
         return true;
     }
@@ -539,17 +556,16 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
 
         if (supplierInvalid || callerInvalid || dateInvalid || priceInvalid) {
             StringBuilder reasonBuilder = new StringBuilder();
-
             if (supplierInvalid) {
                 if (callerInvalid) {
                     reasonBuilder.append("供应商/主叫号码为空");
                 }else {
                     reasonBuilder.append("主叫号码").append(lineCost.getCaller()).append("的供应商为空");
                     if (priceInvalid) {
-                        reasonBuilder.append(",单价为空");
+                        reasonBuilder.append("/单价为空");
                     }
                     if (dateInvalid) {
-                        reasonBuilder.append(",有效期为空/不合法");
+                        reasonBuilder.append("/有效期为空或不合法");
                     }
                 }
             }else {
@@ -557,10 +573,10 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                     reasonBuilder.append("供应商").append(lineCost.getLineSupplier()).append("的主叫号码为空");
                 }
                 if (priceInvalid) {
-                    reasonBuilder.append(",单价为空");
+                    reasonBuilder.append("/单价为空");
                 }
                 if (dateInvalid) {
-                    reasonBuilder.append(",有效期为空/不合法");
+                    reasonBuilder.append("/有效期为空或不合法");
                 }
             }
             reasonBuilder.append(",请检查");

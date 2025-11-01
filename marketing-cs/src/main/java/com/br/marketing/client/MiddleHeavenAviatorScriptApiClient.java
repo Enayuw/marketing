@@ -35,7 +35,7 @@ public class MiddleHeavenAviatorScriptApiClient {
             Header[] headers = new Header[] {
                     new BasicHeader("Content-Type", "application/json"),
             };
-            HashMap<String, String> resultMap = httpProxyClient.sendByCodeWithLogWithHeader(requestJson,httpUrl,true,
+            HashMap<String, String> resultMap = httpProxyClient.sendByCodeWithLogWithHeader(requestJson,httpUrl,isProxy,
                     MediaType.APPLICATION_JSON_UTF8_VALUE,"",true,false,headers);
             log.warn("dealAviatorScriptRequest,httpUrl:{},isProxy:{},requestParam:{},result:{}",httpUrl,isProxy,
                     requestJson.toJSONString(),JSONObject.toJSONString(resultMap));
@@ -58,11 +58,11 @@ public class MiddleHeavenAviatorScriptApiClient {
                     result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(resultContentStr);
                 }
             }catch (Exception ex){
-                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.MARKETING_AVIATOR_SCRIPT_ERROR.getCode(), ex.getMessage()), ex);
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.MARKETING_AVIATORSCRIPT_LINESMS_ERROR.getCode(), ex.getMessage()), ex);
                 result.setCode(ResultCode.FAIL.getValue()).setMessage(resultContentStr);
             }
         } catch (Exception ex) {
-            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.MARKETING_AVIATOR_SCRIPT_ERROR.getCode(), ex.getMessage()), ex);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.MARKETING_AVIATORSCRIPT_LINESMS_ERROR.getCode(), ex.getMessage()), ex);
             result.setCode(ResultCode.FAIL.getValue());
         }
         return result;
