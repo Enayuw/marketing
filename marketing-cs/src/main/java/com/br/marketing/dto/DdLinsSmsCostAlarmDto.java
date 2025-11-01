@@ -7,7 +7,7 @@ import java.util.List;
 
 @Data
 public class DdLinsSmsCostAlarmDto {
-    private String cardName;
+    private String cardTitle;
     private Integer totalCount;
     private Integer successCost;
     private Integer failCount;

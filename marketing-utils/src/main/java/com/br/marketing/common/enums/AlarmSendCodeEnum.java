@@ -350,6 +350,8 @@ public enum AlarmSendCodeEnum {
 
     POLLING_GROUP_EXCEPTION("8001003", "轮询开发组异常"),
 
+    MARKETING_AVIATOR_SCRIPT_ERROR("8001004", "哈啰3710217营销回传失败"),
+
     ;
 
     /**

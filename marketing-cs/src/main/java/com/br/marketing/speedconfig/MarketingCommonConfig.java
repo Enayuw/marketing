@@ -3507,7 +3507,7 @@ public class MarketingCommonConfig {
 
     /**
      * 钉钉AI表格数据同步接口配置
-     * {"searchSize":50000}
+     * {"searchSize":50000,"smsCardTitle":"短信钉钉文档入库","lineCardTitle":"线路钉钉文档入库","isProxy":false,"aviatorScriptUrl":""}
      */
     private JSONObject linsSmsCostToDbConfig;
 

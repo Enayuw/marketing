@@ -2,6 +2,7 @@ package com.br.marketing.service.dingding2.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.client.MiddleHeavenAviatorScriptApiClient;
 import com.br.marketing.client.ibmpapi.IbmpApiServiceClient;
 import com.br.marketing.client.ibmpapi.outpu.TransferIbmpOutboundVO;
 import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
@@ -10,6 +11,7 @@ import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.dto.DdLineBaseInfoDto;
 import com.br.marketing.dto.DdLinsSmsCostAlarmDto;
 import com.br.marketing.dto.DdSmsBaseInfoDto;
@@ -17,6 +19,7 @@ import com.br.marketing.dto.account.*;
 import com.br.marketing.entity.CostPriceExRecord;
 import com.br.marketing.entity.DdDataLineCostPrice;
 import com.br.marketing.entity.DdDataSmsCostPrice;
+import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.LineSmsAccountService;
 import com.br.marketing.service.dingding2.LineSmsCostToDbService;
@@ -54,6 +57,9 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
 
     @Resource
     private IbmpApiServiceClient ibmpApiServiceClient;
+
+    @Resource
+    private MiddleHeavenAviatorScriptApiClient aviatorScriptApiClient;
 
     @Resource
     private DdDataSmsCostPriceMapper ddDataSmsCostPriceMapper;
@@ -97,6 +103,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
     private DdLinsSmsCostAlarmDto smsCostToDbDeal() {
         //1、报警信息统计
         DdLinsSmsCostAlarmDto smsCostAlarmDto = new DdLinsSmsCostAlarmDto();
+        smsCostAlarmDto.setCardTitle(marketingCommonConfig.getLinsSmsCostToDbConfig().getString("smsCardTitle"));
         //2、获取基础信息
         List<DdSmsBaseInfoDto>  smsBaseInfoList = getSmsBaseInfo();
         //3、查询原始数据
@@ -121,6 +128,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
      */
     private DdLinsSmsCostAlarmDto lineCostToDbDeal() {
         DdLinsSmsCostAlarmDto linsCostAlarmDto = new DdLinsSmsCostAlarmDto();
+        linsCostAlarmDto.setCardTitle(marketingCommonConfig.getLinsSmsCostToDbConfig().getString("lineCardTitle"));
         //2、获取基础信息
         List<DdLineBaseInfoDto> ddLineBaseInfoDtoList =  getLineBaseInfo();
         //3、查询原始数据
@@ -141,9 +149,10 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
 
 
     private void dealAlarm(DdLinsSmsCostAlarmDto smsCostAlarmDto) {
-        Integer totalCount = smsCostAlarmDto.getTotalCount();
-        Integer successCount = smsCostAlarmDto.getSuccessCost();
-        Integer failCount = smsCostAlarmDto.getFailCount();
+        JSONObject paramObj = new JSONObject();
+        paramObj.put("totalCount", smsCostAlarmDto.getTotalCount());
+        paramObj.put("successCount", smsCostAlarmDto.getSuccessCost());
+        paramObj.put("errorCount", smsCostAlarmDto.getFailCount());
         List<JSONObject> resList = new ArrayList<>();
         List<CostPriceExRecord> costPriceExRecordList = smsCostAlarmDto.getCostPriceExRecordList();
         costPriceExRecordList.forEach(costPriceExRecord -> {
@@ -151,7 +160,12 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
             jsonObject.put("异常信息", costPriceExRecord.getReason());
             resList.add(jsonObject);
         });
-        //TODO 调用钉钉报警接口
+        paramObj.put("errorList", resList);
+
+        //调用钉钉报警接口
+        String aviatorScriptUrl = marketingCommonConfig.getLinsSmsCostToDbConfig().getString("aviatorScriptUrl");
+        boolean isProxy = marketingCommonConfig.getLinsSmsCostToDbConfig().getBoolean("isProxy");
+        aviatorScriptApiClient.dealAviatorScriptRequest(aviatorScriptUrl,paramObj,isProxy);
     }
 
 
@@ -289,11 +303,9 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
     }
 
 
-
-
     private void smsCostCompareAndDbDeal(List<DdDataSmsCostPrice> ddDataSmsCostPriceList, List<DdSmsBaseInfoDto>  smsBaseInfoList, DdLinsSmsCostAlarmDto smsCostAlarmDto) {
         ddDataSmsCostPriceList.forEach(smsCost -> {
-            //TODO 1.钉钉文档参数校验
+            //1.钉钉文档参数校验
             boolean smsDdParamCheck = smsDdParamCheck(smsCost,smsCostAlarmDto);
             if (!smsDdParamCheck) {
                 return;
@@ -321,6 +333,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                 // 4.判断数据库配置 是否存在(存在跳过，不存在插入)
                 Long count = smsAccountDetailMapper.selectCount(smsDto.getVendorId(),smsDto.getChannelId());
                 if (count == 0) {
+                    fillThreadLocalUserInfo(0,smsCost.getLastModifiedUserName(),smsCost.getLastModifiedUserId());
                     SmsAccountDto smsAccountDto = fillSmsAccountInfo(smsCost,smsDto);
                     try {
                         Result result = lineSmsAccountService.addSmsAccount(smsAccountDto);
@@ -341,6 +354,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                             smsCostAlarmDto.setCostPriceExRecordList(costPriceExRecordList);
                             smsCostAlarmDto.setFailCount(smsCostAlarmDto.getFailCount() + 1);
                         }
+                    ThreadContextInfo.removeUser();
                     } catch (Exception e) {
                             //TODO 日志
                     }
@@ -384,6 +398,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
             filterList.forEach(lineDto -> {
                 Long count = lineAccountDetailMapper.selectCount(lineDto.getGatewayId());
                 if (count == 0) {
+                    fillThreadLocalUserInfo(0,lineCost.getLastModifiedUserName(),lineCost.getLastModifiedUserId());
                     LineAccountDto lineAccountDto = fillLineAccountInfo(lineCost, lineDto);
                     try {
                         Result result = lineSmsAccountService.addLineAccount(lineAccountDto);
@@ -404,6 +419,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                             linsCostAlarmDto.setCostPriceExRecordList(costPriceExRecordList);
                             linsCostAlarmDto.setFailCount(linsCostAlarmDto.getFailCount() + 1);
                         }
+                    ThreadContextInfo.removeUser();
                     } catch (Exception e) {
                         log.error("lineCostCompareAndDbDeal exception", e);
                     }
@@ -558,6 +574,20 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
             return false;
         }
         return true;
+    }
+
+    /**
+     * ThreadContextInfo-保存操作人信息
+     * @param userId
+     * @param lastModifiedUserName
+     * @param lastModifiedUserId
+     */
+    private void fillThreadLocalUserInfo(Integer userId, String lastModifiedUserName, String lastModifiedUserId) {
+        MarketingUserDetail userDetail = new MarketingUserDetail();
+        userDetail.setId(userId);
+        userDetail.setUserName(lastModifiedUserName);// TODO 和正常操作反着来 userName展示陈宏
+        userDetail.setRealName(lastModifiedUserId); //TODO 和正常操作反着来 realName展示hong.chen,userName展示
+        ThreadContextInfo.setUser(userDetail);
     }
 
     private boolean isValidDateFormat(String dateStr) {
