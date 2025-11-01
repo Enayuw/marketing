@@ -133,4 +133,6 @@ public interface MarketingSyncReportMapper extends MarketingSyncReportMapperBase
     List<SyncOperateTypeDTO> selectOperateTypeGroup(@Param("apiCode") String apiCode,
                                                     @Param("syncReportList") List<MarketingSyncReport> syncReportList);
 
+    List<MarketingSyncReport> selectByIds(@Param("ids") List<Long> ids);
+
 }

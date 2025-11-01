@@ -468,4 +468,14 @@
       ORDER BY operate_type, applet_date;
     </where>
   </select>
+
+  <select id="selectByIds" resultType="com.br.marketing.entity.MarketingSyncReport">
+    SELECT *
+    FROM b_marketing_sync_report
+    WHERE id IN
+    <foreach collection="ids" item="id" open="(" separator="," close=")">
+      #{id}
+    </foreach>
+  </select>
+
 </mapper>

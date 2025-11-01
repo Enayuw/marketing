@@ -14,4 +14,7 @@ public class PushViewVO {
     @ApiModelProperty("筛选数量")
     private Integer total;
 
+    @ApiModelProperty("筛选时间")
+    private String updateTime;
+
 }

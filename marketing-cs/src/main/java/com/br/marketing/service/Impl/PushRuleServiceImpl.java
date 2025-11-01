@@ -85,6 +85,7 @@ import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.service.rulecenter.IEsActionService;
 import com.br.marketing.service.rulecenter.IRuleCenterFilterTemplateService;
 import com.br.marketing.service.rulecenter.RuleCenterBySourceTypeFactory;
+import com.br.marketing.service.rulecenter.impl.push.UploadRePushPolicyStrategy;
 import com.br.marketing.service.tag.calculate.TagHandleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.utils.PulsarConsumerSkipUtil;
@@ -282,7 +283,13 @@ public class PushRuleServiceImpl implements PushRuleService {
     private SnowflakeRedisGeneratorHandle snowflakeRedisGeneratorHandle;
 
     @Resource
+    private UploadRePushPolicyStrategy uploadRePushPolicyStrategy;
+
+    @Resource
     private RuleCenterLabelService ruleCenterLabelService;
+
+    @Resource
+    private MarketingSyncReportMapper syncReportMapper;
 
     @Autowired
     private TagDataRuleCalculateMapper tagDataRuleCalculateMapper;
@@ -632,7 +639,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     private Result<PushViewVO> getTotal(PushCustomerDTO dto) {
-        int total;
+        int total = 0;
         PushViewVO pushViewVO = new PushViewVO();
         Integer taskType = dto.getTaskType();
         // 跑分任务
@@ -669,9 +676,46 @@ public class PushRuleServiceImpl implements PushRuleService {
             return new Result<PushViewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushViewVO);
         }else {
             String uploadReportId = dto.getUploadReportId();
-
-
-
+            if(StringUtils.isEmpty(uploadReportId)){
+                return new Result<PushViewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushViewVO);
+            }
+            
+            // 优化：使用批量查询替代循环查询
+            String[] split = uploadReportId.split(",");
+            
+            // 1. 转换为Long类型的ID列表
+            List<Long> ids = Arrays.stream(split)
+                    .map(String::trim)
+                    .map(Long::valueOf)
+                    .collect(Collectors.toList());
+            
+            // 2. 批量查询所有的MarketingSyncReport
+            List<MarketingSyncReport> syncReports = syncReportMapper.selectByIds(ids);
+            
+            // 3. 解析页面规则条件
+            String filterCondition = uploadRePushPolicyStrategy.getUploadDataCondition(dto.getmRuleCondition(), dto.getApiCode());
+            String updateTime = "";
+            // 4. 循环查询每个条件的数据量级并累加（因 ShardingSphere 不支持 UNION）
+            for (MarketingSyncReport report : syncReports) {
+                if (report != null) {
+                    String apiCode = report.getApiCode();
+                    String appletDate = report.getAppletDate();
+                    String userType = report.getUserType();
+                    // 将Date类型转换为String
+                    String createTime = report.getCreateTime() != null ? 
+                            new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(report.getCreateTime()) : null;
+                    // updateTime 使用当前时间
+                    updateTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+                    
+                    // 单次查询该条件的数据量级
+                    Integer count = marketingSyncUserMapper.countByCondition(
+                            apiCode, appletDate, userType, createTime, updateTime, filterCondition);
+                    total += (count != null ? count : 0);
+                }
+            }
+            
+            pushViewVO.setTotal(total);
+            pushViewVO.setUpdateTime(updateTime);
             return new Result<PushViewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushViewVO);
         }
     }
