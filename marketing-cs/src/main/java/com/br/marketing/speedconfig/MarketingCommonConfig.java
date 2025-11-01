@@ -3506,7 +3506,7 @@ public class MarketingCommonConfig {
     private JSONObject dingDingTableConfig;
 
     /**
-     * 钉钉AI表格数据同步接口配置
+     * 短信线路成本配置--校验表格数据并写入系统配置
      * {"searchSize":50000,"smsCardTitle":"短信钉钉文档入库","lineCardTitle":"线路钉钉文档入库","isProxy":false,"aviatorScriptUrl":""}
      */
     private JSONObject linsSmsCostToDbConfig;
