@@ -27,7 +27,9 @@ import com.br.marketing.service.LineSmsAccountService;
 import com.br.marketing.service.dingding2.LineSmsCostToDbService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -82,6 +84,9 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
     @Resource
     private CostPriceExRecordMapper costPriceExRecordMapper;
 
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
 
 
@@ -153,23 +158,29 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
 
 
     private void dealAlarm(DdLinsSmsCostAlarmDto smsCostAlarmDto) {
+        JSONObject requstObj = new JSONObject();
         JSONObject paramObj = new JSONObject();
+        paramObj.put("title", smsCostAlarmDto.getCardTitle());
         paramObj.put("totalCount", smsCostAlarmDto.getTotalCount());
         paramObj.put("successCount", smsCostAlarmDto.getSuccessCost());
         paramObj.put("errorCount", smsCostAlarmDto.getFailCount());
-        List<JSONObject> resList = new ArrayList<>();
-        List<CostPriceExRecord> costPriceExRecordList = smsCostAlarmDto.getCostPriceExRecordList();
-        costPriceExRecordList.forEach(costPriceExRecord -> {
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("异常信息", costPriceExRecord.getReason());
-            resList.add(jsonObject);
-        });
-        paramObj.put("errorList", resList);
-
+        try {
+            String errorListJson = objectMapper.writeValueAsString(
+                    smsCostAlarmDto.getCostPriceExRecordList().stream()
+                            .map(CostPriceExRecord::getReason)
+                            .collect(Collectors.toList())
+            );
+            paramObj.put("errorList", errorListJson);
+        } catch (JsonProcessingException e) {
+            //TODO 异常了钉钉报警 不推送钉钉通知
+            log.error("转换errorList为JSON失败", e);
+        }
+        requstObj.put("param", paramObj);
+        requstObj.put("scriptCode",marketingCommonConfig.getLinsSmsCostToDbConfig().getString("scriptCode"));
         //调用钉钉报警接口
         String aviatorScriptUrl = marketingCommonConfig.getLinsSmsCostToDbConfig().getString("aviatorScriptUrl");
         boolean isProxy = marketingCommonConfig.getLinsSmsCostToDbConfig().getBoolean("isProxy");
-        aviatorScriptApiClient.dealAviatorScriptRequest(aviatorScriptUrl,paramObj,isProxy);
+        aviatorScriptApiClient.dealAviatorScriptRequest(aviatorScriptUrl,requstObj,isProxy);
     }
 
 
@@ -326,7 +337,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                     CostPriceExRecord costPriceExRecord = new CostPriceExRecord();
                     costPriceExRecord.setJsonData(JSONObject.toJSONString(smsCost));
                     costPriceExRecord.setType(1);
-                    costPriceExRecord.setReason("供应商:"+smsCost.getLineSupplier()+"线路:"+smsCost.getLineName()+",在短信侧不存在");
+                    costPriceExRecord.setReason("供应商: "+smsCost.getLineSupplier()+"线路: "+smsCost.getLineName()+",在短信侧不存在");
                     costPriceExRecordMapper.insert(costPriceExRecord);
                     List<CostPriceExRecord> costPriceExRecordList = smsCostAlarmDto.getCostPriceExRecordList();
                     costPriceExRecordList.add(costPriceExRecord);
@@ -349,7 +360,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                                 CostPriceExRecord costPriceExRecord = new CostPriceExRecord();
                                 costPriceExRecord.setJsonData(JSONObject.toJSONString(smsCost));
                                 costPriceExRecord.setType(1);
-                                costPriceExRecord.setReason("供应商:"+smsCost.getLineSupplier()+"线路:"+smsCost.getLineName()+"新增失败,请检查");
+                                costPriceExRecord.setReason("供应商: "+smsCost.getLineSupplier()+" 线路:"+smsCost.getLineName()+",新增失败,请检查");
                                 JSONObject extendObj =JSONObject.parseObject(JSONObject.toJSONString(smsDto));
                                 extendObj.put("failMsg",result.getMessage());
                                 costPriceExRecord.setExtend(extendObj.toJSONString());
@@ -396,7 +407,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                     CostPriceExRecord costPriceExRecord = new CostPriceExRecord();
                     costPriceExRecord.setJsonData(JSONObject.toJSONString(lineCost));
                     costPriceExRecord.setType(2);
-                    costPriceExRecord.setReason("供应商:" + lineCost.getLineSupplier() + "主叫号码:" + lineCost.getCaller()+",在线路侧不存在");
+                    costPriceExRecord.setReason("供应商: " + lineCost.getLineSupplier() + " 主叫号码: " + lineCost.getCaller()+",在线路侧不存在");
                     costPriceExRecordMapper.insert(costPriceExRecord);
                     List<CostPriceExRecord> costPriceExRecordList = linsCostAlarmDto.getCostPriceExRecordList();
                     costPriceExRecordList.add(costPriceExRecord);
@@ -420,7 +431,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                                 CostPriceExRecord costPriceExRecord = new CostPriceExRecord();
                                 costPriceExRecord.setJsonData(JSONObject.toJSONString(lineCost));
                                 costPriceExRecord.setType(2);
-                                costPriceExRecord.setReason("供应商:" + lineCost.getLineSupplier() + "主叫号码:" + lineCost.getCaller()  + ",新增失败,请检查");
+                                costPriceExRecord.setReason("供应商: " + lineCost.getLineSupplier() + " 主叫号码: " + lineCost.getCaller()  + ",新增失败,请检查");
                                 JSONObject extendObj = JSONObject.parseObject(JSONObject.toJSONString(lineDto));
                                 extendObj.put("failMsg", result.getMessage());
                                 costPriceExRecord.setExtend(extendObj.toJSONString());
@@ -573,6 +584,8 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                 if (callerInvalid) {
                     reasonBuilder.append("供应商").append(lineCost.getLineSupplier()).append("的主叫号码");
                 }
+                reasonBuilder.append("供应商: ").append(lineCost.getLineSupplier()).append(" 主叫号码: ").append(lineCost.getCaller());
+
                 if (priceInvalid) {
                     reasonBuilder.append("/单价");
                 }

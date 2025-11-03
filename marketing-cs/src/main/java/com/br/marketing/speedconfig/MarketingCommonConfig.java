@@ -3507,7 +3507,8 @@ public class MarketingCommonConfig {
 
     /**
      * 短信线路成本配置--校验表格数据并写入系统配置
-     * {"searchSize":50000,"smsCardTitle":"短信钉钉文档入库","lineCardTitle":"线路钉钉文档入库","isProxy":false,"aviatorScriptUrl":""}
+     * {"searchSize":50000,"smsCardTitle":"短信钉钉文档入库通知报警","lineCardTitle":"线路钉钉文档入库通知报警","isProxy":false,"aviatorScriptUrl":"",
+     * "scriptCode":"daf28be2440042bdb9aec90605f48bd0"}
      */
     private JSONObject linsSmsCostToDbConfig;
 
