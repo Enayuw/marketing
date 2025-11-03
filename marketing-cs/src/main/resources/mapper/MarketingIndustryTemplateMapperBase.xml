@@ -72,7 +72,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, template_name, first_department, second_department, api_type, system_type, data_type, 
+    id, template_name, first_department, second_department, api_type, system_type, data_type,
     is_del, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingIndustryTemplateExample" >
@@ -90,7 +90,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     from b_marketing_industry_template
     where id = #{id,jdbcType=BIGINT}
@@ -109,14 +109,14 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_industry_template (template_name, first_department, second_department, 
-      api_type, system_type, data_type, 
-      is_del, create_time, update_time
-      )
-    values (#{templateName,jdbcType=VARCHAR}, #{firstDepartment,jdbcType=VARCHAR}, #{secondDepartment,jdbcType=VARCHAR}, 
-      #{apiType,jdbcType=VARCHAR}, #{systemType,jdbcType=VARCHAR}, #{dataType,jdbcType=INTEGER}, 
-      #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
-      )
+    insert into b_marketing_industry_template (template_name, first_department, second_department,
+    api_type, system_type, data_type,
+    is_del, create_time, update_time
+    )
+    values (#{templateName,jdbcType=VARCHAR}, #{firstDepartment,jdbcType=VARCHAR}, #{secondDepartment,jdbcType=VARCHAR},
+    #{apiType,jdbcType=VARCHAR}, #{systemType,jdbcType=VARCHAR}, #{dataType,jdbcType=INTEGER},
+    #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+    )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingIndustryTemplate" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -229,15 +229,15 @@
   <update id="updateByExample" parameterType="map" >
     update b_marketing_industry_template
     set id = #{record.id,jdbcType=BIGINT},
-      template_name = #{record.templateName,jdbcType=VARCHAR},
-      first_department = #{record.firstDepartment,jdbcType=VARCHAR},
-      second_department = #{record.secondDepartment,jdbcType=VARCHAR},
-      api_type = #{record.apiType,jdbcType=VARCHAR},
-      system_type = #{record.systemType,jdbcType=VARCHAR},
-      data_type = #{record.dataType,jdbcType=INTEGER},
-      is_del = #{record.isDel,jdbcType=INTEGER},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    template_name = #{record.templateName,jdbcType=VARCHAR},
+    first_department = #{record.firstDepartment,jdbcType=VARCHAR},
+    second_department = #{record.secondDepartment,jdbcType=VARCHAR},
+    api_type = #{record.apiType,jdbcType=VARCHAR},
+    system_type = #{record.systemType,jdbcType=VARCHAR},
+    data_type = #{record.dataType,jdbcType=INTEGER},
+    is_del = #{record.isDel,jdbcType=INTEGER},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -278,14 +278,14 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingIndustryTemplate" >
     update b_marketing_industry_template
     set template_name = #{templateName,jdbcType=VARCHAR},
-      first_department = #{firstDepartment,jdbcType=VARCHAR},
-      second_department = #{secondDepartment,jdbcType=VARCHAR},
-      api_type = #{apiType,jdbcType=VARCHAR},
-      system_type = #{systemType,jdbcType=VARCHAR},
-      data_type = #{dataType,jdbcType=INTEGER},
-      is_del = #{isDel,jdbcType=INTEGER},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+        first_department = #{firstDepartment,jdbcType=VARCHAR},
+        second_department = #{secondDepartment,jdbcType=VARCHAR},
+        api_type = #{apiType,jdbcType=VARCHAR},
+        system_type = #{systemType,jdbcType=VARCHAR},
+        data_type = #{dataType,jdbcType=INTEGER},
+        is_del = #{isDel,jdbcType=INTEGER},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

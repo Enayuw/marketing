@@ -165,133 +165,193 @@ public class MarketingIndustryTemplateJsonParseExample {
             return (Criteria) this;
         }
 
-        public Criteria andTemplateIdIsNull() {
-            addCriterion("template_id is null");
+        public Criteria andTemplateTypeIsNull() {
+            addCriterion("template_type is null");
             return (Criteria) this;
         }
 
-        public Criteria andTemplateIdIsNotNull() {
-            addCriterion("template_id is not null");
+        public Criteria andTemplateTypeIsNotNull() {
+            addCriterion("template_type is not null");
             return (Criteria) this;
         }
 
-        public Criteria andTemplateIdEqualTo(Long value) {
-            addCriterion("template_id =", value, "templateId");
+        public Criteria andTemplateTypeEqualTo(Integer value) {
+            addCriterion("template_type =", value, "templateType");
             return (Criteria) this;
         }
 
-        public Criteria andTemplateIdNotEqualTo(Long value) {
-            addCriterion("template_id <>", value, "templateId");
+        public Criteria andTemplateTypeNotEqualTo(Integer value) {
+            addCriterion("template_type <>", value, "templateType");
             return (Criteria) this;
         }
 
-        public Criteria andTemplateIdGreaterThan(Long value) {
-            addCriterion("template_id >", value, "templateId");
+        public Criteria andTemplateTypeGreaterThan(Integer value) {
+            addCriterion("template_type >", value, "templateType");
             return (Criteria) this;
         }
 
-        public Criteria andTemplateIdGreaterThanOrEqualTo(Long value) {
-            addCriterion("template_id >=", value, "templateId");
+        public Criteria andTemplateTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("template_type >=", value, "templateType");
             return (Criteria) this;
         }
 
-        public Criteria andTemplateIdLessThan(Long value) {
-            addCriterion("template_id <", value, "templateId");
+        public Criteria andTemplateTypeLessThan(Integer value) {
+            addCriterion("template_type <", value, "templateType");
             return (Criteria) this;
         }
 
-        public Criteria andTemplateIdLessThanOrEqualTo(Long value) {
-            addCriterion("template_id <=", value, "templateId");
+        public Criteria andTemplateTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("template_type <=", value, "templateType");
             return (Criteria) this;
         }
 
-        public Criteria andTemplateIdIn(List<Long> values) {
-            addCriterion("template_id in", values, "templateId");
+        public Criteria andTemplateTypeIn(List<Integer> values) {
+            addCriterion("template_type in", values, "templateType");
             return (Criteria) this;
         }
 
-        public Criteria andTemplateIdNotIn(List<Long> values) {
-            addCriterion("template_id not in", values, "templateId");
+        public Criteria andTemplateTypeNotIn(List<Integer> values) {
+            addCriterion("template_type not in", values, "templateType");
             return (Criteria) this;
         }
 
-        public Criteria andTemplateIdBetween(Long value1, Long value2) {
-            addCriterion("template_id between", value1, value2, "templateId");
+        public Criteria andTemplateTypeBetween(Integer value1, Integer value2) {
+            addCriterion("template_type between", value1, value2, "templateType");
             return (Criteria) this;
         }
 
-        public Criteria andTemplateIdNotBetween(Long value1, Long value2) {
-            addCriterion("template_id not between", value1, value2, "templateId");
+        public Criteria andTemplateTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("template_type not between", value1, value2, "templateType");
             return (Criteria) this;
         }
 
-        public Criteria andSystemTypeIsNull() {
-            addCriterion("system_type is null");
+        public Criteria andInterfaceTemplateIdIsNull() {
+            addCriterion("interface_template_id is null");
             return (Criteria) this;
         }
 
-        public Criteria andSystemTypeIsNotNull() {
-            addCriterion("system_type is not null");
+        public Criteria andInterfaceTemplateIdIsNotNull() {
+            addCriterion("interface_template_id is not null");
             return (Criteria) this;
         }
 
-        public Criteria andSystemTypeEqualTo(String value) {
-            addCriterion("system_type =", value, "systemType");
+        public Criteria andInterfaceTemplateIdEqualTo(Long value) {
+            addCriterion("interface_template_id =", value, "interfaceTemplateId");
             return (Criteria) this;
         }
 
-        public Criteria andSystemTypeNotEqualTo(String value) {
-            addCriterion("system_type <>", value, "systemType");
+        public Criteria andInterfaceTemplateIdNotEqualTo(Long value) {
+            addCriterion("interface_template_id <>", value, "interfaceTemplateId");
             return (Criteria) this;
         }
 
-        public Criteria andSystemTypeGreaterThan(String value) {
-            addCriterion("system_type >", value, "systemType");
+        public Criteria andInterfaceTemplateIdGreaterThan(Long value) {
+            addCriterion("interface_template_id >", value, "interfaceTemplateId");
             return (Criteria) this;
         }
 
-        public Criteria andSystemTypeGreaterThanOrEqualTo(String value) {
-            addCriterion("system_type >=", value, "systemType");
+        public Criteria andInterfaceTemplateIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("interface_template_id >=", value, "interfaceTemplateId");
             return (Criteria) this;
         }
 
-        public Criteria andSystemTypeLessThan(String value) {
-            addCriterion("system_type <", value, "systemType");
+        public Criteria andInterfaceTemplateIdLessThan(Long value) {
+            addCriterion("interface_template_id <", value, "interfaceTemplateId");
             return (Criteria) this;
         }
 
-        public Criteria andSystemTypeLessThanOrEqualTo(String value) {
-            addCriterion("system_type <=", value, "systemType");
+        public Criteria andInterfaceTemplateIdLessThanOrEqualTo(Long value) {
+            addCriterion("interface_template_id <=", value, "interfaceTemplateId");
             return (Criteria) this;
         }
 
-        public Criteria andSystemTypeLike(String value) {
-            addCriterion("system_type like", value, "systemType");
+        public Criteria andInterfaceTemplateIdIn(List<Long> values) {
+            addCriterion("interface_template_id in", values, "interfaceTemplateId");
             return (Criteria) this;
         }
 
-        public Criteria andSystemTypeNotLike(String value) {
-            addCriterion("system_type not like", value, "systemType");
+        public Criteria andInterfaceTemplateIdNotIn(List<Long> values) {
+            addCriterion("interface_template_id not in", values, "interfaceTemplateId");
             return (Criteria) this;
         }
 
-        public Criteria andSystemTypeIn(List<String> values) {
-            addCriterion("system_type in", values, "systemType");
+        public Criteria andInterfaceTemplateIdBetween(Long value1, Long value2) {
+            addCriterion("interface_template_id between", value1, value2, "interfaceTemplateId");
             return (Criteria) this;
         }
 
-        public Criteria andSystemTypeNotIn(List<String> values) {
-            addCriterion("system_type not in", values, "systemType");
+        public Criteria andInterfaceTemplateIdNotBetween(Long value1, Long value2) {
+            addCriterion("interface_template_id not between", value1, value2, "interfaceTemplateId");
             return (Criteria) this;
         }
 
-        public Criteria andSystemTypeBetween(String value1, String value2) {
-            addCriterion("system_type between", value1, value2, "systemType");
+        public Criteria andInterfaceTemplateNameIsNull() {
+            addCriterion("interface_template_name is null");
             return (Criteria) this;
         }
 
-        public Criteria andSystemTypeNotBetween(String value1, String value2) {
-            addCriterion("system_type not between", value1, value2, "systemType");
+        public Criteria andInterfaceTemplateNameIsNotNull() {
+            addCriterion("interface_template_name is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andInterfaceTemplateNameEqualTo(String value) {
+            addCriterion("interface_template_name =", value, "interfaceTemplateName");
+            return (Criteria) this;
+        }
+
+        public Criteria andInterfaceTemplateNameNotEqualTo(String value) {
+            addCriterion("interface_template_name <>", value, "interfaceTemplateName");
+            return (Criteria) this;
+        }
+
+        public Criteria andInterfaceTemplateNameGreaterThan(String value) {
+            addCriterion("interface_template_name >", value, "interfaceTemplateName");
+            return (Criteria) this;
+        }
+
+        public Criteria andInterfaceTemplateNameGreaterThanOrEqualTo(String value) {
+            addCriterion("interface_template_name >=", value, "interfaceTemplateName");
+            return (Criteria) this;
+        }
+
+        public Criteria andInterfaceTemplateNameLessThan(String value) {
+            addCriterion("interface_template_name <", value, "interfaceTemplateName");
+            return (Criteria) this;
+        }
+
+        public Criteria andInterfaceTemplateNameLessThanOrEqualTo(String value) {
+            addCriterion("interface_template_name <=", value, "interfaceTemplateName");
+            return (Criteria) this;
+        }
+
+        public Criteria andInterfaceTemplateNameLike(String value) {
+            addCriterion("interface_template_name like", value, "interfaceTemplateName");
+            return (Criteria) this;
+        }
+
+        public Criteria andInterfaceTemplateNameNotLike(String value) {
+            addCriterion("interface_template_name not like", value, "interfaceTemplateName");
+            return (Criteria) this;
+        }
+
+        public Criteria andInterfaceTemplateNameIn(List<String> values) {
+            addCriterion("interface_template_name in", values, "interfaceTemplateName");
+            return (Criteria) this;
+        }
+
+        public Criteria andInterfaceTemplateNameNotIn(List<String> values) {
+            addCriterion("interface_template_name not in", values, "interfaceTemplateName");
+            return (Criteria) this;
+        }
+
+        public Criteria andInterfaceTemplateNameBetween(String value1, String value2) {
+            addCriterion("interface_template_name between", value1, value2, "interfaceTemplateName");
+            return (Criteria) this;
+        }
+
+        public Criteria andInterfaceTemplateNameNotBetween(String value1, String value2) {
+            addCriterion("interface_template_name not between", value1, value2, "interfaceTemplateName");
             return (Criteria) this;
         }
 

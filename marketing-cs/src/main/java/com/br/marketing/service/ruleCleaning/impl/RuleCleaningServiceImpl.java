@@ -1840,7 +1840,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             MarketingIndustryTemplateJsonParseExample marketingIndustryTemplateJsonParseExample =
                     new MarketingIndustryTemplateJsonParseExample();
             marketingIndustryTemplateJsonParseExample.createCriteria()
-                            .andTemplateIdEqualTo(marketingIndustryTemplates.get(0).getId());
+                            .andInterfaceTemplateIdEqualTo(marketingIndustryTemplates.get(0).getId());
             List<MarketingIndustryTemplateJsonParse> marketingIndustryTemplateJsonParses =
                     marketingIndustryTemplateJsonParseMapper.selectByExample(marketingIndustryTemplateJsonParseExample);
 

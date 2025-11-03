@@ -9,14 +9,19 @@ public class MarketingIndustryTemplateJsonParse {
     private Long id;
 
     /**
-     * 模板id
+     * 模板类型：0:内置模板,1:行业模板
      */
-    private Long templateId;
+    private Integer templateType;
 
     /**
-     * 系统类型 0-营销中台 1-外呼
+     * 接口id
      */
-    private String systemType;
+    private Long interfaceTemplateId;
+
+    /**
+     * 接口名称
+     */
+    private String interfaceTemplateName;
 
     /**
      * 数据类型：0上传，1转化
@@ -76,20 +81,28 @@ public class MarketingIndustryTemplateJsonParse {
         this.id = id;
     }
 
-    public Long getTemplateId() {
-        return templateId;
+    public Integer getTemplateType() {
+        return templateType;
     }
 
-    public void setTemplateId(Long templateId) {
-        this.templateId = templateId;
+    public void setTemplateType(Integer templateType) {
+        this.templateType = templateType;
     }
 
-    public String getSystemType() {
-        return systemType;
+    public Long getInterfaceTemplateId() {
+        return interfaceTemplateId;
     }
 
-    public void setSystemType(String systemType) {
-        this.systemType = systemType == null ? null : systemType.trim();
+    public void setInterfaceTemplateId(Long interfaceTemplateId) {
+        this.interfaceTemplateId = interfaceTemplateId;
+    }
+
+    public String getInterfaceTemplateName() {
+        return interfaceTemplateName;
+    }
+
+    public void setInterfaceTemplateName(String interfaceTemplateName) {
+        this.interfaceTemplateName = interfaceTemplateName == null ? null : interfaceTemplateName.trim();
     }
 
     public Integer getDataType() {
