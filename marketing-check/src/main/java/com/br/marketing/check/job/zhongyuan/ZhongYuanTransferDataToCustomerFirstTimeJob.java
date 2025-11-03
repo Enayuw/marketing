@@ -9,7 +9,7 @@ import com.br.marketing.service.ZhongYuanService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
-import javafx.util.Pair;
+import cn.hutool.core.lang.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
