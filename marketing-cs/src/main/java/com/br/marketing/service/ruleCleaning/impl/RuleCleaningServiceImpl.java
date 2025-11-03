@@ -10,7 +10,6 @@ import com.br.marketing.client.rulecleaning.*;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.DataTypeEnum;
-import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.JsonParseUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.common.exception.BusinessException;
@@ -28,6 +27,7 @@ import com.br.marketing.service.Impl.EntityOptServiceImpl;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.clean.common.impl.DataCleanServiceImpl;
 import com.br.marketing.service.ruleCleaning.RuleCleaningService;
+import com.br.marketing.service.template.IndustryTemplateJsonParseService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.dataclean.CleanFieldConfigVO;
 import com.github.pagehelper.PageHelper;
@@ -86,6 +86,9 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
     @Resource
     private EntityOptServiceImpl entityOptService;
+
+    @Resource
+    private IndustryTemplateJsonParseService industryTemplateJsonParseService;
 
     @Resource
     private MarketingCustomerMapper marketingCustomerMapper;
@@ -1825,27 +1828,17 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             String secondDepartment = marketingCustomer.getSecondDepartment();
             String apiType = marketingCustomer.getApiType();
             // 查询行业模板
-            MarketingIndustryTemplateExample marketingIndustryTemplateExample = new MarketingIndustryTemplateExample();
-            marketingIndustryTemplateExample.createCriteria()
-                    .andFirstDepartmentEqualTo(firstDepartment)
-                    .andSecondDepartmentEqualTo(secondDepartment)
-                    .andApiTypeEqualTo(apiType)
-                    .andDataTypeEqualTo(dataType)
-                    .andIsDelEqualTo(Constants.DATA_VALID);
-            List<MarketingIndustryTemplate> marketingIndustryTemplates =
-                    marketingIndustryTemplateMapper.selectByExample(marketingIndustryTemplateExample);
-            if(marketingIndustryTemplates.isEmpty()){
+            Result<JSONArray> jsonArrayResult = industryTemplateJsonParseService.queryIndustryTemplateJsonParses(firstDepartment, secondDepartment, apiType, dataType);
+            if (!jsonArrayResult.isSuccess()) {
+                log.warn("查询行业模板失败: {}", JSONObject.toJSONString(jsonArrayResult));
                 return result;
             }
-            MarketingIndustryTemplateJsonParseExample marketingIndustryTemplateJsonParseExample =
-                    new MarketingIndustryTemplateJsonParseExample();
-            marketingIndustryTemplateJsonParseExample.createCriteria()
-                            .andInterfaceTemplateIdEqualTo(marketingIndustryTemplates.get(0).getId());
-            List<MarketingIndustryTemplateJsonParse> marketingIndustryTemplateJsonParses =
-                    marketingIndustryTemplateJsonParseMapper.selectByExample(marketingIndustryTemplateJsonParseExample);
+
+            JSONArray data = jsonArrayResult.getData();
+            List<MarketingBuildInTemplateJsonParse> marketingIndustryTemplates = JSON.parseArray(data.toJSONString(), MarketingBuildInTemplateJsonParse.class);
 
             // 行业模板 + 规则配置
-            for (MarketingIndustryTemplateJsonParse parse : marketingIndustryTemplateJsonParses) {
+            for (MarketingBuildInTemplateJsonParse parse : marketingIndustryTemplates) {
                 buildFieldSample(result, ruleConfigList, parse.getNodeName(), parse.getLevel(),
                         parse.getNodeValue(), parse.getParentPath(), parse.getNodeType(), parse.getCreateTime());
             }
