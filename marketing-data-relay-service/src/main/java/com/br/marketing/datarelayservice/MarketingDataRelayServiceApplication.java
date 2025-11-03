@@ -1,9 +1,9 @@
 package com.br.marketing.datarelayservice;
 
 import com.br.cloud.boot.EnablePrometheusEndpoint;
+import com.br.cloud.datasource.EnableDataSourcePrometheus;
 import com.br.cloud.jvm.EnablePrometheusJvm;
 import com.br.cloud.web.EnablePrometheusTiming;
-import com.br.marketing.config.autoinject.druid.EnableDruidPrometheus;
 import io.shardingsphere.shardingjdbc.spring.boot.SpringBootConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.annotation.MapperScan;
@@ -19,7 +19,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 @EnablePrometheusEndpoint
 @EnablePrometheusJvm
 @EnablePrometheusTiming
-@EnableDruidPrometheus
+@EnableDataSourcePrometheus
 @Slf4j
 public class MarketingDataRelayServiceApplication {
 

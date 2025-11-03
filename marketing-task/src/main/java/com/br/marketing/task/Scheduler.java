@@ -2,10 +2,10 @@ package com.br.marketing.task;
 
 import com.br.cloud.boot.EnablePrometheusEndpoint;
 import com.br.cloud.counter.EnableBrCounter;
+import com.br.cloud.datasource.EnableDataSourcePrometheus;
 import com.br.cloud.jvm.EnablePrometheusJvm;
 import com.br.cloud.web.EnablePrometheusTiming;
 import com.br.grpc.utils.BrGrpcUtils;
-import com.br.marketing.config.autoinject.druid.EnableDruidPrometheus;
 import com.br.marketing.prometheus.counter.EnableMarketingCounter;
 import io.shardingsphere.shardingjdbc.spring.boot.SpringBootConfiguration;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +27,7 @@ import org.springframework.context.annotation.ImportResource;
 @EnablePrometheusEndpoint
 @EnablePrometheusJvm
 @EnablePrometheusTiming
-@EnableDruidPrometheus
+@EnableDataSourcePrometheus
 @EnableBrCounter(namespace = "marketing_task")
 @EnableMarketingCounter(namespace = "marketing_br_task")
 public class Scheduler {

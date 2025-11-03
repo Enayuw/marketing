@@ -3,10 +3,10 @@ package com.br.marketing.api;
 
 import com.br.cloud.boot.EnablePrometheusEndpoint;
 import com.br.cloud.counter.EnableBrCounter;
+import com.br.cloud.datasource.EnableDataSourcePrometheus;
 import com.br.cloud.jvm.EnablePrometheusJvm;
 import com.br.cloud.web.EnablePrometheusTiming;
 import com.br.grpc.utils.BrGrpcUtils;
-import com.br.marketing.config.autoinject.druid.EnableDruidPrometheus;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
@@ -36,7 +36,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 @EnablePrometheusJvm
 @EnablePrometheusTiming
 @EnableBrCounter(namespace = "marketing_api")
-@EnableDruidPrometheus
+@EnableDataSourcePrometheus
 public class MarketingApiApplication {
 
     /**

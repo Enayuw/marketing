@@ -2,10 +2,10 @@ package com.br.marketing.xcconsumer;
 
 import com.br.cloud.boot.EnablePrometheusEndpoint;
 import com.br.cloud.counter.EnableBrCounter;
+import com.br.cloud.datasource.EnableDataSourcePrometheus;
 import com.br.cloud.jvm.EnablePrometheusJvm;
 import com.br.cloud.web.EnablePrometheusTiming;
 import com.br.grpc.utils.BrGrpcUtils;
-import com.br.marketing.config.autoinject.druid.EnableDruidPrometheus;
 import com.br.marketing.service.Impl.ConsumerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
@@ -22,7 +22,7 @@ import org.mybatis.spring.annotation.MapperScan;
 @EnablePrometheusEndpoint
 @EnablePrometheusJvm
 @EnablePrometheusTiming
-@EnableDruidPrometheus
+@EnableDataSourcePrometheus
 @EnableBrCounter(namespace = "marketing_xc_consumer")
 @Slf4j
 public class MarketingXcConsumerApplication {
