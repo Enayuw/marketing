@@ -9,4 +9,35 @@
           and release_time_begin is not null and release_time_end is not null
         order by release_time_begin asc
     </select>
+
+    <select id="getCollidingDataDeleteTaskList" resultType="com.br.marketing.dto.rulecenter.XcDeleteTaskVO">
+        SELECT
+            task.id AS dprId,
+            customer.cid AS cid,
+            customer.api_code AS apiCode,
+            customer.short_name AS shortName,
+            task.discreet_number AS discreetNumber,
+            task.actual_number AS actualNumber,
+            task.release_time_begin AS releaseTimeBegin,
+            task.release_time_end AS releaseTimeEnd,
+            task.task_type AS taskType,
+            task.task_execute_time AS taskExecuteTime,
+            task.task_status AS taskStatus,
+            task.create_time AS createTime,
+            task.update_time AS updateTime
+        FROM b_xiecheng_colliding_data_process_task AS task
+        JOIN b_marketing_customer AS customer ON task.api_code = customer.api_code
+        WHERE is_delete = 0
+        AND (
+            (task.task_type = 1
+            <if test="releaseTimeBegin != null and releaseTimeEnd != null">
+            AND task.release_time_begin <![CDATA[ >= ]]> #{releaseTimeBegin,jdbcType=TIMESTAMP}
+            AND task.release_time_end <![CDATA[ <= ]]> #{releaseTimeEnd,jdbcType=TIMESTAMP})
+            </if>
+            OR task.task_type = 3
+        )
+        ORDER BY task.create_time DESC, task.task_execute_time DESC
+    </select>
+
+
 </mapper>

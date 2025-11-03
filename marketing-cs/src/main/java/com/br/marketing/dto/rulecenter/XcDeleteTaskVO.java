@@ -6,6 +6,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Data
@@ -24,53 +25,35 @@ public class XcDeleteTaskVO implements Serializable {
     @ApiModelProperty("客户名称")
     private String shortName;
 
-    @ApiModelProperty("包主键id")
-    private Long pkgId;
-
-    @ApiModelProperty("数据包名称")
-    private String packageName;
-
-    @ApiModelProperty("预估量级")
+    @ApiModelProperty("预估剔除量级")
     private String discreetNumber;
 
-    @ApiModelProperty("实际可用量级")
-    private String remainingNumber;
+    @ApiModelProperty("实际剔除量级")
+    private String actualNumber;
 
-    @ApiModelProperty("任务状态")
-    private Integer collidingSwitch;
+    @ApiModelProperty(value = "releaseTime开始时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Shanghai")
+    private LocalDateTime releaseTimeBegin;
 
-    @ApiModelProperty("优先级")
-    private Integer priority;
+    @ApiModelProperty(value = "releaseTime结束时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Shanghai")
+    private LocalDateTime releaseTimeEnd;
 
-    @ApiModelProperty("轮次")
-    private Integer round;
+    @ApiModelProperty(value = "剔除类型")
+    private Integer taskType;
 
-    @ApiModelProperty("设定撞得量级")
-    private Integer collidingBackNumber;
+    @ApiModelProperty(value = "剔除任务执行时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Shanghai")
+    private LocalDateTime taskExecuteTime;
 
-    @ApiModelProperty("每日撞库次数")
-    private Integer collidingTimes;
-
-    @ApiModelProperty("撞库开始时间（多个时间以逗号分割，格式HH:mm）")
-    private String startTimes;
-
-    @ApiModelProperty("数据清洗时间 yyyy-MM-dd HH:mm:ss")
-    @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
-    private Date taskStartTime;
-
-    @ApiModelProperty("开启撞库时间 yyyy-MM-dd HH:mm:ss")
-    @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
-    private Date collidingStartTime;
-
-    @ApiModelProperty("结束撞库时间 yyyy-MM-dd HH:mm:ss")
-    @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
-    private Date collidingEndTime;
+    @ApiModelProperty("任务执行状态")
+    private Integer taskStatus;
 
     @ApiModelProperty("创建时间 yyyy-MM-dd HH:mm:ss")
-    @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
-    private Date createTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Shanghai")
+    private LocalDateTime createTime;
 
     @ApiModelProperty("修改时间 yyyy-MM-dd HH:mm:ss")
-    @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
-    private Date updateTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Shanghai")
+    private LocalDateTime updateTime;
 }

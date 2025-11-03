@@ -12,6 +12,10 @@ import javax.annotation.Resource;
 
 import com.br.marketing.common.exception.KnowException;
 import com.br.marketing.common.utils.Constants;
+import com.br.marketing.dto.rulecenter.XcDeleteReleaseTimeRange;
+import com.br.marketing.dto.rulecenter.XcDeleteTaskVO;
+import com.br.marketing.entity.*;
+import com.br.marketing.mapper.*;
 import com.br.marketing.vo.xiecheng.param.UpdateRoundParam;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,17 +25,6 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.entity.XieChengCollidingDataPackage;
-import com.br.marketing.entity.XieChengCollidingDataRobExample;
-import com.br.marketing.entity.XiechengCollidingDataPackageRule;
-import com.br.marketing.entity.XiechengCollidingDataPackageRuleExample;
-import com.br.marketing.entity.XiechengCollidingDataPackageRuleStaging;
-import com.br.marketing.entity.XiechengCollidingDataPackageRuleStagingExample;
-import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
-import com.br.marketing.mapper.XieChengCollidingDataPackageMapper;
-import com.br.marketing.mapper.XieChengCollidingDataRobMapper;
-import com.br.marketing.mapper.XiechengCollidingDataPackageRuleMapper;
-import com.br.marketing.mapper.XiechengCollidingDataPackageRuleStagingMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.xiecheng.XiechengCollidingRuleVO;
 import com.br.marketing.vo.xiecheng.XiechengCollidingStagingRuleVO;
@@ -72,6 +65,8 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
 
     @Resource
     private XieChengCollidingDataRobMapper robMapper;
+
+    private XiechengCollidingDataProcessTaskMapper xiechengCollidingDataProcessTaskMapper;
 
     /**
      * 获取调度任务列表-False-分页
@@ -387,6 +382,30 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
         update.setRound(param.getRound());
         update.setId(param.getPkgId());
         return packageMapper.updateByPrimaryKeySelective(update) == 1;
+    }
+
+    @Override
+    public PageResultReturn<XcDeleteTaskVO> getCollidingDataDeleteTaskList(XcDeleteReleaseTimeRange timeRange) {
+        PageHelper.startPage(timeRange.getCurrent(), timeRange.getSize());
+        List<XcDeleteTaskVO> taskList = xiechengCollidingDataProcessTaskMapper
+                .getCollidingDataDeleteTaskList(timeRange.getReleaseTimeBegin(), timeRange.getReleaseTimeEnd());
+        return PageResultReturn.setPageResult(taskList, timeRange.getCurrent(), timeRange.getSize());
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean deleteCollidingDataDeleteTask(Long taskId) {
+        XiechengCollidingDataProcessTaskExample taskExample = new XiechengCollidingDataProcessTaskExample();
+        taskExample.createCriteria().andIdEqualTo(taskId);
+        XiechengCollidingDataProcessTask task = new XiechengCollidingDataProcessTask();
+        task.setIsDelete(Constants.DATA_VALID);
+        xiechengCollidingDataProcessTaskMapper.updateByExampleSelective(task, taskExample);
+//        XiechengCollidingTaskBatchExample batch = new XiechengCollidingTaskBatchExample();
+//        batch.createCriteria().andCollidingDataTaskIdEqualTo(taskId);
+//        XiechengCollidingTaskBatch batch = new XiechengCollidingTaskBatch();
+//        task.setIsDelete(Constants.DATA_VALID);
+        xiechengCollidingDataProcessTaskMapper.updateByExampleSelective(task, taskExample);
+        return null;
     }
 
 }

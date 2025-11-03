@@ -1,11 +1,10 @@
 package com.br.marketing.innerapi.controller;
 
 import java.util.List;
-
 import javax.annotation.Resource;
-
 import com.br.marketing.common.exception.KnowException;
 import com.br.marketing.dto.rulecenter.XcDeleteReleaseTimeRange;
+import com.br.marketing.dto.rulecenter.XcDeleteTaskVO;
 import com.br.marketing.vo.xiecheng.param.UpdateRoundParam;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -202,14 +201,24 @@ public class XiechengCollidingRuleController {
 
     @ApiOperation(value = "14-撞库数据剔除任务列表")
     @GetMapping("/collidingDataDeleteTask/list")
-    public ApiResult<PageResultReturn<XiechengCollidingRuleVO>> getcollidingDataDeleteTaskList(XcDeleteReleaseTimeRange xcDeleteReleaseTimeRange) {
+    public ApiResult<PageResultReturn<XcDeleteTaskVO>> getCollidingDataDeleteTaskList(XcDeleteReleaseTimeRange xcDeleteReleaseTimeRange) {
         try {
-//            PageResultReturn<XiechengCollidingRuleVO> list = xieChengCollidingRuleService.getCollidingRuleFalseList(listParam);
-//            return new ApiResult<PageResultReturn<XiechengCollidingRuleVO>>().success(list);
-            return null;
+            PageResultReturn<XcDeleteTaskVO> list = xieChengCollidingRuleService.getCollidingDataDeleteTaskList(xcDeleteReleaseTimeRange);
+            return new ApiResult<PageResultReturn<XcDeleteTaskVO>>().success(list);
         } catch (Exception e) {
-            log.error("获取调度任务列表-False-分页异常", e);
-            return new ApiResult<PageResultReturn<XiechengCollidingRuleVO>>().fail(ServiceResultEnum.FAILED);
+            log.error("获取撞库数据剔除任务列表-分页异常", e);
+            return new ApiResult<PageResultReturn<XcDeleteTaskVO>>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+    @ApiOperation(value = "15-撞库数据剔除任务删除")
+    @PostMapping("/collidingDataDeleteTask/delete")
+    public ApiResult deleteCollidingDataDeleteTask(@RequestParam Long taskId) {
+        try {
+            return new ApiResult<Boolean>().success(xieChengCollidingRuleService.deleteCollidingDataDeleteTask(taskId));
+        } catch (Exception e) {
+            log.error("撞库数据剔除任务删除异常", e);
+            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
         }
     }
 
