@@ -8,7 +8,7 @@ datasource:
       password: f9daIYUIAXQkeyVbDoOI
       type: com.zaxxer.hikari.HikariDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
-      isSharding: true
+      isSharding: false
       hikari:
         minimum-idle: 1 # 最小空闲连接数
         maximum-pool-size: 300 # 最大连接池数量

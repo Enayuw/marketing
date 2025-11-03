@@ -6,6 +6,7 @@ import com.br.cloud.datasource.EnableDataSourcePrometheus;
 import com.br.cloud.jvm.EnablePrometheusJvm;
 import com.br.cloud.web.EnablePrometheusTiming;
 import com.br.grpc.utils.BrGrpcUtils;
+import com.br.marketing.config.autoinject.hikari.EnableHikariPrometheus;
 import io.shardingsphere.shardingjdbc.spring.boot.SpringBootConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.annotation.MapperScan;
@@ -24,7 +25,7 @@ import org.springframework.context.annotation.ImportResource;
 @EnablePrometheusEndpoint
 @EnablePrometheusJvm
 @EnablePrometheusTiming
-@EnableDataSourcePrometheus
+@EnableHikariPrometheus
 @EnableBrCounter(namespace = "marketing_data_bridge")
 @Slf4j
 public class DataBridgeApplication {
