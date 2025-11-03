@@ -1,8 +1,6 @@
 package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.output.PolicyResultByTaskIdsDTO;
 import com.br.marketing.client.marketingapi.MarketingApiService;
@@ -11,17 +9,11 @@ import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.enums.ApiReturnEnum;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.MarketingPreUserDTO;
-import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.dto.PushInfoFilterDTO;
-import com.br.marketing.dto.TransferDataDTO;
 import com.br.marketing.dto.qifu.UpLoadCleanDTO;
-import com.br.marketing.entity.CustomerInfoPushBatch;
-import com.br.marketing.entity.CustomerInfoPushBatchExample;
-import com.br.marketing.entity.Log360ai;
-import com.br.marketing.entity.Log360aiExample;
+import com.br.marketing.entity.*;
+import com.br.marketing.enums.TaskTypeEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.Impl.qifu.valobj.QiFuCleanStatusEnum;
 import com.br.marketing.service.PushInfoService;
@@ -55,19 +47,66 @@ public class PushInfoServiceImpl implements PushInfoService {
     @Autowired
     private IntelligentCustomerServiceClient intelligentCustomerServiceClient;
 
+    @Autowired
+    private MarketingSyncReportMapper syncReportMapper;
+
     @Resource
     Log360aiMapper log360aiMapper;
 
     @Override
     public PageResultReturn getPushInfoList(PushInfoFilterDTO dto) {
+        // 上传任务
+        if(Objects.equals(dto.getTaskType(), TaskTypeEnum.UPLOAD_TASKS.getValue())){
+            return getUplodPushInfoList(dto);
+        }else {
+            return getScorePushInfoList(dto);
+        }
+    }
+    private PageResultReturn getUplodPushInfoList(PushInfoFilterDTO dto) {
+        PageHelper.startPage(dto.getCurrent(), dto.getSize());
+        List<PushInfoListVO> list = customerInfoPushMainMapper.getUplodPushInfoList(dto);
+        List<Long> ids = list.stream().map(t -> t.getId()).collect(Collectors.toList());
+        List<String> failStatusIds =list.stream().filter(t->t.getmStatus().equals(5)).map(t->String.valueOf(t.getId())).collect(Collectors.toList());
+        if(ids.size()>0) {
+            Map<String,Map<String,Object>> resultMap = new HashMap<>();
+            if (!CollectionUtils.isEmpty(failStatusIds)) {
+                Result<List<PolicyResultByTaskIdsDTO>> result = intelligentCustomerServiceClient.getTaskIdsResult(dto.getmApiCode(), failStatusIds);
+                if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                    List<PolicyResultByTaskIdsDTO> resultByTaskIdsDTOS = result.getData();
+                    resultByTaskIdsDTOS.forEach(policyResultByTaskIdsDTO -> {
+                        Map errorMap = JSON.parseObject(policyResultByTaskIdsDTO.getVerificationReason());
+                        resultMap.put(policyResultByTaskIdsDTO.getVerification(), errorMap);
+                    });
+                } else {
+                    log.warn("决策查询接口异常result={}", JSON.toJSONString(result));
+                }
+            }
+            list.forEach(t -> {
+                String uploadReportIds = t.getUploadReportIds();
+                List<Long> listIds = Arrays.stream(uploadReportIds.split(",")).map(Long::parseLong).collect(Collectors.toList());
+                MarketingSyncReportExample syncReportExample = new MarketingSyncReportExample();
+                syncReportExample.createCriteria().andIdIn(listIds);
+                List<MarketingSyncReport> marketingSyncReports = syncReportMapper.selectByExample(syncReportExample);
+
+                String result = marketingSyncReports.stream()
+                        .map(MarketingSyncReport::getUserType)
+                        .filter(userType -> userType != null && !userType.trim().isEmpty())
+                        .collect(Collectors.joining(","));
+                t.setUserType(result);
+
+                List<Map> msgList = new ArrayList<>();
+                Map map = resultMap.get(t.getId().toString());
+                msgList.add(map);
+                t.setReturnMessages(msgList);
+            });
+        }
+        return PageResultReturn.setPageResult(list, dto.getCurrent(), dto.getSize());
+    }
+
+    private PageResultReturn getScorePushInfoList(PushInfoFilterDTO dto) {
         final char ch = ',';
         PageHelper.startPage(dto.getCurrent(), dto.getSize());
-        List<PushInfoListVO> list= new ArrayList<>();
-        if(dto.getTaskType() == 1){
-            list = customerInfoPushMainMapper.getPushInfoListByType(dto);
-        }else {
-            list = customerInfoPushMainMapper.getPushInfoList(dto);
-        }
+        List<PushInfoListVO> list = customerInfoPushMainMapper.getPushInfoList(dto);
         List<Long> ids = list.stream().map(t -> t.getId()).collect(Collectors.toList());
         List<String> failStatusIds =list.stream().filter(t->t.getmStatus().equals(5)).map(t->String.valueOf(t.getId())).collect(Collectors.toList());
         if(ids.size()>0) {

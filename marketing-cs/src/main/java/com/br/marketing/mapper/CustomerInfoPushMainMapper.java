@@ -13,7 +13,7 @@ public interface CustomerInfoPushMainMapper extends CustomerInfoPushMainMapperBa
     List<PushInfoDetailVO> getPushInfos(RequestPushInfoDTO dto);
 
     @AddDataAuth
-    List<PushInfoListVO> getPushInfoListByType(PushInfoFilterDTO dto);
+    List<PushInfoListVO> getUplodPushInfoList(PushInfoFilterDTO dto);
 
     List<PushInfoListVO> getPushInfoList(PushInfoFilterDTO dto);
 }

@@ -605,6 +605,14 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     private Result<String> pushScoreCustomer(PushCustomerDTO dto) {
+
+        if(dto.getBatchNumberList().isEmpty()){
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("批次号不能为空");
+        }
+        if(dto.getFileIdList().isEmpty()){
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("fileIdList不能为空");
+        }
+
         AssertResult.assertResult(checkThreekEnc(dto.getFileIdList()));
         /**
          * 先校验下 传过来的批次和 模型是否匹配
@@ -1462,6 +1470,12 @@ public class PushRuleServiceImpl implements PushRuleService {
         if(Objects.equals(dto.getTaskType(), TaskTypeEnum.UPLOAD_TASKS.getValue())){
             return getUplodTotal(dto);
         }else {
+            if(dto.getBatchNumberList().isEmpty()){
+                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("批次号不能为空");
+            }
+            if(dto.getFileIdList().isEmpty()){
+                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("fileIdList不能为空");
+            }
             AssertResult.assertResult(checkThreekEnc(dto.getFileIdList()));
             return getScoreTotal(dto);
         }

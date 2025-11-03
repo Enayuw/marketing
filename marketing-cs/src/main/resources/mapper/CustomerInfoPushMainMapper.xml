@@ -28,7 +28,7 @@
             order by bcipm.id desc
     </select>
 
-    <select id="getPushInfoListByType" resultType="com.br.marketing.vo.PushInfoListVO" parameterType="com.br.marketing.dto.PushInfoFilterDTO">
+    <select id="getUplodPushInfoList" resultType="com.br.marketing.vo.PushInfoListVO" parameterType="com.br.marketing.dto.PushInfoFilterDTO">
         select id,
         m_api_code as api_code,
         m_cus_batch_number_list as mCusBatchNumberList,
@@ -42,10 +42,11 @@
         m_status as mStatus,
         batch_name as  batchName,
         push_target as pushTarget,
+        upload_report_ids as uploadReportIds,
         extend
         from b_customer_info_push_main
         where is_del=1
-        and m_status !=-1 and push_target == 4
+        and m_status !=-1 and push_target = 4
         <if test="mApiCode !=null and mApiCode !=''">
             and m_api_code = #{mApiCode}
         </if>
