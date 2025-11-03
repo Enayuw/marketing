@@ -121,7 +121,10 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
                         continue;
                     }
                     for (String requestDate : requestDateList) {
-                        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(threadPool, marketingCommonConfig.getSyncReportThreadConfig().getInteger("transfer"));
+                        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(
+                            threadPool,
+                            marketingCommonConfig.getSyncReportThreadConfig().getInteger("transfer")
+                        );
                         threadPool.submit(() -> {
                             TransferSyncReport report = smy ? transferSyncReportMapper.dateTimeMinMaxCountSMYtiflash_(apiCode, requestDate, userType)
                                     : transferSyncReportMapper.dateTimeMinMaxCounttiflash_(tCid, apiCode, requestDate, userType);

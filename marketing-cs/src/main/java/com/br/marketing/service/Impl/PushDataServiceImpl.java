@@ -1221,7 +1221,10 @@ public class PushDataServiceImpl implements PushDataService {
         AtomicInteger failNum = new AtomicInteger(0);
         while (actionMark) {
             if (StringUtils.isNotEmpty(marketingCommonConfig.getXieChengSmsQuitThreadNum())) {
-                ThreadPoolAdjustmentUtil.adjustThreadPoolSize(pool, Integer.valueOf(marketingCommonConfig.getXieChengSmsQuitThreadNum()));
+                ThreadPoolAdjustmentUtil.adjustThreadPoolSize(
+                    pool,
+                    Integer.parseInt(marketingCommonConfig.getXieChengSmsQuitThreadNum())
+                );
                 log.warn("携程推送短信退订接口线程调整，corePoolSize={},maxPoolSize={}", pool.getCorePoolSize(), pool.getMaximumPoolSize());
             }
             List<XiechengSmsQuitData> dataList = xiechengSmsQuitDataMapper.getSmsQuitData(localFile.getId(), minId);
@@ -1530,9 +1533,12 @@ public class PushDataServiceImpl implements PushDataService {
     }
 
     private void changeTpProperties(ThreadPoolExecutor xieChengSmsCollidingThreadLogSaveVt, ThreadPoolExecutor xieChengSmsCollidingThreadVt, ThreadPoolExecutor xieChengSmsCollidingThreadLogUpdateVt) {
-        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(xieChengSmsCollidingThreadLogSaveVt, marketingCommonConfig.getXieChengSmsCollidingThreadLogSaveVt());
-        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(xieChengSmsCollidingThreadVt, marketingCommonConfig.getXieChengSmsCollidingThreadVt());
-        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(xieChengSmsCollidingThreadLogUpdateVt, marketingCommonConfig.getXieChengSmsCollidingThreadLogUpdateVt());
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(
+                xieChengSmsCollidingThreadLogSaveVt, marketingCommonConfig.getXieChengSmsCollidingThreadLogSaveVt());
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(
+                xieChengSmsCollidingThreadVt, marketingCommonConfig.getXieChengSmsCollidingThreadVt());
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(
+                xieChengSmsCollidingThreadLogUpdateVt, marketingCommonConfig.getXieChengSmsCollidingThreadLogUpdateVt());
     }
 
     private Integer saveXieChengSmsCollidingDataLogVts(Integer sendDate, List<XieChengSmsCollidingDataVt> xieChengSmsCollidingDataVtList) {

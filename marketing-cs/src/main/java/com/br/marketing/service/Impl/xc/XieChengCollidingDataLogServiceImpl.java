@@ -182,7 +182,10 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
 
     @Override
     public Result<Boolean> saveXieChengCollidingDataLog(List<XieChengCollidingDataLog> collidingLogs) {
-        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(XIECHENG_SAVE_COLLIDING_LOG_THREAD_POOL, marketingCommonConfig.getXiechengSaveCollidingLogThread());
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(
+            XIECHENG_SAVE_COLLIDING_LOG_THREAD_POOL,
+            marketingCommonConfig.getXiechengSaveCollidingLogThread()
+        );
         for (XieChengCollidingDataLog collidingLog : collidingLogs) {
             XIECHENG_SAVE_COLLIDING_LOG_THREAD_POOL.submit(() -> {
                         saveLogAndMapping(collidingLog);

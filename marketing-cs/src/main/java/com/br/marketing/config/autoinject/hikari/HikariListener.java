@@ -23,7 +23,7 @@ import java.util.Map;
 
 @Slf4j
 public class HikariListener implements ApplicationListener<ApplicationReadyEvent> {
-    private static Boolean loaded = false;
+    private Boolean loaded = false;
 
     public HikariListener() {
         log.info("=== HikariListener Bean 被创建 ===");

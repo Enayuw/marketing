@@ -116,8 +116,10 @@ public class DiDiNewModelingDataHandle extends IMonkeyDataHandle<MarketingSyncUs
         Set<String> CellSets = new HashSet<>();
         for (; ; ) {
             if (StringUtils.isNotEmpty(marketingCommonConfig.getDidiModelingNewThreadNum())) {
-                ThreadPoolAdjustmentUtil.adjustThreadPoolSize(pool,
-                        Integer.valueOf(marketingCommonConfig.getDidiModelingNewThreadNum()));
+                ThreadPoolAdjustmentUtil.adjustThreadPoolSize(
+                    pool,
+                    Integer.parseInt(marketingCommonConfig.getDidiModelingNewThreadNum())
+                );
                 log.warn("滴滴联合建模新接口(bairongA)线程调整，corePoolSize={},maxPoolSize={}", pool.getCorePoolSize(), pool.getMaximumPoolSize());
             }
             Result<IterationResult<MarketingSyncUser, MarketingSyncCondition>> inputRes = getInputData(inputData);

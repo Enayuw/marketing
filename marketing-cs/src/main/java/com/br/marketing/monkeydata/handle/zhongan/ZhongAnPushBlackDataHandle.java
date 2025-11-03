@@ -148,7 +148,10 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
             inputData.setUserType(usertype);
             for (; ; ) {
                 if (StringUtils.isNotEmpty(marketingCommonConfig.getZhongAnPushBlackThreadNum().get(usertype))) {
-                    ThreadPoolAdjustmentUtil.adjustThreadPoolSize(pool, Integer.valueOf(marketingCommonConfig.getZhongAnPushBlackThreadNum().get(usertype)));
+                    ThreadPoolAdjustmentUtil.adjustThreadPoolSize(
+                        pool,
+                        Integer.parseInt(marketingCommonConfig.getZhongAnPushBlackThreadNum().get(usertype))
+                    );
                     log.warn("众安推送黑名单线程调整，userType={},corePoolSize={},maxPoolSize={}", usertype, pool.getCorePoolSize(), pool.getMaximumPoolSize());
                 }
                 Result<IterationResult<MarketingSyncUser, MarketingSyncCondition>> inputRes = getInputData(inputData);
