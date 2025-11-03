@@ -1,6 +1,6 @@
 datasource:
   database:
-    names: shardingmarketing,marketingTikiv,marketingTiFlash,marketingLog
+    names: shardingmarketing,marketing-tikiv,marketing-tiflash,marketing-log
     defaultSource: shardingmarketing
     shardingmarketing:
       url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8
@@ -22,7 +22,7 @@ datasource:
       testOnReturn: false
       poolPreparedStatements: true
       maxOpenPreparedStatements: 20
-    marketingTikiv:
+    marketing-tikiv:
       name: marketing
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
@@ -49,7 +49,7 @@ datasource:
     #      removeAbandonedTimeout: 1800 # 超时时间(以秒数为单位)
     #      filters: stat,wall,log4j2
     #      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
-    marketingTiFlash:
+    marketing-tiflash:
       name: marketing
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
@@ -76,7 +76,7 @@ datasource:
     #      removeAbandonedTimeout: 1800 # 超时时间(以秒数为单位)
     #      filters: stat,wall,log4j2
     #      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
-    marketingLog:
+    marketing-log:
       name: marketing_log
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver

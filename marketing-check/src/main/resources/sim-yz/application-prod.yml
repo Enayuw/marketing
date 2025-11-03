@@ -1,6 +1,6 @@
 datasource:
   database:
-    names: shardingmarketing,marketingTikiv,marketingTiFlash,marketingDoris,marketingBI,marketingLog
+    names: shardingmarketing,marketing-tikiv,marketing-tiflash,marketing-doris,marketing-bi,marketing-log
     defaultSource: shardingmarketing
     shardingmarketing:
       url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=true&failOverReadOnly=false&useConfigs=maxPerformance
@@ -22,11 +22,12 @@ datasource:
       testOnReturn: false
       poolPreparedStatements: true
       maxOpenPreparedStatements: 20
-    marketingTikiv:
+    marketing-tikiv:
       name: marketing
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
-      url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=true&failOverReadOnly=false&useConfigs=maxPerformance
+      url: jdbc:mysql://tidb-w-marketing.brapp
+      .com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=true&failOverReadOnly=false&useConfigs=maxPerformance
       username: ENC(mysql-prod-ai-marketing-user)
       password: ENC(mysql-prod-ai-marketing-password)
       initialSize: 5 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
@@ -48,7 +49,7 @@ datasource:
     #      removeAbandonedTimeout: 1800 # 超时时间(以秒数为单位)
     #      filters: stat,wall,log4j2
     #      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
-    marketingTiFlash:
+    marketing-tiflash:
       name: marketing
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
@@ -74,7 +75,7 @@ datasource:
 #      removeAbandonedTimeout: 1800 # 超时时间(以秒数为单位)
 #      filters: stat,wall,log4j2
 #      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
-    marketingDoris:
+    marketing-doris:
       name: marketing
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
@@ -98,7 +99,7 @@ datasource:
       breakAfterAcquireFailure: true # 数据库服务宕机自动重连机制
       timeBetweenConnectErrorMillis: 300000 # 连接出错后重试时间间隔
       replicationAllocation: tag.location.default:3
-    marketingBI:
+    marketing-bi:
       name: marketing_bi
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
@@ -122,7 +123,7 @@ datasource:
       breakAfterAcquireFailure: true # 数据库服务宕机自动重连机制
       timeBetweenConnectErrorMillis: 300000 # 连接出错后重试时间间隔
       replicationAllocation: tag.location.default:3
-    marketingLog:
+    marketing-log:
       name: marketing_log
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
