@@ -66,6 +66,7 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
     @Resource
     private XieChengCollidingDataRobMapper robMapper;
 
+    @Resource
     private XiechengCollidingDataProcessTaskMapper xiechengCollidingDataProcessTaskMapper;
 
     /**

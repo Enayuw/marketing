@@ -1,7 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.XiechengCollidingDataProcessTaskMapper">
-    <select id="selectReleaseTimeRanges" resultType="com.br.marketing.dto.rulecenter.XcDeleteMagnitudeDistDTO">
+    <resultMap id="XcDeleteMagnitudeDistDTOMap" type="com.br.marketing.dto.rulecenter.XcDeleteMagnitudeDistDTO">
+        <result column="release_time_begin" property="releaseTimeBegin"
+                jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"
+                typeHandler="com.br.marketing.config.LocalDateTimeHandler"/>
+        <result column="release_time_end" property="releaseTimeEnd"
+                jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"
+                typeHandler="com.br.marketing.config.LocalDateTimeHandler"/>
+    </resultMap>
+
+    <select id="selectReleaseTimeRanges" resultMap="XcDeleteMagnitudeDistDTOMap">
         select release_time_begin, release_time_end
         from b_xiecheng_colliding_data_process_task
         where api_code = #{apiCode} and task_type = 1
@@ -10,31 +19,49 @@
         order by release_time_begin asc
     </select>
 
-    <select id="getCollidingDataDeleteTaskList" resultType="com.br.marketing.dto.rulecenter.XcDeleteTaskVO">
+    <resultMap id="XcDeleteTaskVOMap" type="com.br.marketing.dto.rulecenter.XcDeleteTaskVO">
+        <result column="releaseTimeBegin" property="releaseTimeBegin" jdbcType="TIMESTAMP"
+                javaType="java.time.LocalDateTime"
+                typeHandler="com.br.marketing.config.LocalDateTimeHandler"/>
+        <result column="releaseTimeEnd"   property="releaseTimeEnd"   jdbcType="TIMESTAMP"
+                javaType="java.time.LocalDateTime"
+                typeHandler="com.br.marketing.config.LocalDateTimeHandler"/>
+        <result column="taskExecuteTime"  property="taskExecuteTime"  jdbcType="TIMESTAMP"
+                javaType="java.time.LocalDateTime"
+                typeHandler="com.br.marketing.config.LocalDateTimeHandler"/>
+        <result column="createTime"       property="createTime"       jdbcType="TIMESTAMP"
+                javaType="java.time.LocalDateTime"
+                typeHandler="com.br.marketing.config.LocalDateTimeHandler"/>
+        <result column="updateTime"       property="updateTime"       jdbcType="TIMESTAMP"
+                javaType="java.time.LocalDateTime"
+                typeHandler="com.br.marketing.config.LocalDateTimeHandler"/>
+    </resultMap>
+
+    <select id="getCollidingDataDeleteTaskList" resultMap="XcDeleteTaskVOMap">
         SELECT
-            task.id AS dprId,
-            customer.cid AS cid,
-            customer.api_code AS apiCode,
-            customer.short_name AS shortName,
-            task.discreet_number AS discreetNumber,
-            task.actual_number AS actualNumber,
-            task.release_time_begin AS releaseTimeBegin,
-            task.release_time_end AS releaseTimeEnd,
-            task.task_type AS taskType,
-            task.task_execute_time AS taskExecuteTime,
-            task.task_status AS taskStatus,
-            task.create_time AS createTime,
-            task.update_time AS updateTime
+        task.id AS dprId,
+        customer.cid AS cid,
+        customer.api_code AS apiCode,
+        customer.short_name AS shortName,
+        task.discreet_number AS discreetNumber,
+        task.actual_number AS actualNumber,
+        task.release_time_begin AS releaseTimeBegin,
+        task.release_time_end AS releaseTimeEnd,
+        task.task_type AS taskType,
+        task.task_execute_time AS taskExecuteTime,
+        task.task_status AS taskStatus,
+        task.create_time AS createTime,
+        task.update_time AS updateTime
         FROM b_xiecheng_colliding_data_process_task AS task
         JOIN b_marketing_customer AS customer ON task.api_code = customer.api_code
         WHERE is_delete = 0
         AND (
-            (task.task_type = 1
-            <if test="releaseTimeBegin != null and releaseTimeEnd != null">
+        (task.task_type = 1
+        <if test="releaseTimeBegin != null and releaseTimeEnd != null">
             AND task.release_time_begin <![CDATA[ >= ]]> #{releaseTimeBegin,jdbcType=TIMESTAMP}
-            AND task.release_time_end <![CDATA[ <= ]]> #{releaseTimeEnd,jdbcType=TIMESTAMP})
-            </if>
-            OR task.task_type = 3
+            AND task.release_time_end <![CDATA[ <= ]]> #{releaseTimeEnd,jdbcType=TIMESTAMP}
+        </if>)
+        OR task.task_type = 3
         )
         ORDER BY task.create_time DESC, task.task_execute_time DESC
     </select>
