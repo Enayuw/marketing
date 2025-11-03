@@ -252,4 +252,47 @@
     <select id="searchCycDeleteCountByExtend" parameterType="java.lang.String" resultType="java.lang.Integer">
         select count(0) from b_xiecheng_colliding_data_loop_cycle where extend = #{extend}
     </select>
+
+    <select id="selectTimeRangeOutMagnitudeForTodaytiflash_" resultType="java.lang.Integer">
+        SELECT
+        count(0)
+        FROM
+        b_xiecheng_colliding_data_loop_cycle
+        <![CDATA[
+        WHERE
+        (push_time > CURDATE() and create_time < CURDATE())
+        or (release_time >= CURDATE() AND release_time < CURDATE() + INTERVAL 1 DAY
+        AND (release_time <= #{begin,jdbcType=TIMESTAMP} OR release_time > #{end,jdbcType=TIMESTAMP})
+        AND is_delete = 0)
+        ]]>
+    </select>
+
+    <select id="selectTimeRangeOutMagnitudeForNotTodaytiflash_" resultType="java.lang.Integer">
+        SELECT COUNT(0) FROM b_xiecheng_colliding_data_loop_cycle
+        <![CDATA[
+        WHERE release_time >= date(#{begin,jdbcType=TIMESTAMP})
+        AND release_time < DATE_ADD(date(#{begin,jdbcType=TIMESTAMP}), INTERVAL 1 DAY)
+        AND (release_time <= #{begin,jdbcType=TIMESTAMP} OR release_time > #{end,jdbcType=TIMESTAMP})
+        AND is_delete = 0
+        ]]>
+    </select>
+
+    <select id="selectTimeRangeBetweenMagnitudetiflash_" resultType="java.lang.Integer">
+        SELECT COUNT(0) FROM b_xiecheng_colliding_data_loop_cycle
+        <![CDATA[
+        WHERE release_time > #{begin,jdbcType=TIMESTAMP} AND release_time <= #{end,jdbcType=TIMESTAMP}
+        AND is_delete = 0
+        ]]>
+    </select>
+
+    <select id="selectTimeRangeBetweenWithScoreMagnitudedoris_" resultType="java.lang.Integer">
+        select count(distinct cycle.cell) from
+            (select cell_sha256_code_list as cell
+             from b_xiecheng_colliding_data_loop_cycle
+             where <![CDATA[ release_time > #{begin,jdbcType=TIMESTAMP} AND release_time <= #{end,jdbcType=TIMESTAMP} ]]>
+             and is_delete = 0) cycle
+        inner join
+             (${scoreSql}) score
+        on cycle.cell = score.cell
+    </select>
 </mapper>

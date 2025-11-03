@@ -2,7 +2,7 @@ package com.br.marketing.entity;
 
 import java.util.Date;
 
-public class XiechengCollidingDataProcessTask {
+public class XiechengCollidingDataProcessTask implements Cloneable{
     /**
      * 
      */

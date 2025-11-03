@@ -2,14 +2,12 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.dto.xiecheng.XieChengActivateDTO;
 import com.br.marketing.entity.CustomizeUploadData;
-import com.br.marketing.entity.XieChengBlackList;
-import com.br.marketing.entity.XieChengCollidingBlackListCount;
 import com.br.marketing.entity.XieChengCollidingDataLoopCycle;
 import com.br.marketing.vo.xiecheng.XiechengCollidingRuleVO;
 import com.br.marketing.vo.xiecheng.param.CollidingRuleListParam;
-import io.swagger.models.auth.In;
 import org.apache.ibatis.annotations.Param;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -114,5 +112,15 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
     CustomizeUploadData selectActivateData(XieChengActivateDTO xieChengActivateDTO);
 
     int searchCycDeleteCountByExtend(@Param("extend") String extend);
+
+    int selectTimeRangeOutMagnitudeForTodaytiflash_(@Param("begin") LocalDateTime begin, @Param("end") LocalDateTime end);
+
+    int selectTimeRangeOutMagnitudeForNotTodaytiflash_(@Param("begin") LocalDateTime begin, @Param("end") LocalDateTime end);
+
+    int selectTimeRangeBetweenMagnitudetiflash_(@Param("begin") LocalDateTime begin, @Param("end") LocalDateTime end);
+
+    int selectTimeRangeBetweenWithScoreMagnitudedoris_(@Param("begin") LocalDateTime begin,
+                                                         @Param("end") LocalDateTime end,
+                                                         @Param("scoreSql") String scoreSql);
 
 }

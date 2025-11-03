@@ -55,9 +55,11 @@ import com.br.marketing.dto.dataclean.mq.MqDataJsonParse;
 import com.br.marketing.dto.msg.mq.ApiDataInfoDTO;
 import com.br.marketing.dto.msg.mq.UserTypeCollectionDTO;
 import com.br.marketing.dto.rulecenter.XcCycleDeleteDTO;
+import com.br.marketing.dto.rulecenter.XcCycleDeleteNumDTO;
 import com.br.marketing.dto.rulecenter.XcDeleteMagnitudeDistDTO;
 import com.br.marketing.dto.rulecenter.XieChengCollidingFilterDTO;
 import com.br.marketing.entity.*;
+import com.br.marketing.entity.common.TimeRange;
 import com.br.marketing.enums.*;
 import com.br.marketing.enums.clean.DataProcessEnum;
 import com.br.marketing.enums.clean.DataSourceTypeEnum;
@@ -89,6 +91,7 @@ import com.br.marketing.service.rulecenter.IRuleCenterFilterTemplateService;
 import com.br.marketing.service.rulecenter.RuleCenterBySourceTypeFactory;
 import com.br.marketing.service.tag.calculate.TagHandleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.TimeUtils;
 import com.br.marketing.utils.PulsarConsumerSkipUtil;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.br.marketing.util.EsConditionTransferSqlUtil;
@@ -121,7 +124,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.*;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -288,6 +290,12 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Autowired
     private TagDataRuleCalculateMapper tagDataRuleCalculateMapper;
+
+    @Resource
+    private VariableAllocationServiceImpl variableAllocationService;
+
+    @Resource
+    XieChengCollidingDataLoopCycleMapper xieChengCollidingDataLoopCycleMapper;
 
     private static final String TITLE = "【通用跑分文件推决策】";
 
@@ -1406,8 +1414,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         xiechengCollidingDataProcessTask.setCreateTime(new Date());
         xiechengCollidingDataProcessTask.setUpdateTime(new Date());
         int i = xiechengCollidingDataProcessTaskMapper.insertSelective(xiechengCollidingDataProcessTask);
-        if (i > 0 && !CollectionUtils.isEmpty(batchNumberList)
-                && (xcProcessTaskEnum == XcProcessTaskEnum.PROCESS_DELETE || xcProcessTaskEnum == XcProcessTaskEnum.PROCESS_DYNA_FALSE)) {
+        if (i > 0 && !CollectionUtils.isEmpty(batchNumberList) && xcProcessTaskEnum == XcProcessTaskEnum.PROCESS_DYNA_FALSE) {
             for (String batchNumber : batchNumberList) {
                 XiechengCollidingTaskBatch xiechengCollidingTaskBatch = new XiechengCollidingTaskBatch();
                 xiechengCollidingTaskBatch.setApiCode(dto.getApiCode());
@@ -1421,6 +1428,72 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    @Override
+    public Result collidingDataCycleDelete(XcCycleDeleteDTO dto) {
+        JSONObject jsonObject = JSON.parseObject(dto.getMRuleCondition());
+        XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
+        XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
+        List<String> batchNumberList = dto.getBatchNumberList();
+        String batchNumbers = String.join(",", batchNumberList);
+        String condition = EsConditionTransferSqlUtil.jsonTransferSql(jsonObject, "");
+        Date taskStartTime = DateHelper.parseDate(collidingFilterDTO.getCleanTime());
+        List<XcDeleteMagnitudeDistDTO> magnitudeDistList = dto.getDeleteMagnitudeDistList();
+        magnitudeDistList.sort(Comparator.comparing(XcDeleteMagnitudeDistDTO::getReleaseTimeBegin));
+        for (XcDeleteMagnitudeDistDTO magnitudeDistDTO : magnitudeDistList) {
+            XiechengCollidingDataProcessTask task = new XiechengCollidingDataProcessTask();
+            task.setApiCode(dto.getApiCode());
+            task.setBatchNumber(batchNumbers);
+            task.setTaskStatus(XcProcessTaskStatusEnum.EXECUTE_WAITED.getValue());
+            task.setTaskStartTime(taskStartTime);
+            task.setTaskType(XcProcessTaskEnum.PROCESS_DELETE.getTaskType());
+            task.setTaskExecutionConditions(condition);
+            task.setTaskExecutionSql(getCycleDeleteSql(
+                    condition, batchNumberList, magnitudeDistDTO.getReleaseTimeBegin(), magnitudeDistDTO.getReleaseTimeEnd()));
+            task.setReleaseTimeBegin(Date.from(magnitudeDistDTO.getReleaseTimeBegin().atZone(ZoneId.systemDefault()).toInstant()));
+            task.setReleaseTimeEnd(Date.from(magnitudeDistDTO.getReleaseTimeEnd().atZone(ZoneId.systemDefault()).toInstant()));
+            task.setDiscreetNumber(magnitudeDistDTO.getDeleteNum());
+            task.setRemainingNum(magnitudeDistDTO.getRemainingNum());
+            task.setFreeNum(magnitudeDistDTO.getFreeNum());
+            task.setCreateTime(new Date());
+            task.setUpdateTime(new Date());
+            xiechengCollidingDataProcessTaskMapper.insertSelective(task);
+            for (String batchNumber : batchNumberList) {
+                XiechengCollidingTaskBatch batch = new XiechengCollidingTaskBatch();
+                batch.setApiCode(dto.getApiCode());
+                batch.setCollidingDataTaskId(task.getId());
+                batch.setBatchNumber(batchNumber);
+                batch.setType(XcProcessTaskEnum.PROCESS_DELETE.getBatchType());
+                batch.setStatus(XcProcessBatchStatusEnum.EXECUTE_WAITED.getValue());
+                batch.setCreateTime(new Date());
+                batch.setUpdateTime(new Date());
+                xiechengCollidingTaskBatchMapper.insertSelective(batch);
+            }
+        }
+        return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    /**
+     * @param condition
+     * @param batchNumberList
+     * @param releaseTimeBegin
+     * @param releaseTimeEnd
+     * @return
+     */
+    private String getCycleDeleteSql(String condition, List<String> batchNumberList, LocalDateTime releaseTimeBegin, LocalDateTime releaseTimeEnd) {
+        List<String> querySqls = new ArrayList<>();
+        for (String batchNumber : batchNumberList) {
+            String sql = String.format("select count(0) from b_xiecheng_colliding_data_loop_cycle cycle " +
+                            "join b_xiecheng_colliding_%s score on cycle.cell_sha256_code_list = score.cell and score.is_delete = 0 " +
+                            "left join (select id, cell, is_delete from b_xiecheng_colliding_%s where %s) scoreCd " +
+                            "on score.cell = scoreCd.cell and scoreCd.is_delete = 0 " +
+                            "where cycle.is_delete = 0 and scoreCd.id is null " +
+                            "and cycle.release_time > '%s' and cycle.release_time <= '%s'"
+                    , batchNumber, batchNumber, condition, releaseTimeBegin, releaseTimeEnd);
+            querySqls.add(sql);
+        }
+        return String.join(";", querySqls);
     }
 
     /**
@@ -1580,19 +1653,18 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     @Override
-    public Result<XcDeleteMagnitudeDistDTO> collidingDataCycleDeleteMagnitudeDist(XcCycleDeleteDTO dto) {
+    public Result<List<XcDeleteMagnitudeDistDTO>> collidingDataCycleDeleteMagnitudeDist(XcCycleDeleteNumDTO dto) {
         //1.将mRuleCOndition中的result和clean_time放到collidingFilterDTO中；将condition放到jsonObject中
-        JSONObject jsonObject = JSON.parseObject(dto.getMRuleCondition());
+        JSONObject conditionJson = JSON.parseObject(dto.getMRuleCondition());
         XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
-        XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
+        XieChengEsJsonHandler.handlerJson(conditionJson, collidingFilterDTO);
         String result = collidingFilterDTO.getResult();
         if (StringUtils.isEmpty(result) || !result.equals("true")) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("result必须为true！");
         }
         //2.校验releaseTimeBegin是否大于当前时间4h以上
-        XcDeleteMagnitudeDistDTO releaseTimeRange = dto.getDeleteMagnitudeDistList().get(0);
-        LocalDateTime releaseTimeBegin = releaseTimeRange.getReleaseTimeBegin();
-        LocalDateTime releaseTimeEnd = releaseTimeRange.getReleaseTimeEnd();
+        LocalDateTime releaseTimeBegin = dto.getReleaseTimeBegin();
+        LocalDateTime releaseTimeEnd = dto.getReleaseTimeEnd();
         if(releaseTimeBegin.isBefore(LocalDateTime.now().plusHours(4))){
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("剔除周期数据的施放时间范围的开始时间要大于当前时间4h以上！");
         }
@@ -1608,7 +1680,106 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
             }
         }
-        return null;
+        //4.按自然日分割releaseTimeRange
+        List<TimeRange> timeRanges = TimeUtils.splitByNaturalDays(releaseTimeBegin, releaseTimeEnd);
+        //5.计算量级
+        return getResult(dto, conditionJson, timeRanges);
+    }
+
+    /**
+     * 计算量级，方法中主要是多线程的处理
+     * @param dto
+     * @param conditionJson
+     * @param timeRanges
+     * @return
+     */
+    private Result getResult(XcCycleDeleteNumDTO dto, JSONObject conditionJson, List<TimeRange> timeRanges) {
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(7, 7);
+        List<Future<XcDeleteMagnitudeDistDTO>> futures = new ArrayList<>();
+        try {
+            // 异步提交任务
+            for (TimeRange timeRange : timeRanges) {
+                futures.add(threadPool.submit(() ->
+                        magnitudeDistCal(timeRange, dto.getBatchNumberList(), conditionJson)
+                ));
+            }
+            List<XcDeleteMagnitudeDistDTO> results = new ArrayList<>(futures.size());
+            // 设置整体超时
+            long globalStart = System.currentTimeMillis();
+            long globalTimeout = TimeUnit.MINUTES.toMillis(2); // 总超时时间2分钟
+            for (Future<XcDeleteMagnitudeDistDTO> future : futures) {
+                long timeLeft = globalTimeout - (System.currentTimeMillis() - globalStart);
+                if (timeLeft <= 0) {
+                    log.error("规则中心-周期数据剔除量级查询整体处理超时");
+                    return new Result<List<XcDeleteMagnitudeDistDTO>>()
+                            .setCode(ResultCode.FAIL.getValue())
+                            .setMessage("服务异常");
+                }
+                try {
+                    // 单任务超时限制
+                    results.add(future.get(timeLeft, TimeUnit.MILLISECONDS));
+                } catch (Exception e) {
+                    // 只要有一个异常，取消所有任务
+                    futures.forEach(fu -> fu.cancel(true));
+                    log.error("规则中心-周期数据剔除量级查询异常，{}", e.getMessage(), e);
+                    return new Result<List<XcDeleteMagnitudeDistDTO>>()
+                            .setCode(ResultCode.FAIL.getValue())
+                            .setMessage("服务异常");
+                }
+            }
+            // 所有成功
+            return new Result<List<XcDeleteMagnitudeDistDTO>>()
+                    .setCode(ResultCode.SUCCESS.getValue())
+                    .setDate(results);
+        } catch (Exception e) {
+            log.error("规则中心-周期数据剔除量级查询异常，{}", e.getMessage(), e);
+            return new Result<List<XcDeleteMagnitudeDistDTO>>()
+                    .setCode(ResultCode.FAIL.getValue())
+                    .setMessage("服务异常");
+        } finally {
+            threadPool.shutdown();
+            try {
+                if (!threadPool.awaitTermination(60, TimeUnit.SECONDS)) {
+                    threadPool.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                threadPool.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
+    /**
+     * 计算量级核心方法
+     * @param timeRange
+     * @param batchNumberList
+     * @param conditionJson
+     * @return
+     */
+    private XcDeleteMagnitudeDistDTO magnitudeDistCal(TimeRange timeRange, List<String> batchNumberList, JSONObject conditionJson) {
+        //1.撞得量级阈值
+        int totalThreshold = variableAllocationService.getVariableAllocation().getNormalQuantity();
+        //2.T日timeRange范围外量级
+        int timeRangeOutMagnitude = 0;
+        if (LocalDate.now().equals(timeRange.getBegin().toLocalDate())) {
+            timeRangeOutMagnitude = xieChengCollidingDataLoopCycleMapper
+                    .selectTimeRangeOutMagnitudeForTodaytiflash_(timeRange.getBegin(), timeRange.getEnd());
+        } else {
+            timeRangeOutMagnitude = xieChengCollidingDataLoopCycleMapper
+                    .selectTimeRangeOutMagnitudeForNotTodaytiflash_(timeRange.getBegin(), timeRange.getEnd());
+        }
+        //3.timeRange范围内量级
+        int timeRangeBetweenMagnitude = xieChengCollidingDataLoopCycleMapper
+                .selectTimeRangeBetweenMagnitudetiflash_(timeRange.getBegin(), timeRange.getEnd());
+        //4.timeRange范围内，与符合条件的跑分数据的交集量级
+        String scoreSql = scoreSql(conditionJson, batchNumberList);
+        int remainingNum = xieChengCollidingDataLoopCycleMapper
+                .selectTimeRangeBetweenWithScoreMagnitudedoris_(timeRange.getBegin(), timeRange.getEnd(), scoreSql);
+        //5.timeRange范围内的剔除量级
+        int deleteNum = timeRangeBetweenMagnitude - remainingNum;
+        //6.空挡量级
+        int freeNum = totalThreshold - timeRangeOutMagnitude - remainingNum;
+        return new XcDeleteMagnitudeDistDTO(timeRange.getBegin(), timeRange.getEnd(), deleteNum, remainingNum, freeNum);
     }
 
     private void cycleDataDeleteQueryOpt(JSONObject jsonObject, List<String> batchNumberList, String cleanTime, List<String> querySqls) {

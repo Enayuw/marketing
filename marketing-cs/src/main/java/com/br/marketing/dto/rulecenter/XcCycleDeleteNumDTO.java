@@ -1,5 +1,6 @@
 package com.br.marketing.dto.rulecenter;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -11,7 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
-public class XcCycleDeleteDTO {
+public class XcCycleDeleteNumDTO {
 
     @ApiModelProperty(value = "商户编号")
     @NotNull(message = "商户编号不能为空")
@@ -22,11 +23,17 @@ public class XcCycleDeleteDTO {
     private List<String> batchNumberList;
 
     @ApiModelProperty(value = "查询规则")
-    @NotEmpty(message = "查询规则不能为空")
+    @NotNull(message = "查询规则不能为空")
     @JsonProperty("mRuleCondition")
     private String mRuleCondition;
 
-    @ApiModelProperty(value = "剔除量级分布信息")
-    @NotEmpty(message = "剔除量级分布信息不能为空")
-    private List<XcDeleteMagnitudeDistDTO> deleteMagnitudeDistList;
+    @ApiModelProperty(value = "releaseTime开始时间")
+    @NotNull(message = "releaseTime开始时间不能为空")
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss", timezone="Asia/Shanghai")
+    private LocalDateTime releaseTimeBegin;
+
+    @ApiModelProperty(value = "releaseTime结束时间")
+    @NotNull(message = "releaseTime结束时间不能为空")
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss", timezone="Asia/Shanghai")
+    private LocalDateTime releaseTimeEnd;
 }
