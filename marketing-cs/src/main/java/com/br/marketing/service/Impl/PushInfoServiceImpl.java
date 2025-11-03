@@ -24,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -138,10 +139,12 @@ public class PushInfoServiceImpl implements PushInfoService {
             list.forEach(t -> {
                 String batchNumber = batchNumberOfMid.get(t.getId());
                 t.setBatchNumbers(batchNumber);
-                List<String> userTypeList = marketingTaskUserTypeMapper.queryUserTypeByBatchNumbertikv_(batchNumber);
-                if(null != userTypeList){
-                    String userType = userTypeList.stream().collect(Collectors.joining(","));
-                    t.setUserType(userType);
+                if(!StringUtils.isEmpty(batchNumber)){
+                    List<String> userTypeList = marketingTaskUserTypeMapper.queryUserTypeByBatchNumbertikv_(batchNumber);
+                    if(null != userTypeList){
+                        String userType = userTypeList.stream().collect(Collectors.joining(","));
+                        t.setUserType(userType);
+                    }
                 }
                 List<Map> msgList = new ArrayList<>();
                 Map map = resultMap.get(t.getId().toString());
