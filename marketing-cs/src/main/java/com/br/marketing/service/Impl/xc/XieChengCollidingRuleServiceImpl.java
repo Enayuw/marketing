@@ -7,9 +7,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
-
 import javax.annotation.Resource;
-
 import com.br.marketing.common.exception.KnowException;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.dto.rulecenter.XcDeleteReleaseTimeRange;
@@ -19,7 +17,6 @@ import com.br.marketing.mapper.*;
 import com.br.marketing.vo.xiecheng.param.UpdateRoundParam;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.utils.BrExecutors;
@@ -36,7 +33,6 @@ import com.br.marketing.vo.xiecheng.param.UpdateCollidingSwitchParam;
 import com.br.marketing.vo.xiecheng.param.UpdatePriorityParam;
 import com.github.pagehelper.PageHelper;
 import com.google.common.base.Splitter;
-
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
@@ -68,6 +64,9 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
 
     @Resource
     private XiechengCollidingDataProcessTaskMapper xiechengCollidingDataProcessTaskMapper;
+
+    @Resource
+    private XiechengCollidingTaskBatchMapper xiechengCollidingTaskBatchMapper;
 
     /**
      * 获取调度任务列表-False-分页
@@ -396,17 +395,19 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean deleteCollidingDataDeleteTask(Long taskId) {
+        //1.逻辑删除【b_xiecheng_colliding_data_process_task】
         XiechengCollidingDataProcessTaskExample taskExample = new XiechengCollidingDataProcessTaskExample();
         taskExample.createCriteria().andIdEqualTo(taskId);
         XiechengCollidingDataProcessTask task = new XiechengCollidingDataProcessTask();
         task.setIsDelete(Constants.DATA_VALID);
         xiechengCollidingDataProcessTaskMapper.updateByExampleSelective(task, taskExample);
-//        XiechengCollidingTaskBatchExample batch = new XiechengCollidingTaskBatchExample();
-//        batch.createCriteria().andCollidingDataTaskIdEqualTo(taskId);
-//        XiechengCollidingTaskBatch batch = new XiechengCollidingTaskBatch();
-//        task.setIsDelete(Constants.DATA_VALID);
-        xiechengCollidingDataProcessTaskMapper.updateByExampleSelective(task, taskExample);
-        return null;
+        //2.逻辑删除【b_xiecheng_colliding_task_batch】
+        XiechengCollidingTaskBatchExample batchExample = new XiechengCollidingTaskBatchExample();
+        batchExample.createCriteria().andCollidingDataTaskIdEqualTo(taskId);
+        XiechengCollidingTaskBatch batch = new XiechengCollidingTaskBatch();
+        batch.setIsDelete(Constants.DATA_VALID);
+        xiechengCollidingTaskBatchMapper.updateByExampleSelective(batch, batchExample);
+        return true;
     }
 
 }
