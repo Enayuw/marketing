@@ -1,4 +1,5 @@
 package com.br.marketing.service.Impl;
+import java.util.Date;
 
 import com.alibaba.fastjson.*;
 import com.br.arch.geo.pulsar.ProductPulsarClientManager;
@@ -542,6 +543,68 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Result<String> pushCustomer(PushCustomerDTO dto) {
+        // 上传任务
+        if(Objects.equals(dto.getTaskType(), TaskTypeEnum.UPLOAD_TASKS.getValue())){
+            return pushUplodCustomer(dto);
+        }else {
+            return pushScoreCustomer(dto);
+        }
+    }
+
+    private Result<String> pushUplodCustomer(PushCustomerDTO dto) {
+
+        if (dto.getmPlanNum() != null && dto.getmPlanNum() <= 0) {
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("推送数量不能小于等于0");
+        }
+        if (dto.getmPercentage() != null && dto.getmPercentage().compareTo(new BigDecimal(0)) <= 0) {
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("百分比不能小于等于0");
+        }
+
+        CustomerInfoPushMain customerInfoPushMain = new CustomerInfoPushMain();
+        customerInfoPushMain.setmApiCode(dto.getApiCode());
+        customerInfoPushMain.setmApiCode(dto.getApiCode());
+        customerInfoPushMain.setmRuleCondition(dto.getmRuleCondition());
+        customerInfoPushMain.setmRuleConditionShow(dto.getmRuleConditionShow());
+        customerInfoPushMain.setmScoreCondition(dto.getmScoreCondition());
+        customerInfoPushMain.setmPercentage(dto.getmPercentage());
+        customerInfoPushMain.setmPlanNum(dto.getmPlanNum());
+        customerInfoPushMain.setmRealyNum(dto.getmPrePlanNum());
+        try {
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            customerInfoPushMain.setCreateTime(formatter.parse(dto.getRepushTime()));
+        }catch (Exception e){
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("重推框定数据时间转换异常:"+e.getMessage());
+        }
+
+        customerInfoPushMain.setUpdateTime(new Date());
+        customerInfoPushMain.setmStatus(PushRuleStatusEnum.TO_BE_RUNNING.getValue());
+        customerInfoPushMain.setOptUserId(String.valueOf(dto.getUserDetail().getId()));
+        customerInfoPushMain.setOptUserName(dto.getUserDetail().getRealName());
+        customerInfoPushMain.setTagContent(dto.getmTagCondition());
+        customerInfoPushMain.setPushTarget(RuleCenterPushTargetEnum.UPLOAD_REPUSH_POLICY.getCode());
+        customerInfoPushMain.setUploadReportIds(dto.getUploadReportId());
+        customerInfoPushMainMapper.insertSelective(customerInfoPushMain);
+        //数据集名称更新
+        String batchName;
+        if (StringUtils.isNotEmpty(dto.getBatchName())) {
+            batchName = dto.getBatchName();
+        } else {  //默认名称
+            if (StringUtils.isNotEmpty(dto.getRuleModelName())) {
+                batchName = LocalDate.now().toString().concat("-").concat(dto.getRuleModelName()).concat("-").concat(LocalTime.now().withNano(0)
+                        .toString());
+            } else {
+                batchName = LocalDate.now().toString().concat("-").concat(customerInfoPushMain.getId().toString()).concat("-").
+                        concat(LocalTime.now().withNano(0).toString());
+            }
+        }
+        CustomerInfoPushMain updatePushMain = new CustomerInfoPushMain();
+        updatePushMain.setId(customerInfoPushMain.getId());
+        updatePushMain.setBatchName(batchName);
+        customerInfoPushMainMapper.updateByPrimaryKeySelective(updatePushMain);
+        return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(customerInfoPushMain.getId().toString());
+    }
+
+    private Result<String> pushScoreCustomer(PushCustomerDTO dto) {
         AssertResult.assertResult(checkThreekEnc(dto.getFileIdList()));
         /**
          * 先校验下 传过来的批次和 模型是否匹配
@@ -558,7 +621,6 @@ public class PushRuleServiceImpl implements PushRuleService {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("百分比不能小于等于0");
         }
 
-        Integer taskType = dto.getTaskType();
         StraHisFileExample fileExample = new StraHisFileExample();
         fileExample.createCriteria().andIdIn(dto.getFileIdList());
         List<StraHisFile> files = straHisFileMapper.selectByExample(fileExample);
@@ -608,8 +670,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (Objects.nonNull(dto.getIsScoreMerge()) && dto.getIsScoreMerge()) {
             customerInfoPushMain.setPushTarget(2);
             customerInfoPushMain.setExtend(dto.getScoreMergeField());
-        }else if(Objects.equals(taskType, TaskTypeEnum.UPLOAD_TASKS.getValue())){
-            customerInfoPushMain.setPushTarget(RuleCenterPushTargetEnum.UPLOAD_REPUSH_POLICY.getCode());
         }
         customerInfoPushMainMapper.insertSelective(customerInfoPushMain);
         //数据集名称更新
@@ -643,86 +703,87 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(customerInfoPushMain.getId().toString());
     }
 
-    private Result<PushViewVO> getTotal(PushCustomerDTO dto) {
+    private Result<PushViewVO> getUplodTotal(PushCustomerDTO dto) {
         int total = 0;
         PushViewVO pushViewVO = new PushViewVO();
-        Integer taskType = dto.getTaskType();
-        // 跑分任务
-        if(Objects.equals(taskType, TaskTypeEnum.SCORE_TASK.getValue())){
-            if (isXieChengData(dto)) {
-                total = getXieChengDataNum(dto.getmRuleCondition(), dto.getBatchNumberList(), pushViewVO);
-            } else if (Objects.nonNull(dto.getIsScoreMerge()) && dto.getIsScoreMerge()) {
-                //合并跑分计算
-                long start = System.currentTimeMillis();
-                // 组装查询sql
-                String countSql = "SELECT COUNT(1) ".concat(ruleCenterLabelService.scoreMergeAssemble(dto));
-                // 执行查询获取统计数量
-                Integer count = tagDataRuleCalculateMapper.getCountbI_(countSql);
-                log.warn("跑分合并预览量级查询sql={}，耗时={}ms", countSql, System.currentTimeMillis() - start);
-                total = (count != null ? count : 0);
-            } else {
-                Result<PushViewVO> pushViewVOResult = this.queryFederation(dto, pushViewVO);
-                if (!ResultCode.SUCCESS.getValue().equals(pushViewVOResult.getCode())) {
-                    return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage(pushViewVOResult.getMessage());
-                }
-                total = pushViewVOResult.getData().getTotal();
-            }
-            if (total <= 0) {
-                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("无符合的数据");
-            }
-            if (dto.getmPercentage() != null) {
-                if (dto.getmPercentage().compareTo(new BigDecimal(0)) <= 0) {
-                    return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("百分比不能小于等于0");
-                }
-                Integer res = dto.getmPercentage().multiply(new BigDecimal(total)).setScale(0, RoundingMode.UP).intValue();
-                return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
-            }
-            pushViewVO.setTotal(total);
-            return new Result<PushViewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushViewVO);
-        }else {
-            String uploadReportId = dto.getUploadReportId();
-            if(StringUtils.isEmpty(uploadReportId)){
-                return new Result<PushViewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushViewVO);
-            }
-            
-            // 优化：使用批量查询替代循环查询
-            String[] split = uploadReportId.split(",");
-            
-            // 1. 转换为Long类型的ID列表
-            List<Long> ids = Arrays.stream(split)
-                    .map(String::trim)
-                    .map(Long::valueOf)
-                    .collect(Collectors.toList());
-            
-            // 2. 批量查询所有的MarketingSyncReport
-            List<MarketingSyncReport> syncReports = syncReportMapper.selectByIds(ids);
-            
-            // 3. 解析页面规则条件
-            String filterCondition = uploadRePushPolicyStrategy.getUploadDataCondition(dto.getmRuleCondition(), dto.getApiCode());
-            String updateTime = "";
-            // 4. 循环查询每个条件的数据量级并累加（因 ShardingSphere 不支持 UNION）
-            for (MarketingSyncReport report : syncReports) {
-                if (report != null) {
-                    String apiCode = report.getApiCode();
-                    String appletDate = report.getAppletDate();
-                    String userType = report.getUserType();
-                    // 将Date类型转换为String
-                    String createTime = report.getCreateTime() != null ? 
-                            new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(report.getCreateTime()) : null;
-                    // updateTime 使用当前时间
-                    updateTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-                    
-                    // 单次查询该条件的数据量级
-                    Integer count = marketingSyncUserMapper.countByCondition(
-                            apiCode, appletDate, userType, createTime, updateTime, filterCondition);
-                    total += (count != null ? count : 0);
-                }
-            }
-            
-            pushViewVO.setTotal(total);
-            pushViewVO.setUpdateTime(updateTime);
-            return new Result<PushViewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushViewVO);
+
+        String uploadReportId = dto.getUploadReportId();
+        if(StringUtils.isEmpty(uploadReportId)){
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("入参缺少上传记录id");
         }
+
+        String[] split = uploadReportId.split(",");
+        // 1. 转换为Long类型的ID列表
+        List<Long> ids = Arrays.stream(split)
+                .map(String::trim)
+                .map(Long::valueOf)
+                .collect(Collectors.toList());
+
+        // 2. 批量查询所有的MarketingSyncReport
+        List<MarketingSyncReport> syncReports = syncReportMapper.selectByIds(ids);
+        if(syncReports.isEmpty()){
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("未查询到上传任务，任务ids：" + ids);
+        }
+
+        // 3. 解析页面规则条件
+        String filterCondition = uploadRePushPolicyStrategy.getUploadDataCondition(dto.getmRuleCondition(), dto.getApiCode());
+        log.warn("解析页面规则条件 sql={}", filterCondition);
+
+        String updateTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+        // 4. 循环查询每个条件的数据量级并累加（因 ShardingSphere 不支持 UNION）
+        for (MarketingSyncReport report : syncReports) {
+            if (report != null) {
+                String apiCode = report.getApiCode();
+                String appletDate = report.getAppletDate();
+                String userType = report.getUserType();
+                // 将Date类型转换为String
+                String createTime = report.getCreateTime() != null ?
+                        new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(report.getCreateTime()) : null;
+                // 单次查询该条件的数据量级
+                Integer count = marketingSyncUserMapper.countByCondition(
+                        apiCode, appletDate, userType, createTime, updateTime, filterCondition);
+                total += (count != null ? count : 0);
+            }
+        }
+
+        pushViewVO.setTotal(total);
+        pushViewVO.setRepushTime(updateTime);
+        return new Result<PushViewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushViewVO);
+    }
+
+    private Result<PushViewVO> getScoreTotal(PushCustomerDTO dto) {
+        int total;
+        PushViewVO pushViewVO = new PushViewVO();
+        if (isXieChengData(dto)) {
+            total = getXieChengDataNum(dto.getmRuleCondition(), dto.getBatchNumberList(), pushViewVO);
+        } else if (Objects.nonNull(dto.getIsScoreMerge()) && dto.getIsScoreMerge()) {
+            //合并跑分计算
+            long start = System.currentTimeMillis();
+            // 组装查询sql
+            String countSql = "SELECT COUNT(1) ".concat(ruleCenterLabelService.scoreMergeAssemble(dto));
+            // 执行查询获取统计数量
+            Integer count = tagDataRuleCalculateMapper.getCountbI_(countSql);
+            log.warn("跑分合并预览量级查询sql={}，耗时={}ms", countSql, System.currentTimeMillis() - start);
+            total = (count != null ? count : 0);
+        } else {
+            Result<PushViewVO> pushViewVOResult = this.queryFederation(dto, pushViewVO);
+            if (!ResultCode.SUCCESS.getValue().equals(pushViewVOResult.getCode())) {
+                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage(pushViewVOResult.getMessage());
+            }
+            total = pushViewVOResult.getData().getTotal();
+        }
+        if (total <= 0) {
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("无符合的数据");
+        }
+        if (dto.getmPercentage() != null) {
+            if (dto.getmPercentage().compareTo(new BigDecimal(0)) <= 0) {
+                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("百分比不能小于等于0");
+            }
+            Integer res = dto.getmPercentage().multiply(new BigDecimal(total)).setScale(0, RoundingMode.UP).intValue();
+            return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
+        }
+        pushViewVO.setTotal(total);
+        return new Result<PushViewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushViewVO);
     }
 
     @Override
@@ -1397,8 +1458,13 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public Result<PushViewVO> pushPreview(PushCustomerDTO dto) {
-        AssertResult.assertResult(checkThreekEnc(dto.getFileIdList()));
-        return getTotal(dto);
+        // 上传任务
+        if(Objects.equals(dto.getTaskType(), TaskTypeEnum.UPLOAD_TASKS.getValue())){
+            return getUplodTotal(dto);
+        }else {
+            AssertResult.assertResult(checkThreekEnc(dto.getFileIdList()));
+            return getScoreTotal(dto);
+        }
     }
 
     @Override

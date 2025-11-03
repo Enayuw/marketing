@@ -2,13 +2,9 @@ package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.enums.TaskTypeEnum;
-import com.br.marketing.entity.MarketingJsonNodeParse;
-import com.br.marketing.entity.MarketingJsonNodeParseExample;
-import com.br.marketing.entity.MarketingTaskExtend;
-import com.br.marketing.entity.MarketingTaskExtendExample;
-import com.br.marketing.entity.StraHisFile;
-import com.br.marketing.entity.StraHisFileExample;
+import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingJsonNodeParseMapper;
+import com.br.marketing.mapper.MarketingSyncReportMapper;
 import com.br.marketing.mapper.MarketingTaskExtendMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.service.MarketingTaskExtendService;
@@ -44,6 +40,9 @@ public class MarketingTaskExtendServiceImpl implements MarketingTaskExtendServic
     @Resource
     private MarketingJsonNodeParseMapper marketingJsonNodeParseMapper;
 
+    @Resource
+    private MarketingSyncReportMapper syncReportMapper;
+
     @Override
     public MarketingTaskExtend getMarketingTaskExtend(Long taskId) {
         MarketingTaskExtendExample extendExample = new MarketingTaskExtendExample();
@@ -56,25 +55,24 @@ public class MarketingTaskExtendServiceImpl implements MarketingTaskExtendServic
     }
 
     @Override
-    public Map getProducts(String ids, Integer taskType) {
-        Map map = new HashMap();
+    public Map<String, Set<String>> getProducts(String ids, Integer taskType) {
+        Map<String, Set<String>> map = new HashMap<>();
+        if(StringUtils.isEmpty(ids)){
+            log.warn("入参缺少id");
+            return map;
+        }
         Set<String> baseHeadList = new HashSet<>();
         Set<String> fieldsList = new HashSet<>();
-        
         // 数据准备：查询文件信息
-        List<Long> fileIds = Arrays.stream(ids.split(",")).map(t -> Long.valueOf(t)).collect(Collectors.toList());
-        StraHisFileExample straHisFileExample = new StraHisFileExample();
-        straHisFileExample.createCriteria().andIdIn(fileIds);
-        List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
-        Assert.notEmpty(straHisFiles, "没有匹配到文件信息");
-        
+        List<Long> fileIds = Arrays.stream(ids.split(",")).map(Long::valueOf).collect(Collectors.toList());
+
         // 根据 taskType 判断处理逻辑
         if (taskType != null && taskType == 1) {
             // 上传任务处理
-            processUploadTask(straHisFiles, baseHeadList, fieldsList);
+            processUploadTask(fileIds, baseHeadList, fieldsList);
         } else {
             // 跑分任务处理
-            processScoreTask(straHisFiles, baseHeadList, fieldsList);
+            processScoreTask(fileIds, baseHeadList, fieldsList);
         }
         
         map.put("showBaseHead", baseHeadList);
@@ -86,62 +84,70 @@ public class MarketingTaskExtendServiceImpl implements MarketingTaskExtendServic
      * 处理上传任务：根据 apiCode 查询 JSON 结构表获取字段
      * 根据 parentPath 是否包含 .reserveField1 判断字段放入 baseHeadList 还是 fieldsList
      *
-     * @param straHisFiles  文件列表
+     * @param fileIds  上传记录id
      * @param baseHeadList  基础字段集合
      * @param fieldsList    业务字段集合
      */
-    private void processUploadTask(List<StraHisFile> straHisFiles, Set<String> baseHeadList, Set<String> fieldsList) {
+    private void processUploadTask(List<Long> fileIds, Set<String> baseHeadList, Set<String> fieldsList) {
         log.warn("上传任务处理，查询JSON结构表");
-        
+
         // 提取 apiCode
-        List<String> apiCodes = straHisFiles.stream()
-                .map(StraHisFile::getApiCode)
-                .filter(StringUtils::hasText)
-                .distinct()
-                .collect(Collectors.toList());
-        Assert.notEmpty(apiCodes, "没有匹配到API编码");
-        log.warn("上传任务 apiCodes: {}", apiCodes);
+        MarketingSyncReport marketingSyncReport = syncReportMapper.selectByPrimaryKey(fileIds.get(0));
+        if (marketingSyncReport == null) {
+            log.warn("未查询到上传数据记录，fileIds: {}", fileIds.get(0));
+            return;
+        }
+
+        String apiCode = marketingSyncReport.getApiCode();
+        log.warn("上传任务 apiCode: {}", apiCode);
         
         // 根据 apiCode 查询 b_marketing_json_node_parse 表（数据类型：0上传）
         MarketingJsonNodeParseExample jsonNodeParseExample = new MarketingJsonNodeParseExample();
         jsonNodeParseExample.createCriteria()
-                .andApiCodeIn(apiCodes)
+                .andApiCodeEqualTo(apiCode)
                 .andDataTypeEqualTo(0);
         
         List<MarketingJsonNodeParse> jsonNodeParseList = marketingJsonNodeParseMapper.selectByExample(jsonNodeParseExample);
-        
+
+        if (CollectionUtils.isEmpty(jsonNodeParseList)) {
+            log.warn("未从JSON结构表查询到字段信息，apiCode: {}", apiCode);
+            return;
+        }
+
         // 提取节点名称作为字段，根据 parentPath 判断放入不同集合
-        if (!CollectionUtils.isEmpty(jsonNodeParseList)) {
-            for (MarketingJsonNodeParse node : jsonNodeParseList) {
-                String nodeName = node.getNodeName();
-                String parentPath = node.getParentPath();
-                
-                if (StringUtils.hasText(nodeName)) {
-                    // 判断 parentPath 是否包含 .reserveField1
-                    if (StringUtils.hasText(parentPath) && parentPath.contains(".reserveField1")) {
-                        // 包含 .reserveField1，放入 fieldsList
-                        fieldsList.add(nodeName);
-                    } else {
-                        // 不包含 .reserveField1，放入 baseHeadList
-                        baseHeadList.add(nodeName);
-                    }
+        for (MarketingJsonNodeParse node : jsonNodeParseList) {
+            String nodeName = node.getNodeName();
+            String parentPath = node.getParentPath();
+
+            if (StringUtils.hasText(nodeName)) {
+                // 判断 parentPath 是否包含 .reserveField1
+                if (StringUtils.hasText(parentPath) && parentPath.contains(".reserveField1")) {
+                    // 包含 .reserveField1，放入 fieldsList
+                    fieldsList.add(nodeName);
+                } else {
+                    // 不包含 .reserveField1，放入 baseHeadList
+                    baseHeadList.add(nodeName);
                 }
             }
-        } else {
-            log.warn("未从JSON结构表查询到字段信息，apiCodes: {}", apiCodes);
         }
+
     }
 
     /**
      * 处理跑分任务：查询任务扩展表获取字段
      *
-     * @param straHisFiles  文件列表
+     * @param fileIds  跑分记录id
      * @param baseHeadList  基础字段集合
      * @param fieldsList    业务字段集合
      */
-    private void processScoreTask(List<StraHisFile> straHisFiles, Set<String> baseHeadList, Set<String> fieldsList) {
+    private void processScoreTask(List<Long> fileIds, Set<String> baseHeadList, Set<String> fieldsList) {
         log.warn("跑分任务处理，查询任务扩展表");
-        
+
+        StraHisFileExample straHisFileExample = new StraHisFileExample();
+        straHisFileExample.createCriteria().andIdIn(fileIds);
+        List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
+        Assert.notEmpty(straHisFiles, "没有匹配到文件信息");
+
         // 提取批次号和 apiCode
         List<String> batchNumbers = straHisFiles.stream()
                 .map(StraHisFile::getBatchNumber)

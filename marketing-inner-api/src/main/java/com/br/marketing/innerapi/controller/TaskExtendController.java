@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/rule/taskExtend")
@@ -29,9 +30,9 @@ public class TaskExtendController {
             @ApiImplicitParam(name = "taskType", value = "任务类型：0-跑分任务，1-上传任务", paramType = "query", dataType = "int")
     })
     @GetMapping("/getProducts")
-    public ApiResult<Map> getProducts(@RequestParam(required = true) String ids, 
+    public ApiResult<Map<String, Set<String>>> getProducts(@RequestParam(required = true) String ids,
                                        @RequestParam(required = false) Integer taskType) {
-        return new ApiResult<Map>().success(marketingTaskExtendService.getProducts(ids, taskType));
+        return new ApiResult<Map<String, Set<String>>>().success(marketingTaskExtendService.getProducts(ids, taskType));
     }
 
 

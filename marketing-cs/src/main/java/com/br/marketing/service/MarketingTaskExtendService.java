@@ -4,6 +4,7 @@ package com.br.marketing.service;
 import com.br.marketing.entity.MarketingTaskExtend;
 
 import java.util.Map;
+import java.util.Set;
 
 public interface MarketingTaskExtendService {
 
@@ -20,5 +21,5 @@ public interface MarketingTaskExtendService {
      * @param ids
      * @return
      */
-    Map getProducts(String ids,Integer taskType);
+    Map<String, Set<String>> getProducts(String ids, Integer taskType);
 }
