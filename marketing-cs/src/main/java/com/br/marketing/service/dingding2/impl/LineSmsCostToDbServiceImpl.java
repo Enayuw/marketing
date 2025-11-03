@@ -464,7 +464,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
         List<LineCallerDto> lines = new ArrayList<>();
         LineCallerDto lineCallerDto = new LineCallerDto();
         lineCallerDto.setGatewayId(lineDto.getGatewayId());
-        lineCallerDto.setCallerFullname(lineDto.getProjectName()+"_"+lineDto.getCaller());
+        lineCallerDto.setCallerFullname(lineDto.getProjectName()+"-"+lineDto.getCaller());
         lines.add(lineCallerDto);
         lineAccountDto.setLines(lines);
 
@@ -523,14 +523,33 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
             if(lineSupplierInvalid && lineNameInvalid){
                 reason.append("供应商和短信线路名称为空");
             } else {
-                if(!lineSupplierInvalid && lineNameInvalid) {
-                    reason.append("供应商[").append(smsCost.getLineSupplier()).append("]").append("短信线路名称/");
-                }else if(lineSupplierInvalid) {
-                    reason.append("短信线路名称[").append(smsCost.getLineName()).append("]").append("的供应商/");
-                }
+//                if(!lineSupplierInvalid && !lineNameInvalid) {
+//                    reason.append("供应商[").append(smsCost.getLineSupplier()).append("]").append("短信线路名称[").append(smsCost.getLineName()).append("]");
+//                }else if(!lineSupplierInvalid && lineNameInvalid) {
+//                    reason.append("供应商[").append(smsCost.getLineSupplier()).append("]").append("短信线路名称/");
+//                }else {
+//                    reason.append("短信线路名称[").append(smsCost.getLineName()).append("]").append("的供应商/");
+//                }
+//                if (effectDateInvalid) reason.append("有效期/");
+//                if (priceInvalid) reason.append("单价/");
+//                if (reason.length() > 0 && reason.charAt(reason.length() - 1) == '/') {
+//                    reason.setLength(reason.length() - 1);
+//                }
+//                reason.append("为空或不合法,请检查");
+
+                // 构建描述前缀
+                String prefix = !lineSupplierInvalid && !lineNameInvalid ?
+                                "供应商[" + smsCost.getLineSupplier() + "]短信线路名称[" + smsCost.getLineName() + "]" :
+                                !lineSupplierInvalid ?
+                                "供应商[" + smsCost.getLineSupplier() + "]短信线路名称/" :
+                                "短信线路名称[" + smsCost.getLineName() + "]的供应商/";
+
+                reason.append(prefix);
+                // 添加无效项
                 if (effectDateInvalid) reason.append("有效期/");
                 if (priceInvalid) reason.append("单价/");
-                if (reason.length() > 0 && reason.charAt(reason.length() - 1) == '/') {
+                // 整理格式并添加提示
+                if (reason.charAt(reason.length() - 1) == '/') {
                     reason.setLength(reason.length() - 1);
                 }
                 reason.append("为空或不合法,请检查");
@@ -562,21 +581,43 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
 
         if (supplierInvalid || callerInvalid || dateInvalid || priceInvalid) {
             StringBuilder reason = new StringBuilder();
-            if(supplierInvalid && callerInvalid){
+//            if(supplierInvalid && callerInvalid){
+//                reason.append("供应商和主叫号码为空");
+//            } else {
+//                if(!supplierInvalid && !callerInvalid) {
+//                    reason.append("供应商[").append(lineCost.getLineSupplier()).append("]").append("主叫号码[").append(lineCost.getCaller()).append("]");
+//                }else if(!supplierInvalid && callerInvalid) {
+//                    reason.append("供应商[").append(lineCost.getLineSupplier()).append("] 主叫号码/");
+//                }else if(supplierInvalid && !callerInvalid) {
+//                    reason.append("主叫号码[").append(lineCost.getCaller()).append("]的供应商/");
+//                }
+//                if (dateInvalid) reason.append("有效期/");
+//                if (priceInvalid) reason.append("单价/");
+//                if (reason.length() > 0 && reason.charAt(reason.length() - 1) == '/') {
+//                    reason.setLength(reason.length() - 1);
+//                }
+//                reason.append("为空或不合法,请检查");
+//            }
+            if (supplierInvalid && callerInvalid) {
                 reason.append("供应商和主叫号码为空");
             } else {
-                if(!supplierInvalid && callerInvalid) {
-                    reason.append("供应商[").append(lineCost.getLineSupplier()).append("] 主叫号码/");
-                }else if(supplierInvalid) {
-                    reason.append("主叫号码[").append(lineCost.getCaller()).append("]的供应商/");
-                }
+                // 使用三元运算符构建基础描述
+                String baseDesc = !supplierInvalid && !callerInvalid ?
+                        "供应商[" + lineCost.getLineSupplier() + "]主叫号码[" + lineCost.getCaller() + "]" :
+                        !supplierInvalid ?
+                                "供应商[" + lineCost.getLineSupplier() + "]主叫号码/" :
+                                "主叫号码[" + lineCost.getCaller() + "]的供应商/";
+                reason.append(baseDesc);
+                // 添加无效项
                 if (dateInvalid) reason.append("有效期/");
                 if (priceInvalid) reason.append("单价/");
-                if (reason.length() > 0 && reason.charAt(reason.length() - 1) == '/') {
+                // 整理格式并添加提示
+                if (reason.charAt(reason.length() - 1) == '/') {
                     reason.setLength(reason.length() - 1);
                 }
                 reason.append("为空或不合法,请检查");
             }
+
             costPriceExRecord.setReason(reason.toString());
             costPriceExRecordMapper.insert(costPriceExRecord);
             List<CostPriceExRecord> costPriceExRecordList = linsCostAlarmDto.getCostPriceExRecordList();
