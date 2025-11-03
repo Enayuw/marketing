@@ -1,6 +1,5 @@
 package com.br.marketing.bridge.job.dingding;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.dingding.aitable.DingDingAiTableClient;
@@ -275,7 +274,7 @@ public class DingDingTableSyncToDbJob extends AbstractSimpleElasticJob {
 
                     Object value = fieldsData.get(chineseColumnName);
 
-                    // 处理选择类型（singleSelect等），取name值
+                    // 取name值
                     if (value instanceof JSONObject) {
                         JSONObject valueObj = (JSONObject) value;
                         String name = valueObj.getString("name");
@@ -354,7 +353,6 @@ public class DingDingTableSyncToDbJob extends AbstractSimpleElasticJob {
 
         } while (!StringUtils.isEmpty(nextToken));
 
-        // 打印缓存统计
         log.warn("用户信息缓存统计 - unionId->userId缓存数: {}, userId->name缓存数: {}",
                 unionIdToUserIdCache.size(), userIdToNameCache.size());
 
@@ -374,7 +372,7 @@ public class DingDingTableSyncToDbJob extends AbstractSimpleElasticJob {
 
         log.warn("开始批量插入数据，表名: {}, 字段数: {}, 记录数: {}", tableName, fieldNames.size(), records.size());
 
-        // 分批插入（每批2000条）
+        // 分批插入（每批500条）
         int batchSize = 500;
         int totalBatches = (records.size() + batchSize - 1) / batchSize;
 
@@ -394,7 +392,6 @@ public class DingDingTableSyncToDbJob extends AbstractSimpleElasticJob {
                     valuesList.add(values);
                 }
 
-                // 使用MyBatis批量插入
                 int insertCount = dingDingTableSyncMapper.batchInsertByValues(tableName, fieldNames, valuesList);
 
                 log.warn("批量插入第{}/{}批，插入条数: {}", i + 1, totalBatches, insertCount);
