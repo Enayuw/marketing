@@ -319,6 +319,7 @@
       and task.task_start_time = #{nowDate}
       and task.is_delete = 0
       and batch.is_delete = 0
+      <![CDATA[ and batch.create_time < DATE_SUB(NOW(), INTERVAL 30 MINUTE) ]]>
     order by createTime asc limit 1
   </select>
 </mapper>
