@@ -283,6 +283,9 @@ api:
     baseUrl: https://mns.qa.lylend.com
     address: ${api.tongcheng.baseUrl}/api/cep/agent/ret/baiRong
     isProxy: true
+  imbpApiService:
+    baseUrl: https://antaios-process-prec.100credit.cn/api/antaios-app-api-prec
+    lineBaseInfoUrl: ${api.imbpApiService.baseUrl}/antaios/third/ibmp/gateway/groupByLineSupplier  #IMBP获取线路基础信息
 
 spring:
   rabbitmq:
