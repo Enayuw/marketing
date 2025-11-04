@@ -3040,7 +3040,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     DataProcessEnum.AcceptTypeEnum.GENERAL.getCode(), DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode());
             if (!CollectionUtils.isEmpty(configRule)) {
                 //剔除规则中的基础字段
-                List<String> generalFields = Lists.newArrayList("dataItems", "requestId", "item", "reserveField1", "reserveField2");
+                List<String> generalFields = Lists.newArrayList("dataItems", "item", "reserveField1", "reserveField2");
                 configRule.keySet().removeIf(key -> generalFields.contains(key));
             }
         }
@@ -3053,6 +3053,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             MarketingPreUserDetailDTO marketingPreUserDetailDTO = dto.getDataItems().get(i);
             if (Objects.nonNull(marketingPreUserDetailDTO) && StringUtils.isEmpty(marketingPreUserDetailDTO.getTaskId())) {
                 marketingPreUserDetailDTO.setTaskId(marketingSyncInfo.getCusBatch());
+                marketingPreUserDetailDTO.setRequestId(marketingSyncInfo.getRequestBatch());
             }
             Integer finalIsCheck = isCheck;
             Map<String, MarketingDataCleanGeneralRuleConfig> finalConfigRule = configRule;
