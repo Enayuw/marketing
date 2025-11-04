@@ -64,7 +64,7 @@ public class LocalFileServiceImpl implements LocalFileService {
         return PageResultReturn.setPageResult(localFileList, current, pageSize);
     }
     @Override
-    public Integer allCount(String search, String apiCode, String uploadStartTime, String uploadEndTime, String fileType) {
+    public Long allCount(String search, String apiCode, String uploadStartTime, String uploadEndTime, String fileType) {
         if(StringUtils.isNotBlank(fileType)){
             fileType = "'"+fileType.replace(",", "','")+"'";
         }
