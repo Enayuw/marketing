@@ -90,16 +90,17 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
     private ObjectMapper objectMapper;
 
 
-
-
+    /**
+     * 短信处理:获取基础信息->批量查询->item处理:校验参数->三方短信接口过滤->短信配置表判重->下游接口数据封装调用
+     * 线路处理:获取基础信息->批量查询->item处理:校验参数->三方线路接口过滤->线路配置表判重->下游接口数据封装调用
+     */
     @Override
     public void process() {
         //1.短信cost处理
         DdLinsSmsCostAlarmDto smsCostAlarmDto = smsCostToDbDeal();
-
         //2.线路cost处理
         DdLinsSmsCostAlarmDto lineCostAlarmDto = lineCostToDbDeal();
-        //TODO 3、报警通知
+        //3.报警通知
         dealAlarm(smsCostAlarmDto);
         dealAlarm(lineCostAlarmDto);
     }
@@ -126,7 +127,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
             }
             searchId = ddDataSmsCostPriceList.get(ddDataSmsCostPriceList.size()-1).getId();
             smsCostAlarmDto.setTotalCount(smsCostAlarmDto.getTotalCount() + ddDataSmsCostPriceList.size());
-            //TODO 4分批次处理 校验->入库->报警统计
+            //4.分批次处理 校验->入库->报警统计
             smsCostCompareAndDbDeal(ddDataSmsCostPriceList,smsBaseInfoList,smsCostAlarmDto);
         }
         return smsCostAlarmDto;
@@ -139,9 +140,9 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
     private DdLinsSmsCostAlarmDto lineCostToDbDeal() {
         DdLinsSmsCostAlarmDto linsCostAlarmDto = new DdLinsSmsCostAlarmDto();
         linsCostAlarmDto.setCardTitle(marketingCommonConfig.getLinsSmsCostToDbConfig().getString("lineCardTitle"));
-        //2、获取基础信息
+        //2.获取基础信息
         List<DdLineBaseInfoDto> ddLineBaseInfoDtoList =  getLineBaseInfo();
-        //3、查询原始数据
+        //3.查询原始数据
         Long searchId = 0L;
         while(true) {
             Integer searchSize =  marketingCommonConfig.getLinsSmsCostToDbConfig().getInteger("searchSize");
@@ -151,7 +152,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
             }
             searchId = ddDataLineCostPriceList.get(ddDataLineCostPriceList.size()-1).getId();
             linsCostAlarmDto.setTotalCount(linsCostAlarmDto.getTotalCount() + ddDataLineCostPriceList.size());
-            //TODO 4、分批次处理 校验->入库->报警统计
+            //4.分批次处理 校验->入库->报警统计
             lineCostCompareAndDbDeal(ddDataLineCostPriceList,ddLineBaseInfoDtoList,linsCostAlarmDto);
         }
         return linsCostAlarmDto;
@@ -198,16 +199,6 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
      *         ],
      *         "vendorId": 4,
      *         "vendorName": "百分"
-     *     },
-     *     {
-     *         "channelDTOList": [
-     *             {
-     *                 "channelName": "智信-拉新",
-     *                 "channelId": 2301
-     *             }
-     *         ],
-     *         "vendorId": 28,
-     *         "vendorName": "智信"
      *     }
      * ]
      *
@@ -316,7 +307,6 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                 if (!smsDdParamCheck) {
                     return;
                 }
-
                 //2.数据过滤
                 List<DdSmsBaseInfoDto> filterList = smsBaseInfoList.stream()
                         .filter(dto -> smsCost.getLineSupplier().equals(dto.getVendorName())
@@ -362,6 +352,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                             }
                             ThreadContextInfo.removeUser();
                         } catch (Exception e) {
+                            //TODO 下游保存异常时 数据处理
                             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MARKETING_AVIATORSCRIPT_LINESMS_ERROR.getCode(),
                                     JSONObject.toJSONString(smsCost)+e.getMessage(), TITLE), e);
                         }
@@ -379,7 +370,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
     private void lineCostCompareAndDbDeal(List<DdDataLineCostPrice> ddDataLineCostPriceList, List<DdLineBaseInfoDto> ddLineBaseInfoDtoList, DdLinsSmsCostAlarmDto linsCostAlarmDto) {
         ddDataLineCostPriceList.forEach(lineCost -> {
             try{
-                // 1. 钉钉文档参数校验
+                // 1.钉钉文档参数校验
                 boolean lineDdParamCheck = lineDdParamCheck(lineCost, linsCostAlarmDto);
                 if (!lineDdParamCheck) {
                     return;
@@ -417,7 +408,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                             if (result.isSuccess()) {
                                 linsCostAlarmDto.setSuccessCost(linsCostAlarmDto.getSuccessCost() + 1);
                             } else {
-                                // 记录因为保存失败导致存储失败
+                                // TODO 记录因为保存失败导致存储失败
                                 CostPriceExRecord costPriceExRecord = new CostPriceExRecord();
                                 costPriceExRecord.setJsonData(JSONObject.toJSONString(lineCost));
                                 costPriceExRecord.setType(2);
@@ -433,6 +424,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                             }
                             ThreadContextInfo.removeUser();
                         } catch (Exception e) {
+                            //TODO 下游保存异常时 原因数据保存
                             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MARKETING_AVIATORSCRIPT_LINESMS_ERROR.getCode(),
                                     JSONObject.toJSONString(lineCost)+e.getMessage(), TITLE), e);
                         }
@@ -460,7 +452,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
         List<PriceDateDTO> priceDates = new ArrayList<>();
         PriceDateDTO priceDateDTO = new PriceDateDTO();
         priceDateDTO.setEffectStartDate((LocalDate.parse(lineCost.getEffectDate())));
-        if (lineCost.getIsCalcCost()==null || lineCost.getIsCalcCost().equals("")) {
+        if (lineCost.getIsCalcCost()==null || lineCost.getIsCalcCost().isEmpty()) {
             priceDateDTO.setPrice(BigDecimal.ZERO);
         }else {
             priceDateDTO.setPrice(new BigDecimal(lineCost.getPrice()));
