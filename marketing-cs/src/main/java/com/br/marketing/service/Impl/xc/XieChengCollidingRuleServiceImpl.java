@@ -1,5 +1,7 @@
 package com.br.marketing.service.Impl.xc;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +69,8 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
 
     @Resource
     private XiechengCollidingTaskBatchMapper xiechengCollidingTaskBatchMapper;
+
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     /**
      * 获取调度任务列表-False-分页
@@ -387,8 +391,14 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
     @Override
     public PageResultReturn<XcDeleteTaskVO> getCollidingDataDeleteTaskList(XcDeleteReleaseTimeRange timeRange) {
         PageHelper.startPage(timeRange.getCurrent(), timeRange.getSize());
+        LocalDateTime releaseTimeBegin = null;
+        LocalDateTime releaseTimeEnd = null;
+        if(StringUtils.isNotBlank(timeRange.getReleaseTimeBegin()) && StringUtils.isNotBlank(timeRange.getReleaseTimeEnd())){
+            releaseTimeBegin = LocalDateTime.parse(timeRange.getReleaseTimeBegin(), formatter);
+            releaseTimeEnd = LocalDateTime.parse(timeRange.getReleaseTimeEnd(), formatter);
+        }
         List<XcDeleteTaskVO> taskList = xiechengCollidingDataProcessTaskMapper
-                .getCollidingDataDeleteTaskList(timeRange.getReleaseTimeBegin(), timeRange.getReleaseTimeEnd());
+                .getCollidingDataDeleteTaskList(releaseTimeBegin, releaseTimeEnd);
         return PageResultReturn.setPageResult(taskList, timeRange.getCurrent(), timeRange.getSize());
     }
 
