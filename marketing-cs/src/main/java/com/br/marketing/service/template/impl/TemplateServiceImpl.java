@@ -72,7 +72,7 @@ public class TemplateServiceImpl implements TemplateService {
     }
 
     @Override
-    public Result<PageResultReturn<MarketingIndustryTemplate>> queryTemplate(Integer current, Integer pageSize, String templateName, String firstDepartment, String secondDepartment, String apiType) {
+    public Result<PageResultReturn<MarketingIndustryTemplate>> queryAllTemplate(Integer current, Integer pageSize, String templateName, String firstDepartment, String secondDepartment, String apiType) {
         PageHelper.startPage(current, pageSize);
 
         MarketingIndustryTemplateExample example = new MarketingIndustryTemplateExample();
@@ -108,6 +108,7 @@ public class TemplateServiceImpl implements TemplateService {
     }
 
     @Override
+    @Transactional
     public Result<Boolean> editTemplate(MarketingIndustryTemplateDTO marketingIndustryTemplateDTO) {
         MarketingIndustryTemplate marketingIndustryTemplate = marketingIndustryTemplateDTO.getMarketingIndustryTemplate();
         List<MarketingIndustryTemplateJsonParse> marketingIndustryTemplateJsonParseList = marketingIndustryTemplateDTO.getMarketingIndustryTemplateJsonParseList();
@@ -127,7 +128,7 @@ public class TemplateServiceImpl implements TemplateService {
             return new Result<>().success().setDate(Boolean.TRUE);
         } catch (Exception e) {
             logger.error("修改行业模板失败，行业模板id：{}，error：{}", marketingIndustryTemplate.getId(), e.getMessage());
-            return new Result<>().failure().setMessage(e.getMessage()).setDate(Boolean.FALSE);
+            throw new RuntimeException("修改行业模板失败：" + e.getMessage(), e);
         }
     }
 
@@ -143,17 +144,25 @@ public class TemplateServiceImpl implements TemplateService {
             return new Result<>().success().setDate(Boolean.TRUE);
         } catch (Exception e) {
             logger.error("删除行业模板失败，行业模板id：{}，error：{}", id, e.getMessage());
-            return new Result<>().failure().setMessage(e.getMessage()).setDate(Boolean.FALSE);
+            throw new RuntimeException("删除行业模板失败：" + e.getMessage(), e);
         }
     }
 
     @Override
-    public Result<MarketingIndustryTemplate> queryTemplateById(Long id) {
+    public Result<MarketingIndustryTemplateDTO> queryTemplateById(Long id) {
+        MarketingIndustryTemplateDTO marketingIndustryTemplateDTO = new MarketingIndustryTemplateDTO();
         try {
             MarketingIndustryTemplate marketingIndustryTemplate = marketingIndustryTemplateMapper.selectByPrimaryKey(id);
-            if (marketingIndustryTemplate != null) {
+
+            MarketingIndustryTemplateJsonParseExample example = new MarketingIndustryTemplateJsonParseExample();
+            example.createCriteria().andInterfaceTemplateIdEqualTo(id);
+            List<MarketingIndustryTemplateJsonParse> marketingIndustryTemplateJsonParseList = marketingIndustryTemplateJsonParseMapper.selectByExample(example);
+
+            if (marketingIndustryTemplate != null && marketingIndustryTemplateJsonParseList.size() > 0) {
                 logger.warn("行业模板查询成功，行业模板id：{}", id);
-                return new Result<MarketingIndustryTemplate>().success().setDate(marketingIndustryTemplate);
+                marketingIndustryTemplateDTO.setMarketingIndustryTemplate(marketingIndustryTemplate);
+                marketingIndustryTemplateDTO.setMarketingIndustryTemplateJsonParseList(marketingIndustryTemplateJsonParseList);
+                return new Result<MarketingIndustryTemplate>().success().setDate(marketingIndustryTemplateDTO);
             } else {
                 logger.warn("未查询到该行业模板，行业模板id：{}", id);
                 return new Result<MarketingIndustryTemplate>().success().setDate(null);

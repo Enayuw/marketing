@@ -67,15 +67,15 @@ public class TemplateController {
      * @return 查询结果
      */
     @ApiOperation("查询行业模板接口")
-    @PostMapping(value = "/queryTemplate")
-    public ApiResult<PageResultReturn<MarketingIndustryTemplate>> queryTemplate(@RequestParam(name = "current") Integer current,
-                                                                                  @RequestParam(name = "pageSize") Integer pageSize,
-                                                                                  @RequestParam(name = "templateName", required = false) String templateName,
-                                                                                  @RequestParam(name = "firstDepartment", required = false) String firstDepartment,
-                                                                                  @RequestParam(name = "secondDepartment", required = false) String secondDepartment,
-                                                                                  @RequestParam(name = "apiType", required = false) String apiType) {
+    @PostMapping(value = "/queryAllTemplate")
+    public ApiResult<PageResultReturn<MarketingIndustryTemplate>> queryAllTemplate(@RequestParam(name = "current") Integer current,
+                                                                                   @RequestParam(name = "pageSize") Integer pageSize,
+                                                                                   @RequestParam(name = "templateName", required = false) String templateName,
+                                                                                   @RequestParam(name = "firstDepartment", required = false) String firstDepartment,
+                                                                                   @RequestParam(name = "secondDepartment", required = false) String secondDepartment,
+                                                                                   @RequestParam(name = "apiType", required = false) String apiType) {
         try {
-            Result<PageResultReturn<MarketingIndustryTemplate>> result = templateService.queryTemplate(current, pageSize, templateName, firstDepartment, secondDepartment, apiType);
+            Result<PageResultReturn<MarketingIndustryTemplate>> result = templateService.queryAllTemplate(current, pageSize, templateName, firstDepartment, secondDepartment, apiType);
             if (result.isSuccess()) {
                 return new ApiResult<PageResultReturn<MarketingIndustryTemplate>>().success().setData(result.getData());
             } else {
@@ -133,17 +133,17 @@ public class TemplateController {
 
     @ApiOperation("根据id查询行业模板")
     @PostMapping(value = "/queryTemplateById")
-    public ApiResult<MarketingIndustryTemplate> queryTemplateById(@RequestParam(name = "id") Long id) {
+    public ApiResult<MarketingIndustryTemplateDTO> queryTemplateById(@RequestParam(name = "id") Long id) {
         try {
-            Result<MarketingIndustryTemplate> result = templateService.queryTemplateById(id);
+            Result<MarketingIndustryTemplateDTO> result = templateService.queryTemplateById(id);
             if (result.isSuccess()) {
-                return new ApiResult<MarketingIndustryTemplate>().success().setData(result.getData());
-            }else {
-                return new ApiResult<MarketingIndustryTemplate>().fail().setMessage(result.getMessage());
+                return new ApiResult<MarketingIndustryTemplateDTO>().success().setData(result.getData());
+            } else {
+                return new ApiResult<MarketingIndustryTemplateDTO>().fail().setMessage(result.getMessage());
             }
         } catch (Exception e) {
             logger.error("根据id查询行业模板异常,message:{}", e.getMessage());
-            return new ApiResult<MarketingIndustryTemplate>().fail().setMessage(e.getMessage()).setData(null);
+            return new ApiResult<MarketingIndustryTemplateDTO>().fail().setMessage(e.getMessage()).setData(null);
         }
 
     }
@@ -155,10 +155,10 @@ public class TemplateController {
                                                        @RequestParam(name = "apiType") String apiType,
                                                        @RequestParam(name = "dateType") Integer dataType) {
         try {
-            Result<JSONArray> result = industryTemplateJsonParseService.queryIndustryTemplateJsonParses(firstDepartment,secondDepartment,apiType, dataType);
+            Result<JSONArray> result = industryTemplateJsonParseService.queryIndustryTemplateJsonParses(firstDepartment, secondDepartment, apiType, dataType);
             if (result.isSuccess()) {
                 return new ApiResult<JSONArray>().success().setData(result.getData());
-            }else {
+            } else {
                 return new ApiResult<JSONArray>().fail().setMessage(result.getMessage());
             }
         } catch (Exception e) {
