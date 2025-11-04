@@ -31,7 +31,7 @@ public interface LocalFileService {
      * @return
      */
     PageResultReturn list(int page, int pageSize,String search, String apiCode, String uploadStartTime,String uploadEndTime, String fileType);
-    Integer allCount(String search, String apiCode, String uploadStartTime, String uploadEndTime, String fileType);
+    Long allCount(String search, String apiCode, String uploadStartTime, String uploadEndTime, String fileType);
     void refreshPushNumber(List<Map<String, Object>> quantityList, Date pushStartTime, Date pushEndTime);
 
     /**
