@@ -9,14 +9,13 @@ datasource:
       type: com.zaxxer.hikari.HikariDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
       isSharding: true
-      hikari:
-        minimum-idle: 1 # 最小空闲连接数
-        maximum-pool-size: 300 # 最大连接池数量
-        connection-timeout: 60000 # 获取连接超时时间，单位毫秒
-        idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
-        max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
-        keepalive-time: 30000 # 连接保活时间，单位毫秒
-        connection-test-query: select 1 # 连接测试查询
+      minimum-idle: 1 # 最小空闲连接数
+      maximum-pool-size: 300 # 最大连接池数量
+      connection-timeout: 60000 # 获取连接超时时间，单位毫秒
+      idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
+      max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
+      keepalive-time: 30000 # 连接保活时间，单位毫秒
+      connection-test-query: select 1 # 连接测试查询
     marketing-tikiv:
       name: marketing
       type: com.zaxxer.hikari.HikariDataSource
@@ -24,14 +23,13 @@ datasource:
       jdbc-url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8
       username: u_pd_marketing
       password: f9daIYUIAXQkeyVbDoOI
-      hikari:
-        minimum-idle: 5 # 最小空闲连接数
-        maximum-pool-size: 30 # 最大连接池数量
-        connection-timeout: 60000 # 获取连接超时时间，单位毫秒
-        idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
-        max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
-        keepalive-time: 30000 # 连接保活时间，单位毫秒
-        connection-test-query: select 1 # 连接测试查询
+      minimum-idle: 5 # 最小空闲连接数
+      maximum-pool-size: 30 # 最大连接池数量
+      connection-timeout: 60000 # 获取连接超时时间，单位毫秒
+      idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
+      max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
+      keepalive-time: 30000 # 连接保活时间，单位毫秒
+      connection-test-query: select 1 # 连接测试查询
       maxOpenPreparedStatements: 20
       maxPoolPreparedStatementPerConnectionSize: 20 #设置PSCache值
       connectionErrorRetryAttempts: 5 # 连接出错后再尝试连接三次
@@ -48,14 +46,13 @@ datasource:
       jdbc-url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8
       username: u_pd_marketing
       password: f9daIYUIAXQkeyVbDoOI
-      hikari:
-        minimum-idle: 4 # 最小空闲连接数
-        maximum-pool-size: 4 # 最大连接池数量
-        connection-timeout: 60000 # 获取连接超时时间，单位毫秒
-        idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
-        max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
-        keepalive-time: 30000 # 连接保活时间，单位毫秒
-        connection-test-query: select 1 # 连接测试查询
+      minimum-idle: 4 # 最小空闲连接数
+      maximum-pool-size: 4 # 最大连接池数量
+      connection-timeout: 60000 # 获取连接超时时间，单位毫秒
+      idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
+      max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
+      keepalive-time: 30000 # 连接保活时间，单位毫秒
+      connection-test-query: select 1 # 连接测试查询
       maxOpenPreparedStatements: 20
       maxPoolPreparedStatementPerConnectionSize: 20 #设置PSCache值
       connectionErrorRetryAttempts: 5 # 连接出错后再尝试连接三次
@@ -72,14 +69,13 @@ datasource:
       jdbc-url: jdbc:mysql://tidb-pre.brapp.com:9030/marketing
       username: u_pd_marketing
       password: M6teKbFVl1odfOCkC1JA
-      hikari:
-        minimum-idle: 4 # 最小空闲连接数
-        maximum-pool-size: 4 # 最大连接池数量
-        connection-timeout: 60000 # 获取连接超时时间，单位毫秒
-        idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
-        max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
-        keepalive-time: 30000 # 连接保活时间，单位毫秒
-        connection-test-query: select 1 # 连接测试查询
+      minimum-idle: 4 # 最小空闲连接数
+      maximum-pool-size: 4 # 最大连接池数量
+      connection-timeout: 60000 # 获取连接超时时间，单位毫秒
+      idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
+      max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
+      keepalive-time: 30000 # 连接保活时间，单位毫秒
+      connection-test-query: select 1 # 连接测试查询
       replicationAllocation: tag.location.default:1
     marketing-bi:
       name: marketing
@@ -88,14 +84,13 @@ datasource:
       jdbc-url: jdbc:mysql://tidb-pre.brapp.com:9030/marketing
       username: u_pd_marketing
       password: M6teKbFVl1odfOCkC1JA
-      hikari:
-        minimum-idle: 4 # 最小空闲连接数
-        maximum-pool-size: 4 # 最大连接池数量
-        connection-timeout: 60000 # 获取连接超时时间，单位毫秒
-        idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
-        max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
-        keepalive-time: 30000 # 连接保活时间，单位毫秒
-        connection-test-query: select 1 # 连接测试查询
+      minimum-idle: 4 # 最小空闲连接数
+      maximum-pool-size: 4 # 最大连接池数量
+      connection-timeout: 60000 # 获取连接超时时间，单位毫秒
+      idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
+      max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
+      keepalive-time: 30000 # 连接保活时间，单位毫秒
+      connection-test-query: select 1 # 连接测试查询
       replicationAllocation: tag.location.default:1
 mybatis:
   mapper-locations: mapper/*.xml
