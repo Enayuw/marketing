@@ -1810,11 +1810,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             if (level == 0) {
                 continue;
             }
-            if (acceptType.equals(DataProcessEnum.AcceptTypeEnum.GENERAL.getCode())) {
-                if ("requestId".equals(nodeName)) {
-                    continue;
-                }
-            }
             String nodeValue = node.getNodeValue();
             Date createTime = node.getCreateTime();
             if (StringUtil.isBlank(nodeName)) {

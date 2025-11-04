@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.io.*;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Vector;
@@ -371,11 +372,8 @@ public class DxmPullFileSyncServiceImpl implements DxmPullFileSyncService {
     private void deleteTempFile(File file) {
         if (file != null && file.exists()) {
             try {
-                if (file.delete()) {
-                    log.debug(TITLE + "临时文件删除成功: {}", file.getAbsolutePath());
-                } else {
-                    log.warn(TITLE + "临时文件删除失败: {}", file.getAbsolutePath());
-                }
+                Files.delete(file.toPath());
+                log.warn(TITLE + "临时文件删除成功: {}", file.getAbsolutePath());
             } catch (Exception e) {
                 log.error(TITLE + "删除临时文件异常: {}", file.getAbsolutePath(), e);
             }
