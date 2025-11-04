@@ -6,7 +6,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.template.MarketingIndustryTemplateDTO;
 import com.br.marketing.entity.MarketingIndustryTemplate;
-import com.br.marketing.service.template.IndustryTemplateJsonParseService;
+import com.br.marketing.service.template.TemplateJsonParseService;
 import com.br.marketing.service.template.TemplateService;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
@@ -30,7 +30,7 @@ public class TemplateController {
     private TemplateService templateService;
 
     @Resource
-    private IndustryTemplateJsonParseService industryTemplateJsonParseService;
+    private TemplateJsonParseService templateJsonParseService;
 
     /**
      * 新增行业模板
@@ -155,7 +155,7 @@ public class TemplateController {
                                                        @RequestParam(name = "apiType") String apiType,
                                                        @RequestParam(name = "dateType") Integer dataType) {
         try {
-            Result<JSONArray> result = industryTemplateJsonParseService.queryIndustryTemplateJsonParses(firstDepartment, secondDepartment, apiType, dataType);
+            Result<JSONArray> result = templateJsonParseService.queryIndustryTemplateJsonParses(firstDepartment, secondDepartment, apiType, dataType);
             if (result.isSuccess()) {
                 return new ApiResult<JSONArray>().success().setData(result.getData());
             } else {

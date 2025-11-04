@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public interface IndustryTemplateJsonParseService {
+public interface TemplateJsonParseService {
 
     Result<JSONArray> queryIndustryTemplateJsonParses(String firstDepartment, String secondDepartment, String apiType, Integer dataType);
 

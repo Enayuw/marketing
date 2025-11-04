@@ -7,7 +7,7 @@ import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingBuildInTemplateJsonParseMapper;
 import com.br.marketing.mapper.MarketingIndustryTemplateJsonParseMapper;
 import com.br.marketing.mapper.MarketingIndustryTemplateMapper;
-import com.br.marketing.service.template.IndustryTemplateJsonParseService;
+import com.br.marketing.service.template.TemplateJsonParseService;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -20,7 +20,7 @@ import java.util.List;
  * @Date 2025/10/31
  */
 @Service
-public class IndustryTemplateJsonParseServiceImpl implements IndustryTemplateJsonParseService {
+public class TemplateJsonParseServiceImpl implements TemplateJsonParseService {
 
     @Resource
     private MarketingIndustryTemplateMapper marketingIndustryTemplateMapper;

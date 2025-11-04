@@ -27,7 +27,7 @@ import com.br.marketing.service.Impl.EntityOptServiceImpl;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.clean.common.impl.DataCleanServiceImpl;
 import com.br.marketing.service.ruleCleaning.RuleCleaningService;
-import com.br.marketing.service.template.IndustryTemplateJsonParseService;
+import com.br.marketing.service.template.TemplateJsonParseService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.dataclean.CleanFieldConfigVO;
 import com.github.pagehelper.PageHelper;
@@ -88,7 +88,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     private EntityOptServiceImpl entityOptService;
 
     @Resource
-    private IndustryTemplateJsonParseService industryTemplateJsonParseService;
+    private TemplateJsonParseService templateJsonParseService;
 
     @Resource
     private MarketingCustomerMapper marketingCustomerMapper;
@@ -1828,7 +1828,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             String secondDepartment = marketingCustomer.getSecondDepartment();
             String apiType = marketingCustomer.getApiType();
             // 查询行业模板
-            Result<JSONArray> jsonArrayResult = industryTemplateJsonParseService.queryIndustryTemplateJsonParses(firstDepartment, secondDepartment, apiType, dataType);
+            Result<JSONArray> jsonArrayResult = templateJsonParseService.queryIndustryTemplateJsonParses(firstDepartment, secondDepartment, apiType, dataType);
             if (!jsonArrayResult.isSuccess()) {
                 log.warn("查询行业模板失败: {}", JSONObject.toJSONString(jsonArrayResult));
                 return result;
