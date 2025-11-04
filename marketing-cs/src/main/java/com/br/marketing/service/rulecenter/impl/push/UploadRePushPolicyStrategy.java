@@ -25,12 +25,12 @@ import com.br.marketing.service.rulecenter.RuleCenterPushContext;
 import com.br.marketing.service.rulecenter.enums.RuleCenterPushTargetEnum;
 import com.br.marketing.util.EsConditionTransferSqlUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
@@ -40,6 +40,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -106,6 +107,10 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
         //通用调用,查询清洗规则配置
         Map<String, MarketingDataCleanGeneralRuleConfig> configRule = dataCleanService.getConfigRule(apiCode,
                 DataProcessEnum.DataTypeEnum.UPLOAD.getCode(), DataProcessEnum.AcceptTypeEnum.GENERAL.getCode(), DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode());
+        if (CollectionUtils.isEmpty(configRule)) {
+            log.error(TITLE + "清洗配置为空，apiCode={}", apiCode);
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
+        }
         marketingSyncReports.forEach(syncreport -> {
             String appletDate = syncreport.getAppletDate();
             String userType = syncreport.getUserType();
@@ -497,7 +502,7 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
         String operateType = operateTypeDTO.getOperateType();
         String appletDate = operateTypeDTO.getAppletDate();
         String userType = operateTypeDTO.getUserType();
-        Set<String>custNumSet = custNumMap.get(userType);
+        Set<String> custNumSet = custNumMap.get(userType);
         Date createTime = LocalDate.now().toString().equals(appletDate) ? pushMain.getCreateTime() : null;
         String nowDate = LocalDate.now().toString().replace("-", "");
         CustomerTagsVO tags = customerTagsProcessService.getTags(apiCode);
@@ -512,7 +517,7 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
             List<MarketingSyncUser> syncUserFilters = new ArrayList<>();
             syncUserFilters.addAll(syncUsers);
             //过滤重复的
-            if(CollectionUtils.isNotEmpty(syncUserFilters)) {
+            if (!CollectionUtils.isEmpty(custNumSet)) {
                 syncUserFilters = syncUserFilters.stream().filter(syncUser -> custNumSet.contains(syncUser.getCustNum())).collect(Collectors.toList());
             }
             minId = syncUsers.get(syncUsers.size() - 1).getId();
@@ -529,7 +534,7 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
         String operateType = operateTypeDTO.getOperateType();
         String appletDate = operateTypeDTO.getAppletDate();
         String userType = operateTypeDTO.getUserType();
-        Set<String>cellSet = cellMap.get(userType);
+        Set<String> cellSet = cellMap.get(userType);
         Date createTime = LocalDate.now().toString().equals(appletDate) ? pushMain.getCreateTime() : null;
         String nowDate = LocalDate.now().toString().replace("-", "");
         CustomerTagsVO tags = customerTagsProcessService.getTags(apiCode);
@@ -544,7 +549,7 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
             List<MarketingSyncUser> syncUserFilters = new ArrayList<>();
             syncUserFilters.addAll(syncUsers);
             //过滤重复的
-            if(CollectionUtils.isNotEmpty(syncUserFilters)) {
+            if (!CollectionUtils.isEmpty(cellSet)) {
                 syncUserFilters = syncUserFilters.stream().filter(syncUser -> cellSet.contains(syncUser.getCustNum())).collect(Collectors.toList());
             }
             minId = syncUsers.get(syncUsers.size() - 1).getId();
