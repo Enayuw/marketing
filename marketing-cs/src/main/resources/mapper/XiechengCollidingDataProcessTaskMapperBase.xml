@@ -12,6 +12,7 @@
     <result column="free_num" property="freeNum" jdbcType="INTEGER" />
     <result column="task_start_time" property="taskStartTime" jdbcType="TIMESTAMP" />
     <result column="task_end_time" property="taskEndTime" jdbcType="TIMESTAMP" />
+    <result column="task_execute_time" property="taskExecuteTime" jdbcType="TIMESTAMP" />
     <result column="release_time_begin" property="releaseTimeBegin" jdbcType="TIMESTAMP" />
     <result column="release_time_end" property="releaseTimeEnd" jdbcType="TIMESTAMP" />
     <result column="task_type" property="taskType" jdbcType="INTEGER" />
@@ -82,9 +83,9 @@
   </sql>
   <sql id="Base_Column_List" >
     id, api_code, batch_number, task_status, discreet_number, actual_number, remaining_num,
-    free_num, task_start_time, task_end_time, release_time_begin, release_time_end, task_type,
-    task_execution_conditions, task_execution_sql, error_message, create_time, update_time,
-    is_delete
+    free_num, task_start_time, task_end_time, task_execute_time, release_time_begin,
+    release_time_end, task_type, task_execution_conditions, task_execution_sql, error_message,
+    create_time, update_time, is_delete
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.XiechengCollidingDataProcessTaskExample" >
     select
@@ -123,17 +124,17 @@
     insert into b_xiecheng_colliding_data_process_task (api_code, batch_number, task_status,
     discreet_number, actual_number, remaining_num,
     free_num, task_start_time, task_end_time,
-    release_time_begin, release_time_end, task_type,
-    task_execution_conditions, task_execution_sql,
-    error_message, create_time, update_time,
-    is_delete)
+    task_execute_time, release_time_begin,
+    release_time_end, task_type, task_execution_conditions,
+    task_execution_sql, error_message, create_time,
+    update_time, is_delete)
     values (#{apiCode,jdbcType=VARCHAR}, #{batchNumber,jdbcType=VARCHAR}, #{taskStatus,jdbcType=INTEGER},
     #{discreetNumber,jdbcType=INTEGER}, #{actualNumber,jdbcType=INTEGER}, #{remainingNum,jdbcType=INTEGER},
     #{freeNum,jdbcType=INTEGER}, #{taskStartTime,jdbcType=TIMESTAMP}, #{taskEndTime,jdbcType=TIMESTAMP},
-    #{releaseTimeBegin,jdbcType=TIMESTAMP}, #{releaseTimeEnd,jdbcType=TIMESTAMP}, #{taskType,jdbcType=INTEGER},
-    #{taskExecutionConditions,jdbcType=VARCHAR}, #{taskExecutionSql,jdbcType=VARCHAR},
-    #{errorMessage,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
-    #{isDelete,jdbcType=INTEGER})
+    #{taskExecuteTime,jdbcType=TIMESTAMP}, #{releaseTimeBegin,jdbcType=TIMESTAMP},
+    #{releaseTimeEnd,jdbcType=TIMESTAMP}, #{taskType,jdbcType=INTEGER}, #{taskExecutionConditions,jdbcType=VARCHAR},
+    #{taskExecutionSql,jdbcType=VARCHAR}, #{errorMessage,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP},
+    #{updateTime,jdbcType=TIMESTAMP}, #{isDelete,jdbcType=INTEGER})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.XiechengCollidingDataProcessTask" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -167,6 +168,9 @@
       </if>
       <if test="taskEndTime != null" >
         task_end_time,
+      </if>
+      <if test="taskExecuteTime != null" >
+        task_execute_time,
       </if>
       <if test="releaseTimeBegin != null" >
         release_time_begin,
@@ -223,6 +227,9 @@
       </if>
       <if test="taskEndTime != null" >
         #{taskEndTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="taskExecuteTime != null" >
+        #{taskExecuteTime,jdbcType=TIMESTAMP},
       </if>
       <if test="releaseTimeBegin != null" >
         #{releaseTimeBegin,jdbcType=TIMESTAMP},
@@ -292,6 +299,9 @@
       <if test="record.taskEndTime != null" >
         task_end_time = #{record.taskEndTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="record.taskExecuteTime != null" >
+        task_execute_time = #{record.taskExecuteTime,jdbcType=TIMESTAMP},
+      </if>
       <if test="record.releaseTimeBegin != null" >
         release_time_begin = #{record.releaseTimeBegin,jdbcType=TIMESTAMP},
       </if>
@@ -336,6 +346,7 @@
     free_num = #{record.freeNum,jdbcType=INTEGER},
     task_start_time = #{record.taskStartTime,jdbcType=TIMESTAMP},
     task_end_time = #{record.taskEndTime,jdbcType=TIMESTAMP},
+    task_execute_time = #{record.taskExecuteTime,jdbcType=TIMESTAMP},
     release_time_begin = #{record.releaseTimeBegin,jdbcType=TIMESTAMP},
     release_time_end = #{record.releaseTimeEnd,jdbcType=TIMESTAMP},
     task_type = #{record.taskType,jdbcType=INTEGER},
@@ -379,6 +390,9 @@
       <if test="taskEndTime != null" >
         task_end_time = #{taskEndTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="taskExecuteTime != null" >
+        task_execute_time = #{taskExecuteTime,jdbcType=TIMESTAMP},
+      </if>
       <if test="releaseTimeBegin != null" >
         release_time_begin = #{releaseTimeBegin,jdbcType=TIMESTAMP},
       </if>
@@ -420,6 +434,7 @@
         free_num = #{freeNum,jdbcType=INTEGER},
         task_start_time = #{taskStartTime,jdbcType=TIMESTAMP},
         task_end_time = #{taskEndTime,jdbcType=TIMESTAMP},
+        task_execute_time = #{taskExecuteTime,jdbcType=TIMESTAMP},
         release_time_begin = #{releaseTimeBegin,jdbcType=TIMESTAMP},
         release_time_end = #{releaseTimeEnd,jdbcType=TIMESTAMP},
         task_type = #{taskType,jdbcType=INTEGER},

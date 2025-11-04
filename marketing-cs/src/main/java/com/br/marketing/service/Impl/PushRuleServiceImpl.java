@@ -222,6 +222,8 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     private static final String msTimeRegex = "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$";
 
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
     @Resource
     private AlarmApiClient alarmClient;
 
@@ -1483,6 +1485,8 @@ public class PushRuleServiceImpl implements PushRuleService {
      */
     private String getCycleDeleteSql(String condition, List<String> batchNumberList, LocalDateTime releaseTimeBegin, LocalDateTime releaseTimeEnd) {
         List<String> querySqls = new ArrayList<>();
+        String begin = releaseTimeBegin.format(formatter);
+        String end = releaseTimeEnd.format(formatter);
         for (String batchNumber : batchNumberList) {
             String sql = String.format("select count(0) from b_xiecheng_colliding_data_loop_cycle cycle " +
                             "join b_xiecheng_colliding_%s score on cycle.cell_sha256_code_list = score.cell and score.is_delete = 0 " +
@@ -1490,7 +1494,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                             "on score.cell = scoreCd.cell and scoreCd.is_delete = 0 " +
                             "where cycle.is_delete = 0 and scoreCd.id is null " +
                             "and cycle.release_time > '%s' and cycle.release_time <= '%s'"
-                    , batchNumber, batchNumber, condition, releaseTimeBegin, releaseTimeEnd);
+                    , batchNumber, batchNumber, condition, begin, end);
             querySqls.add(sql);
         }
         return String.join(";", querySqls);
@@ -1669,13 +1673,14 @@ public class PushRuleServiceImpl implements PushRuleService {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("剔除周期数据的施放时间范围的开始时间要大于当前时间4h以上！");
         }
         //3.校验releaseTimeRange与存量【b_xiecheng_colliding_data_process_task】是否有交叉周期数据剔除范围
-        //releaseTimeRange在使用的时候，是左开右闭去筛选数据，即(A,B]，判断其和(C,D]是否有交叉,需要A<D且B>C
+        //releaseTimeRange在使用的时候，是左闭右闭去筛选数据，即(A,B]，判断其和(C,D]是否有交叉,需要A<=D且B>=C
         List<XcDeleteMagnitudeDistDTO> stockReleaseTimeRanges =
                 xiechengCollidingDataProcessTaskMapper.selectReleaseTimeRanges(dto.getApiCode());
         if (stockReleaseTimeRanges.size() != 0) {
             for (XcDeleteMagnitudeDistDTO stockReleaseTimeRange : stockReleaseTimeRanges) {
-                if(releaseTimeBegin.isBefore(stockReleaseTimeRange.getReleaseTimeEnd())
-                        && releaseTimeEnd.isAfter(stockReleaseTimeRange.getReleaseTimeBegin())){
+                if(stockReleaseTimeRange.getReleaseTimeBegin() == null
+                        || (!releaseTimeBegin.isAfter(stockReleaseTimeRange.getReleaseTimeEnd())
+                        && !releaseTimeEnd.isBefore(stockReleaseTimeRange.getReleaseTimeBegin()))){
                     return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("剔除周期数据的施放时间范围与已生成的剔除任务时间有交叉，请检查！");
                 }
             }

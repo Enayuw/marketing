@@ -79,8 +79,17 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
      * @param queryRuleScoreDataSql
      * @return
      */
-    List<Long> selectIdsOfTrueDataProcessTasktikv_(@Param("minId") Long minId, @Param("queryRuleScoreDataSql") String queryRuleScoreDataSql,
-                                                   @Param("tableName") String tableName, @Param("pageSize") Integer pageSize);
+    List<Long> selectIdsOfTrueDataProcessTasktikv_(@Param("minId") Long minId,
+                                                   @Param("queryRuleScoreDataSql") String queryRuleScoreDataSql,
+                                                   @Param("tableName") String tableName,
+                                                   @Param("pageSize") Integer pageSize);
+
+    List<Long> selectIdsOfTrueDataProcessTaskWithRangetikv_(@Param("minId") Long minId,
+                                                            @Param("queryRuleScoreDataSql") String queryRuleScoreDataSql,
+                                                            @Param("tableName") String tableName,
+                                                            @Param("releaseTimeBegin") LocalDateTime releaseTimeBegin,
+                                                            @Param("releaseTimeEnd") LocalDateTime releaseTimeEnd,
+                                                            @Param("pageSize") Integer pageSize);
 
     /**
     * @Description: 周期表公共黑名单剔除

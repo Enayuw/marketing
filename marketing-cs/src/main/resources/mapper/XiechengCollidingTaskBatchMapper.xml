@@ -288,7 +288,18 @@
         update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <select id="selectEarliestBatch" resultType="com.br.marketing.vo.XiechengCollidingTaskBatchVo" >
+
+  <resultMap id="XiechengCollidingTaskBatchVOMap" type="com.br.marketing.dto.rulecenter.XcDeleteTaskVO">
+    <result column="releaseTimeBegin" property="releaseTimeBegin"
+            jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"
+            typeHandler="com.br.marketing.config.LocalDateTimeHandler"/>
+    <result column="releaseTimeEnd" property="releaseTimeEnd"
+            jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"
+            typeHandler="com.br.marketing.config.LocalDateTimeHandler"/>
+
+  </resultMap>
+
+  <select id="selectEarliestBatch" resultMap="XiechengCollidingTaskBatchVOMap" >
     select batch.id as id,
            batch.api_code as apiCode,
            batch.batch_number as batchNumber,
@@ -296,10 +307,12 @@
            batch.colliding_data_task_id as collidingDataTaskId,
            task.task_execution_conditions as taskExecutionConditions,
            task.task_status as taskStatus,
+           task.release_time_begin as releaseTimeBegin,
+           task.release_time_end as releaseTimeEnd,
            batch.create_time as createTime
     from b_xiecheng_colliding_task_batch batch
-           inner join b_xiecheng_colliding_data_process_task task
-                      on batch.colliding_data_task_id = task.id
+    inner join b_xiecheng_colliding_data_process_task task
+        on batch.colliding_data_task_id = task.id
     where batch.api_code = #{apiCode}
       and batch.status = 0
       and batch.type = #{type}

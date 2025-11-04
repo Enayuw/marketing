@@ -2,7 +2,7 @@ package com.br.marketing.entity;
 
 import java.util.Date;
 
-public class XiechengCollidingDataProcessTask{
+public class XiechengCollidingDataProcessTask {
     /**
      * 
      */
@@ -52,6 +52,11 @@ public class XiechengCollidingDataProcessTask{
      * 任务执行结束时间
      */
     private Date taskEndTime;
+
+    /**
+     * 任务执行时间
+     */
+    private Date taskExecuteTime;
 
     /**
      * 施放时间范围开始时间
@@ -176,6 +181,14 @@ public class XiechengCollidingDataProcessTask{
 
     public void setTaskEndTime(Date taskEndTime) {
         this.taskEndTime = taskEndTime;
+    }
+
+    public Date getTaskExecuteTime() {
+        return taskExecuteTime;
+    }
+
+    public void setTaskExecuteTime(Date taskExecuteTime) {
+        this.taskExecuteTime = taskExecuteTime;
     }
 
     public Date getReleaseTimeBegin() {

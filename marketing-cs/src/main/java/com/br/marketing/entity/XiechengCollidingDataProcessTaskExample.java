@@ -725,6 +725,66 @@ public class XiechengCollidingDataProcessTaskExample {
             return (Criteria) this;
         }
 
+        public Criteria andTaskExecuteTimeIsNull() {
+            addCriterion("task_execute_time is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskExecuteTimeIsNotNull() {
+            addCriterion("task_execute_time is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskExecuteTimeEqualTo(Date value) {
+            addCriterion("task_execute_time =", value, "taskExecuteTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskExecuteTimeNotEqualTo(Date value) {
+            addCriterion("task_execute_time <>", value, "taskExecuteTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskExecuteTimeGreaterThan(Date value) {
+            addCriterion("task_execute_time >", value, "taskExecuteTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskExecuteTimeGreaterThanOrEqualTo(Date value) {
+            addCriterion("task_execute_time >=", value, "taskExecuteTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskExecuteTimeLessThan(Date value) {
+            addCriterion("task_execute_time <", value, "taskExecuteTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskExecuteTimeLessThanOrEqualTo(Date value) {
+            addCriterion("task_execute_time <=", value, "taskExecuteTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskExecuteTimeIn(List<Date> values) {
+            addCriterion("task_execute_time in", values, "taskExecuteTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskExecuteTimeNotIn(List<Date> values) {
+            addCriterion("task_execute_time not in", values, "taskExecuteTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskExecuteTimeBetween(Date value1, Date value2) {
+            addCriterion("task_execute_time between", value1, value2, "taskExecuteTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskExecuteTimeNotBetween(Date value1, Date value2) {
+            addCriterion("task_execute_time not between", value1, value2, "taskExecuteTime");
+            return (Criteria) this;
+        }
+
         public Criteria andReleaseTimeBeginIsNull() {
             addCriterion("release_time_begin is null");
             return (Criteria) this;

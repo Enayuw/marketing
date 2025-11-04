@@ -398,7 +398,12 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         for(; ; ) {
             List<Long> longs = null;
             if (type == XcProcessTaskEnum.PROCESS_DELETE.getBatchType()) {
-                longs = cycleMapper.selectIdsOfTrueDataProcessTasktikv_(minId, queryRuleScoreDataSql, tableName, pageSize);
+                if (vo.getReleaseTimeBegin() != null && vo.getReleaseTimeEnd() != null) {
+                    longs = cycleMapper.selectIdsOfTrueDataProcessTaskWithRangetikv_(
+                            minId, queryRuleScoreDataSql, tableName, vo.getReleaseTimeBegin(), vo.getReleaseTimeEnd(), pageSize);
+                } else {
+                    longs = cycleMapper.selectIdsOfTrueDataProcessTasktikv_(minId, queryRuleScoreDataSql, tableName, pageSize);
+                }
             } else if (type == XcProcessTaskEnum.PROCESS_DYNA_FALSE.getBatchType()) {
                 longs = robMapper.selectIdsOfDynaFalseDataProcessTasktikv_(minId, queryRuleScoreDataSql, tableName, pageSize);
             }
@@ -452,6 +457,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
             XiechengCollidingDataProcessTask processTask = new XiechengCollidingDataProcessTask();
             processTask.setId(vo.getCollidingDataTaskId());
             processTask.setTaskStatus(1);
+            processTask.setTaskExecuteTime(new Date());
             processTask.setUpdateTime(new Date());
             taskMapper.updateByPrimaryKeySelective(processTask);
         }

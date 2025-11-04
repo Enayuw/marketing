@@ -125,6 +125,20 @@
         order by a.id limit #{pageSize};
     </select>
 
+    <select id="selectIdsOfTrueDataProcessTaskWithRangetikv_" resultType="java.lang.Long">
+        select a.id
+        from b_xiecheng_colliding_data_loop_cycle a
+        join ${tableName} c on a.cell_sha256_code_list = c.cell and c.is_delete = 0
+        left join ( ${queryRuleScoreDataSql} ) b on c.cell = b.cell and b.is_delete = 0
+        where a.is_delete = 0 and b.id is null
+        <![CDATA[ and a.release_time >= #{releaseTimeBegin,jdbcType=TIMESTAMP}
+        and a.release_time <= #{releaseTimeEnd,jdbcType=TIMESTAMP} ]]>
+        <if test="minId != null and minId>0">
+            and a.id > #{minId}
+        </if>
+        order by a.id limit #{pageSize};
+    </select>
+
     <select id="selectCycleBlackListIdsByPage" parameterType="java.lang.String" resultType="java.lang.Long">
         select a.id from b_xiecheng_colliding_data_black_list b
         join b_xiecheng_colliding_data_loop_cycle a on a.cell_sha256_code_list = b.cell_sha256 and b.label_type = #{type}
@@ -262,7 +276,7 @@
         WHERE
         (push_time > CURDATE() and create_time < CURDATE())
         or (release_time >= CURDATE() AND release_time < CURDATE() + INTERVAL 1 DAY
-        AND (release_time <= #{begin,jdbcType=TIMESTAMP} OR release_time > #{end,jdbcType=TIMESTAMP})
+        AND (release_time < #{begin,jdbcType=TIMESTAMP} OR release_time > #{end,jdbcType=TIMESTAMP})
         AND is_delete = 0)
         ]]>
     </select>
@@ -272,7 +286,7 @@
         <![CDATA[
         WHERE release_time >= date(#{begin,jdbcType=TIMESTAMP})
         AND release_time < DATE_ADD(date(#{begin,jdbcType=TIMESTAMP}), INTERVAL 1 DAY)
-        AND (release_time <= #{begin,jdbcType=TIMESTAMP} OR release_time > #{end,jdbcType=TIMESTAMP})
+        AND (release_time < #{begin,jdbcType=TIMESTAMP} OR release_time > #{end,jdbcType=TIMESTAMP})
         AND is_delete = 0
         ]]>
     </select>
@@ -280,7 +294,7 @@
     <select id="selectTimeRangeBetweenMagnitudetiflash_" resultType="java.lang.Integer">
         SELECT COUNT(0) FROM b_xiecheng_colliding_data_loop_cycle
         <![CDATA[
-        WHERE release_time > #{begin,jdbcType=TIMESTAMP} AND release_time <= #{end,jdbcType=TIMESTAMP}
+        WHERE release_time >= #{begin,jdbcType=TIMESTAMP} AND release_time <= #{end,jdbcType=TIMESTAMP}
         AND is_delete = 0
         ]]>
     </select>
@@ -289,10 +303,11 @@
         select count(distinct cycle.cell) from
             (select cell_sha256_code_list as cell
              from b_xiecheng_colliding_data_loop_cycle
-             where <![CDATA[ release_time > #{begin,jdbcType=TIMESTAMP} AND release_time <= #{end,jdbcType=TIMESTAMP} ]]>
+             where <![CDATA[ release_time >= #{begin,jdbcType=TIMESTAMP} AND release_time <= #{end,jdbcType=TIMESTAMP} ]]>
              and is_delete = 0) cycle
         inner join
              (${scoreSql}) score
         on cycle.cell = score.cell
     </select>
+
 </mapper>
