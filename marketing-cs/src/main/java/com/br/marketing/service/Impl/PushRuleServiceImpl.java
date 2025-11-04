@@ -737,7 +737,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         String filterCondition = uploadRePushPolicyStrategy.getUploadDataCondition(dto.getmRuleCondition(), dto.getApiCode());
         log.warn("解析页面规则条件 sql={}", filterCondition);
 
-        String updateTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+
         // 4. 循环查询每个条件的数据量级并累加（因 ShardingSphere 不支持 UNION）
         for (MarketingSyncReport report : syncReports) {
             if (report != null) {
@@ -745,8 +745,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                 String appletDate = report.getAppletDate();
                 String userType = report.getUserType();
                 // 将Date类型转换为String
-                String createTime = report.getCreateTime() != null ?
-                        new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(report.getCreateTime()) : null;
+                String createTime = report.getAppletBeginTime() != null ?
+                        new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(report.getAppletBeginTime()) : null;
+                String updateTime = report.getAppletEndTime() != null ?
+                        new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(report.getAppletEndTime()) : null;
                 // 单次查询该条件的数据量级
                 Integer count = marketingSyncUserMapper.countByCondition(
                         apiCode, appletDate, userType, createTime, updateTime, filterCondition);
@@ -755,7 +757,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
 
         pushViewVO.setTotal(total);
-        pushViewVO.setRepushTime(updateTime);
+        pushViewVO.setRepushTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
         return new Result<PushViewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushViewVO);
     }
 
