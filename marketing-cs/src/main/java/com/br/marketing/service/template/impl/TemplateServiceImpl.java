@@ -56,12 +56,14 @@ public class TemplateServiceImpl implements TemplateService {
             //新增行业模板
             marketingIndustryTemplateMapper.insertSelective(marketingIndustryTemplate);
             //批量插入json数据
-            marketingIndustryTemplateJsonParseList.forEach(item -> {
-                item.setInterfaceTemplateId(marketingIndustryTemplate.getId());
-                item.setCreateTime(new Date());
-                item.setUpdateTime(new Date());
-            });
-            marketingIndustryTemplateJsonParseMapper.batchInsert(marketingIndustryTemplateJsonParseList);
+            if (marketingIndustryTemplateJsonParseList != null && !marketingIndustryTemplateJsonParseList.isEmpty()) {
+                marketingIndustryTemplateJsonParseList.forEach(item -> {
+                    item.setInterfaceTemplateId(marketingIndustryTemplate.getId());
+                    item.setCreateTime(new Date());
+                    item.setUpdateTime(new Date());
+                });
+                marketingIndustryTemplateJsonParseMapper.batchInsert(marketingIndustryTemplateJsonParseList);
+            }
 
             logger.warn("新增行业模板成功，行业模板名称：{}", marketingIndustryTemplate.getTemplateName());
             return new Result<>().success().setDate(Boolean.TRUE);
@@ -101,31 +103,37 @@ public class TemplateServiceImpl implements TemplateService {
                 return new Result<PageResultReturn<MarketingIndustryTemplate>>().success().setMessage("未查询到行业模板信息").setDate(null);
             }
         } catch (Exception e) {
-            logger.error("查询行业模板信异常，查询条件：templateName={}，firstDepartment={}，secondDepartment={}，apiType={}",
-                    templateName, firstDepartment, secondDepartment, apiType);
-            throw new RuntimeException("查询行业模板信异常失败：" + e.getMessage(), e);
+            logger.error("查询行业模板异常，查询条件：templateName={}，firstDepartment={}，secondDepartment={}，apiType={}，error：{}",
+                    templateName, firstDepartment, secondDepartment, apiType, e.getMessage());
+            return new Result<PageResultReturn<MarketingIndustryTemplate>>().failure().setMessage("查询行业模板异常：" + e.getMessage()).setDate(null);
         }
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Result<Boolean> editTemplate(MarketingIndustryTemplateDTO marketingIndustryTemplateDTO) {
         MarketingIndustryTemplate marketingIndustryTemplate = marketingIndustryTemplateDTO.getMarketingIndustryTemplate();
         List<MarketingIndustryTemplateJsonParse> marketingIndustryTemplateJsonParseList = marketingIndustryTemplateDTO.getMarketingIndustryTemplateJsonParseList();
-
-        MarketingIndustryTemplateExample example = new MarketingIndustryTemplateExample();
-        example.createCriteria().andIdEqualTo(marketingIndustryTemplate.getId());
         try {
-            marketingIndustryTemplateMapper.updateByExampleSelective(marketingIndustryTemplate, example);
+            if (marketingIndustryTemplateJsonParseList != null && !marketingIndustryTemplateJsonParseList.isEmpty()) {
+                //更新模板信息
+                MarketingIndustryTemplateExample example = new MarketingIndustryTemplateExample();
+                example.createCriteria().andIdEqualTo(marketingIndustryTemplate.getId());
+                marketingIndustryTemplateMapper.updateByExampleSelective(marketingIndustryTemplate, example);
 
-            for (MarketingIndustryTemplateJsonParse marketingIndustryTemplateJsonParse : marketingIndustryTemplateJsonParseList) {
+                //先全量删除jsonParse数据
                 MarketingIndustryTemplateJsonParseExample jsonParseExample = new MarketingIndustryTemplateJsonParseExample();
-                jsonParseExample.createCriteria().andIdEqualTo(marketingIndustryTemplate.getId());
-                marketingIndustryTemplateJsonParseMapper.updateByExampleSelective(marketingIndustryTemplateJsonParse, jsonParseExample);
-            }
+                jsonParseExample.createCriteria().andInterfaceTemplateIdEqualTo(marketingIndustryTemplate.getId());
+                marketingIndustryTemplateJsonParseMapper.deleteByExample(jsonParseExample);
 
-            logger.warn("修改行业模板成功，行业模板id：{}", marketingIndustryTemplate.getId());
-            return new Result<>().success().setDate(Boolean.TRUE);
+                //jsonParse数据重新入库
+                marketingIndustryTemplateJsonParseMapper.batchInsert(marketingIndustryTemplateJsonParseList);
+                logger.warn("修改行业模板成功，行业模板id：{}", marketingIndustryTemplate.getId());
+                return new Result<>().success().setDate(Boolean.TRUE);
+            }else {
+                logger.warn("行业模板json数据不存在，更新失败");
+                return new Result<>().failure().setDate(Boolean.FALSE);
+            }
         } catch (Exception e) {
             logger.error("修改行业模板失败，行业模板id：{}，error：{}", marketingIndustryTemplate.getId(), e.getMessage());
             throw new RuntimeException("修改行业模板失败：" + e.getMessage(), e);
@@ -133,7 +141,7 @@ public class TemplateServiceImpl implements TemplateService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Result<Boolean> deleteTemplate(Long id) {
         try {
             marketingIndustryTemplateMapper.deleteByPrimaryKey(id);
@@ -158,18 +166,18 @@ public class TemplateServiceImpl implements TemplateService {
             example.createCriteria().andInterfaceTemplateIdEqualTo(id);
             List<MarketingIndustryTemplateJsonParse> marketingIndustryTemplateJsonParseList = marketingIndustryTemplateJsonParseMapper.selectByExample(example);
 
-            if (marketingIndustryTemplate != null && marketingIndustryTemplateJsonParseList.size() > 0) {
+            if (marketingIndustryTemplate != null) {
                 logger.warn("行业模板查询成功，行业模板id：{}", id);
                 marketingIndustryTemplateDTO.setMarketingIndustryTemplate(marketingIndustryTemplate);
                 marketingIndustryTemplateDTO.setMarketingIndustryTemplateJsonParseList(marketingIndustryTemplateJsonParseList);
-                return new Result<MarketingIndustryTemplate>().success().setDate(marketingIndustryTemplateDTO);
+                return new Result<MarketingIndustryTemplateDTO>().success().setDate(marketingIndustryTemplateDTO);
             } else {
                 logger.warn("未查询到该行业模板，行业模板id：{}", id);
-                return new Result<MarketingIndustryTemplate>().success().setDate(null);
+                return new Result<MarketingIndustryTemplateDTO>().success().setDate(null);
             }
         } catch (Exception e) {
-            logger.warn("行业模板查询异常，行业模板id：{}", id);
-            return new Result<MarketingIndustryTemplate>().failure().setMessage(e.getMessage()).setDate(null);
+            logger.error("行业模板查询异常，行业模板id：{}，error：{}", id, e.getMessage());
+            return new Result<MarketingIndustryTemplateDTO>().failure().setMessage(e.getMessage()).setDate(null);
         }
     }
 
