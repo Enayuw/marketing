@@ -457,7 +457,7 @@
   </select>
 
   <select id="selectOperateTypeGroup" resultType="com.br.marketing.dto.SyncOperateTypeDTO">
-    select DISTINCT api_code,operate_type, applet_date, user_type from b_marketing_sync_${apiCode}
+    select operate_type, applet_date, user_type from b_marketing_sync_${apiCode}
     <where>
       <if test="syncReportList != null and syncReportList.size() > 0">
         and (applet_date, user_type) in
@@ -465,6 +465,7 @@
           (#{item.appletDate}, #{item.userType})
         </foreach>
       </if>
+      group by operate_type,applet_date,user_type
       ORDER BY operate_type, applet_date;
     </where>
   </select>

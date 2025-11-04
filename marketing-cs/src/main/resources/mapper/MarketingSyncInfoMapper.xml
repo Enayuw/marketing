@@ -602,27 +602,46 @@
             </if>
 
             <if test="minId != null and minId >0">
-                and id >=#{minId}
+                and id >#{minId}
             </if>
             order by id asc limit 2000
         </where>
     </select>
 
-    <select id="getCustNumRepeatUserByCondition" resultType="com.br.marketing.entity.MarketingSyncUser">
+    <select id="getCustNumRepeatUserByConditiontikv_" resultType="com.br.marketing.entity.MarketingSyncUser">
         SELECT *
         FROM (
         SELECT *,
         COUNT(*) OVER (PARTITION BY cust_num) as duplicate_count
         FROM b_marketing_sync_${apiCode}
         where
-        <if test="syncReportList != null and syncReportList.size() > 0">
              (applet_date, user_type) in
             <foreach collection="syncReportList" item="item" open="(" close=")" separator=",">
                 (#{item.appletDate}, #{item.userType})
             </foreach>
-        </if>
+        AND   operate_type = #{operateType}
         AND (CASE
-        WHEN applet_date = CURDATE() THEN create_time <![CDATA[<=]]> createTime
+        WHEN applet_date = CURDATE() THEN create_time <![CDATA[<=]]> #{createTime}
+        ELSE 1 = 1 END)
+        AND ${filterCondition}
+        ) t
+        WHERE duplicate_count > 1
+    </select>
+
+    <select id="getCellRepeatUserByConditiontikv_" resultType="com.br.marketing.entity.MarketingSyncUser">
+        SELECT *
+        FROM (
+        SELECT *,
+        COUNT(*) OVER (PARTITION BY cell) as duplicate_count
+        FROM b_marketing_sync_${apiCode}
+        where
+            (applet_date, user_type) in
+            <foreach collection="syncReportList" item="item" open="(" close=")" separator=",">
+                (#{item.appletDate}, #{item.userType})
+            </foreach>
+        AND   operate_type = #{operateType}
+        AND (CASE
+        WHEN applet_date = CURDATE() THEN create_time <![CDATA[<=]]> #{createTime}
         ELSE 1 = 1 END)
         AND ${filterCondition}
         ) t

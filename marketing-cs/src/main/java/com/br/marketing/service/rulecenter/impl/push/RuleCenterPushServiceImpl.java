@@ -17,6 +17,7 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.GeneScriptUtil;
 import com.br.marketing.util.SpringContextUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -87,19 +88,23 @@ public class RuleCenterPushServiceImpl implements IRuleCenterPushService {
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), e.getMessage()), e);
         }
         Date yh = yhTime;
-        long beforeCount = straHisFiles.stream().filter(t -> t.getCreateTime().compareTo(yh) <= 0).count();
-        Optional<StraHisFile> first = straHisFiles.stream().sorted(Comparator.comparing(StraHisFile::getIndexNum).reversed()).findFirst();
         Integer parNum = 0;
-        if (first.isPresent()) {
-            parNum = first.get().getIndexNum();
-        }
-        boolean isSigle = (customerInfoPushMain.getmPercentage() != null
-                && customerInfoPushMain.getmPercentage().compareTo(BigDecimal.ZERO) > 0)
-                || (customerInfoPushMain.getmPlanNum() != null && customerInfoPushMain.getmPlanNum() > 0)
-                || beforeCount > 0;
-        if (isSigle) {
-            parNum = 1;
-            getEsNum = 1;
+        boolean isSigle = Boolean.FALSE;
+        if (CollectionUtils.isNotEmpty(straHisFiles)) {
+            long beforeCount = straHisFiles.stream().filter(t -> t.getCreateTime().compareTo(yh) <= 0).count();
+            Optional<StraHisFile> first = straHisFiles.stream().sorted(Comparator.comparing(StraHisFile::getIndexNum).reversed()).findFirst();
+
+            if (first.isPresent()) {
+                parNum = first.get().getIndexNum();
+            }
+            isSigle = (customerInfoPushMain.getmPercentage() != null
+                    && customerInfoPushMain.getmPercentage().compareTo(BigDecimal.ZERO) > 0)
+                    || (customerInfoPushMain.getmPlanNum() != null && customerInfoPushMain.getmPlanNum() > 0)
+                    || beforeCount > 0;
+            if (isSigle) {
+                parNum = 1;
+                getEsNum = 1;
+            }
         }
         ThreadPoolExecutor actionEs = BrExecutors.getThreadPool(getEsNum, getEsNum, 50);
         ThreadPoolExecutor pushJc;

@@ -1,6 +1,7 @@
 package com.br.marketing.mapper;
 
 
+import com.br.marketing.dto.SyncOperateTypeDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.vo.TodayIdTimeBySoleVo;
 import com.br.marketing.vo.TransferUserVO;
@@ -298,6 +299,12 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
 
 
 
-    List<MarketingSyncUser> getCustNumRepeatUserByCondition(@Param("apiCode") String apiCode,@Param("syncReportList") List<MarketingSyncReport> syncReportList,
-                                                            @Param("filterCondition") String filterCondition,@Param("createTime") Date createTime);
+    List<MarketingSyncUser> getCustNumRepeatUserByConditiontikv_(@Param("apiCode") String apiCode, @Param("syncReportList") List<SyncOperateTypeDTO> records,
+                                                                 @Param("filterCondition") String filterCondition, @Param("createTime") Date createTime,
+                                                                 @Param("operateType") String operateType);
+
+
+    List<MarketingSyncUser> getCellRepeatUserByConditiontikv_(@Param("apiCode") String apiCode,@Param("syncReportList") List<SyncOperateTypeDTO> syncReportList,
+                                                                 @Param("filterCondition") String filterCondition,@Param("createTime") Date createTime,
+                                                              @Param("operateType") String operateType);
 }
