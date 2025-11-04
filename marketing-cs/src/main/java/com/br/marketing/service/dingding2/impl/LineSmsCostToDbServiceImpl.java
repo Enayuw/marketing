@@ -228,6 +228,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
         robotOutboundDTO.setApiCode(smsApiCode);
         robotOutboundDTO.setJsonData(jsonDataDTO);
         TransferRobotOutboundVO transferRobotOutboundVO = robotaiApiServiceClient.getSmsBaseInfo(robotOutboundDTO);
+        log.warn("TITLE:{},getSmsBaseInfo:{}",TITLE,JSONObject.toJSONString(robotOutboundDTO));
         if ("00".equals(transferRobotOutboundVO.getCode())) {
             baseInfo =  JSONArray.parseArray(transferRobotOutboundVO.getData().toString());
         }
@@ -268,19 +269,6 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
      *                 "gatewayId": 125017102
      *             }
      *         ]
-     *     },
-     *     {
-     *         "lineSupplier": "烽火",
-     *         "channelDTOList": [
-     *             {
-     *                 "caller": "97152",
-     *                 "lineSupplier": "烽火",
-     *                 "projectName": "还呗一线",
-     *                 "outboundNumber": "烽火-还呗一线",
-     *                 "callerFullName": "还呗一线-97152",
-     *                 "gatewayId": 125008806
-     *             }
-     *         ]
      *     }
      * ]
      *    private Long gatewayId;
@@ -295,6 +283,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
         List<DdLineBaseInfoDto> ddLineBaseInfoDtoList = new ArrayList<>();
         JSONArray baseInfo = new JSONArray();
         TransferIbmpOutboundVO transferIbmpOutboundVO = ibmpApiServiceClient.getLineBaseInfo();
+        log.warn("TITLE:{},getLineBaseInfo:{}",TITLE,JSONObject.toJSONString(transferIbmpOutboundVO));
         if ("000000".equals(transferIbmpOutboundVO.getCode())) {
             baseInfo =  JSONArray.parseArray(transferIbmpOutboundVO.getData().toString());;
         }
