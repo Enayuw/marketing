@@ -54,7 +54,7 @@
         task.update_time AS updateTime
         FROM b_xiecheng_colliding_data_process_task AS task
         JOIN b_marketing_customer AS customer ON task.api_code = customer.api_code
-        WHERE is_delete = 0
+        WHERE task.is_delete = 0
         AND (
         (task.task_type = 1
         <if test="releaseTimeBegin != null and releaseTimeEnd != null">

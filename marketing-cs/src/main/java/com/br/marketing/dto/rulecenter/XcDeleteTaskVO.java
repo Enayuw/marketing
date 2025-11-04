@@ -11,7 +11,7 @@ import java.util.Date;
 
 @Data
 @ApiModel(value = "携程剔除任务VO")
-public class XcDeleteTaskVO implements Serializable {
+public class XcDeleteTaskVO {
 
     @ApiModelProperty("规则主键id")
     private Long dprId;

@@ -15,12 +15,15 @@ public class LocalDateTimeHandler extends BaseTypeHandler<LocalDateTime> {
         ps.setTimestamp(i, Timestamp.valueOf(p));
     }
     @Override public LocalDateTime getNullableResult(ResultSet rs, String c) throws SQLException {
-        Timestamp ts = rs.getTimestamp(c); return ts == null ? null : ts.toLocalDateTime();
+        Timestamp ts = rs.getTimestamp(c);
+        return ts == null ? null : ts.toLocalDateTime();
     }
     @Override public LocalDateTime getNullableResult(ResultSet rs, int i) throws SQLException {
-        Timestamp ts = rs.getTimestamp(i); return ts == null ? null : ts.toLocalDateTime();
+        Timestamp ts = rs.getTimestamp(i);
+        return ts == null ? null : ts.toLocalDateTime();
     }
     @Override public LocalDateTime getNullableResult(CallableStatement cs, int i) throws SQLException {
-        Timestamp ts = cs.getTimestamp(i); return ts == null ? null : ts.toLocalDateTime();
+        Timestamp ts = cs.getTimestamp(i);
+        return ts == null ? null : ts.toLocalDateTime();
     }
 }
