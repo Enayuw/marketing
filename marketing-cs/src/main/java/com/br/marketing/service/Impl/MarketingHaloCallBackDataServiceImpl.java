@@ -106,7 +106,8 @@ public class MarketingHaloCallBackDataServiceImpl implements MarketingHaloCallBa
                     marketingHaLuoCallBackDataMapper.updateDealStatusByIdList(idList,HaloCallBackDealStatusEnum.DEAL_SUCCESS.getValue(),"");
                 }else {
                     //存储 错误返回的客户信息
-                    marketingHaLuoCallBackDataMapper.updateDealStatusByIdList(idList,HaloCallBackDealStatusEnum.DEAL_FAIL.getValue(), result.getMessage());
+                    marketingHaLuoCallBackDataMapper.updateDealStatusByIdList(idList,
+                            HaloCallBackDealStatusEnum.DEAL_FAIL.getValue(), result.getMessage());
                 }
             }
         }catch (Exception e) {
