@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.MarketingCustomerAssignedGroupMapper" >
+
+  <select id="getAssignedGroupByCid" resultType="com.br.marketing.entity.MarketingCustomerAssignedGroup">
+    select assigned_group from b_customer_assigned_group where cid=#{cid}
+  </select>
+
+  <select id="getLastAssignedGroup" resultType="com.br.marketing.entity.MarketingCustomerAssignedGroup">
+    select * from b_customer_assigned_group
+    <where><if test="cid != null">cid != #{cid}</if>
+    </where>
+    order by update_time desc limit 1
+  </select>
+
+</mapper>
