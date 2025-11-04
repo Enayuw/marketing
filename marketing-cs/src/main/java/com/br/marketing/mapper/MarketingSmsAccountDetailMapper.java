@@ -7,4 +7,6 @@ public interface MarketingSmsAccountDetailMapper extends MarketingSmsAccountDeta
 
     List<Long> selectChannelIfExist(@Param("channelIds") List<Long> channelIds, @Param("configId") Long configId);
 
+    Long selectCount(@Param("vendorId") Long vendorId, @Param("channelId") Long channelId);
+
 }

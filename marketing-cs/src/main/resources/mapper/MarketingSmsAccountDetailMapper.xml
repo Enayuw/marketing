@@ -13,4 +13,11 @@
     </if>
     and is_delete = 0
   </select>
+
+  <select id="selectCount" resultType="java.lang.Long">
+    SELECT count(*) FROM b_marketing_sms_account_detail
+    WHERE vendor_id =  #{vendorId}
+      AND channel_id = #{channelId}
+      AND is_delete = 0
+  </select>
 </mapper>
