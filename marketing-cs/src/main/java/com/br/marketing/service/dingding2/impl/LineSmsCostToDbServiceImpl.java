@@ -598,7 +598,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                 reason.append(",请检查");
             }
             JSONObject reasonObj = new JSONObject();
-            reasonObj.put("reason", reason.toString());
+            reasonObj.put("ddReason", reason.toString());
             costPriceExRecord.setReason(reasonObj.toJSONString());
             Date nowDate = new Date();
             costPriceExRecord.setCreateTime(nowDate);
@@ -663,7 +663,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                 reason.append(",请检查");
             }
             JSONObject reasonObj = new JSONObject();
-            reasonObj.put("reason", reason.toString());
+            reasonObj.put("ddReason", reason.toString());
             costPriceExRecord.setReason(reasonObj.toJSONString());
 
             costPriceExRecordMapper.insertSelective(costPriceExRecord);
