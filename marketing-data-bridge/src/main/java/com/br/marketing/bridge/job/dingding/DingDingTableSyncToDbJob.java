@@ -34,6 +34,8 @@ import java.util.*;
 @Slf4j
 public class DingDingTableSyncToDbJob extends AbstractSimpleElasticJob {
 
+    public static final String QUOTE = "`";
+    public static final String REGEX = "\\n";
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
@@ -177,18 +179,18 @@ public class DingDingTableSyncToDbJob extends AbstractSimpleElasticJob {
         ));
 
         // 按行分割建表语句
-        String[] lines = createTableSql.split("\\n");
+        String[] lines = createTableSql.split(REGEX);
 
         for (String line : lines) {
             line = line.trim();
 
             // 只处理字段定义行（以`开头）
-            if (!line.startsWith("`")) {
+            if (!line.startsWith(QUOTE)) {
                 continue;
             }
 
             // 提取字段名：`字段名`
-            int endPos = line.indexOf("`", 1);
+            int endPos = line.indexOf(QUOTE, 1);
             if (endPos == -1) {
                 continue;
             }
