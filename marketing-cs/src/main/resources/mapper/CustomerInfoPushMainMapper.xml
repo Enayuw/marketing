@@ -85,7 +85,7 @@
         extend
         from b_customer_info_push_main
         where is_del=1
-          and m_status !=-1 and push_target != 1
+          and m_status !=-1 and push_target != 1 and push_target != 4
         <if test="mApiCode !=null and mApiCode !=''">
             and m_api_code = #{mApiCode}
         </if>
