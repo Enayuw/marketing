@@ -176,16 +176,17 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                             .collect(Collectors.toList())
             );
             paramObj.put("errorList", errorListJson);
+            requstObj.put("param", paramObj);
+            requstObj.put("scriptCode",marketingCommonConfig.getLinsSmsCostToDbConfig().getString("scriptCode"));
+            //调用钉钉报警接口
+            String aviatorScriptUrl = marketingCommonConfig.getLinsSmsCostToDbConfig().getString("aviatorScriptUrl");
+            boolean isProxy = marketingCommonConfig.getLinsSmsCostToDbConfig().getBoolean("isProxy");
+            aviatorScriptApiClient.dealAviatorScriptRequest(aviatorScriptUrl,requstObj,isProxy);
         } catch (JsonProcessingException e) {
-            //TODO 异常了钉钉报警 不推送钉钉通知
-            log.error("转换errorList为JSON失败", e);
+            // 异常了钉钉报警 不推送钉钉通知
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MARKETING_AVIATORSCRIPT_LINESMS_ERROR.getCode(),
+                    e.getMessage(), TITLE), e);
         }
-        requstObj.put("param", paramObj);
-        requstObj.put("scriptCode",marketingCommonConfig.getLinsSmsCostToDbConfig().getString("scriptCode"));
-        //调用钉钉报警接口
-        String aviatorScriptUrl = marketingCommonConfig.getLinsSmsCostToDbConfig().getString("aviatorScriptUrl");
-        boolean isProxy = marketingCommonConfig.getLinsSmsCostToDbConfig().getBoolean("isProxy");
-        aviatorScriptApiClient.dealAviatorScriptRequest(aviatorScriptUrl,requstObj,isProxy);
     }
 
 
@@ -342,7 +343,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                             if (result.isSuccess()) {
                                 smsCostAlarmDto.setSuccessCost(smsCostAlarmDto.getSuccessCost() + 1);
                             }else {
-                                // TODO 记录因为保存失败导致存储失败
+                                //smsCost下游失败
                                 CostPriceExRecord costPriceExRecord = new CostPriceExRecord();
                                 costPriceExRecord.setJsonData(JSONObject.toJSONString(smsCost));
                                 costPriceExRecord.setType(1);
@@ -362,20 +363,8 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                             }
                             ThreadContextInfo.removeUser();
                         } catch (Exception e) {
-                            //TODO 下游保存异常时 报警处理
-                            CostPriceExRecord costPriceExRecord = new CostPriceExRecord();
-                            costPriceExRecord.setJsonData(JSONObject.toJSONString(smsCost));
-                            costPriceExRecord.setType(1);
-                            String ddReason = "供应商["+smsCost.getLineSupplier()+"]线路["+smsCost.getLineName()+"],新增失败,请检查";
-                            JSONObject reasonObj = new JSONObject();
-                            reasonObj.put("smsDto", smsDto);
-                            reasonObj.put("ddReason", ddReason);
-                            reasonObj.put("failMsg", e.getMessage());
-                            costPriceExRecord.setReason(JSONObject.toJSONString(reasonObj));
-                            List<CostPriceExRecordDto> costPriceExRecordList = smsCostAlarmDto.getCostPriceExRecordDtoList();
-                            costPriceExRecordList.add(convertPriceExRecordDto(costPriceExRecord,ddReason));
-                            smsCostAlarmDto.setCostPriceExRecordDtoList(costPriceExRecordList);
-                            smsCostAlarmDto.setFailCount(smsCostAlarmDto.getFailCount() + 1);
+                            //smsCost下游异常
+                            dealExceptionReason(smsCostAlarmDto,smsCost,null,e,1);
                             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MARKETING_AVIATORSCRIPT_LINESMS_ERROR.getCode(),
                                     JSONObject.toJSONString(smsCost)+e.getMessage(), TITLE), e);
                         }
@@ -385,19 +374,12 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                     }
                 });
             }catch (Exception e){
-                //下游保存异常时 报警处理
+                // 单个smsCost处理异常
                 dealExceptionReason(smsCostAlarmDto,smsCost,null,e,1);
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MARKETING_AVIATORSCRIPT_LINESMS_ERROR.getCode(),
                         JSONObject.toJSONString(smsCost)+e.getMessage(), TITLE), e);
             }
         });
-    }
-
-    private CostPriceExRecordDto convertPriceExRecordDto(CostPriceExRecord costPriceExRecord,String ddReason) {
-        CostPriceExRecordDto costPriceExRecordDto = new CostPriceExRecordDto();
-        BeanUtils.copyProperties(costPriceExRecord, costPriceExRecordDto);
-        costPriceExRecordDto.setDdReason(ddReason);
-        return costPriceExRecordDto;
     }
 
 
@@ -445,7 +427,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                             if (result.isSuccess()) {
                                 linsCostAlarmDto.setSuccessCost(linsCostAlarmDto.getSuccessCost() + 1);
                             } else {
-                                // TODO 记录因为保存失败导致存储失败
+                                //lineCost下游失败
                                 CostPriceExRecord costPriceExRecord = new CostPriceExRecord();
                                 costPriceExRecord.setJsonData(JSONObject.toJSONString(lineCost));
                                 costPriceExRecord.setType(2);
@@ -463,30 +445,18 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                             }
                             ThreadContextInfo.removeUser();
                         } catch (Exception e) {
-                            //TODO 下游保存异常时 原因数据保存
-                            CostPriceExRecord costPriceExRecord = new CostPriceExRecord();
-                            costPriceExRecord.setJsonData(JSONObject.toJSONString(lineCost));
-                            costPriceExRecord.setType(2);
-                            JSONObject reasonObj = new JSONObject();
-                            String ddReason = "供应商[" + lineCost.getLineSupplier() + "]主叫号码[" + lineCost.getCaller()  + "],新增失败,请检查";
-                            reasonObj.put("lineDto", lineDto);
-                            reasonObj.put("ddReason", ddReason);
-                            reasonObj.put("failMsg",e.getMessage());
-                            costPriceExRecord.setReason(JSONObject.toJSONString(reasonObj));
-                            List<CostPriceExRecordDto> costPriceExRecordList = linsCostAlarmDto.getCostPriceExRecordDtoList();
-                            costPriceExRecordList.add(convertPriceExRecordDto(costPriceExRecord,ddReason));
-                            linsCostAlarmDto.setCostPriceExRecordDtoList(costPriceExRecordList);
-                            linsCostAlarmDto.setFailCount(linsCostAlarmDto.getFailCount() + 1);
-
+                            //lineCost下游异常
+                            dealExceptionReason(linsCostAlarmDto,null,lineCost,e,2);
                             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MARKETING_AVIATORSCRIPT_LINESMS_ERROR.getCode(),
                                     JSONObject.toJSONString(lineCost)+e.getMessage(), TITLE), e);
                         }
                     }else if (count >0){
-                        //TODO 存在 设置存在条数
+                        //存在 设置存在条数
                         linsCostAlarmDto.setExistCount(linsCostAlarmDto.getExistCount() + 1);
                     }
                 });
             }catch (Exception e){
+                //单个lineCost处理异常
                 dealExceptionReason(linsCostAlarmDto,null,lineCost,e,2);
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MARKETING_AVIATORSCRIPT_LINESMS_ERROR.getCode(),
                         JSONObject.toJSONString(lineCost)+e.getMessage(), TITLE), e);
@@ -497,9 +467,10 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
     private void dealExceptionReason(DdLinsSmsCostAlarmDto smsLineCostAlarmDto,DdDataSmsCostPrice smsCost,DdDataLineCostPrice lineCost, Exception e, Integer type) {
 
         CostPriceExRecord costPriceExRecord = new CostPriceExRecord();
+        costPriceExRecord.setType(type);
+
         if(type == 1){
             costPriceExRecord.setJsonData(JSONObject.toJSONString(smsCost));
-            costPriceExRecord.setType(1);
             String ddReason = "供应商["+smsCost.getLineSupplier()+"]线路["+smsCost.getLineName()+"],新增失败,请检查";
             JSONObject reasonObj = new JSONObject();
             reasonObj.put("ddReason", ddReason);
@@ -511,7 +482,6 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
             smsLineCostAlarmDto.setFailCount(smsLineCostAlarmDto.getFailCount() + 1);
         }else {
             costPriceExRecord.setJsonData(JSONObject.toJSONString(lineCost));
-            costPriceExRecord.setType(type);
             JSONObject reasonObj = new JSONObject();
             String ddReason = "供应商[" + lineCost.getLineSupplier() + "]主叫号码[" + lineCost.getCaller()  + "],新增失败,请检查";
             reasonObj.put("ddReason", ddReason);
@@ -704,6 +674,13 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
             return false;
         }
         return true;
+    }
+
+    private CostPriceExRecordDto convertPriceExRecordDto(CostPriceExRecord costPriceExRecord,String ddReason) {
+        CostPriceExRecordDto costPriceExRecordDto = new CostPriceExRecordDto();
+        BeanUtils.copyProperties(costPriceExRecord, costPriceExRecordDto);
+        costPriceExRecordDto.setDdReason(ddReason);
+        return costPriceExRecordDto;
     }
 
     /**
