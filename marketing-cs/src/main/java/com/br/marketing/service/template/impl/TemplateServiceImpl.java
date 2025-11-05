@@ -100,7 +100,7 @@ public class TemplateServiceImpl implements TemplateService {
             } else {
                 logger.warn("未查询到行业模板信息，查询条件：templateName={}，firstDepartment={}，secondDepartment={}，apiType={}",
                         templateName, firstDepartment, secondDepartment, apiType);
-                return new Result<PageResultReturn<MarketingIndustryTemplate>>().success().setMessage("未查询到行业模板信息").setDate(null);
+                return new Result<PageResultReturn<MarketingIndustryTemplate>>().failure().setMessage("未查询到行业模板信息").setDate(null);
             }
         } catch (Exception e) {
             logger.error("查询行业模板异常，查询条件：templateName={}，firstDepartment={}，secondDepartment={}，apiType={}，error：{}",
@@ -173,7 +173,7 @@ public class TemplateServiceImpl implements TemplateService {
                 return new Result<MarketingIndustryTemplateDTO>().success().setDate(marketingIndustryTemplateDTO);
             } else {
                 logger.warn("未查询到该行业模板，行业模板id：{}", id);
-                return new Result<MarketingIndustryTemplateDTO>().success().setDate(null);
+                return new Result<MarketingIndustryTemplateDTO>().failure().setDate(null);
             }
         } catch (Exception e) {
             logger.error("行业模板查询异常，行业模板id：{}，error：{}", id, e.getMessage());
