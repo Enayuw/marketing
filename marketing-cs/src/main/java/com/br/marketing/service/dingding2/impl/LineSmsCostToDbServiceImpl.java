@@ -303,7 +303,8 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
     }
 
 
-    private void smsCostCompareAndDbDeal(List<DdDataSmsCostPrice> ddDataSmsCostPriceList, List<DdSmsBaseInfoDto>  smsBaseInfoList, DdLinsSmsCostAlarmDto smsCostAlarmDto) {
+    private void smsCostCompareAndDbDeal(List<DdDataSmsCostPrice> ddDataSmsCostPriceList,
+                                         List<DdSmsBaseInfoDto>  smsBaseInfoList, DdLinsSmsCostAlarmDto smsCostAlarmDto) {
         ddDataSmsCostPriceList.forEach(smsCost -> {
             try{
                 //1.钉钉文档参数校验
@@ -383,7 +384,8 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
     }
 
 
-    private void lineCostCompareAndDbDeal(List<DdDataLineCostPrice> ddDataLineCostPriceList, List<DdLineBaseInfoDto> ddLineBaseInfoDtoList, DdLinsSmsCostAlarmDto linsCostAlarmDto) {
+    private void lineCostCompareAndDbDeal(List<DdDataLineCostPrice> ddDataLineCostPriceList,
+                                          List<DdLineBaseInfoDto> ddLineBaseInfoDtoList, DdLinsSmsCostAlarmDto linsCostAlarmDto) {
         ddDataLineCostPriceList.forEach(lineCost -> {
             try{
                 // 1.钉钉文档参数校验
@@ -464,8 +466,8 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
         });
     }
 
-    private void dealExceptionReason(DdLinsSmsCostAlarmDto smsLineCostAlarmDto,DdDataSmsCostPrice smsCost,DdDataLineCostPrice lineCost, Exception e, Integer type) {
-
+    private void dealExceptionReason(DdLinsSmsCostAlarmDto smsLineCostAlarmDto,DdDataSmsCostPrice smsCost,
+                                     DdDataLineCostPrice lineCost, Exception e, Integer type) {
         CostPriceExRecord costPriceExRecord = new CostPriceExRecord();
         costPriceExRecord.setType(type);
 
@@ -565,13 +567,19 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                 StringBuilder prefixBuilder = new StringBuilder();
                 if (!lineSupplierInvalid && !lineNameInvalid) {
                     prefixBuilder.append("供应商[").append(smsCost.getLineSupplier()).append("]短信线路名称[").append(smsCost.getLineName()).append("]");
-                    if (priceInvalid) prefixBuilder.append("单价/");
+                    if (priceInvalid){
+                        prefixBuilder.append("单价/");
+                    }
                 } else if (!lineSupplierInvalid) {
                     prefixBuilder.append("供应商[").append(smsCost.getLineSupplier()).append("]短信线路名称/");
-                    if (priceInvalid) prefixBuilder.append("单价/");
+                    if (priceInvalid) {
+                        prefixBuilder.append("单价/");
+                    }
                 } else {
                     prefixBuilder.append("短信线路名称[").append(smsCost.getLineName()).append("]供应商/");
-                    if (priceInvalid) prefixBuilder.append("单价/");
+                    if (priceInvalid) {
+                        prefixBuilder.append("单价/");
+                    }
                 }
 
                 reason.append(prefixBuilder);
@@ -631,13 +639,19 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                 StringBuilder baseDescBuilder = new StringBuilder();
                 if (!supplierInvalid && !callerInvalid) {
                     baseDescBuilder.append("供应商[").append(lineCost.getLineSupplier()).append("]主叫号码[").append(lineCost.getCaller()).append("]");
-                    if (priceInvalid) baseDescBuilder.append("单价/");
+                    if (priceInvalid) {
+                        baseDescBuilder.append("单价/");
+                    }
                 } else if (!supplierInvalid) {
                     baseDescBuilder.append("供应商[").append(lineCost.getLineSupplier()).append("]主叫号码/");
-                    if (priceInvalid) baseDescBuilder.append("单价/");
+                    if (priceInvalid) {
+                        baseDescBuilder.append("单价/");
+                    }
                 } else {
                     baseDescBuilder.append("主叫号码[").append(lineCost.getCaller()).append("]供应商/");
-                    if (priceInvalid) baseDescBuilder.append("单价/");
+                    if (priceInvalid) {
+                        baseDescBuilder.append("单价/");
+                    }
                 }
                 reason.append(baseDescBuilder);
                 // 整理格式并添加提示
