@@ -1,6 +1,18 @@
 package com.br.marketing.innerapi.controller.industry;
 
+import com.alibaba.fastjson.JSONArray;
+import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.service.template.TemplateJsonParseService;
+import io.swagger.annotations.ApiOperation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.annotation.Resource;
 
 /**
  * @ClassName TemplateJsonParseController
@@ -8,5 +20,30 @@ import org.springframework.web.bind.annotation.RestController;
  * @Date 2025/10/27
  */
 @RestController
+@RequestMapping("/templateJsonParse")
 public class TemplateJsonParseController {
+
+    private static final Logger logger = LoggerFactory.getLogger(TemplateJsonParseController.class);
+
+    @Resource
+    private TemplateJsonParseService templateJsonParseService;
+
+    @ApiOperation("根据三级部门及数据类型查询行业模板")
+    @PostMapping(value = "/queryTemplateJsonParse")
+    public ApiResult<JSONArray> queryTemplateJsonParse(@RequestParam(name = "firstDepartment") String firstDepartment,
+                                                       @RequestParam(name = "secondDepartment") String secondDepartment,
+                                                       @RequestParam(name = "apiType") String apiType,
+                                                       @RequestParam(name = "dateType") Integer dataType) {
+        try {
+            Result<JSONArray> result = templateJsonParseService.queryIndustryTemplateJsonParses(firstDepartment, secondDepartment, apiType, dataType);
+            if (result.isSuccess()) {
+                return new ApiResult<JSONArray>().success().setData(result.getData());
+            } else {
+                return new ApiResult<JSONArray>().fail().setMessage(result.getMessage());
+            }
+        } catch (Exception e) {
+            logger.error("根据三级部门及数据类型查询行业模板异常，message:{}", e.getMessage());
+            return new ApiResult<JSONArray>().fail().setMessage(e.getMessage()).setData(null);
+        }
+    }
 }

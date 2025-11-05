@@ -29,9 +29,6 @@ public class TemplateController {
     @Resource
     private TemplateService templateService;
 
-    @Resource
-    private TemplateJsonParseService templateJsonParseService;
-
     /**
      * 新增行业模板
      *
@@ -146,25 +143,6 @@ public class TemplateController {
             return new ApiResult<MarketingIndustryTemplateDTO>().fail().setMessage(e.getMessage()).setData(null);
         }
 
-    }
-
-    @ApiOperation("根据三级部门及数据类型查询行业模板")
-    @PostMapping(value = "/queryTemplateJsonParse")
-    public ApiResult<JSONArray> queryTemplateJsonParse(@RequestParam(name = "firstDepartment") String firstDepartment,
-                                                       @RequestParam(name = "secondDepartment") String secondDepartment,
-                                                       @RequestParam(name = "apiType") String apiType,
-                                                       @RequestParam(name = "dateType") Integer dataType) {
-        try {
-            Result<JSONArray> result = templateJsonParseService.queryIndustryTemplateJsonParses(firstDepartment, secondDepartment, apiType, dataType);
-            if (result.isSuccess()) {
-                return new ApiResult<JSONArray>().success().setData(result.getData());
-            } else {
-                return new ApiResult<JSONArray>().fail().setMessage(result.getMessage());
-            }
-        } catch (Exception e) {
-            logger.error("根据三级部门及数据类型查询行业模板异常，message:{}", e.getMessage());
-            return new ApiResult<JSONArray>().fail().setMessage(e.getMessage()).setData(null);
-        }
     }
 
 }

@@ -11,7 +11,7 @@ import com.br.marketing.entity.MarketingIndustryTemplateJsonParseExample;
 import com.br.marketing.mapper.MarketingIndustryTemplateJsonParseMapper;
 import com.br.marketing.mapper.MarketingIndustryTemplateMapper;
 import com.br.marketing.service.template.TemplateService;
-import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.page.PageMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -75,7 +75,7 @@ public class TemplateServiceImpl implements TemplateService {
 
     @Override
     public Result<PageResultReturn<MarketingIndustryTemplate>> queryAllTemplate(Integer current, Integer pageSize, String templateName, String firstDepartment, String secondDepartment, String apiType) {
-        PageHelper.startPage(current, pageSize);
+        PageMethod.startPage(current, pageSize);
 
         MarketingIndustryTemplateExample example = new MarketingIndustryTemplateExample();
         MarketingIndustryTemplateExample.Criteria criteria = example.createCriteria();
@@ -129,7 +129,7 @@ public class TemplateServiceImpl implements TemplateService {
                 //jsonParse数据重新入库
                 marketingIndustryTemplateJsonParseMapper.batchInsert(marketingIndustryTemplateJsonParseList);
                 logger.warn("修改行业模板成功，行业模板id：{}", marketingIndustryTemplate.getId());
-                return new Result<>().success().setDate(Boolean.TRUE);
+                return new Result<Boolean>().success().setDate(Boolean.TRUE);
             }else {
                 logger.warn("行业模板json数据不存在，更新失败");
                 return new Result<>().failure().setDate(Boolean.FALSE);
