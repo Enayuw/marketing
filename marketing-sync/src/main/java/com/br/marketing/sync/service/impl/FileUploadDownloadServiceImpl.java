@@ -1,15 +1,19 @@
 package com.br.marketing.sync.service.impl;
 
+import com.br.common.validator.DateUtils;
 import com.br.marketing.client.BaseFtpClient;
 import com.br.marketing.common.enums.DataTypeEnum;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.FileSyncTask;
 import com.br.marketing.entity.SyncConfig;
 import com.br.marketing.entity.SyncConfigExample;
+import com.br.marketing.entity.SyncLog;
 import com.br.marketing.enums.clean.DataProcessEnum;
 import com.br.marketing.mapper.FileSyncTaskMapper;
 import com.br.marketing.mapper.SyncConfigMapper;
+import com.br.marketing.mapper.SyncLogMapper;
 import com.br.marketing.sync.service.FileUploadDownloadService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -37,6 +41,9 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
 
     @Resource
     private FileSyncTaskMapper fileSyncTaskMapper;
+
+    @Resource
+    private SyncLogMapper loanSyncLogMapper;
 
 
     @Override
@@ -67,14 +74,14 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
         BaseFtpClient client = syncServiceImpl.getClient(syncConfig, false);
 
         // 处理路径中的日期替换
-        String srcPath = replaceDateInPath(syncConfig.getTargetPath());
+        String targetPath = replaceDateInPath(syncConfig.getTargetPath());
 
         String localPath = uploadTask.getLocalPath().concat(uploadTask.getFileName());
 
         try (InputStream inputStream = Files.newInputStream(Paths.get(localPath))) {
-            client.mkdir(srcPath);
-            client.uploadFile(inputStream, srcPath, uploadTask.getFileName());
-
+            client.mkdir(targetPath);
+            client.uploadFile(inputStream, targetPath, uploadTask.getFileName());
+            insertSyncLog(uploadTask, syncConfig, targetPath);
             // 上传成功后，创建并上传.success文件
             String successFileName = uploadTask.getFileName().concat(".success");
             String successLocalPath = uploadTask.getLocalPath().concat(successFileName);
@@ -87,7 +94,7 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
 
             // 上传success文件
             try (InputStream successInputStream = Files.newInputStream(Paths.get(successLocalPath))) {
-                client.uploadFile(successInputStream, srcPath, successFileName);
+                client.uploadFile(successInputStream, targetPath, successFileName);
             } catch (Exception e) {
                 log.error("上传success文件失败，taskId: {}, successFileName: {}, error: {}",
                         uploadTask.getId(), successFileName, e.getMessage(), e);
@@ -96,8 +103,8 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
 
             return true;
         } catch (Exception e) {
-            log.error("上传文件出错，taskId: {}, fileName: {}, localPath: {}, srcPath: {}, error: {}",
-                    uploadTask.getId(), uploadTask.getFileName(), localPath, srcPath, e.getMessage(), e);
+            log.error("上传文件出错，taskId: {}, fileName: {}, localPath: {}, targetPath: {}, error: {}",
+                    uploadTask.getId(), uploadTask.getFileName(), localPath, targetPath, e.getMessage(), e);
             return false;
         } finally {
             // 确保连接被关闭
@@ -109,6 +116,18 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                 log.error("关闭SFTP连接失败，taskId: {}, error: {}", uploadTask.getId(), e.getMessage(), e);
             }
         }
+    }
+
+    private void insertSyncLog(FileSyncTask uploadTask, SyncConfig syncConfig, String targetPath) {
+        SyncLog syncLog = new SyncLog();
+        syncLog.setApiCode(uploadTask.getApiCode());
+        syncLog.setFileName(uploadTask.getFileName());
+        syncLog.setSrcPath(uploadTask.getLocalPath());
+        syncLog.setTargetPath(syncConfig.getTargetSftpHost() + ":" + targetPath);
+        syncLog.setFileSize("0");
+        syncLog.setCreateFileTime(uploadTask.getCreateTime().toString());
+        syncLog.setStartTime(DateUtils.parseDateTimeByDate(new Date(), "yyyy-MM-dd HH:mm:ss"));
+        loanSyncLogMapper.insertSynLog(syncLog);
     }
 
     /**
