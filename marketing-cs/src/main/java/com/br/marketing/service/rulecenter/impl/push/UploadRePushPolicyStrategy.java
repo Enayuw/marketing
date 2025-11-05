@@ -522,7 +522,7 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
             }
             minId = syncUsers.get(syncUsers.size() - 1).getId();
             List<PushMarketingUserDetailByRuleDTO> pushList = new ArrayList<>();
-            buildPushParam(pushList, syncUserFilters, buildBatchNumber, jc3keyType);
+            buildPushParam(pushList, syncUserFilters, buildBatchNumber, jc3keyType, rePushCount, Boolean.TRUE);
             resList.add(pushPool.submit(() -> uploadPushPolicy(pushList, pushMain)));
         }
 
@@ -554,7 +554,7 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
             }
             minId = syncUsers.get(syncUsers.size() - 1).getId();
             List<PushMarketingUserDetailByRuleDTO> pushList = new ArrayList<>();
-            buildPushParam(pushList, syncUserFilters, buildBatchNumber, jc3keyType);
+            buildPushParam(pushList, syncUserFilters, buildBatchNumber, jc3keyType, rePushCount, Boolean.TRUE);
             resList.add(pushPool.submit(() -> uploadPushPolicy(pushList, pushMain)));
 
         }
@@ -578,7 +578,7 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
             }
             minId = syncUsers.get(syncUsers.size() - 1).getId();
             List<PushMarketingUserDetailByRuleDTO> pushList = new ArrayList<>();
-            buildPushParam(pushList, syncUsers, buildBatchNumber, jc3keyType);
+            buildPushParam(pushList, syncUsers, buildBatchNumber, jc3keyType, rePushCount, Boolean.FALSE);
             resList.add(pushPool.submit(() -> uploadPushPolicy(pushList, pushMain)));
         }
     }
@@ -601,14 +601,15 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
             }
             minId = syncUsers.get(syncUsers.size() - 1).getId();
             List<PushMarketingUserDetailByRuleDTO> pushList = new ArrayList<>();
-            buildPushParam(pushList, syncUsers, buildBatchNumber, jc3keyType);
+            buildPushParam(pushList, syncUsers, buildBatchNumber, jc3keyType, rePushCount, Boolean.FALSE);
             resList.add(pushPool.submit(() ->
                     uploadPushPolicy(pushList, pushMain)));
 
         }
     }
 
-    private void buildPushParam(List<PushMarketingUserDetailByRuleDTO> pushList, List<MarketingSyncUser> syncUsers, String buildBatchNumber, Integer jc3keyType) {
+    private void buildPushParam(List<PushMarketingUserDetailByRuleDTO> pushList, List<MarketingSyncUser> syncUsers, String buildBatchNumber,
+                                Integer jc3keyType, Long rePushCount, Boolean isBuild) {
         syncUsers.forEach(syncUser -> {
             String apiCode = syncUser.getApiCode();
             PushMarketingUserDetailByRuleDTO pushData = new PushMarketingUserDetailByRuleDTO();
@@ -628,8 +629,12 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
                         : strategyCodeOriginal.substring(strategyCodeOriginal.length() - 12);
                 jsonObject.put("strategyCode", strategyCode);
                 String batchNumber = ObjectUtil.isNotEmpty(jsonObject.getString("batchNumber"))
-                        ? jsonObject.getString("batchNumber")
+                        ? jsonObject.getString("batchNumber") + "_" + "RE_" + rePushCount
                         : buildBatchNumber;
+                //5,6直接构建
+                if (isBuild) {
+                    batchNumber = buildBatchNumber;
+                }
                 String batchName = ObjectUtil.isNotEmpty(jsonObject.getString("batchName"))
                         ? jsonObject.getString("batchName")
                         : (nowDate + "_" + apiCode);
