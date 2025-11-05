@@ -14,6 +14,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ThreadContextInfo;
+import com.br.marketing.dto.CostPriceExRecordDto;
 import com.br.marketing.dto.DdLineBaseInfoDto;
 import com.br.marketing.dto.DdLinsSmsCostAlarmDto;
 import com.br.marketing.dto.DdSmsBaseInfoDto;
@@ -29,6 +30,7 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -164,12 +166,13 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
         JSONObject paramObj = new JSONObject();
         paramObj.put("title", smsCostAlarmDto.getCardTitle());
         paramObj.put("totalCount", smsCostAlarmDto.getTotalCount());
+        paramObj.put("existCount",smsCostAlarmDto.getExistCount());
         paramObj.put("successCount", smsCostAlarmDto.getSuccessCost());
         paramObj.put("errorCount", smsCostAlarmDto.getFailCount());
         try {
             String errorListJson = objectMapper.writeValueAsString(
-                    smsCostAlarmDto.getCostPriceExRecordList().stream()
-                            .map(CostPriceExRecord::getReason)
+                    smsCostAlarmDto.getCostPriceExRecordDtoList().stream()
+                            .map(CostPriceExRecordDto::getDdReason)
                             .collect(Collectors.toList())
             );
             paramObj.put("errorList", errorListJson);
@@ -317,11 +320,14 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                     CostPriceExRecord costPriceExRecord = new CostPriceExRecord();
                     costPriceExRecord.setJsonData(JSONObject.toJSONString(smsCost));
                     costPriceExRecord.setType(1);
-                    costPriceExRecord.setReason("供应商["+smsCost.getLineSupplier()+"]线路["+smsCost.getLineName()+"],在短信侧不存在");
+                    String ddReason = "供应商["+smsCost.getLineSupplier()+"]线路["+smsCost.getLineName()+"],在短信侧不存在";
+                    JSONObject reasonObj = new JSONObject();
+                    reasonObj.put("ddReason", ddReason);
+                    costPriceExRecord.setReason(JSONObject.toJSONString(reasonObj));
                     costPriceExRecordMapper.insertSelective(costPriceExRecord);
-                    List<CostPriceExRecord> costPriceExRecordList = smsCostAlarmDto.getCostPriceExRecordList();
-                    costPriceExRecordList.add(costPriceExRecord);
-                    smsCostAlarmDto.setCostPriceExRecordList(costPriceExRecordList);
+                    List<CostPriceExRecordDto> costPriceExRecordList = smsCostAlarmDto.getCostPriceExRecordDtoList();
+                    costPriceExRecordList.add(convertPriceExRecordDto(costPriceExRecord,ddReason));
+                    smsCostAlarmDto.setCostPriceExRecordDtoList(costPriceExRecordList);
                     smsCostAlarmDto.setFailCount(smsCostAlarmDto.getFailCount() + 1);
                     return;
                 }
@@ -340,31 +346,59 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                                 CostPriceExRecord costPriceExRecord = new CostPriceExRecord();
                                 costPriceExRecord.setJsonData(JSONObject.toJSONString(smsCost));
                                 costPriceExRecord.setType(1);
-                                costPriceExRecord.setReason("供应商["+smsCost.getLineSupplier()+"]线路["+smsCost.getLineName()+"],新增失败,请检查");
+                                String ddReason = "供应商["+smsCost.getLineSupplier()+"]线路["+smsCost.getLineName()+"],新增失败,请检查";
+                                JSONObject reasonObj = new JSONObject();
+                                reasonObj.put("ddReason", ddReason);
+                                reasonObj.put("smsDto", smsDto);
+                                costPriceExRecord.setReason(JSONObject.toJSONString(reasonObj));
                                 JSONObject extendObj =JSONObject.parseObject(JSONObject.toJSONString(smsDto));
                                 extendObj.put("failMsg",result.getMessage());
                                 costPriceExRecord.setExtend(extendObj.toJSONString());
-                                //costPriceExRecordMapper.insertSelective(costPriceExRecord);
-                                List<CostPriceExRecord> costPriceExRecordList = smsCostAlarmDto.getCostPriceExRecordList();
-                                costPriceExRecordList.add(costPriceExRecord);
-                                smsCostAlarmDto.setCostPriceExRecordList(costPriceExRecordList);
+                                costPriceExRecordMapper.insertSelective(costPriceExRecord);
+                                List<CostPriceExRecordDto> costPriceExRecordList = smsCostAlarmDto.getCostPriceExRecordDtoList();
+                                costPriceExRecordList.add(convertPriceExRecordDto(costPriceExRecord,ddReason));
+                                smsCostAlarmDto.setCostPriceExRecordDtoList(costPriceExRecordList);
                                 smsCostAlarmDto.setFailCount(smsCostAlarmDto.getFailCount() + 1);
                             }
                             ThreadContextInfo.removeUser();
                         } catch (Exception e) {
-                            //TODO 下游保存异常时 数据处理
+                            //TODO 下游保存异常时 报警处理
+                            CostPriceExRecord costPriceExRecord = new CostPriceExRecord();
+                            costPriceExRecord.setJsonData(JSONObject.toJSONString(smsCost));
+                            costPriceExRecord.setType(1);
+                            String ddReason = "供应商["+smsCost.getLineSupplier()+"]线路["+smsCost.getLineName()+"],新增失败,请检查";
+                            JSONObject reasonObj = new JSONObject();
+                            reasonObj.put("smsDto", smsDto);
+                            reasonObj.put("ddReason", ddReason);
+                            reasonObj.put("failMsg", e.getMessage());
+                            costPriceExRecord.setReason(JSONObject.toJSONString(reasonObj));
+                            List<CostPriceExRecordDto> costPriceExRecordList = smsCostAlarmDto.getCostPriceExRecordDtoList();
+                            costPriceExRecordList.add(convertPriceExRecordDto(costPriceExRecord,ddReason));
+                            smsCostAlarmDto.setCostPriceExRecordDtoList(costPriceExRecordList);
+                            smsCostAlarmDto.setFailCount(smsCostAlarmDto.getFailCount() + 1);
                             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MARKETING_AVIATORSCRIPT_LINESMS_ERROR.getCode(),
                                     JSONObject.toJSONString(smsCost)+e.getMessage(), TITLE), e);
                         }
+                    }else if (count >0){
+                        //记录已存在条数
+                        smsCostAlarmDto.setExistCount(smsCostAlarmDto.getExistCount() + 1);
                     }
                 });
             }catch (Exception e){
+                //下游保存异常时 报警处理
+                dealExceptionReason(smsCostAlarmDto,smsCost,null,e,1);
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MARKETING_AVIATORSCRIPT_LINESMS_ERROR.getCode(),
                         JSONObject.toJSONString(smsCost)+e.getMessage(), TITLE), e);
             }
         });
     }
 
+    private CostPriceExRecordDto convertPriceExRecordDto(CostPriceExRecord costPriceExRecord,String ddReason) {
+        CostPriceExRecordDto costPriceExRecordDto = new CostPriceExRecordDto();
+        BeanUtils.copyProperties(costPriceExRecord, costPriceExRecordDto);
+        costPriceExRecordDto.setDdReason(ddReason);
+        return costPriceExRecordDto;
+    }
 
 
     private void lineCostCompareAndDbDeal(List<DdDataLineCostPrice> ddDataLineCostPriceList, List<DdLineBaseInfoDto> ddLineBaseInfoDtoList, DdLinsSmsCostAlarmDto linsCostAlarmDto) {
@@ -388,11 +422,14 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                     CostPriceExRecord costPriceExRecord = new CostPriceExRecord();
                     costPriceExRecord.setJsonData(JSONObject.toJSONString(lineCost));
                     costPriceExRecord.setType(2);
-                    costPriceExRecord.setReason("供应商[" + lineCost.getLineSupplier() + "]主叫号码[" + lineCost.getCaller()+"],在线路侧不存在");
+                    JSONObject reasonObj = new JSONObject();
+                    String ddReason = "供应商[" + lineCost.getLineSupplier() + "]主叫号码[" + lineCost.getCaller()+"],在线路侧不存在";
+                    reasonObj.put("ddReason", ddReason);
+                    costPriceExRecord.setReason(JSONObject.toJSONString(reasonObj));
                     costPriceExRecordMapper.insertSelective(costPriceExRecord);
-                    List<CostPriceExRecord> costPriceExRecordList = linsCostAlarmDto.getCostPriceExRecordList();
-                    costPriceExRecordList.add(costPriceExRecord);
-                    linsCostAlarmDto.setCostPriceExRecordList(costPriceExRecordList);
+                    List<CostPriceExRecordDto> costPriceExRecordList = linsCostAlarmDto.getCostPriceExRecordDtoList();
+                    costPriceExRecordList.add(convertPriceExRecordDto(costPriceExRecord,ddReason));
+                    linsCostAlarmDto.setCostPriceExRecordDtoList(costPriceExRecordList);
                     linsCostAlarmDto.setFailCount(linsCostAlarmDto.getFailCount() + 1);
                     return;
                 }
@@ -412,30 +449,81 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                                 CostPriceExRecord costPriceExRecord = new CostPriceExRecord();
                                 costPriceExRecord.setJsonData(JSONObject.toJSONString(lineCost));
                                 costPriceExRecord.setType(2);
-                                costPriceExRecord.setReason("供应商[" + lineCost.getLineSupplier() + "]主叫号码[" + lineCost.getCaller()  + "],新增失败,请检查");
-                                JSONObject extendObj = JSONObject.parseObject(JSONObject.toJSONString(lineDto));
-                                extendObj.put("failMsg", result.getMessage());
-                                costPriceExRecord.setExtend(extendObj.toJSONString());
-                                //costPriceExRecordMapper.insertSelective(costPriceExRecord);
-                                List<CostPriceExRecord> costPriceExRecordList = linsCostAlarmDto.getCostPriceExRecordList();
-                                costPriceExRecordList.add(costPriceExRecord);
-                                linsCostAlarmDto.setCostPriceExRecordList(costPriceExRecordList);
+                                JSONObject reasonObj = new JSONObject();
+                                String ddReason = "供应商[" + lineCost.getLineSupplier() + "]主叫号码[" + lineCost.getCaller()  + "],新增失败,请检查";
+                                reasonObj.put("ddReason", ddReason);
+                                reasonObj.put("lineDto", JSONObject.toJSONString(lineDto));
+                                reasonObj.put("failMsg",result.getMessage());
+                                costPriceExRecord.setReason(JSONObject.toJSONString(reasonObj));
+                               costPriceExRecordMapper.insertSelective(costPriceExRecord);
+                                List<CostPriceExRecordDto> costPriceExRecordList = linsCostAlarmDto.getCostPriceExRecordDtoList();
+                                costPriceExRecordList.add(convertPriceExRecordDto(costPriceExRecord,ddReason));
+                                linsCostAlarmDto.setCostPriceExRecordDtoList(costPriceExRecordList);
                                 linsCostAlarmDto.setFailCount(linsCostAlarmDto.getFailCount() + 1);
                             }
                             ThreadContextInfo.removeUser();
                         } catch (Exception e) {
                             //TODO 下游保存异常时 原因数据保存
+                            CostPriceExRecord costPriceExRecord = new CostPriceExRecord();
+                            costPriceExRecord.setJsonData(JSONObject.toJSONString(lineCost));
+                            costPriceExRecord.setType(2);
+                            JSONObject reasonObj = new JSONObject();
+                            String ddReason = "供应商[" + lineCost.getLineSupplier() + "]主叫号码[" + lineCost.getCaller()  + "],新增失败,请检查";
+                            reasonObj.put("lineDto", lineDto);
+                            reasonObj.put("ddReason", ddReason);
+                            reasonObj.put("failMsg",e.getMessage());
+                            costPriceExRecord.setReason(JSONObject.toJSONString(reasonObj));
+                            List<CostPriceExRecordDto> costPriceExRecordList = linsCostAlarmDto.getCostPriceExRecordDtoList();
+                            costPriceExRecordList.add(convertPriceExRecordDto(costPriceExRecord,ddReason));
+                            linsCostAlarmDto.setCostPriceExRecordDtoList(costPriceExRecordList);
+                            linsCostAlarmDto.setFailCount(linsCostAlarmDto.getFailCount() + 1);
+
                             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MARKETING_AVIATORSCRIPT_LINESMS_ERROR.getCode(),
                                     JSONObject.toJSONString(lineCost)+e.getMessage(), TITLE), e);
                         }
+                    }else if (count >0){
+                        //TODO 存在 设置存在条数
+                        linsCostAlarmDto.setExistCount(linsCostAlarmDto.getExistCount() + 1);
                     }
                 });
             }catch (Exception e){
+                dealExceptionReason(linsCostAlarmDto,null,lineCost,e,2);
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MARKETING_AVIATORSCRIPT_LINESMS_ERROR.getCode(),
                         JSONObject.toJSONString(lineCost)+e.getMessage(), TITLE), e);
             }
-
         });
+    }
+
+    private void dealExceptionReason(DdLinsSmsCostAlarmDto smsLineCostAlarmDto,DdDataSmsCostPrice smsCost,DdDataLineCostPrice lineCost, Exception e, Integer type) {
+
+        CostPriceExRecord costPriceExRecord = new CostPriceExRecord();
+        if(type == 1){
+            costPriceExRecord.setJsonData(JSONObject.toJSONString(smsCost));
+            costPriceExRecord.setType(1);
+            String ddReason = "供应商["+smsCost.getLineSupplier()+"]线路["+smsCost.getLineName()+"],新增失败,请检查";
+            JSONObject reasonObj = new JSONObject();
+            reasonObj.put("ddReason", ddReason);
+            reasonObj.put("failMsg", e.getMessage());
+            costPriceExRecord.setReason(JSONObject.toJSONString(reasonObj));
+            List<CostPriceExRecordDto> costPriceExRecordList = smsLineCostAlarmDto.getCostPriceExRecordDtoList();
+            costPriceExRecordList.add(convertPriceExRecordDto(costPriceExRecord,ddReason));
+            smsLineCostAlarmDto.setCostPriceExRecordDtoList(costPriceExRecordList);
+            smsLineCostAlarmDto.setFailCount(smsLineCostAlarmDto.getFailCount() + 1);
+        }else {
+            costPriceExRecord.setJsonData(JSONObject.toJSONString(lineCost));
+            costPriceExRecord.setType(type);
+            JSONObject reasonObj = new JSONObject();
+            String ddReason = "供应商[" + lineCost.getLineSupplier() + "]主叫号码[" + lineCost.getCaller()  + "],新增失败,请检查";
+            reasonObj.put("ddReason", ddReason);
+            reasonObj.put("failMsg",e.getMessage());
+            costPriceExRecord.setReason(JSONObject.toJSONString(reasonObj));
+            List<CostPriceExRecordDto> costPriceExRecordList = smsLineCostAlarmDto.getCostPriceExRecordDtoList();
+            costPriceExRecordList.add(convertPriceExRecordDto(costPriceExRecord,ddReason));
+            smsLineCostAlarmDto.setCostPriceExRecordDtoList(costPriceExRecordList);
+            smsLineCostAlarmDto.setFailCount(smsLineCostAlarmDto.getFailCount() + 1);
+        }
+
+
     }
 
     private LineAccountDto fillLineAccountInfo(DdDataLineCostPrice lineCost, DdLineBaseInfoDto lineDto) {
@@ -452,7 +540,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
         List<PriceDateDTO> priceDates = new ArrayList<>();
         PriceDateDTO priceDateDTO = new PriceDateDTO();
         priceDateDTO.setEffectStartDate((LocalDate.parse(lineCost.getEffectDate())));
-        if (lineCost.getIsCalcCost()==null || lineCost.getIsCalcCost().isEmpty()) {
+        if (lineCost.getIsCalcCost()==null || lineCost.getIsCalcCost().isEmpty() || lineCost.getIsCalcCost().equals("0")) {
             priceDateDTO.setPrice(BigDecimal.ZERO);
         }else {
             priceDateDTO.setPrice(new BigDecimal(lineCost.getPrice()));
@@ -478,8 +566,8 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
         List<PriceDateDTO> priceDates = new ArrayList<>();
         PriceDateDTO priceDateDTO = new PriceDateDTO();
         priceDateDTO.setEffectStartDate(LocalDate.parse(smsCost.getEffectDate()));
-        priceDateDTO.setEffectEndDate(LocalDate.parse("9999-12-31"));
-        if (smsCost.getIsCalcCost() == null || smsCost.getIsCalcCost().equals("0")) {
+        priceDateDTO.setEffectEndDate(LocalDate.parse("9999-12-31")); //TODO 有效期结束时间
+        if (smsCost.getIsCalcCost() == null || smsCost.getIsCalcCost().isEmpty() || smsCost.getIsCalcCost().equals("0")) {
             priceDateDTO.setPrice(BigDecimal.ZERO);
         }else {
             priceDateDTO.setPrice(new BigDecimal(smsCost.getPrice()));
@@ -504,33 +592,52 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
             if(lineSupplierInvalid && lineNameInvalid){
                 reason.append("供应商和短信线路名称为空");
             } else {
-                // 构建描述前缀
-                String prefix = !lineSupplierInvalid && !lineNameInvalid ?
-                                "供应商[" + smsCost.getLineSupplier() + "]短信线路名称[" + smsCost.getLineName() + "]" :
-                                !lineSupplierInvalid ?
-                                "供应商[" + smsCost.getLineSupplier() + "]短信线路名称/" :
-                                "短信线路名称[" + smsCost.getLineName() + "]的供应商/";
+                StringBuilder prefixBuilder = new StringBuilder();
+                if (!lineSupplierInvalid && !lineNameInvalid) {
+                    prefixBuilder.append("供应商[").append(smsCost.getLineSupplier()).append("]短信线路名称[").append(smsCost.getLineName()).append("]");
+                    if (priceInvalid) prefixBuilder.append("单价/");
+                } else if (!lineSupplierInvalid) {
+                    prefixBuilder.append("供应商[").append(smsCost.getLineSupplier()).append("]短信线路名称/");
+                    if (priceInvalid) prefixBuilder.append("单价/");
+                } else {
+                    prefixBuilder.append("短信线路名称[").append(smsCost.getLineName()).append("]供应商/");
+                    if (priceInvalid) prefixBuilder.append("单价/");
+                }
 
-                reason.append(prefix);
-                // 添加无效项
-                if (effectDateInvalid) reason.append("有效期/");
-                if (priceInvalid) reason.append("单价/");
+                reason.append(prefixBuilder);
                 // 整理格式并添加提示
                 if (reason.charAt(reason.length() - 1) == '/') {
                     reason.setLength(reason.length() - 1);
+                    reason.append("为空");
+                    if (effectDateInvalid) {
+                        if(StringUtils.isEmpty(smsCost.getEffectDate())) {
+                            reason.append(",有效期为空");
+                        }else if(!isValidDateFormat(smsCost.getEffectDate())) {
+                            reason.append(",有效期格式错误");
+                        }
+                    }
+                }else {
+                    if (effectDateInvalid) {
+                        if(StringUtils.isEmpty(smsCost.getEffectDate())) {
+                            reason.append("有效期为空");
+                        }else if(!isValidDateFormat(smsCost.getEffectDate())) {
+                            reason.append("有效期格式错误");
+                        }
+                    }
                 }
-                reason.append("为空或不合法,请检查");
+                reason.append(",请检查");
             }
-
-            costPriceExRecord.setReason(reason.toString());
+            JSONObject reasonObj = new JSONObject();
+            reasonObj.put("reason", reason.toString());
+            costPriceExRecord.setReason(reasonObj.toJSONString());
             Date nowDate = new Date();
             costPriceExRecord.setCreateTime(nowDate);
             costPriceExRecord.setUpdateTime(nowDate);
             costPriceExRecordMapper.insertSelective(costPriceExRecord);
             smsCostAlarmDto.setFailCount(smsCostAlarmDto.getFailCount() + 1);
-            List<CostPriceExRecord> costPriceExRecordList = smsCostAlarmDto.getCostPriceExRecordList();
-            costPriceExRecordList.add(costPriceExRecord);
-            smsCostAlarmDto.setCostPriceExRecordList(costPriceExRecordList);
+            List<CostPriceExRecordDto> costPriceExRecordList = smsCostAlarmDto.getCostPriceExRecordDtoList();
+            costPriceExRecordList.add(convertPriceExRecordDto(costPriceExRecord,reason.toString()));
+            smsCostAlarmDto.setCostPriceExRecordDtoList(costPriceExRecordList);
             return false;
         }
         return true;
@@ -551,28 +658,48 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
             if (supplierInvalid && callerInvalid) {
                 reason.append("供应商和主叫号码为空");
             } else {
-                // 使用三元运算符构建基础描述
-                String baseDesc = !supplierInvalid && !callerInvalid ?
-                        "供应商[" + lineCost.getLineSupplier() + "]主叫号码[" + lineCost.getCaller() + "]" :
-                        !supplierInvalid ?
-                                "供应商[" + lineCost.getLineSupplier() + "]主叫号码/" :
-                                "主叫号码[" + lineCost.getCaller() + "]的供应商/";
-                reason.append(baseDesc);
-                // 添加无效项
-                if (dateInvalid) reason.append("有效期/");
-                if (priceInvalid) reason.append("单价/");
+                StringBuilder baseDescBuilder = new StringBuilder();
+                if (!supplierInvalid && !callerInvalid) {
+                    baseDescBuilder.append("供应商[").append(lineCost.getLineSupplier()).append("]主叫号码[").append(lineCost.getCaller()).append("]");
+                    if (priceInvalid) baseDescBuilder.append("单价/");
+                } else if (!supplierInvalid) {
+                    baseDescBuilder.append("供应商[").append(lineCost.getLineSupplier()).append("]主叫号码/");
+                    if (priceInvalid) baseDescBuilder.append("单价/");
+                } else {
+                    baseDescBuilder.append("主叫号码[").append(lineCost.getCaller()).append("]供应商/");
+                    if (priceInvalid) baseDescBuilder.append("单价/");
+                }
+                reason.append(baseDescBuilder);
                 // 整理格式并添加提示
                 if (reason.charAt(reason.length() - 1) == '/') {
                     reason.setLength(reason.length() - 1);
+                    reason.append("为空");
+                    if (dateInvalid) {
+                        if(StringUtils.isEmpty(lineCost.getEffectDate())) {
+                            reason.append(",有效期为空");
+                        }else if(!isValidDateFormat(lineCost.getEffectDate())){
+                            reason.append(",有效期格式错误");
+                        }
+                    }
+                }else {
+                    if (dateInvalid) {
+                        if(StringUtils.isEmpty(lineCost.getEffectDate())) {
+                            reason.append("有效期为空");
+                        }else if(!isValidDateFormat(lineCost.getEffectDate())){
+                            reason.append("有效期格式错误");
+                        }
+                    }
                 }
-                reason.append("为空或不合法,请检查");
+                reason.append(",请检查");
             }
+            JSONObject reasonObj = new JSONObject();
+            reasonObj.put("reason", reason.toString());
+            costPriceExRecord.setReason(reasonObj.toJSONString());
 
-            costPriceExRecord.setReason(reason.toString());
             costPriceExRecordMapper.insertSelective(costPriceExRecord);
-            List<CostPriceExRecord> costPriceExRecordList = linsCostAlarmDto.getCostPriceExRecordList();
-            costPriceExRecordList.add(costPriceExRecord);
-            linsCostAlarmDto.setCostPriceExRecordList(costPriceExRecordList);
+            List<CostPriceExRecordDto> costPriceExRecordList = linsCostAlarmDto.getCostPriceExRecordDtoList();
+            costPriceExRecordList.add(convertPriceExRecordDto(costPriceExRecord,reason.toString()));
+            linsCostAlarmDto.setCostPriceExRecordDtoList(costPriceExRecordList);
             linsCostAlarmDto.setFailCount(linsCostAlarmDto.getFailCount() + 1);
             return false;
         }
