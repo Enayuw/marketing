@@ -61,9 +61,12 @@ public class RuleCenterPushServiceImpl implements IRuleCenterPushService {
             numList.add(customerInfoPushBatch.getmBatchNumber());
             fileIds.add(customerInfoPushBatch.getmFileId());
         }
-        StraHisFileExample fileExample = new StraHisFileExample();
-        fileExample.createCriteria().andIdIn(fileIds);
-        List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(fileExample);
+        List<StraHisFile> straHisFiles = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(fileIds)) {
+            StraHisFileExample fileExample = new StraHisFileExample();
+            fileExample.createCriteria().andIdIn(fileIds);
+            straHisFiles = straHisFileMapper.selectByExample(fileExample);
+        }
 
         Integer getEsNum = marketingCommonConfig.getScoreByEsThreadNum() != null
                 && marketingCommonConfig.getScoreByEsThreadNum() > 0
