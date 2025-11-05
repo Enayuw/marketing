@@ -3,9 +3,8 @@ package com.br.marketing.service.Impl.xc;
 import java.util.List;
 
 import com.br.marketing.common.commondto.ApiResult;
-import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.rulecenter.XcDeleteReleaseTimeRange;
+import com.br.marketing.dto.rulecenter.XcDeleteTaskQueryDTO;
 import com.br.marketing.dto.rulecenter.XcDeleteTaskVO;
 import com.br.marketing.vo.xiecheng.XiechengCollidingRuleVO;
 import com.br.marketing.vo.xiecheng.XiechengCollidingStagingRuleVO;
@@ -149,12 +148,12 @@ public interface XieChengCollidingRuleService {
     
     /**
      * @description 剔除任务列表查询
-     * @param xcDeleteReleaseTimeRange
+     * @param queryDTO
      * @return com.br.marketing.commonentity.PageResultReturn<com.br.marketing.dto.rulecenter.XcDeleteTaskVO>
      * @author hedongshuo
      * @date 2025/11/3 15:32
      **/
-    PageResultReturn<XcDeleteTaskVO> getCollidingDataDeleteTaskList(XcDeleteReleaseTimeRange xcDeleteReleaseTimeRange);
+    PageResultReturn<XcDeleteTaskVO> getCollidingDataDeleteTaskList(XcDeleteTaskQueryDTO queryDTO);
 
     Boolean deleteCollidingDataDeleteTask(Long taskId);
 }

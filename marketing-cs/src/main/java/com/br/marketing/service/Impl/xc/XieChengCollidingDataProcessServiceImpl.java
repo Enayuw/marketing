@@ -398,12 +398,8 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         for(; ; ) {
             List<Long> longs = null;
             if (type == XcProcessTaskEnum.PROCESS_DELETE.getBatchType()) {
-                if (vo.getReleaseTimeBegin() != null && vo.getReleaseTimeEnd() != null) {
                     longs = cycleMapper.selectIdsOfTrueDataProcessTaskWithRangetikv_(
                             minId, queryRuleScoreDataSql, tableName, vo.getReleaseTimeBegin(), vo.getReleaseTimeEnd(), pageSize);
-                } else {
-                    longs = cycleMapper.selectIdsOfTrueDataProcessTasktikv_(minId, queryRuleScoreDataSql, tableName, pageSize);
-                }
             } else if (type == XcProcessTaskEnum.PROCESS_DYNA_FALSE.getBatchType()) {
                 longs = robMapper.selectIdsOfDynaFalseDataProcessTasktikv_(minId, queryRuleScoreDataSql, tableName, pageSize);
             }

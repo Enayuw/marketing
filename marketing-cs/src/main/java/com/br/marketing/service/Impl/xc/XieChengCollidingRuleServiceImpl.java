@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import com.br.marketing.common.exception.KnowException;
 import com.br.marketing.common.utils.Constants;
-import com.br.marketing.dto.rulecenter.XcDeleteReleaseTimeRange;
+import com.br.marketing.dto.rulecenter.XcDeleteTaskQueryDTO;
 import com.br.marketing.dto.rulecenter.XcDeleteTaskVO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
@@ -389,17 +389,17 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
     }
 
     @Override
-    public PageResultReturn<XcDeleteTaskVO> getCollidingDataDeleteTaskList(XcDeleteReleaseTimeRange timeRange) {
-        PageHelper.startPage(timeRange.getCurrent(), timeRange.getSize());
+    public PageResultReturn<XcDeleteTaskVO> getCollidingDataDeleteTaskList(XcDeleteTaskQueryDTO queryDTO) {
+        PageHelper.startPage(queryDTO.getCurrent(), queryDTO.getSize());
         LocalDateTime releaseTimeBegin = null;
         LocalDateTime releaseTimeEnd = null;
-        if(StringUtils.isNotBlank(timeRange.getReleaseTimeBegin()) && StringUtils.isNotBlank(timeRange.getReleaseTimeEnd())){
-            releaseTimeBegin = LocalDateTime.parse(timeRange.getReleaseTimeBegin(), formatter);
-            releaseTimeEnd = LocalDateTime.parse(timeRange.getReleaseTimeEnd(), formatter);
+        if(StringUtils.isNotBlank(queryDTO.getReleaseTimeBegin()) && StringUtils.isNotBlank(queryDTO.getReleaseTimeEnd())){
+            releaseTimeBegin = LocalDateTime.parse(queryDTO.getReleaseTimeBegin(), formatter);
+            releaseTimeEnd = LocalDateTime.parse(queryDTO.getReleaseTimeEnd(), formatter);
         }
         List<XcDeleteTaskVO> taskList = xiechengCollidingDataProcessTaskMapper
-                .getCollidingDataDeleteTaskList(releaseTimeBegin, releaseTimeEnd);
-        return PageResultReturn.setPageResult(taskList, timeRange.getCurrent(), timeRange.getSize());
+                .getCollidingDataDeleteTaskList(releaseTimeBegin, releaseTimeEnd, queryDTO.getTaskType(), queryDTO.getTaskStatus());
+        return PageResultReturn.setPageResult(taskList, queryDTO.getCurrent(), queryDTO.getSize());
     }
 
     @Override

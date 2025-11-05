@@ -1433,6 +1433,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result collidingDataCycleDelete(XcCycleDeleteDTO dto) {
         JSONObject jsonObject = JSON.parseObject(dto.getMRuleCondition());
         XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
@@ -1670,16 +1671,15 @@ public class PushRuleServiceImpl implements PushRuleService {
         LocalDateTime releaseTimeBegin = dto.getReleaseTimeBegin();
         LocalDateTime releaseTimeEnd = dto.getReleaseTimeEnd();
         if(releaseTimeBegin.isBefore(LocalDateTime.now().plusHours(4))){
-            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("剔除周期数据的施放时间范围的开始时间要大于当前时间4h以上！");
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("剔除周期数据的释放时间范围的开始时间必须大于当前时间4h以上！");
         }
         //3.校验releaseTimeRange与存量【b_xiecheng_colliding_data_process_task】是否有交叉周期数据剔除范围
-        //releaseTimeRange在使用的时候，是左闭右闭去筛选数据，即(A,B]，判断其和(C,D]是否有交叉,需要A<=D且B>=C
+        //releaseTimeRange在使用的时候，是左闭右闭去筛选数据，即[A,B]，判断其和[C,D]是否有交叉,需要A<=D且B>=C
         List<XcDeleteMagnitudeDistDTO> stockReleaseTimeRanges =
                 xiechengCollidingDataProcessTaskMapper.selectReleaseTimeRanges(dto.getApiCode());
         if (stockReleaseTimeRanges.size() != 0) {
             for (XcDeleteMagnitudeDistDTO stockReleaseTimeRange : stockReleaseTimeRanges) {
-                if(stockReleaseTimeRange.getReleaseTimeBegin() == null
-                        || (!releaseTimeBegin.isAfter(stockReleaseTimeRange.getReleaseTimeEnd())
+                if((!releaseTimeBegin.isAfter(stockReleaseTimeRange.getReleaseTimeEnd())
                         && !releaseTimeEnd.isBefore(stockReleaseTimeRange.getReleaseTimeBegin()))){
                     return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("剔除周期数据的施放时间范围与已生成的剔除任务时间有交叉，请检查！");
                 }

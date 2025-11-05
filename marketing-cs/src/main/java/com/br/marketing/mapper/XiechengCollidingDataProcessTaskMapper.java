@@ -14,5 +14,7 @@ public interface XiechengCollidingDataProcessTaskMapper extends XiechengCollidin
     List<XcDeleteMagnitudeDistDTO> selectReleaseTimeRanges(@Param("apiCode")String apiCode);
 
     List<XcDeleteTaskVO> getCollidingDataDeleteTaskList(@Param("releaseTimeBegin") LocalDateTime releaseTimeBegin,
-                                                        @Param("releaseTimeEnd") LocalDateTime releaseTimeEnd);
+                                                        @Param("releaseTimeEnd") LocalDateTime releaseTimeEnd,
+                                                        @Param("taskType") Integer taskType,
+                                                        @Param("taskStatus") Integer taskStatus);
 }

@@ -3,7 +3,7 @@ package com.br.marketing.innerapi.controller;
 import java.util.List;
 import javax.annotation.Resource;
 import com.br.marketing.common.exception.KnowException;
-import com.br.marketing.dto.rulecenter.XcDeleteReleaseTimeRange;
+import com.br.marketing.dto.rulecenter.XcDeleteTaskQueryDTO;
 import com.br.marketing.dto.rulecenter.XcDeleteTaskVO;
 import com.br.marketing.vo.xiecheng.param.UpdateRoundParam;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -201,9 +201,9 @@ public class XiechengCollidingRuleController {
 
     @ApiOperation(value = "14-撞库数据剔除任务列表")
     @GetMapping("/collidingDataDeleteTask/list")
-    public ApiResult<PageResultReturn<XcDeleteTaskVO>> getCollidingDataDeleteTaskList(XcDeleteReleaseTimeRange xcDeleteReleaseTimeRange) {
+    public ApiResult<PageResultReturn<XcDeleteTaskVO>> getCollidingDataDeleteTaskList(XcDeleteTaskQueryDTO queryDTO) {
         try {
-            PageResultReturn<XcDeleteTaskVO> list = xieChengCollidingRuleService.getCollidingDataDeleteTaskList(xcDeleteReleaseTimeRange);
+            PageResultReturn<XcDeleteTaskVO> list = xieChengCollidingRuleService.getCollidingDataDeleteTaskList(queryDTO);
             return new ApiResult<PageResultReturn<XcDeleteTaskVO>>().success(list);
         } catch (Exception e) {
             log.error("获取撞库数据剔除任务列表-分页异常", e);

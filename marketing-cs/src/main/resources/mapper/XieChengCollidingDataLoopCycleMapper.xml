@@ -300,7 +300,7 @@
     </select>
 
     <select id="selectTimeRangeBetweenWithScoreMagnitudedoris_" resultType="java.lang.Integer">
-        select count(distinct cycle.cell) from
+        select count(0) from
             (select cell_sha256_code_list as cell
              from b_xiecheng_colliding_data_loop_cycle
              where <![CDATA[ release_time >= #{begin,jdbcType=TIMESTAMP} AND release_time <= #{end,jdbcType=TIMESTAMP} ]]>

@@ -6,7 +6,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 @Data
-public class XcDeleteReleaseTimeRange extends PageSearchDTO {
+public class XcDeleteTaskQueryDTO extends PageSearchDTO {
 
     @ApiModelProperty(value = "releaseTime开始时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Shanghai")
@@ -15,5 +15,11 @@ public class XcDeleteReleaseTimeRange extends PageSearchDTO {
     @ApiModelProperty(value = "releaseTime结束时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Shanghai")
     private String releaseTimeEnd;
+
+    @ApiModelProperty(value = "任务类型")
+    private Integer taskType;
+
+    @ApiModelProperty(value = "任务状态")
+    private Integer taskStatus;
 
 }

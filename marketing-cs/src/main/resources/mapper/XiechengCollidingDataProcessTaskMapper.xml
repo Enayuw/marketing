@@ -64,7 +64,13 @@
         </if>)
         OR task.task_type = 3
         )
-        ORDER BY task.create_time DESC, task.task_execute_time DESC
+        <if test="taskType !=null">
+            AND task.task_type = #{taskType}
+        </if>
+        <if test="taskStatus !=null">
+            AND task.task_status = #{taskStatus}
+        </if>
+        ORDER BY task.release_time_begin DESC
     </select>
 
 
