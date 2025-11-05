@@ -572,7 +572,7 @@
 
     <job:simple id="【bridge】-LineSmsCostToDbJob"
                 class="com.br.marketing.bridge.job.dingding.LineSmsCostToDbJob"
-                cron="0 5 15,18 * * ? *"
+                cron="0 5 15,18 * * ?"
                 description="短信线路-钉钉文档原始数据表同步到业务表"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
