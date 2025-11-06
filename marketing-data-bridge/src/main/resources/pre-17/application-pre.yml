@@ -283,6 +283,9 @@ api:
     baseUrl: https://mns.qa.lylend.com
     address: ${api.tongcheng.baseUrl}/api/cep/agent/ret/baiRong
     isProxy: true
+  imbpApiService:
+    baseUrl: https://antaios-process-prec.100credit.cn/api/antaios-app-api-prec
+    lineBaseInfoUrl: ${api.imbpApiService.baseUrl}/antaios/third/ibmp/gateway/groupByLineSupplier  #IMBP获取线路基础信息
 
 spring:
   rabbitmq:
@@ -365,9 +368,26 @@ rocketmq:
     pull-batch-size: 5
     # 其他配置参考属性类
 
-
-# 线程池动态配置监控
-tp:
-  dynamic:
-    metric:
-      enabled: true
+# 钉钉AI表格配置
+dingding:
+  aitable:
+    # 钉钉新版API基础URL
+    apiBaseUrl: https://api.dingtalk.com
+    # 钉钉老版API基础URL
+    oapiBaseUrl: https://oapi.dingtalk.com
+    # 是否使用代理（生产环境使用代理）
+    isProxy: true
+    # 接口超时时间（毫秒）
+    timeout: 30000
+    # 具体接口路径
+    urls:
+      # 获取AccessToken
+      getAccessToken: /v1.0/oauth2/accessToken
+      # 获取表格字段
+      getFields: /v1.0/notable/bases/{baseId}/sheets/{sheetId}/fields
+      # 获取表格记录
+      getRecords: /v1.0/notable/bases/{baseId}/sheets/{sheetId}/records/list
+      # 根据unionId获取userId
+      getUserByUnionId: /topapi/user/getbyunionid
+      # 根据userId获取用户详情
+      getUserDetail: /topapi/v2/user/get

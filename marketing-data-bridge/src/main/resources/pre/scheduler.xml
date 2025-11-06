@@ -5,13 +5,13 @@
        xmlns:job="http://www.dangdang.com/schema/ddframe/job"
        xmlns="http://www.springframework.org/schema/beans"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-                        http://www.springframework.org/schema/beans/spring-beans.xsd 
-                        http://www.springframework.org/schema/context 
-                        http://www.springframework.org/schema/context/spring-context.xsd 
-                        http://www.dangdang.com/schema/ddframe/reg 
-                        http://www.dangdang.com/schema/ddframe/reg/reg.xsd 
-                        http://www.dangdang.com/schema/ddframe/job 
-                        http://www.dangdang.com/schema/ddframe/job/job.xsd 
+                        http://www.springframework.org/schema/beans/spring-beans.xsd
+                        http://www.springframework.org/schema/context
+                        http://www.springframework.org/schema/context/spring-context.xsd
+                        http://www.dangdang.com/schema/ddframe/reg
+                        http://www.dangdang.com/schema/ddframe/reg/reg.xsd
+                        http://www.dangdang.com/schema/ddframe/job
+                        http://www.dangdang.com/schema/ddframe/job/job.xsd
                         ">
     <context:component-scan base-package="com.br.marketing.bridge.job"/>
 
@@ -542,6 +542,36 @@
                 class="com.br.marketing.bridge.job.tccpa.TcCpaPushFileGenJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="同城易融CPA-推送文件生成任务"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
+    <job:simple id="【bridge】-DingDingTableSyncToDbJob"
+                class="com.br.marketing.bridge.job.dingding.DingDingTableSyncToDbJob"
+                cron="0 0/30 * * * ?"
+                description="钉钉AI表格数据同步作业"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
+    <job:simple id="【bridge】-LineSmsCostToDbJob"
+                class="com.br.marketing.bridge.job.dingding.LineSmsCostToDbJob"
+                cron="0 5 15,18 * * ?"
+                description="短信线路-钉钉文档原始数据表同步到业务表"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
                 sharding-item-parameters="0=A"
