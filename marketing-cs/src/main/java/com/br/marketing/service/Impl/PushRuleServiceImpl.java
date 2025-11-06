@@ -1478,7 +1478,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             if (magnitudeDistDTO.getReleaseTimeBegin().toLocalDate().isEqual(LocalDate.now())) {
                 Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
-                Map<String, Object> groupInfo = webHookInfo.get(DingDingAlarmFunctionEnum.P_OF_VIP_GROUP.toString());
+                Map<String, Object> groupInfo = webHookInfo.get(DingDingAlarmFunctionEnum.XIECHENG_PPD_NOTICE.toString());
                 dingDingRobotHookService.sendDingDingTextMessage("今天的周期数据配置了剔除任务，请关注！", groupInfo);
             }
 
