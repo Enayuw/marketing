@@ -36,6 +36,7 @@ import com.br.marketing.common.constants.rocketmq.*;
 import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.SwitchMessageQueueEnum;
+import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.enums.rocketmq.AiPreUserReceiveEnum;
 import com.br.marketing.common.enums.rocketmq.AiUniversalReceiveEnum;
 import com.br.marketing.common.exception.CommonException;
@@ -106,6 +107,8 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
+import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -1473,6 +1476,12 @@ public class PushRuleServiceImpl implements PushRuleService {
                 batch.setUpdateTime(new Date());
                 xiechengCollidingTaskBatchMapper.insertSelective(batch);
             }
+            if (magnitudeDistDTO.getReleaseTimeBegin().toLocalDate().isEqual(LocalDate.now())) {
+                Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
+                Map<String, Object> groupInfo = webHookInfo.get(DingDingAlarmFunctionEnum.P_OF_VIP_GROUP.toString());
+                dingDingRobotHookService.sendDingDingTextMessage("今天的周期数据配置了剔除任务，请关注！", groupInfo);
+            }
+
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
@@ -1699,7 +1708,8 @@ public class PushRuleServiceImpl implements PushRuleService {
      * @return
      */
     private Result getResult(XcCycleDeleteNumDTO dto, JSONObject conditionJson, List<TimeRange> timeRanges) {
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(7, 7);
+        TpDynamicExecutor threadPool = TpDynamicExecutorFactory
+                .getThreadPool(ThreadPoolNameEnum.XIECHENG_CYCLE_DELETE_EST.getName(), 8, 8);
         List<Future<XcDeleteMagnitudeDistDTO>> futures = new ArrayList<>();
         try {
             // 异步提交任务
@@ -1742,15 +1752,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     .setCode(ResultCode.FAIL.getValue())
                     .setMessage("服务异常");
         } finally {
-            threadPool.shutdown();
-            try {
-                if (!threadPool.awaitTermination(60, TimeUnit.SECONDS)) {
-                    threadPool.shutdownNow();
-                }
-            } catch (InterruptedException e) {
-                threadPool.shutdownNow();
-                Thread.currentThread().interrupt();
-            }
+            threadPool.shutdownAndAwaitTermination();
         }
     }
 
@@ -1779,7 +1781,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         //4.timeRange范围内，与符合条件的跑分数据的交集量级
         String scoreSql = scoreSql(conditionJson, batchNumberList);
         int remainingNum = xieChengCollidingDataLoopCycleMapper
-                .selectTimeRangeBetweenWithScoreMagnitudedoris_(timeRange.getBegin(), timeRange.getEnd(), scoreSql);
+                .selectTimeRangeBetweenWithScoreMagnitudetiflash_(timeRange.getBegin(), timeRange.getEnd(), scoreSql);
         //5.timeRange范围内的剔除量级
         int deleteNum = timeRangeBetweenMagnitude - remainingNum;
         //6.空挡量级
