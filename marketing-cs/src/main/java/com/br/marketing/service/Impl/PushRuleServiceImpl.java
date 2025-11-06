@@ -738,17 +738,26 @@ public class PushRuleServiceImpl implements PushRuleService {
         log.warn("解析页面规则条件 sql={}", filterCondition);
 
 
-        // 4. 循环查询每个条件的数据量级并累加（因 ShardingSphere 不支持 UNION）
+        // 4. 循环查询每个条件的数据量级并累加
+        String repushTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+        String today = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
         for (MarketingSyncReport report : syncReports) {
             if (report != null) {
                 String apiCode = report.getApiCode();
                 String appletDate = report.getAppletDate();
                 String userType = report.getUserType();
-                // 将Date类型转换为String
-                String createTime = report.getAppletBeginTime() != null ?
-                        new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(report.getAppletBeginTime()) : null;
-                String updateTime = report.getAppletEndTime() != null ?
-                        new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(report.getAppletEndTime()) : null;
+                
+                // 判断appletDate是否为当天，只有当天才需要时间条件
+                String createTime = null;
+                String updateTime = null;
+                if (today.equals(appletDate)) {
+                    // 当天数据：需要时间条件
+                    createTime = report.getAppletBeginTime() != null ?
+                            new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(report.getAppletBeginTime()) : null;
+                    updateTime = repushTime;
+                }
+                // 非当天数据：createTime 和 updateTime 保持为 null，只使用 appletDate 条件
+                
                 // 单次查询该条件的数据量级
                 Integer count = marketingSyncUserMapper.countByCondition(
                         apiCode, appletDate, userType, createTime, updateTime, filterCondition);
@@ -757,7 +766,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
 
         pushViewVO.setTotal(total);
-        pushViewVO.setRepushTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+        pushViewVO.setRepushTime(repushTime);
         return new Result<PushViewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushViewVO);
     }
 
