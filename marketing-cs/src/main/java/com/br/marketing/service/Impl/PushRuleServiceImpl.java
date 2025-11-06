@@ -3241,7 +3241,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     DataProcessEnum.AcceptTypeEnum.GENERAL.getCode(), DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode());
             if (!CollectionUtils.isEmpty(configRule)) {
                 //剔除规则中的基础字段
-                List<String> generalFields = Lists.newArrayList("dataItems", "requestId", "item", "reserveField1", "reserveField2");
+                List<String> generalFields = Lists.newArrayList("dataItems", "item", "reserveField1", "reserveField2");
                 configRule.keySet().removeIf(key -> generalFields.contains(key));
             }
         }
@@ -3254,6 +3254,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             MarketingPreUserDetailDTO marketingPreUserDetailDTO = dto.getDataItems().get(i);
             if (Objects.nonNull(marketingPreUserDetailDTO) && StringUtils.isEmpty(marketingPreUserDetailDTO.getTaskId())) {
                 marketingPreUserDetailDTO.setTaskId(marketingSyncInfo.getCusBatch());
+                marketingPreUserDetailDTO.setRequestId(marketingSyncInfo.getRequestBatch());
             }
             Integer finalIsCheck = isCheck;
             Map<String, MarketingDataCleanGeneralRuleConfig> finalConfigRule = configRule;
@@ -3294,7 +3295,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
                 ReserveField1DTO finalReserveField = reserveField1;
                 //扩展字段添加手机号
-                addCellReserveFileld1(reserveFileld1Json, marketingPreUserDetailDTO.getCell(), finalIsCheck);
+                addCellReserveFileld1(reserveFileld1Json, marketingPreUserDetailDTO.getCell(), finalIsCheck, iUploadCheckService, tags);
                 JSONObject finalReserveFileld1Json = reserveFileld1Json;
                 if (!StringUtils.isNotBlank(marketingPreUserDetailDTO.getCustNum())) {
                     MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
@@ -3536,7 +3537,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
     }
 
-    private void addCellReserveFileld1(JSONObject reserveFileld1Json, String cell, Integer isCheck) {
+    private void addCellReserveFileld1(JSONObject reserveFileld1Json, String cell, Integer isCheck, 
+                                       IUploadCheckService iUploadCheckService, CustomerTagsVO tags) {
         if (StringUtils.isNotEmpty(cell)) {
             //明文规则校验
             UserValidator userValidator = new UserValidator(isCheck);
@@ -3547,6 +3549,120 @@ public class PushRuleServiceImpl implements PushRuleService {
 
             }
 
+        }
+        
+        // 处理debtorCell1-4字段，传入cell用于去重
+        processDebtorCells(reserveFileld1Json, cell, isCheck, iUploadCheckService, tags);
+    }
+    
+    /**
+     * 处理debtorCell1-4字段，生成debtorCellList
+     * 基于原始值去重，保留顺序：cell → debtorCell1 → debtorCell2 → debtorCell3 → debtorCell4
+     * 
+     * @param reserveFileld1Json 扩展字段JSON对象
+     * @param cell 主手机号字段值，用于去重
+     * @param isCheck 是否校验
+     * @param iUploadCheckService 解密服务
+     * @param tags 客户标签配置
+     */
+    private void processDebtorCells(JSONObject reserveFileld1Json, String cell, Integer isCheck, 
+                                   IUploadCheckService iUploadCheckService, CustomerTagsVO tags) {
+        String[] debtorCellFields = {"debtorCell1", "debtorCell2", "debtorCell3", "debtorCell4"};
+        JSONArray debtorCellList = new JSONArray();
+        int order = 1;
+        
+        // 用于去重的Set，存储已经出现过的原始值
+        Set<String> existingValues = new HashSet<>();
+        
+        // 先将cell的原始值加入去重集合
+        if (StringUtils.isNotEmpty(cell)) {
+            existingValues.add(cell);
+        }
+        
+        // 遍历debtorCell1-4字段
+        for (String fieldName : debtorCellFields) {
+            if (reserveFileld1Json.containsKey(fieldName)) {
+                String orgDebtorCellValue = reserveFileld1Json.getString(fieldName);
+                if (StringUtils.isNotEmpty(orgDebtorCellValue)) {
+                    // 检查是否重复（基于原始值）
+                    if (existingValues.contains(orgDebtorCellValue)) {
+                        // 重复，跳过
+                        continue;
+                    }
+                    
+                    // 解密
+                    String decryptedValue = decryptDebtorCell(orgDebtorCellValue, isCheck, iUploadCheckService, tags);
+                    
+                    // 只有解密成功才添加到list中
+                    if (StringUtils.isNotEmpty(decryptedValue)) {
+                        JSONObject debtorCellItem = new JSONObject();
+                        
+                        // 设置原值
+                        debtorCellItem.put("orgDebtorCell", orgDebtorCellValue);
+                        
+                        // 设置log加密后的值
+                        debtorCellItem.put("logDebtorCell", decryptedValue);
+                        
+                        // 设置字段名
+                        debtorCellItem.put("debtorCell", fieldName);
+                        
+                        // 设置顺序
+                        debtorCellItem.put("order", order);
+                        
+                        debtorCellList.add(debtorCellItem);
+                        
+                        // 添加到去重集合
+                        existingValues.add(orgDebtorCellValue);
+                        
+                        order++;
+                    }
+                }
+            }
+        }
+        
+        // 如果有debtorCell数据，则添加到reserveField1中
+        if (!debtorCellList.isEmpty()) {
+            reserveFileld1Json.put("debtorCellList", debtorCellList);
+        }
+    }
+    
+    /**
+     * 解密debtorCell字段值
+     * 使用iUploadCheckService.process3keyCheck的解密逻辑
+     * 
+     * @param encryptedValue 加密值
+     * @param isCheck 是否校验
+     * @param iUploadCheckService 解密服务
+     * @param tags 客户标签配置
+     * @return 解密后的明文值，解密失败返回空字符串
+     */
+    private String decryptDebtorCell(String encryptedValue, Integer isCheck, 
+                                    IUploadCheckService iUploadCheckService, CustomerTagsVO tags) {
+        if (StringUtils.isEmpty(encryptedValue)) {
+            return "";
+        }
+        
+        try {
+            // 创建临时对象用于解密
+            MarketingPreUserDetailDTO tempUser = new MarketingPreUserDetailDTO();
+            tempUser.setCell(encryptedValue);
+            tempUser.setStatus(MonitorTypeEnum.STATUS_1.getTypeCode());
+            
+            // 调用解密服务
+            iUploadCheckService.process3keyCheck(tempUser, isCheck, tags);
+
+            // 检查解密是否成功
+            // 如果状态变为失败状态，说明解密失败
+            if (!Integer.valueOf(MonitorTypeEnum.STATUS_1.getTypeCode()).equals(tempUser.getStatus())) {
+                return "";
+            }
+            
+            // 获取解密后的明文值
+            return tempUser.getCell();
+
+        } catch (Exception e) {
+            // 解密过程出现异常，返回空字符串
+            return "";
         }
     }
 

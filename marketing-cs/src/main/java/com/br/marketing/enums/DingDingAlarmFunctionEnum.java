@@ -23,6 +23,6 @@ public enum DingDingAlarmFunctionEnum {
     QIFU_VALIDITY_CHANGE,
     RONGSHU_FILE_CLEAN_UPLOAD_READFILE,
     CARCLUES_ERROR_MESSAGE,
-
+    P_OF_VIP_GROUP,
     ;
 }
