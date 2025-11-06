@@ -2957,7 +2957,6 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public void judgeEncryptType(PushMarketingUserDetailByRuleDTO pushData, MarketingSyncUser syncUser, Integer jc3keyType) {
-        log.warn("进入自动化推决策规则ToPolicyCommonRule：" + JSONObject.toJSONString(syncUser));
         Boolean isOpenNewEncrypt = marketingCommonConfig.getIsOpenNewEncrypt();
         if (!isOpenNewEncrypt) {
             if (jc3keyType == null) {

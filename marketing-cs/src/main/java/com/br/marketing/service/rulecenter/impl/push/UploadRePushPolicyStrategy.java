@@ -86,7 +86,7 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
                     MockSwitchEnum.GENERAL.getValue());
 
             Integer status = toPolicyByRuleService.queryExistError(customerInfoPushMain.getId(),
-                    FilterTypeEnum.GENERAL_POLICY.getValue());
+                    FilterTypeEnum.UPLOAD_RE_POLICY.getValue());
             CustomerInfoPushMain main = new CustomerInfoPushMain();
             main.setId(customerInfoPushMain.getId());
             main.setmStatus(status);
@@ -109,8 +109,18 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
         Map<String, MarketingDataCleanGeneralRuleConfig> configRule = dataCleanService.getConfigRule(apiCode,
                 DataProcessEnum.DataTypeEnum.UPLOAD.getCode(), DataProcessEnum.AcceptTypeEnum.GENERAL.getCode(), DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode());
         if (CollectionUtils.isEmpty(configRule)) {
-            log.error(TITLE + "清洗配置为空，apiCode={}", apiCode);
-            return new Result<>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
+            log.warn(TITLE + "清洗配置为空，apiCode={}", apiCode);
+            return result;
+        }
+        // 过滤并提取mappingField字段
+        List<String> mappingFields = configRule.values().stream()
+                .filter(ruleConfig -> ruleConfig.getIsMapping() && StringUtils.isNotEmpty(ruleConfig.getMappingRule()))
+                .map(MarketingDataCleanGeneralRuleConfig::getMappingField)
+                .collect(Collectors.toList());
+
+        if (CollectionUtils.isEmpty(mappingFields)) {
+            log.warn(TITLE + "清洗配置规则配置为空，apiCode={}", apiCode);
+            return result;
         }
         marketingSyncReports.forEach(syncreport -> {
             String appletDate = syncreport.getAppletDate();
@@ -126,7 +136,7 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
                 List<List<MarketingSyncUser>> partitions = ListUtils.partition(syncUsers, 500);
                 partitions.forEach(syncUserList -> {
                     resList.add(cleanPool.submit(() ->
-                            cleanUploadData(syncUserList, configRule.values(), apiCode)));
+                            cleanUploadData(syncUserList, configRule.values(), mappingFields, apiCode)));
                 });
             }
         });
@@ -161,22 +171,13 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
     }
 
 
-    private Boolean cleanUploadData(List<MarketingSyncUser> syncUserList, Collection<MarketingDataCleanGeneralRuleConfig> ruleConfigList, String apiCode) {
+    private Boolean cleanUploadData(List<MarketingSyncUser> syncUserList, Collection<MarketingDataCleanGeneralRuleConfig> ruleConfigList, List<String>
+            mappingFields, String apiCode) {
         Boolean result = Boolean.TRUE;
         try {
-            // 过滤并提取mappingField字段
-            List<String> mappingFields = ruleConfigList.stream()
-                    .filter(ruleConfig -> ruleConfig.getIsMapping() && StringUtils.isNotEmpty(ruleConfig.getMappingRule()))
-                    .map(MarketingDataCleanGeneralRuleConfig::getMappingField)
-                    .collect(Collectors.toList());
-
-            if (CollectionUtils.isEmpty(mappingFields)) {
-                return Boolean.FALSE;
-            }
             // 构建批量更新的字段值映射列表
             List<Map<String, Object>> batchFieldValueMaps = new ArrayList<>();
             List<Long> updateIds = new ArrayList<>();
-
             for (MarketingSyncUser syncUser : syncUserList) {
                 JSONObject jsonObject = (JSONObject) JSONObject.toJSON(syncUser);
                 jsonObject.put("requestId", syncUser.getRequestBatch());
@@ -191,7 +192,7 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
             // 如果有数据需要更新，构建批量更新SQL
             if (!batchFieldValueMaps.isEmpty()) {
                 String sql = buildBatchUpdateSql(apiCode, updateIds, batchFieldValueMaps);
-                log.warn("Generated Batch Update SQL: {}", sql);
+                log.warn(TITLE + "生成清洗 Update SQL: {}", sql);
                 marketingSyncInfoMapper.updateRepeatUserStatus(sql);
             }
         } catch (Exception ex) {
@@ -220,19 +221,11 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
                 Long id = updateIds.get(i);
                 Map<String, Object> fieldValueMap = batchFieldValueMaps.get(i);
                 Object fieldValue = fieldValueMap.get(fieldName);
-
                 if (fieldValue != null) {
                     caseWhen.append("WHEN ").append(id).append(" THEN ");
-                    // 根据类型添加值
-                    if (fieldValue instanceof String) {
-                        String escapedValue = ((String) fieldValue).replace("'", "''");
-                        caseWhen.append("'").append(escapedValue).append("' ");
-                    } else {
-                        caseWhen.append(fieldValue).append(" ");
-                    }
+                    caseWhen.append("'").append(fieldValue).append("' ");
                 }
             }
-
             caseWhen.append("ELSE ").append(fieldName).append(" END");
             setClauses.add(caseWhen.toString());
         }
@@ -769,7 +762,7 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
         }
         JSONObject ruleConditionObject = JSON.parseObject(ruleCondition);
         JSONArray dataArray = ruleConditionObject.getJSONArray("data");
-        if(dataArray.isEmpty()){
+        if (dataArray.isEmpty()) {
             return null;
         }
         String sqlCondition = EsConditionTransferSqlUtil.jsonTransferSql(ruleConditionObject, "");
