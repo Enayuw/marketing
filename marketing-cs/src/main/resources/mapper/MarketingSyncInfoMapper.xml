@@ -604,6 +604,7 @@
             <if test="minId != null and minId >0">
                 and id >#{minId}
             </if>
+            and status = 1  and is_repeat in (1, 2)
             order by id asc limit 2000
         </where>
     </select>
@@ -623,7 +624,10 @@
         AND (CASE
         WHEN applet_date = CURDATE() THEN create_time <![CDATA[<=]]> #{createTime}
         ELSE 1 = 1 END)
+        <if test="filterCondition != null">
         AND ${filterCondition}
+        </if>
+        AND status = 1  AND is_repeat in (1, 2)
         ) t
         WHERE duplicate_count > 1
     </select>
@@ -643,7 +647,10 @@
         AND (CASE
         WHEN applet_date = CURDATE() THEN create_time <![CDATA[<=]]> #{createTime}
         ELSE 1 = 1 END)
-        AND ${filterCondition}
+        <if test="filterCondition != null">
+            AND ${filterCondition}
+        </if>
+        AND status = 1  AND is_repeat in (1, 2)
         ) t
         WHERE duplicate_count > 1
     </select>

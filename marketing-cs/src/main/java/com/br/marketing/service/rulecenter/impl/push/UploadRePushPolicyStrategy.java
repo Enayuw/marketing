@@ -2,6 +2,7 @@ package com.br.marketing.service.rulecenter.impl.push;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
@@ -767,6 +768,10 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
             return null;
         }
         JSONObject ruleConditionObject = JSON.parseObject(ruleCondition);
+        JSONArray dataArray = ruleConditionObject.getJSONArray("data");
+        if(dataArray.isEmpty()){
+            return null;
+        }
         String sqlCondition = EsConditionTransferSqlUtil.jsonTransferSql(ruleConditionObject, "");
         MarketingJsonNodeParseExample jsonNodeParseExample = new MarketingJsonNodeParseExample();
         jsonNodeParseExample.createCriteria().andApiCodeEqualTo(apiCode).andDataTypeEqualTo(DataProcessEnum.UPLOAD_DATA_GENERAL.getDataType()).
