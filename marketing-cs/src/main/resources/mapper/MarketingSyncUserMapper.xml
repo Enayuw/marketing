@@ -1217,7 +1217,7 @@
             <![CDATA[ and create_time >= #{createTime} ]]>
         </if>
         <if test="updateTime != null and updateTime.trim() neq ''">
-            <![CDATA[ and update_time <= #{updateTime} ]]>
+            <![CDATA[ and create_time <= #{updateTime} ]]>
         </if>
         and user_type = #{userType}
         and status = 1
