@@ -14,4 +14,10 @@
     and is_delete = 0
   </select>
 
+  <select id="selectCount" resultType="java.lang.Long">
+    select count(*) from b_marketing_line_account_detail
+    where gateway_id = #{gateWayId}
+      and is_delete = 0
+  </select>
+
 </mapper>

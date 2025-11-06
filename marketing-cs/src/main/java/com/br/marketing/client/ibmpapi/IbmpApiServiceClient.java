@@ -41,6 +41,7 @@ public class IbmpApiServiceClient {
 
 
     public TransferIbmpOutboundVO getLineBaseInfo() {
+        log.warn("getLineBaseInfo lineBaseInfoUrl:{}",lineBaseInfoUrl);
         try {
             ThirdApiResultTransfer transfer = new ApiCallerUtil(restTemplate,interfaceLogMapper,logDbpool).setUrl(lineBaseInfoUrl)
                     .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
