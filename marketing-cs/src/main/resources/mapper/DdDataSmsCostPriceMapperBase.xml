@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.DdDataSmsCostPriceMapperBase" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.DdDataSmsCostPrice" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="line_supplier" property="lineSupplier" jdbcType="VARCHAR" />
+    <result column="line_name" property="lineName" jdbcType="VARCHAR" />
+    <result column="effect_date" property="effectDate" jdbcType="VARCHAR" />
+    <result column="is_calc_cost" property="isCalcCost" jdbcType="VARCHAR" />
+    <result column="price" property="price" jdbcType="VARCHAR" />
+    <result column="created_by" property="createdBy" jdbcType="VARCHAR" />
+    <result column="created_time" property="createdTime" jdbcType="VARCHAR" />
+    <result column="last_modified_by" property="lastModifiedBy" jdbcType="VARCHAR" />
+    <result column="last_modified_time" property="lastModifiedTime" jdbcType="VARCHAR" />
+    <result column="last_modified_user_id" property="lastModifiedUserId" jdbcType="VARCHAR" />
+    <result column="last_modified_user_name" property="lastModifiedUserName" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, line_supplier, line_name, effect_date, is_calc_cost, price, created_by, created_time, 
+    last_modified_by, last_modified_time, last_modified_user_id, last_modified_user_name
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.DdDataSmsCostPriceExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_dd_data_sms_cost_price
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from b_dd_data_sms_cost_price
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_dd_data_sms_cost_price
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.DdDataSmsCostPriceExample" >
+    delete from b_dd_data_sms_cost_price
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.DdDataSmsCostPrice" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_dd_data_sms_cost_price (line_supplier, line_name, effect_date, 
+      is_calc_cost, price, created_by, 
+      created_time, last_modified_by, last_modified_time, 
+      last_modified_user_id, last_modified_user_name
+      )
+    values (#{lineSupplier,jdbcType=VARCHAR}, #{lineName,jdbcType=VARCHAR}, #{effectDate,jdbcType=VARCHAR}, 
+      #{isCalcCost,jdbcType=VARCHAR}, #{price,jdbcType=VARCHAR}, #{createdBy,jdbcType=VARCHAR}, 
+      #{createdTime,jdbcType=VARCHAR}, #{lastModifiedBy,jdbcType=VARCHAR}, #{lastModifiedTime,jdbcType=VARCHAR}, 
+      #{lastModifiedUserId,jdbcType=VARCHAR}, #{lastModifiedUserName,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.DdDataSmsCostPrice" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_dd_data_sms_cost_price
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="lineSupplier != null" >
+        line_supplier,
+      </if>
+      <if test="lineName != null" >
+        line_name,
+      </if>
+      <if test="effectDate != null" >
+        effect_date,
+      </if>
+      <if test="isCalcCost != null" >
+        is_calc_cost,
+      </if>
+      <if test="price != null" >
+        price,
+      </if>
+      <if test="createdBy != null" >
+        created_by,
+      </if>
+      <if test="createdTime != null" >
+        created_time,
+      </if>
+      <if test="lastModifiedBy != null" >
+        last_modified_by,
+      </if>
+      <if test="lastModifiedTime != null" >
+        last_modified_time,
+      </if>
+      <if test="lastModifiedUserId != null" >
+        last_modified_user_id,
+      </if>
+      <if test="lastModifiedUserName != null" >
+        last_modified_user_name,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="lineSupplier != null" >
+        #{lineSupplier,jdbcType=VARCHAR},
+      </if>
+      <if test="lineName != null" >
+        #{lineName,jdbcType=VARCHAR},
+      </if>
+      <if test="effectDate != null" >
+        #{effectDate,jdbcType=VARCHAR},
+      </if>
+      <if test="isCalcCost != null" >
+        #{isCalcCost,jdbcType=VARCHAR},
+      </if>
+      <if test="price != null" >
+        #{price,jdbcType=VARCHAR},
+      </if>
+      <if test="createdBy != null" >
+        #{createdBy,jdbcType=VARCHAR},
+      </if>
+      <if test="createdTime != null" >
+        #{createdTime,jdbcType=VARCHAR},
+      </if>
+      <if test="lastModifiedBy != null" >
+        #{lastModifiedBy,jdbcType=VARCHAR},
+      </if>
+      <if test="lastModifiedTime != null" >
+        #{lastModifiedTime,jdbcType=VARCHAR},
+      </if>
+      <if test="lastModifiedUserId != null" >
+        #{lastModifiedUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="lastModifiedUserName != null" >
+        #{lastModifiedUserName,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.DdDataSmsCostPriceExample" resultType="java.lang.Integer" >
+    select count(*) from b_dd_data_sms_cost_price
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_dd_data_sms_cost_price
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.lineSupplier != null" >
+        line_supplier = #{record.lineSupplier,jdbcType=VARCHAR},
+      </if>
+      <if test="record.lineName != null" >
+        line_name = #{record.lineName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.effectDate != null" >
+        effect_date = #{record.effectDate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isCalcCost != null" >
+        is_calc_cost = #{record.isCalcCost,jdbcType=VARCHAR},
+      </if>
+      <if test="record.price != null" >
+        price = #{record.price,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createdBy != null" >
+        created_by = #{record.createdBy,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createdTime != null" >
+        created_time = #{record.createdTime,jdbcType=VARCHAR},
+      </if>
+      <if test="record.lastModifiedBy != null" >
+        last_modified_by = #{record.lastModifiedBy,jdbcType=VARCHAR},
+      </if>
+      <if test="record.lastModifiedTime != null" >
+        last_modified_time = #{record.lastModifiedTime,jdbcType=VARCHAR},
+      </if>
+      <if test="record.lastModifiedUserId != null" >
+        last_modified_user_id = #{record.lastModifiedUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.lastModifiedUserName != null" >
+        last_modified_user_name = #{record.lastModifiedUserName,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_dd_data_sms_cost_price
+    set id = #{record.id,jdbcType=BIGINT},
+      line_supplier = #{record.lineSupplier,jdbcType=VARCHAR},
+      line_name = #{record.lineName,jdbcType=VARCHAR},
+      effect_date = #{record.effectDate,jdbcType=VARCHAR},
+      is_calc_cost = #{record.isCalcCost,jdbcType=VARCHAR},
+      price = #{record.price,jdbcType=VARCHAR},
+      created_by = #{record.createdBy,jdbcType=VARCHAR},
+      created_time = #{record.createdTime,jdbcType=VARCHAR},
+      last_modified_by = #{record.lastModifiedBy,jdbcType=VARCHAR},
+      last_modified_time = #{record.lastModifiedTime,jdbcType=VARCHAR},
+      last_modified_user_id = #{record.lastModifiedUserId,jdbcType=VARCHAR},
+      last_modified_user_name = #{record.lastModifiedUserName,jdbcType=VARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.DdDataSmsCostPrice" >
+    update b_dd_data_sms_cost_price
+    <set >
+      <if test="lineSupplier != null" >
+        line_supplier = #{lineSupplier,jdbcType=VARCHAR},
+      </if>
+      <if test="lineName != null" >
+        line_name = #{lineName,jdbcType=VARCHAR},
+      </if>
+      <if test="effectDate != null" >
+        effect_date = #{effectDate,jdbcType=VARCHAR},
+      </if>
+      <if test="isCalcCost != null" >
+        is_calc_cost = #{isCalcCost,jdbcType=VARCHAR},
+      </if>
+      <if test="price != null" >
+        price = #{price,jdbcType=VARCHAR},
+      </if>
+      <if test="createdBy != null" >
+        created_by = #{createdBy,jdbcType=VARCHAR},
+      </if>
+      <if test="createdTime != null" >
+        created_time = #{createdTime,jdbcType=VARCHAR},
+      </if>
+      <if test="lastModifiedBy != null" >
+        last_modified_by = #{lastModifiedBy,jdbcType=VARCHAR},
+      </if>
+      <if test="lastModifiedTime != null" >
+        last_modified_time = #{lastModifiedTime,jdbcType=VARCHAR},
+      </if>
+      <if test="lastModifiedUserId != null" >
+        last_modified_user_id = #{lastModifiedUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="lastModifiedUserName != null" >
+        last_modified_user_name = #{lastModifiedUserName,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.DdDataSmsCostPrice" >
+    update b_dd_data_sms_cost_price
+    set line_supplier = #{lineSupplier,jdbcType=VARCHAR},
+      line_name = #{lineName,jdbcType=VARCHAR},
+      effect_date = #{effectDate,jdbcType=VARCHAR},
+      is_calc_cost = #{isCalcCost,jdbcType=VARCHAR},
+      price = #{price,jdbcType=VARCHAR},
+      created_by = #{createdBy,jdbcType=VARCHAR},
+      created_time = #{createdTime,jdbcType=VARCHAR},
+      last_modified_by = #{lastModifiedBy,jdbcType=VARCHAR},
+      last_modified_time = #{lastModifiedTime,jdbcType=VARCHAR},
+      last_modified_user_id = #{lastModifiedUserId,jdbcType=VARCHAR},
+      last_modified_user_name = #{lastModifiedUserName,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>
