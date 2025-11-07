@@ -16,6 +16,7 @@ import com.br.marketing.entity.MerchantParam;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.MarketingDictMapper;
 import com.br.marketing.rpcclient.RpcClientProxy;
+import com.br.marketing.service.IMarketingCustomerAssignedGroupService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
@@ -49,6 +50,9 @@ public class UserCenterHandler {
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
     private MarketingDictMapper marketingDictMapper;
+
+    @Resource
+    private IMarketingCustomerAssignedGroupService marketingCustomerAssignedGroupService;
 
 
     public Result<Boolean> handleDataUserCenter(String mes) {
@@ -213,6 +217,7 @@ public class UserCenterHandler {
                     marketingCustomerMapper.updateByExampleSelective(marketingCustomer, marketingCustomerExample);
                 }
             }
+            marketingCustomerAssignedGroupService.assignGroup(marketingCustomer.getCid(), null);
         } else {
             log.warn("商户信息查询失败:customerMsg：{}-----，companyMsg：{}------ ", customerMsg, companyMsg);
         }
@@ -229,6 +234,7 @@ public class UserCenterHandler {
             marketingCustomer.setUpdateTime(new Date());
             marketingCustomerMapper.updateByExampleSelective(marketingCustomer, marketingCustomerExample);
         }
+        marketingCustomerAssignedGroupService.assignGroup(marketingCustomer.getCid(), null);
     }
 
 }

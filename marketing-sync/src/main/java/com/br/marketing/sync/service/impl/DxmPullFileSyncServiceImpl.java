@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.io.*;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Vector;
@@ -104,10 +105,10 @@ public class DxmPullFileSyncServiceImpl implements DxmPullFileSyncService {
                 return;
             }
 
-            // T日拉取T日文件
-            String dateStr = getCurrentDateString();
-            String clientDirPath = config.getClientSftpPath().replace("yyyy-mm-dd", dateStr);
-            String internalDatePath = config.getInternalSftpPath().replace("yyyy-mm-dd", dateStr);
+            // T-1日拉取T日文件
+            String yesterdayDateStr = getYesterdayDateString();
+            String clientDirPath = config.getClientSftpPath().replace("yyyy-mm-dd", yesterdayDateStr);
+            String internalDatePath = config.getInternalSftpPath().replace("yyyy-mm-dd", yesterdayDateStr);
             String fileName = "task.csv";
 
 
@@ -166,10 +167,10 @@ public class DxmPullFileSyncServiceImpl implements DxmPullFileSyncService {
                 return;
             }
 
-            // T日拉取T日文件
-            String dateStr = getCurrentDateString();
-            String clientDatePath = config.getClientSftpPath().replace("yyyy-mm-dd", dateStr);
-            String internalDatePath = config.getInternalSftpPath().replace("yyyy-mm-dd", dateStr);
+            // T日拉取T-1日文件
+            String yesterdayDateStr = getYesterdayDateString();
+            String clientDatePath = config.getClientSftpPath().replace("yyyy-mm-dd", yesterdayDateStr);
+            String internalDatePath = config.getInternalSftpPath().replace("yyyy-mm-dd", yesterdayDateStr);
             
             log.warn(TITLE + "开始拉取转化文件，客户目录: {}, 内部路径: {}", clientDatePath, internalDatePath);
             
@@ -371,11 +372,8 @@ public class DxmPullFileSyncServiceImpl implements DxmPullFileSyncService {
     private void deleteTempFile(File file) {
         if (file != null && file.exists()) {
             try {
-                if (file.delete()) {
-                    log.debug(TITLE + "临时文件删除成功: {}", file.getAbsolutePath());
-                } else {
-                    log.warn(TITLE + "临时文件删除失败: {}", file.getAbsolutePath());
-                }
+                Files.delete(file.toPath());
+                log.warn(TITLE + "临时文件删除成功: {}", file.getAbsolutePath());
             } catch (Exception e) {
                 log.error(TITLE + "删除临时文件异常: {}", file.getAbsolutePath(), e);
             }
@@ -400,13 +398,14 @@ public class DxmPullFileSyncServiceImpl implements DxmPullFileSyncService {
     }
 
     /**
-     * 获取当前日期字符串（yyyy-MM-dd格式）
+     * 获取昨天日期字符串（yyyy-MM-dd格式）
      *
      * @return 日期字符串
      */
-    private String getCurrentDateString() {
+    private String getYesterdayDateString() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        return sdf.format(new Date());
+        Date yesterday = new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000);
+        return sdf.format(yesterday);
     }
 
 }
