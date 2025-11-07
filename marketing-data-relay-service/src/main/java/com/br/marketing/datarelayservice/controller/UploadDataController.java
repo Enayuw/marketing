@@ -9,7 +9,7 @@ import com.br.marketing.datarelayservice.client.QiFuAiResDTO;
 import com.br.marketing.datarelayservice.service.QiFuAiUploadDataService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import javafx.util.Pair;
+import cn.hutool.core.lang.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

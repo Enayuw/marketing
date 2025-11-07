@@ -19,7 +19,7 @@ import com.br.marketing.mapper.DrsCustomizeUploadDataMapper;
 import com.br.marketing.datarelayservice.client.QiFuAiBizDataDTO;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import javafx.util.Pair;
+import cn.hutool.core.lang.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.stereotype.Service;
