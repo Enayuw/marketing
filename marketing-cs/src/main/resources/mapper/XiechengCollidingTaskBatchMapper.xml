@@ -289,7 +289,7 @@
     where id = #{id,jdbcType=BIGINT}
   </update>
 
-  <resultMap id="XiechengCollidingTaskBatchVOMap" type="com.br.marketing.dto.rulecenter.XcDeleteTaskVO">
+  <resultMap id="xiechengCollidingTaskBatchVOMap" type="com.br.marketing.vo.XiechengCollidingTaskBatchVo">
     <result column="releaseTimeBegin" property="releaseTimeBegin"
             jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"
             typeHandler="com.br.marketing.config.LocalDateTimeHandler"/>
@@ -299,7 +299,7 @@
 
   </resultMap>
 
-  <select id="selectEarliestBatch" resultMap="XiechengCollidingTaskBatchVOMap" >
+  <select id="selectEarliestBatch" resultMap="xiechengCollidingTaskBatchVOMap" >
     select batch.id as id,
            batch.api_code as apiCode,
            batch.batch_number as batchNumber,
