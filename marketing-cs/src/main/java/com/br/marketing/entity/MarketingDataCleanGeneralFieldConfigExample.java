@@ -12,7 +12,7 @@ public class MarketingDataCleanGeneralFieldConfigExample {
     protected List<Criteria> oredCriteria;
 
     public MarketingDataCleanGeneralFieldConfigExample() {
-        oredCriteria = new ArrayList<>();
+        oredCriteria = new ArrayList<Criteria>();
     }
 
     public void setOrderByClause(String orderByClause) {
@@ -69,7 +69,7 @@ public class MarketingDataCleanGeneralFieldConfigExample {
 
         protected GeneratedCriteria() {
             super();
-            criteria = new ArrayList<>();
+            criteria = new ArrayList<Criterion>();
         }
 
         public boolean isValid() {
@@ -604,11 +604,70 @@ public class MarketingDataCleanGeneralFieldConfigExample {
             addCriterion("update_time not between", value1, value2, "updateTime");
             return (Criteria) this;
         }
+
+        public Criteria andDataSourceTypeIsNull() {
+            addCriterion("data_source_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeIsNotNull() {
+            addCriterion("data_source_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeEqualTo(Integer value) {
+            addCriterion("data_source_type =", value, "dataSourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeNotEqualTo(Integer value) {
+            addCriterion("data_source_type <>", value, "dataSourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeGreaterThan(Integer value) {
+            addCriterion("data_source_type >", value, "dataSourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("data_source_type >=", value, "dataSourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeLessThan(Integer value) {
+            addCriterion("data_source_type <", value, "dataSourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("data_source_type <=", value, "dataSourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeIn(List<Integer> values) {
+            addCriterion("data_source_type in", values, "dataSourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeNotIn(List<Integer> values) {
+            addCriterion("data_source_type not in", values, "dataSourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeBetween(Integer value1, Integer value2) {
+            addCriterion("data_source_type between", value1, value2, "dataSourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("data_source_type not between", value1, value2, "dataSourceType");
+            return (Criteria) this;
+        }
     }
 
-    /**
-     */
     public static class Criteria extends GeneratedCriteria {
+
         protected Criteria() {
             super();
         }
