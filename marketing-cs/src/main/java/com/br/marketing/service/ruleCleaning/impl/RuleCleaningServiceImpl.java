@@ -1820,7 +1820,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             MarketingCustomerExample marketingCustomerExample = new MarketingCustomerExample();
             marketingCustomerExample.createCriteria().andApiCodeEqualTo(apiCode).andStatusEqualTo(Byte.valueOf("1"));
             List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(marketingCustomerExample);
-            if(marketingCustomers.isEmpty()){
+            if (marketingCustomers.isEmpty()) {
                 return result;
             }
             MarketingCustomer marketingCustomer = marketingCustomers.get(0);
@@ -1848,15 +1848,21 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         for (MarketingJsonNodeParse node : nodes) {
             String nodeName = node.getNodeName();
             Integer level = node.getLevel();
-            if (level == 0 || StringUtil.isBlank(nodeName) ) {
+            if (level == 0) {
                 continue;
             }
-            buildFieldSample(result, ruleConfigList, nodeName, level,
-                    node.getNodeValue(),  node.getParentPath(), node.getNodeType(), node.getCreateTime());
+            String nodeValue = node.getNodeValue();
+            Date createTime = node.getCreateTime();
+            if (StringUtil.isBlank(nodeName)) {
+                if (level == 0 || StringUtil.isBlank(nodeName)) {
+                    continue;
+                }
+                buildFieldSample(result, ruleConfigList, nodeName, level,
+                        node.getNodeValue(), node.getParentPath(), node.getNodeType(), node.getCreateTime());
+            }
         }
         return result;
     }
-
     public void buildFieldSample(List<FieldSampleDTO> result, List<MarketingDataCleanGeneralRuleConfig> ruleConfigList,
                                  String nodeName, Integer level, String nodeValue, String parentPath,
                                  String nodeType, Date createTime) {
