@@ -1,10 +1,7 @@
 package com.br.marketing.dto.dataclean;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import org.hibernate.validator.constraints.NotEmpty;
-
-import javax.validation.constraints.NotNull;
 /**
  * 数据清洗配置VO
  *
@@ -15,25 +12,25 @@ import javax.validation.constraints.NotNull;
 public class DataCleanConfigDTO {
 
 
-    @ApiModelProperty(value = "条件id")
+    @Schema(description = "条件id")
     private Long id;
 
-    @ApiModelProperty(value = "规则名称")
+    @Schema(description = "规则名称")
     private String ruleName;
 
-    @ApiModelProperty(value = "规则配置")
+    @Schema(description = "规则配置")
     private String ruleConfig;
 
     /**
      * 文件类型：0上传，1转化
      */
-    @ApiModelProperty(value = "文件类型：0上传，1转化")
+    @Schema(description = "文件类型：0上传，1转化")
     private Integer fileType;
 
     /**
      * apiCode
      */
-    @ApiModelProperty(value = "apiCode")
+    @Schema(description = "apiCode")
     private String apiCode;
 
 }

@@ -1,8 +1,8 @@
 package com.br.marketing.dto.mock;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.apache.pulsar.shade.io.swagger.annotations.ApiModel;
+import org.apache.pulsar.shade.io.swagger.annotations.ApiModelProperty;
 
 import java.io.Serializable;
 import java.util.List;

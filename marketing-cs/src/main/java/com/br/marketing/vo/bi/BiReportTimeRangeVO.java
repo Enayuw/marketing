@@ -1,6 +1,6 @@
 package com.br.marketing.vo.bi;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,9 +16,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class BiReportTimeRangeVO {
 
-    @ApiModelProperty(value = "开始日期")
+    @Schema(description = "开始日期")
     private String requestStartDate;
-    @ApiModelProperty(value = "结束日期")
+    @Schema(description = "结束日期")
     private String requestEndDate;
 
 }

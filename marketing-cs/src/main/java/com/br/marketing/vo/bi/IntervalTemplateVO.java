@@ -1,8 +1,9 @@
 package com.br.marketing.vo.bi;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import org.apache.pulsar.shade.io.swagger.annotations.ApiModel;
+import org.apache.pulsar.shade.io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,23 +21,23 @@ import java.util.List;
 @NoArgsConstructor
 public class IntervalTemplateVO {
 
-    @ApiModelProperty(value = "id")
+    @Schema(description = "id")
     @JsonProperty("id")
     private Long id;
 
-    @ApiModelProperty(value = "apiCode")
+    @Schema(description = "apiCode")
     @JsonProperty("apiCode")
     private String apiCode;
 
-    @ApiModelProperty(value = "reportId")
+    @Schema(description = "reportId")
     @JsonProperty("reportId")
     private Long reportId;
 
-    @ApiModelProperty(value = "模板名称")
+    @Schema(description = "模板名称")
     @JsonProperty("templateName")
     private String templateName;
 
-    @ApiModelProperty(value = "模板编号")
+    @Schema(description = "模板编号")
     @JsonProperty("templateNumber")
     private String templateNumber;
 

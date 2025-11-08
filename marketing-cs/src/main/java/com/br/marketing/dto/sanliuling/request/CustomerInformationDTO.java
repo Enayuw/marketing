@@ -1,7 +1,7 @@
 package com.br.marketing.dto.sanliuling.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModelProperty;
+import org.apache.pulsar.shade.io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;

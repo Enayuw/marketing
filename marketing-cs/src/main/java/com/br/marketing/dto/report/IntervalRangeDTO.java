@@ -1,9 +1,9 @@
 package com.br.marketing.dto.report;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.apache.pulsar.shade.io.swagger.annotations.ApiModel;
+import org.apache.pulsar.shade.io.swagger.annotations.ApiModelProperty;
 
 /**
  * 区间范围配置DTO

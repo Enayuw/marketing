@@ -2,8 +2,7 @@ package com.br.marketing.vo.bi.param;
 
 import com.br.marketing.vo.bi.WrapDataVO;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,25 +17,25 @@ import java.util.List;
  */
 @Getter
 @Setter
-@ApiModel(value = "BI报表下载请求参数")
+@Schema(description = "BI报表下载请求参数")
 public class BiReportDownLoadParam {
-    @ApiModelProperty(value = "报告名称")
+    @Schema(description = "报告名称")
     @NotNull(message = "报表类型不能为空")
     private String reportTypeName;
-    @ApiModelProperty(value = "分组")
+    @Schema(description = "分组")
     private String group;
-    @ApiModelProperty(value = "任务名称")
+    @Schema(description = "任务名称")
     private String reportTaskName;
-    @ApiModelProperty(value = "报告名称")
+    @Schema(description = "报告名称")
     @NotNull(message = "报表名称不能为空")
     private String reportName;
-    @ApiModelProperty(value = "X轴名称")
+    @Schema(description = "X轴名称")
     @JsonProperty(value = "xAxisName")
     private String xAxisName;
-    @ApiModelProperty(value = "X轴数据")
+    @Schema(description = "X轴数据")
     @JsonProperty(value = "xAxis")
     private List<String> xAxis;
-    @ApiModelProperty(value = "Y轴数据")
+    @Schema(description = "Y轴数据")
     @JsonProperty(value = "yAxis")
     private List<WrapDataVO> yAxis;
 }

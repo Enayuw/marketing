@@ -1,6 +1,6 @@
 package com.br.marketing.dto.dataclean;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.hibernate.validator.constraints.NotEmpty;
 
@@ -16,14 +16,14 @@ public class DataCleanRuleDetailDTO {
     /**
      * 文件ID集合，多个,分割
      */
-    @ApiModelProperty(value = "文件ID集合，多个,分割")
+    @Schema(description = "文件ID集合，多个,分割")
     @NotEmpty
     private String fileIds;
 
     /**
      * apiCode
      */
-    @ApiModelProperty(value = "apiCode")
+    @Schema(description = "apiCode")
     @NotEmpty
     private String apiCode;
 
@@ -31,33 +31,33 @@ public class DataCleanRuleDetailDTO {
     /**
      * 组装对象
      */
-    @ApiModelProperty(value = " 组装对象")
+    @Schema(description = " 组装对象")
     private String ruleCondition;
 
     /**
      * 规则名
      */
-    @ApiModelProperty(value = "规则名")
+    @Schema(description = "规则名")
     private String ruleName;
 
     /**
      * 规则ID
      */
-    @ApiModelProperty(value = "规则ID")
+    @Schema(description = "规则ID")
     private Long ruleId;
 
 
     /**
      * 文件类型：0上传，1转化
      */
-    @ApiModelProperty(value = "文件类型：0上传，1转化")
+    @Schema(description = "文件类型：0上传，1转化")
     @NotEmpty
     private Integer fileType;
 
     /**
      * 任务ID
      */
-    @ApiModelProperty(value = "任务Id")
+    @Schema(description = "任务Id")
     private Long Id;
 
 

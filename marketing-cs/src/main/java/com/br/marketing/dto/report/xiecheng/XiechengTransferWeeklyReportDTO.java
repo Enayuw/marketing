@@ -1,8 +1,8 @@
 package com.br.marketing.dto.report.xiecheng;
 
 import com.br.marketing.common.annoation.DecimalFieldConvertor;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import org.apache.pulsar.shade.io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -15,7 +15,7 @@ import java.math.BigDecimal;
  * @date 2024/08/28
  */
 @Data
-@ApiModel(value = "携程7日滚动转化报表dto")
+@Schema(description = "携程7日滚动转化报表dto")
 public class XiechengTransferWeeklyReportDTO implements Serializable {
 
     private static final long serialVersionUID = 1049740263038976458L;

@@ -1,7 +1,7 @@
 package com.br.marketing.dto;
 
 import com.google.gson.JsonObject;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
@@ -15,13 +15,13 @@ import java.util.List;
 @Data
 public class ExecuteCarClueDTO {
 
-    @ApiModelProperty(value = "需要执行的id集合")
+    @Schema(description = "需要执行的id集合")
     private List<Long> clueIds;
-    @ApiModelProperty(value = "待执行线索范围条件")
+    @Schema(description = "待执行线索范围条件")
     private Object clueRange;
-    @ApiModelProperty(value = "执行类型 0-清洗 1-推送")
+    @Schema(description = "执行类型 0-清洗 1-推送")
     private int executeType;
-    @ApiModelProperty(value = "执行状态 0-待执行 1-执行完成")
+    @Schema(description = "执行状态 0-待执行 1-执行完成")
     private int executeStatus;
 
 }

@@ -1,6 +1,6 @@
 package com.br.marketing.vo;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
@@ -8,33 +8,33 @@ import java.util.List;
 @Data
 public class SoleRuleVO {
 
-    @ApiModelProperty(value = "去重规则id")
+    @Schema(description = "去重规则id")
     private Long id;
 
-    @ApiModelProperty(value = "去重规则名称")
+    @Schema(description = "去重规则名称")
     private String soleName;
 
-    @ApiModelProperty(value = "去重字段")
+    @Schema(description = "去重字段")
     private String soleFields;
 
-    @ApiModelProperty(value = "去重字段统计")
+    @Schema(description = "去重字段统计")
     private Integer soleFieldsNum;
 
-    @ApiModelProperty(value = "去重时间周期")
+    @Schema(description = "去重时间周期")
     private Integer soleCycleTimes;
 
-    @ApiModelProperty(value = "使用商户统计")
+    @Schema(description = "使用商户统计")
     private Integer cusNum;
 
-    @ApiModelProperty(value = "apicodes")
+    @Schema(description = "apicodes")
     private List<String> apicodes;
 
-    @ApiModelProperty(value = "开启状态")
+    @Schema(description = "开启状态")
     private Integer status;
 
-    @ApiModelProperty(value = "创建时间")
+    @Schema(description = "创建时间")
     private String createTime;
 
-    @ApiModelProperty(value = "修改时间")
+    @Schema(description = "修改时间")
     private String updateTime;
 }

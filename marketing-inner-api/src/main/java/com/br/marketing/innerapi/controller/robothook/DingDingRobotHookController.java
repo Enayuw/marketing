@@ -3,10 +3,10 @@ package com.br.marketing.innerapi.controller.robothook;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.webhook.dingding.msgtype.*;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
-import io.swagger.annotations.Api;
+import org.apache.pulsar.shade.io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import org.apache.pulsar.shade.io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;

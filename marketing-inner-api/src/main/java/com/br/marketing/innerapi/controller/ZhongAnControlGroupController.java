@@ -5,8 +5,8 @@ import com.br.marketing.service.bi.ZhongAnControlGroupService;
 import com.br.marketing.vo.zhongan.ZhongAnCustomInfoVO;
 import com.br.marketing.vo.zhongan.param.ControlGroupDTO;
 import com.br.marketing.vo.zhongan.param.ZhongAnControlGroupParam;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import org.apache.pulsar.shade.io.swagger.annotations.Api;
+import org.apache.pulsar.shade.io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 

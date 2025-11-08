@@ -1,16 +1,14 @@
 package com.br.marketing.dto.tc;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.validator.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Data
 public class TcRevokeDto extends TcDataDto{
 
-    @ApiModelProperty(value = "userKeyList")
+    @Schema(description = "userKeyList")
     private List<String> userKeyList;
 
     @Override

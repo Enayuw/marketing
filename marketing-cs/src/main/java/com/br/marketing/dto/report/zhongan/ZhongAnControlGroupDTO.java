@@ -1,7 +1,7 @@
 package com.br.marketing.dto.report.zhongan;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import org.apache.pulsar.shade.io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -14,7 +14,7 @@ import java.math.BigDecimal;
  * @Date 2024/9/18 16:57
  */
 @Data
-@ApiModel(value = "众安对照组配置")
+@Schema(description = "众安对照组配置")
 public class ZhongAnControlGroupDTO implements Serializable {
 
     @ApiModelProperty("数据日期")

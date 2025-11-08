@@ -1,16 +1,16 @@
 package com.br.marketing.vo;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
 public class StatisticsDataDayVO {
-    @ApiModelProperty(value = "日期")
+    @Schema(description = "日期")
     private String day;
 
-    @ApiModelProperty(value = "统计记录id")
+    @Schema(description = "统计记录id")
     private Long id;
 
-    @ApiModelProperty(value = "数量")
+    @Schema(description = "数量")
     private Integer num;
 }

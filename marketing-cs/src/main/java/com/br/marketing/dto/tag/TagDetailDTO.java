@@ -1,7 +1,7 @@
 package com.br.marketing.dto.tag;
 
 import com.alibaba.fastjson.JSONObject;
-import io.swagger.annotations.ApiModel;
+import org.apache.pulsar.shade.io.swagger.annotations.ApiModel;
 import lombok.Data;
 
 import java.util.List;

@@ -1,42 +1,42 @@
 package com.br.marketing.vo.bi.param;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
 public class BiReportTaskParam {
 
-    @ApiModelProperty(value = "current")
+    @Schema(description = "current")
     private Integer current;
 
-    @ApiModelProperty(value = "size")
+    @Schema(description = "size")
     private Integer size;
 
-    @ApiModelProperty(value = "apiCode")
+    @Schema(description = "apiCode")
     private String apiCode;
 
     /**
      * 报表类型
      */
-    @ApiModelProperty(value = "报表类型")
+    @Schema(description = "报表类型")
     private String reportTypeName;
 
     /**
      * 报告名称
      */
-    @ApiModelProperty(value = "报告名称")
+    @Schema(description = "报告名称")
     private String reportName;
 
     /**
      * 场景
      */
-    @ApiModelProperty(value = "场景")
+    @Schema(description = "场景")
     private String userType;
 
     /**
      * 分组维度
      */
-    @ApiModelProperty(value = "分组维度")
+    @Schema(description = "分组维度")
     private String dimensionsField;
 
     /**

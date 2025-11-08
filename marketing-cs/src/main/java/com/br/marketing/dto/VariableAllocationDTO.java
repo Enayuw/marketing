@@ -1,18 +1,18 @@
 package com.br.marketing.dto;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
 public class VariableAllocationDTO {
 
-    @ApiModelProperty(value = "apicode")
+    @Schema(description = "apicode")
     private String apiCode;
 
-    @ApiModelProperty(value = "配置类型")
+    @Schema(description = "配置类型")
     private String allocationType;
 
-    @ApiModelProperty(value = "请求时间")
+    @Schema(description = "请求时间")
     private String requestTime;
 
 

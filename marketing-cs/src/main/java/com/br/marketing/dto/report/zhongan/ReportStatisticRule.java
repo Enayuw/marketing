@@ -1,12 +1,12 @@
 package com.br.marketing.dto.report.zhongan;
 
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.Date;
 
 @Data
-@ApiModel(value = "报表规则")
+@Schema(description = "报表规则")
 public class ReportStatisticRule {
 
     private String reportId;

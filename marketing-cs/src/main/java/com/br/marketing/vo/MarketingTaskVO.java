@@ -1,7 +1,6 @@
 package com.br.marketing.vo;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
@@ -17,42 +16,42 @@ public class MarketingTaskVO {
     /**
      *
      */
-    @ApiModelProperty(value = "id")
+    @Schema(description = "id")
     private Long id;
 
-    @ApiModelProperty(value = "跑分历史id")
+    @Schema(description = "跑分历史id")
     private Long hisFileId;
 
     /**
      * 规则名称
      */
-    @ApiModelProperty(value = "规则名称")
+    @Schema(description = "规则名称")
     private String ruleName;
 
     /**
      * 规则编号
      */
-    @ApiModelProperty(value = "规则编号")
+    @Schema(description = "规则编号")
     private String ruleNumber;
 
     /**
      * 商户编号
      */
-    @ApiModelProperty(value = "apiCode")
+    @Schema(description = "apiCode")
     private String apiCode;
 
 
-    @ApiModelProperty(value = "客户编号")
+    @Schema(description = "客户编号")
     private String cid;
 
 
-    @ApiModelProperty(value = "客户名称")
+    @Schema(description = "客户名称")
     private String cName;
 
     /**
      * 状态码1-开启；0-关闭
      */
-    @ApiModelProperty(value = "使用状态")
+    @Schema(description = "使用状态")
     private Integer status;
 
     /**
@@ -63,33 +62,33 @@ public class MarketingTaskVO {
      * status=0，待传输
      * status=2，已完毕
      */
-    @ApiModelProperty(value = "跑分状态")
+    @Schema(description = "跑分状态")
     private Integer taskStatus;
 
     /**
      * 跑分日期
      */
-    @ApiModelProperty(value = "跑分日期")
+    @Schema(description = "跑分日期")
     private String taskTime;
 
     /**
      * 创建时间
      */
-    @ApiModelProperty(value = "创建时间")
+    @Schema(description = "创建时间")
     private String createTime;
 
     /**
      * 修改时间
      */
-    @ApiModelProperty(value = "修改时间")
+    @Schema(description = "修改时间")
     private String updateTime;
 
-    @ApiModelProperty(value = "周期跑分开始时间")
+    @Schema(description = "周期跑分开始时间")
     private String startDate;
 
-    @ApiModelProperty(value = "周期跑分结束时间")
+    @Schema(description = "周期跑分结束时间")
     private String closeDate;
-    @ApiModelProperty(value = "数据量")
+    @Schema(description = "数据量")
     private Integer taskNumber;
 
     private String conditionInfo;
@@ -107,32 +106,32 @@ public class MarketingTaskVO {
     /**
      * 周期类型 任务执行策略 1-一次性全量；2-周期性全量
      */
-    @ApiModelProperty(value = "周期类型")
+    @Schema(description = "周期类型")
     private String execType;
 
-    @ApiModelProperty(value = "跑分范围类型 1-当天数据范围；2-手动选择数据范围")
+    @Schema(description = "跑分范围类型 1-当天数据范围；2-手动选择数据范围")
     private String conditionType;
     /**
      * 创建时间
      */
-    @ApiModelProperty(value = "跑分时间")
+    @Schema(description = "跑分时间")
     private String startTime;
 
-    @ApiModelProperty(value = "数据范围展示")
+    @Schema(description = "数据范围展示")
     private String conditionInfoShow;
 
     private String batchNumber;
 
-    @ApiModelProperty(value = "")
+    @Schema(description = "")
     private Integer isOnline;
 
-    @ApiModelProperty(value = "跑分开始时间")
+    @Schema(description = "跑分开始时间")
     private String taskCreateTime;
 
-    @ApiModelProperty(value = "跑分结束时间")
+    @Schema(description = "跑分结束时间")
     private String taskUpdateTime;
 
-    @ApiModelProperty(value = "数据条件")
+    @Schema(description = "数据条件")
     private String dataCondition;
 
 }

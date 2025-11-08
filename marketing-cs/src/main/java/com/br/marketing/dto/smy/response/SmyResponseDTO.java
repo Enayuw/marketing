@@ -1,6 +1,6 @@
 package com.br.marketing.dto.smy.response;
 
-import io.swagger.annotations.ApiModelProperty;
+import org.apache.pulsar.shade.io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
 import lombok.Data;
 import lombok.Getter;

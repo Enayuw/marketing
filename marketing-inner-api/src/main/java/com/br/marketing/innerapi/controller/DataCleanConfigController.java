@@ -8,10 +8,10 @@ import com.br.marketing.entity.MarketingCleanDataTask;
 import com.br.marketing.entity.MarketingDataFileConfig;
 import com.br.marketing.innerapi.service.dataclean.DataCleanHandlerService;
 import com.br.marketing.vo.dataclean.DataCleanConfigVO;
-import io.swagger.annotations.Api;
+import org.apache.pulsar.shade.io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import org.apache.pulsar.shade.io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

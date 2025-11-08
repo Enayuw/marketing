@@ -1,24 +1,22 @@
 package com.br.marketing.common.commondto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-
-@ApiModel(value = "返回的数据结构")
+@Schema(description = "返回的数据结构")
 public class Result<T> {
     /**
      * 返回标识 1-成功；500-错误
      */
-    @ApiModelProperty(value = "1-成功；500-错误")
+    @Schema(description = "1-成功；500-错误")
     private Integer code;
 
     /**
      * 返回信息
      */
-    @ApiModelProperty(value = "返回的信息")
+    @Schema(description = "返回的信息")
     private String message;
 
-    @ApiModelProperty(value = "返回的数据")
+    @Schema(description = "返回的数据")
     private T data;
 
     public Result setCode(Integer code) {

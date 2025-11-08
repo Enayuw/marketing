@@ -1,8 +1,6 @@
 package com.br.marketing.dto.report.xiecheng;
 
-import com.br.marketing.common.annoation.DecimalFieldConvertor;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -15,17 +13,17 @@ import java.math.BigDecimal;
  * @date 2024/08/28
  */
 @Data
-@ApiModel(value = "携程7日撞库结果分布报表dto")
+@Schema(description = "携程7日撞库结果分布报表dto")
 public class XiechengCollidingWeeklyReportDTO implements Serializable {
     private static final long serialVersionUID = 7438790119320620550L;
-    @ApiModelProperty(value = "dataPacket")
+    @Schema(description = "dataPacket")
     private String dataPacket;
-    @ApiModelProperty(value = "锁定周期")
+    @Schema(description = "锁定周期")
     private String lockPeriod;
-    @ApiModelProperty(value = "交集量级（定值）")
+    @Schema(description = "交集量级（定值）")
     private Long intersectionNum;
-    @ApiModelProperty(value = "锁定量级")
+    @Schema(description = "锁定量级")
     private Long lockNum;
-    @ApiModelProperty(value = "撞回率")
+    @Schema(description = "撞回率")
     private BigDecimal collidingBackRatio;
 }

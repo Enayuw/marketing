@@ -1,12 +1,7 @@
 package com.br.marketing.dto;
 
-import cn.hutool.json.JSONObject;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-
-import java.util.Map;
 
 
 /**
@@ -17,25 +12,25 @@ import java.util.Map;
  */
 @Data
 public class DataExportTaskDTO {
-    @ApiModelProperty(value = "任务名称")
+    @Schema(description = "任务名称")
     private String taskName;
 
-    @ApiModelProperty(value = "数据源名称")
+    @Schema(description = "数据源名称")
     private int dataSource;
 
-    @ApiModelProperty(value = "导出表头(逗号分隔)")
+    @Schema(description = "导出表头(逗号分隔)")
     private String exportHeaders;
 
-    @ApiModelProperty(value = "字段映射关系JSON")
+    @Schema(description = "字段映射关系JSON")
     private String fieldMapping;
 
-    @ApiModelProperty(value = "查询条件配置JSON")
+    @Schema(description = "查询条件配置JSON")
     private String queryCondition;
 
-    @ApiModelProperty(value = "预估数据量")
+    @Schema(description = "预估数据量")
     private Long estimatedRows;
 
-    @ApiModelProperty(value = "导出文件名")
+    @Schema(description = "导出文件名")
     private String fileNameTemplate;
 
 }

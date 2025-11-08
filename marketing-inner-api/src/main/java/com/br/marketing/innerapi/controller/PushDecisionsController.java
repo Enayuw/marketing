@@ -8,8 +8,8 @@ import com.br.marketing.service.PushDecisionsService;
 import com.br.marketing.vo.PushDecisionsDetailVO;
 import com.br.marketing.vo.ReachStrategyVO;
 import com.br.marketing.vo.TaskTemplateVO;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import org.apache.pulsar.shade.io.swagger.annotations.Api;
+import org.apache.pulsar.shade.io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

@@ -1,10 +1,8 @@
 package com.br.marketing.dto.report.zhongan;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import org.apache.pulsar.shade.io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-
-import java.math.BigDecimal;
 
 /**
  * 众安分组评分分布dto
@@ -13,7 +11,7 @@ import java.math.BigDecimal;
  * @date 2024/09/20
  */
 @Data
-@ApiModel(value = "众安分组评分分布")
+@Schema(description = "众安分组评分分布")
 public class ZhongAnDistributionStatisticDTO {
 
     @ApiModelProperty("报表id")

@@ -1,6 +1,6 @@
 package com.br.marketing.dto.tc;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.hibernate.validator.constraints.NotEmpty;
 
@@ -9,7 +9,7 @@ import javax.validation.constraints.NotNull;
 @Data
 public abstract class TcDataDto {
 
-    @ApiModelProperty(value = "batchNo")
+    @Schema(description = "batchNo")
     @NotNull(message = "batchNo必传")
     @NotEmpty(message = "batchNo必传")
     public String batchNo;

@@ -5,7 +5,7 @@ import cn.hutool.captcha.CircleCaptcha;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisAuthService;
 import com.br.marketing.common.commondto.ApiResult;
-import io.swagger.annotations.Api;
+import org.apache.pulsar.shade.io.swagger.annotations.Api;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 

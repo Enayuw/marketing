@@ -17,10 +17,10 @@ import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.VariableAllocationService;
 import com.br.marketing.vo.VariableAllocationVO;
 
-import io.swagger.annotations.Api;
+import org.apache.pulsar.shade.io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import org.apache.pulsar.shade.io.swagger.annotations.ApiOperation;
 
 /**
  * 定制化配置

@@ -2,12 +2,12 @@ package com.br.marketing.vo.xiecheng;
 
 import java.io.Serializable;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import org.apache.pulsar.shade.io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 @Data
-@ApiModel(value = "携程撞库数据包VO")
+@Schema(description = "携程撞库数据包VO")
 public class XiechengPackageVO implements Serializable {
 
     private static final long serialVersionUID = 9027984842563179835L;

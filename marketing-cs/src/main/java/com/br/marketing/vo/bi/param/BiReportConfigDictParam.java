@@ -1,8 +1,8 @@
 package com.br.marketing.vo.bi.param;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import org.apache.pulsar.shade.io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.util.Date;
@@ -14,26 +14,26 @@ import java.util.Date;
  * @date 2024/08/28
  */
 @Data
-@ApiModel(value = "BI报表配置字典请求参数")
+@Schema(description = "BI报表配置字典请求参数")
 public class BiReportConfigDictParam {
 
-    @ApiModelProperty(value = "字典key")
+    @Schema(description = "字典key")
     private String dictKey;
 
-    @ApiModelProperty(value = "apiCode")
+    @Schema(description = "apiCode")
     private String apiCode;
 
-    @ApiModelProperty(value = "字典值")
+    @Schema(description = "字典值")
     private String dictValue;
 
-    @ApiModelProperty(value = "字典描述")
+    @Schema(description = "字典描述")
     @JsonProperty(value = "dictDesc")
     private String dictDesc;
 
-    @ApiModelProperty(value = "配置开始时间")
+    @Schema(description = "配置开始时间")
     private Date startDate;
 
-    @ApiModelProperty(value = "配置结束时间")
+    @Schema(description = "配置结束时间")
     private Date endDate;
 
     @ApiModelProperty("1-有效；9-无效")

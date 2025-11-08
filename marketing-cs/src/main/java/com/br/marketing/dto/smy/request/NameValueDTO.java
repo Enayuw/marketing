@@ -2,7 +2,7 @@ package com.br.marketing.dto.smy.request;
 
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModelProperty;
+import org.apache.pulsar.shade.io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
 import lombok.Data;
 

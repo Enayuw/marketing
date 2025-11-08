@@ -1,7 +1,7 @@
 package com.br.marketing.vo;
 
 import com.br.marketing.enums.PushRuleStatusEnum;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -10,55 +10,55 @@ import java.util.Map;
 
 public class PushInfoListVO {
 
-    @ApiModelProperty(value = "任务流水号")
+    @Schema(description = "任务流水号")
     private Long id;
 
-    @ApiModelProperty(value = "apicode")
+    @Schema(description = "apicode")
     private String apiCode;
 
-    @ApiModelProperty(value = "跑分批次号")
+    @Schema(description = "跑分批次号")
     private String batchNumbers;
 
     private String mCusBatchNumberList;
 
-    @ApiModelProperty(value = "规则条件")
+    @Schema(description = "规则条件")
     private String mRuleConditionShow;
 
     private String mRuleCondition;
 
     private String mScoreCondition;
 
-    @ApiModelProperty(value = "计划推送数量")
+    @Schema(description = "计划推送数量")
     private Integer mPlanNum;
 
-    @ApiModelProperty(value = "百分比")
+    @Schema(description = "百分比")
     private BigDecimal mPercentage;
 
-    @ApiModelProperty(value = "实际推送数量")
+    @Schema(description = "实际推送数量")
     private Integer mRealyNum;
 
-    @ApiModelProperty(value = "推送时间")
+    @Schema(description = "推送时间")
     private String createTime;
 
-    @ApiModelProperty(value = "执行状态 1-执行中;2-待确认;3-推送失败;4-确认成功;5-确认失败")
+    @Schema(description = "执行状态 1-执行中;2-待确认;3-推送失败;4-确认成功;5-确认失败")
     private Integer mStatus;
 
-    @ApiModelProperty(value = "推送结果返回")
+    @Schema(description = "推送结果返回")
     private List<Map> returnMessages;
 
-    @ApiModelProperty(value = "场景")
+    @Schema(description = "场景")
     private String userType;
 
-    @ApiModelProperty(value = "数据集名称")
+    @Schema(description = "数据集名称")
     private String batchName;
 
-    @ApiModelProperty(value = "扩展字段")
+    @Schema(description = "扩展字段")
     private String extend;
 
     /**
      * 0:推送决策,1:数据打标,2合并跑分
      */
-    @ApiModelProperty(value = "推送类型")
+    @Schema(description = "推送类型")
     private Integer pushTarget;
 
     public String getmStatusDesc() {

@@ -2,6 +2,8 @@ package com.br.marketing.api.controller;
 
 import javax.annotation.Resource;
 import com.br.marketing.service.Impl.xc.XieChengPreCollidingBlackListDeleteService;
+import org.apache.pulsar.shade.io.swagger.annotations.Api;
+import org.apache.pulsar.shade.io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,9 +36,6 @@ import com.br.marketing.dto.ResponseCustomDTO;
 import com.br.marketing.entity.MonitorTypeEnum;
 import com.br.marketing.service.IPushShuheDataService;
 import com.br.marketing.service.PushRuleService;
-
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
 
 /**
  * 营销数据接入接口

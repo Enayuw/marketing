@@ -1,7 +1,8 @@
 package com.br.marketing.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import org.apache.pulsar.shade.io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,29 +19,29 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CarClueInfoVo {
-    @ApiModelProperty(value = "id")
+    @Schema(description = "id")
     private Long id;
-    @ApiModelProperty(value = "客户编号")
+    @Schema(description = "客户编号")
     private String apiCode;
-    @ApiModelProperty(value = "案件编号")
+    @Schema(description = "案件编号")
     private String custNum;
-    @ApiModelProperty(value = "上传日期")
+    @Schema(description = "上传日期")
     private String appletDate;
-    @ApiModelProperty(value = "线索ID")
+    @Schema(description = "线索ID")
     private String clueId;
-    @ApiModelProperty(value = "线索状态")
+    @Schema(description = "线索状态")
     private int clueDataStatus;
-    @ApiModelProperty(value = "线索补全状态")
+    @Schema(description = "线索补全状态")
     private int clueCompleteStatus;
-    @ApiModelProperty(value = "外呼意向")
+    @Schema(description = "外呼意向")
     private String intention;
-    @ApiModelProperty(value = "品牌")
+    @Schema(description = "品牌")
     private String brand;
-    @ApiModelProperty(value = "车系")
+    @Schema(description = "车系")
     private String series;
-    @ApiModelProperty(value = "城市")
+    @Schema(description = "城市")
     private String city;
-    @ApiModelProperty(value = "手机号")
+    @Schema(description = "手机号")
     private String cell;
     @ApiModelProperty("清洗时间 yyyy-MM-dd HH:mm:ss")
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
@@ -48,14 +49,14 @@ public class CarClueInfoVo {
     @ApiModelProperty("修改时间 yyyy-MM-dd HH:mm:ss")
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private Date updateTime;
-    @ApiModelProperty(value = "推送渠道")
+    @Schema(description = "推送渠道")
     private String cluePushChannel;
-    @ApiModelProperty(value = "推送状态")
+    @Schema(description = "推送状态")
     private String cluePushStatus;
     @ApiModelProperty("推送时间 yyyy-MM-dd HH:mm:ss")
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private Date pushTime;
-    @ApiModelProperty(value = "入库状态")
+    @Schema(description = "入库状态")
     private String clueCallbackFinalState;
     @ApiModelProperty("回调时间 yyyy-MM-dd HH:mm:ss")
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")

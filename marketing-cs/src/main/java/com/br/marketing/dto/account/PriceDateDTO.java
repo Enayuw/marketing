@@ -1,6 +1,6 @@
 package com.br.marketing.dto.account;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -10,10 +10,10 @@ import java.util.Objects;
 @Data
 public class PriceDateDTO {
 
-    @ApiModelProperty(value = "价格")
+    @Schema(description = "价格")
     private BigDecimal price;
 
-    @ApiModelProperty(value = "生效开始日期")
+    @Schema(description = "生效开始日期")
     private LocalDate effectStartDate;
 
     private LocalDate effectEndDate;

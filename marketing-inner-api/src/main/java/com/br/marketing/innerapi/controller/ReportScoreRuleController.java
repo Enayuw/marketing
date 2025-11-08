@@ -35,7 +35,7 @@ import com.br.marketing.service.bi.AnalysisReportService;
 import com.br.marketing.vo.bi.AxisWrapVO;
 import com.br.marketing.vo.bi.param.ReportTaskParam;
 import com.br.marketing.dto.report.RefreshReportRequestDTO;
-import io.swagger.annotations.ApiOperation;
+import org.apache.pulsar.shade.io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 
 /**

@@ -1,6 +1,6 @@
 package com.br.marketing.vo.zhongan;
 
-import io.swagger.annotations.ApiModelProperty;
+import org.apache.pulsar.shade.io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

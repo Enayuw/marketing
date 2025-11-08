@@ -1,11 +1,11 @@
 package com.br.marketing.dto.report.zhongan;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import org.apache.pulsar.shade.io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 @Data
-@ApiModel(value = "报表统计指标")
+@Schema(description = "报表统计指标")
 public class ReportStatisticField {
 
     @ApiModelProperty("报表id")

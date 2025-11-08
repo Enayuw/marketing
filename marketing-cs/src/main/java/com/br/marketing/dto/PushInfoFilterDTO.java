@@ -1,7 +1,7 @@
 package com.br.marketing.dto;
 
 import com.br.marketing.common.utils.StringUtils;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,26 +9,26 @@ import java.util.List;
 
 public class PushInfoFilterDTO {
 
-    @ApiModelProperty(value = "apicode")
+    @Schema(description = "apicode")
     private String mApiCode;
 
-    @ApiModelProperty(value = "推送日期开始时间")
+    @Schema(description = "推送日期开始时间")
     private String pushBeginTime;
 
-    @ApiModelProperty(value = "推送日期结束时间")
+    @Schema(description = "推送日期结束时间")
     private String pushEndTime;
 
-    @ApiModelProperty(value = "任务流水号")
+    @Schema(description = "任务流水号")
     private String pushInfoId;
 
-    @ApiModelProperty(value = "推送状态 1-执行中；2-执行成功；3-执行失败")
+    @Schema(description = "推送状态 1-执行中；2-执行成功；3-执行失败")
     private String mStatus;
     private List<String> mStatusList;
 
-    @ApiModelProperty(value = "页号")
+    @Schema(description = "页号")
     private Integer current;
 
-    @ApiModelProperty(value = "页大小")
+    @Schema(description = "页大小")
     private Integer size;
 
     public List<String> getmStatusList() {

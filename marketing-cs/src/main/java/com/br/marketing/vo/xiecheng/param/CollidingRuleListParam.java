@@ -5,12 +5,12 @@ import java.io.Serializable;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import cn.hutool.core.date.DateUtil;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import org.apache.pulsar.shade.io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 @Data
-@ApiModel(value = "携程撞库规则列表查询参数")
+@Schema(description = "携程撞库规则列表查询参数")
 public class CollidingRuleListParam implements Serializable {
 
     private static final long serialVersionUID = -5816759852739248423L;
@@ -37,10 +37,10 @@ public class CollidingRuleListParam implements Serializable {
     @ApiModelProperty("排序类型 正序:asc 倒叙:desc")
     private String orderType;
 
-    @ApiModelProperty(value = "当前页数")
+    @Schema(description = "当前页数")
     private Integer current = 1;
 
-    @ApiModelProperty(value = "每页显示条数")
+    @Schema(description = "每页显示条数")
     private Integer size = 20;
 
     // 添加自定义逻辑方法，在设置 collidingStartTime 时进行转换

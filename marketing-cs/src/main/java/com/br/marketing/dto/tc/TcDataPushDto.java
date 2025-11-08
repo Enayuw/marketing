@@ -1,6 +1,6 @@
 package com.br.marketing.dto.tc;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.NotEmpty;
@@ -9,30 +9,30 @@ import javax.validation.constraints.NotNull;
 @Data
 public class TcDataPushDto extends TcDataDto{
 
-    @ApiModelProperty(value = "resetPushFlag")
+    @Schema(description = "resetPushFlag")
     private Boolean resetPushFlag;
 
-    @ApiModelProperty(value = "fileUrl")
+    @Schema(description = "fileUrl")
     @NotNull(message = "fileUrl必传")
     @NotEmpty(message = "fileUrl必传")
     private String fileUrl;
 
-    @ApiModelProperty(value = "fileExpirationTime")
+    @Schema(description = "fileExpirationTime")
     @NotNull(message = "fileExpirationTime必传")
     @NotEmpty(message = "fileExpirationTime必传")
     private String fileExpirationTime;
 
-    @ApiModelProperty(value = "startDate")
+    @Schema(description = "startDate")
     @NotNull(message = "startDate必传")
     @NotEmpty(message = "startDate必传")
     private String startDate;
 
-    @ApiModelProperty(value = "endDate")
+    @Schema(description = "endDate")
     @NotNull(message = "endDate必传")
     @NotEmpty(message = "endDate必传")
     private String endDate;
 
-    @ApiModelProperty(value = "total")
+    @Schema(description = "total")
     @NotNull(message = "total必传")
     @NotEmpty(message = "total必传")
     private Long total;

@@ -1,6 +1,6 @@
 package com.br.marketing.dto;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -23,10 +23,10 @@ public class MarketingPreUserDTO implements Serializable {
     /**
      * 是否最后一次，0:非最后一次，1:最后一次
      * */
-    @ApiModelProperty(value = "是否最后一次，0:非最后一次，1:最后一次")
+    @Schema(description = "是否最后一次，0:非最后一次，1:最后一次")
     private String last;
 
-    @ApiModelProperty(value = "总数据量")
+    @Schema(description = "总数据量")
     /**
      * 总数据量
      * */

@@ -1,6 +1,6 @@
 package com.br.marketing.vo.bi.param;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;
@@ -10,13 +10,13 @@ public class BiReportStatisticTransferParam {
 
 
     @NotNull(message = "报表类型不能为空")
-    @ApiModelProperty(value = "报表类型，必填字段")
+    @Schema(description = "报表类型，必填字段")
     private String reportTypeName;
 
-    @ApiModelProperty(value = "统计日期")
+    @Schema(description = "统计日期")
     private String reportDate;
 
-    @ApiModelProperty(value = "客户编号")
+    @Schema(description = "客户编号")
     private String apiCode;
 
 

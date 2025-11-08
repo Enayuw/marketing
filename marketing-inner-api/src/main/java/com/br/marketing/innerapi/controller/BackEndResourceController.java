@@ -11,7 +11,7 @@ import com.br.marketing.innerapi.service.ResourceAllocationService;
 import com.br.marketing.mapper.XieChengDataMapper;
 import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.service.ICustomerConfigService;
-import io.swagger.annotations.ApiOperation;
+import org.apache.pulsar.shade.io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

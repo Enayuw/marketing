@@ -1,6 +1,6 @@
 package com.br.marketing.dto.tc;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
@@ -11,25 +11,25 @@ import javax.validation.constraints.NotNull;
 @Data
 public class TcTransformNotifyDto extends TcDataDto{
 
-    @ApiModelProperty(value = "userKey")
+    @Schema(description = "userKey")
     @NotNull(message = "userKey必传")
     @NotEmpty(message = "userKey必传")
     private String userKey;
 
-    @ApiModelProperty(value = "transformNode")
+    @Schema(description = "transformNode")
     @NotNull(message = "transformNode必传")
     @NotEmpty(message = "transformNode必传")
     private String transformNode;
 
-    @ApiModelProperty(value = "nodeStatus")
+    @Schema(description = "nodeStatus")
     @NotNull(message = "nodeStatus必传")
     @NotEmpty(message = "nodeStatus必传")
     private String nodeStatus;
 
-    @ApiModelProperty(value = "transformAmount")
+    @Schema(description = "transformAmount")
     private Long transformAmount;
 
-    @ApiModelProperty(value = "transformTime")
+    @Schema(description = "transformTime")
     @NotNull(message = "transformTime必传")
     @NotEmpty(message = "transformTime必传")
     private String transformTime;

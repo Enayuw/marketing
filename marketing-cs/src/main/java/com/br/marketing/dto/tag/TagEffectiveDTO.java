@@ -1,6 +1,6 @@
 package com.br.marketing.dto.tag;
 
-import io.swagger.annotations.ApiModelProperty;
+import org.apache.pulsar.shade.io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 /**

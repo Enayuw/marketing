@@ -1,35 +1,35 @@
 package com.br.marketing.vo;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
 public class ScoreConditionDetailVO {
 
-    @ApiModelProperty(value = "规则id")
+    @Schema(description = "规则id")
     private Long id;
 
-    @ApiModelProperty(value = "规则编号")
+    @Schema(description = "规则编号")
     private String conditionNumber;
 
-    @ApiModelProperty(value = "apiCode")
+    @Schema(description = "apiCode")
     private String apiCode;
 
-    @ApiModelProperty(value = "状态 1-开始；2-关闭")
+    @Schema(description = "状态 1-开始；2-关闭")
     private Integer status;
 
-    @ApiModelProperty(value = "规则名称")
+    @Schema(description = "规则名称")
     private String name;
 
-    @ApiModelProperty(value = "规则内容")
+    @Schema(description = "规则内容")
     private String contentShow;
 
-    @ApiModelProperty(value = "标签规则")
+    @Schema(description = "标签规则")
     private String tagContent;
 
-    @ApiModelProperty(value = "创建时间")
+    @Schema(description = "创建时间")
     private String createTime;
 
-    @ApiModelProperty(value = "更新时间")
+    @Schema(description = "更新时间")
     private String updateTime;
 }

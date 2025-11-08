@@ -2,12 +2,12 @@ package com.br.marketing.vo.xiecheng.param;
 
 import java.io.Serializable;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import org.apache.pulsar.shade.io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 @Data
-@ApiModel(value = "携程撞库规则 确认/暂存 参数")
+@Schema(description = "携程撞库规则 确认/暂存 参数")
 public class CollidingRuleConfirmParam implements Serializable {
 
     private static final long serialVersionUID = 1270257474084816056L;

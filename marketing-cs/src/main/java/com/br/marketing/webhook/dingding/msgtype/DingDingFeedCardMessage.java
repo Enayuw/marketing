@@ -1,7 +1,6 @@
 package com.br.marketing.webhook.dingding.msgtype;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.io.Serializable;
 import java.util.List;
@@ -12,7 +11,7 @@ import java.util.List;
  * @author Guo Zeqiang
  * @dateTime 2023-08-17 10:28
  */
-@ApiModel(value = "FeedCard 消息")
+@Schema(description = "FeedCard 消息")
 public class DingDingFeedCardMessage extends AbstractRobotSendRequest {
 
     private static final long serialVersionUID = 2930193924823528243L;
@@ -20,7 +19,7 @@ public class DingDingFeedCardMessage extends AbstractRobotSendRequest {
      * 2023-08-17 19:23
      * FeedCard
      */
-    @ApiModelProperty(value = "FeedCard")
+    @Schema(description = "FeedCard")
     private FeedCard feedCard;
 
     public DingDingFeedCardMessage() {
@@ -54,7 +53,7 @@ public class DingDingFeedCardMessage extends AbstractRobotSendRequest {
          * 多条文本
          * 必填
          */
-        @ApiModelProperty(value = "多条文本", required = true)
+        @Schema(description = "多条文本", required = true)
         private List<Link> links;
 
         public FeedCard() {
@@ -87,7 +86,7 @@ public class DingDingFeedCardMessage extends AbstractRobotSendRequest {
          * 单条信息文本
          * 必填
          */
-        @ApiModelProperty(value = "单条信息文本", required = true)
+        @Schema(description = "单条信息文本", required = true)
         private String title;
 
 
@@ -96,7 +95,7 @@ public class DingDingFeedCardMessage extends AbstractRobotSendRequest {
          * 点击单条信息到跳转链接。
          * 必填
          */
-        @ApiModelProperty(value = "点击单条信息到跳转链接", required = true)
+        @Schema(description = "点击单条信息到跳转链接", required = true)
         private String messageUrl;
 
         /**
@@ -104,7 +103,7 @@ public class DingDingFeedCardMessage extends AbstractRobotSendRequest {
          * 单条信息后面图片的URL。
          * 必填
          */
-        @ApiModelProperty(value = "单条信息后面图片的URL", required = true)
+        @Schema(description = "单条信息后面图片的URL", required = true)
         private String picUrl;
 
         public Link() {

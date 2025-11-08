@@ -1,6 +1,6 @@
 package com.br.marketing.dto;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -8,31 +8,31 @@ import java.util.List;
 
 public class ConditionSaveDTO{
 
-    @ApiModelProperty(value = "商户编号")
+    @Schema(description = "商户编号")
     @NotNull(message = "商户编个号不能为空")
     private String apiCode;
 
-    @ApiModelProperty(value = "规则名称")
+    @Schema(description = "规则名称")
     @NotNull(message = "规则名称不能为空")
     private String name;
 
-    @ApiModelProperty(value = "查询规则")
+    @Schema(description = "查询规则")
     @NotNull(message = "查询规则不能为空")
     private String mRuleCondition;
 
-    @ApiModelProperty(value = "查询规则用于前端展示文本")
+    @Schema(description = "查询规则用于前端展示文本")
     private String mRuleConditionShow;
 
-    @ApiModelProperty(value = "评分分布规则")
+    @Schema(description = "评分分布规则")
     private String mScoreCondition;
 
-    @ApiModelProperty(value = "标签规则")
+    @Schema(description = "标签规则")
     private String mTagCondition;
 
-    @ApiModelProperty(value = "数据源类型")
+    @Schema(description = "数据源类型")
     private Integer sourceType;
 
-    @ApiModelProperty(value = "数据源内容")
+    @Schema(description = "数据源内容")
     private List<String> sources;
 
     public String getApiCode() {

@@ -4,12 +4,12 @@ import java.io.Serializable;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import org.apache.pulsar.shade.io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 @Data
-@ApiModel(value = "携程撞库暂存规则VO")
+@Schema(description = "携程撞库暂存规则VO")
 public class XiechengCollidingStagingRuleVO implements Serializable {
     private static final long serialVersionUID = -6620381451286081664L;
 

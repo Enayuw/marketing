@@ -1,6 +1,6 @@
 package com.br.marketing.dto.datagroup;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.hibernate.validator.constraints.NotEmpty;
 
@@ -13,20 +13,20 @@ import org.hibernate.validator.constraints.NotEmpty;
 @Data
 public class DataGroupConfgDTO {
 
-    @ApiModelProperty(value = "主键id")
+    @Schema(description = "主键id")
     private Long id;
 
     /**
      * apiCode
      */
-    @ApiModelProperty(value = "apiCode")
+    @Schema(description = "apiCode")
     @NotEmpty
     private String apiCode;
 
     /**
      * 上传数据记录ID集合，多个,分割
      */
-    @ApiModelProperty(value = "上传数据记录ID集合，多个,分割")
+    @Schema(description = "上传数据记录ID集合，多个,分割")
     @NotEmpty
     private String ids;
 
@@ -34,7 +34,7 @@ public class DataGroupConfgDTO {
     /**
      * 分组规则json格式
      */
-    @ApiModelProperty(value = "分组规则json格式")
+    @Schema(description = "分组规则json格式")
     @NotEmpty
     private String groupRules;
 
@@ -42,7 +42,7 @@ public class DataGroupConfgDTO {
     /**
      * 操作类型：0-新增，1-删除
      */
-    @ApiModelProperty(value = "操作类型：0-新增，1-删除")
+    @Schema(description = "操作类型：0-新增，1-删除")
     private String operType;
 
 

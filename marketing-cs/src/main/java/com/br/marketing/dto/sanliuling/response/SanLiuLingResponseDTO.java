@@ -1,6 +1,6 @@
 package com.br.marketing.dto.sanliuling.response;
 
-import io.swagger.annotations.ApiModelProperty;
+import org.apache.pulsar.shade.io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.Getter;
 

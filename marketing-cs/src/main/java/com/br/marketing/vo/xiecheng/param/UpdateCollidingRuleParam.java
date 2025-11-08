@@ -1,11 +1,11 @@
 package com.br.marketing.vo.xiecheng.param;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import org.apache.pulsar.shade.io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 @Data
-@ApiModel(value = "修改撞库规则参数")
+@Schema(description = "修改撞库规则参数")
 public class UpdateCollidingRuleParam {
 
     @ApiModelProperty("主键id")

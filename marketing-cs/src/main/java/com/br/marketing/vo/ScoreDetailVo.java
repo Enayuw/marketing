@@ -1,38 +1,38 @@
 package com.br.marketing.vo;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
 public class ScoreDetailVo {
 
-    @ApiModelProperty(value = "客户批次号")
+    @Schema(description = "客户批次号")
     private String cusBatchNumber;
 
-    @ApiModelProperty(value = "内部客户批次号")
+    @Schema(description = "内部客户批次号")
     private String batchNumber;
 
-    @ApiModelProperty(value = "跑分文件id")
+    @Schema(description = "跑分文件id")
     private Long fileId;
 
-    @ApiModelProperty(value = "统计下载路径")
+    @Schema(description = "统计下载路径")
     private String statisticFilePath;
 
-    @ApiModelProperty(value = "跑分时间")
+    @Schema(description = "跑分时间")
     private String scoreBeginTime;
 
-    @ApiModelProperty(value = "apiCode")
+    @Schema(description = "apiCode")
     private String apiCode;
 
-    @ApiModelProperty(value = "跑分数量")
+    @Schema(description = "跑分数量")
     private Integer actualNum;
 
-    @ApiModelProperty(value = "模型名称")
+    @Schema(description = "模型名称")
     private String productName;
 
-    @ApiModelProperty(value = "场景")
+    @Schema(description = "场景")
     private String userType;
 
-    @ApiModelProperty(value = "cid")
+    @Schema(description = "cid")
     private String cid;
 }

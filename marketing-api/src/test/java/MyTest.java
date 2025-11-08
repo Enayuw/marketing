@@ -11,7 +11,6 @@ import com.br.marketing.mapper.XiechengCollidingDataProcessTaskMapper;
 import com.br.marketing.retry.DatabaseOperationService;
 import com.br.marketing.util.GeneScriptUtil;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.junit.Test;

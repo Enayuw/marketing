@@ -7,7 +7,7 @@ import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ClusterEnum;
 import com.br.marketing.common.utils.StringUtils;
-import io.swagger.annotations.Api;
+import org.apache.pulsar.shade.io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
