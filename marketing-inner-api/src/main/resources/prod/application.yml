@@ -34,6 +34,18 @@ pagehelper:
   rowBoundsWithCount: true
   reasonable: true #启用合理化，如果pageNum<1会查询第一页，如果pageNum>pages会查询最后一页
   params: count=countSql
+
+# SpringDoc OpenAPI 配置
+springdoc:
+  api-docs:
+    enabled: false
+    path: /v3/api-docs
+  swagger-ui:
+    config-url: /compass-api/api/marketing-inner-api/v3/api-docs/swagger-config
+    url: /compass-api/api/marketing-inner-api/v3/api-docs
+    path: /swagger-ui.html
+    disable-swagger-default-url: false
+
 #exporter监控
 endpoints:
   prometheus:

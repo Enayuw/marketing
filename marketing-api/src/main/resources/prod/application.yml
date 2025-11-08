@@ -25,6 +25,18 @@ mybatis:
   mapper-locations: mapper/*.xml
   configuration:
     map-underscore-to-camel-case: true
+    
+# SpringDoc OpenAPI 配置
+springdoc:
+  api-docs:
+    enabled: false
+    path: /v3/api-docs
+  swagger-ui:
+    config-url: /compass-api/api/marketing-api/v3/api-docs/swagger-config
+    url: /compass-api/api/marketing-api/v3/api-docs
+    path: /swagger-ui.html
+    disable-swagger-default-url: false
+
 #exporter监控
 endpoints:
   prometheus:
