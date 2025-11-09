@@ -21,19 +21,10 @@ public interface IPushPreviewStrategy {
     Result<PushViewVO> execute(PushCustomerDTO dto);
 
     /**
-     * 判断是否支持该策略
+     * 获取策略类型
      *
-     * @param dto 推送客户DTO
-     * @return true-支持，false-不支持
+     * @return 策略类型枚举
      */
-    boolean support(PushCustomerDTO dto);
-
-    /**
-     * 策略优先级，数字越小优先级越高
-     * 上传任务优先级最高，其次是携程跑分，再次是合并跑分，最后是通用跑分
-     *
-     * @return 优先级值
-     */
-    int priority();
+    PushPreviewStrategyEnum getStrategyType();
 }
 

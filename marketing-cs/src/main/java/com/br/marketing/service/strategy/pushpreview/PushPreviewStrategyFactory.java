@@ -1,18 +1,16 @@
 package com.br.marketing.service.strategy.pushpreview;
 
-import com.br.marketing.dto.PushCustomerDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 推送预览策略工厂
- * 负责管理所有推送预览策略，并根据请求选择合适的策略
+ * 负责管理所有推送预览策略，并根据策略类型枚举获取对应策略
  *
  * @author system
  * @date 2025-11-09
@@ -34,50 +32,40 @@ public class PushPreviewStrategyFactory {
     private CommonScorePushPreviewStrategy commonScorePushPreviewStrategy;
 
     /**
-     * 策略列表，按优先级排序
+     * 策略映射表：枚举 -> 策略实例
      */
-    private List<IPushPreviewStrategy> strategies;
+    private Map<PushPreviewStrategyEnum, IPushPreviewStrategy> strategyMap;
 
     /**
-     * 初始化策略列表
+     * 初始化策略映射表
      */
     @PostConstruct
     public void init() {
-        strategies = new ArrayList<>();
-        strategies.add(uploadTaskPushPreviewStrategy);
-        strategies.add(xieChengScorePushPreviewStrategy);
-        strategies.add(mergeScorePushPreviewStrategy);
-        strategies.add(commonScorePushPreviewStrategy);
+        strategyMap = new HashMap<>();
+        strategyMap.put(PushPreviewStrategyEnum.UPLOAD_TASK, uploadTaskPushPreviewStrategy);
+        strategyMap.put(PushPreviewStrategyEnum.XIE_CHENG_SCORE, xieChengScorePushPreviewStrategy);
+        strategyMap.put(PushPreviewStrategyEnum.MERGE_SCORE, mergeScorePushPreviewStrategy);
+        strategyMap.put(PushPreviewStrategyEnum.COMMON_SCORE, commonScorePushPreviewStrategy);
 
-        // 按优先级排序，优先级值越小越靠前
-        strategies.sort(Comparator.comparingInt(IPushPreviewStrategy::priority));
-
-        log.info("推送预览策略工厂初始化完成，共加载 {} 个策略", strategies.size());
+        log.warn("推送预览策略工厂初始化完成，共加载 {} 个策略", strategyMap.size());
     }
 
     /**
-     * 根据DTO选择合适的策略
-     * 策略匹配顺序：
-     * 1. 上传任务 (优先级1)
-     * 2. 携程跑分任务 (优先级2)
-     * 3. 合并跑分任务 (优先级3)
-     * 4. 通用跑分任务 (优先级4，兜底)
+     * 根据策略类型枚举获取对应的策略
      *
-     * @param dto 推送客户DTO
-     * @return 匹配的策略
-     * @throws IllegalArgumentException 如果没有找到合适的策略
+     * @param strategyType 策略类型枚举
+     * @return 对应的策略实例
+     * @throws IllegalArgumentException 如果策略类型不存在
      */
-    public IPushPreviewStrategy getStrategy(PushCustomerDTO dto) {
-        for (IPushPreviewStrategy strategy : strategies) {
-            if (strategy.support(dto)) {
-                log.warn("推送预览策略匹配成功：{}, 任务类型：{}, apiCode：{}",
-                        strategy.getClass().getSimpleName(), 
-                        dto.getTaskType(), 
-                        dto.getApiCode());
-                return strategy;
-            }
+    public IPushPreviewStrategy getStrategy(PushPreviewStrategyEnum strategyType) {
+        IPushPreviewStrategy strategy = strategyMap.get(strategyType);
+        if (strategy == null) {
+            throw new IllegalArgumentException("未找到对应的推送预览策略：" + strategyType);
         }
-        throw new IllegalArgumentException("未找到合适的推送预览策略");
+        log.warn("推送预览策略获取成功：{}, 策略类型：{}", 
+                strategy.getClass().getSimpleName(), 
+                strategyType.getDesc());
+        return strategy;
     }
 }
 

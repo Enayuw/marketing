@@ -3,7 +3,6 @@ package com.br.marketing.service.strategy.pushpreview;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.dto.PushCustomerDTO;
-import com.br.marketing.enums.TaskTypeEnum;
 import com.br.marketing.service.Impl.PushRuleServiceImpl;
 import com.br.marketing.vo.xiecheng.PushViewVO;
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +11,6 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Objects;
 
 /**
  * 通用跑分任务推送预览策略
@@ -34,8 +32,7 @@ public class CommonScorePushPreviewStrategy implements IPushPreviewStrategy {
         // 调用联邦查询获取数量
         Result<PushViewVO> pushViewVOResult = pushRuleService.queryFederation(dto, pushViewVO);
         if (!ResultCode.SUCCESS.getValue().equals(pushViewVOResult.getCode())) {
-            return new Result<String>().setCode(ResultCode.FAIL.getValue())
-                    .setMessage(pushViewVOResult.getMessage());
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage(pushViewVOResult.getMessage());
         }
         
         int total = pushViewVOResult.getData().getTotal();
@@ -58,20 +55,8 @@ public class CommonScorePushPreviewStrategy implements IPushPreviewStrategy {
     }
 
     @Override
-    public boolean support(PushCustomerDTO dto) {
-        // 首先必须是跑分任务
-        if (Objects.equals(dto.getTaskType(), TaskTypeEnum.UPLOAD_TASKS.getValue())) {
-            return false;
-        }
-        
-        // 通用跑分是兜底策略，当其他跑分策略都不支持时使用
-        // 这里返回true，因为它是最后一个策略（优先级最低）
-        return true;
-    }
-
-    @Override
-    public int priority() {
-        return 4;
+    public PushPreviewStrategyEnum getStrategyType() {
+        return PushPreviewStrategyEnum.COMMON_SCORE;
     }
 }
 

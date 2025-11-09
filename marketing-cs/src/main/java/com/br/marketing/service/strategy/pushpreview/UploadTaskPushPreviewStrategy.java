@@ -4,7 +4,6 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.dto.PushCustomerDTO;
 import com.br.marketing.entity.MarketingSyncReport;
-import com.br.marketing.enums.TaskTypeEnum;
 import com.br.marketing.mapper.MarketingSyncReportMapper;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.service.rulecenter.impl.push.UploadRePushPolicyStrategy;
@@ -18,7 +17,6 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -60,8 +58,7 @@ public class UploadTaskPushPreviewStrategy implements IPushPreviewStrategy {
         // 2. 批量查询所有的MarketingSyncReport
         List<MarketingSyncReport> syncReports = syncReportMapper.selectByIds(ids);
         if (syncReports.isEmpty()) {
-            return new Result<String>().setCode(ResultCode.FAIL.getValue())
-                    .setMessage("未查询到上传任务，任务ids：" + ids);
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("未查询到上传任务，任务ids：" + ids);
         }
 
         // 3. 解析页面规则条件
@@ -97,12 +94,7 @@ public class UploadTaskPushPreviewStrategy implements IPushPreviewStrategy {
     }
 
     @Override
-    public boolean support(PushCustomerDTO dto) {
-        return Objects.equals(dto.getTaskType(), TaskTypeEnum.UPLOAD_TASKS.getValue());
-    }
-
-    @Override
-    public int priority() {
-        return 1;
+    public PushPreviewStrategyEnum getStrategyType() {
+        return PushPreviewStrategyEnum.UPLOAD_TASK;
     }
 }

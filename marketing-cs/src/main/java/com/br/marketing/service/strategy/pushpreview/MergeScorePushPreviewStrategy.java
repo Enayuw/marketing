@@ -3,7 +3,6 @@ package com.br.marketing.service.strategy.pushpreview;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.dto.PushCustomerDTO;
-import com.br.marketing.enums.TaskTypeEnum;
 import com.br.marketing.mapper.TagDataRuleCalculateMapper;
 import com.br.marketing.service.datagroup.rulecenter.RuleCenterLabelService;
 import com.br.marketing.vo.xiecheng.PushViewVO;
@@ -13,7 +12,6 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Objects;
 
 /**
  * 合并跑分任务推送预览策略
@@ -64,19 +62,8 @@ public class MergeScorePushPreviewStrategy implements IPushPreviewStrategy {
     }
 
     @Override
-    public boolean support(PushCustomerDTO dto) {
-        // 首先必须是跑分任务
-        if (Objects.equals(dto.getTaskType(), TaskTypeEnum.UPLOAD_TASKS.getValue())) {
-            return false;
-        }
-        
-        // 判断是否为合并跑分
-        return Objects.nonNull(dto.getIsScoreMerge()) && dto.getIsScoreMerge();
-    }
-
-    @Override
-    public int priority() {
-        return 3;
+    public PushPreviewStrategyEnum getStrategyType() {
+        return PushPreviewStrategyEnum.MERGE_SCORE;
     }
 }
 

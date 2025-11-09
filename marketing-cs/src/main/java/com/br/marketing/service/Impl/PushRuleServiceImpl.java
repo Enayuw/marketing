@@ -89,6 +89,7 @@ import com.br.marketing.service.rulecenter.RuleCenterBySourceTypeFactory;
 import com.br.marketing.service.rulecenter.enums.RuleCenterPushTargetEnum;
 import com.br.marketing.service.rulecenter.impl.push.UploadRePushPolicyStrategy;
 import com.br.marketing.service.strategy.pushpreview.IPushPreviewStrategy;
+import com.br.marketing.service.strategy.pushpreview.PushPreviewStrategyEnum;
 import com.br.marketing.service.strategy.pushpreview.PushPreviewStrategyFactory;
 import com.br.marketing.service.tag.calculate.TagHandleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -1390,8 +1391,14 @@ public class PushRuleServiceImpl implements PushRuleService {
     public Result<PushViewVO> pushPreview(PushCustomerDTO dto) {
         // 使用策略模式处理推送预览
         try {
-            // 参数校验：跑分任务需要校验批次号和文件ID
-            if (!Objects.equals(dto.getTaskType(), TaskTypeEnum.UPLOAD_TASKS.getValue())) {
+            // 1. 判断任务类型，确定使用哪个策略
+            PushPreviewStrategyEnum strategyType;
+            
+            if (Objects.equals(dto.getTaskType(), TaskTypeEnum.UPLOAD_TASKS.getValue())) {
+                // 上传任务策略
+                strategyType = PushPreviewStrategyEnum.UPLOAD_TASK;
+            } else {
+                // 跑分任务需要参数校验
                 if (dto.getBatchNumberList().isEmpty()) {
                     return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("批次号不能为空");
                 }
@@ -1400,10 +1407,22 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
                 // 校验加密类型一致性
                 AssertResult.assertResult(checkThreekEnc(dto.getFileIdList()));
+                
+                // 判断跑分任务的具体类型
+                if (isXieChengData(dto)) {
+                    // 携程跑分任务策略
+                    strategyType = PushPreviewStrategyEnum.XIE_CHENG_SCORE;
+                } else if (Objects.nonNull(dto.getIsScoreMerge()) && dto.getIsScoreMerge()) {
+                    // 合并跑分任务策略
+                    strategyType = PushPreviewStrategyEnum.MERGE_SCORE;
+                } else {
+                    // 通用跑分任务策略
+                    strategyType = PushPreviewStrategyEnum.COMMON_SCORE;
+                }
             }
 
-            // 获取合适的策略并执行
-            IPushPreviewStrategy strategy = pushPreviewStrategyFactory.getStrategy(dto);
+            // 2. 根据策略类型获取策略并执行
+            IPushPreviewStrategy strategy = pushPreviewStrategyFactory.getStrategy(strategyType);
             return strategy.execute(dto);
         } catch (Exception e) {
             log.error("推送预览执行失败，apiCode: {}, taskType: {}", dto.getApiCode(), dto.getTaskType(), e);
