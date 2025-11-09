@@ -1,8 +1,5 @@
 package com.br.marketing.service.Impl;
 
-import com.alibaba.fastjson.JSON;
-import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
-import com.br.marketing.client.intelligentcustomerservice.output.PolicyResultByTaskIdsDTO;
 import com.br.marketing.client.marketingapi.MarketingApiService;
 import com.br.marketing.client.marketingapi.input.PushTransferDataDetailDTO;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
@@ -12,147 +9,39 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.PushInfoFilterDTO;
 import com.br.marketing.dto.qifu.UpLoadCleanDTO;
-import com.br.marketing.entity.*;
-import com.br.marketing.enums.TaskTypeEnum;
-import com.br.marketing.mapper.*;
+import com.br.marketing.entity.Log360ai;
+import com.br.marketing.entity.Log360aiExample;
+import com.br.marketing.mapper.Log360aiMapper;
 import com.br.marketing.service.Impl.qifu.valobj.QiFuCleanStatusEnum;
 import com.br.marketing.service.PushInfoService;
-import com.br.marketing.vo.PushInfoListVO;
-import com.br.marketing.vo.RulePushLogOfStatusVO;
-import com.github.pagehelper.PageHelper;
+import com.br.marketing.service.strategy.pushinfolist.IPushInfoListStrategy;
+import com.br.marketing.service.strategy.pushinfolist.PushInfoListStrategyFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class PushInfoServiceImpl implements PushInfoService {
 
-    @Autowired
-    private CustomerInfoPushMainMapper customerInfoPushMainMapper;
-
-    @Autowired
-    private CustomerInfoPushBatchMapper customerInfoPushBatchMapper;
-
-    @Autowired
-    private CustomerInfoPushLogMapper customerInfoPushLogMapper;
     @Resource
-    MarketingTaskUserTypeMapper marketingTaskUserTypeMapper;
-
-    @Autowired
-    private IntelligentCustomerServiceClient intelligentCustomerServiceClient;
-
-    @Autowired
-    private MarketingSyncReportMapper syncReportMapper;
+    private Log360aiMapper log360aiMapper;
 
     @Resource
-    Log360aiMapper log360aiMapper;
+    private PushInfoListStrategyFactory pushInfoListStrategyFactory;
 
     @Override
     public PageResultReturn getPushInfoList(PushInfoFilterDTO dto) {
-        // 上传任务
-        if(Objects.equals(dto.getTaskType(), TaskTypeEnum.UPLOAD_TASKS.getValue())){
-            return getUplodPushInfoList(dto);
-        }else {
-            return getScorePushInfoList(dto);
+        try {
+            // 根据任务类型获取对应策略并执行
+            IPushInfoListStrategy strategy = pushInfoListStrategyFactory.getStrategy(dto.getTaskType());
+            return strategy.execute(dto);
+        } catch (Exception e) {
+            log.error("查询推送信息列表失败，taskType: {}, apiCode: {}", dto.getTaskType(), dto.getmApiCode(), e);
+            throw new RuntimeException("查询推送信息列表失败: " + e.getMessage(), e);
         }
-    }
-    private PageResultReturn getUplodPushInfoList(PushInfoFilterDTO dto) {
-        PageHelper.startPage(dto.getCurrent(), dto.getSize());
-        List<PushInfoListVO> list = customerInfoPushMainMapper.getUplodPushInfoList(dto);
-        List<Long> ids = list.stream().map(t -> t.getId()).collect(Collectors.toList());
-        List<String> failStatusIds =list.stream().filter(t->t.getmStatus().equals(5)).map(t->String.valueOf(t.getId())).collect(Collectors.toList());
-        if(ids.size()>0) {
-            Map<String,Map<String,Object>> resultMap = new HashMap<>();
-            if (!CollectionUtils.isEmpty(failStatusIds)) {
-                Result<List<PolicyResultByTaskIdsDTO>> result = intelligentCustomerServiceClient.getTaskIdsResult(dto.getmApiCode(), failStatusIds);
-                if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                    List<PolicyResultByTaskIdsDTO> resultByTaskIdsDTOS = result.getData();
-                    resultByTaskIdsDTOS.forEach(policyResultByTaskIdsDTO -> {
-                        Map errorMap = JSON.parseObject(policyResultByTaskIdsDTO.getVerificationReason());
-                        resultMap.put(policyResultByTaskIdsDTO.getVerification(), errorMap);
-                    });
-                } else {
-                    log.warn("决策查询接口异常result={}", JSON.toJSONString(result));
-                }
-            }
-            list.forEach(t -> {
-                String uploadReportIds = t.getUploadReportIds();
-                List<Long> listIds = Arrays.stream(uploadReportIds.split(",")).map(Long::parseLong).collect(Collectors.toList());
-                MarketingSyncReportExample syncReportExample = new MarketingSyncReportExample();
-                syncReportExample.createCriteria().andIdIn(listIds);
-                List<MarketingSyncReport> marketingSyncReports = syncReportMapper.selectByExample(syncReportExample);
-
-                String result = marketingSyncReports.stream()
-                        .map(MarketingSyncReport::getUserType)
-                        .filter(userType -> userType != null && !userType.trim().isEmpty())
-                        .collect(Collectors.joining(","));
-                t.setUserType(result);
-
-                List<Map> msgList = new ArrayList<>();
-                Map map = resultMap.get(t.getId().toString());
-                msgList.add(map);
-                t.setReturnMessages(msgList);
-            });
-        }
-        return PageResultReturn.setPageResult(list, dto.getCurrent(), dto.getSize());
-    }
-
-    private PageResultReturn getScorePushInfoList(PushInfoFilterDTO dto) {
-        final char ch = ',';
-        PageHelper.startPage(dto.getCurrent(), dto.getSize());
-        List<PushInfoListVO> list = customerInfoPushMainMapper.getPushInfoList(dto);
-        List<Long> ids = list.stream().map(t -> t.getId()).collect(Collectors.toList());
-        List<String> failStatusIds =list.stream().filter(t->t.getmStatus().equals(5)).map(t->String.valueOf(t.getId())).collect(Collectors.toList());
-        if(ids.size()>0) {
-            CustomerInfoPushBatchExample example = new CustomerInfoPushBatchExample();
-            example.createCriteria().andMIdIn(ids).andIsDelEqualTo(1);
-            List<CustomerInfoPushBatch> batches = customerInfoPushBatchMapper.selectByExample(example);
-
-            HashMap<Long, String> batchNumberOfMid = batches.stream()
-                    .collect(Collectors.groupingBy(CustomerInfoPushBatch::getmId
-                            , HashMap::new
-                            , Collectors.mapping(CustomerInfoPushBatch::getmBatchNumber, Collectors.joining(","))));
-
-            List<RulePushLogOfStatusVO> rulePushLogOfStatusVOS = customerInfoPushLogMapper.selectRealStatusByMid(ids);
-            Map<Long, List<RulePushLogOfStatusVO>> realStatusOfMid = rulePushLogOfStatusVOS.stream()
-                    .collect(Collectors.groupingBy(RulePushLogOfStatusVO::getMId));
-            Map<String,Map<String,Object>> resultMap = new HashMap<>();
-            if (!CollectionUtils.isEmpty(failStatusIds)) {
-                Result<List<PolicyResultByTaskIdsDTO>> result = intelligentCustomerServiceClient.getTaskIdsResult(dto.getmApiCode(), failStatusIds);
-                if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                    List<PolicyResultByTaskIdsDTO> resultByTaskIdsDTOS = result.getData();
-                    resultByTaskIdsDTOS.forEach(policyResultByTaskIdsDTO -> {
-                        Map errorMap = JSON.parseObject(policyResultByTaskIdsDTO.getVerificationReason());
-                        resultMap.put(policyResultByTaskIdsDTO.getVerification(), errorMap);
-                    });
-                } else {
-                    log.warn("决策查询接口异常result={}", JSON.toJSONString(result));
-                }
-            }
-            list.forEach(t -> {
-                String batchNumber = batchNumberOfMid.get(t.getId());
-                t.setBatchNumbers(batchNumber);
-                if(!StringUtils.isEmpty(batchNumber)){
-                    List<String> userTypeList = marketingTaskUserTypeMapper.queryUserTypeByBatchNumbertikv_(batchNumber);
-                    if(null != userTypeList){
-                        String userType = userTypeList.stream().collect(Collectors.joining(","));
-                        t.setUserType(userType);
-                    }
-                }
-                List<Map> msgList = new ArrayList<>();
-                Map map = resultMap.get(t.getId().toString());
-                msgList.add(map);
-                t.setReturnMessages(msgList);
-            });
-        }
-        return PageResultReturn.setPageResult(list, dto.getCurrent(), dto.getSize());
     }
 
     @Autowired

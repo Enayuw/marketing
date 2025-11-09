@@ -28,7 +28,7 @@
             order by bcipm.id desc
     </select>
 
-    <select id="getUplodPushInfoList" resultType="com.br.marketing.vo.PushInfoListVO" parameterType="com.br.marketing.dto.PushInfoFilterDTO">
+    <select id="getPushInfoList" resultType="com.br.marketing.vo.PushInfoListVO">
         select id,
         m_api_code as api_code,
         m_cus_batch_number_list as mCusBatchNumberList,
@@ -42,65 +42,32 @@
         m_status as mStatus,
         batch_name as  batchName,
         push_target as pushTarget,
-        upload_report_ids as uploadReportIds,
-        extend
+        extend,
+        upload_report_ids as uploadReportIds
         from b_customer_info_push_main
         where is_del=1
-        and m_status !=-1 and push_target = 4
-        <if test="mApiCode !=null and mApiCode !=''">
-            and m_api_code = #{mApiCode}
-        </if>
-        <if test="pushBeginTime !=null and pushBeginTime!=''">
-            <![CDATA[  and create_time >=#{pushBeginTime} ]]>
-        </if>
-        <if test="pushEndTime !=null and pushEndTime!=''">
-            <![CDATA[  and create_time <=#{pushEndTime} ]]>
-        </if>
-        <if test="pushInfoId !=null and pushInfoId!=''">
-            and id = #{pushInfoId}
-        </if>
-        <if test="mStatusList !=null and mStatusList.size()>0">
-            and m_status in
-            <foreach collection="mStatusList" item="item" open="(" close=")" separator=",">
+          and m_status !=-1
+        <if test="pushTargets !=null and pushTargets.size()>0">
+            and push_target in
+            <foreach collection="pushTargets" item="item" open="(" close=")" separator=",">
                 #{item}
             </foreach>
         </if>
-        order by create_time desc,update_time desc,id desc
-    </select>
-
-    <select id="getPushInfoList" resultType="com.br.marketing.vo.PushInfoListVO" parameterType="com.br.marketing.dto.PushInfoFilterDTO">
-        select id,
-        m_api_code as api_code,
-        m_cus_batch_number_list as mCusBatchNumberList,
-        m_rule_condition_show as mRuleConditionShow,
-        m_rule_condition as mRuleCondition,
-        m_score_condition as mScoreCondition,
-        m_realy_num as mRealyNum,
-        m_plan_num as mPlanNum,
-        m_percentage as mPercentage,
-        DATE_FORMAT(create_time,'%Y-%m-%d %H:%i:%s') as createTime,
-        m_status as mStatus,
-        batch_name as  batchName,
-        push_target as pushTarget,
-        extend
-        from b_customer_info_push_main
-        where is_del=1
-          and m_status !=-1 and push_target != 1 and push_target != 4
-        <if test="mApiCode !=null and mApiCode !=''">
-            and m_api_code = #{mApiCode}
+        <if test="dto.mApiCode !=null and dto.mApiCode !=''">
+            and m_api_code = #{dto.mApiCode}
         </if>
-        <if test="pushBeginTime !=null and pushBeginTime!=''">
-            <![CDATA[  and create_time >=#{pushBeginTime} ]]>
+        <if test="dto.pushBeginTime !=null and dto.pushBeginTime!=''">
+            <![CDATA[  and create_time >=#{dto.pushBeginTime} ]]>
         </if>
-        <if test="pushEndTime !=null and pushEndTime!=''">
-            <![CDATA[  and create_time <=#{pushEndTime} ]]>
+        <if test="dto.pushEndTime !=null and dto.pushEndTime!=''">
+            <![CDATA[  and create_time <=#{dto.pushEndTime} ]]>
         </if>
-        <if test="pushInfoId !=null and pushInfoId!=''">
-            and id = #{pushInfoId}
+        <if test="dto.pushInfoId !=null and dto.pushInfoId!=''">
+            and id = #{dto.pushInfoId}
         </if>
-        <if test="mStatusList !=null and mStatusList.size()>0">
+        <if test="dto.mStatusList !=null and dto.mStatusList.size()>0">
             and m_status in
-            <foreach collection="mStatusList" item="item" open="(" close=")" separator=",">
+            <foreach collection="dto.mStatusList" item="item" open="(" close=")" separator=",">
                 #{item}
             </foreach>
         </if>
