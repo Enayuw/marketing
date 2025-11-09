@@ -88,6 +88,8 @@ import com.br.marketing.service.rulecenter.IRuleCenterFilterTemplateService;
 import com.br.marketing.service.rulecenter.RuleCenterBySourceTypeFactory;
 import com.br.marketing.service.rulecenter.enums.RuleCenterPushTargetEnum;
 import com.br.marketing.service.rulecenter.impl.push.UploadRePushPolicyStrategy;
+import com.br.marketing.service.strategy.pushpreview.IPushPreviewStrategy;
+import com.br.marketing.service.strategy.pushpreview.PushPreviewStrategyFactory;
 import com.br.marketing.service.tag.calculate.TagHandleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.utils.PulsarConsumerSkipUtil;
@@ -295,6 +297,9 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Autowired
     private TagDataRuleCalculateMapper tagDataRuleCalculateMapper;
+
+    @Resource
+    private PushPreviewStrategyFactory pushPreviewStrategyFactory;
 
     private static final String TITLE = "【通用跑分文件推决策】";
 
@@ -711,95 +716,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(customerInfoPushMain.getId().toString());
     }
 
-    private Result<PushViewVO> getUplodTotal(PushCustomerDTO dto) {
-        int total = 0;
-        PushViewVO pushViewVO = new PushViewVO();
-
-        String uploadReportId = dto.getUploadReportId();
-        if(StringUtils.isEmpty(uploadReportId)){
-            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("入参缺少上传记录id");
-        }
-
-        String[] split = uploadReportId.split(",");
-        // 1. 转换为Long类型的ID列表
-        List<Long> ids = Arrays.stream(split)
-                .map(String::trim)
-                .map(Long::valueOf)
-                .collect(Collectors.toList());
-
-        // 2. 批量查询所有的MarketingSyncReport
-        List<MarketingSyncReport> syncReports = syncReportMapper.selectByIds(ids);
-        if(syncReports.isEmpty()){
-            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("未查询到上传任务，任务ids：" + ids);
-        }
-
-        // 3. 解析页面规则条件
-        String filterCondition = uploadRePushPolicyStrategy.getUploadDataCondition(dto.getmRuleCondition(), dto.getApiCode());
-        log.warn("解析页面规则条件 sql={}", filterCondition);
-
-
-        // 4. 循环查询每个条件的数据量级并累加
-        String repushTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-        String today = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-        for (MarketingSyncReport report : syncReports) {
-            if (report != null) {
-                String apiCode = report.getApiCode();
-                String appletDate = report.getAppletDate();
-                String userType = report.getUserType();
-                
-                // 判断appletDate是否为当天，只有当天才需要时间条件
-                if (today.equals(appletDate)) {
-                    repushTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-                }
-                // 非当天数据：createTime 和 updateTime 保持为 null，只使用 appletDate 条件
-                
-                // 单次查询该条件的数据量级
-                Integer count = marketingSyncUserMapper.countByCondition(
-                        apiCode, appletDate, userType, repushTime, filterCondition);
-                total += (count != null ? count : 0);
-            }
-        }
-
-        pushViewVO.setTotal(total);
-        pushViewVO.setRepushTime(repushTime);
-        return new Result<PushViewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushViewVO);
-    }
-
-    private Result<PushViewVO> getScoreTotal(PushCustomerDTO dto) {
-        int total;
-        PushViewVO pushViewVO = new PushViewVO();
-        if (isXieChengData(dto)) {
-            total = getXieChengDataNum(dto.getmRuleCondition(), dto.getBatchNumberList(), pushViewVO);
-        } else if (Objects.nonNull(dto.getIsScoreMerge()) && dto.getIsScoreMerge()) {
-            //合并跑分计算
-            long start = System.currentTimeMillis();
-            // 组装查询sql
-            String countSql = "SELECT COUNT(1) ".concat(ruleCenterLabelService.scoreMergeAssemble(dto));
-            // 执行查询获取统计数量
-            Integer count = tagDataRuleCalculateMapper.getCountbI_(countSql);
-            log.warn("跑分合并预览量级查询sql={}，耗时={}ms", countSql, System.currentTimeMillis() - start);
-            total = (count != null ? count : 0);
-        } else {
-            Result<PushViewVO> pushViewVOResult = this.queryFederation(dto, pushViewVO);
-            if (!ResultCode.SUCCESS.getValue().equals(pushViewVOResult.getCode())) {
-                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage(pushViewVOResult.getMessage());
-            }
-            total = pushViewVOResult.getData().getTotal();
-        }
-        if (total <= 0) {
-            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("无符合的数据");
-        }
-        if (dto.getmPercentage() != null) {
-            if (dto.getmPercentage().compareTo(new BigDecimal(0)) <= 0) {
-                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("百分比不能小于等于0");
-            }
-            Integer res = dto.getmPercentage().multiply(new BigDecimal(total)).setScale(0, RoundingMode.UP).intValue();
-            return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
-        }
-        pushViewVO.setTotal(total);
-        return new Result<PushViewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushViewVO);
-    }
-
     @Override
     public Result<PushViewVO> queryFederation(PushCustomerDTO dto, PushViewVO pushViewVO) {
         QueryBaseBean queryBaseBean = new QueryBaseBean();
@@ -965,7 +881,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         return sql;
     }
 
-    private int getXieChengDataNum(String mRuleCondition, List<String> batchNumberList, PushViewVO pushViewVO) {
+    public int getXieChengDataNum(String mRuleCondition, List<String> batchNumberList, PushViewVO pushViewVO) {
         //blacklist_delete有值时，前端控制不会做量级预览
         int total = 0;
         String querySql = "";
@@ -1472,18 +1388,26 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public Result<PushViewVO> pushPreview(PushCustomerDTO dto) {
-        // 上传任务
-        if(Objects.equals(dto.getTaskType(), TaskTypeEnum.UPLOAD_TASKS.getValue())){
-            return getUplodTotal(dto);
-        }else {
-            if(dto.getBatchNumberList().isEmpty()){
-                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("批次号不能为空");
+        // 使用策略模式处理推送预览
+        try {
+            // 参数校验：跑分任务需要校验批次号和文件ID
+            if (!Objects.equals(dto.getTaskType(), TaskTypeEnum.UPLOAD_TASKS.getValue())) {
+                if (dto.getBatchNumberList().isEmpty()) {
+                    return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("批次号不能为空");
+                }
+                if (dto.getFileIdList().isEmpty()) {
+                    return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("fileIdList不能为空");
+                }
+                // 校验加密类型一致性
+                AssertResult.assertResult(checkThreekEnc(dto.getFileIdList()));
             }
-            if(dto.getFileIdList().isEmpty()){
-                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("fileIdList不能为空");
-            }
-            AssertResult.assertResult(checkThreekEnc(dto.getFileIdList()));
-            return getScoreTotal(dto);
+
+            // 获取合适的策略并执行
+            IPushPreviewStrategy strategy = pushPreviewStrategyFactory.getStrategy(dto);
+            return strategy.execute(dto);
+        } catch (Exception e) {
+            log.error("推送预览执行失败，apiCode: {}, taskType: {}", dto.getApiCode(), dto.getTaskType(), e);
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("推送预览执行失败: " + e.getMessage());
         }
     }
 
