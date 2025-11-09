@@ -748,19 +748,14 @@ public class PushRuleServiceImpl implements PushRuleService {
                 String userType = report.getUserType();
                 
                 // 判断appletDate是否为当天，只有当天才需要时间条件
-                String createTime = null;
-                String updateTime = null;
                 if (today.equals(appletDate)) {
-                    // 当天数据：需要时间条件
-                    createTime = report.getAppletBeginTime() != null ?
-                            new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(report.getAppletBeginTime()) : null;
-                    updateTime = repushTime;
+                    repushTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
                 }
                 // 非当天数据：createTime 和 updateTime 保持为 null，只使用 appletDate 条件
                 
                 // 单次查询该条件的数据量级
                 Integer count = marketingSyncUserMapper.countByCondition(
-                        apiCode, appletDate, userType, createTime, updateTime, filterCondition);
+                        apiCode, appletDate, userType, repushTime, filterCondition);
                 total += (count != null ? count : 0);
             }
         }

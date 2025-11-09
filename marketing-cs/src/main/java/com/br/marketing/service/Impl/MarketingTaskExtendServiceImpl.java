@@ -64,15 +64,15 @@ public class MarketingTaskExtendServiceImpl implements MarketingTaskExtendServic
         Set<String> baseHeadList = new HashSet<>();
         Set<String> fieldsList = new HashSet<>();
         // 数据准备：查询文件信息
-        List<Long> fileIds = Arrays.stream(ids.split(",")).map(Long::valueOf).collect(Collectors.toList());
+        List<Long> taskIds = Arrays.stream(ids.split(",")).map(Long::valueOf).collect(Collectors.toList());
 
         // 根据 taskType 判断处理逻辑
         if (taskType != null && taskType == 1) {
             // 上传任务处理
-            processUploadTask(fileIds, baseHeadList, fieldsList);
+            processUploadTask(taskIds, baseHeadList, fieldsList);
         } else {
             // 跑分任务处理
-            processScoreTask(fileIds, baseHeadList, fieldsList);
+            processScoreTask(taskIds, baseHeadList, fieldsList);
         }
         
         map.put("showBaseHead", baseHeadList);
@@ -84,17 +84,17 @@ public class MarketingTaskExtendServiceImpl implements MarketingTaskExtendServic
      * 处理上传任务：根据 apiCode 查询 JSON 结构表获取字段
      * 根据 parentPath 是否包含 .reserveField1 判断字段放入 baseHeadList 还是 fieldsList
      *
-     * @param fileIds  上传记录id
+     * @param taskIds  上传任务id
      * @param baseHeadList  基础字段集合
      * @param fieldsList    业务字段集合
      */
-    private void processUploadTask(List<Long> fileIds, Set<String> baseHeadList, Set<String> fieldsList) {
+    private void processUploadTask(List<Long> taskIds, Set<String> baseHeadList, Set<String> fieldsList) {
         log.warn("上传任务处理，查询JSON结构表");
 
         // 提取 apiCode
-        MarketingSyncReport marketingSyncReport = syncReportMapper.selectByPrimaryKey(fileIds.get(0));
+        MarketingSyncReport marketingSyncReport = syncReportMapper.selectByPrimaryKey(taskIds.get(0));
         if (marketingSyncReport == null) {
-            log.warn("未查询到上传数据记录，fileIds: {}", fileIds.get(0));
+            log.warn("未查询到上传数据记录，fileIds: {}", taskIds.get(0));
             return;
         }
 
@@ -136,15 +136,15 @@ public class MarketingTaskExtendServiceImpl implements MarketingTaskExtendServic
     /**
      * 处理跑分任务：查询任务扩展表获取字段
      *
-     * @param fileIds  跑分记录id
+     * @param taskIds  跑分记录id
      * @param baseHeadList  基础字段集合
      * @param fieldsList    业务字段集合
      */
-    private void processScoreTask(List<Long> fileIds, Set<String> baseHeadList, Set<String> fieldsList) {
+    private void processScoreTask(List<Long> taskIds, Set<String> baseHeadList, Set<String> fieldsList) {
         log.warn("跑分任务处理，查询任务扩展表");
 
         StraHisFileExample straHisFileExample = new StraHisFileExample();
-        straHisFileExample.createCriteria().andIdIn(fileIds);
+        straHisFileExample.createCriteria().andIdIn(taskIds);
         List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
         Assert.notEmpty(straHisFiles, "没有匹配到文件信息");
 

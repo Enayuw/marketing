@@ -480,16 +480,14 @@ public interface MarketingSyncUserMapper {
      * @param apiCode API编码
      * @param appletDate 上传日期
      * @param userType 用户类型
-     * @param createTime 创建时间
-     * @param updateTime 更新时间
+     * @param repushTime 更新时间
      * @param filterCondition 过滤条件
      * @return 数据量级
      */
     Integer countByCondition(@Param("apiCode") String apiCode, 
                             @Param("appletDate") String appletDate,
                             @Param("userType") String userType,
-                            @Param("createTime") String createTime, 
-                            @Param("updateTime") String updateTime,
+                            @Param("repushTime") String repushTime,
                             @Param("filterCondition") String filterCondition);
 
 }

@@ -1213,11 +1213,8 @@
         select count(*)
         from b_marketing_sync_${apiCode}
         where applet_date = #{appletDate}
-        <if test="createTime != null and createTime.trim() neq ''">
-            <![CDATA[ and create_time >= #{createTime} ]]>
-        </if>
         <if test="updateTime != null and updateTime.trim() neq ''">
-            <![CDATA[ and create_time <= #{updateTime} ]]>
+            <![CDATA[ and create_time <= #{repushTime} ]]>
         </if>
         and user_type = #{userType}
         and status = 1
