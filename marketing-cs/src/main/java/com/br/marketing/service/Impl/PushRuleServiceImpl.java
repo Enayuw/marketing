@@ -91,6 +91,8 @@ import com.br.marketing.service.rulecenter.impl.push.UploadRePushPolicyStrategy;
 import com.br.marketing.service.strategy.pushpreview.IPushPreviewStrategy;
 import com.br.marketing.service.strategy.pushpreview.PushPreviewStrategyEnum;
 import com.br.marketing.service.strategy.pushpreview.PushPreviewStrategyFactory;
+import com.br.marketing.service.strategy.pushcustomer.IPushCustomerStrategy;
+import com.br.marketing.service.strategy.pushcustomer.PushCustomerStrategyFactory;
 import com.br.marketing.service.tag.calculate.TagHandleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.utils.PulsarConsumerSkipUtil;
@@ -301,6 +303,9 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Resource
     private PushPreviewStrategyFactory pushPreviewStrategyFactory;
+
+    @Resource
+    private PushCustomerStrategyFactory pushCustomerStrategyFactory;
 
     private static final String TITLE = "【通用跑分文件推决策】";
 
@@ -549,172 +554,31 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Result<String> pushCustomer(PushCustomerDTO dto) {
-        // 上传任务
-        if(Objects.equals(dto.getTaskType(), TaskTypeEnum.UPLOAD_TASKS.getValue())){
-            return pushUplodCustomer(dto);
-        }else {
-            return pushScoreCustomer(dto);
-        }
-    }
-
-    private Result<String> pushUplodCustomer(PushCustomerDTO dto) {
-
-        if (dto.getmPlanNum() != null && dto.getmPlanNum() <= 0) {
-            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("推送数量不能小于等于0");
-        }
-        if (dto.getmPercentage() != null && dto.getmPercentage().compareTo(new BigDecimal(0)) <= 0) {
-            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("百分比不能小于等于0");
-        }
-
-        CustomerInfoPushMain customerInfoPushMain = new CustomerInfoPushMain();
-        customerInfoPushMain.setmApiCode(dto.getApiCode());
-        customerInfoPushMain.setmApiCode(dto.getApiCode());
-        customerInfoPushMain.setmRuleCondition(dto.getmRuleCondition());
-        customerInfoPushMain.setmRuleConditionShow(dto.getmRuleConditionShow());
-        customerInfoPushMain.setmScoreCondition(dto.getmScoreCondition());
-        customerInfoPushMain.setmPercentage(dto.getmPercentage());
-        customerInfoPushMain.setmPlanNum(dto.getmPlanNum());
-        customerInfoPushMain.setmRealyNum(dto.getmPrePlanNum());
         try {
-            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            customerInfoPushMain.setCreateTime(formatter.parse(dto.getRepushTime()));
-        }catch (Exception e){
-            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("重推框定数据时间转换异常:"+e.getMessage());
-        }
+            PushPreviewStrategyEnum strategyType;
 
-        customerInfoPushMain.setUpdateTime(new Date());
-        customerInfoPushMain.setmStatus(PushRuleStatusEnum.TO_BE_RUNNING.getValue());
-        customerInfoPushMain.setOptUserId(String.valueOf(dto.getUserDetail().getId()));
-        customerInfoPushMain.setOptUserName(dto.getUserDetail().getRealName());
-        customerInfoPushMain.setTagContent(dto.getmTagCondition());
-        customerInfoPushMain.setPushTarget(RuleCenterPushTargetEnum.UPLOAD_REPUSH_POLICY.getCode());
-        customerInfoPushMain.setUploadReportIds(dto.getUploadReportId());
-        customerInfoPushMainMapper.insertSelective(customerInfoPushMain);
-        //数据集名称更新
-        String batchName;
-        if (StringUtils.isNotEmpty(dto.getBatchName())) {
-            batchName = dto.getBatchName();
-        } else {  //默认名称
-            if (StringUtils.isNotEmpty(dto.getRuleModelName())) {
-                batchName = LocalDate.now().toString().concat("-").concat(dto.getRuleModelName()).concat("-").concat(LocalTime.now().withNano(0)
-                        .toString());
+            // 判断任务类型，选择对应策略
+            if (Objects.equals(dto.getTaskType(), TaskTypeEnum.UPLOAD_TASKS.getValue())) {
+                strategyType = PushPreviewStrategyEnum.UPLOAD_TASK;
             } else {
-                batchName = LocalDate.now().toString().concat("-").concat(customerInfoPushMain.getId().toString()).concat("-").
-                        concat(LocalTime.now().withNano(0).toString());
+                // 跑分任务需要校验加密类型
+                AssertResult.assertResult(checkThreekEnc(dto.getFileIdList()));
+
+                if (isXieChengData(dto)) {
+                    strategyType = PushPreviewStrategyEnum.XIE_CHENG_SCORE;
+                } else if (Objects.nonNull(dto.getIsScoreMerge()) && dto.getIsScoreMerge()) {
+                    strategyType = PushPreviewStrategyEnum.MERGE_SCORE;
+                } else {
+                    strategyType = PushPreviewStrategyEnum.COMMON_SCORE;
+                }
             }
-        }
-        CustomerInfoPushMain updatePushMain = new CustomerInfoPushMain();
-        updatePushMain.setId(customerInfoPushMain.getId());
-        updatePushMain.setBatchName(batchName);
-        customerInfoPushMainMapper.updateByPrimaryKeySelective(updatePushMain);
-        return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(customerInfoPushMain.getId().toString());
-    }
 
-    private Result<String> pushScoreCustomer(PushCustomerDTO dto) {
-
-        if(dto.getBatchNumberList().isEmpty()){
-            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("批次号不能为空");
+            IPushCustomerStrategy strategy = pushCustomerStrategyFactory.getStrategy(strategyType);
+            return strategy.execute(dto);
+        } catch (Exception e) {
+            log.error("推送客户执行失败，apiCode: {}, taskType: {}", dto.getApiCode(), dto.getTaskType(), e);
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("推送客户执行失败: " + e.getMessage());
         }
-        if(dto.getFileIdList().isEmpty()){
-            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("fileIdList不能为空");
-        }
-
-        AssertResult.assertResult(checkThreekEnc(dto.getFileIdList()));
-        /**
-         * 先校验下 传过来的批次和 模型是否匹配
-         * 推送mq
-         */
-        //region check
-        if (dto.getBatchNumberList().size() > 50) {
-            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("批次最多选择50个");
-        }
-        if (dto.getmPlanNum() != null && dto.getmPlanNum() <= 0) {
-            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("推送数量不能小于等于0");
-        }
-        if (dto.getmPercentage() != null && dto.getmPercentage().compareTo(new BigDecimal(0)) <= 0) {
-            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("百分比不能小于等于0");
-        }
-
-        StraHisFileExample fileExample = new StraHisFileExample();
-        fileExample.createCriteria().andIdIn(dto.getFileIdList());
-        List<StraHisFile> files = straHisFileMapper.selectByExample(fileExample);
-        CustomerInfoPushMain customerInfoPushMain = new CustomerInfoPushMain();
-        Integer pushNum;
-        //携程撞库，则不再查询Doris，由前端透传
-        //事务@Transactional方法中，切换数据源会失效
-        if (isXieChengData(dto)) {
-            JSONObject jsonObject = JSON.parseObject(dto.getmRuleCondition());
-            XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
-            XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
-            pushNum = dto.getmPrePlanNum();
-            customerInfoPushMain.setFilterType(1);
-            Boolean xcTruePushCustomerPushPreviewOptFlag = marketingCommonConfig.getXcTruePushCustomerPushPreviewOptFlag();
-            if (!xcTruePushCustomerPushPreviewOptFlag) {
-                customerInfoPushMain.setExtend(cycleDataQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO));
-            } else {
-                List<String> querySqls = new ArrayList<>();
-                cycleDataQueryOpt(jsonObject, dto.getBatchNumberList(), collidingFilterDTO, querySqls);
-                customerInfoPushMain.setExtend(String.join(";", querySqls));
-            }
-        } else {
-            pushNum = dto.getmPrePlanNum();
-        }
-        //endregion
-
-        //region insert db
-        StraHisFileExample straHisFileExample = new StraHisFileExample();
-        straHisFileExample.createCriteria().andIdIn(dto.getFileIdList());
-        List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
-        List<String> showTitles = straHisFiles.stream().map(t -> t.getBatchNumber()).collect(Collectors.toList());
-        customerInfoPushMain.setmApiCode(dto.getApiCode());
-        customerInfoPushMain.setmRuleCondition(dto.getmRuleCondition());
-        customerInfoPushMain.setmRuleConditionShow(dto.getmRuleConditionShow());
-        customerInfoPushMain.setmScoreCondition(dto.getmScoreCondition());
-        customerInfoPushMain.setmPercentage(dto.getmPercentage());
-        customerInfoPushMain.setmPlanNum(dto.getmPlanNum());
-        customerInfoPushMain.setmRealyNum(pushNum);
-        Date date = new Date();
-        customerInfoPushMain.setCreateTime(date);
-        customerInfoPushMain.setUpdateTime(date);
-        customerInfoPushMain.setmCusBatchNumberList(Joiner.on(",").join(showTitles));
-        customerInfoPushMain.setmStatus(PushRuleStatusEnum.TO_BE_RUNNING.getValue());
-        customerInfoPushMain.setOptUserId(String.valueOf(dto.getUserDetail().getId()));
-        customerInfoPushMain.setOptUserName(dto.getUserDetail().getRealName());
-        customerInfoPushMain.setTagContent(dto.getmTagCondition());
-        if (Objects.nonNull(dto.getIsScoreMerge()) && dto.getIsScoreMerge()) {
-            customerInfoPushMain.setPushTarget(2);
-            customerInfoPushMain.setExtend(dto.getScoreMergeField());
-        }
-        customerInfoPushMainMapper.insertSelective(customerInfoPushMain);
-        //数据集名称更新
-        String batchName;
-        if (StringUtils.isNotEmpty(dto.getBatchName())) {
-            batchName = dto.getBatchName();
-        } else {  //默认名称
-            if (StringUtils.isNotEmpty(dto.getRuleModelName())) {
-                batchName = LocalDate.now().toString().concat("-").concat(dto.getRuleModelName()).concat("-").concat(LocalTime.now().withNano(0)
-                        .toString());
-            } else {
-                batchName = LocalDate.now().toString().concat("-").concat(customerInfoPushMain.getId().toString()).concat("-").
-                        concat(LocalTime.now().withNano(0).toString());
-            }
-        }
-        CustomerInfoPushMain updatePushMain = new CustomerInfoPushMain();
-        updatePushMain.setId(customerInfoPushMain.getId());
-        updatePushMain.setBatchName(batchName);
-        customerInfoPushMainMapper.updateByPrimaryKeySelective(updatePushMain);
-        files.forEach(t -> {
-            CustomerInfoPushBatch customerInfoPushBatch = new CustomerInfoPushBatch();
-            customerInfoPushBatch.setmId(customerInfoPushMain.getId());
-            customerInfoPushBatch.setmApiCode(dto.getApiCode());
-            customerInfoPushBatch.setmBatchNumber(t.getBatchNumber());
-            customerInfoPushBatch.setCreateTime(date);
-            customerInfoPushBatch.setUpdateTime(date);
-            customerInfoPushBatch.setmFileId(t.getId());
-            customerInfoPushBatchMapper.insertSelective(customerInfoPushBatch);
-        });
-        //endregion
-        return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(customerInfoPushMain.getId().toString());
     }
 
     @Override
@@ -1234,7 +1098,7 @@ public class PushRuleServiceImpl implements PushRuleService {
      * @param collidingFilterDTO
      * @param querySqls
      */
-    private void cycleDataQueryOpt(JSONObject jsonObject, List<String> batchNumberList,
+    public void cycleDataQueryOpt(JSONObject jsonObject, List<String> batchNumberList,
                                    XieChengCollidingFilterDTO collidingFilterDTO, List<String> querySqls) {
         String cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where release_time>= " +
                 "DATE_ADD(CURDATE(), INTERVAL 1 DAY)  and  release_time< DATE_ADD(CURDATE(), INTERVAL 7 DAY) and is_delete=0";
@@ -1259,7 +1123,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
     }
 
-    private String cycleDataQuery(JSONObject jsonObject, List<String> batchNumberList, XieChengCollidingFilterDTO xieChengCollidingFilterDTO) {
+    public String cycleDataQuery(JSONObject jsonObject, List<String> batchNumberList, XieChengCollidingFilterDTO xieChengCollidingFilterDTO) {
         String scoreSql = scoreSql(jsonObject, batchNumberList);
         String cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where release_time>= " +
                 "DATE_ADD(CURDATE(), INTERVAL 1 DAY)  and  release_time< DATE_ADD(CURDATE(), INTERVAL 7 DAY) and is_delete=0";
