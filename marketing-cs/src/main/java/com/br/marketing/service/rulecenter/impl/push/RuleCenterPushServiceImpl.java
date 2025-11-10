@@ -51,7 +51,7 @@ public class RuleCenterPushServiceImpl implements IRuleCenterPushService {
 
         CustomerInfoPushMain customerInfoPushMain = customerInfoPushMainMapper.selectByPrimaryKey(id);
         Integer pushTarget = customerInfoPushMain.getPushTarget();
-        CustomerInfoPushBatchExample searchPushBatch = new CustomerInfoPushBatchExample();
+        /*CustomerInfoPushBatchExample searchPushBatch = new CustomerInfoPushBatchExample();
         searchPushBatch.createCriteria().andMIdEqualTo(customerInfoPushMain.getId());
         List<CustomerInfoPushBatch> customerInfoPushBatches = customerInfoPushBatchMapper.selectByExample(searchPushBatch);
 
@@ -136,13 +136,17 @@ public class RuleCenterPushServiceImpl implements IRuleCenterPushService {
         context.setLabelObject(lableObject);
         context.setPartitionCount((Objects.equals(customerInfoPushMain.getPushTarget(), RuleCenterPushTargetEnum.MERGE_PUSH_POLICY.getCode()) || (Objects.equals(customerInfoPushMain.getPushTarget(), RuleCenterPushTargetEnum.HALO_CALLBACK.getCode()))) ? 1 : parNum);
         context.setEsThreadPool(actionEs);
-        context.setPushThreadPool(pushJc);
-        RuleCenterPushTargetEnum pushTargetEnum = RuleCenterPushTargetEnum.findPushNameByCode(customerInfoPushMain.getPushTarget());
+        context.setPushThreadPool(pushJc);*/
+        RuleCenterPushTargetEnum pushTargetEnum = RuleCenterPushTargetEnum.findPushNameByCode(pushTarget);
         if (pushTargetEnum == null) {
             return new Result<Boolean>().setCode(ResultCode.FAIL.getValue()).setMessage("规则中心数据处理-未匹配到到推送实现");
         }
+        AbstractRuleCenterPushStrategy pushStrategy = SpringContextUtil.getBean(pushTargetEnum.getPushAchieve(), AbstractRuleCenterPushStrategy.class);
+        //获取上下文
+        RuleCenterPushContext context = pushStrategy.assemblePushContext(customerInfoPushMain);
+        //设置线程信息
+        pushStrategy.setThreadPoolNum(context);
         //执行推送策略
-        IRuleCenterPushStrategy pushStrategy = SpringContextUtil.getBean(pushTargetEnum.getPushAchieve(), IRuleCenterPushStrategy.class);
         return pushStrategy.executePush(context);
     }
 }

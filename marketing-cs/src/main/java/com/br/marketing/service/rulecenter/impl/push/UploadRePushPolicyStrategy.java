@@ -6,11 +6,15 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
+import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.*;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.DateHelper;
+import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.dto.SyncOperateTypeDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.*;
@@ -18,12 +22,14 @@ import com.br.marketing.enums.clean.DataProcessEnum;
 import com.br.marketing.mapper.MarketingJsonNodeParseMapper;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingSyncReportMapper;
+import com.br.marketing.rule.ai.policy.AbstractBaseAiToPolicy;
+import com.br.marketing.rule.ai.policy.AiToPolicyProcessorFactory;
 import com.br.marketing.service.ToPolicyByRuleService;
 import com.br.marketing.service.clean.common.DataCleanService;
 import com.br.marketing.service.customertagsprocess.CustomerTagsProcessServiceImpl;
 import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
 import com.br.marketing.service.rulecenter.RuleCenterPushContext;
-import com.br.marketing.service.rulecenter.enums.RuleCenterPushTargetEnum;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.util.EsConditionTransferSqlUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
@@ -35,13 +41,16 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -71,6 +80,13 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
 
     @Resource
     private ToPolicyByRuleService toPolicyByRuleService;
+
+    @Autowired
+    protected AiToPolicyProcessorFactory strategyFactory;
+
+    @Autowired
+    RedisChgService redisChgService;
+
 
     private static final String TITLE = "[上传重推决策]";
 
@@ -112,7 +128,7 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
             log.warn(TITLE + "清洗配置为空，apiCode={}", apiCode);
             return result;
         }
-        // 过滤并提取mappingField字段
+        /*// 过滤并提取mappingField字段
         List<String> mappingFields = configRule.values().stream()
                 .filter(ruleConfig -> ruleConfig.getIsMapping() && StringUtils.isNotEmpty(ruleConfig.getMappingRule()))
                 .map(MarketingDataCleanGeneralRuleConfig::getMappingField)
@@ -121,7 +137,7 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
         if (CollectionUtils.isEmpty(mappingFields)) {
             log.warn(TITLE + "清洗配置规则配置为空，apiCode={}", apiCode);
             return result;
-        }
+        }*/
         marketingSyncReports.forEach(syncreport -> {
             String appletDate = syncreport.getAppletDate();
             String userType = syncreport.getUserType();
@@ -136,7 +152,7 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
                 List<List<MarketingSyncUser>> partitions = ListUtils.partition(syncUsers, 500);
                 partitions.forEach(syncUserList -> {
                     resList.add(cleanPool.submit(() ->
-                            cleanUploadData(syncUserList, configRule.values(), mappingFields, apiCode)));
+                            cleanUploadData(syncUserList, configRule.values(), apiCode)));
                 });
             }
         });
@@ -161,6 +177,12 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SUNING_SERVICEERROR.getCode(), "苏商推送规则二线程池停止异常！"), ex);
             Thread.currentThread().interrupt();
         }
+        if (ResultCode.FAIL.getValue().equals(result.getCode())) {
+            CustomerInfoPushMain main = new CustomerInfoPushMain();
+            main.setId(customerInfoPushMain.getId());
+            main.setmStatus(PushRuleStatusEnum.TO_BE_RUNNING.getValue());
+            customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
+        }
         log.warn(TITLE + "数据清洗结束，耗时{}s", (System.currentTimeMillis() - start) / 1000);
         return result;
 
@@ -171,8 +193,7 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
     }
 
 
-    private Boolean cleanUploadData(List<MarketingSyncUser> syncUserList, Collection<MarketingDataCleanGeneralRuleConfig> ruleConfigList, List<String>
-            mappingFields, String apiCode) {
+    private Boolean cleanUploadData(List<MarketingSyncUser> syncUserList, Collection<MarketingDataCleanGeneralRuleConfig> ruleConfigList, String apiCode) {
         Boolean result = Boolean.TRUE;
         try {
             // 构建批量更新的字段值映射列表
@@ -184,7 +205,7 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
                 jsonObject.put("taskId", syncUser.getCusBatch());
                 //清洗
                 dataCleanService.uploadDetailCleanHandler(jsonObject, ruleConfigList, syncUser);
-                Map<String, Object> fieldValueMap = buildFieldValueMap(syncUser, mappingFields);
+                Map<String, Object> fieldValueMap = buildFieldValueMap(syncUser, ruleConfigList);
                 batchFieldValueMaps.add(fieldValueMap);
                 updateIds.add(syncUser.getId());
 
@@ -192,8 +213,15 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
             // 如果有数据需要更新，构建批量更新SQL
             if (!batchFieldValueMaps.isEmpty()) {
                 String sql = buildBatchUpdateSql(apiCode, updateIds, batchFieldValueMaps);
-                log.warn(TITLE + "生成清洗 Update SQL: {}", sql);
-                marketingSyncInfoMapper.updateRepeatUserStatus(sql);
+                for (int i = 0; i < 3; i++) {
+                    try {
+                        marketingSyncInfoMapper.updateRepeatUserStatus(sql);
+                        return Boolean.TRUE;
+                    } catch (Exception e) {
+                        log.error(TITLE + "清洗sql执行异常,apiCode={},sql={}", apiCode, sql);
+                        result = Boolean.FALSE;
+                    }
+                }
             }
         } catch (Exception ex) {
             log.error(TITLE + "数据清洗线程执行异常" + ex.getMessage(), ex);
@@ -241,28 +269,33 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
     /**
      * 构建字段值映射
      */
-    private Map<String, Object> buildFieldValueMap(MarketingSyncUser syncUser, List<String> mappingFields) {
+    private Map<String, Object> buildFieldValueMap(MarketingSyncUser syncUser, Collection<MarketingDataCleanGeneralRuleConfig> ruleConfigs) {
         Map<String, Object> fieldValueMap = new HashMap<>();
+        //剔除基础字段，并且无规则映射的字段
+        ruleConfigs.removeIf(ruleConfig -> (!"dataItems.item.reserveField1".equals(ruleConfig.getParentPath()))
+                && StringUtils.isEmpty(ruleConfig.getMappingRule()));
+        List<String> mappingFields = ruleConfigs.stream().map(ruleConfig -> ruleConfig.getMappingField()).collect(Collectors.toList());
+        Map<String, String> fieldMapping = getFieldNameMapping();
         for (String fieldName : mappingFields) {
             // 根据字段名获取对应的值（硬编码方式，性能更好）
             switch (fieldName) {
                 case "cell":
-                    fieldValueMap.put(fieldName, syncUser.getCell());
+                    fieldValueMap.put(fieldMapping.getOrDefault(fieldName, fieldName), syncUser.getCell());
                     break;
                 case "name":
-                    fieldValueMap.put(fieldName, syncUser.getName());
+                    fieldValueMap.put(fieldMapping.getOrDefault(fieldName, fieldName), syncUser.getName());
                     break;
                 case "id":
-                    fieldValueMap.put("id_card", syncUser.getIdCard());
+                    fieldValueMap.put(fieldMapping.getOrDefault(fieldName, fieldName), syncUser.getIdCard());
                     break;
                 case "custNum":
-                    fieldValueMap.put("cust_num", syncUser.getCustNum());
+                    fieldValueMap.put(fieldMapping.getOrDefault(fieldName, fieldName), syncUser.getCustNum());
                     break;
                 case "operateType":
-                    fieldValueMap.put("operate_type", syncUser.getOperateType());
+                    fieldValueMap.put(fieldMapping.getOrDefault(fieldName, fieldName), syncUser.getOperateType());
                     break;
                 case "userType":
-                    fieldValueMap.put("user_type", syncUser.getUserType());
+                    fieldValueMap.put(fieldMapping.getOrDefault(fieldName, fieldName), syncUser.getUserType());
                     break;
                 default:
                     fieldValueMap.put("reserve_field1", syncUser.getReserveField1());
@@ -287,18 +320,15 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
         syncReportExample.createCriteria().andIdIn(listIds);
         List<MarketingSyncReport> marketingSyncReports = syncReportMapper.selectByExample(syncReportExample);
         List<SyncOperateTypeDTO> operateTypeDTOList = syncReportMapper.selectOperateTypeGroup(apiCode, marketingSyncReports);
-        //查询重推次数
-        CustomerInfoPushMainExample pushMainExample = new CustomerInfoPushMainExample();
-        pushMainExample.createCriteria()
-                .andMApiCodeEqualTo(apiCode)
-                .andPushTargetEqualTo(RuleCenterPushTargetEnum.UPLOAD_REPUSH_POLICY.getCode())
-                .andCreateTimeGreaterThanOrEqualTo(Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        Long rePushCount = customerInfoPushMainMapper.countByExample(pushMainExample) + 1;
+        //Reidskey自增,查询重推次数
+        String date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String key = RedisKeyConstant.UPLOAD_REPUSH_POLICY_NUM.concat(date).concat(":").concat(apiCode);
+        Long rePushCount = redisChgService.incr(key);
+        redisChgService.expire(key, DateHelper.getRemainSecondsOneDay(new Date()));
         List<Future<Boolean>> resList = new ArrayList<>();
         //处理重复的数据
-        Map<String, Set<String>> custNumMap = handleOperateTypeFiveRepeat(pushPool, condition, pushMain, rePushCount, resList, operateTypeDTOList);
-        //处理重复的数据
-        Map<String, Set<String>> cellMap = handleOperateTypeSixRepeat(pushPool, condition, pushMain, rePushCount, resList, operateTypeDTOList);
+        Map<String, AtomicInteger> custNumMap = new HashMap<>();
+        Map<String, AtomicInteger> cellMap = new HashMap<>();
         operateTypeDTOList.forEach(operateTypeDTO -> {
             String operateType = operateTypeDTO.getOperateType();
             if (StringUtils.isEmpty(operateType)) {
@@ -490,71 +520,88 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
         });
     }
 
-    private void handleOperateTypeFive(ThreadPoolExecutor pushPool, SyncOperateTypeDTO operateTypeDTO, String condition, CustomerInfoPushMain pushMain,
-                                       Long rePushCount, Map<String, Set<String>> custNumMap, List<Future<Boolean>> resList) {
+    private void handleOperateTypeFive(ThreadPoolExecutor pushPool, SyncOperateTypeDTO operateTypeDTO, String condition, CustomerInfoPushMain
+                                               pushMain,
+                                       Long rePushCount, Map<String, AtomicInteger> custNumMap, List<Future<Boolean>> resList) {
         String apiCode = pushMain.getmApiCode();
         String operateType = operateTypeDTO.getOperateType();
         String appletDate = operateTypeDTO.getAppletDate();
         String userType = operateTypeDTO.getUserType();
-        Set<String> custNumSet = custNumMap.get(userType);
         Date createTime = LocalDate.now().toString().equals(appletDate) ? pushMain.getCreateTime() : null;
-        String nowDate = LocalDate.now().toString().replace("-", "");
         CustomerTagsVO tags = customerTagsProcessService.getTags(apiCode);
-        Integer jc3keyType = tags.getPushJc3keyType();
-        String buildBatchNumber = nowDate + "_" + apiCode + "_" + operateType + "_" + userType + "_" + 1 + "_RE_" + rePushCount;
+        List<PushMarketingUserDetailByRuleDTO> pushList = new ArrayList<>();
         Long minId = null;
         while (true) {
             List<MarketingSyncUser> syncUsers = marketingSyncInfoMapper.getMarketingSyncByCondition(apiCode, operateType, appletDate, userType, createTime, condition, minId);
             if (CollectionUtils.isEmpty(syncUsers)) {
                 break;
             }
-            List<MarketingSyncUser> syncUserFilters = new ArrayList<>();
-            syncUserFilters.addAll(syncUsers);
-            //过滤重复的
-            if (!CollectionUtils.isEmpty(custNumSet)) {
-                syncUserFilters = syncUserFilters.stream().filter(syncUser -> custNumSet.contains(syncUser.getCustNum())).collect(Collectors.toList());
+            // 遍历syncUsers，将custNum+userType作为key，AtomicInteger自增作为value
+            for (MarketingSyncUser syncUser : syncUsers) {
+                String key = syncUser.getCustNum() + "_" + syncUser.getUserType();
+                custNumMap.computeIfAbsent(key, k -> new AtomicInteger(0)).incrementAndGet();
+                syncUser.setReserveField1(setExtendField(syncUser.getReserveField1(), "rePeatNum", custNumMap.get(key)));
+                syncUser.setReserveField1(setExtendField(syncUser.getReserveField1(), "rePushNum", rePushCount));
+                ProcessHandlerContext context = new ProcessHandlerContext();
+                context.setApiCode(apiCode);
+                context.setCustomerTagsVO(tags);
+                AbstractBaseAiToPolicy abstractBaseAiToPolicy = (AbstractBaseAiToPolicy) strategyFactory.getStrategy(operateType + "_RE");
+                pushList.add(abstractBaseAiToPolicy.assembleData(syncUser, context));
             }
             minId = syncUsers.get(syncUsers.size() - 1).getId();
-            List<PushMarketingUserDetailByRuleDTO> pushList = new ArrayList<>();
-            buildPushParam(pushList, syncUserFilters, buildBatchNumber, jc3keyType, rePushCount, Boolean.TRUE);
             resList.add(pushPool.submit(() -> uploadPushPolicy(pushList, pushMain)));
         }
-
     }
 
-    private void handleOperateTypeSix(ThreadPoolExecutor pushPool, SyncOperateTypeDTO operateTypeDTO, String condition, CustomerInfoPushMain pushMain,
-                                      Long rePushCount, Map<String, Set<String>> cellMap, List<Future<Boolean>> resList) {
+
+    private String setExtendField(String reserveField1, String field, Object result) {
+        JSONObject jsonObject;
+        if (com.br.marketing.common.utils.StringUtils.isNotEmpty(reserveField1)) {
+            jsonObject = JSONObject.parseObject(reserveField1);
+        } else {
+            jsonObject = new JSONObject();
+        }
+        jsonObject.put(field, result);
+        return jsonObject.toString();
+    }
+
+    private void handleOperateTypeSix(ThreadPoolExecutor pushPool, SyncOperateTypeDTO operateTypeDTO, String condition, CustomerInfoPushMain
+                                              pushMain,
+                                      Long rePushCount, Map<String, AtomicInteger> cellMap, List<Future<Boolean>> resList) {
         String apiCode = pushMain.getmApiCode();
         String operateType = operateTypeDTO.getOperateType();
         String appletDate = operateTypeDTO.getAppletDate();
         String userType = operateTypeDTO.getUserType();
-        Set<String> cellSet = cellMap.get(userType);
         Date createTime = LocalDate.now().toString().equals(appletDate) ? pushMain.getCreateTime() : null;
         String nowDate = LocalDate.now().toString().replace("-", "");
         CustomerTagsVO tags = customerTagsProcessService.getTags(apiCode);
-        Integer jc3keyType = tags.getPushJc3keyType();
-        String buildBatchNumber = nowDate + "_" + apiCode + "_" + operateType + "_" + userType + "_" + 1 + "_RE_" + rePushCount;
         Long minId = null;
+        List<PushMarketingUserDetailByRuleDTO> pushList = new ArrayList<>();
         while (true) {
             List<MarketingSyncUser> syncUsers = marketingSyncInfoMapper.getMarketingSyncByCondition(apiCode, operateType, appletDate, userType, createTime, condition, minId);
             if (CollectionUtils.isEmpty(syncUsers)) {
                 break;
             }
-            List<MarketingSyncUser> syncUserFilters = new ArrayList<>();
-            syncUserFilters.addAll(syncUsers);
-            //过滤重复的
-            if (!CollectionUtils.isEmpty(cellSet)) {
-                syncUserFilters = syncUserFilters.stream().filter(syncUser -> cellSet.contains(syncUser.getCustNum())).collect(Collectors.toList());
+            // 遍历syncUsers，将custNum+userType作为key，AtomicInteger自增作为value
+            for (MarketingSyncUser syncUser : syncUsers) {
+                String key = syncUser.getCustNum() + "_" + syncUser.getUserType();
+                cellMap.computeIfAbsent(key, k -> new AtomicInteger(0)).incrementAndGet();
+                syncUser.setReserveField1(setExtendField(syncUser.getReserveField1(), "rePeatNum", cellMap.get(key)));
+                syncUser.setReserveField1(setExtendField(syncUser.getReserveField1(), "rePushNum", rePushCount));
+                ProcessHandlerContext context = new ProcessHandlerContext();
+                context.setApiCode(apiCode);
+                context.setCustomerTagsVO(tags);
+                AbstractBaseAiToPolicy abstractBaseAiToPolicy = (AbstractBaseAiToPolicy) strategyFactory.getStrategy(operateType + "_RE");
+                pushList.add(abstractBaseAiToPolicy.assembleData(syncUser, context));
             }
             minId = syncUsers.get(syncUsers.size() - 1).getId();
-            List<PushMarketingUserDetailByRuleDTO> pushList = new ArrayList<>();
-            buildPushParam(pushList, syncUserFilters, buildBatchNumber, jc3keyType, rePushCount, Boolean.TRUE);
             resList.add(pushPool.submit(() -> uploadPushPolicy(pushList, pushMain)));
 
         }
     }
 
-    private void handleOperateTypeFour(ThreadPoolExecutor pushPool, SyncOperateTypeDTO operateTypeDTO, String condition, CustomerInfoPushMain pushMain,
+    private void handleOperateTypeFour(ThreadPoolExecutor pushPool, SyncOperateTypeDTO operateTypeDTO, String condition, CustomerInfoPushMain
+                                               pushMain,
                                        Long rePushCount, List<Future<Boolean>> resList) {
         String apiCode = pushMain.getmApiCode();
         String operateType = operateTypeDTO.getOperateType();
@@ -562,22 +609,28 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
         String userType = operateTypeDTO.getUserType();
         Date createTime = LocalDate.now().toString().equals(appletDate) ? pushMain.getCreateTime() : null;
         CustomerTagsVO tags = customerTagsProcessService.getTags(apiCode);
-        Integer jc3keyType = tags.getPushJc3keyType();
-        String buildBatchNumber = LocalDate.now().toString().replace("-", "") + "_" + apiCode + "_" + userType + "_RE_" + rePushCount;
         Long minId = null;
+        List<PushMarketingUserDetailByRuleDTO> pushList = new ArrayList<>();
         while (true) {
             List<MarketingSyncUser> syncUsers = marketingSyncInfoMapper.getMarketingSyncByCondition(apiCode, operateType, appletDate, userType, createTime, condition, minId);
             if (CollectionUtils.isEmpty(syncUsers)) {
                 break;
             }
+            for (MarketingSyncUser syncUser : syncUsers) {
+                syncUser.setReserveField1(setExtendField(syncUser.getReserveField1(), "rePushNum", rePushCount));
+                ProcessHandlerContext context = new ProcessHandlerContext();
+                context.setApiCode(apiCode);
+                context.setCustomerTagsVO(tags);
+                AbstractBaseAiToPolicy abstractBaseAiToPolicy = (AbstractBaseAiToPolicy) strategyFactory.getStrategy(operateType + "_RE");
+                pushList.add(abstractBaseAiToPolicy.assembleData(syncUser, context));
+            }
             minId = syncUsers.get(syncUsers.size() - 1).getId();
-            List<PushMarketingUserDetailByRuleDTO> pushList = new ArrayList<>();
-            buildPushParam(pushList, syncUsers, buildBatchNumber, jc3keyType, rePushCount, Boolean.FALSE);
             resList.add(pushPool.submit(() -> uploadPushPolicy(pushList, pushMain)));
         }
     }
 
-    private void handleOperateTypeThree(ThreadPoolExecutor pushPool, SyncOperateTypeDTO operateTypeDTO, String condition, CustomerInfoPushMain pushMain
+    private void handleOperateTypeThree(ThreadPoolExecutor pushPool, SyncOperateTypeDTO operateTypeDTO, String condition, CustomerInfoPushMain
+                                                pushMain
             , Long rePushCount, List<Future<Boolean>> resList) {
         String apiCode = pushMain.getmApiCode();
         String operateType = operateTypeDTO.getOperateType();
@@ -585,24 +638,30 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
         String userType = operateTypeDTO.getUserType();
         Date createTime = LocalDate.now().toString().equals(appletDate) ? pushMain.getCreateTime() : null;
         CustomerTagsVO tags = customerTagsProcessService.getTags(apiCode);
-        Integer jc3keyType = tags.getPushJc3keyType();
-        String buildBatchNumber = LocalDate.now().toString().replace("-", "") + "_" + apiCode + "_" + "RE_" + rePushCount;
         Long minId = null;
+        List<PushMarketingUserDetailByRuleDTO> pushList = new ArrayList<>();
         while (true) {
             List<MarketingSyncUser> syncUsers = marketingSyncInfoMapper.getMarketingSyncByCondition(apiCode, operateType, appletDate, userType, createTime, condition, minId);
             if (CollectionUtils.isEmpty(syncUsers)) {
                 break;
             }
+            for (MarketingSyncUser syncUser : syncUsers) {
+                syncUser.setReserveField1(setExtendField(syncUser.getReserveField1(), "rePushNum", rePushCount));
+                ProcessHandlerContext context = new ProcessHandlerContext();
+                context.setApiCode(apiCode);
+                context.setCustomerTagsVO(tags);
+                AbstractBaseAiToPolicy abstractBaseAiToPolicy = (AbstractBaseAiToPolicy) strategyFactory.getStrategy(operateType + "_RE");
+                pushList.add(abstractBaseAiToPolicy.assembleData(syncUser, context));
+            }
             minId = syncUsers.get(syncUsers.size() - 1).getId();
-            List<PushMarketingUserDetailByRuleDTO> pushList = new ArrayList<>();
-            buildPushParam(pushList, syncUsers, buildBatchNumber, jc3keyType, rePushCount, Boolean.FALSE);
             resList.add(pushPool.submit(() ->
                     uploadPushPolicy(pushList, pushMain)));
 
         }
     }
 
-    private void buildPushParam(List<PushMarketingUserDetailByRuleDTO> pushList, List<MarketingSyncUser> syncUsers, String buildBatchNumber,
+    private void buildPushParam(List<PushMarketingUserDetailByRuleDTO> pushList, List<MarketingSyncUser> syncUsers, String
+                                        buildBatchNumber,
                                 Integer jc3keyType, Long rePushCount, Boolean isBuild) {
         syncUsers.forEach(syncUser -> {
             String apiCode = syncUser.getApiCode();
@@ -754,7 +813,6 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
         return 0;
     }
 
-
     public String getUploadDataCondition(String ruleCondition, String apiCode) {
         //解析ruleCondition
         if (StringUtils.isEmpty(ruleCondition)) {
@@ -762,19 +820,28 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
         }
         JSONObject ruleConditionObject = JSON.parseObject(ruleCondition);
         JSONArray dataArray = ruleConditionObject.getJSONArray("data");
-        if (dataArray.isEmpty()) {
+        if (CollectionUtils.isEmpty(dataArray)) {
             return null;
         }
         String sqlCondition = EsConditionTransferSqlUtil.jsonTransferSql(ruleConditionObject, "");
         MarketingJsonNodeParseExample jsonNodeParseExample = new MarketingJsonNodeParseExample();
         jsonNodeParseExample.createCriteria().andApiCodeEqualTo(apiCode).andDataTypeEqualTo(DataProcessEnum.UPLOAD_DATA_GENERAL.getDataType()).
-                andAcceptTypeEqualTo(DataProcessEnum.UPLOAD_DATA_GENERAL.getAcceptType())
-                .andParentPathEqualTo("dataItems.item.reserveField1");
+                andAcceptTypeEqualTo(DataProcessEnum.UPLOAD_DATA_GENERAL.getAcceptType());
         List<MarketingJsonNodeParse> jsonNodeParseList = marketingJsonNodeParseMapper.selectByExample(jsonNodeParseExample);
-        List<String> result = jsonNodeParseList.stream().map(MarketingJsonNodeParse::getNodeName).collect(Collectors.toList());
+        // 获取字段名映射关系
+        Map<String, String> fieldMapping = getFieldNameMapping();
 
-        // 遍历result中的字段名，将sqlCondition中匹配的字段替换为JSON提取表达式
-        for (String nodeName : result) {
+        //ParentPath为dataItems.item.reserveField1的节点
+        List<MarketingJsonNodeParse> reserveField1Nodes = jsonNodeParseList.stream()
+                .filter(node -> "dataItems.item.reserveField1".equals(node.getParentPath()))
+                .collect(Collectors.toList());
+        List<String> reserveField1Names = reserveField1Nodes.stream().map(MarketingJsonNodeParse::getNodeName)
+                .collect(Collectors.toList());
+        // 遍历reserveField1中的字段名，将sqlCondition中匹配的字段替换为JSON提取表达式
+        for (String nodeName : reserveField1Names) {
+            if (!sqlCondition.contains(nodeName)) {
+                continue;
+            }
             // 使用正则表达式匹配 - 使用边界匹配确保完整单词
             String pattern = "\\b" + Pattern.quote(nodeName) + "\\b";
             // 将字段名替换为 JSON_UNQUOTE(JSON_EXTRACT(reserve_field1, '$.字段名'))
@@ -783,7 +850,23 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
             Matcher m = p.matcher(sqlCondition);
             sqlCondition = m.replaceAll(Matcher.quoteReplacement(jsonExtractExpr));
         }
-
+        // 处理其他ParentPath的节点，使用字段映射
+        List<MarketingJsonNodeParse> otherNodes = jsonNodeParseList.stream()
+                .filter(node -> !"dataItems.item.reserveField1".equals(node.getParentPath()))
+                .collect(Collectors.toList());
+        for (MarketingJsonNodeParse node : otherNodes) {
+            String nodeName = node.getNodeName();
+            if (!sqlCondition.contains(nodeName)) {
+                continue;
+            }
+            // 检查是否有映射关系，如果有则使用映射后的字段名
+            String mappedFieldName = fieldMapping.getOrDefault(nodeName, nodeName);
+            // 使用正则表达式匹配原字段名
+            String pattern = "\\b" + Pattern.quote(nodeName) + "\\b";
+            Pattern p = Pattern.compile(pattern);
+            Matcher m = p.matcher(sqlCondition);
+            sqlCondition = m.replaceAll(Matcher.quoteReplacement(mappedFieldName));
+        }
         return sqlCondition;
     }
 
@@ -844,6 +927,44 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
         if (StringUtils.isBlank(cusName)) {
             jo.put("cusName", BrCipherMaker.getInstance().decode(name));
         }
+    }
+
+    @Override
+    protected RuleCenterPushContext setThreadPoolNum(RuleCenterPushContext pushContext) {
+        Integer getEsNum = marketingCommonConfig.getScoreByEsThreadNum() != null
+                && marketingCommonConfig.getScoreByEsThreadNum() > 0
+                ? marketingCommonConfig.getScoreByEsThreadNum()
+                : 10;
+
+        Integer getJcNum = marketingCommonConfig.getScoreToJcThreadNum() != null
+                && marketingCommonConfig.getScoreToJcThreadNum() > 0
+                ? marketingCommonConfig.getScoreToJcThreadNum()
+                : 2;
+        ThreadPoolExecutor actionEs = BrExecutors.getThreadPool(getEsNum, getEsNum, 50);
+        ThreadPoolExecutor pushJc = BrExecutors.getThreadPool(getJcNum, getJcNum, 50);
+        pushContext.setEsThreadPool(actionEs);
+        pushContext.setPushThreadPool(pushJc);
+        return pushContext;
+    }
+
+    protected RuleCenterPushContext assemblePushContext(CustomerInfoPushMain customerInfoPushMain) {
+        RuleCenterPushContext pushContext = new RuleCenterPushContext();
+        pushContext.setCustomerInfoPushMain(customerInfoPushMain);
+        return pushContext;
+    }
+
+    /**
+     * 获取上传字段名映射关系
+     */
+    private Map<String, String> getFieldNameMapping() {
+        Map<String, String> fieldMapping = new HashMap<>();
+        fieldMapping.put("id", "id_card");
+        fieldMapping.put("custNum", "cust_num");
+        fieldMapping.put("operateType", "operate_type");
+        fieldMapping.put("userType", "user_type");
+        fieldMapping.put("appletDate", "applet_date");
+        fieldMapping.put("createTime", "create_time");
+        return fieldMapping;
     }
 
 }

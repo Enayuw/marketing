@@ -10,6 +10,7 @@ import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUse
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.CustomerInfoPushMain;
 import com.br.marketing.entity.MarketingRuleCenterHaloCallbackDataExample;
 import com.br.marketing.enums.*;
@@ -468,4 +469,32 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
         result.setMessage("请求失败");
         return result;
     }
+
+    protected RuleCenterPushContext assemblePushContext(CustomerInfoPushMain customerInfoPushMain) {
+        RuleCenterPushContext pushContext = super.assemblePushContext(customerInfoPushMain);
+        pushContext.setPartitionCount(1);
+        return pushContext;
+    }
+
+    @Override
+    protected RuleCenterPushContext setThreadPoolNum(RuleCenterPushContext pushContext) {
+        Integer getEsNum = marketingCommonConfig.getScoreByEsThreadNum() != null
+                && marketingCommonConfig.getScoreByEsThreadNum() > 0
+                ? marketingCommonConfig.getScoreByEsThreadNum()
+                : 10;
+
+        Integer getCallbackNum = marketingCommonConfig.getScoreToCallbackThreadNum() != null
+                && marketingCommonConfig.getScoreToCallbackThreadNum() > 0
+                ? marketingCommonConfig.getScoreToCallbackThreadNum()
+                : 10;
+        ThreadPoolExecutor actionEs = BrExecutors.getThreadPool(getEsNum, getEsNum, 50);
+        ThreadPoolExecutor pushJc = BrExecutors.getThreadPool(getCallbackNum, getCallbackNum, 50);
+        pushContext.setEsThreadPool(actionEs);
+        pushContext.setPushThreadPool(pushJc);
+        return pushContext;
+    }
+
+
+
+
 }
