@@ -3499,4 +3499,15 @@ public class MarketingCommonConfig {
      */
     private List<String> assignedGroups;
 
+    /**
+     * 模拟数据入库成功，但返回异常入Pulsar的场景
+     * marketing_upload_base: 标准上传数据消费端
+     * marketing_transfer_base: 标准转化数据消费端
+     * marketing_upload_sh: 数禾上传数据消费端
+     * marketing_transfer_sh: 数禾转化数据消费端
+     * 配置示例: {"marketing_upload_base":true,"marketing_transfer_base":false,
+     * "marketing_upload_sh":false,"marketing_transfer_sh":false}
+     */
+    private Map<String, Boolean> pushDataSwitch;
+
 }
