@@ -228,12 +228,11 @@ public class ShuHeUserServiceImpl {
         return syncInfo.getId();
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public void saveShTransferData(String apiCode, String jsonData, String requestId, Date createTime) {
         String msg = "";
         ShuheTransferJsonDTO jsonDTO = JSONObject.parseObject(jsonData, new TypeReference<ShuheTransferJsonDTO>() {}.getType());
         String userType = jsonDTO.getBizType();
-        // todo 模拟异常上线后要删除
-        pushRuleService.mockDbOrRedisError(1, apiCode);
         CaseShuheUser caseShuheUser;
         // 2、判断场景类型
         if (StringUtils.isEmpty(userType)) {
@@ -280,6 +279,8 @@ public class ShuHeUserServiceImpl {
         }
         caseShuheUserMapper.insertSelective(caseShuheUser);
         saveShuheTransferInfo(apiCode, caseShuheUser, transferSyncUser);
+        // todo 模拟异常上线后要删除
+        pushRuleService.mockDbOrRedisError(1, apiCode);
     }
 
     private void saveShuheTransferInfo(String apiCode, CaseShuheUser caseShuheUser, MarketingTransferSyncUser transferSyncUser) {

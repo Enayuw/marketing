@@ -18,7 +18,6 @@ import javax.annotation.Resource;
 import com.br.marketing.common.constants.PulsarSubscription;
 import com.br.marketing.common.constants.rocketmq.MarketingUploadConstants;
 import com.br.marketing.config.RocketMqSwitch;
-import com.br.marketing.enums.PushDataEnum;
 import com.br.marketing.enums.clean.DataSourceTypeEnum;
 import com.br.marketing.service.PushRuleService;
 import org.apache.pulsar.client.api.PulsarClientException;
@@ -48,11 +47,7 @@ import com.br.marketing.dto.shuhe.Response2ShuheDTO;
 import com.br.marketing.dto.shuhe.ResponseShuheDTO;
 import com.br.marketing.dto.shuhe.ShuheTransferJsonDTO;
 import com.br.marketing.entity.CaseShuheUploadData;
-import com.br.marketing.entity.MarketingSyncInfo;
-import com.br.marketing.entity.MarketingTransferInfo;
 import com.br.marketing.mapper.CaseShuheUploadDataMapper;
-import com.br.marketing.mapper.MarketingSyncInfoMapper;
-import com.br.marketing.mapper.MarketingTransferInfoMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IPushShuheDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -78,10 +73,6 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
     private RabbitMqProducter producter;
     @Resource
     private CaseShuheUploadDataMapper caseShuheUploadDataMapper;
-    @Resource
-    private MarketingSyncInfoMapper marketingSyncInfoMapper;
-    @Resource
-    private MarketingTransferInfoMapper marketingTransferInfoMapper;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
@@ -141,15 +132,8 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
         String requestId = Md5Utils.cell32(jsonData.concat("@" + System.currentTimeMillis()).concat("#" + random.nextInt(10000)));
         try {
             shuHeUserService.saveShTransferData(apiCode, jsonData, requestId, null);
-
-            // 模拟数据入库成功，但返回异常入Pulsar的场景
-            Map<String, Boolean> pushDataSwitch = marketingCommonConfig.getPushDataSwitch();
-            if(pushDataSwitch.get(PushDataEnum.MARKETING_TRANSFER_SH.getValue())){
-                log.warn(String.format("【模拟异常写入Pulsar】数禾转化数据requestId requestId:%s", requestId));
-                throw new Exception();
-            }
-
         } catch (Exception ex) {
+            log.warn("【模拟异常写入Pulsar】数禾转化数据异常，进入Pulsar。requestId：{}", requestId);
             log.error(ex.getMessage(), ex);
             ProductPulsarProducer producer = null;
             try {
@@ -174,6 +158,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
 
     @Override
     public Result<Boolean> consumerShTransfer(String msg) {
+        log.warn("【模拟异常写入Pulsar】数禾转化数据进入Pulsar消费开始。msg：{}", msg);
         // 检查是否需要跳过业务逻辑
         if (pulsarConsumerSkipUtil.shouldSkipBusinessLogic(PulsarSubscription.transferShSubscription)) {
             log.warn("【pulsar】数禾转化数据执行跳过逻辑");
@@ -199,21 +184,9 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                 jsonData = JSON.toJSONString(testJb);
             }
             shuHeUserService.saveShTransferData(apiCode, jsonData, requestId, createTime);
+            log.warn("【模拟异常写入Pulsar】数禾转化数据进入Pulsar消费完成。requestId：{}", requestId);
         } catch (DuplicateKeyException keyException) {
             log.error(String.format("数禾转化数据pulsar消费重复requestId requestId:%s,jsonData:%s,apiCode:%s", requestId, jsonData, apiCode));
-            // 查询数据库中是否存在该requestId的数据且status为1（进行中状态）
-            try {
-                MarketingTransferInfo existingTransferInfo = marketingTransferInfoMapper.getByApiCodeAndRequestId(apiCode, requestId);
-                if (existingTransferInfo != null && existingTransferInfo.getStatus() != null && existingTransferInfo.getStatus() == 1) {
-                    log.warn("【模拟异常写入Pulsar】数禾转化数据requestId重复但数据已存在且status=1，继续执行后续逻辑。requestId：{}", requestId);
-                    // 数据已存在且状态正常，直接返回成功
-                } else {
-                    log.warn("【模拟异常写入Pulsar】数禾转化数据requestId重复但数据不存在或status!=1，直接返回。requestId：{}，existingTransferInfo：{}",
-                            requestId, existingTransferInfo);
-                }
-            } catch (Exception e) {
-                log.error("【模拟异常写入Pulsar】数禾转化数据查询重复requestId数据异常，requestId：{}", requestId, e);
-            }
             return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue());
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue());
@@ -273,12 +246,6 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
         Long infoId = null;
         try {
             infoId = shuHeUserService.saveShUploadData(shuheUploadData, uploadDataDTO, listInfo);
-            // 模拟数据入库成功，但返回异常入Pulsar的场景
-            Map<String, Boolean> pushDataSwitch = marketingCommonConfig.getPushDataSwitch();
-            if(pushDataSwitch.get(PushDataEnum.MARKETING_UPLOAD_SH.getValue())){
-                log.warn(String.format("【模拟异常写入Pulsar】数禾上传数据requestId requestId:%s", requestId));
-                throw new Exception();
-            }
             //发送json解析MQ
             pushRuleService.sendJsonParseMq(shuheUploadData.getApiCode(), infoId.toString(), DataSourceTypeEnum.GENERAL_INTERFACE.getCode());
 
@@ -378,24 +345,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
             pushRuleService.sendJsonParseMq(shuheUploadData.getApiCode(), infoId.toString(), DataSourceTypeEnum.GENERAL_INTERFACE.getCode());
         } catch (DuplicateKeyException keyException) {
             log.error(String.format("数禾上传数据pulsar消费重复requestId requestId:%s,jsonData:%s,apiCode:%s", requestId, jsonData, apiCode));
-            // 查询数据库中是否存在该requestId的数据且status为1（进行中状态）
-            try {
-                MarketingSyncInfo existingSyncInfo = marketingSyncInfoMapper.getByApiCodeAndRequestBatch(apiCode, requestId);
-                if (existingSyncInfo != null && existingSyncInfo.getStatus() != null && existingSyncInfo.getStatus() == 1) {
-                    log.warn("【模拟异常写入Pulsar】数禾上传数据requestId重复但数据已存在且status=1，继续执行后续逻辑。requestId：{}", requestId);
-                    infoId = existingSyncInfo.getId();
-                    //发送json解析MQ
-                    pushRuleService.sendJsonParseMq(apiCode, infoId.toString(), DataSourceTypeEnum.GENERAL_INTERFACE.getCode());
-                    // 继续执行后续的写入上传明细MQ逻辑
-                } else {
-                    log.warn("【模拟异常写入Pulsar】数禾上传数据requestId重复但数据不存在或status!=1，直接返回。requestId：{}，existingSyncInfo：{}",
-                            requestId, existingSyncInfo);
-                    return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue());
-                }
-            } catch (Exception e) {
-                log.error("【模拟异常写入Pulsar】数禾上传查询重复requestId数据异常，requestId：{}", requestId, e);
-                return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue());
-            }
+            return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue());
         }
         if (infoId != null) {
             String idString = infoId.toString();
