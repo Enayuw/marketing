@@ -133,7 +133,6 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
         try {
             shuHeUserService.saveShTransferData(apiCode, jsonData, requestId, null);
         } catch (Exception ex) {
-            log.warn("【模拟异常写入Pulsar】数禾转化数据异常，进入Pulsar。requestId：{}", requestId);
             log.error(ex.getMessage(), ex);
             ProductPulsarProducer producer = null;
             try {
@@ -158,7 +157,6 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
 
     @Override
     public Result<Boolean> consumerShTransfer(String msg) {
-        log.warn("【模拟异常写入Pulsar】数禾转化数据进入Pulsar消费开始。msg：{}", msg);
         // 检查是否需要跳过业务逻辑
         if (pulsarConsumerSkipUtil.shouldSkipBusinessLogic(PulsarSubscription.transferShSubscription)) {
             log.warn("【pulsar】数禾转化数据执行跳过逻辑");
@@ -184,7 +182,6 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                 jsonData = JSON.toJSONString(testJb);
             }
             shuHeUserService.saveShTransferData(apiCode, jsonData, requestId, createTime);
-            log.warn("【模拟异常写入Pulsar】数禾转化数据进入Pulsar消费完成。requestId：{}", requestId);
         } catch (DuplicateKeyException keyException) {
             log.error(String.format("数禾转化数据pulsar消费重复requestId requestId:%s,jsonData:%s,apiCode:%s", requestId, jsonData, apiCode));
             return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue());
