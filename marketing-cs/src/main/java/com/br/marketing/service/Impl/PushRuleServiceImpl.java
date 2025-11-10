@@ -3777,14 +3777,14 @@ public class PushRuleServiceImpl implements PushRuleService {
             //todo 模拟异常上线后要删除
             mockDbOrRedisError(1, apiCode);
             marketingTransferInfoMapper.insertSelective(transferInfo);
-            transferInfoId = transferInfo.getId().toString();
-            requestIdWriteRedis(transferKey, transferDataDTO.getRequestId());
             // 模拟数据入库成功，但返回异常入Pulsar的场景
             Map<String, Boolean> pushDataSwitch = marketingCommonConfig.getPushDataSwitch();
             if(pushDataSwitch.get(PushDataEnum.MARKETING_TRANSFER_BASE.getValue())){
                 log.warn(String.format("【模拟异常写入Pulsar】通用转化数据infoId infoId:%s", transferInfo.getId()));
                 throw new Exception();
             }
+            transferInfoId = transferInfo.getId().toString();
+            requestIdWriteRedis(transferKey, transferDataDTO.getRequestId());
         } catch (DuplicateKeyException keyException) {
             throw new CommonException(MarketingErrorInfo.REPEAT_ERROR);
         } catch (Exception ex) {
