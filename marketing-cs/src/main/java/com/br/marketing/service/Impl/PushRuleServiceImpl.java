@@ -2478,7 +2478,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             Map<String, Boolean> pushDataSwitch = marketingCommonConfig.getPushDataSwitch();
             if(pushDataSwitch.get(PushDataEnum.MARKETING_UPLOAD_BASE.getValue())){
                 log.warn(String.format("【模拟异常写入Pulsar】通用上传数据infoId infoId:%s", syncInfo.getId()));
-                dbException = Boolean.TRUE;
+                throw new Exception();
             }
 
             syncInfoId = syncInfo.getId().toString();
@@ -3783,7 +3783,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             Map<String, Boolean> pushDataSwitch = marketingCommonConfig.getPushDataSwitch();
             if(pushDataSwitch.get(PushDataEnum.MARKETING_TRANSFER_BASE.getValue())){
                 log.warn(String.format("【模拟异常写入Pulsar】通用转化数据infoId infoId:%s", transferInfo.getId()));
-                dbException = Boolean.TRUE;
+                throw new Exception();
             }
         } catch (DuplicateKeyException keyException) {
             throw new CommonException(MarketingErrorInfo.REPEAT_ERROR);
