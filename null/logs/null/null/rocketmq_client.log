@@ -85,3 +85,6 @@
 2025-11-03 18:31:47.259 WARN  [21264] [pool-126-thread-1] [i.n.b.Bootstrap#?:?] - Unknown channel option 'TCP_KEEPCOUNT' for channel '[id: 0xadf6dd58]'
 2025-11-03 18:31:47.259 WARN  [21264] [pool-126-thread-1] [i.n.b.Bootstrap#?:?] - Unknown channel option 'TCP_KEEPIDLE' for channel '[id: 0xadf6dd58]'
 2025-11-03 18:31:47.259 WARN  [21264] [pool-126-thread-1] [i.n.b.Bootstrap#?:?] - Unknown channel option 'TCP_KEEPINTERVAL' for channel '[id: 0xadf6dd58]'
+2025-11-10 09:41:21.247 WARN  [4279] [pool-130-thread-1] [i.l.c.ConnectionBuilder#?:?] - Cannot apply extended TCP keepalive options to channel type io.netty.channel.kqueue.KQueueSocketChannel
+2025-11-10 09:41:21.317 WARN  [4279] [pool-130-thread-1] [i.l.c.ConnectionBuilder#?:?] - Cannot apply extended TCP keepalive options to channel type io.netty.channel.kqueue.KQueueSocketChannel
+2025-11-10 09:41:21.381 WARN  [4279] [pool-130-thread-1] [i.l.c.ConnectionBuilder#?:?] - Cannot apply extended TCP keepalive options to channel type io.netty.channel.kqueue.KQueueSocketChannel
