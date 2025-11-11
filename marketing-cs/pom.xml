@@ -10,7 +10,6 @@
     <artifactId>marketing-cs</artifactId>
     <properties>
         <grpc.version>1.61.1</grpc.version>
-        <simpleclient.version>0.9.0</simpleclient.version>
     </properties>
     <dependencies>
         <dependency>
@@ -139,63 +138,6 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>io.prometheus</groupId>
-            <artifactId>simpleclient_httpserver</artifactId>
-            <version>${simpleclient.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>simpleclient</artifactId>
-                    <groupId>io.prometheus</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>simpleclient_common</artifactId>
-                    <groupId>io.prometheus</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>io.prometheus</groupId>
-            <artifactId>simpleclient_hotspot</artifactId>
-            <version>${simpleclient.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>simpleclient</artifactId>
-                    <groupId>io.prometheus</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>io.prometheus</groupId>
-            <artifactId>simpleclient_common</artifactId>
-            <version>${simpleclient.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>simpleclient</artifactId>
-                    <groupId>io.prometheus</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>io.prometheus</groupId>
-            <artifactId>simpleclient</artifactId>
-            <version>${simpleclient.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.prometheus</groupId>
-            <artifactId>simpleclient_pushgateway</artifactId>
-            <version>${simpleclient.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>simpleclient_common</artifactId>
-                    <groupId>io.prometheus</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>simpleclient</artifactId>
-                    <groupId>io.prometheus</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-all</artifactId>
             <version>${grpc.version}</version>
@@ -230,6 +172,12 @@
             <groupId>com.google.errorprone</groupId>
             <artifactId>error_prone_annotations</artifactId>
             <version>2.23.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-ui</artifactId>
+            <version>${springdoc-openapi.version}</version>
         </dependency>
         <dependency>
             <groupId>io.grpc</groupId>
