@@ -4,21 +4,12 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.dto.PushCustomerDTO;
 import com.br.marketing.entity.CustomerInfoPushMain;
-import com.br.marketing.enums.PushRuleStatusEnum;
-import com.br.marketing.mapper.CustomerInfoPushMainMapper;
 import com.br.marketing.service.rulecenter.enums.RuleCenterPushTargetEnum;
 import com.br.marketing.service.strategy.pushpreview.PushPreviewStrategyEnum;
-import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
-import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.Date;
 
 /**
  * 上传任务推送客户策略
@@ -54,10 +45,6 @@ public class UploadTaskPushCustomerStrategy extends AbstractPushCustomerStrategy
         customerInfoPushMain.setPushTarget(RuleCenterPushTargetEnum.UPLOAD_REPUSH_POLICY.getCode());
         customerInfoPushMain.setUploadReportIds(dto.getUploadReportId());
         customerInfoPushMainMapper.insertSelective(customerInfoPushMain);
-        
-        // 生成并更新批次名称
-        String batchName = generateBatchName(dto, customerInfoPushMain);
-        updateBatchName(customerInfoPushMain.getId(), batchName);
         
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(customerInfoPushMain.getId().toString());
     }
