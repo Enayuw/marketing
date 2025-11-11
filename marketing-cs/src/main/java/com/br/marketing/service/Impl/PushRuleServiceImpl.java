@@ -3785,6 +3785,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             transferInfoId = transferInfo.getId().toString();
             requestIdWriteRedis(transferKey, transferDataDTO.getRequestId());
+
         } catch (DuplicateKeyException keyException) {
             throw new CommonException(MarketingErrorInfo.REPEAT_ERROR);
         } catch (Exception ex) {

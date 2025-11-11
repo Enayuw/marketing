@@ -8,9 +8,7 @@ package com.br.marketing.enums;
  */
 public enum PushDataEnum {
     MARKETING_UPLOAD_BASE("marketing_upload_base","标准上传数据"),
-    MARKETING_TRANSFER_BASE("marketing_transfer_base","标准转化数据"),
-    MARKETING_UPLOAD_SH("marketing_upload_sh","数禾上传数据"),
-    MARKETING_TRANSFER_SH("marketing_transfer_sh","数禾转化数据");
+    MARKETING_TRANSFER_BASE("marketing_transfer_base","标准转化数据");
 
     PushDataEnum(String value, String desc) {
         this.value = value;
