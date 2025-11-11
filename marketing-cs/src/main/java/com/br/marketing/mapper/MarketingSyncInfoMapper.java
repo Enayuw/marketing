@@ -298,13 +298,6 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
             , @Param("userType") String userType,@Param("createTime") Date createTime, @Param("filterCondition") String filterCondition, @Param("minId") Long minId);
 
 
-
-    List<MarketingSyncUser> getCustNumRepeatUserByConditiontikv_(@Param("apiCode") String apiCode, @Param("syncReportList") List<SyncOperateTypeDTO> records,
-                                                                 @Param("filterCondition") String filterCondition, @Param("createTime") Date createTime,
-                                                                 @Param("operateType") String operateType);
-
-
-    List<MarketingSyncUser> getCellRepeatUserByConditiontikv_(@Param("apiCode") String apiCode,@Param("syncReportList") List<SyncOperateTypeDTO> syncReportList,
-                                                                 @Param("filterCondition") String filterCondition,@Param("createTime") Date createTime,
-                                                              @Param("operateType") String operateType);
+    List<String> getBatchNameByUsertikv_(@Param("apiCode") String apiCode,@Param("syncReportList") List<MarketingSyncReport> syncReportList,
+                                                              @Param("filterCondition") String filterCondition);
 }
