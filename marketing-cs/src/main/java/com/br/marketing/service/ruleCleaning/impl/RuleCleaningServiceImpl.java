@@ -1939,6 +1939,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 fieldConfig.setApiCode(configDTO.getApiCode());
                 fieldConfig.setDataType(configDTO.getDataType());
                 fieldConfig.setAcceptType(configDTO.getAcceptType());
+                fieldConfig.setSystemType(configDTO.getSystemType());
                 // 2. 保存字段清洗规则
                 saveFieldCleaningRule(configDTO.getConfigId(), fieldConfig);
             }
@@ -1953,7 +1954,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         nodeExample.createCriteria()
                 .andApiCodeEqualTo(config.getApiCode())
                 .andDataTypeEqualTo(config.getDataType())
-                .andAcceptTypeEqualTo(config.getAcceptType());
+                .andAcceptTypeEqualTo(config.getAcceptType())
+                .andSystemTypeEqualTo(config.getSystemType());
         List<MarketingJsonNodeParse> nodes = jsonNodeParseMapper.selectByExample(nodeExample);
         // 没有客户数据——行业模板——试跑成功
         update.setStatus(nodes.isEmpty() ? DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode()

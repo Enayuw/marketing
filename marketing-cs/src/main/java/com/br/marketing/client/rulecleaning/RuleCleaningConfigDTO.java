@@ -34,4 +34,7 @@ public class RuleCleaningConfigDTO implements Serializable {
     @ApiModelProperty(value = "配置ID")
     private Long configId;
 
+    @ApiModelProperty(value = "数据源类型：0:营销中台，1:外呼系统")
+    private Integer systemType;
+
 } 
