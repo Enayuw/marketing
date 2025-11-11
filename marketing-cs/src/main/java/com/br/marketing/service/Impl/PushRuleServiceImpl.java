@@ -2473,6 +2473,14 @@ public class PushRuleServiceImpl implements PushRuleService {
             syncInfo.setDataSourceType(dataSourceType);
             mockDbOrRedisError(1, apiCode);
             marketingUserMapper.insertMarketingPreUserByText(syncInfo);
+
+            // 模拟数据入库成功，但返回异常入Pulsar的场景
+            Map<String, Boolean> pushDataSwitch = marketingCommonConfig.getPushDataSwitch();
+            if(pushDataSwitch.get(PushDataEnum.MARKETING_UPLOAD_BASE.getValue())){
+                log.warn(String.format("【模拟异常写入Pulsar】通用上传数据infoId infoId:%s", syncInfo.getId()));
+                throw new Exception();
+            }
+
             syncInfoId = syncInfo.getId().toString();
             if (log.isInfoEnabled()) {
                 log.info("文本插入耗时:{}", (System.currentTimeMillis() - l));
@@ -3643,7 +3651,25 @@ public class PushRuleServiceImpl implements PushRuleService {
         } catch (DuplicateKeyException keyException) {
             alarmClient.sendAlarm(String.format("pulsar上传数据消费requestId冲突 requestId：%s", jsonData.getRequestId())
                     , "pulsar上传数据消费异常", AlarmSendCodeEnum.REQUESTID_CONFLICT.getCode());
-            return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+            
+            // 查询数据库中是否存在该requestId的数据且status为1
+            try {
+                MarketingSyncInfo existingSyncInfo = marketingSyncInfoMapper.getByApiCodeAndRequestBatch(apiCode, jsonData.getRequestId());
+                if (existingSyncInfo != null && existingSyncInfo.getStatus() != null && existingSyncInfo.getStatus() == 1) {
+                    log.warn("【模拟异常写入Pulsar】通用上传requestId重复但数据已存在且status=1，继续执行后续逻辑。requestId：{}", jsonData.getRequestId());
+                    syncInfoId = existingSyncInfo.getId().toString();
+                    //发送json解析MQ
+                    sendJsonParseMq(apiCode, syncInfoId, DataSourceTypeEnum.GENERAL_INTERFACE.getCode());
+                    // 继续执行后续的写入上传明细MQ逻辑，不直接返回
+                } else {
+                    log.warn("【模拟异常写入Pulsar】通用上传requestId重复但数据不存在或status!=1，直接返回。requestId：{}，existingSyncInfo：{}",
+                            jsonData.getRequestId(), existingSyncInfo);
+                    return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+                }
+            } catch (Exception e) {
+                log.error("【模拟异常写入Pulsar】通用上传查询重复requestId数据异常，requestId：{}", jsonData.getRequestId(), e);
+                return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+            }
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
             dbException = Boolean.TRUE;
@@ -3751,6 +3777,12 @@ public class PushRuleServiceImpl implements PushRuleService {
             //todo 模拟异常上线后要删除
             mockDbOrRedisError(1, apiCode);
             marketingTransferInfoMapper.insertSelective(transferInfo);
+            // 模拟数据入库成功，但返回异常入Pulsar的场景
+            Map<String, Boolean> pushDataSwitch = marketingCommonConfig.getPushDataSwitch();
+            if(pushDataSwitch.get(PushDataEnum.MARKETING_TRANSFER_BASE.getValue())){
+                log.warn(String.format("【模拟异常写入Pulsar】通用转化数据infoId infoId:%s", transferInfo.getId()));
+                throw new Exception();
+            }
             transferInfoId = transferInfo.getId().toString();
             requestIdWriteRedis(transferKey, transferDataDTO.getRequestId());
 
@@ -3838,7 +3870,23 @@ public class PushRuleServiceImpl implements PushRuleService {
         } catch (DuplicateKeyException keyException) {
             alarmClient.sendAlarm(String.format("pulsar转化数据消费requestId冲突 requestId：%s", transferDataDTO.getRequestId())
                     , "pulsar转化数据消费异常", AlarmSendCodeEnum.REQUESTID_CONFLICT.getCode());
-            return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+            
+            // 查询数据库中是否存在该requestId的数据且status为1（进行中状态）
+            try {
+                MarketingTransferInfo existingTransferInfo = marketingTransferInfoMapper.getByApiCodeAndRequestId(apiCode, transferDataDTO.getRequestId());
+                if (existingTransferInfo != null && existingTransferInfo.getStatus() != null && existingTransferInfo.getStatus() == 1) {
+                    log.warn("【模拟异常写入Pulsar】通用转化数据requestId重复但数据已存在且status=1，继续执行后续逻辑。requestId：{}", transferDataDTO.getRequestId());
+                    transferInfoId = existingTransferInfo.getId().toString();
+                    // 继续执行后续的写入转化明细MQ逻辑，不直接返回
+                } else {
+                    log.warn("【模拟异常写入Pulsar】通用转化数据requestId重复但数据不存在或status!=1，直接返回。requestId：{}，existingTransferInfo：{}",
+                            transferDataDTO.getRequestId(), existingTransferInfo);
+                    return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+                }
+            } catch (Exception e) {
+                log.error("【模拟异常写入Pulsar】通用转化查询重复requestId数据异常，requestId：{}", transferDataDTO.getRequestId(), e);
+                return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+            }
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
             dbException = Boolean.TRUE;
