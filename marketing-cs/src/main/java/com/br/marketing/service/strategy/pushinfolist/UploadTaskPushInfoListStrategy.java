@@ -34,8 +34,7 @@ public class UploadTaskPushInfoListStrategy extends AbstractPushInfoListStrategy
         PageHelper.startPage(dto.getCurrent(), dto.getSize());
         
         // 上传任务的 pushTarget = 4
-        List<Integer> pushTargets = new ArrayList<>();
-        pushTargets.add(4);
+        List<Integer> pushTargets = new ArrayList<>(Arrays.asList(4));
         List<PushInfoListVO> list = customerInfoPushMainMapper.getPushInfoList(dto, pushTargets);
         
         // 提取ID列表

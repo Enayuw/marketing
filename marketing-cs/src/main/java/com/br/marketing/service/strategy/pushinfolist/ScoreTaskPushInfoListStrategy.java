@@ -44,10 +44,7 @@ public class ScoreTaskPushInfoListStrategy extends AbstractPushInfoListStrategy 
         PageHelper.startPage(dto.getCurrent(), dto.getSize());
         
         // 跑分任务的 pushTarget = 0, 2, 3
-        List<Integer> pushTargets = new ArrayList<>();
-        pushTargets.add(0);
-        pushTargets.add(2);
-        pushTargets.add(3);
+        List<Integer> pushTargets = new ArrayList<>(Arrays.asList(0, 2, 3));
         List<PushInfoListVO> list = customerInfoPushMainMapper.getPushInfoList(dto, pushTargets);
         
         // 提取ID列表
