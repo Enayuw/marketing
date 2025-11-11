@@ -3514,4 +3514,9 @@ public class MarketingCommonConfig {
      */
     private JSONObject linsSmsCostToDbConfig;
 
+    /**
+     * 同程易融cpa撞库成功文件表头
+     */
+    private List<String> tcyrCpaSuccessFileHeads;
+
 }
