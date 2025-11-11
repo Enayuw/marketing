@@ -83,7 +83,7 @@ public interface RuleCleaningService {
     Object previewFieldCleaning(@Validated String fieldSample, @Validated String cleaningRule, Object nodeParse);
 
 
-    MarketingDataCleanGeneralFieldConfig getFieldConfg(Integer dataType, Integer acceptType, Integer dataSourceType);
+    MarketingDataCleanGeneralFieldConfig getFieldConfg(Integer dataType, Integer acceptType, Integer systemType);
 
     boolean fieldSaveOrUpdate(CleanFieldConfigVO fieldConfigVO);
 

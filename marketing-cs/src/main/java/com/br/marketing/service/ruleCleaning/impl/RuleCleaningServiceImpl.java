@@ -1494,14 +1494,14 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
     @Override
     public MarketingDataCleanGeneralFieldConfig getFieldConfg(Integer dataType, Integer acceptType,
-                                                              Integer dataSourceType) {
+                                                              Integer systemType) {
         // 参数验证
         if (dataType == null) {
             throw new BusinessException("数据类型不能为空");
         }
         
         MarketingDataCleanGeneralFieldConfigExample fieldConfigExample = new MarketingDataCleanGeneralFieldConfigExample();
-        fieldConfigExample.createCriteria().andDataTypeEqualTo(dataType).andDataSourceTypeEqualTo(dataSourceType);
+        fieldConfigExample.createCriteria().andDataTypeEqualTo(dataType).andSystemTypeEqualTo(systemType);
         List<MarketingDataCleanGeneralFieldConfig> fieldConfigList = marketingDataCleanGeneralFieldConfigMapper.selectByExample(fieldConfigExample);
         if (CollectionUtils.isEmpty(fieldConfigList)) {
             return null;
