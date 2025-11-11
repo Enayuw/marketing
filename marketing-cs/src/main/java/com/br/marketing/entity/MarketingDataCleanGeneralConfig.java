@@ -19,6 +19,11 @@ public class MarketingDataCleanGeneralConfig {
     private String accountType;
 
     /**
+     * 数据来源,0-营销中台 1-外呼系统
+     */
+    private Integer systemType;
+
+    /**
      * 数据类型：0:上传，1:转化
      */
     private Integer dataType;
@@ -68,11 +73,6 @@ public class MarketingDataCleanGeneralConfig {
      */
     private Date updateTime;
 
-    /**
-     * 数据源类型：0:营销中台，1:外呼系统
-     */
-    private Integer dataSourceType;
-
     public Long getId() {
         return id;
     }
@@ -95,6 +95,14 @@ public class MarketingDataCleanGeneralConfig {
 
     public void setAccountType(String accountType) {
         this.accountType = accountType == null ? null : accountType.trim();
+    }
+
+    public Integer getSystemType() {
+        return systemType;
+    }
+
+    public void setSystemType(Integer systemType) {
+        this.systemType = systemType;
     }
 
     public Integer getDataType() {
@@ -175,13 +183,5 @@ public class MarketingDataCleanGeneralConfig {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
-    }
-
-    public Integer getDataSourceType() {
-        return dataSourceType;
-    }
-
-    public void setDataSourceType(Integer dataSourceType) {
-        this.dataSourceType = dataSourceType;
     }
 }

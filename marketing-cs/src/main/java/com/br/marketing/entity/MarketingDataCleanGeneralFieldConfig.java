@@ -9,14 +9,14 @@ public class MarketingDataCleanGeneralFieldConfig {
     private Long id;
 
     /**
+     * 数据来源,0-营销中台 1-外呼系统
+     */
+    private Integer systemType;
+
+    /**
      * 数据类型：0:上传，1:转化
      */
     private Integer dataType;
-
-    /**
-     * 字段集合，多个字段用,分割
-     */
-    private String fieldCollect;
 
     /**
      * 是否删除：1-正常；9-删除
@@ -44,9 +44,9 @@ public class MarketingDataCleanGeneralFieldConfig {
     private Date updateTime;
 
     /**
-     * 数据源类型：0:营销中台，1:外呼系统
+     * 字段集合，多个字段用,分割
      */
-    private Integer dataSourceType;
+    private String fieldCollect;
 
     public Long getId() {
         return id;
@@ -56,20 +56,20 @@ public class MarketingDataCleanGeneralFieldConfig {
         this.id = id;
     }
 
+    public Integer getSystemType() {
+        return systemType;
+    }
+
+    public void setSystemType(Integer systemType) {
+        this.systemType = systemType;
+    }
+
     public Integer getDataType() {
         return dataType;
     }
 
     public void setDataType(Integer dataType) {
         this.dataType = dataType;
-    }
-
-    public String getFieldCollect() {
-        return fieldCollect;
-    }
-
-    public void setFieldCollect(String fieldCollect) {
-        this.fieldCollect = fieldCollect == null ? null : fieldCollect.trim();
     }
 
     public Integer getIsDel() {
@@ -112,11 +112,11 @@ public class MarketingDataCleanGeneralFieldConfig {
         this.updateTime = updateTime;
     }
 
-    public Integer getDataSourceType() {
-        return dataSourceType;
+    public String getFieldCollect() {
+        return fieldCollect;
     }
 
-    public void setDataSourceType(Integer dataSourceType) {
-        this.dataSourceType = dataSourceType;
+    public void setFieldCollect(String fieldCollect) {
+        this.fieldCollect = fieldCollect == null ? null : fieldCollect.trim();
     }
 }

@@ -305,6 +305,66 @@ public class MarketingDataCleanGeneralConfigExample {
             return (Criteria) this;
         }
 
+        public Criteria andSystemTypeIsNull() {
+            addCriterion("system_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSystemTypeIsNotNull() {
+            addCriterion("system_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSystemTypeEqualTo(Integer value) {
+            addCriterion("system_type =", value, "systemType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSystemTypeNotEqualTo(Integer value) {
+            addCriterion("system_type <>", value, "systemType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSystemTypeGreaterThan(Integer value) {
+            addCriterion("system_type >", value, "systemType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSystemTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("system_type >=", value, "systemType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSystemTypeLessThan(Integer value) {
+            addCriterion("system_type <", value, "systemType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSystemTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("system_type <=", value, "systemType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSystemTypeIn(List<Integer> values) {
+            addCriterion("system_type in", values, "systemType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSystemTypeNotIn(List<Integer> values) {
+            addCriterion("system_type not in", values, "systemType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSystemTypeBetween(Integer value1, Integer value2) {
+            addCriterion("system_type between", value1, value2, "systemType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSystemTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("system_type not between", value1, value2, "systemType");
+            return (Criteria) this;
+        }
+
         public Criteria andDataTypeIsNull() {
             addCriterion("data_type is null");
             return (Criteria) this;
@@ -922,66 +982,6 @@ public class MarketingDataCleanGeneralConfigExample {
 
         public Criteria andUpdateTimeNotBetween(Date value1, Date value2) {
             addCriterion("update_time not between", value1, value2, "updateTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceTypeIsNull() {
-            addCriterion("data_source_type is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceTypeIsNotNull() {
-            addCriterion("data_source_type is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceTypeEqualTo(Integer value) {
-            addCriterion("data_source_type =", value, "dataSourceType");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceTypeNotEqualTo(Integer value) {
-            addCriterion("data_source_type <>", value, "dataSourceType");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceTypeGreaterThan(Integer value) {
-            addCriterion("data_source_type >", value, "dataSourceType");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceTypeGreaterThanOrEqualTo(Integer value) {
-            addCriterion("data_source_type >=", value, "dataSourceType");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceTypeLessThan(Integer value) {
-            addCriterion("data_source_type <", value, "dataSourceType");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceTypeLessThanOrEqualTo(Integer value) {
-            addCriterion("data_source_type <=", value, "dataSourceType");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceTypeIn(List<Integer> values) {
-            addCriterion("data_source_type in", values, "dataSourceType");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceTypeNotIn(List<Integer> values) {
-            addCriterion("data_source_type not in", values, "dataSourceType");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceTypeBetween(Integer value1, Integer value2) {
-            addCriterion("data_source_type between", value1, value2, "dataSourceType");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataSourceTypeNotBetween(Integer value1, Integer value2) {
-            addCriterion("data_source_type not between", value1, value2, "dataSourceType");
             return (Criteria) this;
         }
     }

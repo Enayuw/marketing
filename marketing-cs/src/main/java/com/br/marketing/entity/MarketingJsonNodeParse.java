@@ -1,15 +1,8 @@
 package com.br.marketing.entity;
 
-import java.io.Serializable;
 import java.util.Date;
-import lombok.Data;
 
-/**
- * b_marketing_json_node_parse
- * @author 
- */
-@Data
-public class MarketingJsonNodeParse implements Serializable {
+public class MarketingJsonNodeParse {
     /**
      * 主键ID
      */
@@ -19,6 +12,11 @@ public class MarketingJsonNodeParse implements Serializable {
      * API编码
      */
     private String apiCode;
+
+    /**
+     * 数据来源,0-营销中台 1-外呼系统
+     */
+    private Integer systemType;
 
     /**
      * 数据类型：0上传，1转化
@@ -70,5 +68,107 @@ public class MarketingJsonNodeParse implements Serializable {
      */
     private Date updateTime;
 
-    private static final long serialVersionUID = 1L;
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getApiCode() {
+        return apiCode;
+    }
+
+    public void setApiCode(String apiCode) {
+        this.apiCode = apiCode == null ? null : apiCode.trim();
+    }
+
+    public Integer getSystemType() {
+        return systemType;
+    }
+
+    public void setSystemType(Integer systemType) {
+        this.systemType = systemType;
+    }
+
+    public Integer getDataType() {
+        return dataType;
+    }
+
+    public void setDataType(Integer dataType) {
+        this.dataType = dataType;
+    }
+
+    public Integer getAcceptType() {
+        return acceptType;
+    }
+
+    public void setAcceptType(Integer acceptType) {
+        this.acceptType = acceptType;
+    }
+
+    public String getNodeName() {
+        return nodeName;
+    }
+
+    public void setNodeName(String nodeName) {
+        this.nodeName = nodeName == null ? null : nodeName.trim();
+    }
+
+    public String getNodeValue() {
+        return nodeValue;
+    }
+
+    public void setNodeValue(String nodeValue) {
+        this.nodeValue = nodeValue == null ? null : nodeValue.trim();
+    }
+
+    public String getParentPath() {
+        return parentPath;
+    }
+
+    public void setParentPath(String parentPath) {
+        this.parentPath = parentPath == null ? null : parentPath.trim();
+    }
+
+    public String getNodeType() {
+        return nodeType;
+    }
+
+    public void setNodeType(String nodeType) {
+        this.nodeType = nodeType == null ? null : nodeType.trim();
+    }
+
+    public Boolean getIsArrayItem() {
+        return isArrayItem;
+    }
+
+    public void setIsArrayItem(Boolean isArrayItem) {
+        this.isArrayItem = isArrayItem;
+    }
+
+    public Integer getLevel() {
+        return level;
+    }
+
+    public void setLevel(Integer level) {
+        this.level = level;
+    }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
+    }
 }
