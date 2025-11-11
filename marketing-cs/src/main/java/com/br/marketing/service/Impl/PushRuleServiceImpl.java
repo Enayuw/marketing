@@ -3874,7 +3874,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             
             // 查询数据库中是否存在该requestId的数据且status为1（进行中状态）
             try {
-                MarketingTransferInfo existingTransferInfo = marketingTransferInfoMapper.getByApiCodeAndRequestId(apiCode, transferDataDTO.getRequestId());
+                MarketingTransferInfo existingTransferInfo = marketingTransferInfoMapper
+                        .getByApiCodeAndRequestId(apiCode, transferDataDTO.getRequestId());
                 if (existingTransferInfo != null && existingTransferInfo.getStatus() != null && existingTransferInfo.getStatus() == 1) {
                     log.warn("【模拟异常写入Pulsar】通用转化数据requestId重复但数据已存在且status=1，继续执行后续逻辑。requestId：{}", transferDataDTO.getRequestId());
                     transferInfoId = existingTransferInfo.getId().toString();
