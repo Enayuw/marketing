@@ -3500,6 +3500,14 @@ public class MarketingCommonConfig {
     private List<String> assignedGroups;
 
     /**
+     * 模拟数据入库成功，但返回异常入Pulsar的场景
+     * marketing_upload_base: 标准上传数据消费端
+     * marketing_transfer_base: 标准转化数据消费端
+     * 配置示例: {"marketing_upload_base":true,"marketing_transfer_base":false}
+     */
+    private Map<String, Boolean> pushDataSwitch;
+
+    /**
      * 钉钉AI表格数据同步接口配置
      * {"b_dd_data_line_cost_price":{"appKey":"","appSecret":"","operatorId":"","baseId":"","sheetId":""},
      * "b_dd_data_sms_cost_price":{"appKey":"","appSecret":"","operatorId":"","baseId":"","sheetId":""}}
