@@ -168,7 +168,7 @@ public class TcCpaRevokeCleanJob extends AbstractSimpleElasticJob {
                     .map(userKey -> new JSONObject()
                             .fluentPut("userKey", userKey)
                             .fluentPut("batchNo", batchNo)
-                            .fluentPut("recordId", updateRecord.getId()))
+                            .fluentPut("recordId", updateRecord.getId().toString()))
                     .collect(Collectors.toList());
             try {
                 if (!processTransferClean(apiCode, jsonObjects, updateRecord, recordId)) {

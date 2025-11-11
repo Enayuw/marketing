@@ -276,7 +276,7 @@ public class TcCpaSyncDataQuickDealServiceImpl implements TcCpaSyncDataQuickDeal
                         syncItem.setEndDate(sdf.parse(customJson.getString("endDate")));
                         extentJson.put("syncFileId", syncFileId);
                         //将所有列输出为扩展字段
-                        for (int i = 0; i < lineData.length; i++) {
+                        for (int i = 0; i < Math.min(lineData.length, fileHeads.size()); i++) {
                             extentJson.put(fileHeads.get(i), lineData[i]);
                         }
                         syncItem.setExtend(extentJson.toJSONString());

@@ -75,7 +75,7 @@ public class TcCpaTransferCleanServiceImpl implements TcCpaTransferCleanService 
                     .map(record -> {
                         JSONObject jsonObject = JSONObject.parseObject(record.getData());
                         // 可以选择使用不同的字段名来存储id
-                        jsonObject.put("recordId", record.getId());
+                        jsonObject.put("recordId", record.getId().toString());
                         return jsonObject;
                     })
                     .collect(Collectors.toList());
