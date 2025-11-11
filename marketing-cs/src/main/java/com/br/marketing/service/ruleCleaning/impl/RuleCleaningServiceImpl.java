@@ -1739,6 +1739,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         MarketingDataCleanGeneralConfigExample configExample = new MarketingDataCleanGeneralConfigExample();
         configExample.createCriteria()
                 .andApiCodeEqualTo(configDTO.getApiCode())
+                .andSystemTypeEqualTo(configDTO.getSystemType())
                 .andDataTypeEqualTo(configDTO.getDataType())
                 .andAcceptTypeEqualTo(configDTO.getAcceptType())
                 .andIsDelEqualTo(1);
@@ -1752,6 +1753,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         // 构建规则配置对象
         MarketingDataCleanGeneralConfig config = new MarketingDataCleanGeneralConfig();
         config.setApiCode(configDTO.getApiCode());
+        config.setSystemType(configDTO.getSystemType());
         config.setDataType(configDTO.getDataType());
         config.setAcceptType(configDTO.getAcceptType());
         config.setSftpPath(configDTO.getSftpPath());

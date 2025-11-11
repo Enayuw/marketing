@@ -394,5 +394,13 @@ public class ConsumerApp {
         consumerService.consumerRun(channel, message, dataCleanService::customerDataJsonParse, msg, null);
     }
 
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_COMMON_DATA_JSON_PARSE_QUEUE, durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = MQConstants.ROUTING_KEY_MARKETING_COMMON_DATA_JSON_PARSE)}, containerFactory = "fiveDataContainerFactory")
+    public void consumerCommonDataJsonParse(Channel channel, Message message) {
+        String msg = new String(message.getBody(), StandardCharsets.UTF_8);
+        consumerService.consumerRun(channel, message, dataCleanService::commonDataJsonParse, msg, null);
+    }
+
 
 }

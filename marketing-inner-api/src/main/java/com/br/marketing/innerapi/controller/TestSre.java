@@ -11,7 +11,7 @@ import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.config.RocketMqSwitch;
-import com.br.marketing.dto.dataclean.mq.MqDataJsonParse;
+import com.br.marketing.dto.dataclean.mq.CustomerMqDataJsonParse;
 import com.br.marketing.entity.MarketingCustomerOriginalData;
 import com.br.marketing.entity.MerchantParam;
 import com.br.marketing.entity.RequestLog;
@@ -169,13 +169,13 @@ public class TestSre {
         if (exists) {
             return new ApiNoDataResult().fromResult(result);
         }
-        MqDataJsonParse mqDataJsonParse = new MqDataJsonParse();
-        mqDataJsonParse.setDataId(originalData.getId());
-        mqDataJsonParse.setDataType(DataProcessEnum.DataTypeEnum.UPLOAD.getCode());
-        mqDataJsonParse.setAcceptType(DataProcessEnum.AcceptTypeEnum.CUSTOM.getCode());
+        CustomerMqDataJsonParse customerMqDataJsonParse = new CustomerMqDataJsonParse();
+        customerMqDataJsonParse.setDataId(originalData.getId());
+        customerMqDataJsonParse.setDataType(DataProcessEnum.DataTypeEnum.UPLOAD.getCode());
+        customerMqDataJsonParse.setAcceptType(DataProcessEnum.AcceptTypeEnum.CUSTOM.getCode());
 //        producter.send(MQConstants.ROUTING_KEY_MARKETING_CUSTOMER_DATA_JSON_PARSE, JSON.toJSONString(mqDataJsonParse));
         rocketMqSwitch.sendMessage(apiCode, MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_MARKETING_CUSTOMER_DATA_JSON_PARSE,
-                JSON.toJSONString(mqDataJsonParse), MQConstants.ROUTING_KEY_MARKETING_CUSTOMER_DATA_JSON_PARSE);
+                JSON.toJSONString(customerMqDataJsonParse), MQConstants.ROUTING_KEY_MARKETING_CUSTOMER_DATA_JSON_PARSE);
         return new ApiNoDataResult().fromResult(result);
     }
 

@@ -1,9 +1,10 @@
-package com.br.marketing.innerapi.controller.industry;
+package com.br.marketing.innerapi.controller.template;
 
 import com.alibaba.fastjson.JSONArray;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.service.template.TemplateJsonParseService;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +22,7 @@ import javax.annotation.Resource;
  */
 @RestController
 @RequestMapping("/templateJsonParse")
+@Api(value = "行业模板Json数据相关接口", tags = "行业模板Json数据相关接口", produces = "application/json", consumes = "application/json", protocols = "http")
 public class TemplateJsonParseController {
 
     private static final Logger logger = LoggerFactory.getLogger(TemplateJsonParseController.class);

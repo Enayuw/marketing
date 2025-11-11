@@ -112,6 +112,9 @@ public class MQConstants {
     //客户原始数据json解析 队列
     public static final String MARKETING_CUSTOMER_DATA_JSON_PARSE_QUEUE = "Marketing_Customer_Data_Json_Parse_Queue";
 
+    //通用清洗接口原始数据json解析 队列
+    public static final String MARKETING_COMMON_DATA_JSON_PARSE_QUEUE = "Marketing_Common_Data_Json_Parse_Queue";
+
     /**
      * routingkey
      */
@@ -223,5 +226,7 @@ public class MQConstants {
 
     //客户原始数据json解析路由key
     public static final String ROUTING_KEY_MARKETING_CUSTOMER_DATA_JSON_PARSE = "Marketing.Customer.Data.Json.Parse";
+    //通用清洗接口原始数据json解析路由key
+    public static final String ROUTING_KEY_MARKETING_COMMON_DATA_JSON_PARSE = "Marketing.Common.Data.Json.Parse";
 
 }
