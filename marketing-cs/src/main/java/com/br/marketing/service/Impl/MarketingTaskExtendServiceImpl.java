@@ -114,12 +114,20 @@ public class MarketingTaskExtendServiceImpl implements MarketingTaskExtendServic
             return;
         }
 
+        // 定义需要排除的字段
+        Set<String> excludeFields = new HashSet<>(Arrays.asList("dataItems", "item", "reserveField1", "reserveField2"));
+        
         // 提取节点名称作为字段，根据 parentPath 判断放入不同集合
         for (MarketingJsonNodeParse node : jsonNodeParseList) {
             String nodeName = node.getNodeName();
             String parentPath = node.getParentPath();
 
             if (StringUtils.hasText(nodeName)) {
+                // 过滤掉特定的字段
+                if (excludeFields.contains(nodeName)) {
+                    continue;
+                }
+                
                 // 判断 parentPath 是否包含 .reserveField1
                 if (StringUtils.hasText(parentPath) && parentPath.contains(".reserveField1")) {
                     // 包含 .reserveField1，放入 fieldsList

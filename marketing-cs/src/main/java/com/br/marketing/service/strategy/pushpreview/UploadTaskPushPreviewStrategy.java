@@ -88,6 +88,10 @@ public class UploadTaskPushPreviewStrategy implements IPushPreviewStrategy {
             }
         }
 
+        if (total <= 0) {
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("无符合的数据");
+        }
+
         pushViewVO.setTotal(total);
         pushViewVO.setRepushTime(repushTime);
         return new Result<PushViewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushViewVO);
