@@ -42,14 +42,12 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -128,16 +126,6 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
             log.warn(TITLE + "清洗配置为空，apiCode={}", apiCode);
             return result;
         }
-        /*// 过滤并提取mappingField字段
-        List<String> mappingFields = configRule.values().stream()
-                .filter(ruleConfig -> ruleConfig.getIsMapping() && StringUtils.isNotEmpty(ruleConfig.getMappingRule()))
-                .map(MarketingDataCleanGeneralRuleConfig::getMappingField)
-                .collect(Collectors.toList());
-
-        if (CollectionUtils.isEmpty(mappingFields)) {
-            log.warn(TITLE + "清洗配置规则配置为空，apiCode={}", apiCode);
-            return result;
-        }*/
         marketingSyncReports.forEach(syncreport -> {
             String appletDate = syncreport.getAppletDate();
             String userType = syncreport.getUserType();
@@ -274,6 +262,8 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
         //剔除基础字段，并且无规则映射的字段
         ruleConfigs.removeIf(ruleConfig -> (!"dataItems.item.reserveField1".equals(ruleConfig.getParentPath()))
                 && StringUtils.isEmpty(ruleConfig.getMappingRule()));
+        ruleConfigs.removeIf(ruleConfig -> ("userType".equals(ruleConfig.getMappingField())
+                && StringUtils.isEmpty(ruleConfig.getMappingRule())));
         List<String> mappingFields = ruleConfigs.stream().map(ruleConfig -> ruleConfig.getMappingField()).collect(Collectors.toList());
         Map<String, String> fieldMapping = getFieldNameMapping();
         for (String fieldName : mappingFields) {
@@ -392,132 +382,29 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
             status = toPolicyByRuleService.queryExistError(pushMain.getId(),
                     FilterTypeEnum.UPLOAD_RE_POLICY.getValue());
         }
+        String reportIds = pushMain.getUploadReportIds();
+        //更新batchName
+        StringBuilder batchNameBuild = new StringBuilder();
+        String condition = getUploadDataCondition(pushMain.getmRuleCondition(), pushMain.getmApiCode());
+        List<Long> listIds = Arrays.stream(reportIds.split(",")).map(Long::parseLong).collect(Collectors.toList());
+        MarketingSyncReportExample syncReportExample = new MarketingSyncReportExample();
+        syncReportExample.createCriteria().andIdIn(listIds);
+        List<MarketingSyncReport> marketingSyncReports = syncReportMapper.selectByExample(syncReportExample);
+        List<String> batchNameList = marketingSyncInfoMapper.getBatchNameByUsertikv_(pushMain.getmApiCode(), marketingSyncReports, condition);
+        for (String name : batchNameList) {
+            if (StringUtils.isEmpty(name)) {
+                batchNameBuild.append(LocalDate.now().toString().replace("-", "") + "_" + pushMain.getmApiCode()).append(",");
+            } else {
+                batchNameBuild.append(name).append(",");
+            }
+        }
+        String batchName = batchNameBuild.toString();
         CustomerInfoPushMain update = new CustomerInfoPushMain();
         update.setmStatus(status);
+        update.setBatchName(batchName.substring(0, batchName.length() - 1));
         // 更新数据库状态
         update.setId(pushMain.getId());
         customerInfoPushMainMapper.updateByPrimaryKeySelective(update);
-    }
-
-    private Map<String, Set<String>> handleOperateTypeSixRepeat(ThreadPoolExecutor pushPool, String condition,
-                                                                CustomerInfoPushMain pushMain, Long rePushCount, List<Future<Boolean>> resList, List<SyncOperateTypeDTO> operateTypeDTOList) {
-        String apiCode = pushMain.getmApiCode();
-        Map<String, Set<String>> cellMap = new HashMap<>();
-        Map<String, List<SyncOperateTypeDTO>> userTypes = operateTypeDTOList.stream().filter(operateType -> "6".equals(
-                operateType.getOperateType())).collect(Collectors.groupingBy(SyncOperateTypeDTO::getUserType));
-        for (String userType : userTypes.keySet()) {
-            List<SyncOperateTypeDTO> records = userTypes.get(userType);
-            List<MarketingSyncUser> repeatList = marketingSyncInfoMapper.getCellRepeatUserByConditiontikv_(apiCode, records, condition,
-                    pushMain.getCreateTime(), "6");
-            if (CollectionUtils.isEmpty(repeatList)) {
-                continue;
-            }
-            CustomerTagsVO tags = customerTagsProcessService.getTags(apiCode);
-            Integer jc3keyType = tags.getPushJc3keyType();
-            // 按 cell 分组
-            Map<String, List<MarketingSyncUser>> groupedByCell = repeatList.stream().collect(Collectors.groupingBy(MarketingSyncUser::getCell));
-            List<PushMarketingUserDetailByRuleDTO> pushList = new ArrayList<>();
-            buildPushDataWithSequence(groupedByCell, apiCode, "6", pushList, jc3keyType, rePushCount);
-            List<List<PushMarketingUserDetailByRuleDTO>> partitions = ListUtils.partition(pushList, 2000);
-            partitions.forEach(psuhDetail -> {
-                resList.add(pushPool.submit(() -> uploadPushPolicy(psuhDetail, pushMain)));
-            });
-            cellMap.put(userType, groupedByCell.keySet());
-        }
-        return cellMap;
-    }
-
-    private Map<String, Set<String>> handleOperateTypeFiveRepeat(ThreadPoolExecutor pushPool, String condition, CustomerInfoPushMain pushMain,
-                                                                 Long rePushCount, List<Future<Boolean>> resList, List<SyncOperateTypeDTO> operateTypeDTOList) {
-        String apiCode = pushMain.getmApiCode();
-        Map<String, Set<String>> custNumMap = new HashMap<>();
-        Map<String, List<SyncOperateTypeDTO>> userTypes = operateTypeDTOList.stream().filter(operateType -> "5".equals(
-                operateType.getOperateType())).collect(Collectors.groupingBy(SyncOperateTypeDTO::getUserType));
-        for (String userType : userTypes.keySet()) {
-            List<SyncOperateTypeDTO> records = userTypes.get(userType);
-            List<MarketingSyncUser> repeatList = marketingSyncInfoMapper.getCustNumRepeatUserByConditiontikv_(apiCode, records,
-                    condition, pushMain.getCreateTime(), "5");
-            if (CollectionUtils.isEmpty(repeatList)) {
-                continue;
-            }
-            CustomerTagsVO tags = customerTagsProcessService.getTags(apiCode);
-            Integer jc3keyType = tags.getPushJc3keyType();
-            // 按 custNum 分组
-            Map<String, List<MarketingSyncUser>> groupedByCustNum = repeatList.stream().collect(Collectors.groupingBy(MarketingSyncUser::getCustNum));
-            List<PushMarketingUserDetailByRuleDTO> pushList = new ArrayList<>();
-            buildPushDataWithSequence(groupedByCustNum, apiCode, "5", pushList, jc3keyType, rePushCount);
-            List<List<PushMarketingUserDetailByRuleDTO>> partitions = ListUtils.partition(pushList, 2000);
-            partitions.forEach(psuhDetail -> {
-                resList.add(pushPool.submit(() -> uploadPushPolicy(psuhDetail, pushMain)));
-            });
-            custNumMap.put(userType, groupedByCustNum.keySet());
-        }
-        return custNumMap;
-    }
-
-    /**
-     * 为重复的 custNum 数据构建递增序号的 batchNumber
-     */
-    private void buildPushDataWithSequence(Map<String, List<MarketingSyncUser>> groupdData,
-                                           String apiCode,
-                                           String operateType,
-                                           List<PushMarketingUserDetailByRuleDTO> pushList, Integer jc3keyType, Long rePushCount) {
-
-        groupdData.forEach((groupField, userList) -> {
-            // 为每条记录分配序号
-            for (int i = 0; i < userList.size(); i++) {
-                MarketingSyncUser syncUser = userList.get(i);
-                int sequence = i + 1;
-                // 构建推送数据对象
-                PushMarketingUserDetailByRuleDTO pushData = new PushMarketingUserDetailByRuleDTO();
-                pushData.setInitId(syncUser.getId());
-                pushData.setCaseNumber(syncUser.getCustNum());
-                pushRuleService.judgeEncryptType(pushData, syncUser, jc3keyType);
-                String nowDate = LocalDate.now().toString().replace("-", "");
-                String reserveField1 = syncUser.getReserveField1();
-                JSONObject jsonObject = JSONObject.parseObject(syncUser.getReserveField1());
-                String userType = syncUser.getUserType();
-                customizFieldMapping(apiCode, jsonObject);
-                if (StringUtils.isNotBlank(reserveField1) && ObjectUtil.isNotEmpty(jsonObject)) {
-                    String strategyCodeOriginal = ObjectUtil.isNotEmpty(jsonObject.getString("strategyCode"))
-                            ? jsonObject.getString("strategyCode")
-                            : "";
-                    String strategyCode = strategyCodeOriginal.length() < 12
-                            ? strategyCodeOriginal
-                            : strategyCodeOriginal.substring(strategyCodeOriginal.length() - 12);
-                    jsonObject.put("strategyCode", strategyCode);
-                    String batchNumber = nowDate + "_" + apiCode + "_" + operateType + "_" + userType + "_" + sequence + "_RE_" + rePushCount;
-                    String batchName = ObjectUtil.isNotEmpty(jsonObject.getString("batchName"))
-                            ? jsonObject.getString("batchName")
-                            : (nowDate + "_" + apiCode);
-                    String strategyName = ObjectUtil.isNotEmpty(jsonObject.getString("strategyName"))
-                            ? jsonObject.getString("strategyName")
-                            : "";
-                    if (StringUtils.isNotEmpty(strategyCode)) {
-                        pushData.setStrategyCode(strategyCode);
-                    } else {
-                        pushData.setStrategyCode("");
-                    }
-                    if (StringUtils.isNotEmpty(strategyCode)) {
-                        jsonObject.put("strategyName", strategyName);
-                    } else {
-                        jsonObject.put("strategyName", "");
-                    }
-                    pushData.setBatchNumber(batchNumber);
-                    pushData.setBatchName(batchName);
-                    jsonObject.put("batchName", batchName);
-                    if (StringUtils.isNotEmpty(syncUser.getUserType())) {
-                        jsonObject.put("userType", syncUser.getUserType());
-                    }
-                }
-                if (ObjectUtil.isEmpty(jsonObject)) {
-                    jsonObject = new JSONObject();
-                }
-                buildJson(jsonObject, syncUser, jc3keyType);
-                pushData.setVariables(jsonObject);
-                pushList.add(pushData);
-            }
-        });
     }
 
     private void handleOperateTypeFive(ThreadPoolExecutor pushPool, SyncOperateTypeDTO operateTypeDTO, String condition, CustomerInfoPushMain
@@ -573,7 +460,6 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
         String appletDate = operateTypeDTO.getAppletDate();
         String userType = operateTypeDTO.getUserType();
         Date createTime = LocalDate.now().toString().equals(appletDate) ? pushMain.getCreateTime() : null;
-        String nowDate = LocalDate.now().toString().replace("-", "");
         CustomerTagsVO tags = customerTagsProcessService.getTags(apiCode);
         Long minId = null;
         List<PushMarketingUserDetailByRuleDTO> pushList = new ArrayList<>();
@@ -582,9 +468,9 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
             if (CollectionUtils.isEmpty(syncUsers)) {
                 break;
             }
-            // 遍历syncUsers，将custNum+userType作为key，AtomicInteger自增作为value
+            // 遍历syncUsers，将cell+userType作为key，AtomicInteger自增作为value
             for (MarketingSyncUser syncUser : syncUsers) {
-                String key = syncUser.getCustNum() + "_" + syncUser.getUserType();
+                String key = syncUser.getCell() + "_" + syncUser.getUserType();
                 cellMap.computeIfAbsent(key, k -> new AtomicInteger(0)).incrementAndGet();
                 syncUser.setReserveField1(setExtendField(syncUser.getReserveField1(), "rePeatNum", cellMap.get(key)));
                 syncUser.setReserveField1(setExtendField(syncUser.getReserveField1(), "rePushNum", rePushCount));
@@ -658,66 +544,6 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
                     uploadPushPolicy(pushList, pushMain)));
 
         }
-    }
-
-    private void buildPushParam(List<PushMarketingUserDetailByRuleDTO> pushList, List<MarketingSyncUser> syncUsers, String
-                                        buildBatchNumber,
-                                Integer jc3keyType, Long rePushCount, Boolean isBuild) {
-        syncUsers.forEach(syncUser -> {
-            String apiCode = syncUser.getApiCode();
-            PushMarketingUserDetailByRuleDTO pushData = new PushMarketingUserDetailByRuleDTO();
-            pushData.setInitId(syncUser.getId());
-            pushData.setCaseNumber(syncUser.getCustNum());
-            pushRuleService.judgeEncryptType(pushData, syncUser, jc3keyType);
-            String nowDate = LocalDate.now().toString().replace("-", "");
-            String reserveField1 = syncUser.getReserveField1();
-            JSONObject jsonObject = JSONObject.parseObject(syncUser.getReserveField1());
-            customizFieldMapping(apiCode, jsonObject);
-            if (StringUtils.isNotBlank(reserveField1) && ObjectUtil.isNotEmpty(jsonObject)) {
-                String strategyCodeOriginal = ObjectUtil.isNotEmpty(jsonObject.getString("strategyCode"))
-                        ? jsonObject.getString("strategyCode")
-                        : "";
-                String strategyCode = strategyCodeOriginal.length() < 12
-                        ? strategyCodeOriginal
-                        : strategyCodeOriginal.substring(strategyCodeOriginal.length() - 12);
-                jsonObject.put("strategyCode", strategyCode);
-                String batchNumber = ObjectUtil.isNotEmpty(jsonObject.getString("batchNumber"))
-                        ? jsonObject.getString("batchNumber") + "_" + "RE_" + rePushCount
-                        : buildBatchNumber;
-                //5,6直接构建
-                if (isBuild) {
-                    batchNumber = buildBatchNumber;
-                }
-                String batchName = ObjectUtil.isNotEmpty(jsonObject.getString("batchName"))
-                        ? jsonObject.getString("batchName")
-                        : (nowDate + "_" + apiCode);
-                String strategyName = ObjectUtil.isNotEmpty(jsonObject.getString("strategyName"))
-                        ? jsonObject.getString("strategyName")
-                        : "";
-                if (StringUtils.isNotEmpty(strategyCode)) {
-                    pushData.setStrategyCode(strategyCode);
-                } else {
-                    pushData.setStrategyCode("");
-                }
-                if (StringUtils.isNotEmpty(strategyCode)) {
-                    jsonObject.put("strategyName", strategyName);
-                } else {
-                    jsonObject.put("strategyName", "");
-                }
-                pushData.setBatchNumber(batchNumber);
-                pushData.setBatchName(batchName);
-                jsonObject.put("batchName", batchName);
-                if (StringUtils.isNotEmpty(syncUser.getUserType())) {
-                    jsonObject.put("userType", syncUser.getUserType());
-                }
-            }
-            if (ObjectUtil.isEmpty(jsonObject)) {
-                jsonObject = new JSONObject();
-            }
-            buildJson(jsonObject, syncUser, jc3keyType);
-            pushData.setVariables(jsonObject);
-            pushList.add(pushData);
-        });
     }
 
     private Boolean uploadPushPolicy(List<PushMarketingUserDetailByRuleDTO> pushList, CustomerInfoPushMain pushMain) {

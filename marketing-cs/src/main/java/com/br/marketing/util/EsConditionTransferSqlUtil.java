@@ -142,26 +142,68 @@ public class EsConditionTransferSqlUtil {
                 break;
             case "between":
                 List<String> betweenList = Arrays.asList(((String) value).split(","));
-                sqlTep = ("(").concat(key).concat(" >=\"").concat(betweenList.get(0)).concat("\" and ").concat(key).concat(" <=\"")
-                        .concat(betweenList.get(1).concat("\")"));
+                String startValue = betweenList.get(0).trim();
+                String endValue = betweenList.get(1).trim();
+                // 判断是否为数字，数字不加引号
+                if (isNumeric(startValue) && isNumeric(endValue)) {
+                    sqlTep = ("(").concat(key).concat(" >=").concat(startValue).concat(" and ").concat(key).concat(" <=")
+                            .concat(endValue).concat(")");
+                } else {
+                    sqlTep = ("(").concat(key).concat(" >=\"").concat(startValue).concat("\" and ").concat(key).concat(" <=\"")
+                            .concat(endValue).concat("\")");
+                }
                 break;
             case "between_right":
                 List<String> betweenRightList = Arrays.asList(((String) value).split(","));
-                sqlTep = ("(").concat(key).concat(" >=\"").concat(betweenRightList.get(0)).concat("\" and ").concat(key).concat(" <\"")
-                        .concat(betweenRightList.get(1).concat("\")"));
+                String rightStartValue = betweenRightList.get(0).trim();
+                String rightEndValue = betweenRightList.get(1).trim();
+                // 判断是否为数字，数字不加引号
+                if (isNumeric(rightStartValue) && isNumeric(rightEndValue)) {
+                    sqlTep = ("(").concat(key).concat(" >=").concat(rightStartValue).concat(" and ").concat(key).concat(" <")
+                            .concat(rightEndValue).concat(")");
+                } else {
+                    sqlTep = ("(").concat(key).concat(" >=\"").concat(rightStartValue).concat("\" and ").concat(key).concat(" <\"")
+                            .concat(rightEndValue).concat("\")");
+                }
                 break;
             case "between_left":
                 List<String> betweenLeftList = Arrays.asList(((String) value).split(","));
-                sqlTep = ("(").concat(key).concat(" >\"").concat(betweenLeftList.get(0)).concat("\" and ").concat(key).concat(" <=\"")
-                        .concat(betweenLeftList.get(1).concat("\")"));
+                String leftStartValue = betweenLeftList.get(0).trim();
+                String leftEndValue = betweenLeftList.get(1).trim();
+                // 判断是否为数字，数字不加引号
+                if (isNumeric(leftStartValue) && isNumeric(leftEndValue)) {
+                    sqlTep = ("(").concat(key).concat(" >").concat(leftStartValue).concat(" and ").concat(key).concat(" <=")
+                            .concat(leftEndValue).concat(")");
+                } else {
+                    sqlTep = ("(").concat(key).concat(" >\"").concat(leftStartValue).concat("\" and ").concat(key).concat(" <=\"")
+                            .concat(leftEndValue).concat("\")");
+                }
                 break;
             case "between_open":
                 List<String> betweenOpenList = Arrays.asList(((String) value).split(","));
-                sqlTep = ("(").concat(key).concat(" >\"").concat(betweenOpenList.get(0)).concat("\" and ").concat(key).concat(" <\"")
-                        .concat(betweenOpenList.get(1).concat("\")"));
+                String openStartValue = betweenOpenList.get(0).trim();
+                String openEndValue = betweenOpenList.get(1).trim();
+                // 判断是否为数字，数字不加引号
+                if (isNumeric(openStartValue) && isNumeric(openEndValue)) {
+                    sqlTep = ("(").concat(key).concat(" >").concat(openStartValue).concat(" and ").concat(key).concat(" <")
+                            .concat(openEndValue).concat(")");
+                } else {
+                    sqlTep = ("(").concat(key).concat(" >\"").concat(openStartValue).concat("\" and ").concat(key).concat(" <\"")
+                            .concat(openEndValue).concat("\")");
+                }
                 break;
             case "%":
                 sqlTep = key.concat(" like ").concat("\"%").concat(value.toString()).concat("%\"");
+                break;
+            case "<":
+            case "<=":
+            case ">":
+            case ">=":
+                if (isNumeric(value.toString())) {
+                    sqlTep = key.concat(operation).concat(value.toString());
+                } else {
+                    sqlTep = key.concat(operation).concat("\"").concat(value.toString()).concat("\"");
+                }
                 break;
             default:
                 sqlTep = key.concat(operation).concat("\"").concat(value.toString()).concat("\"");
@@ -169,6 +211,21 @@ public class EsConditionTransferSqlUtil {
         }
         return sqlTep;
 
+    }
+
+
+    /**
+     * 判断字符串是否为数字（整数或小数）
+     * 支持格式：123, -456, +789, 12.34, -0.5, +100.25
+     *
+     * @return true-是数字，false-不是数字
+     */
+    private static boolean isNumeric(String str) {
+        if (str == null || str.trim().isEmpty()) {
+            return false;
+        }
+        // 匹配：可选的+/-号 + 至少一个数字 + 可选的小数部分
+        return str.matches("^[+-]?\\d+(\\.\\d+)?$");
     }
 
 
