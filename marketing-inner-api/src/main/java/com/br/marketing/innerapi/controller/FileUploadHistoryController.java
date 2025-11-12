@@ -26,7 +26,7 @@ import javax.annotation.Resource;
  */
 @RestController
 @RequestMapping(value = "/rule/fileUploadHistory")
-@Tag(value = "文件上传历史", tags = "文件上传历史", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "文件上传历史", description = "文件上传历史")
 public class FileUploadHistoryController {
 
     @Resource

@@ -19,7 +19,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/controlGroup")
-@Tag(value = "众安对照组配置", tags = "众安对照组配置相关接口")
+@Tag(name = "众安对照组配置", description = "众安对照组配置相关接口")
 @Slf4j
 public class ZhongAnControlGroupController {
 

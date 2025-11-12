@@ -9,8 +9,10 @@ import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.service.FastTaskRuleService;
 import com.br.marketing.vo.FastTaskRuleDetailVO;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +29,7 @@ import java.util.List;
 @RestController
 @Configuration
 @RequestMapping("/rule/fastTask")
-@Tag(value = "手动跑数任务规则", tags = "手动跑数任务规则", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "手动跑数任务规则", description = "手动跑数任务规则")
 public class FastTaskRuleContronller {
 
     private static final Logger log = LoggerFactory.getLogger(FastTaskRuleContronller.class);
@@ -36,15 +38,15 @@ public class FastTaskRuleContronller {
     FastTaskRuleService fastTaskRuleService;
 
     @Operation(summary = "跑分记录列表", description = "跑分记录列表")
-    @Parameters({@Parameter(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
-            , @Parameter(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
-            , @Parameter(name = "search", value = "搜索：任务编号/任务名称/CID/APIcode", paramType = "query", dataType = "string")
-            , @Parameter(name = "status", value = "使用状态 1-开启；0-关闭", paramType = "query", dataType = "integer")
-            , @Parameter(name = "createTimeStart", value = "创建时间开始", paramType = "query", dataType = "string")
-            , @Parameter(name = "createTimeEnd", value = "创建时间结束", paramType = "query", dataType = "string")
-            , @Parameter(name = "updateTimeStart", value = "更新时间开始", paramType = "query", dataType = "string")
-            , @Parameter(name = "updateTimeEnd", value = "更新时间结束", paramType = "query", dataType = "string")
-            , @Parameter(name = "taskStatus", value = "跑分状态", paramType = "query", dataType = "integer")
+    @Parameters({@Parameter(name = "current", description = "页号")
+            , @Parameter(name = "size", description = "页大小")
+            , @Parameter(name = "search", description = "搜索：任务编号/任务名称/CID/APIcode")
+            , @Parameter(name = "status", description = "使用状态 1-开启；0-关闭")
+            , @Parameter(name = "createTimeStart", description = "创建时间开始")
+            , @Parameter(name = "createTimeEnd", description = "创建时间结束")
+            , @Parameter(name = "updateTimeStart", description = "更新时间开始")
+            , @Parameter(name = "updateTimeEnd", description = "更新时间结束")
+            , @Parameter(name = "taskStatus", description = "跑分状态")
     })
     @GetMapping("/list")
     @Deprecated
@@ -81,9 +83,9 @@ public class FastTaskRuleContronller {
 
 
     @Operation(summary = "修改批量跑分", description = "修改批量跑分")
-    @Parameters({@Parameter(name = "id", value = "任务id", paramType = "query", dataType = "string")
-            , @Parameter(name = "ruleName", value = "任务名称", paramType = "query", dataType = "string")
-            , @Parameter(name = "taskTime", value = "跑分日期", paramType = "query", dataType = "string")
+    @Parameters({@Parameter(name = "id", description = "任务id")
+            , @Parameter(name = "ruleName", description = "任务名称")
+            , @Parameter(name = "taskTime", description = "跑分日期")
     })
     @GetMapping("/update")
     @Deprecated
@@ -102,7 +104,7 @@ public class FastTaskRuleContronller {
 
 
     @Operation(summary = "查看跑分任务", description = "查看跑分任务")
-    @Parameter(name = "id", value = "id", required = true, dataType = "String")
+    @Parameter(name = "id", description = "id", required = true)
     @GetMapping("/getFastTask")
     @Deprecated
     public ApiResult<FastTaskRuleDetailVO> getFastTask(String id) {
@@ -118,8 +120,8 @@ public class FastTaskRuleContronller {
 
     @Operation(summary = "操作跑分记录状态", description = "操作跑分记录状态，开启/关闭")
     @Parameters({
-            @Parameter(name = "id", value = "id", required = true, dataType = "String"),
-            @Parameter(name = "status", value = "状态(1-开启;2-禁用)", required = true, dataType = "Integer")
+            @Parameter(name = "id", description = "id", required = true),
+            @Parameter(name = "status", description = "状态(1-开启;2-禁用)", required = true)
     })
     @GetMapping("/updateStatusById")
     @Deprecated
@@ -141,7 +143,7 @@ public class FastTaskRuleContronller {
 
 
     @Operation(summary = "跑分规则下拉列表", description = "跑分规则下拉列表")
-    @Parameter(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")
+    @Parameter(name = "apiCode", description = "apiCode")
     @GetMapping("/getScoreRules")
     @Deprecated
     public ApiResult<List<ScoreRuleConfig>> getScoreRules(@RequestParam String apiCode) {
@@ -156,8 +158,8 @@ public class FastTaskRuleContronller {
 
     @Operation(summary = "获取未跑分数据量", description = "获取未跑分数据量")
     @Parameters({
-            @Parameter(name = "ids", value = "跑分数据所选的数据id，逗号分隔", required = true, dataType = "String"),
-            @Parameter(name = "apiCode", value = "apiCode", required = true, dataType = "String")
+            @Parameter(name = "ids", description = "跑分数据所选的数据id，逗号分隔", required = true),
+            @Parameter(name = "apiCode", description = "apiCode", required = true)
     })
     @GetMapping("/getNum")
     public ApiResult<Integer> getNum(String ids, String apiCode) {

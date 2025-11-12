@@ -37,7 +37,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping(value = "/car")
-@Tag(value = "车线索列表", tags = "车线索列表", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "车线索列表", description = "车线索列表")
 public class CarClueReportController {
 
     @Resource
@@ -49,7 +49,7 @@ public class CarClueReportController {
 
     @PostMapping("/getCarClueList")
     @Operation(summary = "车线索数据统计报表列表", description = "车线索数据统计报表列表")
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = CarClueInfoVo.class)})
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR")})
     @AddDataAuthBusiness
     public ApiResult<PageResultReturn> getReportList(@RequestBody @Valid CarClueReportDTO request) {
         PageResultReturn result = carClueReportService.getReportList(request);

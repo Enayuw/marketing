@@ -39,7 +39,7 @@ import java.util.List;
 @Configuration
 @RequestMapping("/rule/task")
 @Slf4j
-@Tag(value = "跑数任务规则", tags = "跑数任务规则", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "跑数任务规则", description = "跑数任务规则")
 public class MarketingTaskController {
 
 
@@ -50,16 +50,16 @@ public class MarketingTaskController {
     MarketingTaskOptService marketingTaskOptService;
 
     @Operation(summary = "跑分记录列表", description = "跑分记录列表")
-    @Parameters({@Parameter(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
-            , @Parameter(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
-            , @Parameter(name = "search", value = "搜索：任务编号/任务名称/CID/APIcode", paramType = "query", dataType = "string")
-            , @Parameter(name = "status", value = "使用状态 1-开启；0-关闭", paramType = "query", dataType = "integer")
-            , @Parameter(name = "createTimeStart", value = "创建时间开始", paramType = "query", dataType = "string")
-            , @Parameter(name = "createTimeEnd", value = "创建时间结束", paramType = "query", dataType = "string")
-            , @Parameter(name = "updateTimeStart", value = "更新时间开始", paramType = "query", dataType = "string")
-            , @Parameter(name = "updateTimeEnd", value = "更新时间结束", paramType = "query", dataType = "string")
-            , @Parameter(name = "taskStatus", value = "跑分状态", paramType = "query", dataType = "integer")
-            , @Parameter(name = "execType", value = "任务执行策略 1-一次性全量；2-一次性验证；3-每个任务的周期;4-每日定时", paramType = "query", dataType = "Integer")
+    @Parameters({@Parameter(name = "current", description = "页号")
+            , @Parameter(name = "size", description = "页大小")
+            , @Parameter(name = "search", description = "搜索：任务编号/任务名称/CID/APIcode")
+            , @Parameter(name = "status", description = "使用状态 1-开启；0-关闭")
+            , @Parameter(name = "createTimeStart", description = "创建时间开始")
+            , @Parameter(name = "createTimeEnd", description = "创建时间结束")
+            , @Parameter(name = "updateTimeStart", description = "更新时间开始")
+            , @Parameter(name = "updateTimeEnd", description = "更新时间结束")
+            , @Parameter(name = "taskStatus", description = "跑分状态")
+            , @Parameter(name = "execType", description = "任务执行策略 1-一次性全量；2-一次性验证；3-每个任务的周期;4-每日定时")
     })
     @GetMapping("/list")
     @AddDataAuthBusiness
@@ -81,9 +81,8 @@ public class MarketingTaskController {
 
 
     @Operation(summary = "修改跑分任务优先级", description = "修改跑分任务优先级")
-    @Parameters({@Parameter(name = "id", value = "任务id", paramType = "query", dataType = "string")
-
-            , @Parameter(name = "priority", value = "跑分日期", paramType = "query", dataType = "Integer")
+    @Parameters({@Parameter(name = "id", description = "任务id")
+            , @Parameter(name = "priority", description = "跑分日期")
     })
     @GetMapping("/editPriority")
     public ApiResult<Boolean> editPriority(@RequestParam(required = true) String id,
@@ -99,8 +98,8 @@ public class MarketingTaskController {
 
     @Operation(summary = "操作跑分记录状态", description = "操作跑分记录状态，开启/关闭")
     @Parameters({
-            @Parameter(name = "id", value = "id", required = true, dataType = "String"),
-            @Parameter(name = "status", value = "状态(1-开启;2-禁用)", required = true, dataType = "Integer")
+            @Parameter(name = "id", description = "id", required = true),
+            @Parameter(name = "status", description = "状态(1-开启;2-禁用)", required = true)
     })
     @GetMapping("/updateStatusById")
     public ApiResult<Boolean> updateStatusById(String id, Integer status) {
@@ -119,7 +118,7 @@ public class MarketingTaskController {
     }
 
     @Operation(summary = "查看跑分任务", description = "查看跑分任务")
-    @Parameter(name = "id", value = "id", required = true, dataType = "String")
+    @Parameter(name = "id", description = "id", required = true)
     @GetMapping("/getTask")
     @AddDataAuthBusiness
     public ApiResult<MarketingTaskVO> getTask(String id) {
@@ -134,8 +133,8 @@ public class MarketingTaskController {
 
     @Operation(summary = "查看跑分进度", description = "查看跑分进度")
     @Parameters({
-            @Parameter(name = "hisFileId", value = "hisFileId", required = true, dataType = "String"),
-            @Parameter(name = "id", value = "id", required = true, dataType = "String")
+            @Parameter(name = "hisFileId", description = "hisFileId", required = true),
+            @Parameter(name = "id", description = "id", required = true)
     })
     @GetMapping("/getTaskPercent")
     public ApiResult<Long> getTaskPercent(String hisFileId, String id) {
@@ -149,7 +148,7 @@ public class MarketingTaskController {
     }
 
     @Operation(summary = "跑分规则下拉列表", description = "跑分规则下拉列表")
-    @Parameter(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")
+    @Parameter(name = "apiCode", description = "apiCode")
     @GetMapping("/getScoreRules")
     public ApiResult<List<ScoreRuleConfig>> getScoreRules(@RequestParam String apiCode) {
         try {
@@ -168,7 +167,7 @@ public class MarketingTaskController {
     }
 
     @Operation(summary = "获取验证数据日期")
-    @Parameter(name = "apiCode", value = "apiCode", dataType = "string")
+    @Parameter(name = "apiCode", description = "apiCode")
     @GetMapping("/getStatisticsDataDay")
     public ApiResult<List<StatisticsDataDayVO>> getStatisticsDataDay(@RequestParam String apiCode) {
         return new ApiResult<List<StatisticsDataDayVO>>().fromResult(marketingTaskService.getStatisticsDataDay(apiCode), 1);

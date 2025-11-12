@@ -15,6 +15,8 @@ import com.br.marketing.vo.MarketingCustomerVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +34,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping(value = "/rule/customer")
-@Tag(value = "客户信息", tags = "客户信息", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "客户信息", description = "客户信息")
 public class CustomerController {
 
     private static final Logger log = LoggerFactory.getLogger(CustomerController.class);
@@ -49,9 +51,9 @@ public class CustomerController {
      * @author zeqiang.guo@brgroup.com
      * @dateTime 2021/9/1 15:14
      */
-    @Operation(value = "获取cid、apiCode集合", notes = "集合", httpMethod = "GET")
-    @Parameter(name = "cid", value = "合作客户id", paramType = "path", dataType = "string")
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = CustomerSelectVO.class)})
+    @Operation(summary = "获取cid、apiCode集合", description = "集合")
+    @Parameter(name = "cid", description = "合作客户id")
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR")})
     @GetMapping({"/list", "/list/{cid}"})
     @AddDataAuthBusiness
     public ApiResult<List<CustomerSelectVO>> getCidOrApiCodeList(@PathVariable(value = "cid", required = false) String cid) {
@@ -61,15 +63,15 @@ public class CustomerController {
 
 
     @GetMapping("/getCustomerList")
-    @Operation(value = "客户信息列表数据", notes = "获取客户信息列表数据", httpMethod = "GET")
-    @Parameters({@Parameter(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
-            , @Parameter(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
-            , @Parameter(name = "name", value = "合作客户全称", paramType = "query", dataType = "string")
-            , @Parameter(name = "apiCode", paramType = "query", dataType = "string")
+    @Operation(summary = "客户信息列表数据", description = "获取客户信息列表数据")
+    @Parameters({@Parameter(name = "current", description = "页号")
+            , @Parameter(name = "size", description = "页大小")
+            , @Parameter(name = "name", description = "合作客户全称")
+            , @Parameter(name = "apiCode", description = "apiCode")
             , @Parameter(name = "accountType", description = "账号类型0：测试；1：正式")
             , @Parameter(name = "accountStatus", description = "账号状态0：禁用；1：启用")
     })
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = MarketingCustomer.class)})
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR")})
     @AddDataAuthBusiness
     public ApiResult<PageResultReturn> getCustomerList(@RequestParam(defaultValue = "1") int current
                                                         , @RequestParam(defaultValue = "10") int size
@@ -100,8 +102,8 @@ public class CustomerController {
     }
 
     @Operation(summary = "apiCode是否重复", description = "apiCode是否重复")
-    @Parameters({@Parameter(name = "id", value = "客户配置id(编辑状态需要)", paramType = "query", dataType = "string")
-            , @Parameter(name = "apiCode", paramType = "query", dataType = "string")
+    @Parameters({@Parameter(name = "id", description = "客户配置id(编辑状态需要)")
+            , @Parameter(name = "apiCode", description = "apiCode")
     })
     @GetMapping("/apiCodeOnly")
     public ApiResult<Boolean> apiCodeOnly(@RequestParam(required = false) String id,@RequestParam(required = true) String apiCode){

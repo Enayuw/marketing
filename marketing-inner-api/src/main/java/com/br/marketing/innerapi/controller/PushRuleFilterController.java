@@ -192,8 +192,8 @@ public class PushRuleFilterController {
      * @param apiCode
      * @return
      */
-    @Operation(value = "撞库结果数据", notes = "撞库结果数据", httpMethod = "GET")
-    @Parameters({@Parameter(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")})
+    @Operation(summary = "撞库结果数据", description = "撞库结果数据")
+    @Parameters({@Parameter(name = "apiCode", description = "apiCode")})
     @GetMapping("/getCollidingResultData")
     public ApiResult getCollidingResultData(String apiCode) {
         return new ApiResult<List<XiechengCollidingDataVO>>().fromResult(ruleCenterCollidingService.getCollidingResultData(apiCode), CODE_1);
@@ -205,7 +205,7 @@ public class PushRuleFilterController {
      * @param dto
      * @return
      */
-    @Operation(value = "撞库数据剔除", notes = "撞库数据剔除", httpMethod = "POST")
+    @Operation(summary = "撞库数据剔除", description = "撞库数据剔除")
     @PostMapping("/collidingDataDelete")
     public ApiResult collidingDataDelete(@RequestBody PushCustomerDTO dto) {
         return new ApiResult().fromResult(pushRuleService.collidingDataDelete(dto), CODE_1);
@@ -216,7 +216,7 @@ public class PushRuleFilterController {
      * @param dto
      * @return
      */
-    @Operation(value = "撞库数据剔除数据量", notes = "撞库数据剔除数据量", httpMethod = "POST")
+    @Operation(summary = "撞库数据剔除数据量", description = "撞库数据剔除数据量")
     @PostMapping("/collidingDataDeleteNum")
     @LogRecordAnnotation(bizNo = InterfaceOperationsEnum.XIECHENG_DELETE_COLLIDING_PACKAGE,
             extendInfo = "使用{#dto.mRuleCondition}，进行数据量级{#dto.mPlanNum}的数据剔除")
@@ -229,7 +229,7 @@ public class PushRuleFilterController {
      * @param dto
      * @return
      */
-    @Operation(value = "撞库数据包生成", notes = "撞库数据包生成", httpMethod = "POST")
+    @Operation(summary = "撞库数据包生成", description = "撞库数据包生成")
     @PostMapping("/collidingDataPachageMake")
     @LogRecordAnnotation(bizNo = InterfaceOperationsEnum.XIECHENG_MAKE_COLLIDING_PACKAGE,
             extendInfo = "使用{#dto.mRuleCondition}，生成数据量级{#dto.mPrePlanNum}的{#dto.dataPackageName}数据包")
@@ -281,8 +281,8 @@ public class PushRuleFilterController {
      * @param apiCode
      * @return
      */
-    @Operation(value = "获取分组字段列表", notes = "获取分组字段列表", httpMethod = "GET")
-    @Parameters({@Parameter(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")})
+    @Operation(summary = "获取分组字段列表", description = "获取分组字段列表")
+    @Parameters({@Parameter(name = "apiCode", description = "apiCode")})
     @GetMapping("/getLableNameList")
     public ApiResult getLableNameList(@RequestParam(required = false) String apiCode) {
         return new ApiResult<Set<String>>().fromResult(ruleCenterLabelService.getLabelNames(apiCode), CODE_1);
@@ -307,9 +307,9 @@ public class PushRuleFilterController {
      * @param batchNumbers
      * @return
      */
-    @Operation(value = "获取跑分合并标识", notes = "获取跑分合并标识", httpMethod = "GET")
-    @Parameters({@Parameter(name = "batchNumbers", value = "跑分批次号，多个用,分割", paramType = "query", dataType = "string"),
-            @Parameter(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")})
+    @Operation(summary = "获取跑分合并标识", description = "获取跑分合并标识")
+    @Parameters({@Parameter(name = "batchNumbers", description = "跑分批次号，多个用,分割"),
+            @Parameter(name = "apiCode", description = "apiCode")})
     @GetMapping("/getScoreMergeMark")
     public ApiResult getScoreMergeMark(@RequestParam String batchNumbers,@RequestParam String apiCode) {
         return new ApiResult<Boolean>().fromResult(ruleCenterLabelService.getScoreMergeMark(batchNumbers,apiCode), CODE_1);
@@ -322,9 +322,9 @@ public class PushRuleFilterController {
      * @param batchNumbers
      * @return
      */
-    @Operation(value = "获取跑分合并量级", notes = "获取跑分合并量级", httpMethod = "GET")
-    @Parameters({@Parameter(name = "batchNumbers", value = "跑分批次号，多个用,分割", paramType = "query", dataType = "string"),
-            @Parameter(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")})
+    @Operation(summary = "获取跑分合并量级", description = "获取跑分合并量级")
+    @Parameters({@Parameter(name = "batchNumbers", description = "跑分批次号，多个用,分割"),
+            @Parameter(name = "apiCode", description = "apiCode")})
     @GetMapping("/getScoreMergeNum")
     public ApiResult getScoreMergeNum(@RequestParam String batchNumbers,@RequestParam String apiCode) {
         return new ApiResult<Map<String,Integer>>().fromResult(ruleCenterLabelService.getScoreMergeNum(batchNumbers,apiCode), CODE_1);

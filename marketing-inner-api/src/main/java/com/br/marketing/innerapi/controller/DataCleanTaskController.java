@@ -6,8 +6,10 @@ import com.br.marketing.dto.dataclean.DataCleanRuleDetailDTO;
 import com.br.marketing.entity.MarketingCleanDataFile;
 import com.br.marketing.entity.MarketingCleanDataTask;
 import com.br.marketing.innerapi.service.dataclean.DataCleanHandlerService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,7 +29,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping(value = "/dataclean/task")
-@Tag(value = "数据清洗任务页面", tags = "数据清洗任务页面", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "数据清洗任务页面", description = "数据清洗任务页面")
 public class DataCleanTaskController {
 
     /**
@@ -40,8 +42,8 @@ public class DataCleanTaskController {
 
     @Operation(summary = "获取文件信息", description = "获取文件信息")
     @Parameters({
-            @Parameter(name = "fileIds", value = "文件ID集合，多个,号分割", required = true, dataType = "String"),
-            @Parameter(name = "apiCode", value = "apiCode", required = true, dataType = "String")
+            @Parameter(name = "fileIds", description = "文件ID集合，多个,号分割", required = true),
+            @Parameter(name = "apiCode", description = "apiCode", required = true)
     })
     @GetMapping("/getfileMsg")
     public ApiResult<List<MarketingCleanDataFile>> getfileMsg(String fileIds, String apiCode) {
@@ -52,8 +54,8 @@ public class DataCleanTaskController {
 
     @Operation(summary = "获取文件名称集合", description = "获取文件名称集合")
     @Parameters({
-            @Parameter(name = "fileType", value = "文件类型", required = true, dataType = "Integer"),
-            @Parameter(name = "apiCode", value = "apiCode", required = true, dataType = "String")
+            @Parameter(name = "fileType", description = "文件类型", required = true),
+            @Parameter(name = "apiCode", description = "apiCode", required = true)
     })
     @GetMapping("/getfileNames")
     public ApiResult<List<MarketingCleanDataFile>> getfileNames(Integer fileType, String apiCode) {
@@ -73,7 +75,7 @@ public class DataCleanTaskController {
 
     @Operation(summary = "获取表头映射", description = "获取表头映射")
     @Parameters({
-            @Parameter(name = "fileType", value = "文件类型", required = true, dataType = "Integer"),
+            @Parameter(name = "fileType", description = "文件类型", required = true),
     })
     @GetMapping("/getfieldMap")
     public ApiResult<List> getfieldMap(Integer fileType) {
@@ -86,11 +88,11 @@ public class DataCleanTaskController {
 
     @GetMapping("/list")
     @Operation(summary = "清洗任务列表", description = "清洗任务列表")
-    @Parameters({@Parameter(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
-            , @Parameter(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
-            , @Parameter(name = "apiCode", paramType = "query", dataType = "string")
-            , @Parameter(name = "fileType", value = "文件类型", paramType = "query", dataType = "string")
-            , @Parameter(name = "status", value = "状态", paramType = "query", dataType = "string")
+    @Parameters({@Parameter(name = "current", description = "页号")
+            , @Parameter(name = "size", description = "页大小")
+            , @Parameter(name = "apiCode", description = "apiCode")
+            , @Parameter(name = "fileType", description = "文件类型")
+            , @Parameter(name = "status", description = "状态")
     })
     public ApiResult<PageResultReturn> list(@RequestParam(defaultValue = "1") int current
             , @RequestParam(defaultValue = "10") int size
@@ -119,7 +121,7 @@ public class DataCleanTaskController {
 
     @Operation(summary = "获取清洗任务", description = "获取清洗任务")
     @Parameters({
-            @Parameter(name = "Id", value = "任务ID", paramType = "query", dataType = "Long")
+            @Parameter(name = "Id", description = "任务ID")
     })
     @GetMapping("/getTaskByID")
     public ApiResult<MarketingCleanDataTask> getTaskByID(Long Id) {

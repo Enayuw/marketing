@@ -14,6 +14,8 @@ import com.br.marketing.service.tag.web.TagService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +60,7 @@ public class TagController {
 
     @PostMapping("/createTag")
     @Operation(summary = "创建标签", description = "创建标签")
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = Boolean.class)})
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR")})
     public ApiResult<Boolean> createTag(@RequestBody @Validated TagCreateDTO request) {
         try {
             Boolean result = tagService.createTag(request);
@@ -75,7 +77,7 @@ public class TagController {
 
     @PostMapping("/updateTag")
     @Operation(summary = "更新标签", description = "更新标签")
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = Boolean.class)})
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR")})
     @AddDataAuthBusiness
     public ApiResult<Boolean> updateTag(@RequestBody @Validated TagUpdateDTO request) {
         try {
@@ -128,11 +130,11 @@ public class TagController {
     @PostMapping("/getValueOptions")
     @Operation(summary = "获取字段值列表", description = "根据数据源编码获取对应的字段配置信息")
     @Parameters({
-            @Parameter(name = "fieldCode", value = "字段编码", required = true, dataType = "String", example = "SOURCE_001")
+            @Parameter(name = "fieldCode", description = "字段编码", required = true, example = "SOURCE_001")
     })
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = String.class)})
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR")})
     public ApiResult<List<String>> getValueOptions(
-            @Parameter(value = "字段编码", required = true) @RequestParam String fieldCode) {
+            @Parameter(description = "字段编码", required = true) @RequestParam String fieldCode) {
         try {
             List<String> configs = tagService.getValueOptions(fieldCode);
             if (configs != null) {
@@ -149,8 +151,8 @@ public class TagController {
 
     @PostMapping("/getEffectiveTag")
     @Operation(summary = "获取apiCode授权标签", description = "获取apiCode授权标签")
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = TagListResponseDTO.class)})
-    public ApiResult<List<TagEffectiveDTO>> getEffectiveTag(@Parameter("apiCode") @RequestParam String apiCode) {
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR")})
+    public ApiResult<List<TagEffectiveDTO>> getEffectiveTag(@Parameter(name = "apiCode") @RequestParam String apiCode) {
         try {
             List<TagEffectiveDTO> tagList = tagService.getEffectiveTag(apiCode);
             if (tagList != null) {

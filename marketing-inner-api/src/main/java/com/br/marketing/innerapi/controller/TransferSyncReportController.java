@@ -53,7 +53,7 @@ public class TransferSyncReportController {
             , @Parameter(name = "apiCodes", description = "apiCode筛选,支持多选,逗号分隔")
             , @Parameter(name = "userTypes", description = "场景筛选,支持多选,逗号分隔(例：S01,S02,促首登)")
     })
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = MarketingSyncReport.class)})
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR")})
     @AddDataAuthBusiness
     public ApiResult<PageResultReturn> getReportList(@RequestParam(defaultValue = "1") int current
             , @RequestParam(defaultValue = "10") int size
@@ -77,7 +77,7 @@ public class TransferSyncReportController {
             , @Parameter(name = "apiCodes", description = "apiCode筛选,支持多选,逗号分隔")
             , @Parameter(name = "userTypes", description = "场景筛选,支持多选,逗号分隔(例：S01,S02,促首登)")
     })
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = MarketingSyncReport.class)})
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR")})
     @AddDataAuthBusiness
     public ApiResult<Map<String, String>> getReportListTotal(@RequestParam(required = false) String cidOrName
             , @RequestParam(required = false) String appletTimeStart
@@ -91,7 +91,7 @@ public class TransferSyncReportController {
     @GetMapping("triggerTaskReportJob")
     @Operation(summary = "手动执行转化数据统计报表任务", description = "手动执行转化数据统计报表任务")
     @Parameter(name = "uploadDate", description = "当日日期(yyyy-MM-dd)")
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = MarketingSyncReport.class)})
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR")})
     public ApiResult<Boolean> triggerTaskUploadSyncReportJob(@RequestParam(required = false) String dateStr) {
         try {
             boolean statisSwitch = !marketingCommonConfig.getUploadAndTransferDataRealtimeStatisSwitch();

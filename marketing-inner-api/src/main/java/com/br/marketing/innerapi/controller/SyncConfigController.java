@@ -49,7 +49,7 @@ public class SyncConfigController {
         , @Parameter(name = "apiCode", description = "API编码")
         , @Parameter(name = "dataType", description = "文件类型")
     })
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = MarketingCustomer.class)})
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR")})
     @AddDataAuthBusiness
     public ApiResult<PageResultReturn> getSftpList(@RequestParam(defaultValue = "1") int current,
                                                    @RequestParam(defaultValue = "10") int size,

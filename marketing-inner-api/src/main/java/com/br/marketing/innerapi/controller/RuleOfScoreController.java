@@ -56,7 +56,7 @@ public class RuleOfScoreController {
             , @Parameter(name = "ute", description = "更新时间结束")
             , @Parameter(name = "execType", description = "任务执行策略 1-一次性全量；3-每个任务的周期;4-每日定时")
     })
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = ScoreRuleConfigPageVO.class)})
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR")})
     @AddDataAuthBusiness
     public ApiResult<PageResultReturn> findListPage(@RequestParam(name = "current", defaultValue = "1") int page
             , @RequestParam(name = "size", defaultValue = "10") int pageSize

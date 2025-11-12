@@ -46,7 +46,7 @@ public class RuleCleaningController {
             @Parameter(name = "accountType", description = "账号类型"),
             @Parameter(name = "acceptType", description = "接口类型")
     })
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_warn")})
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_warn")})
     public ApiResult<PageResultReturn> getRuleList(
             @RequestParam(defaultValue = "1") int current,
             @RequestParam(defaultValue = "10") int size,
@@ -63,7 +63,7 @@ public class RuleCleaningController {
     @Parameters({
             @Parameter(name = "ruleId", description = "规则ID", required = true)
     })
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_warn")})
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_warn")})
     public ApiResult<MarketingDataCleanGeneralConfig> getRuleDetailById(@RequestParam("ruleId") Long ruleId) {
         MarketingDataCleanGeneralConfig ruleDetail = ruleCleaningService.getRuleDetailById(ruleId);
         if (ruleDetail == null) {
@@ -79,7 +79,7 @@ public class RuleCleaningController {
             @Parameter(name = "dataType", description = "数据类型：0上传，1转化", required = true),
             @Parameter(name = "acceptType", description = "接口类型：0通用,1定制,2FTP", required = true)
     })
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_warn")})
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_warn")})
     public ApiResult<List<FieldSampleDTO>> getPreviewFieldSamples(
             @RequestParam String apiCode,
             @RequestParam Integer dataType,
@@ -98,7 +98,7 @@ public class RuleCleaningController {
             @Parameter(name = "dataType", description = "数据类型：0上传，1转化", required = true),
             @Parameter(name = "acceptType", description = "接口类型：0通用,1定制,2FTP", required = true)
     })
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_warn")})
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_warn")})
     public ApiResult<List<FieldSampleDTO>> getFieldSamples(
             @RequestParam String apiCode,
             @RequestParam Integer dataType,
@@ -116,7 +116,7 @@ public class RuleCleaningController {
             @Parameter(name = "dataType", description = "数据类型：0上传，1转化", required = true),
             @Parameter(name = "acceptType", description = "接口类型：0通用,1定制,2FTP", required = true)
     })
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_warn")})
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_warn")})
     public ApiResult<String> getpreviewField(
             @RequestParam String apiCode,
             @RequestParam Integer dataType,
@@ -130,7 +130,7 @@ public class RuleCleaningController {
 
     @PostMapping("/previewFieldCleaning")
     @Operation(summary = "字段清洗结果预览", description = "预览字段清洗规则应用后的结果")
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_warn")})
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_warn")})
     public ApiResult<Object> previewFieldCleaning(
             @RequestBody @Parameter(description = "预览请求参数", required = true) FieldCleaningPreviewDTO previewDTO) {
         
@@ -143,7 +143,7 @@ public class RuleCleaningController {
 
     @PostMapping("/field/saveOrUpdate")
     @Operation(summary = "模版字段配置保存更新", description = "模版字段配置保存更新")
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_warn")})
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_warn")})
     public ApiResult<Boolean> fieldSaveOrUpdate(@RequestBody CleanFieldConfigVO fieldConfigVO) {
         boolean result = ruleCleaningService.fieldSaveOrUpdate(fieldConfigVO);
         return new ApiResult<Boolean>().success(result);
@@ -156,7 +156,7 @@ public class RuleCleaningController {
             @Parameter(name = "dataType", description = "数据类型：0上传，1转化", required = true),
             @Parameter(name = "acceptType", description = "接口类型：0通用,1定制,2FTP")
     })
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_warn")})
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_warn")})
     public ApiResult<MarketingDataCleanGeneralFieldConfig> getFieldConfg(@RequestParam(required = true) Integer dataType,
                                                                          @RequestParam(required = false) Integer acceptType) {
         
@@ -180,7 +180,7 @@ public class RuleCleaningController {
 
     @PostMapping("/config/save")
     @Operation(summary = "清洗配置保存", description = "清洗配置保存")
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_warn")})
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_warn")})
     public ApiResult<Boolean> saveConfig(@RequestBody @Validated CleanConfigDTO configDTO) {
         // 调用Service处理业务逻辑
         boolean result = ruleCleaningService.saveCleanConfig(configDTO);
@@ -214,7 +214,7 @@ public class RuleCleaningController {
 
     @PostMapping("/rule/save")
     @Operation(summary = "清洗规则保存", description = "清洗规则保存")
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_warn")})
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_warn")})
     public ApiResult<Boolean> saveCleanRule(@RequestBody @Validated RuleCleaningConfigDTO ruleCleaningConfigDTO) {
         // 调用Service处理业务逻辑
         boolean result = ruleCleaningService.saveCleanRule(ruleCleaningConfigDTO);

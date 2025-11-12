@@ -3,8 +3,10 @@ package com.br.marketing.innerapi.controller.robothook;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.webhook.dingding.msgtype.*;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -17,7 +19,7 @@ import javax.annotation.Resource;
  */
 @RestController
 @RequestMapping(value = "robot/dingding")
-@Tag(value = "钉钉机器人接口", tags = "钉钉机器人", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "钉钉机器人接口", description = "钉钉机器人")
 public class DingDingRobotHookController {
 
     @Resource
