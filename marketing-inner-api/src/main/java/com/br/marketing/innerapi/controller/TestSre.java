@@ -8,6 +8,7 @@ import com.br.marketing.common.commondto.ApiNoDataResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.dto.dataclean.mq.MqDataJsonParse;
@@ -16,11 +17,9 @@ import com.br.marketing.entity.MerchantParam;
 import com.br.marketing.entity.RequestLog;
 import com.br.marketing.enums.clean.DataProcessEnum;
 import com.br.marketing.mapper.rulecleaning.MarketingCustomerOriginalDataMapper;
-import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.rpcclient.rpcclientImpl.BrokerGrpcClient;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import com.br.marketing.rpcclient.rpcclientImpl.UserCenterGrpcClient;
-import com.br.marketing.service.PushRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerService;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
@@ -60,23 +59,6 @@ public class TestSre {
 
     @Autowired
     RedisChgService redisChgService;
-
-
-    @Autowired
-    RabbitMqProducter producter;
-
-    @Autowired
-    private PushRuleService pushRuleService;
-
-    @GetMapping("/testToPreUserText")
-    public void testToPreUserText(@RequestParam("apiCode")String apiCode, @RequestParam("jsonData")String jsonData){
-        pushRuleService.insertMarketingPreUserText(apiCode,jsonData);
-    }
-
-    @GetMapping("/testToPreUserSync")
-    public void testToPreUserSync(Long id){
-        pushRuleService.insertMarketingPreUserSync(id);
-    }
 
     @GetMapping("/testToPolicy")
     public void testToPolicy(String msg){
@@ -191,7 +173,9 @@ public class TestSre {
         mqDataJsonParse.setDataId(originalData.getId());
         mqDataJsonParse.setDataType(DataProcessEnum.DataTypeEnum.UPLOAD.getCode());
         mqDataJsonParse.setAcceptType(DataProcessEnum.AcceptTypeEnum.CUSTOM.getCode());
-        producter.send(MQConstants.ROUTING_KEY_MARKETING_CUSTOMER_DATA_JSON_PARSE, JSON.toJSONString(mqDataJsonParse));
+//        producter.send(MQConstants.ROUTING_KEY_MARKETING_CUSTOMER_DATA_JSON_PARSE, JSON.toJSONString(mqDataJsonParse));
+        rocketMqSwitch.sendMessage(apiCode, MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_MARKETING_CUSTOMER_DATA_JSON_PARSE,
+                JSON.toJSONString(mqDataJsonParse), MQConstants.ROUTING_KEY_MARKETING_CUSTOMER_DATA_JSON_PARSE);
         return new ApiNoDataResult().fromResult(result);
     }
 

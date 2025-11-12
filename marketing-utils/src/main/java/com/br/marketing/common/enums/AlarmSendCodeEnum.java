@@ -156,6 +156,9 @@ public enum AlarmSendCodeEnum {
     //哈啰接口调用失败,阶梯推送
     HALUO_INTERFACEERROR("6012002", "哈啰接口调用失败"),
 
+    //哈啰接口调用失败,阶梯推送
+    HALUO_CALLBACK_DATA_INTERFACEERROR("6012003", "哈啰3710217营销回传失败"),
+
     //桔子业务异常,立即推送
     JUZI_SERVICEERROR("6013001", "桔子业务异常"),
     //桔子接口调用失败,阶梯推送
@@ -344,6 +347,9 @@ public enum AlarmSendCodeEnum {
 
     //查询mock-Api异常,立即推送
     MOCK_APIERROR("8001002", "查询mock-Api异常"),
+
+    POLLING_GROUP_EXCEPTION("8001003", "轮询开发组异常"),
+
     ;
 
     /**

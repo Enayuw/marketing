@@ -402,14 +402,14 @@ public class MockServiceImpl implements MockService {
                 mockCreatePolicyDTO.setDescription("未查询到mock配置！");
                 return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(JSONObject.toJSONString(mockCreatePolicyDTO));
             }
-            MockPolicy mockPolicy = mockPolicies.get(0);
+            MockPolicy dbMockPolicy = mockPolicies.get(0);
 
-            mockCreatePolicyDTO.setId(mockPolicy.getId());
-            mockCreatePolicyDTO.setMockName(mockPolicy.getMockName());
-            mockCreatePolicyDTO.setMockPolicyType(mockPolicy.getMockPolicyType());
-            mockCreatePolicyDTO.setEnabled(mockPolicy.getEnabled());
-            mockCreatePolicyDTO.setVersion(mockPolicy.getVersion());
-            mockCreatePolicyDTO.setDescription(mockPolicy.getDescription());
+            mockCreatePolicyDTO.setId(dbMockPolicy.getId());
+            mockCreatePolicyDTO.setMockName(dbMockPolicy.getMockName());
+            mockCreatePolicyDTO.setMockPolicyType(dbMockPolicy.getMockPolicyType());
+            mockCreatePolicyDTO.setEnabled(dbMockPolicy.getEnabled());
+            mockCreatePolicyDTO.setVersion(dbMockPolicy.getVersion());
+            mockCreatePolicyDTO.setDescription(dbMockPolicy.getDescription());
 
             MockCaseExample mockCaseExample = new MockCaseExample();
             mockCaseExample.createCriteria().andMockNameEqualTo(mockName).andIsDelEqualTo(Constants.DATA_VALID);

@@ -46,7 +46,7 @@ public interface LocalFileMapper extends LocalFileMapperBase {
      * @return java.lang.Integer 数据量
      */
     @AddDataAuth
-    Integer allCount(@Param("search") String search,
+    Long allCount(@Param("search") String search,
                      @Param("apiCode") String apiCode,
                      @Param("uploadStartTime") String uploadStartTime,
                      @Param("uploadEndTime") String uploadEndTime,

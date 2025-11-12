@@ -4,7 +4,7 @@ import java.util.Date;
 
 public class QifuActuation {
     /**
-     * 
+     *
      */
     private Long id;
 
@@ -32,6 +32,11 @@ public class QifuActuation {
      * 供应商
      */
     private String supplier;
+
+    /**
+     * 分组类型名称
+     */
+    private String groupTypeName;
 
     /**
      * 有效期
@@ -84,7 +89,7 @@ public class QifuActuation {
     private Date createTime;
 
     /**
-     * 
+     *
      */
     private Date updateTime;
 
@@ -139,6 +144,14 @@ public class QifuActuation {
 
     public void setSupplier(String supplier) {
         this.supplier = supplier == null ? null : supplier.trim();
+    }
+
+    public String getGroupTypeName() {
+        return groupTypeName;
+    }
+
+    public void setGroupTypeName(String groupTypeName) {
+        this.groupTypeName = groupTypeName == null ? null : groupTypeName.trim();
     }
 
     public String getValidDate() {

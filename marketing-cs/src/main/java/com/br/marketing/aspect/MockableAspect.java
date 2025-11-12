@@ -6,6 +6,7 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.mock.MockCreateCaseDTO;
 import com.br.marketing.dto.mock.MockCreatePolicyDTO;
 import com.br.marketing.dto.mock.MockInitDTO;
@@ -128,7 +129,7 @@ public class MockableAspect {
      * @return 解析后的对象
      */
     private Object parseResponseBody(String responseBodyStr, String methodName) {
-        if (responseBodyStr == null || responseBodyStr.trim().isEmpty()) {
+        if (StringUtils.isEmpty(responseBodyStr)) {
             return null;
         }
         

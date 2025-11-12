@@ -4,12 +4,12 @@
 
     <insert id="batchInsert" parameterType="java.util.List">
         INSERT INTO b_marketing_qifu_actuation
-        (api_code, issue_month, issue_date, user_type, supplier,
+        (api_code, issue_month, issue_date, user_type, supplier, group_type_name,
         valid_date, credit_user_count, app_login_user_count, start_user_count, user_loan_count,
         app_login_rate, user_start_rate, user_loan_rate, create_date, create_time, update_time, is_del)
         VALUES
         <foreach collection="list" item="item" separator=",">
-            (#{item.apiCode}, #{item.issueMonth}, #{item.issueDate}, #{item.userType}, #{item.supplier},
+            (#{item.apiCode}, #{item.issueMonth}, #{item.issueDate}, #{item.userType}, #{item.supplier}, #{item.groupTypeName},
             #{item.validDate}, #{item.creditUserCount}, #{item.appLoginUserCount}, #{item.startUserCount}, #{item.userLoanCount},
             #{item.appLoginRate}, #{item.userStartRate}, #{item.userLoanRate}, #{item.createDate} , #{item.createTime}, #{item.updateTime}, 1)
         </foreach>

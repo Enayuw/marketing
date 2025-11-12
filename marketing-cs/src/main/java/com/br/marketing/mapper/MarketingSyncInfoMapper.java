@@ -293,4 +293,12 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
 
     List<MarketingSyncUser> getMarketingSyncInfoByRequestBatch(@Param("apiCode") String apiCode, @Param("requestBatch") String requestBatch);
 
+    /**
+     * 根据apiCode和requestBatch查询MarketingSyncInfo
+     * @param apiCode
+     * @param requestBatch
+     * @return
+     */
+    MarketingSyncInfo getByApiCodeAndRequestBatch(@Param("apiCode") String apiCode, @Param("requestBatch") String requestBatch);
+
 }

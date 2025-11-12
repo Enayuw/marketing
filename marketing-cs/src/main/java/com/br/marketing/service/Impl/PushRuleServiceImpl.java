@@ -85,7 +85,6 @@ import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.service.rulecenter.IEsActionService;
 import com.br.marketing.service.rulecenter.IRuleCenterFilterTemplateService;
 import com.br.marketing.service.rulecenter.RuleCenterBySourceTypeFactory;
-import com.br.marketing.service.rulecenter.enums.RuleCenterPushTargetEnum;
 import com.br.marketing.service.tag.calculate.TagHandleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.utils.PulsarConsumerSkipUtil;
@@ -136,6 +135,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -146,10 +146,7 @@ import java.util.stream.Collectors;
 public class PushRuleServiceImpl implements PushRuleService {
 
     private static final Logger log = LoggerFactory.getLogger(PushRuleServiceImpl.class);
-    public static final String AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR = CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FOUR.getCode();
-    public static final String AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FIVE = CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_FIVE.getCode();
-    public static final String AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_SIX = CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_SIX.getCode();
-    public static final String TO_POLICY_GENERAL = CommonRuleLabelEnum.TO_POLICY_GENERAL.getCode();
+    public static final String AI_TO_POLICY = CommonRuleLabelEnum.AI_TO_POLICY.getCode();
 
     private static HashMap<String, String> errorCodeHm;
 
@@ -2476,6 +2473,14 @@ public class PushRuleServiceImpl implements PushRuleService {
             syncInfo.setDataSourceType(dataSourceType);
             mockDbOrRedisError(1, apiCode);
             marketingUserMapper.insertMarketingPreUserByText(syncInfo);
+
+            // 模拟数据入库成功，但返回异常入Pulsar的场景
+            Map<String, Boolean> pushDataSwitch = marketingCommonConfig.getPushDataSwitch();
+            if(pushDataSwitch.get(PushDataEnum.MARKETING_UPLOAD_BASE.getValue())){
+                log.warn(String.format("【模拟异常写入Pulsar】通用上传数据infoId infoId:%s", syncInfo.getId()));
+                throw new Exception();
+            }
+
             syncInfoId = syncInfo.getId().toString();
             if (log.isInfoEnabled()) {
                 log.info("文本插入耗时:{}", (System.currentTimeMillis() - l));
@@ -2695,66 +2700,11 @@ public class PushRuleServiceImpl implements PushRuleService {
             return true;
         }
 
-        // 没配置成init和ai客户
-        boolean hasOperateType3 = containsOperateType(jsonData, "3");
-        boolean hasOperateType4 = containsOperateType(jsonData, "4");
-        boolean hasOperateType5 = containsOperateType(jsonData, "5");
-        boolean hasOperateType6 = containsOperateType(jsonData, "6");
-
-        // jsonData中没有3456
-        if (!hasOperateType3 && !hasOperateType4 && !hasOperateType5 && !hasOperateType6) {
-            return false;
-        }
-
-        // jsonData包含3或者4或者5或者6，查db
-        Set<String> customerRules = dataLoadingHandlerService.customerRules(apiCode);
-
-        boolean hasType3Rule = customerRules.contains(TO_POLICY_GENERAL) && hasOperateType3;
-        boolean hasType4Rule = customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR) && hasOperateType4;
-        boolean hasType5Rule = customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FIVE) && hasOperateType5;
-        boolean hasType6Rule = customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_SIX) && hasOperateType6;
-
-        if (hasType3Rule && hasType4Rule && hasType5Rule && hasType6Rule) {
-            getRoutingKeyAndSendToAiMq(syncInfoId, isBatch);
-            return true;
-        }
-
-        boolean ruleAdded = false;
-        // 缓存中没有3
-        if (!hasType3Rule && hasOperateType3
-                && isHasOperateType(apiCode, jsonData, TO_POLICY_GENERAL)) {
-            ruleAdded = true;
-        }
-
-        // 缓存中没有4
-        if (!hasType4Rule && hasOperateType4
-                && isHasOperateType(apiCode, jsonData, AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR)) {
-            ruleAdded = true;
-        }
-
-        // 缓存中没有5
-        if (!hasType5Rule && hasOperateType5
-                && isHasOperateType(apiCode, jsonData, AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FIVE)) {
-            ruleAdded = true;
-        }
-
-        // 缓存中没有6
-        if (!hasType6Rule && hasOperateType6
-                && isHasOperateType(apiCode, jsonData, AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_SIX)) {
-            ruleAdded = true;
-        }
-
-        // 缓存和数据中都有
-        if (hasType3Rule || hasType4Rule || hasType5Rule || hasType6Rule) {
-            getRoutingKeyAndSendToAiMq(syncInfoId, isBatch);
-            return true;
-        }
-
-        if (ruleAdded) {
-            // 刷新缓存
-            DataLoadingHandlerService.invalidateAll();
-            getRoutingKeyAndSendToAiMq(syncInfoId, isBatch);
-            return true;
+        for (String aiOperateType : marketingCommonConfig.getAiToPolicyOperateTypeList()) {
+            if (containsOperateType(jsonData, aiOperateType)) {
+                getRoutingKeyAndSendToAiMq(syncInfoId, isBatch);
+                return true;
+            }
         }
 
         // 发消息到通用入明细队列
@@ -2797,37 +2747,32 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     /**
-     * 检查并添加操作类型对应的规则标签
+     * 生成ai客户的规则映射
      */
-    private boolean isHasOperateType(String apiCode, String jsonData, String ruleLabel) {
-        Long ruleId = customerRuleMapper.selectIdByRuleLabel(ruleLabel);
-        if (null == ruleId) {
-            String title = "Ai客户，查询规则失败！";
-            String msg = title + " jsonData:" + jsonData + "ruleLabel:" + ruleLabel;
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), msg, title));
-            wuBaServiceClient.sendDingDingAlert(title, msg);
-            return false;
+    private void generateCustomerRuleMapping(String apiCode) {
+        int i = customerRuleMapper.countByApiCodeAndRuleLabel(apiCode, AI_TO_POLICY);
+        if (i > 0) {
+            return;
         }
 
+        Long ruleId = customerRuleMapper.selectIdByRuleLabel(AI_TO_POLICY);
         try {
             customerRuleMapper.saveCustomerRuleMapping(apiCode, ruleId);
         } catch (DuplicateKeyException e) {
-            log.warn("Ai客户数据写入明细队列，规则映射已存在，apiCode:{}, ruleLabel:{}", apiCode, ruleLabel);
+            log.warn("Ai客户数据写入明细队列，规则映射已生成，apiCode:{}, ruleLabel:{}", apiCode, AI_TO_POLICY);
         } catch (Exception e) {
             try {
                 customerRuleMapper.saveCustomerRuleMapping(apiCode, ruleId);
             } catch (DuplicateKeyException ee) {
-                log.warn("Ai客户数据写入明细队列，规则映射已存在，apiCode:{}, ruleLabel:{}", apiCode, ruleLabel);
+                log.warn("Ai客户数据写入明细队列，规则映射已生成，apiCode:{}, ruleLabel:{}", apiCode, AI_TO_POLICY);
             } catch (Exception ee) {
                 String title = "Ai客户，自动配置规则映射，入库再次异常！！！";
                 String msg = title + " 需要立即检查规则是否存在，b_marketing_customer_rule_mapping,apiCode："
-                        + apiCode + "，规则标签：" + ruleLabel + "，异常内容" + ee.getMessage();
+                        + apiCode + "，规则标签：" + AI_TO_POLICY + "，异常内容" + ee.getMessage();
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), msg, title));
                 wuBaServiceClient.sendDingDingAlert(title, msg);
             }
         }
-
-        return true;
     }
 
     private void getRoutingKeyAndSendToAiMq(String syncInfoId, boolean isBatch) {
@@ -3103,16 +3048,20 @@ public class PushRuleServiceImpl implements PushRuleService {
                     DataProcessEnum.AcceptTypeEnum.GENERAL.getCode(), DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode());
             if (!CollectionUtils.isEmpty(configRule)) {
                 //剔除规则中的基础字段
-                List<String> generalFields = Lists.newArrayList("dataItems", "requestId", "item", "reserveField1", "reserveField2");
+                List<String> generalFields = Lists.newArrayList("dataItems", "item", "reserveField1", "reserveField2");
                 configRule.keySet().removeIf(key -> generalFields.contains(key));
             }
         }
         ArrayList<Callable<Result<MarketingPreUserErrorDetailVO>>> list = new ArrayList<>();
         Map<String, UserTypeCollectionDTO> localUserTypeCache = new ConcurrentHashMap<>(16);
+        // 是否为ai客户数据
+        AtomicBoolean isAiOperateType = new AtomicBoolean(false);
+
         for (int i = 0; i < dto.getDataItems().size(); i++) {
             MarketingPreUserDetailDTO marketingPreUserDetailDTO = dto.getDataItems().get(i);
             if (Objects.nonNull(marketingPreUserDetailDTO) && StringUtils.isEmpty(marketingPreUserDetailDTO.getTaskId())) {
                 marketingPreUserDetailDTO.setTaskId(marketingSyncInfo.getCusBatch());
+                marketingPreUserDetailDTO.setRequestId(marketingSyncInfo.getRequestBatch());
             }
             Integer finalIsCheck = isCheck;
             Map<String, MarketingDataCleanGeneralRuleConfig> finalConfigRule = configRule;
@@ -3153,7 +3102,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
                 ReserveField1DTO finalReserveField = reserveField1;
                 //扩展字段添加手机号
-                addCellReserveFileld1(reserveFileld1Json, marketingPreUserDetailDTO.getCell(), finalIsCheck);
+                addCellReserveFileld1(reserveFileld1Json, marketingPreUserDetailDTO.getCell(), finalIsCheck, iUploadCheckService, tags);
                 JSONObject finalReserveFileld1Json = reserveFileld1Json;
                 if (!StringUtils.isNotBlank(marketingPreUserDetailDTO.getCustNum())) {
                     MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
@@ -3180,6 +3129,9 @@ public class PushRuleServiceImpl implements PushRuleService {
                 marketingSyncUser.setRequestBatch(marketingSyncInfo.getRequestBatch());
                 marketingSyncUser.setCustNum(marketingPreUserDetailDTO.getCustNum());
                 marketingSyncUser.setOperateType(marketingPreUserDetailDTO.getOperateType());
+                if (marketingCommonConfig.getAiToPolicyOperateTypeList().contains(marketingPreUserDetailDTO.getOperateType())) {
+                    isAiOperateType.set(true);
+                }
                 marketingSyncUser.setIdCard(marketingPreUserDetailDTO.getId());
                 marketingSyncUser.setName(marketingPreUserDetailDTO.getName());
                 marketingSyncUser.setCell(marketingPreUserDetailDTO.getCell());
@@ -3267,25 +3219,25 @@ public class PushRuleServiceImpl implements PushRuleService {
         List<MarketingPreUserErrorDetailVO> errorBuild = new ArrayList<>();
         Integer errorSize = 0;
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(soleNum, soleNum);
-        List<Future<Result<MarketingPreUserErrorDetailVO>>> futures = null;
+        List<Future<Result<MarketingPreUserErrorDetailVO>>> futures;
         try {
             futures = threadPool.invokeAll(list);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
+            throw new RuntimeException(e);
         } finally {
             threadPool.shutdown();
         }
-        if (futures != null && !futures.isEmpty()) {
-            for (int i = 0; i < futures.size(); i++) {
-                try {
-                    Result<MarketingPreUserErrorDetailVO> result = futures.get(i).get();
-                    if (ResultCode.FAIL.getValue().equals(result.getCode())) {
-                        errorSize++;
-                        errorBuild.add(result.getData());
-                    }
-                } catch (Exception e) {
-                    log.error(e.getMessage(), e);
+        for (Future<Result<MarketingPreUserErrorDetailVO>> future : futures) {
+            try {
+                Result<MarketingPreUserErrorDetailVO> result = future.get();
+                if (ResultCode.FAIL.getValue().equals(result.getCode())) {
+                    errorSize++;
+                    errorBuild.add(result.getData());
                 }
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+                throw new RuntimeException(e);
             }
         }
         // 发送场景收集队列
@@ -3353,7 +3305,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         boolean isBatch = dto.getDataItems().size() > 1;
         // 发消息到推送下游队列
-        sendToUniversalQueue(infoId, status, apiCode, isBatch);
+        sendToUniversalQueue(infoId, status, apiCode, isBatch, isAiOperateType);
 
         List<String> mrpApiCodes = marketingCommonConfig.getMrpUploadDataPushMqApiCodes();
         if (!CollectionUtils.isEmpty(mrpApiCodes) && mrpApiCodes.contains(apiCode)) {
@@ -3392,7 +3344,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
     }
 
-    private void addCellReserveFileld1(JSONObject reserveFileld1Json, String cell, Integer isCheck) {
+    private void addCellReserveFileld1(JSONObject reserveFileld1Json, String cell, Integer isCheck, 
+                                       IUploadCheckService iUploadCheckService, CustomerTagsVO tags) {
         if (StringUtils.isNotEmpty(cell)) {
             //明文规则校验
             UserValidator userValidator = new UserValidator(isCheck);
@@ -3404,9 +3357,123 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
 
         }
+        
+        // 处理debtorCell1-4字段，传入cell用于去重
+        processDebtorCells(reserveFileld1Json, cell, isCheck, iUploadCheckService, tags);
+    }
+    
+    /**
+     * 处理debtorCell1-4字段，生成debtorCellList
+     * 基于原始值去重，保留顺序：cell → debtorCell1 → debtorCell2 → debtorCell3 → debtorCell4
+     * 
+     * @param reserveFileld1Json 扩展字段JSON对象
+     * @param cell 主手机号字段值，用于去重
+     * @param isCheck 是否校验
+     * @param iUploadCheckService 解密服务
+     * @param tags 客户标签配置
+     */
+    private void processDebtorCells(JSONObject reserveFileld1Json, String cell, Integer isCheck, 
+                                   IUploadCheckService iUploadCheckService, CustomerTagsVO tags) {
+        String[] debtorCellFields = {"debtorCell1", "debtorCell2", "debtorCell3", "debtorCell4"};
+        JSONArray debtorCellList = new JSONArray();
+        int order = 1;
+        
+        // 用于去重的Set，存储已经出现过的原始值
+        Set<String> existingValues = new HashSet<>();
+        
+        // 先将cell的原始值加入去重集合
+        if (StringUtils.isNotEmpty(cell)) {
+            existingValues.add(cell);
+        }
+        
+        // 遍历debtorCell1-4字段
+        for (String fieldName : debtorCellFields) {
+            if (reserveFileld1Json.containsKey(fieldName)) {
+                String orgDebtorCellValue = reserveFileld1Json.getString(fieldName);
+                if (StringUtils.isNotEmpty(orgDebtorCellValue)) {
+                    // 检查是否重复（基于原始值）
+                    if (existingValues.contains(orgDebtorCellValue)) {
+                        // 重复，跳过
+                        continue;
+                    }
+                    
+                    // 解密
+                    String decryptedValue = decryptDebtorCell(orgDebtorCellValue, isCheck, iUploadCheckService, tags);
+                    
+                    // 只有解密成功才添加到list中
+                    if (StringUtils.isNotEmpty(decryptedValue)) {
+                        JSONObject debtorCellItem = new JSONObject();
+                        
+                        // 设置原值
+                        debtorCellItem.put("orgDebtorCell", orgDebtorCellValue);
+                        
+                        // 设置log加密后的值
+                        debtorCellItem.put("logDebtorCell", decryptedValue);
+                        
+                        // 设置字段名
+                        debtorCellItem.put("debtorCell", fieldName);
+                        
+                        // 设置顺序
+                        debtorCellItem.put("order", order);
+                        
+                        debtorCellList.add(debtorCellItem);
+                        
+                        // 添加到去重集合
+                        existingValues.add(orgDebtorCellValue);
+                        
+                        order++;
+                    }
+                }
+            }
+        }
+        
+        // 如果有debtorCell数据，则添加到reserveField1中
+        if (!debtorCellList.isEmpty()) {
+            reserveFileld1Json.put("debtorCellList", debtorCellList);
+        }
+    }
+    
+    /**
+     * 解密debtorCell字段值
+     * 使用iUploadCheckService.process3keyCheck的解密逻辑
+     * 
+     * @param encryptedValue 加密值
+     * @param isCheck 是否校验
+     * @param iUploadCheckService 解密服务
+     * @param tags 客户标签配置
+     * @return 解密后的明文值，解密失败返回空字符串
+     */
+    private String decryptDebtorCell(String encryptedValue, Integer isCheck, 
+                                    IUploadCheckService iUploadCheckService, CustomerTagsVO tags) {
+        if (StringUtils.isEmpty(encryptedValue)) {
+            return "";
+        }
+        
+        try {
+            // 创建临时对象用于解密
+            MarketingPreUserDetailDTO tempUser = new MarketingPreUserDetailDTO();
+            tempUser.setCell(encryptedValue);
+            tempUser.setStatus(MonitorTypeEnum.STATUS_1.getTypeCode());
+            
+            // 调用解密服务
+            iUploadCheckService.process3keyCheck(tempUser, isCheck, tags);
+
+            // 检查解密是否成功
+            // 如果状态变为失败状态，说明解密失败
+            if (!Integer.valueOf(MonitorTypeEnum.STATUS_1.getTypeCode()).equals(tempUser.getStatus())) {
+                return "";
+            }
+            
+            // 获取解密后的明文值
+            return tempUser.getCell();
+
+        } catch (Exception e) {
+            // 解密过程出现异常，返回空字符串
+            return "";
+        }
     }
 
-    private void sendToUniversalQueue(Long infoId, Boolean status, String apiCode, boolean isBatch) {
+    private void sendToUniversalQueue(Long infoId, Boolean status, String apiCode, boolean isBatch, AtomicBoolean isAiOperateType) {
         if (!status) {
             return;
         }
@@ -3433,11 +3500,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             return;
         }
 
-        Set<String> customerRules = dataLoadingHandlerService.customerRules(apiCode);
-        if (customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_SIX)
-                || customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FIVE)
-                || customerRules.contains(AI_TO_POLICY_PAT_LOAN_OPERA_TYPE_FOUR)
-                || customerRules.contains(TO_POLICY_GENERAL)) {
+        if (isAiOperateType.get()) {
+            generateCustomerRuleMapping(apiCode);
             sendToAIUniversalQueue(mqFact, isBatch);
         }
     }
@@ -3587,7 +3651,25 @@ public class PushRuleServiceImpl implements PushRuleService {
         } catch (DuplicateKeyException keyException) {
             alarmClient.sendAlarm(String.format("pulsar上传数据消费requestId冲突 requestId：%s", jsonData.getRequestId())
                     , "pulsar上传数据消费异常", AlarmSendCodeEnum.REQUESTID_CONFLICT.getCode());
-            return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+            
+            // 查询数据库中是否存在该requestId的数据且status为1
+            try {
+                MarketingSyncInfo existingSyncInfo = marketingSyncInfoMapper.getByApiCodeAndRequestBatch(apiCode, jsonData.getRequestId());
+                if (existingSyncInfo != null && existingSyncInfo.getStatus() != null && existingSyncInfo.getStatus() == 1) {
+                    log.warn("【模拟异常写入Pulsar】通用上传requestId重复但数据已存在且status=1，继续执行后续逻辑。requestId：{}", jsonData.getRequestId());
+                    syncInfoId = existingSyncInfo.getId().toString();
+                    //发送json解析MQ
+                    sendJsonParseMq(apiCode, syncInfoId, DataSourceTypeEnum.GENERAL_INTERFACE.getCode());
+                    // 继续执行后续的写入上传明细MQ逻辑，不直接返回
+                } else {
+                    log.warn("【模拟异常写入Pulsar】通用上传requestId重复但数据不存在或status!=1，直接返回。requestId：{}，existingSyncInfo：{}",
+                            jsonData.getRequestId(), existingSyncInfo);
+                    return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+                }
+            } catch (Exception e) {
+                log.error("【模拟异常写入Pulsar】通用上传查询重复requestId数据异常，requestId：{}", jsonData.getRequestId(), e);
+                return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+            }
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
             dbException = Boolean.TRUE;
@@ -3695,6 +3777,12 @@ public class PushRuleServiceImpl implements PushRuleService {
             //todo 模拟异常上线后要删除
             mockDbOrRedisError(1, apiCode);
             marketingTransferInfoMapper.insertSelective(transferInfo);
+            // 模拟数据入库成功，但返回异常入Pulsar的场景
+            Map<String, Boolean> pushDataSwitch = marketingCommonConfig.getPushDataSwitch();
+            if(pushDataSwitch.get(PushDataEnum.MARKETING_TRANSFER_BASE.getValue())){
+                log.warn(String.format("【模拟异常写入Pulsar】通用转化数据infoId infoId:%s", transferInfo.getId()));
+                throw new Exception();
+            }
             transferInfoId = transferInfo.getId().toString();
             requestIdWriteRedis(transferKey, transferDataDTO.getRequestId());
 
@@ -3782,7 +3870,24 @@ public class PushRuleServiceImpl implements PushRuleService {
         } catch (DuplicateKeyException keyException) {
             alarmClient.sendAlarm(String.format("pulsar转化数据消费requestId冲突 requestId：%s", transferDataDTO.getRequestId())
                     , "pulsar转化数据消费异常", AlarmSendCodeEnum.REQUESTID_CONFLICT.getCode());
-            return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+            
+            // 查询数据库中是否存在该requestId的数据且status为1（进行中状态）
+            try {
+                MarketingTransferInfo existingTransferInfo = marketingTransferInfoMapper
+                        .getByApiCodeAndRequestId(apiCode, transferDataDTO.getRequestId());
+                if (existingTransferInfo != null && existingTransferInfo.getStatus() != null && existingTransferInfo.getStatus() == 1) {
+                    log.warn("【模拟异常写入Pulsar】通用转化数据requestId重复但数据已存在且status=1，继续执行后续逻辑。requestId：{}", transferDataDTO.getRequestId());
+                    transferInfoId = existingTransferInfo.getId().toString();
+                    // 继续执行后续的写入转化明细MQ逻辑，不直接返回
+                } else {
+                    log.warn("【模拟异常写入Pulsar】通用转化数据requestId重复但数据不存在或status!=1，直接返回。requestId：{}，existingTransferInfo：{}",
+                            transferDataDTO.getRequestId(), existingTransferInfo);
+                    return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+                }
+            } catch (Exception e) {
+                log.error("【模拟异常写入Pulsar】通用转化查询重复requestId数据异常，requestId：{}", transferDataDTO.getRequestId(), e);
+                return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+            }
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
             dbException = Boolean.TRUE;
@@ -3914,26 +4019,26 @@ public class PushRuleServiceImpl implements PushRuleService {
         List<MarketingPreUserErrorDetailVO> errorBuild = new ArrayList<>();
         Integer errorSize = 0;
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(soleNumTrans, soleNumTrans);
-        List<Future<Result<MarketingPreUserErrorDetailVO>>> futures = null;
+        List<Future<Result<MarketingPreUserErrorDetailVO>>> futures;
         try {
             futures = threadPool.invokeAll(list);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
+            throw new RuntimeException(e);
         } finally {
             threadPool.shutdown();
         }
-        if (futures != null && !futures.isEmpty()) {
-            for (int i = 0; i < futures.size(); i++) {
-                try {
-                    Result<MarketingPreUserErrorDetailVO> result = futures.get(i).get();
-                    if (ResultCode.FAIL.getValue().equals(result.getCode())) {
-                        errorSize++;
-                        errorBuild.add(result.getData());
-                    }
-
-                } catch (Exception e) {
-                    log.error(e.getMessage(), e);
+        for (Future<Result<MarketingPreUserErrorDetailVO>> future : futures) {
+            try {
+                Result<MarketingPreUserErrorDetailVO> result = future.get();
+                if (ResultCode.FAIL.getValue().equals(result.getCode())) {
+                    errorSize++;
+                    errorBuild.add(result.getData());
                 }
+
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+                throw new RuntimeException(e);
             }
         }
         // 发送场景收集队列

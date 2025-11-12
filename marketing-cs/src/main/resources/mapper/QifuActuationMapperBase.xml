@@ -8,6 +8,7 @@
     <result column="issue_date" property="issueDate" jdbcType="VARCHAR" />
     <result column="user_type" property="userType" jdbcType="VARCHAR" />
     <result column="supplier" property="supplier" jdbcType="VARCHAR" />
+    <result column="group_type_name" property="groupTypeName" jdbcType="VARCHAR" />
     <result column="valid_date" property="validDate" jdbcType="VARCHAR" />
     <result column="credit_user_count" property="creditUserCount" jdbcType="INTEGER" />
     <result column="app_login_user_count" property="appLoginUserCount" jdbcType="INTEGER" />
@@ -80,9 +81,9 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, issue_month, issue_date, user_type, supplier, valid_date, credit_user_count, 
-    app_login_user_count, start_user_count, user_loan_count, app_login_rate, user_start_rate, 
-    user_loan_rate, create_date, create_time, update_time, is_del
+    id, api_code, issue_month, issue_date, user_type, supplier, group_type_name, valid_date,
+    credit_user_count, app_login_user_count, start_user_count, user_loan_count, app_login_rate,
+    user_start_rate, user_loan_rate, create_date, create_time, update_time, is_del
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.QifuActuationExample" >
     select
@@ -99,7 +100,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     from b_marketing_qifu_actuation
     where id = #{id,jdbcType=BIGINT}
@@ -118,18 +119,20 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_qifu_actuation (api_code, issue_month, issue_date, 
-      user_type, supplier, valid_date, 
-      credit_user_count, app_login_user_count, start_user_count, 
-      user_loan_count, app_login_rate, user_start_rate, 
-      user_loan_rate, create_date, create_time, 
-      update_time, is_del)
-    values (#{apiCode,jdbcType=VARCHAR}, #{issueMonth,jdbcType=VARCHAR}, #{issueDate,jdbcType=VARCHAR}, 
-      #{userType,jdbcType=VARCHAR}, #{supplier,jdbcType=VARCHAR}, #{validDate,jdbcType=VARCHAR}, 
-      #{creditUserCount,jdbcType=INTEGER}, #{appLoginUserCount,jdbcType=INTEGER}, #{startUserCount,jdbcType=INTEGER}, 
-      #{userLoanCount,jdbcType=INTEGER}, #{appLoginRate,jdbcType=VARCHAR}, #{userStartRate,jdbcType=VARCHAR}, 
-      #{userLoanRate,jdbcType=VARCHAR}, #{createDate,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP}, #{isDel,jdbcType=INTEGER})
+    insert into b_marketing_qifu_actuation (api_code, issue_month, issue_date,
+    user_type, supplier, group_type_name,
+    valid_date, credit_user_count, app_login_user_count,
+    start_user_count, user_loan_count, app_login_rate,
+    user_start_rate, user_loan_rate, create_date,
+    create_time, update_time, is_del
+    )
+    values (#{apiCode,jdbcType=VARCHAR}, #{issueMonth,jdbcType=VARCHAR}, #{issueDate,jdbcType=VARCHAR},
+    #{userType,jdbcType=VARCHAR}, #{supplier,jdbcType=VARCHAR}, #{groupTypeName,jdbcType=VARCHAR},
+    #{validDate,jdbcType=VARCHAR}, #{creditUserCount,jdbcType=INTEGER}, #{appLoginUserCount,jdbcType=INTEGER},
+    #{startUserCount,jdbcType=INTEGER}, #{userLoanCount,jdbcType=INTEGER}, #{appLoginRate,jdbcType=VARCHAR},
+    #{userStartRate,jdbcType=VARCHAR}, #{userLoanRate,jdbcType=VARCHAR}, #{createDate,jdbcType=VARCHAR},
+    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{isDel,jdbcType=INTEGER}
+    )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.QifuActuation" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -151,6 +154,9 @@
       </if>
       <if test="supplier != null" >
         supplier,
+      </if>
+      <if test="groupTypeName != null" >
+        group_type_name,
       </if>
       <if test="validDate != null" >
         valid_date,
@@ -204,6 +210,9 @@
       </if>
       <if test="supplier != null" >
         #{supplier,jdbcType=VARCHAR},
+      </if>
+      <if test="groupTypeName != null" >
+        #{groupTypeName,jdbcType=VARCHAR},
       </if>
       <if test="validDate != null" >
         #{validDate,jdbcType=VARCHAR},
@@ -270,6 +279,9 @@
       <if test="record.supplier != null" >
         supplier = #{record.supplier,jdbcType=VARCHAR},
       </if>
+      <if test="record.groupTypeName != null" >
+        group_type_name = #{record.groupTypeName,jdbcType=VARCHAR},
+      </if>
       <if test="record.validDate != null" >
         valid_date = #{record.validDate,jdbcType=VARCHAR},
       </if>
@@ -314,23 +326,24 @@
   <update id="updateByExample" parameterType="map" >
     update b_marketing_qifu_actuation
     set id = #{record.id,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      issue_month = #{record.issueMonth,jdbcType=VARCHAR},
-      issue_date = #{record.issueDate,jdbcType=VARCHAR},
-      user_type = #{record.userType,jdbcType=VARCHAR},
-      supplier = #{record.supplier,jdbcType=VARCHAR},
-      valid_date = #{record.validDate,jdbcType=VARCHAR},
-      credit_user_count = #{record.creditUserCount,jdbcType=INTEGER},
-      app_login_user_count = #{record.appLoginUserCount,jdbcType=INTEGER},
-      start_user_count = #{record.startUserCount,jdbcType=INTEGER},
-      user_loan_count = #{record.userLoanCount,jdbcType=INTEGER},
-      app_login_rate = #{record.appLoginRate,jdbcType=VARCHAR},
-      user_start_rate = #{record.userStartRate,jdbcType=VARCHAR},
-      user_loan_rate = #{record.userLoanRate,jdbcType=VARCHAR},
-      create_date = #{record.createDate,jdbcType=VARCHAR},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      is_del = #{record.isDel,jdbcType=INTEGER}
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    issue_month = #{record.issueMonth,jdbcType=VARCHAR},
+    issue_date = #{record.issueDate,jdbcType=VARCHAR},
+    user_type = #{record.userType,jdbcType=VARCHAR},
+    supplier = #{record.supplier,jdbcType=VARCHAR},
+    group_type_name = #{record.groupTypeName,jdbcType=VARCHAR},
+    valid_date = #{record.validDate,jdbcType=VARCHAR},
+    credit_user_count = #{record.creditUserCount,jdbcType=INTEGER},
+    app_login_user_count = #{record.appLoginUserCount,jdbcType=INTEGER},
+    start_user_count = #{record.startUserCount,jdbcType=INTEGER},
+    user_loan_count = #{record.userLoanCount,jdbcType=INTEGER},
+    app_login_rate = #{record.appLoginRate,jdbcType=VARCHAR},
+    user_start_rate = #{record.userStartRate,jdbcType=VARCHAR},
+    user_loan_rate = #{record.userLoanRate,jdbcType=VARCHAR},
+    create_date = #{record.createDate,jdbcType=VARCHAR},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    is_del = #{record.isDel,jdbcType=INTEGER}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -352,6 +365,9 @@
       </if>
       <if test="supplier != null" >
         supplier = #{supplier,jdbcType=VARCHAR},
+      </if>
+      <if test="groupTypeName != null" >
+        group_type_name = #{groupTypeName,jdbcType=VARCHAR},
       </if>
       <if test="validDate != null" >
         valid_date = #{validDate,jdbcType=VARCHAR},
@@ -395,22 +411,23 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.QifuActuation" >
     update b_marketing_qifu_actuation
     set api_code = #{apiCode,jdbcType=VARCHAR},
-      issue_month = #{issueMonth,jdbcType=VARCHAR},
-      issue_date = #{issueDate,jdbcType=VARCHAR},
-      user_type = #{userType,jdbcType=VARCHAR},
-      supplier = #{supplier,jdbcType=VARCHAR},
-      valid_date = #{validDate,jdbcType=VARCHAR},
-      credit_user_count = #{creditUserCount,jdbcType=INTEGER},
-      app_login_user_count = #{appLoginUserCount,jdbcType=INTEGER},
-      start_user_count = #{startUserCount,jdbcType=INTEGER},
-      user_loan_count = #{userLoanCount,jdbcType=INTEGER},
-      app_login_rate = #{appLoginRate,jdbcType=VARCHAR},
-      user_start_rate = #{userStartRate,jdbcType=VARCHAR},
-      user_loan_rate = #{userLoanRate,jdbcType=VARCHAR},
-      create_date = #{createDate,jdbcType=VARCHAR},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP},
-      is_del = #{isDel,jdbcType=INTEGER}
+        issue_month = #{issueMonth,jdbcType=VARCHAR},
+        issue_date = #{issueDate,jdbcType=VARCHAR},
+        user_type = #{userType,jdbcType=VARCHAR},
+        supplier = #{supplier,jdbcType=VARCHAR},
+        group_type_name = #{groupTypeName,jdbcType=VARCHAR},
+        valid_date = #{validDate,jdbcType=VARCHAR},
+        credit_user_count = #{creditUserCount,jdbcType=INTEGER},
+        app_login_user_count = #{appLoginUserCount,jdbcType=INTEGER},
+        start_user_count = #{startUserCount,jdbcType=INTEGER},
+        user_loan_count = #{userLoanCount,jdbcType=INTEGER},
+        app_login_rate = #{appLoginRate,jdbcType=VARCHAR},
+        user_start_rate = #{userStartRate,jdbcType=VARCHAR},
+        user_loan_rate = #{userLoanRate,jdbcType=VARCHAR},
+        create_date = #{createDate,jdbcType=VARCHAR},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        is_del = #{isDel,jdbcType=INTEGER}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>
