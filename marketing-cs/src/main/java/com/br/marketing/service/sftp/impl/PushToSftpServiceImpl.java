@@ -52,9 +52,9 @@ public class PushToSftpServiceImpl implements PushToSftpService {
         }catch (Exception e){
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("推送文件至SFTP失败！");
         }
-        for (LoanFile loanFile : pushList) {
+        /*for (LoanFile loanFile : pushList) {
             pushFinishSucService.pushFinish(loanFile.getId());
-        }
+        }*/
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("推送文件至SFTP成功");
     }
 }
