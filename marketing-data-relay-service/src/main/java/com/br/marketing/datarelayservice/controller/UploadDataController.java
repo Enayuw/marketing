@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -22,7 +24,7 @@ import javax.servlet.http.HttpServletRequest;
  * @Author hong.chen
  * @CreateTime 2024/10/25
  */
-@Tag(value = "UploadDataController")
+@Tag(name = "UploadDataController", description = "UploadDataController")
 @RequestMapping("/marketing/v1")
 @RestController
 @Slf4j
@@ -32,7 +34,7 @@ public class UploadDataController {
 
     private static final String TEST_API_CODE = "Test-ApiCode";
 
-    @Operation(value = "奇富AI上传数据接入接口")
+    @Operation(summary = "奇富AI上传数据接入接口")
     @PostMapping("/uploadData/24152")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public QiFuAiResDTO qiFuAiUploadData(@RequestBody QiFuAiReqDTO requestBody, HttpServletRequest request) {
@@ -47,7 +49,7 @@ public class UploadDataController {
         return qiFuAiResDTO;
     }
 
-    @Operation(value = "奇富AI语音机器人当月报表数据接入接口")
+    @Operation(summary = "奇富AI语音机器人当月报表数据接入接口")
     @PostMapping("/uploadData/3700226")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public QiFuAiResDTO qiFuAiRobotReportUploadData(@RequestBody QiFuAiReqDTO requestBody, HttpServletRequest request) {
@@ -62,7 +64,7 @@ public class UploadDataController {
         return qiFuAiResDTO;
     }
 
-    @Operation(value = "奇富AI语音机器人排名报表推送接口")
+    @Operation(summary = "奇富AI语音机器人排名报表推送接口")
     @PostMapping("/uploadData/ranking")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public QiFuAiResDTO qiFuAiRobotRankingReportUploadData(@RequestBody QiFuAiReqDTO requestBody, HttpServletRequest request) {

@@ -14,11 +14,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
-@Tag(value = "同程易融代运营测试")
+@Tag(name = "同程易融代运营测试", description = "同程易融代运营测试")
 @RequestMapping("/marketing/v1/api/withoutSign")
 @RestController
 @Slf4j
@@ -32,7 +34,7 @@ public class TcCustomizeWithoutSignController {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Operation(value = "测试数据推送")
+    @Operation(summary = "测试数据推送")
     @PostMapping("/marketDataPush")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public TcResponseDTO marketDataPushWithoutSign(@RequestBody TcRequestDTO tcRequestDTO, HttpServletRequest request) {
@@ -48,7 +50,7 @@ public class TcCustomizeWithoutSignController {
         return tcCustomizeService.marketDataPush(tcRequestDTO, request.getHeader("Test-ApiCode"));
     }
 
-    @Operation(value = "测试撤销营销")
+    @Operation(summary = "测试撤销营销")
     @PostMapping("/marketRevoke")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public TcResponseDTO marketRevokeWithoutSign(@RequestBody TcRequestDTO tcRequestDTO, HttpServletRequest request) {
@@ -63,7 +65,7 @@ public class TcCustomizeWithoutSignController {
         return tcCustomizeService.marketRevoke(tcRequestDTO, request.getHeader("Test-ApiCode"));
     }
 
-    @Operation(value = "测试转化通知")
+    @Operation(summary = "测试转化通知")
     @PostMapping("/transformNotify")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public TcResponseDTO transformNotifyWithoutSign(@RequestBody TcRequestDTO tcRequestDTO, HttpServletRequest request) {
@@ -78,7 +80,7 @@ public class TcCustomizeWithoutSignController {
         return tcCustomizeService.transformNotify(tcRequestDTO, request.getHeader("Test-ApiCode"));
     }
 
-    @Operation(value = "测试正负样本推送")
+    @Operation(summary = "测试正负样本推送")
     @PostMapping("/sampleDataPush")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public TcResponseDTO sampleDataPushWithoutSign(@RequestBody TcRequestDTO tcRequestDTO, HttpServletRequest request) {
