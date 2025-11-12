@@ -11,7 +11,10 @@ import com.br.marketing.entity.MarketingSyncReport;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.MarketingSyncReportService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
@@ -29,7 +32,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping(value = "/rule/report")
-@Api(value = "客户上传数据统计报表", tags = "客户上传数据统计报表", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(value = "客户上传数据统计报表", tags = "客户上传数据统计报表", produces = "application/json", consumes = "application/json", protocols = "http")
 public class SyncReportController {
 
     private static final Logger log = LoggerFactory.getLogger(SyncReportController.class);
@@ -44,14 +47,14 @@ public class SyncReportController {
     private MarketingCommonConfig marketingCommonConfig;
 
     @PostMapping("/getReportList")
-    @ApiOperation(value = "客户上传数据统计报表列表", notes = "客户上传数据统计报表列表", httpMethod = "GET")
-    @ApiImplicitParams({@ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
-            , @ApiImplicitParam(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
-            , @ApiImplicitParam(name = "cidOrName", value = "客户名称/客户编号", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "appletTimeStart", value = "上传日期开始", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "appletTimeEnd", value = "上传日期截至", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "apiCodes", value = "apiCode筛选,支持多选,逗号分隔", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "userTypes", value = "场景筛选,支持多选,逗号分隔(例：S01,S02,促首登)", paramType = "query", dataType = "string")
+    @Operation(summary = "客户上传数据统计报表列表", description = "客户上传数据统计报表列表")
+    @Parameters({@Parameter(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
+            , @Parameter(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
+            , @Parameter(name = "cidOrName", value = "客户名称/客户编号", paramType = "query", dataType = "string")
+            , @Parameter(name = "appletTimeStart", value = "上传日期开始", paramType = "query", dataType = "string")
+            , @Parameter(name = "appletTimeEnd", value = "上传日期截至", paramType = "query", dataType = "string")
+            , @Parameter(name = "apiCodes", value = "apiCode筛选,支持多选,逗号分隔", paramType = "query", dataType = "string")
+            , @Parameter(name = "userTypes", value = "场景筛选,支持多选,逗号分隔(例：S01,S02,促首登)", paramType = "query", dataType = "string")
     })
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = MarketingSyncReport.class)})
     @AddDataAuthBusiness
@@ -70,14 +73,14 @@ public class SyncReportController {
     }
 
     @GetMapping("/exportData")
-    @ApiOperation(value = "导出客户上传数据记录", notes = "导出客户上传数据记录", httpMethod = "GET")
-    @ApiImplicitParams({@ApiImplicitParam(name = "cidOrName", value = "客户名称/客户编号", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "appletTimeStart", value = "上传日期开始", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "appletTimeEnd", value = "上传日期截至", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "apiCodes", value = "apiCode筛选,支持多选,逗号分隔", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "userTypes", value = "场景筛选,支持多选,逗号分隔(例：S01,S02,促首登)", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "selectType", value = "选择类型(例：1全选,0:指定筛选)", paramType = "query", dataType = "integer",defaultValue = "1")
-            , @ApiImplicitParam(name = "selectExportIds", value = "选中要导出的id数据,逗号分隔(例：1,2,3,4)", paramType = "query", dataType = "string")
+    @Operation(summary = "导出客户上传数据记录", description = "导出客户上传数据记录")
+    @Parameters({@Parameter(name = "cidOrName", value = "客户名称/客户编号", paramType = "query", dataType = "string")
+            , @Parameter(name = "appletTimeStart", value = "上传日期开始", paramType = "query", dataType = "string")
+            , @Parameter(name = "appletTimeEnd", value = "上传日期截至", paramType = "query", dataType = "string")
+            , @Parameter(name = "apiCodes", value = "apiCode筛选,支持多选,逗号分隔", paramType = "query", dataType = "string")
+            , @Parameter(name = "userTypes", value = "场景筛选,支持多选,逗号分隔(例：S01,S02,促首登)", paramType = "query", dataType = "string")
+            , @Parameter(name = "selectType", value = "选择类型(例：1全选,0:指定筛选)", paramType = "query", dataType = "integer",defaultValue = "1")
+            , @Parameter(name = "selectExportIds", value = "选中要导出的id数据,逗号分隔(例：1,2,3,4)", paramType = "query", dataType = "string")
     })
     @AddDataAuthBusiness
     public void exportData(@RequestParam(required = false) String cidOrName
@@ -96,12 +99,12 @@ public class SyncReportController {
     }
 
     @PostMapping("/getReportListTotal")
-    @ApiOperation(value = "客户上传数据统计报表总计", notes = "客户上传数据统计报表列表总计", httpMethod = "GET")
-    @ApiImplicitParams({@ApiImplicitParam(name = "cidOrName", value = "客户名称/客户编号",paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "appletTimeStart", value = "上传日期开始",paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "appletTimeEnd",value = "上传日期截至", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "apiCodes", value = "apiCode筛选,支持多选,逗号分隔", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "userTypes", value = "场景筛选,支持多选,逗号分隔(例：S01,S02,促首登)", paramType = "query", dataType = "string")
+    @Operation(summary = "客户上传数据统计报表总计", description = "客户上传数据统计报表列表总计")
+    @Parameters({@Parameter(name = "cidOrName", value = "客户名称/客户编号",paramType = "query", dataType = "string")
+            , @Parameter(name = "appletTimeStart", value = "上传日期开始",paramType = "query", dataType = "string")
+            , @Parameter(name = "appletTimeEnd",value = "上传日期截至", paramType = "query", dataType = "string")
+            , @Parameter(name = "apiCodes", value = "apiCode筛选,支持多选,逗号分隔", paramType = "query", dataType = "string")
+            , @Parameter(name = "userTypes", value = "场景筛选,支持多选,逗号分隔(例：S01,S02,促首登)", paramType = "query", dataType = "string")
     })
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = MarketingSyncReport.class)})
     @AddDataAuthBusiness
@@ -118,8 +121,8 @@ public class SyncReportController {
     }
 
     @GetMapping("/triggerTaskUploadSyncReportJob")
-    @ApiOperation(value = "手动执行上传数据统计报表任务", notes = "手动执行上传数据统计报表任务", httpMethod = "GET")
-    @ApiImplicitParam(name = "uploadDate", value = "当日日期(yyyy-MM-dd)", paramType = "query", dataType = "string")
+    @Operation(summary = "手动执行上传数据统计报表任务", description = "手动执行上传数据统计报表任务")
+    @Parameter(name = "uploadDate", value = "当日日期(yyyy-MM-dd)", paramType = "query", dataType = "string")
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = MarketingSyncReport.class)})
     public ApiResult<Boolean> triggerTaskUploadSyncReportJob(@RequestParam(required = false) String uploadDate) {
         try {
@@ -134,10 +137,10 @@ public class SyncReportController {
         }
     }
 
-    @ApiOperation(value = "修改有效期记录", notes = "修改有效期记录")
-    @ApiImplicitParams({@ApiImplicitParam(name = "ids", value = "ids", required = true, dataType = "List<Long>")
-            , @ApiImplicitParam(name = "validStartDate", value = "生效开始日期", required = true, paramType = "query", dataType = "String")
-            , @ApiImplicitParam(name = "validEndDate", value = "生效结束日期", required = true, paramType = "query", dataType = "String")
+    @Operation(summary = "修改有效期记录", description = "修改有效期记录")
+    @Parameters({@Parameter(name = "ids", value = "ids", required = true, dataType = "List<Long>")
+            , @Parameter(name = "validStartDate", value = "生效开始日期", required = true, paramType = "query", dataType = "String")
+            , @Parameter(name = "validEndDate", value = "生效结束日期", required = true, paramType = "query", dataType = "String")
     })
     @GetMapping("/updateValidity")
     public ApiResult<Boolean> updateValidity(@RequestParam List<Long> ids
@@ -156,15 +159,15 @@ public class SyncReportController {
         }
     }
 
-    @ApiOperation(value = "统计管理-上传记录-手机号查询列表", notes = "客户上传数据统计报表列表", httpMethod = "POST")
-    @ApiImplicitParams({@ApiImplicitParam(name = "cidOrName", value = "客户名称/客户编号", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "appletTimeStart", value = "查询开始时间", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "appletTimeEnd", value = "查询结束时间", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "apiCodes", value = "piCode筛选,支持多选,逗号分隔", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "userTypes", value = "场景筛选,支持多选,逗号分隔(例：S01,S02,促首登)", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "cell", value = "精确手机号（明文、md5、sha256）", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "orderField", value = "排序字段)", paramType = "query", dataType = "string", defaultValue = "applet_date")
-            , @ApiImplicitParam(name = "descField", value = "升序asc/降序desc)", paramType = "query", dataType = "string", defaultValue = "desc")
+    @Operation(summary = "统计管理-上传记录-手机号查询列表", description = "客户上传数据统计报表列表")
+    @Parameters({@Parameter(name = "cidOrName", value = "客户名称/客户编号", paramType = "query", dataType = "string")
+            , @Parameter(name = "appletTimeStart", value = "查询开始时间", paramType = "query", dataType = "string")
+            , @Parameter(name = "appletTimeEnd", value = "查询结束时间", paramType = "query", dataType = "string")
+            , @Parameter(name = "apiCodes", value = "piCode筛选,支持多选,逗号分隔", paramType = "query", dataType = "string")
+            , @Parameter(name = "userTypes", value = "场景筛选,支持多选,逗号分隔(例：S01,S02,促首登)", paramType = "query", dataType = "string")
+            , @Parameter(name = "cell", value = "精确手机号（明文、md5、sha256）", paramType = "query", dataType = "string")
+            , @Parameter(name = "orderField", value = "排序字段)", paramType = "query", dataType = "string", defaultValue = "applet_date")
+            , @Parameter(name = "descField", value = "升序asc/降序desc)", paramType = "query", dataType = "string", defaultValue = "desc")
     })
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = JSONObject.class)
             ,@ApiResponse(code = 5001, message = "服务器正忙，请稍后再试", response = JSONObject.class)

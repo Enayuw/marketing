@@ -1,7 +1,6 @@
 package com.br.marketing.vo.yunke;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 /**
@@ -11,9 +10,9 @@ import lombok.Data;
 @Data
 @Schema(description = "机型获取")
 public class DeviceTypeVO {
-    @ApiModelProperty("log加密手机号")
+    @Schema(description = "log加密手机号")
     private String cell;
 
-    @ApiModelProperty("log加密手机号对应的机型")
+    @Schema(description = "log加密手机号对应的机型")
     private Integer deviceType;
 }

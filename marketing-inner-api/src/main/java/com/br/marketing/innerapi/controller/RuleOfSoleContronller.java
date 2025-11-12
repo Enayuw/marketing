@@ -10,10 +10,10 @@ import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.RuleOfSoleService;
 import com.br.marketing.vo.MarketingCustomerVO;
 import com.br.marketing.vo.SoleRuleDetailVO;
-import org.apache.pulsar.shade.io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +31,7 @@ import java.util.Map;
 @RestController
 @Configuration
 @RequestMapping("/rule/sole")
-@Api(value = "API跑分前数据去重配置",tags = "API跑分前数据去重配置", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "API跑分前数据去重配置", description = "API跑分前数据去重配置")
 public class RuleOfSoleContronller {
 
     private static final Logger log = LoggerFactory.getLogger(RuleOfSoleContronller.class);
@@ -39,17 +39,17 @@ public class RuleOfSoleContronller {
     @Autowired
     RuleOfSoleService ruleOfSoleService;
 
-    @ApiOperation(value = "去重规则列表",notes = "")
+    @Operation(summary = "去重规则列表", description = "")
     @GetMapping("/list")
-    @ApiImplicitParams({@ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
-            , @ApiImplicitParam(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
-            , @ApiImplicitParam(name = "soleName", value = "去重规则名称",paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "status", value = "状态",paramType = "query", dataType = "integer")
-            , @ApiImplicitParam(name = "apiCodes", value = "apiCode筛选,支持多选,逗号分隔", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "createTimeStart",value = "创建日期开始", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "createTimeEnd",value = "创建日期截止", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "updateTimeStart",value = "更新日期开始", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "updateTimeEnd",value = "更新日期截止", paramType = "query", dataType = "string")
+    @Parameters({@Parameter(name = "current", description = "页号")
+            , @Parameter(name = "size", description = "页大小")
+            , @Parameter(name = "soleName", description = "去重规则名称")
+            , @Parameter(name = "status", description = "状态")
+            , @Parameter(name = "apiCodes", description = "apiCode筛选,支持多选,逗号分隔")
+            , @Parameter(name = "createTimeStart", description = "创建日期开始")
+            , @Parameter(name = "createTimeEnd", description = "创建日期截止")
+            , @Parameter(name = "updateTimeStart", description = "更新日期开始")
+            , @Parameter(name = "updateTimeEnd", description = "更新日期截止")
     })
     public ApiResult<PageResultReturn> list(@RequestParam(defaultValue = "1") int current
                                             , @RequestParam(defaultValue = "10") int size
@@ -72,10 +72,10 @@ public class RuleOfSoleContronller {
     }
 
 
-    @ApiOperation(value = "判断规则名称是否重复,是否合法",notes = "如果编辑状态需要传soleId")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "soleName",value = "规则名称",required = true,dataType = "String"),
-            @ApiImplicitParam(name = "soleId",value = "当前规则id",required = false,dataType = "String")
+    @Operation(summary = "判断规则名称是否重复,是否合法", description = "如果编辑状态需要传soleId")
+    @Parameters({
+            @Parameter(name = "soleName", description = "规则名称", required = true),
+            @Parameter(name = "soleId", description = "当前规则id", required = false)
     })
     @GetMapping("/getNameOnly")
     public ApiResult<Boolean> getNameOnly(String soleName,String soleId){
@@ -96,9 +96,9 @@ public class RuleOfSoleContronller {
     }
 
 
-    @ApiOperation(value = "匹配商户列表",notes = "支持模糊搜索")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "search",value = "",required = false,dataType = "String")
+    @Operation(summary = "匹配商户列表", description = "支持模糊搜索")
+    @Parameters({
+            @Parameter(name = "search", description = "", required = false)
     })
     @GetMapping("/getCustomer")
     @AddDataAuthBusiness
@@ -115,7 +115,7 @@ public class RuleOfSoleContronller {
     }
 
     //新增接口
-    @ApiOperation(value = "根据商户查询usertype",notes = "支持多个同时查询,返回参数格式适应前端")
+    @Operation(summary = "根据商户查询usertype", description = "支持多个同时查询,返回参数格式适应前端")
     @PostMapping("/getUserByCus")
     public ApiResult<List<Map>> getUserByCus(@RequestBody List<MarketingCustomerVO> customerVOs){
         try {
@@ -129,7 +129,7 @@ public class RuleOfSoleContronller {
     }
 
 
-    @ApiOperation(value = "新增/变更去重规则",notes = "")
+    @Operation(summary = "新增/变更去重规则", description = "")
     @PostMapping("/saveOrUpdate")
     public ApiResult<Boolean> saveOrUpdate(@RequestBody @Validated SoleRuleDetailVO vo){
         //获取用户上下文
@@ -143,8 +143,8 @@ public class RuleOfSoleContronller {
     }
 
 
-    @ApiOperation(value = "查看去重规则",notes = "")
-    @ApiImplicitParam(name = "id",value = "去重规则编码",required = true,dataType = "String")
+    @Operation(summary = "查看去重规则", description = "")
+    @Parameter(name = "id", description = "去重规则编码", required = true)
     @GetMapping("/getSoleById")
     public ApiResult<SoleRuleDetailVO> getSoleById(String id){
         try {
@@ -157,10 +157,10 @@ public class RuleOfSoleContronller {
     }
 
 
-    @ApiOperation(value = "操作去重规则",notes = "操作去重规则状态，开启/关闭")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "id",value = "去重规则编码",required = true,dataType = "String"),
-            @ApiImplicitParam(name = "status",value = "状态(1-开启;2-禁用)",required = true,dataType = "Integer")
+    @Operation(summary = "操作去重规则", description = "操作去重规则状态，开启/关闭")
+    @Parameters({
+            @Parameter(name = "id", description = "去重规则编码", required = true),
+            @Parameter(name = "status", description = "状态(1-开启;2-禁用)", required = true)
     })
     @GetMapping("/updateStatusById")
     public ApiResult<Boolean> updateStatusById(String id,Integer status){
@@ -180,8 +180,8 @@ public class RuleOfSoleContronller {
     }
 
 
-    @ApiOperation(value = "变更记录查看",notes = "支持分页")
-    @ApiImplicitParam(name = "id",value = "去重规则编码",required = true,dataType = "String")
+    @Operation(summary = "变更记录查看", description = "支持分页")
+    @Parameter(name = "id", description = "去重规则编码", required = true)
     @GetMapping("/getUpdateRecord")
     public ApiResult<PageResultReturn> getUpdateRecord(@RequestParam(required = true) String id,
                                                        @RequestParam(defaultValue = "1") int current,

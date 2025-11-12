@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 import cn.hutool.core.date.DateUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 @Data
@@ -14,27 +13,27 @@ import lombok.Data;
 public class CollidingRuleListParam implements Serializable {
 
     private static final long serialVersionUID = -5816759852739248423L;
-    @ApiModelProperty("数据包名称")
+    @Schema(description = "数据包名称")
     private String keyword;
 
-    @ApiModelProperty("ApiCode")
+    @Schema(description = "ApiCode")
     private String apiCode;
 
-    @ApiModelProperty("任务状态")
+    @Schema(description = "任务状态")
     private Integer collidingSwitch;
 
-    @ApiModelProperty("开启撞库时间 yyyy-MM-dd HH:mm:ss")
+    @Schema(description = "开启撞库时间 yyyy-MM-dd HH:mm:ss")
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private String collidingStartTime;
 
-    @ApiModelProperty("结束撞库时间 yyyy-MM-dd HH:mm:ss")
+    @Schema(description = "结束撞库时间 yyyy-MM-dd HH:mm:ss")
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private String collidingEndTime;
 
-    @ApiModelProperty("排序字段")
+    @Schema(description = "排序字段")
     private String orderField;
 
-    @ApiModelProperty("排序类型 正序:asc 倒叙:desc")
+    @Schema(description = "排序类型 正序:asc 倒叙:desc")
     private String orderType;
 
     @Schema(description = "当前页数")

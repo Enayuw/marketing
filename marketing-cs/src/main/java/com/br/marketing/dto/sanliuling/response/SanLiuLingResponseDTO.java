@@ -1,6 +1,6 @@
 package com.br.marketing.dto.sanliuling.response;
 
-import org.apache.pulsar.shade.io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.Getter;
 
@@ -9,9 +9,9 @@ import java.io.Serializable;
 @Data
 public class SanLiuLingResponseDTO implements Serializable {
 
-    @ApiModelProperty("响应码")
+    @Schema(description = "响应码")
     private String code;
-    @ApiModelProperty("响应消息")
+    @Schema(description = "响应消息")
     private String msg;
 
     public SanLiuLingResponseDTO success() {

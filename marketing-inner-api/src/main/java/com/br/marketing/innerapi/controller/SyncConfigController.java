@@ -8,12 +8,10 @@ import com.br.marketing.entity.MarketingCustomer;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.vo.SyncConfigEditVO;
-import org.apache.pulsar.shade.io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.validation.annotation.Validated;
@@ -35,7 +33,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping(value = "/rule/sftp")
-@Api(value = "sftp账号配置", tags = "sftp账号配置", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(value = "sftp账号配置", tags = "sftp账号配置", produces = "application/json", consumes = "application/json", protocols = "http")
 public class SyncConfigController {
 
     private static final Logger log = LoggerFactory.getLogger(SyncConfigController.class);
@@ -45,11 +43,11 @@ public class SyncConfigController {
 
 
     @GetMapping("/getSftpList")
-    @ApiOperation(value = "客户sftp账号列表", notes = "客户sftp账号列表", httpMethod = "GET")
-    @ApiImplicitParams({@ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
-        , @ApiImplicitParam(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
-        , @ApiImplicitParam(name = "apiCode", paramType = "query", dataType = "string")
-        , @ApiImplicitParam(name = "dataType", value = "文件类型", paramType = "query", dataType = "integer")
+    @Operation(summary = "客户sftp账号列表", description = "客户sftp账号列表")
+    @Parameters({@Parameter(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
+        , @Parameter(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
+        , @Parameter(name = "apiCode", paramType = "query", dataType = "string")
+        , @Parameter(name = "dataType", value = "文件类型", paramType = "query", dataType = "integer")
     })
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = MarketingCustomer.class)})
     @AddDataAuthBusiness
@@ -65,22 +63,22 @@ public class SyncConfigController {
     }
 
 
-    @ApiOperation(value = "复制sftp配置信息", notes = "复制sftp配置信息")
-    @ApiImplicitParams({@ApiImplicitParam(name = "id", value = "被复制的SFTP配置id", paramType = "query", dataType = "string")
-        , @ApiImplicitParam(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")
-        , @ApiImplicitParam(name = "srcPath", value = "源目录", paramType = "query", dataType = "string")
-        , @ApiImplicitParam(name = "targetPath", value = "目标目录", paramType = "query", dataType = "string")
-        , @ApiImplicitParam(name = "type", value = "同步文件的类型", paramType = "query", dataType = "int")
-        , @ApiImplicitParam(name = "dataType", value = "文件类型", paramType = "query", dataType = "int")
-        , @ApiImplicitParam(name = "suffix", value = "文件后缀", paramType = "query", dataType = "string")
-        , @ApiImplicitParam(name = "srcSftpHost", value = "源sftp host", paramType = "query", dataType = "string")
-        , @ApiImplicitParam(name = "srcSftpPort", value = "源sftp port", paramType = "query", dataType = "int")
-        , @ApiImplicitParam(name = "srcSftpUser", value = "源sftp账号", paramType = "query", dataType = "string")
-        , @ApiImplicitParam(name = "srcSftpPwd", value = "源sftp密码", paramType = "query", dataType = "string")
-        , @ApiImplicitParam(name = "targetSftpHost", value = "目的sftp host", paramType = "query", dataType = "string")
-        , @ApiImplicitParam(name = "targetSftpPort", value = "目的sftp port", paramType = "query", dataType = "int")
-        , @ApiImplicitParam(name = "targetSftpUser", value = "目的sftp账号", paramType = "query", dataType = "string")
-        , @ApiImplicitParam(name = "targetSftpPwd", value = "目的sftp密码", paramType = "query", dataType = "string")
+    @Operation(summary = "复制sftp配置信息", description = "复制sftp配置信息")
+    @Parameters({@Parameter(name = "id", value = "被复制的SFTP配置id", paramType = "query", dataType = "string")
+        , @Parameter(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")
+        , @Parameter(name = "srcPath", value = "源目录", paramType = "query", dataType = "string")
+        , @Parameter(name = "targetPath", value = "目标目录", paramType = "query", dataType = "string")
+        , @Parameter(name = "type", value = "同步文件的类型", paramType = "query", dataType = "int")
+        , @Parameter(name = "dataType", value = "文件类型", paramType = "query", dataType = "int")
+        , @Parameter(name = "suffix", value = "文件后缀", paramType = "query", dataType = "string")
+        , @Parameter(name = "srcSftpHost", value = "源sftp host", paramType = "query", dataType = "string")
+        , @Parameter(name = "srcSftpPort", value = "源sftp port", paramType = "query", dataType = "int")
+        , @Parameter(name = "srcSftpUser", value = "源sftp账号", paramType = "query", dataType = "string")
+        , @Parameter(name = "srcSftpPwd", value = "源sftp密码", paramType = "query", dataType = "string")
+        , @Parameter(name = "targetSftpHost", value = "目的sftp host", paramType = "query", dataType = "string")
+        , @Parameter(name = "targetSftpPort", value = "目的sftp port", paramType = "query", dataType = "int")
+        , @Parameter(name = "targetSftpUser", value = "目的sftp账号", paramType = "query", dataType = "string")
+        , @Parameter(name = "targetSftpPwd", value = "目的sftp密码", paramType = "query", dataType = "string")
     })
     @GetMapping("/copySftp")
     public ApiResult<Boolean> copySftp(@RequestParam(required = true) String id,
@@ -107,7 +105,7 @@ public class SyncConfigController {
         }
     }
 
-    @ApiOperation(value = "编辑sftp配置信息", notes = "编辑sftp配置信息")
+    @Operation(summary = "编辑sftp配置信息", description = "编辑sftp配置信息")
     @PostMapping("/editSftp")
     public ApiResult<Boolean> editSftp(@RequestBody @Validated SyncConfigEditVO vo) {
         try {
@@ -118,7 +116,7 @@ public class SyncConfigController {
         }
     }
 
-    @ApiOperation(value = "获取文件类型列表", notes = "获取文件类型列表")
+    @Operation(summary = "获取文件类型列表", description = "获取文件类型列表")
     @GetMapping("/getDataTypeList")
     public ApiResult<JSONArray> getDataTypeList() {
         try {
@@ -134,7 +132,7 @@ public class SyncConfigController {
     }
 
     @GetMapping("/batchDeleteSftpList")
-    @ApiOperation(value = "批量删除客户sftp账号", notes = "批量删除客户sftp账号", httpMethod = "POST")
+    @Operation(summary = "批量删除客户sftp账号", description = "批量删除客户sftp账号")
     public ApiResult<Boolean> batchDeleteSftpList(@RequestParam List<Long> ids) {
         return syncConfigService.batchDeleteSftpList(ids);
     }

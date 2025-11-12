@@ -2,7 +2,6 @@ package com.br.marketing.vo.bi.param;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.util.Date;
@@ -36,6 +35,6 @@ public class BiReportConfigDictParam {
     @Schema(description = "配置结束时间")
     private Date endDate;
 
-    @ApiModelProperty("1-有效；9-无效")
+    @Schema(description = "1-有效；9-无效")
     private Integer isDel;
 }

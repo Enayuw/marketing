@@ -9,8 +9,6 @@ import com.br.marketing.dto.tc.TcResponseDTO;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.tc.RSAUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.pulsar.shade.io.swagger.annotations.Api;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,7 +18,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
-@Api(value = "同程易融cpa代运营测试")
+@Tag(value = "同程易融cpa代运营测试")
 @RequestMapping("/marketing/v1/api/cpa/withoutSign")
 @RestController
 @Slf4j
@@ -34,7 +32,7 @@ public class TcCpaCustomizeWithoutSignController {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    @ApiOperation(value = "测试数据推送")
+    @Operation(value = "测试数据推送")
     @PostMapping("/marketDataPush")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public TcResponseDTO marketDataPushWithoutSign(@RequestBody TcRequestDTO tcRequestDTO, HttpServletRequest request) {
@@ -50,7 +48,7 @@ public class TcCpaCustomizeWithoutSignController {
         return tcCpaCustomizeService.marketDataPush(tcRequestDTO, request.getHeader("Test-ApiCode"));
     }
 
-    @ApiOperation(value = "测试撤销营销")
+    @Operation(value = "测试撤销营销")
     @PostMapping("/marketRevoke")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public TcResponseDTO marketRevokeWithoutSign(@RequestBody TcRequestDTO tcRequestDTO, HttpServletRequest request) {
@@ -65,7 +63,7 @@ public class TcCpaCustomizeWithoutSignController {
         return tcCpaCustomizeService.marketRevoke(tcRequestDTO, request.getHeader("Test-ApiCode"));
     }
 
-    @ApiOperation(value = "测试转化通知")
+    @Operation(value = "测试转化通知")
     @PostMapping("/transformNotify")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public TcResponseDTO transformNotifyWithoutSign(@RequestBody TcRequestDTO tcRequestDTO, HttpServletRequest request) {
@@ -80,7 +78,7 @@ public class TcCpaCustomizeWithoutSignController {
         return tcCpaCustomizeService.transformNotify(tcRequestDTO, request.getHeader("Test-ApiCode"));
     }
 
-    @ApiOperation(value = "测试正负样本推送")
+    @Operation(value = "测试正负样本推送")
     @PostMapping("/sampleDataPush")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public TcResponseDTO sampleDataPushWithoutSign(@RequestBody TcRequestDTO tcRequestDTO, HttpServletRequest request) {
@@ -95,7 +93,7 @@ public class TcCpaCustomizeWithoutSignController {
         return tcCpaCustomizeService.sampleDataPush(tcRequestDTO, request.getHeader("Test-ApiCode"));
     }
 
-    @ApiOperation(value = "撞库失败数据推送")
+    @Operation(value = "撞库失败数据推送")
     @PostMapping("/marketFailDataPush")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public TcResponseDTO marketFailDataPush(@RequestBody TcRequestDTO tcRequestDTO, HttpServletRequest request) {

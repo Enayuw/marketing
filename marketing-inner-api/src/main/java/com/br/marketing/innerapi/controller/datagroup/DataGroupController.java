@@ -5,10 +5,10 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.dto.datagroup.DataGroupConfgDTO;
 import com.br.marketing.vo.datagroup.DataGroupConfigVO;
-import org.apache.pulsar.shade.io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +27,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping(value = "/data/group")
-@Api(value = "数据分组相关接口", tags = "数据分组相关接口")
+@Tag(name = "数据分组相关接口", description = "数据分组相关接口")
 @Slf4j
 public class DataGroupController {
 
@@ -37,10 +37,10 @@ public class DataGroupController {
 
 
     @GetMapping("/list")
-    @ApiOperation(value = "数据分组配置列表", notes = "数据分组配置列表")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "ids", value = "上传记录Id,可传多个，分割", paramType = "query", dataType = "string"),
-            @ApiImplicitParam(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")
+    @Operation(summary = "数据分组配置列表", description = "数据分组配置列表")
+    @Parameters({
+            @Parameter(name = "ids", description = "上传记录Id,可传多个，分割"),
+            @Parameter(name = "apiCode", description = "apiCode")
     })
     public ApiResult<List<DataGroupConfigVO>> list(
             @RequestParam(required = true) String ids,
@@ -53,10 +53,10 @@ public class DataGroupController {
 
 
     @GetMapping("/extendField")
-    @ApiOperation(value = "数据分组获取拓展字段", notes = "数据分组获取拓展字段")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "ids", value = "上传记录Id,可传多个，分割", paramType = "query", dataType = "string"),
-            @ApiImplicitParam(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")
+    @Operation(summary = "数据分组获取拓展字段", description = "数据分组获取拓展字段")
+    @Parameters({
+            @Parameter(name = "ids", description = "上传记录Id,可传多个，分割"),
+            @Parameter(name = "apiCode", description = "apiCode")
     })
     public ApiResult<List<String>> extendField(
             @RequestParam(required = true) String ids,
@@ -68,24 +68,24 @@ public class DataGroupController {
     }
 
 
-    @ApiOperation(value = "分组配置编辑", notes = "分组配置编辑")
+    @Operation(summary = "分组配置编辑", description = "分组配置编辑")
     @PostMapping("/editConfig")
     public ApiResult editConfig(@RequestBody DataGroupConfgDTO dto) {
         return dataGroupHandlerService.updateConfig(dto);
 
     }
 
-    @ApiOperation(value = "新增或删除配置", notes = "新增或删除配置")
+    @Operation(summary = "新增或删除配置", description = "新增或删除配置")
     @PostMapping("/addOrDelete")
     public ApiResult addOrDeleteConfig(@RequestBody DataGroupConfgDTO dto) {
         return dataGroupHandlerService.addOrDeleteConfig(dto);
     }
 
 
-    @ApiOperation(value = "查看字段分组进度", notes = "查看字段分组进度")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "field", value = "field", required = true, dataType = "String"),
-            @ApiImplicitParam(name = "id", value = "id", required = true, dataType = "Long")
+    @Operation(summary = "查看字段分组进度", description = "查看字段分组进度")
+    @Parameters({
+            @Parameter(name = "field", description = "field", required = true),
+            @Parameter(name = "id", description = "id", required = true)
     })
     @GetMapping("/getGroupFieldPercent")
     public ApiResult<Map> getGroupFieldPercent(@RequestParam(required = true) String field, @RequestParam(required = true) Long id) {

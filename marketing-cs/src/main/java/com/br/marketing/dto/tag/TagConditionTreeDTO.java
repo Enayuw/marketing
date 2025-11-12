@@ -1,14 +1,13 @@
 package com.br.marketing.dto.tag;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiModel;
 import lombok.Data;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import java.util.List;
 
 @Data
-@ApiModel(description = "标签条件树DTO")
+@Schema(description = "标签条件树DTO")
 public class TagConditionTreeDTO {
     
     @Schema(description = "条件关系（AND-且，OR-或）")

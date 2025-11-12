@@ -2,7 +2,6 @@ package com.br.marketing.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -43,33 +42,33 @@ public class CarClueInfoVo {
     private String city;
     @Schema(description = "手机号")
     private String cell;
-    @ApiModelProperty("清洗时间 yyyy-MM-dd HH:mm:ss")
+    @Schema(description = "清洗时间 yyyy-MM-dd HH:mm:ss")
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private Date cleanTime;
-    @ApiModelProperty("修改时间 yyyy-MM-dd HH:mm:ss")
+    @Schema(description = "修改时间 yyyy-MM-dd HH:mm:ss")
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private Date updateTime;
     @Schema(description = "推送渠道")
     private String cluePushChannel;
     @Schema(description = "推送状态")
     private String cluePushStatus;
-    @ApiModelProperty("推送时间 yyyy-MM-dd HH:mm:ss")
+    @Schema(description = "推送时间 yyyy-MM-dd HH:mm:ss")
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private Date pushTime;
     @Schema(description = "入库状态")
     private String clueCallbackFinalState;
-    @ApiModelProperty("回调时间 yyyy-MM-dd HH:mm:ss")
+    @Schema(description = "回调时间 yyyy-MM-dd HH:mm:ss")
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private Date callBackTime;
-    @ApiModelProperty("录音地址")
+    @Schema(description = "录音地址")
     private String recordingPath;
-    @ApiModelProperty("交互文本")
+    @Schema(description = "交互文本")
     private String callDiaLog;
-    @ApiModelProperty("资源标识")
+    @Schema(description = "资源标识")
     private String resourceType;
-    @ApiModelProperty("通话记录编号")
+    @Schema(description = "通话记录编号")
     private String callId;
-    @ApiModelProperty("错误原因")
+    @Schema(description = "错误原因")
     private String clueErrorReason;
 
 

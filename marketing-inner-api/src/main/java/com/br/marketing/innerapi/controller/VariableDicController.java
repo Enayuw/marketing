@@ -10,7 +10,10 @@ import com.br.marketing.service.VariableDicService;
 import com.br.marketing.vo.CustomerSelectVO;
 import com.br.marketing.vo.VariableDicListVO;
 import com.br.marketing.vo.VariableDicSelectVO;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.validation.annotation.Validated;
@@ -28,7 +31,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping(value = "/rule/vd")
-@Api(value = "客户配置变量值", tags = "客户配置变量值字典", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(value = "客户配置变量值", tags = "客户配置变量值字典", produces = "application/json", consumes = "application/json", protocols = "http")
 public class VariableDicController {
 
     private static final Logger log = LoggerFactory.getLogger(CustomerController.class);
@@ -46,9 +49,9 @@ public class VariableDicController {
      * @author zeqiang.guo@brgroup.com
      * @dateTime 2021/9/1 15:14
      */
-    @ApiOperation(value = "配置变量值字典", notes = "集合", httpMethod = "GET")
-    @ApiImplicitParams({@ApiImplicitParam(name = "cid", value = "合作客户id", paramType = "path", dataType = "string")
-            , @ApiImplicitParam(name = "apiCode", value = "接口编号", paramType = "path", dataType = "string")
+    @Operation(summary = "配置变量值字典", description = "集合")
+    @Parameters({@Parameter(name = "cid", value = "合作客户id", paramType = "path", dataType = "string")
+            , @Parameter(name = "apiCode", value = "接口编号", paramType = "path", dataType = "string")
     })
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = VariableDicSelectVO.class)})
     @GetMapping({"/list/{cid}/{apiCode}"})
@@ -60,11 +63,11 @@ public class VariableDicController {
 
 
     @GetMapping("/getVariableDicList")
-    @ApiOperation(value = "客户配置变量值列表数据", notes = "客户配置变量值列表数据", httpMethod = "GET")
-    @ApiImplicitParams({@ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
-            , @ApiImplicitParam(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
-            , @ApiImplicitParam(name = "cid", value = "合作客户id", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "apiCode", paramType = "query", dataType = "string")
+    @Operation(summary = "客户配置变量值列表数据", description = "客户配置变量值列表数据")
+    @Parameters({@Parameter(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
+            , @Parameter(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
+            , @Parameter(name = "cid", value = "合作客户id", paramType = "query", dataType = "string")
+            , @Parameter(name = "apiCode", paramType = "query", dataType = "string")
     })
     @AddDataAuthBusiness
     public ApiResult<PageResultReturn> getVariableDicList(@RequestParam(defaultValue = "1") int current
@@ -79,7 +82,7 @@ public class VariableDicController {
     }
 
 
-    @ApiOperation(value = "新增/变更客户配置变量值字典",notes = "新增/变更客户配置变量值字典")
+    @Operation(summary = "新增/变更客户配置变量值字典", description = "新增/变更客户配置变量值字典")
     @PostMapping("/saveOrUpdateVariableDic")
     public ApiResult<Boolean> saveOrUpdateVariableDic(@RequestBody @Validated VariableDicListVO vo){
         try {
@@ -94,13 +97,13 @@ public class VariableDicController {
 
 
 
-    @ApiOperation(value = "场景列表", notes = "支持apicode多选")
+    @Operation(summary = "场景列表", description = "支持apicode多选")
     @PostMapping({"/findListByCidsAndApiCodes"})
     public ApiResult<List<Map>> findListByCidsAndApiCodes(@RequestBody List<CustomerSelectVO> vos) {
         List<Map> list = variableDicService.findListByCidsAndApiCodes(vos);
         return new ApiResult<List<Map>>().success(list);
     }
-    /*@ApiOperation(value = "删除客户配置变量值字典",notes = "删除客户配置变量值字典")
+    /*@Operation(summary = "删除客户配置变量值字典", description = "删除客户配置变量值字典")
     @GetMapping("/delete")
     public ApiResult<Boolean> delete(Integer id){
         try {

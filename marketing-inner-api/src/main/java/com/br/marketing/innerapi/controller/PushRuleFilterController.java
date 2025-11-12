@@ -19,10 +19,8 @@ import com.br.marketing.service.halo.HaloRuleCenterCallbackService;
 import com.br.marketing.vo.*;
 import com.br.marketing.vo.xiecheng.PushViewVO;
 import com.br.marketing.vo.xiecheng.XiechengCollidingDataVO;
-import org.apache.pulsar.shade.io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +37,7 @@ import java.util.Set;
  */
 @RestController
 @RequestMapping("/pushrulefilter")
-@Api(value = "PushRuleFilterController")
+@Tag(value = "PushRuleFilterController")
 public class PushRuleFilterController {
 
     private static final Logger log = LoggerFactory.getLogger(PushRuleFilterController.class);
@@ -78,7 +76,7 @@ public class PushRuleFilterController {
      * @param apiCode
      * @return
      */
-    @ApiOperation(value = "根据apiCode 查询信息")
+    @Operation(summary = "根据apiCode 查询信息")
     @GetMapping("/getCompanyAndModule")
     @LogAnnotation
     public ApiResult getCompanyAndModule(String apiCode) {
@@ -91,7 +89,7 @@ public class PushRuleFilterController {
      * @param apiCode
      * @return
      */
-    @ApiOperation(value = "根据apiCode 查询信息")
+    @Operation(summary = "根据apiCode 查询信息")
     @GetMapping("/getUserType")
     @LogAnnotation
     public ApiResult getUserType(String apiCode) {
@@ -106,7 +104,7 @@ public class PushRuleFilterController {
      * @param dto
      * @return
      */
-    @ApiOperation(value = "获取批次列表")
+    @Operation(summary = "获取批次列表")
     @PostMapping("/getBatchInfos")
     @AddDataAuthBusiness
     public ApiResult<PageResultReturn> getBatchInfos(@RequestBody CustomerBatchNumDTO dto) {
@@ -120,7 +118,7 @@ public class PushRuleFilterController {
      * @param dto
      * @return
      */
-    @ApiOperation(value = "获取列表跑分总数")
+    @Operation(summary = "获取列表跑分总数")
     @PostMapping("/getBatchInfosCounts")
     @AddDataAuthBusiness
     public ApiResult<Long> getBatchInfosCounts(@RequestBody CustomerBatchNumDTO dto) {
@@ -134,7 +132,7 @@ public class PushRuleFilterController {
      * @param dto
      * @return
      */
-    @ApiOperation(value = "获取推送列表")
+    @Operation(summary = "获取推送列表")
     @PostMapping("/getPushInfos")
     public ApiResult<List<PushInfoDetailVO>> getPushInfos(@RequestBody RequestPushInfoDTO dto) {
         return new ApiResult<List<PushInfoDetailVO>>().fromResult(pushRuleService.getPushInfos(dto), CODE_1);
@@ -146,44 +144,44 @@ public class PushRuleFilterController {
      * @param dto
      * @return
      */
-    @ApiOperation(value = "推送客服")
+    @Operation(summary = "推送客服")
     @PostMapping("/pushCustomer")
     public ApiResult pushCustomer(@RequestBody PushCustomerDTO dto) {
         dto.setUserDetail(ThreadContextInfo.getUser());
         return new ApiResult().fromResult(ruleCenterService.pushCustomer(dto), CODE_1);
     }
 
-    @ApiOperation(value = "推送预览")
+    @Operation(summary = "推送预览")
     @PostMapping("/pushPreview")
     public ApiResult<PushViewVO> pushPreview(@RequestBody PushCustomerDTO dto) {
         return new ApiResult<PushViewVO>().fromResult(pushRuleService.pushPreview(dto), CODE_1);
     }
 
-    @ApiOperation(value = "保存模板")
+    @Operation(summary = "保存模板")
     @PostMapping("/saveCondition")
     public ApiResult<Long> saveCondition(@RequestBody ConditionSaveDTO dto) {
         return new ApiResult<Long>().fromResult(pushRuleService.saveCondition(dto), CODE_1);
     }
 
-    @ApiOperation(value = "删除规则模板")
+    @Operation(summary = "删除规则模板")
     @GetMapping("/deleteRule")
     public ApiResult<Boolean> deleteRule(@RequestParam Long id) {
         return new ApiResult<Boolean>().fromResult(pushRuleService.deleteRule(id), CODE_1);
     }
 
-    @ApiOperation(value = "获取模板")
+    @Operation(summary = "获取模板")
     @GetMapping("/getConditionByRule")
     public ApiResult<List<ConditionOfScoreVO>> getConditionByRule(String apiCode,String name) {
         return new ApiResult<List<ConditionOfScoreVO>>().fromResult(pushRuleService.getConditionByRule(apiCode,name), CODE_1);
     }
 
-    @ApiOperation(value = "修改规则模板")
+    @Operation(summary = "修改规则模板")
     @PostMapping("/optCondition")
     public ApiResult optCondition(@RequestBody OptConditionDTO dto) {
         return new ApiResult().fromResult(pushRuleService.optCondition(dto), CODE_1);
     }
 
-    @ApiOperation(value = "查询规则模板列表")
+    @Operation(summary = "查询规则模板列表")
     @PostMapping("/getConditionPageData")
     public ApiResult<PageResultReturn<ScoreConditionDetailVO>> getConditionPageData(@RequestBody SearchConditionDTO dto) {
         return new ApiResult<PageResultReturn<ScoreConditionDetailVO>>().fromResult(pushRuleService.getConditionPageData(dto), CODE_1);
@@ -194,8 +192,8 @@ public class PushRuleFilterController {
      * @param apiCode
      * @return
      */
-    @ApiOperation(value = "撞库结果数据", notes = "撞库结果数据", httpMethod = "GET")
-    @ApiImplicitParams({@ApiImplicitParam(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")})
+    @Operation(value = "撞库结果数据", notes = "撞库结果数据", httpMethod = "GET")
+    @Parameters({@Parameter(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")})
     @GetMapping("/getCollidingResultData")
     public ApiResult getCollidingResultData(String apiCode) {
         return new ApiResult<List<XiechengCollidingDataVO>>().fromResult(ruleCenterCollidingService.getCollidingResultData(apiCode), CODE_1);
@@ -207,7 +205,7 @@ public class PushRuleFilterController {
      * @param dto
      * @return
      */
-    @ApiOperation(value = "撞库数据剔除", notes = "撞库数据剔除", httpMethod = "POST")
+    @Operation(value = "撞库数据剔除", notes = "撞库数据剔除", httpMethod = "POST")
     @PostMapping("/collidingDataDelete")
     public ApiResult collidingDataDelete(@RequestBody PushCustomerDTO dto) {
         return new ApiResult().fromResult(pushRuleService.collidingDataDelete(dto), CODE_1);
@@ -218,7 +216,7 @@ public class PushRuleFilterController {
      * @param dto
      * @return
      */
-    @ApiOperation(value = "撞库数据剔除数据量", notes = "撞库数据剔除数据量", httpMethod = "POST")
+    @Operation(value = "撞库数据剔除数据量", notes = "撞库数据剔除数据量", httpMethod = "POST")
     @PostMapping("/collidingDataDeleteNum")
     @LogRecordAnnotation(bizNo = InterfaceOperationsEnum.XIECHENG_DELETE_COLLIDING_PACKAGE,
             extendInfo = "使用{#dto.mRuleCondition}，进行数据量级{#dto.mPlanNum}的数据剔除")
@@ -231,7 +229,7 @@ public class PushRuleFilterController {
      * @param dto
      * @return
      */
-    @ApiOperation(value = "撞库数据包生成", notes = "撞库数据包生成", httpMethod = "POST")
+    @Operation(value = "撞库数据包生成", notes = "撞库数据包生成", httpMethod = "POST")
     @PostMapping("/collidingDataPachageMake")
     @LogRecordAnnotation(bizNo = InterfaceOperationsEnum.XIECHENG_MAKE_COLLIDING_PACKAGE,
             extendInfo = "使用{#dto.mRuleCondition}，生成数据量级{#dto.mPrePlanNum}的{#dto.dataPackageName}数据包")
@@ -239,7 +237,7 @@ public class PushRuleFilterController {
         return new ApiResult().fromResult(pushRuleService.collidingDataPachageMake(dto), CODE_1);
     }
 
-    @ApiOperation(value = "测试消费")
+    @Operation(summary = "测试消费")
     @GetMapping("/testConsumerCustomer")
     public Result testConsumerCustomer(Long id) {
         return pushRuleService.consumerPushCustomer(id);
@@ -249,7 +247,7 @@ public class PushRuleFilterController {
     /**
      * 测试通用日志
      */
-    @ApiOperation(value = "测试通用日志")
+    @Operation(summary = "测试通用日志")
     @GetMapping("/testLog")
     @LogRecordAnnotation(bizNo = InterfaceOperationsEnum.XIECHENG_INSERT_DATA,
             extendInfo = "修改了数据包一中的原开启撞库时间{#dto.apiCode}的设定撞得量级[getUserName{#dto.cell}]修改为{#dto.cell}的设定撞得量级{#dto.dataCode}")
@@ -269,7 +267,7 @@ public class PushRuleFilterController {
      * @author Hua Qiang
      * @date 2024-08-15 17:07
      */
-    @ApiOperation(value = "跑分模型分布筛选批次列表")
+    @Operation(summary = "跑分模型分布筛选批次列表")
     @PostMapping("getBatchInfoList")
     @AuthDataControllerPermission
     public ApiResult<PageResultReturn<List<ScoreDetailVo>>> getBatchInfoList(@RequestBody CustomerBatchNumVO batchNumVO) {
@@ -283,8 +281,8 @@ public class PushRuleFilterController {
      * @param apiCode
      * @return
      */
-    @ApiOperation(value = "获取分组字段列表", notes = "获取分组字段列表", httpMethod = "GET")
-    @ApiImplicitParams({@ApiImplicitParam(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")})
+    @Operation(value = "获取分组字段列表", notes = "获取分组字段列表", httpMethod = "GET")
+    @Parameters({@Parameter(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")})
     @GetMapping("/getLableNameList")
     public ApiResult getLableNameList(@RequestParam(required = false) String apiCode) {
         return new ApiResult<Set<String>>().fromResult(ruleCenterLabelService.getLabelNames(apiCode), CODE_1);
@@ -295,7 +293,7 @@ public class PushRuleFilterController {
      * @param dto
      * @return
      */
-    @ApiOperation(value = "保存分组任务")
+    @Operation(summary = "保存分组任务")
     @PostMapping("/saveLabelTask")
     public ApiResult saveLabelTask(@RequestBody PushCustomerDTO dto) {
         dto.setUserDetail(ThreadContextInfo.getUser());
@@ -309,9 +307,9 @@ public class PushRuleFilterController {
      * @param batchNumbers
      * @return
      */
-    @ApiOperation(value = "获取跑分合并标识", notes = "获取跑分合并标识", httpMethod = "GET")
-    @ApiImplicitParams({@ApiImplicitParam(name = "batchNumbers", value = "跑分批次号，多个用,分割", paramType = "query", dataType = "string"),
-            @ApiImplicitParam(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")})
+    @Operation(value = "获取跑分合并标识", notes = "获取跑分合并标识", httpMethod = "GET")
+    @Parameters({@Parameter(name = "batchNumbers", value = "跑分批次号，多个用,分割", paramType = "query", dataType = "string"),
+            @Parameter(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")})
     @GetMapping("/getScoreMergeMark")
     public ApiResult getScoreMergeMark(@RequestParam String batchNumbers,@RequestParam String apiCode) {
         return new ApiResult<Boolean>().fromResult(ruleCenterLabelService.getScoreMergeMark(batchNumbers,apiCode), CODE_1);
@@ -324,9 +322,9 @@ public class PushRuleFilterController {
      * @param batchNumbers
      * @return
      */
-    @ApiOperation(value = "获取跑分合并量级", notes = "获取跑分合并量级", httpMethod = "GET")
-    @ApiImplicitParams({@ApiImplicitParam(name = "batchNumbers", value = "跑分批次号，多个用,分割", paramType = "query", dataType = "string"),
-            @ApiImplicitParam(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")})
+    @Operation(value = "获取跑分合并量级", notes = "获取跑分合并量级", httpMethod = "GET")
+    @Parameters({@Parameter(name = "batchNumbers", value = "跑分批次号，多个用,分割", paramType = "query", dataType = "string"),
+            @Parameter(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")})
     @GetMapping("/getScoreMergeNum")
     public ApiResult getScoreMergeNum(@RequestParam String batchNumbers,@RequestParam String apiCode) {
         return new ApiResult<Map<String,Integer>>().fromResult(ruleCenterLabelService.getScoreMergeNum(batchNumbers,apiCode), CODE_1);
@@ -337,7 +335,7 @@ public class PushRuleFilterController {
      * @param dto
      * @return
      */
-    @ApiOperation(value = "生成哈啰硅基人回调任务")
+    @Operation(summary = "生成哈啰硅基人回调任务")
     @PostMapping("/saveHaloCallbackTask")
     public ApiResult saveHaloCallbackTask(@RequestBody PushCustomerDTO dto){
         dto.setUserDetail(ThreadContextInfo.getUser());
@@ -347,7 +345,7 @@ public class PushRuleFilterController {
     /**
      * 校验apiCode是否可推送客户系统
      */
-    @ApiOperation(value = "校验apiCode是否可推送客户系统")
+    @Operation(summary = "校验apiCode是否可推送客户系统")
     @PostMapping("/canPushCallback")
     public ApiResult canPushCallback(@RequestParam("apiCode") String apiCode){
         return new ApiResult().fromResult(haloRuleCenterCallbackService.canPushCallback(apiCode),CODE_1);

@@ -5,8 +5,6 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.dto.linkgo.CustomerEncryptDTO;
 import com.br.marketing.service.ICustomerConfigService;
-import org.apache.pulsar.shade.io.swagger.annotations.Api;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,14 +16,14 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping(value = "/marketing/linkgo")
-@Api(value = "短链相关调用")
+@Tag(value = "短链相关调用")
 public class MarketingLinkGoController {
 
 
     @Autowired
     private ICustomerConfigService customerConfigService;
 
-    @ApiOperation(value = "获取3k的加密方式")
+    @Operation(summary = "获取3k的加密方式")
     @PostMapping("/getThreeKeyEncryptType")
     public ApiResult<Integer> getThreeKeyEncryptType(@RequestBody CustomerEncryptDTO dto) {
         Result<Integer> result = customerConfigService.getEncryptyType(dto.getApiCode());

@@ -5,8 +5,6 @@ import com.br.marketing.service.bi.ZhongAnControlGroupService;
 import com.br.marketing.vo.zhongan.ZhongAnCustomInfoVO;
 import com.br.marketing.vo.zhongan.param.ControlGroupDTO;
 import com.br.marketing.vo.zhongan.param.ZhongAnControlGroupParam;
-import org.apache.pulsar.shade.io.swagger.annotations.Api;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +19,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/controlGroup")
-@Api(value = "众安对照组配置", tags = "众安对照组配置相关接口")
+@Tag(value = "众安对照组配置", tags = "众安对照组配置相关接口")
 @Slf4j
 public class ZhongAnControlGroupController {
 
@@ -29,20 +27,20 @@ public class ZhongAnControlGroupController {
     @Resource
     private ZhongAnControlGroupService zhongAnControlGroupService;
 
-    @ApiOperation(value = "获取众安对照组列表")
+    @Operation(summary = "获取众安对照组列表")
     @PostMapping("/getCustomInfoList")
     public ApiResult<List<ZhongAnCustomInfoVO>> getCustomInfoList(@RequestBody ControlGroupDTO controlGroupDTO) {
         return new ApiResult<List<ZhongAnCustomInfoVO>>().fromResult(zhongAnControlGroupService.getCustomInfoList(controlGroupDTO), CODE_1);
     }
 
-    @ApiOperation(value = "保存众安对照组配置")
+    @Operation(summary = "保存众安对照组配置")
     @PostMapping("/saveCustomInfo")
     public ApiResult saveCustomInfo(@RequestBody ZhongAnControlGroupParam param) {
         log.warn("众安对照组,请求参数{}", param);
         return new ApiResult().fromResult(zhongAnControlGroupService.saveCustomInfo(param), CODE_1);
     }
 
-    @ApiOperation(value = "查询近一个月配置状态")
+    @Operation(summary = "查询近一个月配置状态")
     @GetMapping("/getConfigStatus")
     public ApiResult<List<String>> getConfigStatus(@RequestParam String startDate, @RequestParam String endDate) {
         return new ApiResult<List<String>>().fromResult(zhongAnControlGroupService.getConfigStatus(startDate,endDate), CODE_1);

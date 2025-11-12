@@ -4,8 +4,6 @@ import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.datarelayservice.service.SanLiuLingUploadDataService;
 import com.br.marketing.dto.sanliuling.response.SanLiuLingResponseDTO;
-import org.apache.pulsar.shade.io.swagger.annotations.Api;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,7 +19,7 @@ import javax.servlet.http.HttpServletRequest;
  * @Author kongbx
  * @Date 2025/8/28 14:05
  */
-@Api(value = "360催收Agent")
+@Tag(value = "360催收Agent")
 @RequestMapping("/marketing/v1/collection")
 @RestController
 @Slf4j
@@ -30,7 +28,7 @@ public class SanLiuLingCustomizeController {
     @Resource
     private SanLiuLingUploadDataService sanLiuLingUploadDataService;
 
-    @ApiOperation(value = "360催收Agent数据上传接口")
+    @Operation(value = "360催收Agent数据上传接口")
     @PostMapping("/upload")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public SanLiuLingResponseDTO receiveCollectionUploadData(@RequestBody String jsonData, HttpServletRequest request) {

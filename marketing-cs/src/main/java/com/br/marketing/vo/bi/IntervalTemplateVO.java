@@ -2,8 +2,6 @@ package com.br.marketing.vo.bi;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiModel;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -41,42 +39,42 @@ public class IntervalTemplateVO {
     @JsonProperty("templateNumber")
     private String templateNumber;
 
-    @ApiModelProperty("自定义区间配置列表")
+    @Schema(description = "自定义区间配置列表")
     @JsonProperty("intervalModels")
     private List<IntervalModelsVO> intervalModels;
 
     @Data
-    @ApiModel("自定义区间模型")
+    @Schema(description = "自定义区间模型")
     public static class IntervalModelsVO {
-        @ApiModelProperty("id")
+        @Schema(description = "id")
         @JsonProperty("id")
         private Long id;
 
-        @ApiModelProperty("自定义区间配置id")
+        @Schema(description = "自定义区间配置id")
         @JsonProperty("configId")
         private Long configId;
 
-        @ApiModelProperty("顺序")
+        @Schema(description = "顺序")
         @JsonProperty("axisType")
         private String axisType;
 
-        @ApiModelProperty("x轴模型")
+        @Schema(description = "x轴模型")
         @JsonProperty("xModelName")
         private String xModelName;
 
-        @ApiModelProperty("y轴模型")
+        @Schema(description = "y轴模型")
         @JsonProperty("yModelName")
         private String yModelName;
 
-        @ApiModelProperty("x轴自定义区间")
+        @Schema(description = "x轴自定义区间")
         @JsonProperty("xIntervalList")
         private String xIntervalList;
 
-        @ApiModelProperty("y轴自定义区间")
+        @Schema(description = "y轴自定义区间")
         @JsonProperty("yIntervalList")
         private String yIntervalList;
 
-        @ApiModelProperty("顺序")
+        @Schema(description = "顺序")
         @JsonProperty("order")
         private String order;
 

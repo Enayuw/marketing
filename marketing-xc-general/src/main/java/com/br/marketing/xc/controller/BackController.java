@@ -17,8 +17,6 @@ import com.br.marketing.service.Impl.xc.XieChengRobDataCollidingService;
 import com.google.api.client.util.Lists;
 
 import cn.hutool.core.date.DateUtil;
-import org.apache.pulsar.shade.io.swagger.annotations.Api;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
@@ -31,7 +29,7 @@ public class BackController {
     @Resource
     private RedisChgService redisChgService;
 
-    @ApiOperation(value = "1-初始化当天release_time缓存")
+    @Operation(value = "1-初始化当天release_time缓存")
     @GetMapping("initializeTodayReleaseTime")
     public ApiResult<List<Map<String, String>>> initializeTodayReleaseTime() {
         String today = DateUtil.today();

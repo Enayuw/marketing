@@ -5,7 +5,6 @@ import cn.hutool.captcha.CircleCaptcha;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisAuthService;
 import com.br.marketing.common.commondto.ApiResult;
-import org.apache.pulsar.shade.io.swagger.annotations.Api;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,7 +20,7 @@ import javax.servlet.http.HttpSession;
  * ------------------------------
  */
 @RestController
-@Api(value = "验证码", tags = "captcha")
+@Tag(value = "验证码", tags = "captcha")
 public class CaptchaController {
     @Resource
     RedisAuthService redisAuthService;

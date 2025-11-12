@@ -3,9 +3,7 @@ package com.br.marketing.dto.tag;
 
 import com.alibaba.fastjson.JSONObject;
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiModel;
 import lombok.Data;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiModel;
 import org.hibernate.validator.constraints.NotBlank;
 import org.hibernate.validator.constraints.NotEmpty;
 
@@ -16,7 +14,7 @@ import java.util.List;
  * 标签创建DTO
  */
 @Data
-@ApiModel(description = "标签创建请求DTO")
+@Schema(description = "标签创建请求DTO")
 public class TagCreateDTO {
     @NotBlank(message = "标签名称不能为空")
     @Schema(description = "标签名称", required = true)

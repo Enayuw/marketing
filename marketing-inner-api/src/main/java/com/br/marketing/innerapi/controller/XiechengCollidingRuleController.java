@@ -28,8 +28,6 @@ import com.br.marketing.vo.xiecheng.param.UpdateCollidingRuleParam;
 import com.br.marketing.vo.xiecheng.param.UpdateCollidingSwitchParam;
 import com.br.marketing.vo.xiecheng.param.UpdatePriorityParam;
 
-import org.apache.pulsar.shade.io.swagger.annotations.Api;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -40,14 +38,14 @@ import lombok.extern.slf4j.Slf4j;
  */
 @RestController
 @RequestMapping(value = "/xiecheng")
-@Api(value = "携程定制化相关接口", tags = "携程定制化相关接口")
+@Tag(value = "携程定制化相关接口", tags = "携程定制化相关接口")
 @Slf4j
 public class XiechengCollidingRuleController {
 
     @Resource
     private XieChengCollidingRuleService xieChengCollidingRuleService;
 
-    @ApiOperation(value = "1-获取调度任务列表-False-分页")
+    @Operation(summary = "1-获取调度任务列表-False-分页")
     @GetMapping("/rule/list/false")
     public ApiResult<PageResultReturn<XiechengCollidingRuleVO>> getCollidingRuleFalseList(CollidingRuleListParam listParam) {
         try {
@@ -59,7 +57,7 @@ public class XiechengCollidingRuleController {
         }
     }
 
-    @ApiOperation(value = "2-获取调度任务列表-True-不分页")
+    @Operation(summary = "2-获取调度任务列表-True-不分页")
     @GetMapping("/rule/list/true")
     public ApiResult<List<XiechengCollidingRuleVO>> getCollidingRuleTrueList(CollidingRuleListParam listParam) {
         try {
@@ -70,7 +68,7 @@ public class XiechengCollidingRuleController {
         }
     }
 
-    @ApiOperation(value = "3-修改包优先级")
+    @Operation(summary = "3-修改包优先级")
     @PostMapping("/package/priority")
     @LogRecordAnnotation(bizNo = InterfaceOperationsEnum.XIECHENG_UPDATE_PRIORITY,
         extendInfo = "修改了{#param.packageName}优先级，由{#param.originalPriority}修改为{#param.priority}")
@@ -83,7 +81,7 @@ public class XiechengCollidingRuleController {
         }
     }
 
-    @ApiOperation(value = "4-查看撞库规则详情")
+    @Operation(summary = "4-查看撞库规则详情")
     @GetMapping("/rule/detail")
     public ApiResult<XiechengCollidingRuleVO> getPackageRuleDetail(@RequestParam Long dprId) {
         try {
@@ -94,7 +92,7 @@ public class XiechengCollidingRuleController {
         }
     }
 
-    @ApiOperation(value = "5-修改撞库规则")
+    @Operation(summary = "5-修改撞库规则")
     @PostMapping("/rule/update")
     @LogRecordAnnotation(bizNo = InterfaceOperationsEnum.XIECHENG_UPDATE_COLLIDING_RULE,
         extendInfo = "修改了{#param.packageName}中的原撞库时间 {#param.originalCollidingStartTime} —— {#param.originalCollidingEndTime} 的"
@@ -112,7 +110,7 @@ public class XiechengCollidingRuleController {
         }
     }
 
-    @ApiOperation(value = "6-变更任务状态")
+    @Operation(summary = "6-变更任务状态")
     @PostMapping("/rule/collidingSwitch")
     @LogRecordAnnotation(bizNo = InterfaceOperationsEnum.XIECHENG_UPDATE_COLLIDING_SWITCH,
         extendInfo = "将{#param.packageName}{#param.collidingSwitch == 0 ? '启用' : '禁用'}")
@@ -125,7 +123,7 @@ public class XiechengCollidingRuleController {
         }
     }
 
-    @ApiOperation(value = "7-批量删除撞库规则多个id','隔开")
+    @Operation(summary = "7-批量删除撞库规则多个id','隔开")
     @PostMapping("/rule/delete")
     public ApiResult<Boolean> deleteCollidingRules(@RequestParam String dprIds) {
         try {
@@ -136,7 +134,7 @@ public class XiechengCollidingRuleController {
         }
     }
 
-    @ApiOperation(value = "8-获取撞库数据包下拉列表-不分页")
+    @Operation(summary = "8-获取撞库数据包下拉列表-不分页")
     @GetMapping("/package/list")
     public ApiResult<List<XiechengPackageVO>> getPackageList() {
         try {
@@ -147,7 +145,7 @@ public class XiechengCollidingRuleController {
         }
     }
 
-    @ApiOperation(value = "9-撞库规则暂存列表-不分页")
+    @Operation(summary = "9-撞库规则暂存列表-不分页")
     @GetMapping("/rule/staging/list")
     public ApiResult<List<XiechengCollidingStagingRuleVO>> getCollidingRuleStagingList() {
         try {
@@ -158,7 +156,7 @@ public class XiechengCollidingRuleController {
         }
     }
 
-    @ApiOperation(value = "10-确认撞库规则")
+    @Operation(summary = "10-确认撞库规则")
     @PostMapping("/rule/staging")
     public ApiResult<Long> confirmCollidingRule(CollidingRuleConfirmParam confirmParam) {
         try {
@@ -171,7 +169,7 @@ public class XiechengCollidingRuleController {
         }
     }
 
-    @ApiOperation(value = "11-删除已确认撞库规则")
+    @Operation(summary = "11-删除已确认撞库规则")
     @PostMapping("/rule/staging/delete")
     public ApiResult<Boolean> deleteStagingCollidingRule(@RequestParam Long prsId) {
         try {
@@ -182,14 +180,14 @@ public class XiechengCollidingRuleController {
         }
     }
 
-    @ApiOperation(value = "12-保存撞库规则")
+    @Operation(summary = "12-保存撞库规则")
     @PostMapping("/rule/save")
     @LogRecordAnnotation(bizNo = InterfaceOperationsEnum.XIECHENG_SAVE_COLLIDING_RULE, extendInfo = "[saveCollidingRuleLog]")
     public ApiResult<Boolean> saveCollidingRule() {
         return xieChengCollidingRuleService.saveCollidingRule();
     }
 
-    @ApiOperation(value = "13-修改包轮次")
+    @Operation(summary = "13-修改包轮次")
     @PostMapping("/package/round")
     @LogRecordAnnotation(bizNo = InterfaceOperationsEnum.XIECHENG_UPDATE_ROUND,
             extendInfo = "修改了{#param.packageName}轮次，修改为{#param.round}")

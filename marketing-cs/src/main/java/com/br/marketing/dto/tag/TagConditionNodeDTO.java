@@ -1,13 +1,12 @@
 package com.br.marketing.dto.tag;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiModel;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-@ApiModel(description = "标签条件节点DTO")
+@Schema(description = "标签条件节点DTO")
 public class TagConditionNodeDTO {
     
     @Schema(description = "节点类型（CONDITION-叶子条件节点，GROUP-条件组节点）", required = true)

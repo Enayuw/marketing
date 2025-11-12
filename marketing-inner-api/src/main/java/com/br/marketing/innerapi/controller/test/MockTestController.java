@@ -4,8 +4,8 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.dto.test.MockTestDTO;
 import com.br.marketing.service.test.MockTestService;
-import org.apache.pulsar.shade.io.swagger.annotations.Api;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,7 +23,7 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequestMapping("/api/mock/test")
-@Api(tags = "Mock测试接口", description = "测试MockableAspect支持的各种返回值类型")
+@Tag(name = "Mock测试接口", description = "测试MockableAspect支持的各种返回值类型")
 public class MockTestController {
 
     @Resource
@@ -33,7 +33,7 @@ public class MockTestController {
      * 批量测试所有类型
      */
     @PostMapping("/batch-test")
-    @ApiOperation(value = "批量测试所有类型", notes = "批量测试MockableAspect支持的所有返回值类型")
+    @Operation(summary = "批量测试所有类型", description = "批量测试MockableAspect支持的所有返回值类型")
     public ApiResult<Map<String, Object>> batchTest() {
         Map<String, Object> results = new HashMap<>();
         

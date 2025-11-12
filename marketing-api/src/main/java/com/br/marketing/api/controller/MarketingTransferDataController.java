@@ -17,8 +17,6 @@ import com.br.marketing.dto.ResponseCustomDTO;
 import com.br.marketing.entity.MonitorTypeEnum;
 import com.br.marketing.service.IPushShuheDataService;
 import com.br.marketing.service.PushRuleService;
-import org.apache.pulsar.shade.io.swagger.annotations.Api;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +31,7 @@ import javax.annotation.Resource;
 /**
  * 营销数据接入接口
  */
-@Api(value = "MarketingUserPreController")
+@Tag(value = "MarketingUserPreController")
 @RequestMapping("/marketingTransferData")
 @RestController
 public class MarketingTransferDataController {
@@ -60,7 +58,7 @@ public class MarketingTransferDataController {
      * @param jsonData
      * @return
      */
-    @ApiOperation(value = "接收转化数据")
+    @Operation(value = "接收转化数据")
     @PostMapping("/receiveTransferDataSync")
     @LogAnnotation
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
@@ -79,7 +77,7 @@ public class MarketingTransferDataController {
      * @param jsonData
      * @return
      */
-    @ApiOperation(value = "获取转化数据上传详情")
+    @Operation(value = "获取转化数据上传详情")
     @PostMapping("/getTransferDataStauts")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
     public ApiResult getTransferDataStauts(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
@@ -103,7 +101,7 @@ public class MarketingTransferDataController {
      * @param jsonData 业务数据json结构
      * @return ApiNoDataResult 业务响应
      */
-    @ApiOperation(value = "接收数禾订制转化数据")
+    @Operation(value = "接收数禾订制转化数据")
     @PostMapping("receiveShuheTransferDataSync")
     @LogAnnotation
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
@@ -122,7 +120,7 @@ public class MarketingTransferDataController {
      * @param jsonData 业务数据json结构
      * @return ResponseCustomDTO 业务响应
      */
-    @ApiOperation(value = "订制转化数据上传接口")
+    @Operation(value = "订制转化数据上传接口")
     @PostMapping("receiveTransferData")
     @LogAnnotation
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
@@ -144,7 +142,7 @@ public class MarketingTransferDataController {
      * @author senyang.zheng
      * @date 2024/08/06
      */
-    @ApiOperation(value = "定制黑名单数据接入接口")
+    @Operation(value = "定制黑名单数据接入接口")
     @PostMapping("/receiveCustomizeBlackData")
     @LogAnnotation
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)

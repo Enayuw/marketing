@@ -2,8 +2,6 @@ package com.br.marketing.api.controller;
 
 import javax.annotation.Resource;
 import com.br.marketing.service.Impl.xc.XieChengPreCollidingBlackListDeleteService;
-import org.apache.pulsar.shade.io.swagger.annotations.Api;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +38,7 @@ import com.br.marketing.service.PushRuleService;
 /**
  * 营销数据接入接口
  */
-@Api(value = "MarketingUserPreController")
+@Tag(value = "MarketingUserPreController")
 @RequestMapping("/marketingUserPre")
 @RestController
 public class MarketingUserPreController {
@@ -66,7 +64,7 @@ public class MarketingUserPreController {
      * @param jsonData
      * @return
      */
-    @ApiOperation(value = "批量接入营销人员数据")
+    @Operation(value = "批量接入营销人员数据")
     @PostMapping("/receiveMarketingPreUser")
     @LogAnnotation
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
@@ -89,7 +87,7 @@ public class MarketingUserPreController {
      * @param jsonData
      * @return
      */
-    @ApiOperation(value = "萨摩耶转化人员接口")
+    @Operation(value = "萨摩耶转化人员接口")
     @PostMapping("/transferUser")
     @SaveLog
     @LogAnnotation
@@ -109,7 +107,7 @@ public class MarketingUserPreController {
      * @param jsonData
      * @return
      */
-    @ApiOperation(value = "获取营销人员数据状态")
+    @Operation(value = "获取营销人员数据状态")
     @PostMapping("/getMarketingPreUserStauts")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
     public ApiResult getMarketingPreUserStauts(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
@@ -144,7 +142,7 @@ public class MarketingUserPreController {
      * @param custNum
      * @return
      */
-    @ApiOperation(value = "查询客户信息接口")
+    @Operation(value = "查询客户信息接口")
     @PostMapping("/queryCustInfo")
     public Result queryCustInfo(@RequestParam(required = false) String cid,
                                 @RequestParam(required = false) String apiCode,
@@ -166,7 +164,7 @@ public class MarketingUserPreController {
      * @author Guo Zeqiang
      * @dateTime 2022/8/28 9:55
      */
-    @ApiOperation(value = "数禾订制版上传数据接口")
+    @Operation(value = "数禾订制版上传数据接口")
     @PostMapping("/receiveShuHeUploadData")
     @LogAnnotation
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
@@ -186,7 +184,7 @@ public class MarketingUserPreController {
      * @author senyang.zheng
      * @date 2024/08/06
      */
-    @ApiOperation(value = "定制上传数据接入接口")
+    @Operation(value = "定制上传数据接入接口")
     @PostMapping("/receiveCustomizeUploadData")
     @LogAnnotation
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)

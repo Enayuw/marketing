@@ -1,7 +1,6 @@
 package com.br.marketing.dto.report.zhongan;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -36,9 +35,9 @@ public class ZhonganOutboundCallReportDTO {
     private BigDecimal smsTriggerRatio;
     @Schema(description = "短信成功发送率")
     private BigDecimal smsSucSendRatio;
-    @ApiModelProperty("成本")
+    @Schema(description = "成本")
     private BigDecimal cost;
-    @ApiModelProperty("维度,0-总计 1-首登 2-非首登")
+    @Schema(description = "维度,0-总计 1-首登 2-非首登")
     private String dimension;
 
 }

@@ -9,10 +9,8 @@ import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.service.FastTaskRuleService;
 import com.br.marketing.vo.FastTaskRuleDetailVO;
-import org.apache.pulsar.shade.io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +27,7 @@ import java.util.List;
 @RestController
 @Configuration
 @RequestMapping("/rule/fastTask")
-@Api(value = "手动跑数任务规则", tags = "手动跑数任务规则", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(value = "手动跑数任务规则", tags = "手动跑数任务规则", produces = "application/json", consumes = "application/json", protocols = "http")
 public class FastTaskRuleContronller {
 
     private static final Logger log = LoggerFactory.getLogger(FastTaskRuleContronller.class);
@@ -37,16 +35,16 @@ public class FastTaskRuleContronller {
     @Autowired
     FastTaskRuleService fastTaskRuleService;
 
-    @ApiOperation(value = "跑分记录列表", notes = "跑分记录列表")
-    @ApiImplicitParams({@ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
-            , @ApiImplicitParam(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
-            , @ApiImplicitParam(name = "search", value = "搜索：任务编号/任务名称/CID/APIcode", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "status", value = "使用状态 1-开启；0-关闭", paramType = "query", dataType = "integer")
-            , @ApiImplicitParam(name = "createTimeStart", value = "创建时间开始", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "createTimeEnd", value = "创建时间结束", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "updateTimeStart", value = "更新时间开始", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "updateTimeEnd", value = "更新时间结束", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "taskStatus", value = "跑分状态", paramType = "query", dataType = "integer")
+    @Operation(summary = "跑分记录列表", description = "跑分记录列表")
+    @Parameters({@Parameter(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
+            , @Parameter(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
+            , @Parameter(name = "search", value = "搜索：任务编号/任务名称/CID/APIcode", paramType = "query", dataType = "string")
+            , @Parameter(name = "status", value = "使用状态 1-开启；0-关闭", paramType = "query", dataType = "integer")
+            , @Parameter(name = "createTimeStart", value = "创建时间开始", paramType = "query", dataType = "string")
+            , @Parameter(name = "createTimeEnd", value = "创建时间结束", paramType = "query", dataType = "string")
+            , @Parameter(name = "updateTimeStart", value = "更新时间开始", paramType = "query", dataType = "string")
+            , @Parameter(name = "updateTimeEnd", value = "更新时间结束", paramType = "query", dataType = "string")
+            , @Parameter(name = "taskStatus", value = "跑分状态", paramType = "query", dataType = "integer")
     })
     @GetMapping("/list")
     @Deprecated
@@ -67,7 +65,7 @@ public class FastTaskRuleContronller {
 
 
 
-    @ApiOperation(value = "生成批量跑分", notes = "生成批量跑分")
+    @Operation(summary = "生成批量跑分", description = "生成批量跑分")
     @PostMapping("/save")
     @Deprecated
     public ApiResult<Boolean> save(@RequestBody @Validated FastTaskRuleDetailVO vo) {
@@ -82,10 +80,10 @@ public class FastTaskRuleContronller {
     }
 
 
-    @ApiOperation(value = "修改批量跑分", notes = "修改批量跑分")
-    @ApiImplicitParams({@ApiImplicitParam(name = "id", value = "任务id", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "ruleName", value = "任务名称", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "taskTime", value = "跑分日期", paramType = "query", dataType = "string")
+    @Operation(summary = "修改批量跑分", description = "修改批量跑分")
+    @Parameters({@Parameter(name = "id", value = "任务id", paramType = "query", dataType = "string")
+            , @Parameter(name = "ruleName", value = "任务名称", paramType = "query", dataType = "string")
+            , @Parameter(name = "taskTime", value = "跑分日期", paramType = "query", dataType = "string")
     })
     @GetMapping("/update")
     @Deprecated
@@ -103,8 +101,8 @@ public class FastTaskRuleContronller {
     }
 
 
-    @ApiOperation(value = "查看跑分任务", notes = "查看跑分任务")
-    @ApiImplicitParam(name = "id", value = "id", required = true, dataType = "String")
+    @Operation(summary = "查看跑分任务", description = "查看跑分任务")
+    @Parameter(name = "id", value = "id", required = true, dataType = "String")
     @GetMapping("/getFastTask")
     @Deprecated
     public ApiResult<FastTaskRuleDetailVO> getFastTask(String id) {
@@ -118,10 +116,10 @@ public class FastTaskRuleContronller {
     }
 
 
-    @ApiOperation(value = "操作跑分记录状态", notes = "操作跑分记录状态，开启/关闭")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "id", value = "id", required = true, dataType = "String"),
-            @ApiImplicitParam(name = "status", value = "状态(1-开启;2-禁用)", required = true, dataType = "Integer")
+    @Operation(summary = "操作跑分记录状态", description = "操作跑分记录状态，开启/关闭")
+    @Parameters({
+            @Parameter(name = "id", value = "id", required = true, dataType = "String"),
+            @Parameter(name = "status", value = "状态(1-开启;2-禁用)", required = true, dataType = "Integer")
     })
     @GetMapping("/updateStatusById")
     @Deprecated
@@ -142,8 +140,8 @@ public class FastTaskRuleContronller {
     }
 
 
-    @ApiOperation(value = "跑分规则下拉列表", notes = "跑分规则下拉列表")
-    @ApiImplicitParam(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")
+    @Operation(summary = "跑分规则下拉列表", description = "跑分规则下拉列表")
+    @Parameter(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")
     @GetMapping("/getScoreRules")
     @Deprecated
     public ApiResult<List<ScoreRuleConfig>> getScoreRules(@RequestParam String apiCode) {
@@ -156,10 +154,10 @@ public class FastTaskRuleContronller {
         }
     }
 
-    @ApiOperation(value = "获取未跑分数据量", notes = "获取未跑分数据量")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "ids", value = "跑分数据所选的数据id，逗号分隔", required = true, dataType = "String"),
-            @ApiImplicitParam(name = "apiCode", value = "apiCode", required = true, dataType = "String")
+    @Operation(summary = "获取未跑分数据量", description = "获取未跑分数据量")
+    @Parameters({
+            @Parameter(name = "ids", value = "跑分数据所选的数据id，逗号分隔", required = true, dataType = "String"),
+            @Parameter(name = "apiCode", value = "apiCode", required = true, dataType = "String")
     })
     @GetMapping("/getNum")
     public ApiResult<Integer> getNum(String ids, String apiCode) {

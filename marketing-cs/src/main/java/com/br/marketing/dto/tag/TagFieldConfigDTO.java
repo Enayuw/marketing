@@ -1,7 +1,6 @@
 package com.br.marketing.dto.tag;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiModel;
 import lombok.Data;
 
 import java.util.List;
@@ -10,7 +9,7 @@ import java.util.List;
  * 标签字段配置DTO
  */
 @Data
-@ApiModel(description = "标签字段配置DTO")
+@Schema(description = "标签字段配置DTO")
 public class TagFieldConfigDTO {
     @Schema(description = "数据源编码")
     private String sourceCode;

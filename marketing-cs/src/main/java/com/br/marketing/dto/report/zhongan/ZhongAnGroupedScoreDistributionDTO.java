@@ -1,7 +1,6 @@
 package com.br.marketing.dto.report.zhongan;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiModelProperty;
 import java.math.BigDecimal;
 import lombok.Data;
 
@@ -14,19 +13,19 @@ import lombok.Data;
 @Data
 @Schema(description = "众安分组评分分布")
 public class ZhongAnGroupedScoreDistributionDTO {
-    @ApiModelProperty("跑分产品")
+    @Schema(description = "跑分产品")
     private String product;
-    @ApiModelProperty("区间")
+    @Schema(description = "区间")
     private String interval;
-    @ApiModelProperty("分组")
+    @Schema(description = "分组")
     private String group;
-    @ApiModelProperty("名称")
+    @Schema(description = "名称")
     private String name;
-    @ApiModelProperty("量级")
+    @Schema(description = "量级")
     private Long num;
-    @ApiModelProperty("占比")
+    @Schema(description = "占比")
     private BigDecimal proportion;
-    @ApiModelProperty("步长")
+    @Schema(description = "步长")
     private Integer step;
 
 }

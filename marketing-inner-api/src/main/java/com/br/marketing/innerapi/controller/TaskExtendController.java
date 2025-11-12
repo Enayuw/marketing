@@ -4,9 +4,7 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.service.MarketingTaskExtendService;
-import org.apache.pulsar.shade.io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +17,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/rule/taskExtend")
-@Api(value = "跑分任务扩展", tags = "跑分任务扩展", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(value = "跑分任务扩展", tags = "跑分任务扩展", produces = "application/json", consumes = "application/json", protocols = "http")
 public class TaskExtendController {
 
     private static final Logger log = LoggerFactory.getLogger(TaskExtendController.class);
@@ -27,8 +25,8 @@ public class TaskExtendController {
     @Autowired
     private MarketingTaskExtendService marketingTaskExtendService;
 
-    @ApiOperation(value = "根据所选文件获得产品集合",notes = "根据所选文件获得产品集合")
-    @ApiImplicitParam(name = "ids", paramType = "query", dataType = "string")
+    @Operation(summary = "根据所选文件获得产品集合", description = "根据所选文件获得产品集合")
+    @Parameter(name = "ids", paramType = "query", dataType = "string")
     @GetMapping("/getProducts")
     public ApiResult<Map> getProducts(@RequestParam(required = true) String ids){
             return new ApiResult<Map>().success(marketingTaskExtendService.getProducts(ids));

@@ -1,8 +1,7 @@
 package com.br.marketing.dto.mock;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiModel;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiModelProperty;
 
 import java.io.Serializable;
 
@@ -13,36 +12,36 @@ import java.io.Serializable;
  * @Date 2025/7/1 16:26
  */
 @Data
-@ApiModel("Mock新增修改用例DTO")
+@Schema(description = "Mock新增修改用例DTO")
 public class MockCreateCaseDTO implements Serializable {
 
-    @ApiModelProperty("id")
+    @Schema(description = "id")
     private Long id;
 
-    @ApiModelProperty("Mock名称")
+    @Schema(description = "Mock名称")
     private String mockName;
 
-    @ApiModelProperty("Mock用例名称")
+    @Schema(description = "Mock用例名称")
     private String mockCaseName;
 
-    @ApiModelProperty("apiCode")
+    @Schema(description = "apiCode")
     private String apiCode;
 
-    @ApiModelProperty("返回响应")
+    @Schema(description = "返回响应")
     private String responseBody;
 
-    @ApiModelProperty("响应状态码")
+    @Schema(description = "响应状态码")
     private Integer statusCode;
 
-    @ApiModelProperty("延迟毫秒数")
+    @Schema(description = "延迟毫秒数")
     private Integer delayMs;
 
-    @ApiModelProperty("延迟波动（百分比）")
+    @Schema(description = "延迟波动（百分比）")
     private Integer delayFluctuation;
 
-    @ApiModelProperty("描述")
+    @Schema(description = "描述")
     private String description;
 
-    @ApiModelProperty("是否启用 0-启动 1-关闭")
+    @Schema(description = "是否启用 0-启动 1-关闭")
     private Integer enabled;
 }

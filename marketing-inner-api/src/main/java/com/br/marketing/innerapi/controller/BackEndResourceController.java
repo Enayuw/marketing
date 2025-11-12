@@ -11,7 +11,6 @@ import com.br.marketing.innerapi.service.ResourceAllocationService;
 import com.br.marketing.mapper.XieChengDataMapper;
 import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.service.ICustomerConfigService;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +46,7 @@ public class BackEndResourceController {
     @Resource
     private RocketMqSwitch rocketMqSwitch;
 
-    @ApiOperation(value = "新增zk节点信息",notes = "新增zk节点")
+    @Operation(summary = "新增zk节点信息", description = "新增zk节点")
     @GetMapping("/createZkData")
     public ApiResult<Boolean> createZkData(String path, String data){
         try {
@@ -60,7 +59,7 @@ public class BackEndResourceController {
         return new ApiResult<Boolean>().success(Boolean.FALSE);
     }
 
-    @ApiOperation(value = "修改zk节点信息",notes = "修改zk节点信息")
+    @Operation(summary = "修改zk节点信息", description = "修改zk节点信息")
     @GetMapping("/setNodeData")
     public ApiResult<Boolean> setNodeData(String path,String data){
         try {
@@ -73,7 +72,7 @@ public class BackEndResourceController {
         return new ApiResult<Boolean>().success(Boolean.FALSE);
     }
 
-    @ApiOperation(value = "删除zk节点信息",notes = "删除zk节点信息")
+    @Operation(summary = "删除zk节点信息", description = "删除zk节点信息")
     @GetMapping("/deleteZkData")
     public ApiResult<Boolean> deleteZkData(String path){
         try {
@@ -86,7 +85,7 @@ public class BackEndResourceController {
         return new ApiResult<Boolean>().success(Boolean.FALSE);
     }
 
-    @ApiOperation(value = "查看zk节点信息",notes = "查看zk节点信息")
+    @Operation(summary = "查看zk节点信息", description = "查看zk节点信息")
     @GetMapping("/seeZkData")
     public ApiResult<String> seeZkData(String path){
         try {

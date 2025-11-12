@@ -12,10 +12,8 @@ import com.br.marketing.service.MarketingTaskOptService;
 import com.br.marketing.vo.MarketingTaskVO;
 import com.br.marketing.vo.ResultPreviewVO;
 import com.br.marketing.vo.StatisticsDataDayVO;
-import org.apache.pulsar.shade.io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -41,7 +39,7 @@ import java.util.List;
 @Configuration
 @RequestMapping("/rule/task")
 @Slf4j
-@Api(value = "跑数任务规则", tags = "跑数任务规则", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(value = "跑数任务规则", tags = "跑数任务规则", produces = "application/json", consumes = "application/json", protocols = "http")
 public class MarketingTaskController {
 
 
@@ -51,17 +49,17 @@ public class MarketingTaskController {
     @Autowired
     MarketingTaskOptService marketingTaskOptService;
 
-    @ApiOperation(value = "跑分记录列表", notes = "跑分记录列表")
-    @ApiImplicitParams({@ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
-            , @ApiImplicitParam(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
-            , @ApiImplicitParam(name = "search", value = "搜索：任务编号/任务名称/CID/APIcode", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "status", value = "使用状态 1-开启；0-关闭", paramType = "query", dataType = "integer")
-            , @ApiImplicitParam(name = "createTimeStart", value = "创建时间开始", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "createTimeEnd", value = "创建时间结束", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "updateTimeStart", value = "更新时间开始", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "updateTimeEnd", value = "更新时间结束", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "taskStatus", value = "跑分状态", paramType = "query", dataType = "integer")
-            , @ApiImplicitParam(name = "execType", value = "任务执行策略 1-一次性全量；2-一次性验证；3-每个任务的周期;4-每日定时", paramType = "query", dataType = "Integer")
+    @Operation(summary = "跑分记录列表", description = "跑分记录列表")
+    @Parameters({@Parameter(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
+            , @Parameter(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
+            , @Parameter(name = "search", value = "搜索：任务编号/任务名称/CID/APIcode", paramType = "query", dataType = "string")
+            , @Parameter(name = "status", value = "使用状态 1-开启；0-关闭", paramType = "query", dataType = "integer")
+            , @Parameter(name = "createTimeStart", value = "创建时间开始", paramType = "query", dataType = "string")
+            , @Parameter(name = "createTimeEnd", value = "创建时间结束", paramType = "query", dataType = "string")
+            , @Parameter(name = "updateTimeStart", value = "更新时间开始", paramType = "query", dataType = "string")
+            , @Parameter(name = "updateTimeEnd", value = "更新时间结束", paramType = "query", dataType = "string")
+            , @Parameter(name = "taskStatus", value = "跑分状态", paramType = "query", dataType = "integer")
+            , @Parameter(name = "execType", value = "任务执行策略 1-一次性全量；2-一次性验证；3-每个任务的周期;4-每日定时", paramType = "query", dataType = "Integer")
     })
     @GetMapping("/list")
     @AddDataAuthBusiness
@@ -82,10 +80,10 @@ public class MarketingTaskController {
     }
 
 
-    @ApiOperation(value = "修改跑分任务优先级", notes = "修改跑分任务优先级")
-    @ApiImplicitParams({@ApiImplicitParam(name = "id", value = "任务id", paramType = "query", dataType = "string")
+    @Operation(summary = "修改跑分任务优先级", description = "修改跑分任务优先级")
+    @Parameters({@Parameter(name = "id", value = "任务id", paramType = "query", dataType = "string")
 
-            , @ApiImplicitParam(name = "priority", value = "跑分日期", paramType = "query", dataType = "Integer")
+            , @Parameter(name = "priority", value = "跑分日期", paramType = "query", dataType = "Integer")
     })
     @GetMapping("/editPriority")
     public ApiResult<Boolean> editPriority(@RequestParam(required = true) String id,
@@ -99,10 +97,10 @@ public class MarketingTaskController {
     }
 
 
-    @ApiOperation(value = "操作跑分记录状态", notes = "操作跑分记录状态，开启/关闭")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "id", value = "id", required = true, dataType = "String"),
-            @ApiImplicitParam(name = "status", value = "状态(1-开启;2-禁用)", required = true, dataType = "Integer")
+    @Operation(summary = "操作跑分记录状态", description = "操作跑分记录状态，开启/关闭")
+    @Parameters({
+            @Parameter(name = "id", value = "id", required = true, dataType = "String"),
+            @Parameter(name = "status", value = "状态(1-开启;2-禁用)", required = true, dataType = "Integer")
     })
     @GetMapping("/updateStatusById")
     public ApiResult<Boolean> updateStatusById(String id, Integer status) {
@@ -120,8 +118,8 @@ public class MarketingTaskController {
         }
     }
 
-    @ApiOperation(value = "查看跑分任务", notes = "查看跑分任务")
-    @ApiImplicitParam(name = "id", value = "id", required = true, dataType = "String")
+    @Operation(summary = "查看跑分任务", description = "查看跑分任务")
+    @Parameter(name = "id", value = "id", required = true, dataType = "String")
     @GetMapping("/getTask")
     @AddDataAuthBusiness
     public ApiResult<MarketingTaskVO> getTask(String id) {
@@ -134,10 +132,10 @@ public class MarketingTaskController {
         }
     }
 
-    @ApiOperation(value = "查看跑分进度", notes = "查看跑分进度")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "hisFileId", value = "hisFileId", required = true, dataType = "String"),
-            @ApiImplicitParam(name = "id", value = "id", required = true, dataType = "String")
+    @Operation(summary = "查看跑分进度", description = "查看跑分进度")
+    @Parameters({
+            @Parameter(name = "hisFileId", value = "hisFileId", required = true, dataType = "String"),
+            @Parameter(name = "id", value = "id", required = true, dataType = "String")
     })
     @GetMapping("/getTaskPercent")
     public ApiResult<Long> getTaskPercent(String hisFileId, String id) {
@@ -150,8 +148,8 @@ public class MarketingTaskController {
         }
     }
 
-    @ApiOperation(value = "跑分规则下拉列表", notes = "跑分规则下拉列表")
-    @ApiImplicitParam(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")
+    @Operation(summary = "跑分规则下拉列表", description = "跑分规则下拉列表")
+    @Parameter(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")
     @GetMapping("/getScoreRules")
     public ApiResult<List<ScoreRuleConfig>> getScoreRules(@RequestParam String apiCode) {
         try {
@@ -163,32 +161,32 @@ public class MarketingTaskController {
         }
     }
 
-    @ApiOperation(value = "生成跑分任务")
+    @Operation(summary = "生成跑分任务")
     @PostMapping("/saveTask")
     public ApiResult<List<Long>> saveTask(@RequestBody TaskSelectSaveDTO dto) {
         return new ApiResult<List<Long>>().fromResult(marketingTaskService.saveTaskSelectV2(dto), 1);
     }
 
-    @ApiOperation(value = "获取验证数据日期")
-    @ApiImplicitParam(name = "apiCode", value = "apiCode", dataType = "string")
+    @Operation(summary = "获取验证数据日期")
+    @Parameter(name = "apiCode", value = "apiCode", dataType = "string")
     @GetMapping("/getStatisticsDataDay")
     public ApiResult<List<StatisticsDataDayVO>> getStatisticsDataDay(@RequestParam String apiCode) {
         return new ApiResult<List<StatisticsDataDayVO>>().fromResult(marketingTaskService.getStatisticsDataDay(apiCode), 1);
     }
 
-    @ApiOperation(value = "跑分预览接口", notes = "")
+    @Operation(summary = "跑分预览接口", description = "")
     @GetMapping("/resultPreview")
     public ApiResult<ResultPreviewVO> resultPreview(@RequestParam Long taskId) {
         return new ApiResult<ResultPreviewVO>().fromResult(marketingTaskService.resultPreview(taskId), 1);
     }
 
-    @ApiOperation(value = "删除任务", notes = "")
+    @Operation(summary = "删除任务", description = "")
     @GetMapping("/delTask")
     public ApiResult delTask(@RequestParam Long id) {
         return new ApiResult().fromResult(marketingTaskService.delTask(id), 1);
     }
 
-    @ApiOperation(value = "中止恢复任务", notes = "isOrPause 1-暂停；0-恢复")
+    @Operation(summary = "中止恢复任务", description = "isOrPause 1-暂停；0-恢复")
     @GetMapping("/pauseTask")
     public ApiResult pauseTask(@RequestParam(name = "fileId") Long fileId, @RequestParam(name = "isOrPause") Integer isOrPause) {
         return new ApiResult().fromResult(marketingTaskOptService.pauseTask(fileId, isOrPause), 1);

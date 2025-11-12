@@ -10,8 +10,6 @@ import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.vo.PushInfoDetailVO;
 import com.br.marketing.vo.ScoreDetailVo;
-import org.apache.pulsar.shade.io.swagger.annotations.Api;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +23,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/pushrulefilter")
-@Api(value = "PushRuleFilterController")
+@Tag(value = "PushRuleFilterController")
 public class PushRuleFilterController {
 
     private static final Logger log = LoggerFactory.getLogger(PushRuleFilterController.class);
@@ -42,7 +40,7 @@ public class PushRuleFilterController {
      * @param dto
      * @return
      */
-    //@ApiOperation(value = "获取批次列表")
+    //@Operation(value = "获取批次列表")
     //@PostMapping("/getBatchInfos")
     //public Result<List<ScoreDetailVo>> getBatchInfos(@RequestBody CustomerBatchNumDTO dto) {
     //    try {
@@ -59,7 +57,7 @@ public class PushRuleFilterController {
      * @param dto
      * @return
      */
-    @ApiOperation(value = "获取推送列表")
+    @Operation(value = "获取推送列表")
     @PostMapping("/getPushInfos")
     public Result<List<PushInfoDetailVO>> getPushInfos(@RequestBody RequestPushInfoDTO dto) {
         try {
@@ -76,7 +74,7 @@ public class PushRuleFilterController {
      * @param dto
      * @return
      */
-    @ApiOperation(value = "推送客服")
+    @Operation(value = "推送客服")
     @PostMapping("/pushCustomer")
     public Result pushCustomer(@RequestBody PushCustomerDTO dto) {
         try {
@@ -87,7 +85,7 @@ public class PushRuleFilterController {
         }
     }
 
-    @ApiOperation(value = "测试消费")
+    @Operation(value = "测试消费")
     @GetMapping("/testConsumerCustomer")
     public Result testConsumerCustomer(Long id) {
         return pushRuleService.consumerPushCustomer(id);
@@ -98,7 +96,7 @@ public class PushRuleFilterController {
      *
      * @return
      */
-    @ApiOperation(value = "测试rabbit")
+    @Operation(value = "测试rabbit")
     @PostMapping("/testRabbitProduct")
     public String testRabbitProduct() {
         producter.send("hehe", "还有谁");

@@ -2,7 +2,6 @@ package com.br.marketing.dto.tag;
 
 import com.alibaba.fastjson.JSONObject;
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiModel;
 import lombok.Data;
 import org.hibernate.validator.constraints.NotBlank;
 import org.hibernate.validator.constraints.NotEmpty;
@@ -14,7 +13,7 @@ import java.util.List;
  * 标签更新DTO
  */
 @Data
-@ApiModel(description = "标签更新请求DTO")
+@Schema(description = "标签更新请求DTO")
 public class TagUpdateDTO {
 
     @NotBlank(message = "标签编码不能为空")

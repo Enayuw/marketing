@@ -3,7 +3,6 @@ package com.br.marketing.vo.bi;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -30,10 +29,10 @@ public class BiReportConfigDictVO {
     @Schema(description = "字典描述")
     @JsonProperty(value = "dictDesc")
     private String dictDesc;
-    @ApiModelProperty("创建时间 yyyy-MM-dd HH:mm:ss")
+    @Schema(description = "创建时间 yyyy-MM-dd HH:mm:ss")
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createTime;
-    @ApiModelProperty("修改时间 yyyy-MM-dd HH:mm:ss")
+    @Schema(description = "修改时间 yyyy-MM-dd HH:mm:ss")
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private Date updateTime;
 

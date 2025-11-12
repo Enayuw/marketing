@@ -7,7 +7,6 @@ import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.entity.auth.MarketingResource;
 import com.br.marketing.entity.auth.ResourceTreeBean;
 import com.br.marketing.service.auth.MarketingResourceService;
-import org.apache.pulsar.shade.io.swagger.annotations.Api;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,7 +25,7 @@ import java.util.List;
  */
 
 @RestController
-@Api(value = "权限", tags = "resource")
+@Tag(value = "权限", tags = "resource")
 @RequestMapping(value = "/resource")
 public class MarketingResourceController {
     @Resource

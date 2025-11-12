@@ -7,8 +7,6 @@ import com.br.marketing.client.zbank.ZbankClient;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.MarketingHistoryEsService;
-import org.apache.pulsar.shade.io.swagger.annotations.Api;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,7 +29,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("test")
-@Api(value = "http测试接口", tags = "http测试", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(value = "http测试接口", tags = "http测试", produces = "application/json", consumes = "application/json", protocols = "http")
 @Slf4j
 public class HttpTestController {
 
@@ -43,7 +41,7 @@ public class HttpTestController {
     /**
      * 测试众邦代理
      */
-    @ApiOperation(value = "代理", notes = "代理")
+    @Operation(summary = "代理", description = "代理")
     @GetMapping(path = {"zbankProxy"})
     public JSONObject testZbank() throws Exception {
         Map<String, Object> map1 = new HashMap<>();

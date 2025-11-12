@@ -1,7 +1,7 @@
 package com.br.marketing.dto.tag;
 
 import com.alibaba.fastjson.JSONObject;
-import org.apache.pulsar.shade.io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
@@ -10,7 +10,7 @@ import java.util.List;
  * 标签详情DTO
  */
 @Data
-@ApiModel("标签详情DTO")
+@Schema(description = "标签详情DTO")
 public class TagDetailDTO {
     /**
      * 标签名称
