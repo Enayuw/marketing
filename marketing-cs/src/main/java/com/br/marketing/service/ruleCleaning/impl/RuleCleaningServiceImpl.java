@@ -1803,6 +1803,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         List<FieldSampleDTO> result = new ArrayList<>();
         MarketingDataCleanGeneralConfig config = cleanGeneralConfigMapper.selectByPrimaryKey(configId);
         String apiCode = config.getApiCode();
+        Integer systemType = config.getSystemType();
         Integer dataType = config.getDataType();
         Integer acceptType = config.getAcceptType();
         MarketingDataCleanGeneralRuleConfigExample generalRuleConfigExample = new MarketingDataCleanGeneralRuleConfigExample();
@@ -1835,7 +1836,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             String secondDepartment = marketingCustomer.getSecondDepartment();
             String apiType = marketingCustomer.getApiType();
             // 查询行业模板
-            Result<JSONArray> jsonArrayResult = templateJsonParseService.queryIndustryTemplateJsonParses(firstDepartment, secondDepartment, apiType, dataType);
+            Result<JSONArray> jsonArrayResult = templateJsonParseService.queryIndustryTemplateJsonParses(firstDepartment, secondDepartment, apiType,systemType, dataType);
             if (!jsonArrayResult.isSuccess()) {
                 log.warn("查询行业模板失败: {}", JSONObject.toJSONString(jsonArrayResult));
                 return result;

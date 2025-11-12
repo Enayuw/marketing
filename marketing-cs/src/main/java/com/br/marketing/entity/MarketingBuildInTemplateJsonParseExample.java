@@ -175,62 +175,52 @@ public class MarketingBuildInTemplateJsonParseExample {
             return (Criteria) this;
         }
 
-        public Criteria andSystemTypeEqualTo(String value) {
+        public Criteria andSystemTypeEqualTo(Integer value) {
             addCriterion("system_type =", value, "systemType");
             return (Criteria) this;
         }
 
-        public Criteria andSystemTypeNotEqualTo(String value) {
+        public Criteria andSystemTypeNotEqualTo(Integer value) {
             addCriterion("system_type <>", value, "systemType");
             return (Criteria) this;
         }
 
-        public Criteria andSystemTypeGreaterThan(String value) {
+        public Criteria andSystemTypeGreaterThan(Integer value) {
             addCriterion("system_type >", value, "systemType");
             return (Criteria) this;
         }
 
-        public Criteria andSystemTypeGreaterThanOrEqualTo(String value) {
+        public Criteria andSystemTypeGreaterThanOrEqualTo(Integer value) {
             addCriterion("system_type >=", value, "systemType");
             return (Criteria) this;
         }
 
-        public Criteria andSystemTypeLessThan(String value) {
+        public Criteria andSystemTypeLessThan(Integer value) {
             addCriterion("system_type <", value, "systemType");
             return (Criteria) this;
         }
 
-        public Criteria andSystemTypeLessThanOrEqualTo(String value) {
+        public Criteria andSystemTypeLessThanOrEqualTo(Integer value) {
             addCriterion("system_type <=", value, "systemType");
             return (Criteria) this;
         }
 
-        public Criteria andSystemTypeLike(String value) {
-            addCriterion("system_type like", value, "systemType");
-            return (Criteria) this;
-        }
-
-        public Criteria andSystemTypeNotLike(String value) {
-            addCriterion("system_type not like", value, "systemType");
-            return (Criteria) this;
-        }
-
-        public Criteria andSystemTypeIn(List<String> values) {
+        public Criteria andSystemTypeIn(List<Integer> values) {
             addCriterion("system_type in", values, "systemType");
             return (Criteria) this;
         }
 
-        public Criteria andSystemTypeNotIn(List<String> values) {
+        public Criteria andSystemTypeNotIn(List<Integer> values) {
             addCriterion("system_type not in", values, "systemType");
             return (Criteria) this;
         }
 
-        public Criteria andSystemTypeBetween(String value1, String value2) {
+        public Criteria andSystemTypeBetween(Integer value1, Integer value2) {
             addCriterion("system_type between", value1, value2, "systemType");
             return (Criteria) this;
         }
 
-        public Criteria andSystemTypeNotBetween(String value1, String value2) {
+        public Criteria andSystemTypeNotBetween(Integer value1, Integer value2) {
             addCriterion("system_type not between", value1, value2, "systemType");
             return (Criteria) this;
         }

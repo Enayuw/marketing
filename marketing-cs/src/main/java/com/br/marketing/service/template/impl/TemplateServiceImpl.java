@@ -117,9 +117,7 @@ public class TemplateServiceImpl implements TemplateService {
         try {
             if (marketingIndustryTemplateJsonParseList != null && !marketingIndustryTemplateJsonParseList.isEmpty()) {
                 //更新模板信息
-                MarketingIndustryTemplateExample example = new MarketingIndustryTemplateExample();
-                example.createCriteria().andIdEqualTo(marketingIndustryTemplate.getId());
-                marketingIndustryTemplateMapper.updateByExampleSelective(marketingIndustryTemplate, example);
+                marketingIndustryTemplateMapper.updateByPrimaryKey(marketingIndustryTemplate);
 
                 //先全量删除jsonParse数据
                 MarketingIndustryTemplateJsonParseExample jsonParseExample = new MarketingIndustryTemplateJsonParseExample();
@@ -186,7 +184,7 @@ public class TemplateServiceImpl implements TemplateService {
         if (marketingIndustryTemplate.getTemplateName() == null || marketingIndustryTemplate.getTemplateName().isEmpty()) {
             stringBuilder.append("【templateName】");
         }
-        if (marketingIndustryTemplate.getSystemType() == null || marketingIndustryTemplate.getSystemType().isEmpty()) {
+        if (marketingIndustryTemplate.getSystemType() == null ) {
             stringBuilder.append("【systemType】");
         }
         if (marketingIndustryTemplate.getDataType() == null) {

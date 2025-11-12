@@ -32,7 +32,7 @@ public class TemplateJsonParseServiceImpl implements TemplateJsonParseService {
     private MarketingIndustryTemplateJsonParseMapper marketingIndustryTemplateJsonParseMapper;
 
     @Override
-    public Result<JSONArray> queryIndustryTemplateJsonParses(String firstDepartment, String secondDepartment, String apiType, Integer dataType) {
+    public Result<JSONArray> queryIndustryTemplateJsonParses(String firstDepartment, String secondDepartment, String apiType, Integer systemType, Integer dataType) {
         try {
             //根据apiType和dataType查询行业模板id
             MarketingIndustryTemplateExample templateExample = new MarketingIndustryTemplateExample();
@@ -57,7 +57,7 @@ public class TemplateJsonParseServiceImpl implements TemplateJsonParseService {
                 return new Result<>().success().setDate(JSON.parseArray(JSON.toJSONString(marketingIndustryTemplateJsonParseList)));
             } else {
                 //若不存在行业模板，返回内置模板
-                List<MarketingBuildInTemplateJsonParse> marketingBuildInTemplateJsonParseList = queryBuildInTemplateJsonParses(dataType);
+                List<MarketingBuildInTemplateJsonParse> marketingBuildInTemplateJsonParseList = queryBuildInTemplateJsonParses(systemType, dataType);
                 if (!marketingBuildInTemplateJsonParseList.isEmpty()) {
                     return new Result<>().success().setDate(marketingBuildInTemplateJsonParseList);
                 }
@@ -69,10 +69,10 @@ public class TemplateJsonParseServiceImpl implements TemplateJsonParseService {
     }
 
     @Override
-    public List<MarketingBuildInTemplateJsonParse> queryBuildInTemplateJsonParses(Integer dataType) {
+    public List<MarketingBuildInTemplateJsonParse> queryBuildInTemplateJsonParses(Integer systemType, Integer dataType) {
         try {
             MarketingBuildInTemplateJsonParseExample example = new MarketingBuildInTemplateJsonParseExample();
-            example.createCriteria().andDataTypeEqualTo(dataType);
+            example.createCriteria().andSystemTypeEqualTo(systemType).andDataTypeEqualTo(dataType);
 
             List<MarketingBuildInTemplateJsonParse> marketingBuildInTemplateJsonParseList = marketingBuildInTemplateJsonParseMapper.selectByExample(example);
             if (!marketingBuildInTemplateJsonParseList.isEmpty()) {

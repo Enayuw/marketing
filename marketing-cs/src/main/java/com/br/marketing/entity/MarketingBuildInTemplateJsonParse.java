@@ -9,9 +9,9 @@ public class MarketingBuildInTemplateJsonParse {
     private Long id;
 
     /**
-     * 系统类型 0-营销中台 1-外呼
+     * 系统类型 0-营销中台 1-外呼系统
      */
-    private String systemType;
+    private Integer systemType;
 
     /**
      * 数据类型：0上传，1转化
@@ -71,12 +71,12 @@ public class MarketingBuildInTemplateJsonParse {
         this.id = id;
     }
 
-    public String getSystemType() {
+    public Integer getSystemType() {
         return systemType;
     }
 
-    public void setSystemType(String systemType) {
-        this.systemType = systemType == null ? null : systemType.trim();
+    public void setSystemType(Integer systemType) {
+        this.systemType = systemType;
     }
 
     public Integer getDataType() {

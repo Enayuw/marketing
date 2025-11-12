@@ -2,6 +2,7 @@ package com.br.marketing.innerapi.controller.template;
 
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.template.MarketingIndustryTemplateDTO;
 import com.br.marketing.entity.MarketingIndustryTemplate;
@@ -38,10 +39,15 @@ public class TemplateController {
      * @return 是否新增成功
      */
     @ApiOperation(value = "新增行业模板", notes = "新增行业模板")
-    @PostMapping(value = "/addTemplate")
-    public ApiResult<Boolean> addTemplate(@RequestBody MarketingIndustryTemplateDTO marketingIndustryTemplateDTO) {
+    @PostMapping(value = "/saveOrUpdateTemplate")
+    public ApiResult<Boolean> saveOrUpdateTemplate(@RequestBody MarketingIndustryTemplateDTO marketingIndustryTemplateDTO) {
         try {
-            Result<Boolean> result = templateService.addTemplate(marketingIndustryTemplateDTO);
+            Result<Boolean> result;
+            if (StringUtils.isNotBlank(String.valueOf(marketingIndustryTemplateDTO.getMarketingIndustryTemplate().getId()))){
+                result = templateService.editTemplate(marketingIndustryTemplateDTO);
+            }else {
+                result = templateService.addTemplate(marketingIndustryTemplateDTO);
+            }
             if (result.isSuccess()) {
                 return new ApiResult<Boolean>().success().setData(result.getData());
             } else {

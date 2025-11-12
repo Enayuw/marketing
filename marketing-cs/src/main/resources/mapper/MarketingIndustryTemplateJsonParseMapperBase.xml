@@ -6,6 +6,7 @@
     <result column="template_type" property="templateType" jdbcType="INTEGER" />
     <result column="interface_template_id" property="interfaceTemplateId" jdbcType="BIGINT" />
     <result column="interface_template_name" property="interfaceTemplateName" jdbcType="VARCHAR" />
+    <result column="system_type" property="systemType" jdbcType="INTEGER" />
     <result column="data_type" property="dataType" jdbcType="INTEGER" />
     <result column="accept_type" property="acceptType" jdbcType="INTEGER" />
     <result column="node_name" property="nodeName" jdbcType="VARCHAR" />
@@ -76,9 +77,9 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, template_type, interface_template_id, interface_template_name, data_type, accept_type,
-    node_name, node_value, parent_path, node_type, is_array_item, `level`, create_time,
-    update_time
+    id, template_type, interface_template_id, interface_template_name, system_type, data_type,
+    accept_type, node_name, node_value, parent_path, node_type, is_array_item, `level`,
+    create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingIndustryTemplateJsonParseExample" >
     select
@@ -115,15 +116,17 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_marketing_industry_template_json_parse (template_type, interface_template_id,
-    interface_template_name, data_type, accept_type,
-    node_name, node_value, parent_path,
-    node_type, is_array_item, `level`,
-    create_time, update_time)
+    interface_template_name, system_type, data_type,
+    accept_type, node_name, node_value,
+    parent_path, node_type, is_array_item,
+    `level`, create_time, update_time
+    )
     values (#{templateType,jdbcType=INTEGER}, #{interfaceTemplateId,jdbcType=BIGINT},
-    #{interfaceTemplateName,jdbcType=VARCHAR}, #{dataType,jdbcType=INTEGER}, #{acceptType,jdbcType=INTEGER},
-    #{nodeName,jdbcType=VARCHAR}, #{nodeValue,jdbcType=VARCHAR}, #{parentPath,jdbcType=VARCHAR},
-    #{nodeType,jdbcType=VARCHAR}, #{isArrayItem,jdbcType=BIT}, #{level,jdbcType=INTEGER},
-    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+    #{interfaceTemplateName,jdbcType=VARCHAR}, #{systemType,jdbcType=INTEGER}, #{dataType,jdbcType=INTEGER},
+    #{acceptType,jdbcType=INTEGER}, #{nodeName,jdbcType=VARCHAR}, #{nodeValue,jdbcType=VARCHAR},
+    #{parentPath,jdbcType=VARCHAR}, #{nodeType,jdbcType=VARCHAR}, #{isArrayItem,jdbcType=BIT},
+    #{level,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+    )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingIndustryTemplateJsonParse" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -139,6 +142,9 @@
       </if>
       <if test="interfaceTemplateName != null" >
         interface_template_name,
+      </if>
+      <if test="systemType != null" >
+        system_type,
       </if>
       <if test="dataType != null" >
         data_type,
@@ -180,6 +186,9 @@
       </if>
       <if test="interfaceTemplateName != null" >
         #{interfaceTemplateName,jdbcType=VARCHAR},
+      </if>
+      <if test="systemType != null" >
+        #{systemType,jdbcType=INTEGER},
       </if>
       <if test="dataType != null" >
         #{dataType,jdbcType=INTEGER},
@@ -234,6 +243,9 @@
       <if test="record.interfaceTemplateName != null" >
         interface_template_name = #{record.interfaceTemplateName,jdbcType=VARCHAR},
       </if>
+      <if test="record.systemType != null" >
+        system_type = #{record.systemType,jdbcType=INTEGER},
+      </if>
       <if test="record.dataType != null" >
         data_type = #{record.dataType,jdbcType=INTEGER},
       </if>
@@ -275,6 +287,7 @@
     template_type = #{record.templateType,jdbcType=INTEGER},
     interface_template_id = #{record.interfaceTemplateId,jdbcType=BIGINT},
     interface_template_name = #{record.interfaceTemplateName,jdbcType=VARCHAR},
+    system_type = #{record.systemType,jdbcType=INTEGER},
     data_type = #{record.dataType,jdbcType=INTEGER},
     accept_type = #{record.acceptType,jdbcType=INTEGER},
     node_name = #{record.nodeName,jdbcType=VARCHAR},
@@ -300,6 +313,9 @@
       </if>
       <if test="interfaceTemplateName != null" >
         interface_template_name = #{interfaceTemplateName,jdbcType=VARCHAR},
+      </if>
+      <if test="systemType != null" >
+        system_type = #{systemType,jdbcType=INTEGER},
       </if>
       <if test="dataType != null" >
         data_type = #{dataType,jdbcType=INTEGER},
@@ -339,6 +355,7 @@
     set template_type = #{templateType,jdbcType=INTEGER},
         interface_template_id = #{interfaceTemplateId,jdbcType=BIGINT},
         interface_template_name = #{interfaceTemplateName,jdbcType=VARCHAR},
+        system_type = #{systemType,jdbcType=INTEGER},
         data_type = #{dataType,jdbcType=INTEGER},
         accept_type = #{acceptType,jdbcType=INTEGER},
         node_name = #{nodeName,jdbcType=VARCHAR},

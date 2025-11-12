@@ -24,6 +24,11 @@ public class MarketingIndustryTemplateJsonParse {
     private String interfaceTemplateName;
 
     /**
+     * 系统类型 0-营销中台 1-外呼系统
+     */
+    private Integer systemType;
+
+    /**
      * 数据类型：0上传，1转化
      */
     private Integer dataType;
@@ -103,6 +108,14 @@ public class MarketingIndustryTemplateJsonParse {
 
     public void setInterfaceTemplateName(String interfaceTemplateName) {
         this.interfaceTemplateName = interfaceTemplateName == null ? null : interfaceTemplateName.trim();
+    }
+
+    public Integer getSystemType() {
+        return systemType;
+    }
+
+    public void setSystemType(Integer systemType) {
+        this.systemType = systemType;
     }
 
     public Integer getDataType() {

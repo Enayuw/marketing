@@ -35,9 +35,10 @@ public class TemplateJsonParseController {
     public ApiResult<JSONArray> queryTemplateJsonParse(@RequestParam(name = "firstDepartment") String firstDepartment,
                                                        @RequestParam(name = "secondDepartment") String secondDepartment,
                                                        @RequestParam(name = "apiType") String apiType,
-                                                       @RequestParam(name = "dateType") Integer dataType) {
+                                                       @RequestParam(name = "dateType") Integer dataType,
+                                                       @RequestParam(name = "systemType") Integer systemType) {
         try {
-            Result<JSONArray> result = templateJsonParseService.queryIndustryTemplateJsonParses(firstDepartment, secondDepartment, apiType, dataType);
+            Result<JSONArray> result = templateJsonParseService.queryIndustryTemplateJsonParses(firstDepartment, secondDepartment, apiType, systemType, dataType);
             if (result.isSuccess()) {
                 return new ApiResult<JSONArray>().success().setData(result.getData());
             } else {

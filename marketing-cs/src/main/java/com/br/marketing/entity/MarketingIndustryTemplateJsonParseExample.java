@@ -355,6 +355,66 @@ public class MarketingIndustryTemplateJsonParseExample {
             return (Criteria) this;
         }
 
+        public Criteria andSystemTypeIsNull() {
+            addCriterion("system_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSystemTypeIsNotNull() {
+            addCriterion("system_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSystemTypeEqualTo(Integer value) {
+            addCriterion("system_type =", value, "systemType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSystemTypeNotEqualTo(Integer value) {
+            addCriterion("system_type <>", value, "systemType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSystemTypeGreaterThan(Integer value) {
+            addCriterion("system_type >", value, "systemType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSystemTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("system_type >=", value, "systemType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSystemTypeLessThan(Integer value) {
+            addCriterion("system_type <", value, "systemType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSystemTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("system_type <=", value, "systemType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSystemTypeIn(List<Integer> values) {
+            addCriterion("system_type in", values, "systemType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSystemTypeNotIn(List<Integer> values) {
+            addCriterion("system_type not in", values, "systemType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSystemTypeBetween(Integer value1, Integer value2) {
+            addCriterion("system_type between", value1, value2, "systemType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSystemTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("system_type not between", value1, value2, "systemType");
+            return (Criteria) this;
+        }
+
         public Criteria andDataTypeIsNull() {
             addCriterion("data_type is null");
             return (Criteria) this;

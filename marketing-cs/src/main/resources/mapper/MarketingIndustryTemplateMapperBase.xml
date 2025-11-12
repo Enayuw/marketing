@@ -7,7 +7,7 @@
     <result column="first_department" property="firstDepartment" jdbcType="VARCHAR" />
     <result column="second_department" property="secondDepartment" jdbcType="VARCHAR" />
     <result column="api_type" property="apiType" jdbcType="VARCHAR" />
-    <result column="system_type" property="systemType" jdbcType="VARCHAR" />
+    <result column="system_type" property="systemType" jdbcType="INTEGER" />
     <result column="data_type" property="dataType" jdbcType="INTEGER" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
@@ -114,7 +114,7 @@
     is_del, create_time, update_time
     )
     values (#{templateName,jdbcType=VARCHAR}, #{firstDepartment,jdbcType=VARCHAR}, #{secondDepartment,jdbcType=VARCHAR},
-    #{apiType,jdbcType=VARCHAR}, #{systemType,jdbcType=VARCHAR}, #{dataType,jdbcType=INTEGER},
+    #{apiType,jdbcType=VARCHAR}, #{systemType,jdbcType=INTEGER}, #{dataType,jdbcType=INTEGER},
     #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
     )
   </insert>
@@ -166,7 +166,7 @@
         #{apiType,jdbcType=VARCHAR},
       </if>
       <if test="systemType != null" >
-        #{systemType,jdbcType=VARCHAR},
+        #{systemType,jdbcType=INTEGER},
       </if>
       <if test="dataType != null" >
         #{dataType,jdbcType=INTEGER},
@@ -207,7 +207,7 @@
         api_type = #{record.apiType,jdbcType=VARCHAR},
       </if>
       <if test="record.systemType != null" >
-        system_type = #{record.systemType,jdbcType=VARCHAR},
+        system_type = #{record.systemType,jdbcType=INTEGER},
       </if>
       <if test="record.dataType != null" >
         data_type = #{record.dataType,jdbcType=INTEGER},
@@ -233,7 +233,7 @@
     first_department = #{record.firstDepartment,jdbcType=VARCHAR},
     second_department = #{record.secondDepartment,jdbcType=VARCHAR},
     api_type = #{record.apiType,jdbcType=VARCHAR},
-    system_type = #{record.systemType,jdbcType=VARCHAR},
+    system_type = #{record.systemType,jdbcType=INTEGER},
     data_type = #{record.dataType,jdbcType=INTEGER},
     is_del = #{record.isDel,jdbcType=INTEGER},
     create_time = #{record.createTime,jdbcType=TIMESTAMP},
@@ -258,7 +258,7 @@
         api_type = #{apiType,jdbcType=VARCHAR},
       </if>
       <if test="systemType != null" >
-        system_type = #{systemType,jdbcType=VARCHAR},
+        system_type = #{systemType,jdbcType=INTEGER},
       </if>
       <if test="dataType != null" >
         data_type = #{dataType,jdbcType=INTEGER},
@@ -281,7 +281,7 @@
         first_department = #{firstDepartment,jdbcType=VARCHAR},
         second_department = #{secondDepartment,jdbcType=VARCHAR},
         api_type = #{apiType,jdbcType=VARCHAR},
-        system_type = #{systemType,jdbcType=VARCHAR},
+        system_type = #{systemType,jdbcType=INTEGER},
         data_type = #{dataType,jdbcType=INTEGER},
         is_del = #{isDel,jdbcType=INTEGER},
         create_time = #{createTime,jdbcType=TIMESTAMP},
