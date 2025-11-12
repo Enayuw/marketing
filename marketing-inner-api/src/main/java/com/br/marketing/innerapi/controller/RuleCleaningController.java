@@ -157,7 +157,7 @@ public class RuleCleaningController {
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_warn")})
     public ApiResult<MarketingDataCleanGeneralFieldConfig> getFieldConfg(@RequestParam(required = true) Integer dataType,
                                                                          @RequestParam(required = false) Integer acceptType,
-                                                                         @RequestParam(required = false) Integer systemType) {
+                                                                         @RequestParam(required = true) Integer systemType) {
 
         MarketingDataCleanGeneralFieldConfig fieldConfg = ruleCleaningService.getFieldConfg(dataType, acceptType, systemType);
         return new ApiResult<MarketingDataCleanGeneralFieldConfig>().success(fieldConfg);

@@ -1499,6 +1499,10 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         if (dataType == null) {
             throw new BusinessException("数据类型不能为空");
         }
+
+        if (systemType == null) {
+            throw new BusinessException("数据来源不能为空");
+        }
         
         MarketingDataCleanGeneralFieldConfigExample fieldConfigExample = new MarketingDataCleanGeneralFieldConfigExample();
         fieldConfigExample.createCriteria().andDataTypeEqualTo(dataType).andSystemTypeEqualTo(systemType);
