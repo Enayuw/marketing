@@ -194,6 +194,9 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
                 //清洗
                 dataCleanService.uploadDetailCleanHandler(jsonObject, ruleConfigList, syncUser);
                 Map<String, Object> fieldValueMap = buildFieldValueMap(syncUser, ruleConfigList);
+                if(CollectionUtils.isEmpty(fieldValueMap)){
+                    continue;
+                }
                 batchFieldValueMaps.add(fieldValueMap);
                 updateIds.add(syncUser.getId());
 
