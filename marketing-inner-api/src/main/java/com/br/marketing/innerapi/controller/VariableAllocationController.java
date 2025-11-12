@@ -17,8 +17,10 @@ import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.VariableAllocationService;
 import com.br.marketing.vo.VariableAllocationVO;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * 定制化配置

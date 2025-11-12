@@ -35,11 +35,11 @@ public class DingDingRobotHookController {
      */
     @Operation(summary = "发送文本消息", description = "发送文本消息")
     @Parameters({@Parameter(name = "accessToken", required = true
-            , value = "访问令牌", paramType = "query", dataType = "string")
+            , description = "访问令牌")
             , @Parameter(name = "secret"
-            , value = "加签密钥", paramType = "query", dataType = "string")
+            , description = "加签密钥")
             , @Parameter(name = "isProxy"
-            , value = "是否使用代理，可不使用，默认为true", paramType = "query", dataType = "boolean")
+            , description = "是否使用代理，可不使用，默认为true")
     })
     @PostMapping(path = {"text"})
     public ApiResult<String> sendTextMessage(@RequestParam String accessToken
@@ -60,11 +60,11 @@ public class DingDingRobotHookController {
      */
     @Operation(summary = "使用webHook发送文本消息", description = "使用webHook发送文本消息")
     @Parameters({@Parameter(name = "webHook", required = true
-            , value = "Webhook地址 例如：https://oapi.dingtalk.com/robot/send?access_token=XXXXXX", paramType = "query", dataType = "string")
+            , description = "Webhook地址 例如：https://oapi.dingtalk.com/robot/send?access_token=XXXXXX")
             , @Parameter(name = "secret"
-            , value = "加签密钥", paramType = "query", dataType = "string")
+            , description = "加签密钥")
             , @Parameter(name = "isProxy"
-            , value = "是否使用代理，可不使用，默认为true", paramType = "query", dataType = "boolean")
+            , description = "是否使用代理，可不使用，默认为true")
     })
     @PostMapping(path = {"webHook/text"})
     public ApiResult<String> sendTextMessageWebHook(@RequestParam String webHook
@@ -85,11 +85,11 @@ public class DingDingRobotHookController {
      */
     @Operation(summary = "发送markdown(markdown) 消息", description = "发送markdown(markdown) 消息")
     @Parameters({@Parameter(name = "accessToken", required = true
-            , value = "访问令牌", paramType = "query", dataType = "string")
+            , description = "访问令牌")
             , @Parameter(name = "secret"
-            , value = "加签密钥", paramType = "query", dataType = "string")
+            , description = "加签密钥")
             , @Parameter(name = "isProxy"
-            , value = "是否使用代理，可不使用，默认为true", paramType = "query", dataType = "boolean")
+            , description = "是否使用代理，可不使用，默认为true")
     })
     @PostMapping(path = {"markdown"})
     public ApiResult<String> sendMarkdownMessage(@RequestParam String accessToken
@@ -110,11 +110,11 @@ public class DingDingRobotHookController {
      */
     @Operation(summary = "使用webHook发送markdown(markdown) 消息", description = "使用webHook发送markdown(markdown) 消息")
     @Parameters({@Parameter(name = "webHook", required = true
-            , value = "Webhook地址 例如：https://oapi.dingtalk.com/robot/send?access_token=XXXXXX", paramType = "query", dataType = "string")
+            , description = "Webhook地址 例如：https://oapi.dingtalk.com/robot/send?access_token=XXXXXX")
             , @Parameter(name = "secret"
-            , value = "加签密钥", paramType = "query", dataType = "string")
+            , description = "加签密钥")
             , @Parameter(name = "isProxy"
-            , value = "是否使用代理，可不使用，默认为true", paramType = "query", dataType = "boolean")
+            , description = "是否使用代理，可不使用，默认为true")
     })
     @PostMapping(path = {"webHook/markdown"})
     public ApiResult<String> sendMarkdownMessageWebHook(@RequestParam String webHook
@@ -135,11 +135,11 @@ public class DingDingRobotHookController {
      */
     @Operation(summary = "发送链接 (link) 消息", description = "发送链接 (link) 消息")
     @Parameters({@Parameter(name = "accessToken", required = true
-            , value = "访问令牌", paramType = "query", dataType = "string")
+            , description = "访问令牌")
             , @Parameter(name = "secret"
-            , value = "加签密钥", paramType = "query", dataType = "string")
+            , description = "加签密钥")
             , @Parameter(name = "isProxy"
-            , value = "是否使用代理，可不使用，默认为true", paramType = "query", dataType = "boolean")
+            , description = "是否使用代理，可不使用，默认为true")
     })
     @PostMapping(path = {"link"})
     public ApiResult<String> sendLinkMessage(@RequestParam String accessToken
@@ -160,11 +160,11 @@ public class DingDingRobotHookController {
      */
     @Operation(summary = "使用webHook发送链接 (link) 消息", description = "使用webHook发送链接 (link) 消息")
     @Parameters({@Parameter(name = "webHook", required = true
-            , value = "Webhook地址 例如：https://oapi.dingtalk.com/robot/send?access_token=XXXXXX", paramType = "query", dataType = "string")
+            , description = "Webhook地址 例如：https://oapi.dingtalk.com/robot/send?access_token=XXXXXX")
             , @Parameter(name = "secret"
-            , value = "加签密钥", paramType = "query", dataType = "string")
+            , description = "加签密钥")
             , @Parameter(name = "isProxy"
-            , value = "是否使用代理，可不使用，默认为true", paramType = "query", dataType = "boolean")
+            , description = "是否使用代理，可不使用，默认为true")
     })
     @PostMapping(path = {"webHook/link"})
     public ApiResult<String> sendLinkMessageWebHook(@RequestParam String webHook
@@ -185,11 +185,11 @@ public class DingDingRobotHookController {
      */
     @Operation(summary = "发送FeedCard消息", description = "发送FeedCard消息")
     @Parameters({@Parameter(name = "accessToken", required = true
-            , value = "访问令牌", paramType = "query", dataType = "string")
+            , description = "访问令牌")
             , @Parameter(name = "secret"
-            , value = "加签密钥", paramType = "query", dataType = "string")
+            , description = "加签密钥")
             , @Parameter(name = "isProxy"
-            , value = "是否使用代理，可不使用，默认为true", paramType = "query", dataType = "boolean")
+            , description = "是否使用代理，可不使用，默认为true")
     })
     @PostMapping(path = {"feedCard"})
     public ApiResult<String> sendFeedCardMessage(@RequestParam String accessToken
@@ -210,11 +210,11 @@ public class DingDingRobotHookController {
      */
     @Operation(summary = "使用webHook发送FeedCard消息", description = "使用webHook发送FeedCard消息")
     @Parameters({@Parameter(name = "webHook", required = true
-            , value = "Webhook地址 例如：https://oapi.dingtalk.com/robot/send?access_token=XXXXXX", paramType = "query", dataType = "string")
+            , description = "Webhook地址 例如：https://oapi.dingtalk.com/robot/send?access_token=XXXXXX")
             , @Parameter(name = "secret"
-            , value = "加签密钥", paramType = "query", dataType = "string")
+            , description = "加签密钥")
             , @Parameter(name = "isProxy"
-            , value = "是否使用代理，可不使用，默认为true", paramType = "query", dataType = "boolean")
+            , description = "是否使用代理，可不使用，默认为true")
     })
     @PostMapping(path = {"webHook/feedCard"})
     public ApiResult<String> sendFeedCardMessageWebHook(@RequestParam String webHook
@@ -235,11 +235,11 @@ public class DingDingRobotHookController {
      */
     @Operation(summary = "发送ActionCard消息", description = "发送ActionCard消息")
     @Parameters({@Parameter(name = "accessToken", required = true
-            , value = "访问令牌", paramType = "query", dataType = "string")
+            , description = "访问令牌")
             , @Parameter(name = "secret"
-            , value = "加签密钥", paramType = "query", dataType = "string")
+            , description = "加签密钥")
             , @Parameter(name = "isProxy"
-            , value = "是否使用代理，可不使用，默认为true", paramType = "query", dataType = "boolean")
+            , description = "是否使用代理，可不使用，默认为true")
     })
     @PostMapping(path = {"actionCard"})
     public ApiResult<String> sendActionCardMessage(@RequestParam String accessToken
@@ -259,11 +259,11 @@ public class DingDingRobotHookController {
      */
     @Operation(summary = "使用webHook发送ActionCard消息", description = "发送ActionCard消息")
     @Parameters({@Parameter(name = "webHook", required = true
-            , value = "Webhook地址 例如：https://oapi.dingtalk.com/robot/send?access_token=XXXXXX", paramType = "query", dataType = "string")
+            , description = "Webhook地址 例如：https://oapi.dingtalk.com/robot/send?access_token=XXXXXX")
             , @Parameter(name = "secret"
-            , value = "加签密钥", paramType = "query", dataType = "string")
+            , description = "加签密钥")
             , @Parameter(name = "isProxy"
-            , value = "是否使用代理，可不使用，默认为true", paramType = "query", dataType = "boolean")
+            , description = "是否使用代理，可不使用，默认为true")
     })
     @PostMapping(path = {"webHook/actionCard"})
     public ApiResult<String> sendActionCardMessageWebHook(@RequestParam String webHook
