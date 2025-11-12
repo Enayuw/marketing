@@ -70,7 +70,7 @@
         <if test="taskStatus !=null">
             AND task.task_status = #{taskStatus}
         </if>
-        ORDER BY task.release_time_begin DESC
+        ORDER BY createTime DESC, releaseTimeBegin DESC
     </select>
 
 
