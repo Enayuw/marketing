@@ -4,7 +4,9 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.service.MarketingTaskExtendService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +19,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/rule/taskExtend")
-@Tag(value = "跑分任务扩展", tags = "跑分任务扩展", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "跑分任务扩展", description = "跑分任务扩展")
 public class TaskExtendController {
 
     private static final Logger log = LoggerFactory.getLogger(TaskExtendController.class);
@@ -26,7 +28,7 @@ public class TaskExtendController {
     private MarketingTaskExtendService marketingTaskExtendService;
 
     @Operation(summary = "根据所选文件获得产品集合", description = "根据所选文件获得产品集合")
-    @Parameter(name = "ids", paramType = "query", dataType = "string")
+    @Parameter(name = "ids", description = "文件ID列表")
     @GetMapping("/getProducts")
     public ApiResult<Map> getProducts(@RequestParam(required = true) String ids){
             return new ApiResult<Map>().success(marketingTaskExtendService.getProducts(ids));

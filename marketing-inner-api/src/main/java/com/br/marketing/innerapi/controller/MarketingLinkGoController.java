@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping(value = "/marketing/linkgo")
-@Tag(value = "短链相关调用")
+@Tag(name = "短链相关调用", description = "短链相关调用")
 public class MarketingLinkGoController {
 
 

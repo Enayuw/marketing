@@ -28,6 +28,8 @@ import com.br.marketing.vo.xiecheng.param.UpdateCollidingRuleParam;
 import com.br.marketing.vo.xiecheng.param.UpdateCollidingSwitchParam;
 import com.br.marketing.vo.xiecheng.param.UpdatePriorityParam;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -38,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @RestController
 @RequestMapping(value = "/xiecheng")
-@Tag(value = "携程定制化相关接口", tags = "携程定制化相关接口")
+@Tag(name = "携程定制化相关接口", description = "携程定制化相关接口")
 @Slf4j
 public class XiechengCollidingRuleController {
 

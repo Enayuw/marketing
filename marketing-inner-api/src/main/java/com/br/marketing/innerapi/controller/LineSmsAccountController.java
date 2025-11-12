@@ -24,7 +24,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/account")
-@Tag(value = "LineSmsAccountController")
+@Tag(name = "LineSmsAccountController", description = "LineSmsAccountController")
 public class LineSmsAccountController {
 
     @Resource

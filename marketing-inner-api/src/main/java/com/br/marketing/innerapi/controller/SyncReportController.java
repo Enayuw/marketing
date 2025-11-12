@@ -32,7 +32,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping(value = "/rule/report")
-@Tag(value = "客户上传数据统计报表", tags = "客户上传数据统计报表", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "客户上传数据统计报表", description = "客户上传数据统计报表")
 public class SyncReportController {
 
     private static final Logger log = LoggerFactory.getLogger(SyncReportController.class);
@@ -48,8 +48,8 @@ public class SyncReportController {
 
     @PostMapping("/getReportList")
     @Operation(summary = "客户上传数据统计报表列表", description = "客户上传数据统计报表列表")
-    @Parameters({@Parameter(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
-            , @Parameter(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
+    @Parameters({@Parameter(name = "current", description = "页号")
+            , @Parameter(name = "size", description = "页大小")
             , @Parameter(name = "cidOrName", value = "客户名称/客户编号", paramType = "query", dataType = "string")
             , @Parameter(name = "appletTimeStart", value = "上传日期开始", paramType = "query", dataType = "string")
             , @Parameter(name = "appletTimeEnd", value = "上传日期截至", paramType = "query", dataType = "string")

@@ -37,7 +37,7 @@ import java.util.Set;
  */
 @RestController
 @RequestMapping("/pushrulefilter")
-@Tag(value = "PushRuleFilterController")
+@Tag(name = "PushRuleFilterController", description = "PushRuleFilterController")
 public class PushRuleFilterController {
 
     private static final Logger log = LoggerFactory.getLogger(PushRuleFilterController.class);

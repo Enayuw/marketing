@@ -33,7 +33,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping(value = "/rule/sftp")
-@Tag(value = "sftp账号配置", tags = "sftp账号配置", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "sftp账号配置", description = "sftp账号配置")
 public class SyncConfigController {
 
     private static final Logger log = LoggerFactory.getLogger(SyncConfigController.class);
@@ -44,10 +44,10 @@ public class SyncConfigController {
 
     @GetMapping("/getSftpList")
     @Operation(summary = "客户sftp账号列表", description = "客户sftp账号列表")
-    @Parameters({@Parameter(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
-        , @Parameter(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
-        , @Parameter(name = "apiCode", paramType = "query", dataType = "string")
-        , @Parameter(name = "dataType", value = "文件类型", paramType = "query", dataType = "integer")
+    @Parameters({@Parameter(name = "current", description = "页号")
+        , @Parameter(name = "size", description = "页大小")
+        , @Parameter(name = "apiCode", description = "API编码")
+        , @Parameter(name = "dataType", description = "文件类型")
     })
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = MarketingCustomer.class)})
     @AddDataAuthBusiness
@@ -64,21 +64,21 @@ public class SyncConfigController {
 
 
     @Operation(summary = "复制sftp配置信息", description = "复制sftp配置信息")
-    @Parameters({@Parameter(name = "id", value = "被复制的SFTP配置id", paramType = "query", dataType = "string")
-        , @Parameter(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")
-        , @Parameter(name = "srcPath", value = "源目录", paramType = "query", dataType = "string")
-        , @Parameter(name = "targetPath", value = "目标目录", paramType = "query", dataType = "string")
-        , @Parameter(name = "type", value = "同步文件的类型", paramType = "query", dataType = "int")
-        , @Parameter(name = "dataType", value = "文件类型", paramType = "query", dataType = "int")
-        , @Parameter(name = "suffix", value = "文件后缀", paramType = "query", dataType = "string")
-        , @Parameter(name = "srcSftpHost", value = "源sftp host", paramType = "query", dataType = "string")
-        , @Parameter(name = "srcSftpPort", value = "源sftp port", paramType = "query", dataType = "int")
-        , @Parameter(name = "srcSftpUser", value = "源sftp账号", paramType = "query", dataType = "string")
-        , @Parameter(name = "srcSftpPwd", value = "源sftp密码", paramType = "query", dataType = "string")
-        , @Parameter(name = "targetSftpHost", value = "目的sftp host", paramType = "query", dataType = "string")
-        , @Parameter(name = "targetSftpPort", value = "目的sftp port", paramType = "query", dataType = "int")
-        , @Parameter(name = "targetSftpUser", value = "目的sftp账号", paramType = "query", dataType = "string")
-        , @Parameter(name = "targetSftpPwd", value = "目的sftp密码", paramType = "query", dataType = "string")
+    @Parameters({@Parameter(name = "id", description = "被复制的SFTP配置id")
+        , @Parameter(name = "apiCode", description = "apiCode")
+        , @Parameter(name = "srcPath", description = "源目录")
+        , @Parameter(name = "targetPath", description = "目标目录")
+        , @Parameter(name = "type", description = "同步文件的类型")
+        , @Parameter(name = "dataType", description = "文件类型")
+        , @Parameter(name = "suffix", description = "文件后缀")
+        , @Parameter(name = "srcSftpHost", description = "源sftp host")
+        , @Parameter(name = "srcSftpPort", description = "源sftp port")
+        , @Parameter(name = "srcSftpUser", description = "源sftp账号")
+        , @Parameter(name = "srcSftpPwd", description = "源sftp密码")
+        , @Parameter(name = "targetSftpHost", description = "目的sftp host")
+        , @Parameter(name = "targetSftpPort", description = "目的sftp port")
+        , @Parameter(name = "targetSftpUser", description = "目的sftp账号")
+        , @Parameter(name = "targetSftpPwd", description = "目的sftp密码")
     })
     @GetMapping("/copySftp")
     public ApiResult<Boolean> copySftp(@RequestParam(required = true) String id,

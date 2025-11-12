@@ -29,7 +29,7 @@ import java.util.List;
  * @Author hong.chen
  * @CreateTime 2023/06/28
  */
-@Tag(value = "BackendController")
+@Tag(name = "BackendController", description = "BackendController")
 @RequestMapping("/backend")
 @RestController
 public class BackEndController {

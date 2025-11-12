@@ -22,7 +22,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/pushDecisions")
-@Tag(value = "PushDecisionsController")
+@Tag(name = "PushDecisionsController", description = "PushDecisionsController")
 public class PushDecisionsController {
 
     private static final Integer CODE_1 = Integer.valueOf(1);

@@ -27,7 +27,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/znkePush")
-@Tag(value = "客服推送营销数据")
+@Tag(name = "客服推送营销数据", description = "客服推送营销数据")
 public class ZnkfPushController {
 
     private static final Logger log = LoggerFactory.getLogger(ZnkfPushController.class);
