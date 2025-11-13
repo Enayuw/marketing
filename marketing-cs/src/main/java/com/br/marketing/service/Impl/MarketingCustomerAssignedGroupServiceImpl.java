@@ -2,6 +2,7 @@ package com.br.marketing.service.Impl;
 
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.enums.CustomerEnum;
 import com.br.marketing.entity.MarketingCustomer;
 import com.br.marketing.entity.MarketingCustomerAssignedGroup;
 import com.br.marketing.entity.MarketingCustomerAssignedGroupExample;
@@ -31,11 +32,12 @@ public class MarketingCustomerAssignedGroupServiceImpl implements IMarketingCust
     private MarketingCustomerAssignedGroupMapper marketingCustomerAssignedGroupMapper;
 
     @Override
-    public void assignGroup(String cid, String group) {
+    public void assignGroup(String cid, String group, String apiCode) {
+        CustomerEnum customerType = getCustomerEnum(cid, apiCode);
         try {
             MarketingCustomerAssignedGroup assignedGroup = marketingCustomerAssignedGroupMapper.getAssignedGroupByCid(cid);
             if (Objects.isNull(assignedGroup)) {
-                createNewGroup(cid);
+                createNewGroup(cid, customerType);
             } else {
                 if (StringUtils.equals(assignedGroup.getAssignedGroup(), group)) {
                     return;
@@ -51,6 +53,7 @@ public class MarketingCustomerAssignedGroupServiceImpl implements IMarketingCust
                 marketingCustomerAssignedGroup.setCid(cid);
                 marketingCustomerAssignedGroup.setCurrentIndex(nextIndex);
                 marketingCustomerAssignedGroup.setAssignedGroup(group);
+                marketingCustomerAssignedGroup.setCustomerType(customerType.getCode());
                 marketingCustomerAssignedGroup.setUpdateTime(new Date());
 
                 MarketingCustomerAssignedGroupExample example = new MarketingCustomerAssignedGroupExample();
@@ -62,15 +65,31 @@ public class MarketingCustomerAssignedGroupServiceImpl implements IMarketingCust
         }
     }
 
-    private void createNewGroup(String cid) {
-        MarketingCustomerAssignedGroup preAssignedGroup = marketingCustomerAssignedGroupMapper.getLastAssignedGroup(cid);
+    private static CustomerEnum getCustomerEnum(String cid, String apiCode) {
+        if (StringUtils.startsWith(apiCode, "4")) {
+            return CustomerEnum.INNER_TEST;
+        } else if (StringUtils.startsWith(apiCode, "3") && !StringUtils.startsWith(cid, "-")) {
+            return CustomerEnum.PROD;
+        } else {
+            return CustomerEnum.TEST;
+        }
+    }
+
+    private void createNewGroup(String cid, CustomerEnum customerType) {
+        MarketingCustomerAssignedGroup preAssignedGroup = marketingCustomerAssignedGroupMapper.getLastAssignedGroup(cid, customerType.getCode());
+        int nextIndex;
         List<String> assignedGroups = marketingCommonConfig.getAssignedGroups();
-        int nextIndex = (preAssignedGroup.getCurrentIndex() + 1) % assignedGroups.size();
+        if(Objects.nonNull(preAssignedGroup)) {
+            nextIndex = (preAssignedGroup.getCurrentIndex() + 1) % assignedGroups.size();
+        } else {
+            nextIndex = 0;
+        }
         String group = assignedGroups.get(nextIndex);
         MarketingCustomerAssignedGroup marketingCustomerAssignedGroup = new MarketingCustomerAssignedGroup();
         marketingCustomerAssignedGroup.setCid(cid);
         marketingCustomerAssignedGroup.setAssignedGroup(group);
         marketingCustomerAssignedGroup.setCurrentIndex(nextIndex);
+        marketingCustomerAssignedGroup.setCustomerType(customerType.getCode());
         marketingCustomerAssignedGroup.setCreateTime(new Date());
         marketingCustomerAssignedGroup.setUpdateTime(new Date());
         marketingCustomerAssignedGroupMapper.insertSelective(marketingCustomerAssignedGroup);
