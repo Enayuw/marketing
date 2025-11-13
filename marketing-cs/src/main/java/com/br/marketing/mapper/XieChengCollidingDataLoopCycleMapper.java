@@ -126,8 +126,6 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
 
     int selectTimeRangeOutMagnitudeForNotTodaytiflash_(@Param("begin") LocalDateTime begin, @Param("end") LocalDateTime end);
 
-    int selectTimeRangeBetweenMagnitudetiflash_(@Param("begin") LocalDateTime begin, @Param("end") LocalDateTime end);
-
     int selectTimeRangeBetweenWithScoreMagnitudetiflash_(@Param("begin") LocalDateTime begin,
                                                          @Param("end") LocalDateTime end,
                                                          @Param("scoreSql") String scoreSql);

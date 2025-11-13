@@ -1332,6 +1332,20 @@ public class PushRuleServiceImpl implements PushRuleService {
         return scoreSql;
     }
 
+    private String scoreSql(List<String> batchNumberList) {
+        String scoreSql = "";
+        for (int i = 0; i < batchNumberList.size(); i++) {
+            if (i == batchNumberList.size() - 1) {
+                scoreSql = scoreSql.concat("select id,cell from b_xiecheng_colliding_").concat(batchNumberList.get(i)).concat(" where ")
+                        .concat(" is_delete=0 ");
+            } else {
+                scoreSql = scoreSql.concat("select id,cell from b_xiecheng_colliding_").concat(batchNumberList.get(i)).concat(" where ")
+                        .concat(" is_delete=0 ").concat(" union all ");
+            }
+        }
+        return scoreSql;
+    }
+
 
     private Boolean isXieChengData(PushCustomerDTO dto) {
         Boolean isXieCheng = Boolean.FALSE;
@@ -1775,9 +1789,10 @@ public class PushRuleServiceImpl implements PushRuleService {
             timeRangeOutMagnitude = xieChengCollidingDataLoopCycleMapper
                     .selectTimeRangeOutMagnitudeForNotTodaytiflash_(timeRange.getBegin(), timeRange.getEnd());
         }
-        //3.timeRange范围内量级
+        //3.timeRange范围内，与跑分数据的交集量级
+        String scoreSqlBlanked = scoreSql(batchNumberList);
         int timeRangeBetweenMagnitude = xieChengCollidingDataLoopCycleMapper
-                .selectTimeRangeBetweenMagnitudetiflash_(timeRange.getBegin(), timeRange.getEnd());
+                .selectTimeRangeBetweenWithScoreMagnitudetiflash_(timeRange.getBegin(), timeRange.getEnd(), scoreSqlBlanked);
         //4.timeRange范围内，与符合条件的跑分数据的交集量级
         String scoreSql = scoreSql(conditionJson, batchNumberList);
         int remainingNum = xieChengCollidingDataLoopCycleMapper

@@ -291,14 +291,6 @@
         ]]>
     </select>
 
-    <select id="selectTimeRangeBetweenMagnitudetiflash_" resultType="java.lang.Integer">
-        SELECT COUNT(0) FROM b_xiecheng_colliding_data_loop_cycle
-        <![CDATA[
-        WHERE release_time >= #{begin,jdbcType=TIMESTAMP} AND release_time <= #{end,jdbcType=TIMESTAMP}
-        AND is_delete = 0
-        ]]>
-    </select>
-
     <select id="selectTimeRangeBetweenWithScoreMagnitudetiflash_" resultType="java.lang.Integer">
         select count(0) from
             (select cell_sha256_code_list as cell

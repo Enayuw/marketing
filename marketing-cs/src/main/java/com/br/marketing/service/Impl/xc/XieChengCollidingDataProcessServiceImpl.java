@@ -267,7 +267,8 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                 .andApiCodeEqualTo(apiCode)
                 .andTaskStartTimeGreaterThanOrEqualTo(getStartOfDate())
                 .andTaskTypeIn(taskTypes)
-                .andTaskStatusNotEqualTo(2);
+                .andTaskStatusNotEqualTo(2)
+                .andIsDeleteEqualTo(0);
         int deletingTaskCount = taskMapper.countByExample(processTaskExample);
         if (deletingTaskCount > 0) {
             return false;
