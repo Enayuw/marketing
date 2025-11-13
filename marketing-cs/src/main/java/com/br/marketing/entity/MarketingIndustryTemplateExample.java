@@ -565,6 +565,66 @@ public class MarketingIndustryTemplateExample {
             return (Criteria) this;
         }
 
+        public Criteria andAcceptTypeIsNull() {
+            addCriterion("accept_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAcceptTypeIsNotNull() {
+            addCriterion("accept_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAcceptTypeEqualTo(Integer value) {
+            addCriterion("accept_type =", value, "acceptType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAcceptTypeNotEqualTo(Integer value) {
+            addCriterion("accept_type <>", value, "acceptType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAcceptTypeGreaterThan(Integer value) {
+            addCriterion("accept_type >", value, "acceptType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAcceptTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("accept_type >=", value, "acceptType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAcceptTypeLessThan(Integer value) {
+            addCriterion("accept_type <", value, "acceptType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAcceptTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("accept_type <=", value, "acceptType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAcceptTypeIn(List<Integer> values) {
+            addCriterion("accept_type in", values, "acceptType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAcceptTypeNotIn(List<Integer> values) {
+            addCriterion("accept_type not in", values, "acceptType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAcceptTypeBetween(Integer value1, Integer value2) {
+            addCriterion("accept_type between", value1, value2, "acceptType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAcceptTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("accept_type not between", value1, value2, "acceptType");
+            return (Criteria) this;
+        }
+
         public Criteria andIsDelIsNull() {
             addCriterion("is_del is null");
             return (Criteria) this;

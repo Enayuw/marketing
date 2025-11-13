@@ -165,66 +165,6 @@ public class MarketingIndustryTemplateJsonParseExample {
             return (Criteria) this;
         }
 
-        public Criteria andTemplateTypeIsNull() {
-            addCriterion("template_type is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andTemplateTypeIsNotNull() {
-            addCriterion("template_type is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andTemplateTypeEqualTo(Integer value) {
-            addCriterion("template_type =", value, "templateType");
-            return (Criteria) this;
-        }
-
-        public Criteria andTemplateTypeNotEqualTo(Integer value) {
-            addCriterion("template_type <>", value, "templateType");
-            return (Criteria) this;
-        }
-
-        public Criteria andTemplateTypeGreaterThan(Integer value) {
-            addCriterion("template_type >", value, "templateType");
-            return (Criteria) this;
-        }
-
-        public Criteria andTemplateTypeGreaterThanOrEqualTo(Integer value) {
-            addCriterion("template_type >=", value, "templateType");
-            return (Criteria) this;
-        }
-
-        public Criteria andTemplateTypeLessThan(Integer value) {
-            addCriterion("template_type <", value, "templateType");
-            return (Criteria) this;
-        }
-
-        public Criteria andTemplateTypeLessThanOrEqualTo(Integer value) {
-            addCriterion("template_type <=", value, "templateType");
-            return (Criteria) this;
-        }
-
-        public Criteria andTemplateTypeIn(List<Integer> values) {
-            addCriterion("template_type in", values, "templateType");
-            return (Criteria) this;
-        }
-
-        public Criteria andTemplateTypeNotIn(List<Integer> values) {
-            addCriterion("template_type not in", values, "templateType");
-            return (Criteria) this;
-        }
-
-        public Criteria andTemplateTypeBetween(Integer value1, Integer value2) {
-            addCriterion("template_type between", value1, value2, "templateType");
-            return (Criteria) this;
-        }
-
-        public Criteria andTemplateTypeNotBetween(Integer value1, Integer value2) {
-            addCriterion("template_type not between", value1, value2, "templateType");
-            return (Criteria) this;
-        }
-
         public Criteria andInterfaceTemplateIdIsNull() {
             addCriterion("interface_template_id is null");
             return (Criteria) this;

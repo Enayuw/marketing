@@ -9,11 +9,6 @@ public class MarketingIndustryTemplateJsonParse {
     private Long id;
 
     /**
-     * 模板类型：0:内置模板,1:行业模板
-     */
-    private Integer templateType;
-
-    /**
      * 接口id
      */
     private Long interfaceTemplateId;
@@ -84,14 +79,6 @@ public class MarketingIndustryTemplateJsonParse {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public Integer getTemplateType() {
-        return templateType;
-    }
-
-    public void setTemplateType(Integer templateType) {
-        this.templateType = templateType;
     }
 
     public Long getInterfaceTemplateId() {

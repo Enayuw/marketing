@@ -39,6 +39,11 @@ public class MarketingIndustryTemplate {
     private Integer dataType;
 
     /**
+     * 接收类型：0:通用,1:定制,2:FTP
+     */
+    private Integer acceptType;
+
+    /**
      * 删除标志；1-正常；9-删除
      */
     private Integer isDel;
@@ -107,6 +112,14 @@ public class MarketingIndustryTemplate {
 
     public void setDataType(Integer dataType) {
         this.dataType = dataType;
+    }
+
+    public Integer getAcceptType() {
+        return acceptType;
+    }
+
+    public void setAcceptType(Integer acceptType) {
+        this.acceptType = acceptType;
     }
 
     public Integer getIsDel() {
