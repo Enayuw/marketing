@@ -1856,18 +1856,12 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         for (MarketingJsonNodeParse node : nodes) {
             String nodeName = node.getNodeName();
             Integer level = node.getLevel();
-            if (level == 0) {
+            if (level == 0 || StringUtil.isBlank(nodeName)) {
                 continue;
             }
-            String nodeValue = node.getNodeValue();
-            Date createTime = node.getCreateTime();
-            if (StringUtil.isBlank(nodeName)) {
-                if (level == 0 || StringUtil.isBlank(nodeName)) {
-                    continue;
-                }
-                buildFieldSample(result, ruleConfigList, nodeName, level,
-                        node.getNodeValue(), node.getParentPath(), node.getNodeType(), node.getCreateTime());
-            }
+            buildFieldSample(result, ruleConfigList, nodeName, level,
+                    node.getNodeValue(), node.getParentPath(), node.getNodeType(), node.getCreateTime());
+
         }
         return result;
     }
