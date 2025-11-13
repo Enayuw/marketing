@@ -285,6 +285,76 @@ public class MarketingDataCleanGeneralFieldConfigExample {
             return (Criteria) this;
         }
 
+        public Criteria andFieldCollectIsNull() {
+            addCriterion("field_collect is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldCollectIsNotNull() {
+            addCriterion("field_collect is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldCollectEqualTo(String value) {
+            addCriterion("field_collect =", value, "fieldCollect");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldCollectNotEqualTo(String value) {
+            addCriterion("field_collect <>", value, "fieldCollect");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldCollectGreaterThan(String value) {
+            addCriterion("field_collect >", value, "fieldCollect");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldCollectGreaterThanOrEqualTo(String value) {
+            addCriterion("field_collect >=", value, "fieldCollect");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldCollectLessThan(String value) {
+            addCriterion("field_collect <", value, "fieldCollect");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldCollectLessThanOrEqualTo(String value) {
+            addCriterion("field_collect <=", value, "fieldCollect");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldCollectLike(String value) {
+            addCriterion("field_collect like", value, "fieldCollect");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldCollectNotLike(String value) {
+            addCriterion("field_collect not like", value, "fieldCollect");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldCollectIn(List<String> values) {
+            addCriterion("field_collect in", values, "fieldCollect");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldCollectNotIn(List<String> values) {
+            addCriterion("field_collect not in", values, "fieldCollect");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldCollectBetween(String value1, String value2) {
+            addCriterion("field_collect between", value1, value2, "fieldCollect");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldCollectNotBetween(String value1, String value2) {
+            addCriterion("field_collect not between", value1, value2, "fieldCollect");
+            return (Criteria) this;
+        }
+
         public Criteria andIsDelIsNull() {
             addCriterion("is_del is null");
             return (Criteria) this;

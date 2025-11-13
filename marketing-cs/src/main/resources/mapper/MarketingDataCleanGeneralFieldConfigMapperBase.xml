@@ -5,14 +5,12 @@
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="system_type" property="systemType" jdbcType="INTEGER" />
     <result column="data_type" property="dataType" jdbcType="INTEGER" />
+    <result column="field_collect" property="fieldCollect" jdbcType="VARCHAR" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
     <result column="opt_user_id" property="optUserId" jdbcType="BIGINT" />
     <result column="opt_user_name" property="optUserName" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
-  </resultMap>
-  <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.MarketingDataCleanGeneralFieldConfig" extends="BaseResultMap" >
-    <result column="field_collect" property="fieldCollect" jdbcType="LONGVARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -73,27 +71,9 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, system_type, data_type, is_del, opt_user_id, opt_user_name, create_time, update_time
+    id, system_type, data_type, field_collect, is_del, opt_user_id, opt_user_name, create_time,
+    update_time
   </sql>
-  <sql id="Blob_Column_List" >
-    field_collect
-  </sql>
-  <select id="selectByExampleWithBLOBs" resultMap="ResultMapWithBLOBs" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralFieldConfigExample" >
-    select
-    <if test="distinct" >
-      distinct
-    </if>
-    <include refid="Base_Column_List" />
-    ,
-    <include refid="Blob_Column_List" />
-    from b_marketing_data_clean_general_field_config
-    <if test="_parameter != null" >
-      <include refid="Example_Where_Clause" />
-    </if>
-    <if test="orderByClause != null" >
-      order by ${orderByClause}
-    </if>
-  </select>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralFieldConfigExample" >
     select
     <if test="distinct" >
@@ -108,11 +88,9 @@
       order by ${orderByClause}
     </if>
   </select>
-  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
     select
     <include refid="Base_Column_List" />
-    ,
-    <include refid="Blob_Column_List" />
     from b_marketing_data_clean_general_field_config
     where id = #{id,jdbcType=BIGINT}
   </select>
@@ -130,12 +108,12 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_data_clean_general_field_config (system_type, data_type, is_del,
-    opt_user_id, opt_user_name, create_time,
-    update_time, field_collect)
-    values (#{systemType,jdbcType=INTEGER}, #{dataType,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER},
-    #{optUserId,jdbcType=BIGINT}, #{optUserName,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP},
-    #{updateTime,jdbcType=TIMESTAMP}, #{fieldCollect,jdbcType=LONGVARCHAR})
+    insert into b_marketing_data_clean_general_field_config (system_type, data_type, field_collect,
+    is_del, opt_user_id, opt_user_name,
+    create_time, update_time)
+    values (#{systemType,jdbcType=INTEGER}, #{dataType,jdbcType=INTEGER}, #{fieldCollect,jdbcType=VARCHAR},
+    #{isDel,jdbcType=INTEGER}, #{optUserId,jdbcType=BIGINT}, #{optUserName,jdbcType=VARCHAR},
+    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralFieldConfig" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -148,6 +126,9 @@
       </if>
       <if test="dataType != null" >
         data_type,
+      </if>
+      <if test="fieldCollect != null" >
+        field_collect,
       </if>
       <if test="isDel != null" >
         is_del,
@@ -164,9 +145,6 @@
       <if test="updateTime != null" >
         update_time,
       </if>
-      <if test="fieldCollect != null" >
-        field_collect,
-      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="systemType != null" >
@@ -174,6 +152,9 @@
       </if>
       <if test="dataType != null" >
         #{dataType,jdbcType=INTEGER},
+      </if>
+      <if test="fieldCollect != null" >
+        #{fieldCollect,jdbcType=VARCHAR},
       </if>
       <if test="isDel != null" >
         #{isDel,jdbcType=INTEGER},
@@ -189,9 +170,6 @@
       </if>
       <if test="updateTime != null" >
         #{updateTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="fieldCollect != null" >
-        #{fieldCollect,jdbcType=LONGVARCHAR},
       </if>
     </trim>
   </insert>
@@ -213,6 +191,9 @@
       <if test="record.dataType != null" >
         data_type = #{record.dataType,jdbcType=INTEGER},
       </if>
+      <if test="record.fieldCollect != null" >
+        field_collect = #{record.fieldCollect,jdbcType=VARCHAR},
+      </if>
       <if test="record.isDel != null" >
         is_del = #{record.isDel,jdbcType=INTEGER},
       </if>
@@ -228,25 +209,7 @@
       <if test="record.updateTime != null" >
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.fieldCollect != null" >
-        field_collect = #{record.fieldCollect,jdbcType=LONGVARCHAR},
-      </if>
     </set>
-    <if test="_parameter != null" >
-      <include refid="Update_By_Example_Where_Clause" />
-    </if>
-  </update>
-  <update id="updateByExampleWithBLOBs" parameterType="map" >
-    update b_marketing_data_clean_general_field_config
-    set id = #{record.id,jdbcType=BIGINT},
-    system_type = #{record.systemType,jdbcType=INTEGER},
-    data_type = #{record.dataType,jdbcType=INTEGER},
-    is_del = #{record.isDel,jdbcType=INTEGER},
-    opt_user_id = #{record.optUserId,jdbcType=BIGINT},
-    opt_user_name = #{record.optUserName,jdbcType=VARCHAR},
-    create_time = #{record.createTime,jdbcType=TIMESTAMP},
-    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-    field_collect = #{record.fieldCollect,jdbcType=LONGVARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -256,6 +219,7 @@
     set id = #{record.id,jdbcType=BIGINT},
     system_type = #{record.systemType,jdbcType=INTEGER},
     data_type = #{record.dataType,jdbcType=INTEGER},
+    field_collect = #{record.fieldCollect,jdbcType=VARCHAR},
     is_del = #{record.isDel,jdbcType=INTEGER},
     opt_user_id = #{record.optUserId,jdbcType=BIGINT},
     opt_user_name = #{record.optUserName,jdbcType=VARCHAR},
@@ -274,6 +238,9 @@
       <if test="dataType != null" >
         data_type = #{dataType,jdbcType=INTEGER},
       </if>
+      <if test="fieldCollect != null" >
+        field_collect = #{fieldCollect,jdbcType=VARCHAR},
+      </if>
       <if test="isDel != null" >
         is_del = #{isDel,jdbcType=INTEGER},
       </if>
@@ -289,28 +256,14 @@
       <if test="updateTime != null" >
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="fieldCollect != null" >
-        field_collect = #{fieldCollect,jdbcType=LONGVARCHAR},
-      </if>
     </set>
-    where id = #{id,jdbcType=BIGINT}
-  </update>
-  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralFieldConfig" >
-    update b_marketing_data_clean_general_field_config
-    set system_type = #{systemType,jdbcType=INTEGER},
-        data_type = #{dataType,jdbcType=INTEGER},
-        is_del = #{isDel,jdbcType=INTEGER},
-        opt_user_id = #{optUserId,jdbcType=BIGINT},
-        opt_user_name = #{optUserName,jdbcType=VARCHAR},
-        create_time = #{createTime,jdbcType=TIMESTAMP},
-        update_time = #{updateTime,jdbcType=TIMESTAMP},
-        field_collect = #{fieldCollect,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralFieldConfig" >
     update b_marketing_data_clean_general_field_config
     set system_type = #{systemType,jdbcType=INTEGER},
         data_type = #{dataType,jdbcType=INTEGER},
+        field_collect = #{fieldCollect,jdbcType=VARCHAR},
         is_del = #{isDel,jdbcType=INTEGER},
         opt_user_id = #{optUserId,jdbcType=BIGINT},
         opt_user_name = #{optUserName,jdbcType=VARCHAR},

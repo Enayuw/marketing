@@ -19,6 +19,11 @@ public class MarketingDataCleanGeneralFieldConfig {
     private Integer dataType;
 
     /**
+     * 字段集合，多个字段用,分割
+     */
+    private String fieldCollect;
+
+    /**
      * 是否删除：1-正常；9-删除
      */
     private Integer isDel;
@@ -43,11 +48,6 @@ public class MarketingDataCleanGeneralFieldConfig {
      */
     private Date updateTime;
 
-    /**
-     * 字段集合，多个字段用,分割
-     */
-    private String fieldCollect;
-
     public Long getId() {
         return id;
     }
@@ -70,6 +70,14 @@ public class MarketingDataCleanGeneralFieldConfig {
 
     public void setDataType(Integer dataType) {
         this.dataType = dataType;
+    }
+
+    public String getFieldCollect() {
+        return fieldCollect;
+    }
+
+    public void setFieldCollect(String fieldCollect) {
+        this.fieldCollect = fieldCollect == null ? null : fieldCollect.trim();
     }
 
     public Integer getIsDel() {
@@ -110,13 +118,5 @@ public class MarketingDataCleanGeneralFieldConfig {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
-    }
-
-    public String getFieldCollect() {
-        return fieldCollect;
-    }
-
-    public void setFieldCollect(String fieldCollect) {
-        this.fieldCollect = fieldCollect == null ? null : fieldCollect.trim();
     }
 }
