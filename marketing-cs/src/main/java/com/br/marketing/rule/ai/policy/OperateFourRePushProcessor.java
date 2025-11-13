@@ -15,7 +15,7 @@ import java.util.HashMap;
 
 @Component
 @Slf4j
-public class OperateFourRePushProcessor extends AbstractBaseAiToPolicy {
+public class OperateFourRePushProcessor extends OperateFourProcessor {
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
@@ -30,31 +30,14 @@ public class OperateFourRePushProcessor extends AbstractBaseAiToPolicy {
 
     @Override
     public String generateBatchNumber(MarketingSyncUser syncUser) {
-        String apiCode = syncUser.getApiCode();
-        String appletDate = syncUser.getAppletDate().replace("-", "");
+        String baseBatchNumber = generateBaseBatchNumber(syncUser);
+        // 获取重推次数
         String reserveField1 = syncUser.getReserveField1();
         JSONObject jsonObject = JSONObject.parseObject(reserveField1);
-
-        String userType = syncUser.getUserType();
         String rePushCount = jsonObject.get("rePushNum").toString();
-        return ObjectUtil.isNotEmpty(jsonObject.getString("batchNumber"))
-                ? jsonObject.getString("batchNumber")+ "_RE_" + rePushCount
-                : (appletDate + "_" + apiCode + "_" + userType+ "_RE_" + rePushCount);
+
+        // 在基础批次号后添加重推标识
+        return baseBatchNumber + "_RE_" + rePushCount;
     }
 
-    @Override
-    protected void executeFieldMapping(ProcessHandlerContext context, JSONObject jsonObject) {
-        HashMap<String, JSONObject> fieldKeyMapping = marketingCommonConfig.getFieldKeyMapping();
-        JSONObject mapping = fieldKeyMapping.get(context.getApiCode());
-        if (ObjectUtil.isNotEmpty(mapping)) {
-            for (String s : mapping.keySet()) {
-                String toKey = mapping.getString(s);
-                String oldV = jsonObject.getString(toKey);
-                String newV = jsonObject.getString(s);
-                if (StringUtils.isBlank(oldV) && StringUtils.isNotBlank(newV)) {
-                    jsonObject.put(toKey, newV);
-                }
-            }
-        }
-    }
 }

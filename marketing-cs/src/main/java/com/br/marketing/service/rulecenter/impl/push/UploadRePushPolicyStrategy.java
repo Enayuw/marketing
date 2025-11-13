@@ -31,6 +31,7 @@ import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
 import com.br.marketing.service.rulecenter.RuleCenterPushContext;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.util.EsConditionTransferSqlUtil;
+import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -194,7 +195,7 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
                 //清洗
                 dataCleanService.uploadDetailCleanHandler(jsonObject, ruleConfigList, syncUser);
                 Map<String, Object> fieldValueMap = buildFieldValueMap(syncUser, ruleConfigList);
-                if(CollectionUtils.isEmpty(fieldValueMap)){
+                if (CollectionUtils.isEmpty(fieldValueMap)) {
                     continue;
                 }
                 batchFieldValueMaps.add(fieldValueMap);
@@ -322,6 +323,7 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
         //处理重复的数据
         Map<String, AtomicInteger> custNumMap = new HashMap<>();
         Map<String, AtomicInteger> cellMap = new HashMap<>();
+        Set<String> batchNameSet = new HashSet<>();
         operateTypeDTOList.forEach(operateTypeDTO -> {
             String operateType = operateTypeDTO.getOperateType();
             if (StringUtils.isEmpty(operateType)) {
@@ -331,16 +333,16 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
             // 根据不同的operateType添加额外条件
             switch (operateType) {
                 case "3":
-                    handleOperateTypeThree(pushPool, operateTypeDTO, condition, pushMain, rePushCount, resList);
+                    handleOperateTypeThree(pushPool, operateTypeDTO, condition, pushMain, rePushCount, resList, batchNameSet);
                     break;
                 case "4":
-                    handleOperateTypeFour(pushPool, operateTypeDTO, condition, pushMain, rePushCount, resList);
+                    handleOperateTypeFour(pushPool, operateTypeDTO, condition, pushMain, rePushCount, resList, batchNameSet);
                     break;
                 case "5":
-                    handleOperateTypeFive(pushPool, operateTypeDTO, condition, pushMain, rePushCount, custNumMap, resList);
+                    handleOperateTypeFive(pushPool, operateTypeDTO, condition, pushMain, rePushCount, custNumMap, resList, batchNameSet);
                     break;
                 case "6":
-                    handleOperateTypeSix(pushPool, operateTypeDTO, condition, pushMain, rePushCount, cellMap, resList);
+                    handleOperateTypeSix(pushPool, operateTypeDTO, condition, pushMain, rePushCount, cellMap, resList, batchNameSet);
                     break;
 
                 default:
@@ -369,6 +371,9 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SUNING_SERVICEERROR.getCode(), "苏商推送规则二线程池停止异常！"), ex);
             Thread.currentThread().interrupt();
         }
+        JSONObject extendJson = new JSONObject();
+        extendJson.put("batchName", Joiner.on(",").join(batchNameSet));
+        context.setExtendDataJson(extendJson);
         log.warn(TITLE + "推送决策结束，耗时{}s", (System.currentTimeMillis() - start) / 1000);
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(result);
     }
@@ -387,45 +392,30 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
         }
         String reportIds = pushMain.getUploadReportIds();
         //更新batchName
-        StringBuilder batchNameBuild = new StringBuilder();
-        String condition = getUploadDataCondition(pushMain.getmRuleCondition(), pushMain.getmApiCode());
-        List<Long> listIds = Arrays.stream(reportIds.split(",")).map(Long::parseLong).collect(Collectors.toList());
-        MarketingSyncReportExample syncReportExample = new MarketingSyncReportExample();
-        syncReportExample.createCriteria().andIdIn(listIds);
-        List<MarketingSyncReport> marketingSyncReports = syncReportMapper.selectByExample(syncReportExample);
-        List<String> batchNameList = marketingSyncInfoMapper.getBatchNameByUsertikv_(pushMain.getmApiCode(), marketingSyncReports, condition);
-        for (String name : batchNameList) {
-            if (StringUtils.isEmpty(name)) {
-                batchNameBuild.append(LocalDate.now().toString().replace("-", "") + "_" + pushMain.getmApiCode()).append(",");
-            } else {
-                batchNameBuild.append(name).append(",");
-            }
-        }
-        String batchName = batchNameBuild.toString();
+        String batchName = context.getExtendDataJson().getString("batchName");
         CustomerInfoPushMain update = new CustomerInfoPushMain();
         update.setmStatus(status);
-        update.setBatchName(batchName.substring(0, batchName.length() - 1));
+        update.setBatchName(batchName);
         // 更新数据库状态
         update.setId(pushMain.getId());
         customerInfoPushMainMapper.updateByPrimaryKeySelective(update);
     }
 
     private void handleOperateTypeFive(ThreadPoolExecutor pushPool, SyncOperateTypeDTO operateTypeDTO, String condition, CustomerInfoPushMain
-                                               pushMain,
-                                       Long rePushCount, Map<String, AtomicInteger> custNumMap, List<Future<Boolean>> resList) {
+            pushMain, Long rePushCount, Map<String, AtomicInteger> custNumMap, List<Future<Boolean>> resList, Set<String> batchNameSet) {
         String apiCode = pushMain.getmApiCode();
         String operateType = operateTypeDTO.getOperateType();
         String appletDate = operateTypeDTO.getAppletDate();
         String userType = operateTypeDTO.getUserType();
         Date createTime = LocalDate.now().toString().equals(appletDate) ? pushMain.getCreateTime() : null;
         CustomerTagsVO tags = customerTagsProcessService.getTags(apiCode);
-        List<PushMarketingUserDetailByRuleDTO> pushList = new ArrayList<>();
         Long minId = null;
         while (true) {
             List<MarketingSyncUser> syncUsers = marketingSyncInfoMapper.getMarketingSyncByCondition(apiCode, operateType, appletDate, userType, createTime, condition, minId);
             if (CollectionUtils.isEmpty(syncUsers)) {
                 break;
             }
+            List<PushMarketingUserDetailByRuleDTO> pushList = new ArrayList<>();
             // 遍历syncUsers，将custNum+userType作为key，AtomicInteger自增作为value
             for (MarketingSyncUser syncUser : syncUsers) {
                 String key = syncUser.getCustNum() + "_" + syncUser.getUserType();
@@ -438,6 +428,9 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
                 AbstractBaseAiToPolicy abstractBaseAiToPolicy = (AbstractBaseAiToPolicy) strategyFactory.getStrategy(operateType + "_RE");
                 pushList.add(abstractBaseAiToPolicy.assembleData(syncUser, context));
             }
+            //组装batchName
+            Set<String> batchNames = pushList.stream().map(ruleDTO -> ruleDTO.getBatchName()).collect(Collectors.toSet());
+            batchNameSet.addAll(batchNames);
             minId = syncUsers.get(syncUsers.size() - 1).getId();
             resList.add(pushPool.submit(() -> uploadPushPolicy(pushList, pushMain)));
         }
@@ -456,8 +449,7 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
     }
 
     private void handleOperateTypeSix(ThreadPoolExecutor pushPool, SyncOperateTypeDTO operateTypeDTO, String condition, CustomerInfoPushMain
-                                              pushMain,
-                                      Long rePushCount, Map<String, AtomicInteger> cellMap, List<Future<Boolean>> resList) {
+            pushMain, Long rePushCount, Map<String, AtomicInteger> cellMap, List<Future<Boolean>> resList, Set<String> batchNameSet) {
         String apiCode = pushMain.getmApiCode();
         String operateType = operateTypeDTO.getOperateType();
         String appletDate = operateTypeDTO.getAppletDate();
@@ -465,12 +457,12 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
         Date createTime = LocalDate.now().toString().equals(appletDate) ? pushMain.getCreateTime() : null;
         CustomerTagsVO tags = customerTagsProcessService.getTags(apiCode);
         Long minId = null;
-        List<PushMarketingUserDetailByRuleDTO> pushList = new ArrayList<>();
         while (true) {
             List<MarketingSyncUser> syncUsers = marketingSyncInfoMapper.getMarketingSyncByCondition(apiCode, operateType, appletDate, userType, createTime, condition, minId);
             if (CollectionUtils.isEmpty(syncUsers)) {
                 break;
             }
+            List<PushMarketingUserDetailByRuleDTO> pushList = new ArrayList<>();
             // 遍历syncUsers，将cell+userType作为key，AtomicInteger自增作为value
             for (MarketingSyncUser syncUser : syncUsers) {
                 String key = syncUser.getCell() + "_" + syncUser.getUserType();
@@ -483,6 +475,9 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
                 AbstractBaseAiToPolicy abstractBaseAiToPolicy = (AbstractBaseAiToPolicy) strategyFactory.getStrategy(operateType + "_RE");
                 pushList.add(abstractBaseAiToPolicy.assembleData(syncUser, context));
             }
+            //组装batchName
+            Set<String> batchNames = pushList.stream().map(ruleDTO -> ruleDTO.getBatchName()).collect(Collectors.toSet());
+            batchNameSet.addAll(batchNames);
             minId = syncUsers.get(syncUsers.size() - 1).getId();
             resList.add(pushPool.submit(() -> uploadPushPolicy(pushList, pushMain)));
 
@@ -490,8 +485,7 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
     }
 
     private void handleOperateTypeFour(ThreadPoolExecutor pushPool, SyncOperateTypeDTO operateTypeDTO, String condition, CustomerInfoPushMain
-                                               pushMain,
-                                       Long rePushCount, List<Future<Boolean>> resList) {
+            pushMain, Long rePushCount, List<Future<Boolean>> resList, Set<String> batchNameSet) {
         String apiCode = pushMain.getmApiCode();
         String operateType = operateTypeDTO.getOperateType();
         String appletDate = operateTypeDTO.getAppletDate();
@@ -499,12 +493,12 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
         Date createTime = LocalDate.now().toString().equals(appletDate) ? pushMain.getCreateTime() : null;
         CustomerTagsVO tags = customerTagsProcessService.getTags(apiCode);
         Long minId = null;
-        List<PushMarketingUserDetailByRuleDTO> pushList = new ArrayList<>();
         while (true) {
             List<MarketingSyncUser> syncUsers = marketingSyncInfoMapper.getMarketingSyncByCondition(apiCode, operateType, appletDate, userType, createTime, condition, minId);
             if (CollectionUtils.isEmpty(syncUsers)) {
                 break;
             }
+            List<PushMarketingUserDetailByRuleDTO> pushList = new ArrayList<>();
             for (MarketingSyncUser syncUser : syncUsers) {
                 syncUser.setReserveField1(setExtendField(syncUser.getReserveField1(), "rePushNum", rePushCount));
                 ProcessHandlerContext context = new ProcessHandlerContext();
@@ -513,14 +507,16 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
                 AbstractBaseAiToPolicy abstractBaseAiToPolicy = (AbstractBaseAiToPolicy) strategyFactory.getStrategy(operateType + "_RE");
                 pushList.add(abstractBaseAiToPolicy.assembleData(syncUser, context));
             }
+            //组装batchName
+            Set<String> batchNames = pushList.stream().map(ruleDTO -> ruleDTO.getBatchName()).collect(Collectors.toSet());
+            batchNameSet.addAll(batchNames);
             minId = syncUsers.get(syncUsers.size() - 1).getId();
             resList.add(pushPool.submit(() -> uploadPushPolicy(pushList, pushMain)));
         }
     }
 
     private void handleOperateTypeThree(ThreadPoolExecutor pushPool, SyncOperateTypeDTO operateTypeDTO, String condition, CustomerInfoPushMain
-                                                pushMain
-            , Long rePushCount, List<Future<Boolean>> resList) {
+            pushMain, Long rePushCount, List<Future<Boolean>> resList, Set<String> batchNameSet) {
         String apiCode = pushMain.getmApiCode();
         String operateType = operateTypeDTO.getOperateType();
         String appletDate = operateTypeDTO.getAppletDate();
@@ -528,12 +524,12 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
         Date createTime = LocalDate.now().toString().equals(appletDate) ? pushMain.getCreateTime() : null;
         CustomerTagsVO tags = customerTagsProcessService.getTags(apiCode);
         Long minId = null;
-        List<PushMarketingUserDetailByRuleDTO> pushList = new ArrayList<>();
         while (true) {
             List<MarketingSyncUser> syncUsers = marketingSyncInfoMapper.getMarketingSyncByCondition(apiCode, operateType, appletDate, userType, createTime, condition, minId);
             if (CollectionUtils.isEmpty(syncUsers)) {
                 break;
             }
+            List<PushMarketingUserDetailByRuleDTO> pushList = new ArrayList<>();
             for (MarketingSyncUser syncUser : syncUsers) {
                 syncUser.setReserveField1(setExtendField(syncUser.getReserveField1(), "rePushNum", rePushCount));
                 ProcessHandlerContext context = new ProcessHandlerContext();
@@ -542,6 +538,9 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
                 AbstractBaseAiToPolicy abstractBaseAiToPolicy = (AbstractBaseAiToPolicy) strategyFactory.getStrategy(operateType + "_RE");
                 pushList.add(abstractBaseAiToPolicy.assembleData(syncUser, context));
             }
+            //组装batchName
+            Set<String> batchNames = pushList.stream().map(ruleDTO -> ruleDTO.getBatchName()).collect(Collectors.toSet());
+            batchNameSet.addAll(batchNames);
             minId = syncUsers.get(syncUsers.size() - 1).getId();
             resList.add(pushPool.submit(() ->
                     uploadPushPolicy(pushList, pushMain)));
