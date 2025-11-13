@@ -7,6 +7,7 @@ import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.ValidityPeriodDataService;
 import com.br.marketing.service.ZhongYuanService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import cn.hutool.core.lang.Pair;
@@ -106,7 +107,6 @@ public class ZhongYuanTransferDataToCustomerFirstTimeJob extends AbstractSimpleE
     private void modifyCorePoolSize(ThreadPoolExecutor pool){
         Integer threadNum =
                 marketingCommonConfig.getZhongYuanTransferDataToDaasAndCustomerFilterThreadNum();
-        pool.setCorePoolSize(threadNum);
-        pool.setMaximumPoolSize(threadNum);
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(pool, threadNum);
     }
 }

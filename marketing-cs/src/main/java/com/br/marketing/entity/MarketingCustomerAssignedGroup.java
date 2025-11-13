@@ -1,8 +1,6 @@
 package com.br.marketing.entity;
 
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.util.Date;
 
@@ -27,6 +25,11 @@ public class MarketingCustomerAssignedGroup {
      * 当前索引
      */
     private Integer currentIndex;
+
+    /**
+     * 客户类型
+     */
+    private Integer customerType;
 
     /**
      * 创建时间
