@@ -6,6 +6,7 @@ import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.ZhongYuanService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
@@ -79,11 +80,7 @@ public class ZhongYuanTransferDataToCustomerNotFirstTimeJob extends AbstractSimp
         }
     }
     private void dealTransferDataWithThread(ThreadPoolExecutor zhongYuanTransferToDaasAndCustomerFilterThreadPool, List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
-        zhongYuanTransferToDaasAndCustomerFilterThreadPool
-                .setCorePoolSize(marketingCommonConfig.getZhongYuanTransferDataToDaasAndCustomerFilterThreadNum());
-        zhongYuanTransferToDaasAndCustomerFilterThreadPool
-                .setMaximumPoolSize(marketingCommonConfig.getZhongYuanTransferDataToDaasAndCustomerFilterThreadNum());
-
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(zhongYuanTransferToDaasAndCustomerFilterThreadPool, marketingCommonConfig.getZhongYuanTransferDataToDaasAndCustomerFilterThreadNum());
         zhongYuanTransferToDaasAndCustomerFilterThreadPool.execute(() -> threadDoProcess(marketingTransferSyncUserList));
     }
     /**
