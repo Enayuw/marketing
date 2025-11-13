@@ -485,15 +485,17 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     /**
      * 字段样例查询
      * @param apiCode API编码
+     * @param systemType 数据来源
      * @param dataType 数据类型：0上传，1转化
      * @param acceptType 接口类型：0通用,1定制,2FTP
      * @return 字段样例列表
      */
     @Override
-    public String getpreviewField(String apiCode, Integer dataType, Integer acceptType) {
+    public String getpreviewField(String apiCode, Integer systemType, Integer dataType, Integer acceptType) {
         MarketingJsonNodeParseExample nodeExample = new MarketingJsonNodeParseExample();
         nodeExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
+                .andSystemTypeEqualTo(systemType)
                 .andDataTypeEqualTo(dataType)
                 .andAcceptTypeEqualTo(acceptType)
                 .andLevelEqualTo(0);

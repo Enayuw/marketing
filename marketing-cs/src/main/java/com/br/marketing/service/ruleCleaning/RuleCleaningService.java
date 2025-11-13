@@ -72,7 +72,7 @@ public interface RuleCleaningService {
      * @param acceptType 接口类型：0通用,1定制,2FTP
      * @return 字段样例列表
      */
-    String getpreviewField(@Validated String apiCode, @Validated Integer dataType, @Validated Integer acceptType);
+    String getpreviewField(@Validated String apiCode,@Validated Integer systemType, @Validated Integer dataType, @Validated Integer acceptType);
 
     /**
      * 预览字段清洗结果
