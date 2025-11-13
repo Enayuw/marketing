@@ -196,7 +196,7 @@
     set cid = #{record.cid,jdbcType=VARCHAR},
     assigned_group = #{record.assignedGroup,jdbcType=VARCHAR},
     current_index = #{record.currentIndex,jdbcType=INTEGER},
-    customer_type = #{record.customerType,jdbcType=INTEGER},
+    customer_type = #{record.customerType,jdbcType=INTEGER}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>

@@ -33,8 +33,7 @@ public class MarketingCustomerAssignedGroupServiceImpl implements IMarketingCust
 
     @Override
     public void assignGroup(String cid, String group, String apiCode) {
-        CustomerEnum customerType = StringUtils.startsWith(apiCode, "4") ? CustomerEnum.INNER_TEST :
-                (StringUtils.startsWith(cid, "-") ? CustomerEnum.TEST : CustomerEnum.PROD);
+        CustomerEnum customerType = getCustomerEnum(cid, apiCode);
         try {
             MarketingCustomerAssignedGroup assignedGroup = marketingCustomerAssignedGroupMapper.getAssignedGroupByCid(cid);
             if (Objects.isNull(assignedGroup)) {
@@ -63,6 +62,16 @@ public class MarketingCustomerAssignedGroupServiceImpl implements IMarketingCust
             }
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.POLLING_GROUP_EXCEPTION.getCode(), "项目轮询开发组异常"));
+        }
+    }
+
+    private static CustomerEnum getCustomerEnum(String cid, String apiCode) {
+        if (StringUtils.startsWith(apiCode, "4")) {
+            return CustomerEnum.INNER_TEST;
+        } else if (StringUtils.startsWith(apiCode, "3") && !StringUtils.startsWith(cid, "-")) {
+            return CustomerEnum.PROD;
+        } else {
+            return CustomerEnum.TEST;
         }
     }
 
