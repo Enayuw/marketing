@@ -4,9 +4,9 @@
 
     <insert id="batchInsert" parameterType="java.util.List">
         INSERT INTO `b_marketing_industry_template_json_parse` (
-        `template_type`,
         `interface_template_id`,
         `interface_template_name`,
+        `system_type`,
         `data_type`,
         `accept_type`,
         `node_name`,
@@ -20,9 +20,9 @@
         ) VALUES
         <foreach collection="list" item="item" separator=",">
             (
-            #{item.templateType},
             #{item.interfaceTemplateId},
             #{item.interfaceTemplateName},
+            #{item.systemType},
             #{item.dataType},
             #{item.acceptType},
             #{item.nodeName},
