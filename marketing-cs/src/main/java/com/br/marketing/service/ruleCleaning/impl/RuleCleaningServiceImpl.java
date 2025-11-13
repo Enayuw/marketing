@@ -1819,6 +1819,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         MarketingJsonNodeParseExample nodeExample = new MarketingJsonNodeParseExample();
         nodeExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
+                .andSystemTypeEqualTo(systemType)
                 .andDataTypeEqualTo(dataType)
                 .andAcceptTypeEqualTo(acceptType);
         List<MarketingJsonNodeParse> nodes = jsonNodeParseMapper.selectByExample(nodeExample);
