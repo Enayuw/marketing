@@ -8,7 +8,7 @@ import java.util.Set;
 
 public interface IMarketingCustomerAssignedGroupService {
 
-    void assignGroup(String cid, String assignedGroup);
+    void assignGroup(String cid, String assignedGroup, String apiCode);
 
     String getAssignedGroupByApiCode(String apiCode);
 

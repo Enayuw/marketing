@@ -276,7 +276,7 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
             marketingCustomer.setId(vo.getId());
             marketingCustomerMapper.updateByPrimaryKeySelective(marketingCustomer);
         }
-        marketingCustomerAssignedGroupService.assignGroup(vo.getCid(), vo.getAssignedGroup());
+        marketingCustomerAssignedGroupService.assignGroup(vo.getCid(), vo.getAssignedGroup(), vo.getApiCode());
         customerTagsProcessService.delTagsOfRedis(vo.getApiCode());
         return new ApiResult<Boolean>().success(true);
     }
