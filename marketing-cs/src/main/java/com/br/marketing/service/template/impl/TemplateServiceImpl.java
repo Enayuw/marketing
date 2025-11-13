@@ -117,6 +117,7 @@ public class TemplateServiceImpl implements TemplateService {
         try {
             if (marketingIndustryTemplateJsonParseList != null && !marketingIndustryTemplateJsonParseList.isEmpty()) {
                 //更新模板信息
+                marketingIndustryTemplate.setUpdateTime(new Date());
                 marketingIndustryTemplateMapper.updateByPrimaryKey(marketingIndustryTemplate);
 
                 //先全量删除jsonParse数据
@@ -125,6 +126,10 @@ public class TemplateServiceImpl implements TemplateService {
                 marketingIndustryTemplateJsonParseMapper.deleteByExample(jsonParseExample);
 
                 //jsonParse数据重新入库
+                marketingIndustryTemplateJsonParseList.forEach(marketingIndustryTemplateJsonParse -> {
+                    marketingIndustryTemplateJsonParse.setCreateTime(new Date());
+                    marketingIndustryTemplateJsonParse.setUpdateTime(new Date());
+                });
                 marketingIndustryTemplateJsonParseMapper.batchInsert(marketingIndustryTemplateJsonParseList);
                 logger.warn("修改行业模板成功，行业模板id：{}", marketingIndustryTemplate.getId());
                 return new Result<Boolean>().success().setDate(Boolean.TRUE);
