@@ -27,7 +27,7 @@ public class DataCleanApiController {
     private DataCleanService dataCleanService;
 
     @ApiOperation(value = "数据清洗通用接口", notes = "数据清洗通用接口")
-    @PostMapping(name = "/commonClean")
+    @PostMapping(value = "/commonClean")
     public ApiResult commonClean(@RequestBody DataCleanDTO dataCleanDTO) {
 
         Result result = dataCleanService.commonClean(dataCleanDTO);
