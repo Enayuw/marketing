@@ -1,30 +1,38 @@
 package com.br.marketing.service.Impl;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.dto.LineBaseFullInfoDto;
+import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.LineAccountDetailDbDTO;
+import com.br.marketing.dto.LineAccountDetailShowDTO;
+import com.br.marketing.dto.LineBaseFullInfoDTO;
 import com.br.marketing.dto.LineBaseShowInfoDto;
 import com.br.marketing.dto.account.LineAccountDto;
 import com.br.marketing.dto.account.LineCallerDto;
 import com.br.marketing.dto.account.PriceDateDTO;
+import com.br.marketing.entity.LineBaseInfoNormal;
+import com.br.marketing.entity.LineSupplierInfoNormal;
+import com.br.marketing.entity.MarketingLineAccountRecord;
 import com.br.marketing.mapper.LineAccountDetailNormalMapper;
 import com.br.marketing.mapper.LineBaseInfoNormalMapper;
 import com.br.marketing.mapper.LineSupplierInfoNormalMapper;
 import com.br.marketing.mapper.MarketingLineAccountDetailMapper;
 import com.br.marketing.service.LineSmsAccountDataNormalService;
-import com.br.marketing.service.LineSmsAccountDataService;
 import com.br.marketing.service.LineSmsAccountNormalService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.sql.Date;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,15 +54,15 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
     private LineAccountDetailNormalMapper lineAccountDetailNormalMapper;
 
     @Resource
-    private LineSupplierInfoNormalMapper    lineSmsAccountNormalService;
+    private LineSupplierInfoNormalMapper    lineSupplierInfoNormalMapper;
 
     @Override
     public ApiResult getLineAccountBasInfo() {
         ApiResult apiResult = new ApiResult().success();
-        List<LineBaseFullInfoDto> lineBaseFullInfoDtoList = lineBaseInfoNormalMapper.selectLineBaeFullInfoList();
+        List<LineBaseFullInfoDTO> lineBaseFullInfoDtoList = lineBaseInfoNormalMapper.selectLineBaeFullInfoList();
         List<LineBaseShowInfoDto> lineBaseShowInfoDtoList = lineBaseFullInfoDtoList.stream()
                 .collect(Collectors.groupingBy(
-                        LineBaseFullInfoDto::getLineSupplier,
+                        LineBaseFullInfoDTO::getLineSupplier,
                         Collectors.mapping(this::convertToLineBaseInfo, Collectors.toList())))
                 .entrySet().stream()
                 .map(entry -> {
@@ -98,16 +106,70 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
                 priceDates.get(i).setEffectEndDate(priceDates.get(i + 1).getEffectStartDate().minusDays(1));
             }
         }
-        //TODO 5.事务保存->要拆分 直接存储程 多个单条的明细
+        //5.事务保存->要拆分 直接存储程 多个单条的明细
         lineSmsAccountDataNormalService.addLineAccount(dto);
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    @Override
+    public PageResultReturn getLineAccounts(Integer current, Integer size, String lineSupplier, String callerFullName, Double price) {
+        Date nowDate = new Date(System.currentTimeMillis());
+        Long lineSupplierId = lineSupplierInfoNormalMapper.selectIdByLineSupplier(lineSupplier);
+        Long gatewayId =0L;
+        if (StringUtils.isNotEmpty(callerFullName)) {
+            int lastDashIndex = callerFullName.lastIndexOf('-');
+            gatewayId = lineBaseInfoNormalMapper.selectIdByFiled(callerFullName.substring(0, lastDashIndex),callerFullName.substring(lastDashIndex + 1));
+        }
+        gatewayId = gatewayId == null?0:gatewayId;
+        Long totalCount = lineAccountDetailNormalMapper.selectTotalCount(nowDate);
+        List<LineAccountDetailDbDTO> detailDbDtoList = lineAccountDetailNormalMapper.selectList(lineSupplierId,gatewayId,price,nowDate,size,Math.max((current - 1) * size, 0));
+        return PageResultReturn.setPageResult(converToShowDTOList(detailDbDtoList), current, size, totalCount);
+
+    }
+
+    @Override
+    public List<LineAccountDetailShowDTO> getLineAccountsByGroupId(Long groupId) {
+        List<LineAccountDetailDbDTO> detailDbDtoList = lineAccountDetailNormalMapper.selectListByGroupId(groupId);
+        return converToShowDTOList(detailDbDtoList);
+    }
+
+
+    /**
+     * //detailDbDtoList -> showDtoList
+     * @param detailDbDtoList
+     * @return
+     */
+    private List<LineAccountDetailShowDTO> converToShowDTOList(List<LineAccountDetailDbDTO> detailDbDtoList) {
+        List<LineAccountDetailShowDTO> detailShowDTOList = new ArrayList<>();
+        detailDbDtoList.forEach(dto -> {
+            LineAccountDetailShowDTO showDTOItem = new LineAccountDetailShowDTO();
+            BeanUtils.copyProperties(dto, showDTOItem);
+            LineSupplierInfoNormal lineSupplierItem = lineSupplierInfoNormalMapper.selectByPrimaryKey(dto.getLineSupplierId());
+            showDTOItem.setLineSupplier(lineSupplierItem.getLineSupplier());
+
+            JSONArray linesInfo = new JSONArray();
+            List<Long> gatewayIdList = Arrays.stream(dto.getGatewayIds().split(","))
+                    .map(String::trim)
+                    .map(Long::valueOf)
+                    .collect(Collectors.toList());
+            List<LineBaseInfoNormal> baseInfoNormalList = lineBaseInfoNormalMapper.selectByIdList(gatewayIdList);
+            baseInfoNormalList.forEach(baseItem -> {
+                JSONObject lineObj = new JSONObject();
+                lineObj.put("gatewayId", baseItem.getGatewayId());
+                lineObj.put("callerFullname", baseItem.getProjectName()+"-"+baseItem.getCaller());
+                linesInfo.add(lineObj);
+            });
+            showDTOItem.setLinesInfo(linesInfo.toJSONString());
+            detailShowDTOList.add(showDTOItem);
+        });
+        return detailShowDTOList;
     }
 
 
     /**
      * 将 LineBaseFullInfoDto 转换为 LineBaseInfo
      */
-    private LineBaseShowInfoDto.LineBaseInfo convertToLineBaseInfo(LineBaseFullInfoDto fullInfo) {
+    private LineBaseShowInfoDto.LineBaseInfo convertToLineBaseInfo(LineBaseFullInfoDTO fullInfo) {
         LineBaseShowInfoDto.LineBaseInfo baseInfo = new LineBaseShowInfoDto.LineBaseInfo();
         baseInfo.setGatewayId(fullInfo.getGatewayId());
         baseInfo.setCaller(fullInfo.getCaller());

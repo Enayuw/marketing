@@ -2,10 +2,13 @@ package com.br.marketing.service;
 
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.LineAccountDetailShowDTO;
 import com.br.marketing.dto.account.LineAccountDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import javax.validation.Valid;
+import java.util.List;
 
 public interface LineSmsAccountNormalService {
 
@@ -13,4 +16,7 @@ public interface LineSmsAccountNormalService {
 
     Result addLineAccount(@Valid LineAccountDto dto) throws JsonProcessingException;
 
+    PageResultReturn getLineAccounts(Integer current, Integer size, String lineSupplier, String callerFullName, Double price);
+
+    List<LineAccountDetailShowDTO> getLineAccountsByGroupId(Long groupId);
 }

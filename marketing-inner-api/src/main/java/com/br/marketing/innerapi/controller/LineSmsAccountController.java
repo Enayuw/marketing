@@ -4,6 +4,7 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.LineAccountDetailShowDTO;
 import com.br.marketing.dto.account.LineAccountDto;
 import com.br.marketing.dto.account.SmsAccountDto;
 import com.br.marketing.entity.MarketingDict;
@@ -199,15 +200,17 @@ public class LineSmsAccountController {
                                     @RequestParam(required = false) String lineSupplier,
                                     @RequestParam(required = false) String callerFullName,
                                     @RequestParam(required = false) Double price,
-                                    @RequestParam(required = false) String configIdStr) {
+                                    @RequestParam(required = false) String groupIdStr) {
         try {
             ApiResult apiResult = new ApiResult();
-            if (StringUtils.isNotEmpty(configIdStr)) {
-                Long configId = Long.parseLong(configIdStr);
-                List<MarketingLineAccountRecordVO> lineAccountRecordList = lineSmsAccountService.getLineAccountsByConfigId(configId);
-                apiResult = new ApiResult<List<MarketingLineAccountRecordVO>>().success(lineAccountRecordList);
+            if (StringUtils.isNotEmpty(groupIdStr)) {
+                Long groupId = Long.parseLong(groupIdStr);
+                //List<MarketingLineAccountRecordVO> lineAccountRecordList = lineSmsAccountService.getLineAccountsByConfigId(configId);
+                List<LineAccountDetailShowDTO> showDtoList = lineSmsAccountNormalService.getLineAccountsByGroupId(groupId);
+                apiResult = new ApiResult<List<LineAccountDetailShowDTO>>().success(showDtoList);
             }else{
-                PageResultReturn page = lineSmsAccountService.getLineAccounts(current,size,lineSupplier,callerFullName,price);
+                //PageResultReturn page = lineSmsAccountService.getLineAccounts(current,size,lineSupplier,callerFullName,price);
+                PageResultReturn page = lineSmsAccountNormalService.getLineAccounts(current,size,lineSupplier,callerFullName,price);
                 apiResult=  new ApiResult<PageResultReturn>().success(page);
             }
             return apiResult;

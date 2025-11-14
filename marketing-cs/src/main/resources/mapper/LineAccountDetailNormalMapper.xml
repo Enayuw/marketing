@@ -18,4 +18,70 @@
             </if>
             and is_delete = 0
     </select>
+
+    <select id="selectTotalCount" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM (
+                 SELECT
+                     group_id, price, effect_start_date
+                 FROM b_marketing_line_account_detail_normal
+                 WHERE
+                     is_delete = 0 AND enabled = 1  AND #{nowDate} BETWEEN effect_start_date AND effect_end_date
+                 GROUP BY group_id, price, effect_start_date
+             ) t;
+    </select>
+
+
+    <select id="selectList" resultType="com.br.marketing.dto.LineAccountDetailDbDTO">
+        SELECT
+            group_id,
+            line_supplier_id,
+            GROUP_CONCAT(DISTINCT gateway_id ORDER BY gateway_id SEPARATOR ',') as gateway_ids,
+            price,
+            effect_start_date,
+            effect_end_date,
+            create_time,
+            update_time,
+            enabled,
+            is_delete
+        FROM b_marketing_line_account_detail_normal
+        <where>
+            is_delete = 0
+            <if test="lineSupplierId!=null">
+                AND line_supplier_id = #{lineSupplierId}
+            </if>
+            <if test="price != null">
+                AND price = #{price}
+            </if>
+            <if test="nowDate !=null">
+                AND #{nowDate} BETWEEN effect_start_date AND effect_end_date
+            </if>
+        </where>
+        GROUP BY group_id, price, effect_start_date
+        <if test="gatewayId != null and gatewayId !=0">
+            HAVING FIND_IN_SET(#{gatewayId}, gateway_ids) > 0
+        </if>
+        ORDER BY update_time desc
+        LIMIT #{limitSize} OFFSET #{offset}
+    </select>
+
+    <select id="selectListByGroupId" resultType="com.br.marketing.dto.LineAccountDetailDbDTO">
+        SELECT
+        group_id,
+        line_supplier_id,
+        GROUP_CONCAT(DISTINCT gateway_id ORDER BY gateway_id SEPARATOR ',') as gateway_ids,
+        price,
+        effect_start_date,
+        effect_end_date,
+        create_time,
+        update_time,
+        enabled,
+        is_delete
+        FROM b_marketing_line_account_detail_normal
+        where
+            is_delete = 0
+            AND group_id = #{groupId}
+        GROUP BY group_id, price, effect_start_date
+        ORDER BY update_time desc
+    </select>
 </mapper>

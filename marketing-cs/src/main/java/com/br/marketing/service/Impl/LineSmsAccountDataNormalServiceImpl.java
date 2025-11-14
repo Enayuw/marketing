@@ -69,7 +69,7 @@ public class LineSmsAccountDataNormalServiceImpl implements LineSmsAccountDataNo
             }
         });
 
-        //TODO 对应日志保存 log->从ThreadContextInfo.getUser() 获取操作用户
+        //对应日志保存 log->从ThreadContextInfo.getUser() 获取操作用户
         LineAccountLogNormal  logItem = new LineAccountLogNormal();
         logItem.setGroupId(groupId);
         logItem.setLineSupplierId(lineSupplierId);

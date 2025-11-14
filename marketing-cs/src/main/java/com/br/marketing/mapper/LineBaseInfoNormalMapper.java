@@ -1,14 +1,15 @@
 package com.br.marketing.mapper;
 
 
-import com.br.marketing.dto.LineBaseFullInfoDto;
+import com.br.marketing.dto.LineBaseFullInfoDTO;
+import com.br.marketing.entity.LineBaseInfoNormal;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
 public interface LineBaseInfoNormalMapper extends LineBaseInfoNormalMapperBase{
 
-    List<LineBaseFullInfoDto> selectLineBaeFullInfoList();
+    List<LineBaseFullInfoDTO> selectLineBaeFullInfoList();
 
     void updateOnlyDbOpStatus(@Param("onlyInDbIdList") List<Long> onlyInDbIdList,
                               @Param("opeStatus") Integer opStatus);
@@ -19,4 +20,7 @@ public interface LineBaseInfoNormalMapper extends LineBaseInfoNormalMapperBase{
                              @Param("projectName") String projectName,
                              @Param("opeStatus") Integer opeStatus);
 
+    Long selectIdByFiled(@Param("projectName") String projectName, @Param("caller") String substring1);
+
+    List<LineBaseInfoNormal> selectByIdList(@Param("gatewayIdList") List<Long> gatewayIdList);
 }
