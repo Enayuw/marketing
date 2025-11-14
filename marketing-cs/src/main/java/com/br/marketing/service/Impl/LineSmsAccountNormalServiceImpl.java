@@ -25,14 +25,6 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
     @Resource
     private LineSupplierInfoNormalMapper    lineSmsAccountNormalService;
 
-    /**
-     * groupingBy(LineBaseFullInfoDto::getLineSupplier) 按 lineSupplier 字段分组
-     * 生成一个 Map<String, List<LineBaseFullInfoDto>> 的中间结构
-     * Collectors.mapping(this::convertToLineBaseInfo, Collectors.toList()) 对每个分组中的元素进行转换：
-     * this::convertToLineBaseInfo：将每个 LineBaseFullInfoDto 转换为 LineBaseInfo
-     * Collectors.toList()：将转换后的结果收集到 List 中
-     * @return
-     */
     @Override
     public ApiResult getLineAccountBasInfo() {
         ApiResult apiResult = new ApiResult().success();
@@ -40,8 +32,7 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
         List<LineBaseShowInfoDto> lineBaseShowInfoDtoList = lineBaseFullInfoDtoList.stream()
                 .collect(Collectors.groupingBy(
                         LineBaseFullInfoDto::getLineSupplier,
-                        Collectors.mapping(this::convertToLineBaseInfo, Collectors.toList())
-                ))
+                        Collectors.mapping(this::convertToLineBaseInfo, Collectors.toList())))
                 .entrySet().stream()
                 .map(entry -> {
                     LineBaseShowInfoDto dto = new LineBaseShowInfoDto();
