@@ -185,7 +185,6 @@ public class LineSmsAccountController {
     @GetMapping("/getLineAccountBasInfo")
     public ApiResult getLineAccountBasInfo() {
         try {
-            //return lineSmsAccountService.getLineAccountBasInfo();
             return lineSmsAccountNormalService.getLineAccountBasInfo();
         }catch (Exception e) {
             log.error(e.getMessage(), e);
