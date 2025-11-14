@@ -33,6 +33,7 @@ import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.clean.common.DataCleanService;
 import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
@@ -1019,10 +1020,13 @@ public class DataCleanServiceImpl implements DataCleanService {
             // 如果有层级字段，提取该字段对应的数组进行清洗
             List<JSONObject> jsonObjectLists = JsonParseUtils.parseJsonArrayByName(jsonObject, levelField);
             // 清洗数组中的数据
-            List<JSONObject> cleanedResults = dataCleanByRules(jsonObjectLists, marketingDataCleanGeneralRuleConfigList);
+            dataCleanByRules(jsonObjectLists, marketingDataCleanGeneralRuleConfigList);
             // 将清洗后的数组转换为JSONArray并直接替换原JSON对象中的字段
             JSONArray cleanedArray = new JSONArray();
-            cleanedArray.addAll(cleanedResults);
+            for (JSONObject cleanedJson : jsonObjectLists) {
+                JSONObject object = cleanedJson.getJSONObject(levelField);
+                cleanedArray.add(object);
+            }
             // 直接替换顶层的levelField字段，避免递归查找导致的问题
             jsonObject.put(levelField, cleanedArray);
             // 返回完整的JSON对象
