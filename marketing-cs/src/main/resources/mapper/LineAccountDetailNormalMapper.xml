@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.LineAccountDetailNormalMapper" >
+
+    <select id="selectLineIfExist" resultType="java.lang.Long">
+        select
+            gateway_id
+        from
+            b_marketing_line_account_detail_normal
+        where
+        gateway_id in
+            <foreach collection = "gatewayIds" item = "gatewayId" open = "(" separator = "," close = ")">
+                #{gatewayId}
+            </foreach>
+            <if test = "groupId != null and groupId !=''">
+                and group_id not in (
+                #{groupId})
+            </if>
+            and is_delete = 0
+    </select>
+</mapper>

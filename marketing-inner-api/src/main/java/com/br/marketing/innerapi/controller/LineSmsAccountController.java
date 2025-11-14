@@ -141,7 +141,7 @@ public class LineSmsAccountController {
     @PostMapping("/addLineAccount")
     public ApiResult addLineAccount(@RequestBody LineAccountDto dto) {
         try {
-            return new ApiResult().fromResult(lineSmsAccountService.addLineAccount(dto), CODE_1);
+            return new ApiResult().fromResult(lineSmsAccountNormalService.addLineAccount(dto), CODE_1);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
