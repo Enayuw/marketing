@@ -580,6 +580,7 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
                     taskInfoDTO.setMethod("caseAdd");
                     taskInfoDTO.setBatchNumber(batch);
                     taskInfoDTO.setStrategyCode(strategy);
+                    taskInfoDTO.setTaskId(pushMain.getId().toString());
                     if (!batchName.isEmpty()) {
                         taskInfoDTO.setBatchName(batchName);
                     }
