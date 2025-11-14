@@ -1,22 +1,18 @@
 package com.br.marketing.datarelayservice.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.br.marketing.client.RedisChgService;
 import com.br.marketing.datarelayservice.service.ZhongYuanUploadDataService;
 import com.br.marketing.dto.zhongyuan.*;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
 
 /**
  * @ClassName ZhongYuanUploadDataServiceImpl
@@ -29,26 +25,12 @@ import java.util.concurrent.TimeUnit;
 public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataService {
 
     @Resource
-    private RedisTemplate<String, String> redisTemplate;
-
-    private static final String TOKEN_PREFIX = "znwh:token:";
+    private RedisChgService redisChgService;
+    
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+    private static final String TOKEN_PREFIX = "zyxj:token:";
     private static final long TOKEN_EXPIRE_TIME = 7200; // 2小时
-
-
-    /**
-     * appUser配置（从配置文件读取）
-     */
-    @Value("${zhongyuan.appUser:zyxfjr_coll}")
-    private String configAppUser;
-
-    /**
-     * appKey配置（从配置文件读取）
-     */
-    @Value("${zhongyuan.appKey:87C5FCB80F872B8D67BA3306BB09157C}")
-    private String configAppKey;
-
-    private static final String SCENE_VARIABLE_CACHE_PREFIX = "znwh:scene:variable:";
-    private static final long SCENE_VARIABLE_CACHE_TIME = 3600; // 1小时
 
     @Override
     public ZhongYuanBaseResponse<?> login(String jsonData, HttpServletRequest request) {
@@ -128,8 +110,6 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
                 String errorMsg = e.getMessage();
                 if (errorMsg.contains("1000002")) {
                     return ZhongYuanBaseResponse.fail("1000002", errorMsg.substring(errorMsg.indexOf(":") + 1));
-                } else if (errorMsg.contains("1000003")) {
-                    return ZhongYuanBaseResponse.fail("1000003", errorMsg.substring(errorMsg.indexOf(":") + 1));
                 }
                 return ZhongYuanBaseResponse.fail("1000002", "Token无效");
             }
@@ -191,11 +171,8 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
 
             // 2. Token验证
             String token = baseRequest.getToken();
-            if (!StringUtils.hasText(token)) {
-                token = request.getParameter("token");
-            }
-            if (!StringUtils.hasText(token)) {
-                return ZhongYuanBaseResponse.fail("1000002", "Token无效");
+            if (StringUtils.isEmpty(token)) {
+                return ZhongYuanBaseResponse.fail("1000002", "Token为空");
             }
 
             try {
@@ -204,8 +181,6 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
                 String errorMsg = e.getMessage();
                 if (errorMsg.contains("1000002")) {
                     return ZhongYuanBaseResponse.fail("1000002", errorMsg.substring(errorMsg.indexOf(":") + 1));
-                } else if (errorMsg.contains("1000003")) {
-                    return ZhongYuanBaseResponse.fail("1000003", errorMsg.substring(errorMsg.indexOf(":") + 1));
                 }
                 return ZhongYuanBaseResponse.fail("1000002", "Token无效");
             }
@@ -217,7 +192,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
                 return ZhongYuanBaseResponse.fail("1000001", "参数错误：场景代码为空");
             }
 
-            // 4. 查询场景变量（先查缓存，再查数据库）
+            // 4. 查询场景变量
             List<SceneVariableResponse> sceneVariableList = getSceneVariables(sceneData.getSceneCode());
 
             // 5. 构建响应
@@ -243,6 +218,9 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
      */
     private boolean validateCredentials(String appUser, String appKey) {
         // 从配置文件读取的appUser和appKey进行验证
+        Map<String, String> zhongYuanIdentity = marketingCommonConfig.getZhongYuanIdentity();
+        String configAppUser = zhongYuanIdentity.get("appUser");
+        String configAppKey = zhongYuanIdentity.get("appKey");
         return configAppUser.equals(appUser) && configAppKey.equals(appKey);
     }
 
@@ -253,46 +231,14 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
      * @return 场景变量列表
      */
     private List<SceneVariableResponse> getSceneVariables(String sceneCode) {
-        // 1. 先查缓存
-        String cacheKey = SCENE_VARIABLE_CACHE_PREFIX + sceneCode;
-        String cachedData = redisTemplate.opsForValue().get(cacheKey);
-
-        if (StringUtils.hasText(cachedData)) {
-            log.debug("从缓存获取场景变量，sceneCode: {}", sceneCode);
-            return JSON.parseArray(cachedData, SceneVariableResponse.class);
-        }
-
-        // 2. 查询数据库（这里使用固定数据，实际应该从数据库查询）
-        List<SceneVariableResponse> variableList = getDefaultSceneVariables(sceneCode);
-
-        // 3. 缓存结果
-        if (variableList != null && !variableList.isEmpty()) {
-            redisTemplate.opsForValue().set(cacheKey, JSON.toJSONString(variableList),
-                    SCENE_VARIABLE_CACHE_TIME, TimeUnit.SECONDS);
-        }
-
-        return variableList;
-    }
-
-    /**
-     * 获取默认场景变量（SC_IVR场景）
-     *
-     * @param sceneCode 场景代码
-     * @return 场景变量列表
-     */
-    private List<SceneVariableResponse> getDefaultSceneVariables(String sceneCode) {
+        // 查询数据库（这里使用固定数据，实际应该从数据库查询）
         List<SceneVariableResponse> variableList = new ArrayList<>();
-
-        if ("SC_IVR".equals(sceneCode)) {
-            // SC_IVR场景的变量配置
-            variableList.add(createSceneVariable("custName", "客户姓名", null));
-            variableList.add(createSceneVariable("gender", "客户性别", null));
-            variableList.add(createSceneVariable("overDays", "逾期天数", null));
-            variableList.add(createSceneVariable("overAmt", "逾期金额", null));
-            variableList.add(createSceneVariable("compName", "企业名称", "中原消费金融"));
-            variableList.add(createSceneVariable("compTel", "客服电话", "4001112233"));
-        }
-
+        variableList.add(createSceneVariable("custName", "客户姓名", null));
+        variableList.add(createSceneVariable("gender", "客户性别", null));
+        variableList.add(createSceneVariable("overDays", "逾期天数", null));
+        variableList.add(createSceneVariable("overAmt", "逾期金额", null));
+        variableList.add(createSceneVariable("compName", "企业名称", "中原消费金融"));
+        variableList.add(createSceneVariable("compTel", "客服电话", "4001112233"));
         return variableList;
     }
 
@@ -365,7 +311,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
      */
     public void saveToken(String token) {
         String tokenKey = TOKEN_PREFIX + token;
-        redisTemplate.opsForValue().set(tokenKey, token, TOKEN_EXPIRE_TIME, TimeUnit.SECONDS);
+        redisChgService.setex(tokenKey, token, (int) TOKEN_EXPIRE_TIME);
         log.warn("Token存储成功，token: {}", token);
     }
 
@@ -388,7 +334,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
 
         // 3. 从Redis获取Token
         String tokenKey = TOKEN_PREFIX + token;
-        String storedToken = redisTemplate.opsForValue().get(tokenKey);
+        String storedToken = redisChgService.get(tokenKey);
 
         if (!StringUtils.hasText(storedToken)) {
             throw new RuntimeException("1000002:Token无效或已过期");
@@ -400,8 +346,8 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
         }
 
         // 5. 更新过期时间（续期）
-        redisTemplate.expire(tokenKey, TOKEN_EXPIRE_TIME, TimeUnit.SECONDS);
-        log.debug("Token校验成功，token: {}", token);
+        redisChgService.setex(tokenKey, token, (int) TOKEN_EXPIRE_TIME);
+        log.warn("Token校验成功，token: {}", token);
     }
 
     /**
