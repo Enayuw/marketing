@@ -7,6 +7,7 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.account.LineAccountDto;
 import com.br.marketing.dto.account.SmsAccountDto;
 import com.br.marketing.entity.MarketingDict;
+import com.br.marketing.service.LineSmsAccountNormalService;
 import com.br.marketing.service.LineSmsAccountService;
 import com.br.marketing.vo.MarketingLineAccountRecordVO;
 import com.br.marketing.vo.MarketingSmsAccountRecordVo;
@@ -31,6 +32,9 @@ public class LineSmsAccountController {
 
     @Resource
     LineSmsAccountService lineSmsAccountService;
+
+    @Resource
+    LineSmsAccountNormalService lineSmsAccountNormalService;
 
     private static final Logger log = LoggerFactory.getLogger(LineSmsAccountController.class);
 
@@ -181,7 +185,8 @@ public class LineSmsAccountController {
     @GetMapping("/getLineAccountBasInfo")
     public ApiResult getLineAccountBasInfo() {
         try {
-            return lineSmsAccountService.getLineAccountBasInfo();
+            //return lineSmsAccountService.getLineAccountBasInfo();
+            return lineSmsAccountNormalService.getLineAccountBasInfo();
         }catch (Exception e) {
             log.error(e.getMessage(), e);
             return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
