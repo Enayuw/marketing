@@ -4,9 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.dto.account.*;
-import com.br.marketing.entity.LineAccountDetailNormal;
-import com.br.marketing.entity.LineAccountLogNormal;
-import com.br.marketing.entity.MarketingLineAccountLog;
+import com.br.marketing.entity.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.enums.OpeTypeEnum;
 import com.br.marketing.mapper.LineAccountDetailNormalMapper;
@@ -15,6 +13,7 @@ import com.br.marketing.mapper.LineSupplierInfoNormalMapper;
 import com.br.marketing.service.LineSmsAccountDataNormalService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +27,12 @@ import java.util.stream.Collectors;
 
 @Service
 public class LineSmsAccountDataNormalServiceImpl implements LineSmsAccountDataNormalService {
+
+    //禁用
+    private static final Integer ENABLED_FORB = 0;
+
+    //启用
+    private static final Integer ENABLED_ACT = 1;
 
 
     @Resource
@@ -80,6 +85,55 @@ public class LineSmsAccountDataNormalServiceImpl implements LineSmsAccountDataNo
         userRecord(logItem);
         logItem.setOpeType(OpeTypeEnum.OPE_TYPE_INS.getType());
         lineAccountLogNormalMapper.insertSelective(logItem);
+    }
+
+    @Override
+    @Transactional
+    public void forbLineAccount(Long groupId) {
+        //2.禁用detail
+        LineAccountDetailNormalExample accountDetailNormalExample = new LineAccountDetailNormalExample();
+        accountDetailNormalExample.createCriteria().andGroupIdEqualTo(groupId).andIsDeleteEqualTo(0);
+        LineAccountDetailNormal updateAccountDetailNormal = new LineAccountDetailNormal();
+        updateAccountDetailNormal.setEnabled(ENABLED_FORB);
+        lineAccountDetailNormalMapper.updateByExampleSelective(updateAccountDetailNormal, accountDetailNormalExample);
+
+        //3.新增禁用日志
+        LineAccountLogNormalExample logNormalExample = new LineAccountLogNormalExample();
+        logNormalExample.createCriteria().andGroupIdEqualTo(groupId).andIsDeleteEqualTo(0);
+        logNormalExample.setOrderByClause("create_time desc limit 1");
+        LineAccountLogNormal oldLogNormal = lineAccountLogNormalMapper.selectByExample(logNormalExample).get(0);
+        LineAccountLogNormal newLogNormal = new LineAccountLogNormal();
+        BeanUtils.copyProperties(oldLogNormal, newLogNormal);
+        newLogNormal.setId(null);
+        userRecord(newLogNormal);
+        newLogNormal.setOpeType(OpeTypeEnum.OPE_TYPE_FOB.getType());
+        newLogNormal.setCreateTime(null);
+        newLogNormal.setUpdateTime(null);
+        lineAccountLogNormalMapper.insertSelective(newLogNormal);
+    }
+
+    @Override
+    @Transactional
+    public void allowLineAccount(Long groupId) {
+        //2.启用detail
+        LineAccountDetailNormalExample accountDetailNormalExample = new LineAccountDetailNormalExample();
+        accountDetailNormalExample.createCriteria().andGroupIdEqualTo(groupId).andIsDeleteEqualTo(0);
+        LineAccountDetailNormal updateAccountDetailNormal = new LineAccountDetailNormal();
+        updateAccountDetailNormal.setEnabled(ENABLED_ACT);
+        lineAccountDetailNormalMapper.updateByExampleSelective(updateAccountDetailNormal, accountDetailNormalExample);
+        //3.新增启用日志
+        LineAccountLogNormalExample logNormalExample = new LineAccountLogNormalExample();
+        logNormalExample.createCriteria().andGroupIdEqualTo(groupId).andIsDeleteEqualTo(0);
+        logNormalExample.setOrderByClause("create_time desc limit 1");
+        LineAccountLogNormal oldLogNormal = lineAccountLogNormalMapper.selectByExample(logNormalExample).get(0);
+        LineAccountLogNormal newLogNormal = new LineAccountLogNormal();
+        BeanUtils.copyProperties(oldLogNormal, newLogNormal);
+        newLogNormal.setId(null);
+        userRecord(newLogNormal);
+        newLogNormal.setOpeType(OpeTypeEnum.OPE_TYPE_ALLOW.getType());
+        newLogNormal.setCreateTime(null);
+        newLogNormal.setUpdateTime(null);
+        lineAccountLogNormalMapper.insertSelective(newLogNormal);
     }
 
     private void userRecord(LineAccountLogNormal logItem) {

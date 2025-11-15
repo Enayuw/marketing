@@ -161,9 +161,9 @@ public class LineSmsAccountController {
 
     @ApiOperation(value = "线路对账配置禁用")
     @PatchMapping("/forbLineAccount")
-    public ApiResult forbLineAccount(@RequestParam Long configId) {
+    public ApiResult forbLineAccount(@RequestParam Long groupId) {
         try {
-            return new ApiResult().fromResult(lineSmsAccountService.forbLineAccount(configId), CODE_1);
+            return new ApiResult().fromResult(lineSmsAccountNormalService.forbLineAccount(groupId), CODE_1);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
@@ -172,9 +172,9 @@ public class LineSmsAccountController {
 
     @ApiOperation(value = "线路对账配置启用")
     @PatchMapping("/allowLineAccount")
-    public ApiResult allowLineAccount(@RequestParam Long configId) {
+    public ApiResult allowLineAccount(@RequestParam Long groupId) {
         try {
-            return new ApiResult().fromResult(lineSmsAccountService.allowLineAccount(configId), CODE_1);
+            return new ApiResult().fromResult(lineSmsAccountNormalService.allowLineAccount(groupId), CODE_1);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);

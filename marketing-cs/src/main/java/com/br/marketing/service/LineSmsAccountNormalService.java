@@ -21,4 +21,8 @@ public interface LineSmsAccountNormalService {
     List<LineAccountDetailVO> getLineAccountsByGroupId(Long groupId);
 
     PageResultReturn getLineAccountLogs(Integer current, Integer size, Long sourceId);
+
+    Result forbLineAccount(Long groupId);
+
+    Result allowLineAccount(Long groupId);
 }

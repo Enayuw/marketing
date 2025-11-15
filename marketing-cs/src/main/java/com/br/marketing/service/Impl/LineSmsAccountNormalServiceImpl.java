@@ -52,7 +52,6 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
     @Resource
     private LineSupplierInfoNormalMapper    lineSupplierInfoNormalMapper;
 
-
     @Resource
     private LineAccountLogNormalMapper lineAccountLogNormalMapper;
 
@@ -157,7 +156,17 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
         return PageResultReturn.setPageResult(voList, page.getPageNum(), page.getPageSize(), page.getTotal());
     }
 
+    @Override
+    public Result forbLineAccount(Long groupId) {
+        lineSmsAccountDataNormalService.forbLineAccount(groupId);
+        return new Result<String>().setCode(ResultCode.SUCCESS.getValue());
+    }
 
+    @Override
+    public Result allowLineAccount(Long groupId) {
+        lineSmsAccountDataNormalService.allowLineAccount(groupId);
+        return new Result<String>().setCode(ResultCode.SUCCESS.getValue());
+    }
 
 
     /**
