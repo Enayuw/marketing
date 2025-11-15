@@ -1827,7 +1827,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         List<MarketingJsonNodeParse> nodes = jsonNodeParseMapper.selectByExample(nodeExample);
         // 判断客户是否传输过数据 -未传输
         if (CollectionUtils.isEmpty(nodes)) {
-            // 查询客户部门信息
+            // 1. 查询客户部门信息
             MarketingCustomerExample marketingCustomerExample = new MarketingCustomerExample();
             marketingCustomerExample.createCriteria().andApiCodeEqualTo(apiCode).andStatusEqualTo(Byte.valueOf("1"));
             List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(marketingCustomerExample);
@@ -1838,7 +1838,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             String firstDepartment = marketingCustomer.getFirstDepartment();
             String secondDepartment = marketingCustomer.getSecondDepartment();
             String apiType = marketingCustomer.getApiType();
-            // 查询行业模板
+            // 2. 查询行业模板
             Result<JSONArray> jsonArrayResult = templateJsonParseService.queryIndustryTemplateJsonParses(firstDepartment, secondDepartment, apiType,systemType, dataType);
             if (!jsonArrayResult.isSuccess()) {
                 log.warn("查询行业模板失败: {}", JSONObject.toJSONString(jsonArrayResult));
@@ -1846,43 +1846,13 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             }
             JSONArray data = jsonArrayResult.getData();
             List<MarketingBuildInTemplateJsonParse> marketingIndustryTemplates = JSON.parseArray(data.toJSONString(), MarketingBuildInTemplateJsonParse.class);
-            // 构建模板字段的标识集合（用于判断交集）
-            Set<String> templateFieldKeys = new HashSet<>();
-            for (MarketingBuildInTemplateJsonParse parse : marketingIndustryTemplates) {
-                String nodeName = parse.getNodeName();
-                Integer level = parse.getLevel();
-                if (level == null || level == 0 || StringUtil.isBlank(nodeName)) {
-                    continue;
-                }
-                String key = nodeName + "_" + level;
-                templateFieldKeys.add(key);
-                buildFieldSample(result, ruleConfigList, nodeName, level,
-                        parse.getNodeValue(), parse.getParentPath(), parse.getNodeType(), parse.getCreateTime());
-
-            }
-            // 处理ruleConfigList特有的字段（在marketingIndustryTemplates中不存在的字段）
-            if (!CollectionUtils.isEmpty(ruleConfigList)) {
-                for (MarketingDataCleanGeneralRuleConfig ruleConfig : ruleConfigList) {
-                    String cleanFields = ruleConfig.getCleanFields();
-                    Integer level = ruleConfig.getLevel();
-                    if (StringUtil.isBlank(cleanFields) || level == null || level == 0) {
-                        continue;
-                    }
-                    String key = cleanFields + "_" + level;
-                    // 如果该字段不在模板中，则添加到结果中
-                    if (!templateFieldKeys.contains(key)) {
-                        FieldSampleDTO dto = new FieldSampleDTO();
-                        dto.setFieldName(cleanFields);
-                        dto.setLevel(level);
-                        dto.setParentPath(ruleConfig.getParentPath());
-                        dto.setMappingRule(ruleConfig.getMappingRule());
-                        dto.setRelatedField(ruleConfig.getMappingField());
-                        dto.setResultPreview(ruleConfig.getResultPreview());
-                        dto.setNeedCleaning(ruleConfig.getIsMapping());
-                        result.add(dto);
-                    }
-                }
-            }
+            
+            // 3. 处理行业模板字段并构建字段标识集合
+            Set<String> templateFieldKeys = processIndustryTemplates(result, ruleConfigList, marketingIndustryTemplates);
+            
+            // 4. 处理ruleConfigList特有的字段（在marketingIndustryTemplates中不存在的字段）
+            addRuleConfigOnlyFields(result, ruleConfigList, templateFieldKeys);
+            
             return result;
         }
         // 客户已传输数据
@@ -1936,6 +1906,78 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             dto.setNeedCleaning(false);
             result.add(dto);
         }
+    }
+
+    /**
+     * 处理行业模板字段并构建字段标识集合
+     * 
+     * @param result 结果列表
+     * @param ruleConfigList 规则配置列表
+     * @param marketingIndustryTemplates 行业模板列表
+     * @return 模板字段标识集合（nodeName_level）
+     */
+    private Set<String> processIndustryTemplates(List<FieldSampleDTO> result, 
+                                                  List<MarketingDataCleanGeneralRuleConfig> ruleConfigList,
+                                                  List<MarketingBuildInTemplateJsonParse> marketingIndustryTemplates) {
+        Set<String> templateFieldKeys = new HashSet<>();
+        for (MarketingBuildInTemplateJsonParse parse : marketingIndustryTemplates) {
+            String nodeName = parse.getNodeName();
+            Integer level = parse.getLevel();
+            if (level == null || level == 0 || StringUtil.isBlank(nodeName)) {
+                continue;
+            }
+            String key = nodeName + "_" + level;
+            templateFieldKeys.add(key);
+            buildFieldSample(result, ruleConfigList, nodeName, level,
+                    parse.getNodeValue(), parse.getParentPath(), parse.getNodeType(), parse.getCreateTime());
+        }
+        return templateFieldKeys;
+    }
+
+    /**
+     * 处理ruleConfigList特有的字段（在marketingIndustryTemplates中不存在的字段）
+     * 
+     * @param result 结果列表
+     * @param ruleConfigList 规则配置列表
+     * @param templateFieldKeys 模板字段标识集合
+     */
+    private void addRuleConfigOnlyFields(List<FieldSampleDTO> result,
+                                         List<MarketingDataCleanGeneralRuleConfig> ruleConfigList,
+                                         Set<String> templateFieldKeys) {
+        if (CollectionUtils.isEmpty(ruleConfigList)) {
+            return;
+        }
+        for (MarketingDataCleanGeneralRuleConfig ruleConfig : ruleConfigList) {
+            String cleanFields = ruleConfig.getCleanFields();
+            Integer level = ruleConfig.getLevel();
+            if (StringUtil.isBlank(cleanFields) || level == null || level == 0) {
+                continue;
+            }
+            String key = cleanFields + "_" + level;
+            // 如果该字段不在模板中，则添加到结果中
+            if (!templateFieldKeys.contains(key)) {
+                FieldSampleDTO dto = createFieldSampleDTOFromRuleConfig(ruleConfig);
+                result.add(dto);
+            }
+        }
+    }
+
+    /**
+     * 从规则配置创建FieldSampleDTO
+     * 
+     * @param ruleConfig 规则配置
+     * @return FieldSampleDTO对象
+     */
+    private FieldSampleDTO createFieldSampleDTOFromRuleConfig(MarketingDataCleanGeneralRuleConfig ruleConfig) {
+        FieldSampleDTO dto = new FieldSampleDTO();
+        dto.setFieldName(ruleConfig.getCleanFields());
+        dto.setLevel(ruleConfig.getLevel());
+        dto.setParentPath(ruleConfig.getParentPath());
+        dto.setMappingRule(ruleConfig.getMappingRule());
+        dto.setRelatedField(ruleConfig.getMappingField());
+        dto.setResultPreview(ruleConfig.getResultPreview());
+        dto.setNeedCleaning(ruleConfig.getIsMapping());
+        return dto;
     }
 
     @Override
