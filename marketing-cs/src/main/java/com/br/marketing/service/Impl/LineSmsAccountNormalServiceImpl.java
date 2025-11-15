@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.ApiResult;
@@ -7,23 +8,21 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.LineAccountDetailDbDTO;
-import com.br.marketing.dto.LineAccountDetailShowDTO;
+import com.br.marketing.dto.LineAccountDetailDTO;
 import com.br.marketing.dto.LineBaseFullInfoDTO;
 import com.br.marketing.dto.LineBaseShowInfoDto;
 import com.br.marketing.dto.account.LineAccountDto;
 import com.br.marketing.dto.account.LineCallerDto;
 import com.br.marketing.dto.account.PriceDateDTO;
-import com.br.marketing.entity.LineBaseInfoNormal;
-import com.br.marketing.entity.LineSupplierInfoNormal;
-import com.br.marketing.entity.MarketingLineAccountRecord;
-import com.br.marketing.mapper.LineAccountDetailNormalMapper;
-import com.br.marketing.mapper.LineBaseInfoNormalMapper;
-import com.br.marketing.mapper.LineSupplierInfoNormalMapper;
-import com.br.marketing.mapper.MarketingLineAccountDetailMapper;
+import com.br.marketing.entity.*;
+import com.br.marketing.mapper.*;
 import com.br.marketing.service.LineSmsAccountDataNormalService;
 import com.br.marketing.service.LineSmsAccountNormalService;
+import com.br.marketing.vo.LineAccountDetailVO;
+import com.br.marketing.vo.LineAccountLogNormalVO;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -48,13 +47,14 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
     private LineBaseInfoNormalMapper lineBaseInfoNormalMapper;
 
     @Resource
-    private MarketingLineAccountDetailMapper lineAccountDetailMapper;
-
-    @Resource
     private LineAccountDetailNormalMapper lineAccountDetailNormalMapper;
 
     @Resource
     private LineSupplierInfoNormalMapper    lineSupplierInfoNormalMapper;
+
+
+    @Resource
+    private LineAccountLogNormalMapper lineAccountLogNormalMapper;
 
     @Override
     public ApiResult getLineAccountBasInfo() {
@@ -138,15 +138,26 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
         }
 
         Long totalCount = lineAccountDetailNormalMapper.selectTotalCount(nowDate);
-        List<LineAccountDetailDbDTO> detailDbDtoList = lineAccountDetailNormalMapper.selectList(lineSupplierId,gatewayIdList,price,nowDate,size,Math.max((current - 1) * size, 0));
-        return PageResultReturn.setPageResult(converToShowDTOList(detailDbDtoList), current, size, totalCount);
+        List<LineAccountDetailDTO> detailDbDtoList = lineAccountDetailNormalMapper.selectList(lineSupplierId,gatewayIdList,price,nowDate,size,Math.max((current - 1) * size, 0));
+        return PageResultReturn.setPageResult(converToShowVOList(detailDbDtoList), current, size, totalCount);
     }
 
     @Override
-    public List<LineAccountDetailShowDTO> getLineAccountsByGroupId(Long groupId) {
-        List<LineAccountDetailDbDTO> detailDbDtoList = lineAccountDetailNormalMapper.selectListByGroupId(groupId);
-        return converToShowDTOList(detailDbDtoList);
+    public List<LineAccountDetailVO> getLineAccountsByGroupId(Long groupId) {
+        List<LineAccountDetailDTO> detailDbDtoList = lineAccountDetailNormalMapper.selectListByGroupId(groupId);
+        return converToShowVOList(detailDbDtoList);
     }
+
+    @Override
+    public PageResultReturn getLineAccountLogs(Integer current, Integer size, Long sourceId) {
+        PageHelper.startPage(current, size);
+        List<LineAccountLogNormal> lineDbLogList = lineAccountLogNormalMapper.getLineAccountLogs(sourceId);
+        Page<LineAccountLogNormal> page = (Page<LineAccountLogNormal>) lineDbLogList;
+        List<LineAccountLogNormalVO> voList = convertToLineAccountLogVoList(lineDbLogList);
+        return PageResultReturn.setPageResult(voList, page.getPageNum(), page.getPageSize(), page.getTotal());
+    }
+
+
 
 
     /**
@@ -154,10 +165,10 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
      * @param detailDbDtoList
      * @return
      */
-    private List<LineAccountDetailShowDTO> converToShowDTOList(List<LineAccountDetailDbDTO> detailDbDtoList) {
-        List<LineAccountDetailShowDTO> detailShowDTOList = new ArrayList<>();
+    private List<LineAccountDetailVO> converToShowVOList(List<LineAccountDetailDTO> detailDbDtoList) {
+        List<LineAccountDetailVO> detailShowDTOList = new ArrayList<>();
         detailDbDtoList.forEach(dto -> {
-            LineAccountDetailShowDTO showDTOItem = new LineAccountDetailShowDTO();
+            LineAccountDetailVO showDTOItem = new LineAccountDetailVO();
             BeanUtils.copyProperties(dto, showDTOItem);
             LineSupplierInfoNormal lineSupplierItem = lineSupplierInfoNormalMapper.selectByPrimaryKey(dto.getLineSupplierId());
             showDTOItem.setLineSupplier(lineSupplierItem.getLineSupplier());
@@ -180,6 +191,46 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
         return detailShowDTOList;
     }
 
+    /**
+     * lineDbLogList -> logVoList
+     * @param lineDbLogList
+     * @return
+     */
+    private List<LineAccountLogNormalVO> convertToLineAccountLogVoList(List<LineAccountLogNormal> lineDbLogList) {
+        List<LineAccountLogNormalVO> voList = new ArrayList<>();
+        lineDbLogList.forEach(dbDto -> {
+           LineAccountLogNormalVO vo = new LineAccountLogNormalVO();
+           vo.setId(dbDto.getId());
+           vo.setGroupId(dbDto.getGroupId().toString());
+
+           LineSupplierInfoNormal lineSupplierInfoNormal = lineSupplierInfoNormalMapper.selectByPrimaryKey(dbDto.getLineSupplierId());
+           vo.setLineSupplier(lineSupplierInfoNormal.getLineSupplier());
+
+            JSONObject dbLogDetailObj = JSONObject.parseObject(dbDto.getDetail());
+            String gatewayIdsStr = dbLogDetailObj.getString("gatewayIds");
+            List<Long> gatewayIdList = JSON.parseArray(gatewayIdsStr, Long.class);
+            List<LineBaseInfoNormal> baseInfoNormalList = lineBaseInfoNormalMapper.selectByIdList(gatewayIdList);
+            List<String> callerFullnames = baseInfoNormalList.stream()
+                    .map(baseInfo -> baseInfo.getProjectName() + "-" + baseInfo.getCaller())
+                    .collect(Collectors.toList());
+            dbLogDetailObj.put("callerFullnames", callerFullnames);
+            dbLogDetailObj.put("gatewayIds", gatewayIdList);
+            dbLogDetailObj.put("priceDates", JSON.parseArray(dbLogDetailObj.getString("priceDates")));
+
+            vo.setDetail(dbLogDetailObj.toString());
+
+            vo.setUserId(dbDto.getUserId());
+            vo.setUserName(dbDto.getUserName());
+            vo.setRealName(dbDto.getRealName());
+            vo.setOpeType(dbDto.getOpeType());
+            vo.setCreateTime(dbDto.getCreateTime());
+            vo.setUpdateTime(dbDto.getUpdateTime());
+            vo.setIsDelete(dbDto.getIsDelete());
+
+            voList.add(vo);
+        });
+        return voList;
+    }
 
     /**
      * 将 LineBaseFullInfoDto 转换为 LineBaseInfo

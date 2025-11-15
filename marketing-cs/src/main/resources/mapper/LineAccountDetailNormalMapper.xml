@@ -34,7 +34,7 @@
 
 
 
-    <select id="selectList" resultType="com.br.marketing.dto.LineAccountDetailDbDTO">
+    <select id="selectList" resultType="com.br.marketing.dto.LineAccountDetailDTO">
         SELECT
         group_id,line_supplier_id,gateway_ids,price,effect_start_date,effect_end_date,create_time,update_time,enabled,is_delete
         FROM (
@@ -81,7 +81,7 @@
         LIMIT #{limitSize} OFFSET #{offset}
     </select>
 
-    <select id="selectListByGroupId" resultType="com.br.marketing.dto.LineAccountDetailDbDTO">
+    <select id="selectListByGroupId" resultType="com.br.marketing.dto.LineAccountDetailDTO">
         SELECT
         group_id,
         line_supplier_id,

@@ -3,8 +3,8 @@ package com.br.marketing.service;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.LineAccountDetailShowDTO;
 import com.br.marketing.dto.account.LineAccountDto;
+import com.br.marketing.vo.LineAccountDetailVO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import javax.validation.Valid;
@@ -18,5 +18,7 @@ public interface LineSmsAccountNormalService {
 
     PageResultReturn getLineAccounts(Integer current, Integer size, String lineSupplier, String callerFullName, Double price);
 
-    List<LineAccountDetailShowDTO> getLineAccountsByGroupId(Long groupId);
+    List<LineAccountDetailVO> getLineAccountsByGroupId(Long groupId);
+
+    PageResultReturn getLineAccountLogs(Integer current, Integer size, Long sourceId);
 }

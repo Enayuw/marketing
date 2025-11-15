@@ -22,7 +22,7 @@ import java.util.Date;
  */
 
 @Data
-public class LineAccountDetailDbDTO {
+public class LineAccountDetailDTO {
    private  Long groupId;
    private Long lineSupplierId;
    private String gatewayIds;

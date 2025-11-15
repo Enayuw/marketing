@@ -4,13 +4,12 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.LineAccountDetailShowDTO;
 import com.br.marketing.dto.account.LineAccountDto;
 import com.br.marketing.dto.account.SmsAccountDto;
 import com.br.marketing.entity.MarketingDict;
 import com.br.marketing.service.LineSmsAccountNormalService;
 import com.br.marketing.service.LineSmsAccountService;
-import com.br.marketing.vo.MarketingLineAccountRecordVO;
+import com.br.marketing.vo.LineAccountDetailVO;
 import com.br.marketing.vo.MarketingSmsAccountRecordVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -205,11 +204,9 @@ public class LineSmsAccountController {
             ApiResult apiResult = new ApiResult();
             if (StringUtils.isNotEmpty(groupIdStr)) {
                 Long groupId = Long.parseLong(groupIdStr);
-                //List<MarketingLineAccountRecordVO> lineAccountRecordList = lineSmsAccountService.getLineAccountsByConfigId(configId);
-                List<LineAccountDetailShowDTO> showDtoList = lineSmsAccountNormalService.getLineAccountsByGroupId(groupId);
-                apiResult = new ApiResult<List<LineAccountDetailShowDTO>>().success(showDtoList);
+                List<LineAccountDetailVO> showDtoList = lineSmsAccountNormalService.getLineAccountsByGroupId(groupId);
+                apiResult = new ApiResult<List<LineAccountDetailVO>>().success(showDtoList);
             }else{
-                //PageResultReturn page = lineSmsAccountService.getLineAccounts(current,size,lineSupplier,callerFullName,price);
                 PageResultReturn page = lineSmsAccountNormalService.getLineAccounts(current,size,lineSupplier,callerFullName,price);
                 apiResult=  new ApiResult<PageResultReturn>().success(page);
             }
@@ -225,13 +222,13 @@ public class LineSmsAccountController {
     @GetMapping("/getLineAccountLogs")
     public ApiResult getLineAccountLogs(@RequestParam(defaultValue = "1") Integer current,
                                        @RequestParam(defaultValue = "10") Integer size,
-                                       @RequestParam(name = "configIdStr") String configIdStr) {
+                                       @RequestParam(name = "sourceIdStr") String sourceIdStr) {
         try {
-            if (StringUtils.isEmpty(configIdStr)) {
+            if (StringUtils.isEmpty(sourceIdStr)) {
                 return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
             }
-            Long configId = Long.parseLong(configIdStr);
-            PageResultReturn page = lineSmsAccountService.getLineAccountLogs(current,size,configId);
+            Long sourceId = Long.parseLong(sourceIdStr);
+            PageResultReturn page = lineSmsAccountNormalService.getLineAccountLogs(current,size,sourceId);
             return new ApiResult<>().success(page);
         }catch (Exception e) {
             log.error(e.getMessage(), e);

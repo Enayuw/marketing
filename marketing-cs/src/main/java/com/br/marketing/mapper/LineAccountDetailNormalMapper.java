@@ -1,7 +1,7 @@
 package com.br.marketing.mapper;
 
 
-import com.br.marketing.dto.LineAccountDetailDbDTO;
+import com.br.marketing.dto.LineAccountDetailDTO;
 import org.apache.ibatis.annotations.Param;
 
 import java.sql.Date;
@@ -13,7 +13,7 @@ public interface LineAccountDetailNormalMapper extends  LineAccountDetailNormalM
 
     Long selectTotalCount(@Param("nowDate") Date nowDate);
 
-    List<LineAccountDetailDbDTO> selectList(
+    List<LineAccountDetailDTO> selectList(
             @Param("lineSupplierId") Long lineSupplierId,
             @Param("gatewayIdList") List<Long> gatewayIdList,
             @Param("price") Double price,
@@ -22,5 +22,5 @@ public interface LineAccountDetailNormalMapper extends  LineAccountDetailNormalM
             @Param("offset") Integer offset
     );
 
-    List<LineAccountDetailDbDTO> selectListByGroupId(@Param("groupId") Long groupId);
+    List<LineAccountDetailDTO> selectListByGroupId(@Param("groupId") Long groupId);
 }

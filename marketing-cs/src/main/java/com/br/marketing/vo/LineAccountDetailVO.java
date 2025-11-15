@@ -1,6 +1,5 @@
-package com.br.marketing.dto;
+package com.br.marketing.vo;
 
-import com.alibaba.fastjson.JSONArray;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -12,11 +11,10 @@ import java.util.Date;
  */
 
 @Data
-public class LineAccountDetailShowDTO {
+public class LineAccountDetailVO {
    private Long groupId;
    private String lineSupplier;
    private String linesInfo;
-   //private JSONArray linesInfo;
    private BigDecimal price;
    private Date effectStartDate;
    private Date effectEndDate;
