@@ -15,7 +15,7 @@ public interface LineAccountDetailNormalMapper extends  LineAccountDetailNormalM
 
     List<LineAccountDetailDbDTO> selectList(
             @Param("lineSupplierId") Long lineSupplierId,
-            @Param("gatewayId") Long gatewayId,
+            @Param("gatewayIdList") List<Long> gatewayIdList,
             @Param("price") Double price,
             @Param("nowDate") Date nowDate,
             @Param("limitSize") Integer limitSize,

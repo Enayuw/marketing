@@ -12,12 +12,16 @@
             bb.ope_status in (0, 2) and bb.is_delete = 0 and ss.ope_status = 0 and ss.is_delete = 0
     </select>
 
-    <select id="selectIdByFiled" resultType="java.lang.Long">
+    <select id="selectGatewayIdByFiled" resultType="java.lang.Long">
         select
-            id
+            gateway_id
         from  b_marketing_line_base_info_normal
         where
-            project_name=#{projectName} and caller =#{caller}
+            line_supplier_id = #{lineSupplierId}
+            and project_name=#{projectName}
+            and caller =#{caller}
+            and ope_status in (0,2)
+            and is_delete = 0
     </select>
 
 

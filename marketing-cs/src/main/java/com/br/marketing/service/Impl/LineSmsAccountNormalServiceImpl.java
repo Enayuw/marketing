@@ -115,16 +115,31 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
     public PageResultReturn getLineAccounts(Integer current, Integer size, String lineSupplier, String callerFullName, Double price) {
         Date nowDate = new Date(System.currentTimeMillis());
         Long lineSupplierId = lineSupplierInfoNormalMapper.selectIdByLineSupplier(lineSupplier);
-        Long gatewayId =0L;
-        if (StringUtils.isNotEmpty(callerFullName)) {
-            int lastDashIndex = callerFullName.lastIndexOf('-');
-            gatewayId = lineBaseInfoNormalMapper.selectIdByFiled(callerFullName.substring(0, lastDashIndex),callerFullName.substring(lastDashIndex + 1));
-        }
-        gatewayId = gatewayId == null?0:gatewayId;
-        Long totalCount = lineAccountDetailNormalMapper.selectTotalCount(nowDate);
-        List<LineAccountDetailDbDTO> detailDbDtoList = lineAccountDetailNormalMapper.selectList(lineSupplierId,gatewayId,price,nowDate,size,Math.max((current - 1) * size, 0));
-        return PageResultReturn.setPageResult(converToShowDTOList(detailDbDtoList), current, size, totalCount);
 
+        //TODO 相同的lineSupplier 是否存在projectName +  caller 相同的多条gatewayId记录 (场景不会，但理论绝对值会)
+//        Long gatewayId = 0L;
+//        if (StringUtils.isNotEmpty(callerFullName)) {
+//            int lastDash = callerFullName.lastIndexOf('-');
+//            Long result = lineBaseInfoNormalMapper.selectGatewayIdByFiled(
+//                    lineSupplierId,
+//                    callerFullName.substring(0, lastDash),
+//                    callerFullName.substring(lastDash + 1)
+//            );
+//            gatewayId = result != null ? result : 0L;
+//        }
+        List<Long> gatewayIdList = new ArrayList<>();
+        if (StringUtils.isNotEmpty(callerFullName)) {
+            int lastDash = callerFullName.lastIndexOf('-');
+            gatewayIdList = lineBaseInfoNormalMapper.selectGatewayIdByFiled(
+                    lineSupplierId,
+                    callerFullName.substring(0, lastDash),
+                    callerFullName.substring(lastDash + 1)
+            );
+        }
+
+        Long totalCount = lineAccountDetailNormalMapper.selectTotalCount(nowDate);
+        List<LineAccountDetailDbDTO> detailDbDtoList = lineAccountDetailNormalMapper.selectList(lineSupplierId,gatewayIdList,price,nowDate,size,Math.max((current - 1) * size, 0));
+        return PageResultReturn.setPageResult(converToShowDTOList(detailDbDtoList), current, size, totalCount);
     }
 
     @Override
