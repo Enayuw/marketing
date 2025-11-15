@@ -110,6 +110,57 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue());
     }
 
+
+    @Override
+    public Result updLineAccount(LineAccountDto dto) throws JsonProcessingException{
+        //1.校验线路有无存在的配置
+        List<Long> gatewayIds = dto.getLines().stream().map(LineCallerDto::getGatewayId).collect(Collectors.toList());
+        List<Long> existGatewayIds = lineAccountDetailNormalMapper.selectLineIfExist(gatewayIds, dto.getGroupId());
+        if (existGatewayIds.size() > 0) {
+            List<String> callerFullnames = dto.getLines().stream()
+                    .filter(line -> existGatewayIds.contains(line.getGatewayId()))
+                    .map(LineCallerDto::getCallerFullname).collect(Collectors.toList());
+            return new Result<String>().setCode(ResultCode.FAIL.getValue())
+                    .setMessage("主叫项目名称：" + String.join(",", callerFullnames) + "已存在配置，无法变更，请在列表页面变更对应主叫项目名称配置！");
+        }
+        //2.判断日期没有重复
+        List<PriceDateDTO> priceDates = dto.getPriceDates();
+        long esDateSize = priceDates.stream().map(PriceDateDTO::getEffectStartDate).distinct().count();
+        if (esDateSize != priceDates.size()) {
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("价格有效期不能重复！");
+        }
+        //3.校验短信单价
+        if (checkPrice(priceDates)) {
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("通话单价最大值为1元/分钟！");
+        }
+        //4.日期排序，从低到高
+        priceDates.sort(Comparator.comparing(PriceDateDTO::getEffectStartDate));
+        for (int i = 0; i < priceDates.size(); i++) {
+            if (i != priceDates.size() - 1) {
+                priceDates.get(i).setEffectEndDate(priceDates.get(i + 1).getEffectStartDate().minusDays(1));
+            }
+        }
+
+        //5.校验供应商是否变更，数据是否需要更新
+        LineAccountLogNormalExample lineLogExample = new LineAccountLogNormalExample();
+        lineLogExample.createCriteria().andGroupIdEqualTo(dto.getGroupId()).andIsDeleteEqualTo(0);
+        lineLogExample.setOrderByClause("create_time desc limit 1");
+        LineAccountLogNormal oldLineLogNormal = lineAccountLogNormalMapper.selectByExample(lineLogExample).get(0);
+        JSONObject oldAccountLogDetail = JSONObject.parseObject(oldLineLogNormal.getDetail());
+        List<Long> oldGatewayIds = JSON.parseArray(oldAccountLogDetail.getString("gatewayIds"), Long.class);
+        boolean lineEqualFlag = new HashSet<>(oldGatewayIds).equals(new HashSet<>(gatewayIds));
+        List<PriceDateDTO> oldPriceDates = JSON.parseArray(oldAccountLogDetail.getString("priceDates"), PriceDateDTO.class);
+        boolean priceDateEqualFlag = new HashSet<>(oldPriceDates).equals(new HashSet<>(priceDates));
+        if(lineEqualFlag && priceDateEqualFlag){
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("配置无修改，无需变更");
+        }
+
+        //6.事务保存
+        lineSmsAccountDataNormalService.updLineAccount(dto);
+        return new Result<String>().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+
     @Override
     public PageResultReturn getLineAccounts(Integer current, Integer size, String lineSupplier, String callerFullName, Double price) {
         Date nowDate = new Date(System.currentTimeMillis());
@@ -167,6 +218,8 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
         lineSmsAccountDataNormalService.allowLineAccount(groupId);
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue());
     }
+
+
 
 
     /**

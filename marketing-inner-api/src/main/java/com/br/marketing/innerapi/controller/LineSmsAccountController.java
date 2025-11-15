@@ -152,7 +152,7 @@ public class LineSmsAccountController {
     @PatchMapping("/updLineAccount")
     public ApiResult updLineAccount(@RequestBody LineAccountDto dto) {
         try {
-            return new ApiResult().fromResult(lineSmsAccountService.updLineAccount(dto), CODE_1);
+            return new ApiResult().fromResult(lineSmsAccountNormalService.updLineAccount(dto), CODE_1);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);

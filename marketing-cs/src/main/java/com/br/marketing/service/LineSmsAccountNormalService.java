@@ -16,6 +16,8 @@ public interface LineSmsAccountNormalService {
 
     Result addLineAccount(@Valid LineAccountDto dto) throws JsonProcessingException;
 
+    Result updLineAccount(LineAccountDto dto) throws JsonProcessingException;
+
     PageResultReturn getLineAccounts(Integer current, Integer size, String lineSupplier, String callerFullName, Double price);
 
     List<LineAccountDetailVO> getLineAccountsByGroupId(Long groupId);
@@ -25,4 +27,5 @@ public interface LineSmsAccountNormalService {
     Result forbLineAccount(Long groupId);
 
     Result allowLineAccount(Long groupId);
+
 }

@@ -7,7 +7,11 @@ public interface LineSmsAccountDataNormalService {
 
     void addLineAccount(LineAccountDto dto) throws JsonProcessingException;
 
+    void updLineAccount(LineAccountDto dto) throws JsonProcessingException;
+
+
     void forbLineAccount(Long groupId);
 
     void allowLineAccount(Long groupId);
+
 }

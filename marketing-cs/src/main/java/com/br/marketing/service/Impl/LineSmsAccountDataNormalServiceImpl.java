@@ -34,6 +34,9 @@ public class LineSmsAccountDataNormalServiceImpl implements LineSmsAccountDataNo
     //启用
     private static final Integer ENABLED_ACT = 1;
 
+    //删除
+    private static final Integer ISDELETED_DEL = 1;
+
 
     @Resource
     private LineAccountDetailNormalMapper lineAccountDetailNormalMapper;
@@ -86,6 +89,53 @@ public class LineSmsAccountDataNormalServiceImpl implements LineSmsAccountDataNo
         logItem.setOpeType(OpeTypeEnum.OPE_TYPE_INS.getType());
         lineAccountLogNormalMapper.insertSelective(logItem);
     }
+
+
+    @Override
+    public void updLineAccount(LineAccountDto dto) throws JsonProcessingException{
+        //1.删除detail
+        LineAccountDetailNormalExample lineAccountDetailNormalExample = new LineAccountDetailNormalExample();
+        lineAccountDetailNormalExample.createCriteria().andGroupIdEqualTo(dto.getGroupId());
+        LineAccountDetailNormal updateAccountDetailNormal = new LineAccountDetailNormal();
+        updateAccountDetailNormal.setIsDelete(ISDELETED_DEL);
+        lineAccountDetailNormalMapper.updateByExampleSelective(updateAccountDetailNormal, lineAccountDetailNormalExample);
+
+        //2.新增
+        Long lineSupplierId = lineSupplierInfoNormalMapper.selectIdByLineSupplier(dto.getLineSupplier());
+        List<Long> gatewayIds = dto.getLines().stream().map(LineCallerDto::getGatewayId).collect(Collectors.toList());
+        List<LineAccountDetailNormal> objList = new ArrayList<>();
+        gatewayIds.forEach(gatewayId -> {
+            for (PriceDateDTO priceDate : dto.getPriceDates()) {
+                Date effectStartDate = Date.from(priceDate.getEffectStartDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
+                Date effectEndDate = null;
+                if (priceDate.getEffectEndDate() != null) {
+                    effectEndDate = Date.from(priceDate.getEffectEndDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
+                }
+                LineAccountDetailNormal itemObj = new LineAccountDetailNormal();
+                itemObj.setGroupId(dto.getGroupId());
+                itemObj.setLineSupplierId(lineSupplierId);
+                itemObj.setGatewayId(gatewayId);
+                itemObj.setPrice(priceDate.getPrice());
+                itemObj.setEffectStartDate(effectStartDate);
+                itemObj.setEffectEndDate(effectEndDate);
+                lineAccountDetailNormalMapper.insertSelective(itemObj);
+                objList.add(itemObj);
+            }
+        });
+
+        //对应日志保存 log->从ThreadContextInfo.getUser() 获取操作用户
+        LineAccountLogNormal  logItem = new LineAccountLogNormal();
+        logItem.setGroupId(dto.getGroupId());
+        logItem.setLineSupplierId(lineSupplierId);
+        JSONObject detail = new JSONObject();
+        detail.put("gatewayIds", objectMapper.writeValueAsString(gatewayIds));
+        detail.put("priceDates", JSON.toJSONString(dto.getPriceDates()));
+        logItem.setDetail(detail.toJSONString());
+        userRecord(logItem);
+        logItem.setOpeType(OpeTypeEnum.OPE_TYPE_UPD.getType());
+        lineAccountLogNormalMapper.insertSelective(logItem);
+    }
+
 
     @Override
     @Transactional
