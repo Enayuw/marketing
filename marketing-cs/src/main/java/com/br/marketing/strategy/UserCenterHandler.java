@@ -217,7 +217,7 @@ public class UserCenterHandler {
                     marketingCustomerMapper.updateByExampleSelective(marketingCustomer, marketingCustomerExample);
                 }
             }
-            marketingCustomerAssignedGroupService.assignGroup(marketingCustomer.getCid(), null);
+            marketingCustomerAssignedGroupService.assignGroup(marketingCustomer.getCid(), null, apiCode);
         } else {
             log.warn("商户信息查询失败:customerMsg：{}-----，companyMsg：{}------ ", customerMsg, companyMsg);
         }
@@ -234,7 +234,7 @@ public class UserCenterHandler {
             marketingCustomer.setUpdateTime(new Date());
             marketingCustomerMapper.updateByExampleSelective(marketingCustomer, marketingCustomerExample);
         }
-        marketingCustomerAssignedGroupService.assignGroup(marketingCustomer.getCid(), null);
+        marketingCustomerAssignedGroupService.assignGroup(marketingCustomer.getCid(), null, apiCode);
     }
 
 }
