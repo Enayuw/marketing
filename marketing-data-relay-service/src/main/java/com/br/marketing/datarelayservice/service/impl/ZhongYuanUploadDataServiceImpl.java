@@ -97,23 +97,9 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             }
 
             // 2. Token验证
-            String token = baseRequest.getToken();
-            if (!StringUtils.hasText(token)) {
-                // 尝试从请求参数获取
-                token = request.getParameter("token");
-            }
-            if (!StringUtils.hasText(token)) {
-                return ZhongYuanBaseResponse.fail("1000002", "Token无效");
-            }
-
-            try {
-                validateToken(token);
-            } catch (RuntimeException e) {
-                String errorMsg = e.getMessage();
-                if (errorMsg.contains("1000002")) {
-                    return ZhongYuanBaseResponse.fail("1000002", errorMsg.substring(errorMsg.indexOf(":") + 1));
-                }
-                return ZhongYuanBaseResponse.fail("1000002", "Token无效");
+            ZhongYuanBaseResponse<?> tokenResponse = validateTokenFromRequest(baseRequest, request);
+            if (!"0000000".equals(tokenResponse.getCode())) {
+                return tokenResponse;
             }
 
             BatchTaskRequest batchData = baseRequest.getData();
@@ -172,19 +158,9 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             }
 
             // 2. Token验证
-            String token = baseRequest.getToken();
-            if (StringUtils.isEmpty(token)) {
-                return ZhongYuanBaseResponse.fail("1000002", "Token为空");
-            }
-
-            try {
-                validateToken(token);
-            } catch (RuntimeException e) {
-                String errorMsg = e.getMessage();
-                if (errorMsg.contains("1000002")) {
-                    return ZhongYuanBaseResponse.fail("1000002", errorMsg.substring(errorMsg.indexOf(":") + 1));
-                }
-                return ZhongYuanBaseResponse.fail("1000002", "Token无效");
+            ZhongYuanBaseResponse<?> tokenResponse = validateTokenFromRequest(baseRequest, request);
+            if (!"0000000".equals(tokenResponse.getCode())) {
+                return tokenResponse;
             }
 
             SceneVariableRequest sceneData = baseRequest.getData();
@@ -224,6 +200,37 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
         String configAppUser = zhongYuanIdentity.get("appUser");
         String configAppKey = zhongYuanIdentity.get("appKey");
         return configAppUser.equals(appUser) && configAppKey.equals(appKey);
+    }
+
+    /**
+     * 验证Token（公共方法）
+     * 从baseRequest或request参数中获取token并验证
+     *
+     * @param baseRequest 基础请求对象
+     * @param request     HTTP请求对象
+     * @return 验证结果响应，成功返回success响应，失败返回fail响应
+     */
+    private ZhongYuanBaseResponse<?> validateTokenFromRequest(ZhongYuanBaseRequest<?> baseRequest, HttpServletRequest request) {
+        // 1. 从baseRequest获取token
+        String token = baseRequest != null ? baseRequest.getToken() : null;
+        
+        // 2. Token为空检查
+        if (!StringUtils.hasText(token)) {
+            return ZhongYuanBaseResponse.fail("1000002", "Token无效");
+        }
+        
+        // 3. 验证Token
+        try {
+            validateToken(token);
+            // 验证成功，返回success响应
+            return ZhongYuanBaseResponse.success(null);
+        } catch (RuntimeException e) {
+            String errorMsg = e.getMessage();
+            if (errorMsg != null && errorMsg.contains("1000002")) {
+                return ZhongYuanBaseResponse.fail("1000002", errorMsg.substring(errorMsg.indexOf(":") + 1));
+            }
+            return ZhongYuanBaseResponse.fail("1000002", "Token无效");
+        }
     }
 
     /**
