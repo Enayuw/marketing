@@ -1973,6 +1973,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         dto.setFieldName(ruleConfig.getCleanFields());
         dto.setLevel(ruleConfig.getLevel());
         dto.setParentPath(ruleConfig.getParentPath());
+        dto.setFieldType(0);
         dto.setMappingRule(ruleConfig.getMappingRule());
         dto.setRelatedField(ruleConfig.getMappingField());
         dto.setResultPreview(ruleConfig.getResultPreview());
