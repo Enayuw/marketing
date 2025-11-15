@@ -1844,14 +1844,44 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 log.warn("查询行业模板失败: {}", JSONObject.toJSONString(jsonArrayResult));
                 return result;
             }
-
             JSONArray data = jsonArrayResult.getData();
             List<MarketingBuildInTemplateJsonParse> marketingIndustryTemplates = JSON.parseArray(data.toJSONString(), MarketingBuildInTemplateJsonParse.class);
-
-            // 行业模板 + 规则配置
+            // 构建模板字段的标识集合（用于判断交集）
+            Set<String> templateFieldKeys = new HashSet<>();
             for (MarketingBuildInTemplateJsonParse parse : marketingIndustryTemplates) {
-                buildFieldSample(result, ruleConfigList, parse.getNodeName(), parse.getLevel(),
+                String nodeName = parse.getNodeName();
+                Integer level = parse.getLevel();
+                if (level == null || level == 0 || StringUtil.isBlank(nodeName)) {
+                    continue;
+                }
+                String key = nodeName + "_" + level;
+                templateFieldKeys.add(key);
+                buildFieldSample(result, ruleConfigList, nodeName, level,
                         parse.getNodeValue(), parse.getParentPath(), parse.getNodeType(), parse.getCreateTime());
+
+            }
+            // 处理ruleConfigList特有的字段（在marketingIndustryTemplates中不存在的字段）
+            if (!CollectionUtils.isEmpty(ruleConfigList)) {
+                for (MarketingDataCleanGeneralRuleConfig ruleConfig : ruleConfigList) {
+                    String cleanFields = ruleConfig.getCleanFields();
+                    Integer level = ruleConfig.getLevel();
+                    if (StringUtil.isBlank(cleanFields) || level == null || level == 0) {
+                        continue;
+                    }
+                    String key = cleanFields + "_" + level;
+                    // 如果该字段不在模板中，则添加到结果中
+                    if (!templateFieldKeys.contains(key)) {
+                        FieldSampleDTO dto = new FieldSampleDTO();
+                        dto.setFieldName(cleanFields);
+                        dto.setLevel(level);
+                        dto.setParentPath(ruleConfig.getParentPath());
+                        dto.setMappingRule(ruleConfig.getMappingRule());
+                        dto.setRelatedField(ruleConfig.getMappingField());
+                        dto.setResultPreview(ruleConfig.getResultPreview());
+                        dto.setNeedCleaning(ruleConfig.getIsMapping());
+                        result.add(dto);
+                    }
+                }
             }
             return result;
         }
