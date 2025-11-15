@@ -300,6 +300,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
             }
         }
         return ddLineBaseInfoDtoList;
+        //TODO 调用下游方法 从db获取 三方配置信息
     }
 
 
@@ -348,7 +349,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                                 CostPriceExRecord costPriceExRecord = new CostPriceExRecord();
                                 costPriceExRecord.setJsonData(JSONObject.toJSONString(smsCost));
                                 costPriceExRecord.setType(1);
-                                String ddReason = "供应商["+smsCost.getLineSupplier()+"]线路["+smsCost.getLineName()+"],新增失败,请检查";
+                                String ddReason = "供应商["+smsCost.getLineSupplier()+"]线路["+smsCost.getLineName()+"],新增失败("+result.getMessage()+"),请检查";
                                 JSONObject reasonObj = new JSONObject();
                                 reasonObj.put("ddReason", ddReason);
                                 reasonObj.put("smsDto", smsDto);
@@ -434,7 +435,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                                 costPriceExRecord.setJsonData(JSONObject.toJSONString(lineCost));
                                 costPriceExRecord.setType(2);
                                 JSONObject reasonObj = new JSONObject();
-                                String ddReason = "供应商[" + lineCost.getLineSupplier() + "]主叫号码[" + lineCost.getCaller()  + "],新增失败,请检查";
+                                String ddReason = "供应商[" + lineCost.getLineSupplier() + "]主叫号码[" + lineCost.getCaller()  + "],新增失败("+result.getMessage()+"),请检查";
                                 reasonObj.put("ddReason", ddReason);
                                 reasonObj.put("lineDto", JSONObject.toJSONString(lineDto));
                                 reasonObj.put("failMsg",result.getMessage());
