@@ -59,20 +59,22 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
                 return ZhongYuanBaseResponse.fail("1000001", "用户名或密码错误");
             }
 
-            // 4. 生成Token
-            String token = generateToken(loginData.getAppUser());
+            // 4. 直接检查Redis中是否存在有效的Token（通过appUser）
+            String tokenKey = TOKEN_PREFIX + loginData.getAppUser();
+            String token = redisChgService.get(tokenKey);
+            
+            if (StringUtils.isEmpty(token)) {
+                // 不存在Token，生成新Token
+                token = generateToken(loginData.getAppUser());
+                redisChgService.setex(tokenKey, token, (int) TOKEN_EXPIRE_TIME);
+                log.warn("中原消金登录成功（生成新Token），appUser: {}, token: {}", tokenKey, token);
+            }
 
-            // 5. 存储Token到Redis
-            saveToken(token);
-
-            // 6. 构建响应
+            // 5. 构建响应
             LoginResponse loginResponse = new LoginResponse();
             loginResponse.setToken(token);
 
-            ZhongYuanBaseResponse<LoginResponse> response = ZhongYuanBaseResponse.success(loginResponse);
-
-            log.warn("中原消金登录成功，appUser: {}, token: {}", loginData.getAppUser(), token);
-            return response;
+            return ZhongYuanBaseResponse.success(loginResponse);
 
         } catch (Exception e) {
             log.error("中原消金登录接口异常", e);
@@ -305,17 +307,6 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
     }
 
     /**
-     * 存储Token到Redis
-     *
-     * @param token Token值
-     */
-    public void saveToken(String token) {
-        String tokenKey = TOKEN_PREFIX + token;
-        redisChgService.setex(tokenKey, token, (int) TOKEN_EXPIRE_TIME);
-        log.warn("Token存储成功，token: {}", token);
-    }
-
-    /**
      * 校验Token
      *
      * @param token Token值
@@ -332,22 +323,31 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             throw new RuntimeException("1000002:Token格式错误");
         }
 
-        // 3. 从Redis获取Token
-        String tokenKey = TOKEN_PREFIX + token;
-        String storedToken = redisChgService.get(tokenKey);
+        // 3. 从配置获取appUser，然后查询Redis验证token
+        Map<String, String> zhongYuanIdentity = marketingCommonConfig.getZhongYuanIdentity();
+        String appUser = zhongYuanIdentity.get("appUser");
+        
+        if (!StringUtils.hasText(appUser)) {
+            throw new RuntimeException("1000002:系统配置错误");
+        }
+
+        // 4. 从Redis获取存储的token
+        String userTokenKey = TOKEN_PREFIX + appUser;
+        String storedToken = redisChgService.get(userTokenKey);
 
         if (!StringUtils.hasText(storedToken)) {
             throw new RuntimeException("1000002:Token无效或已过期");
         }
 
-        // 4. Token匹配校验
+        // 5. 验证token是否匹配
         if (!token.equals(storedToken)) {
             throw new RuntimeException("1000002:Token无效");
         }
 
-        // 5. 更新过期时间（续期）
-        redisChgService.setex(tokenKey, token, (int) TOKEN_EXPIRE_TIME);
-        log.warn("Token校验成功，token: {}", token);
+        // 6. 更新过期时间（续期）
+        redisChgService.setex(userTokenKey, token, (int) TOKEN_EXPIRE_TIME);
+        
+        log.warn("Token校验成功，token: {}, appUser: {}", token, appUser);
     }
 
     /**
