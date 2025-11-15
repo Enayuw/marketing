@@ -28,19 +28,36 @@ public abstract class UploadDataProxy extends DataProcessAbstractProxy {
     }
 
     @Override
-    Object call(Object data, DataProcessingConfig config , AtomicInteger errorMark) {
+    Object call(Object data, DataProcessingConfig config, AtomicInteger errorMark) {
+        Result callResult = new Result().success();
         if (data instanceof UploadDataDTO) {
+            // 处理单个UploadDataDTO
             UploadDataDTO uploadDataDTO = (UploadDataDTO) data;
             UploadDataUrlDTO uploadDataUrlDTO = new UploadDataUrlDTO();
             uploadDataUrlDTO.setUrl(config.getUrl());
             uploadDataUrlDTO.setUploadDataDTO(uploadDataDTO);
-            Result result =marketingApiService.callUploadDataByUrlRetry(uploadDataUrlDTO, null);
+            Result result = marketingApiService.callUploadDataByUrlRetry(uploadDataUrlDTO, null);
             if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                log.error("单条上传数据失败，apiCode: {}, 错误信息: {}",
+                        uploadDataDTO.getApiCode(), result.getMessage());
                 errorMark.getAndIncrement();
+                callResult.setCode(ResultCode.FAIL.getValue());
             }
-            return result;
+        } else if (data instanceof List) {
+            List<UploadDataDTO> uploadDataDTOList = (List<UploadDataDTO>) data;
+            for (UploadDataDTO uploadDataDTO : uploadDataDTOList) {
+                UploadDataUrlDTO uploadDataUrlDTO = new UploadDataUrlDTO();
+                uploadDataUrlDTO.setUrl(config.getUrl());
+                uploadDataUrlDTO.setUploadDataDTO(uploadDataDTO);
+                Result result = marketingApiService.callUploadDataByUrlRetry(uploadDataUrlDTO, null);
+                if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                    errorMark.getAndIncrement();
+                    log.error("批量上传数据失败，taskId: {}, 错误信息: {}",
+                            uploadDataDTO.getApiCode(), result.getMessage());
+                    callResult.setCode(ResultCode.FAIL.getValue());
+                }
+            }
         }
-
-        return null;
+        return callResult;
     }
 }

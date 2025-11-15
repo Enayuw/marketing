@@ -3507,4 +3507,11 @@ public class MarketingCommonConfig {
      */
     private Map<String, Boolean> pushDataSwitch;
 
+    /**
+     * 众邦AI拉取文件
+     * 格式：{apiCode:{文件名称:表头}}
+     * eg:{"3710027":[{"original_ai_":"custNum,id,cell"}]}
+     */
+    private Map<String, List<Map<String, String>>> zhongBangAIPullFileDataConfigMap;
+
 }
