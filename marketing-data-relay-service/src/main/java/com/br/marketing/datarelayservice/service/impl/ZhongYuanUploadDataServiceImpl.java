@@ -1,10 +1,13 @@
 package com.br.marketing.datarelayservice.service.impl;
+import java.util.Date;
 
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.datarelayservice.enums.ZhongYuanResponseCodeEnum;
 import com.br.marketing.datarelayservice.service.ZhongYuanUploadDataService;
 import com.br.marketing.dto.zhongyuan.*;
+import com.br.marketing.entity.ZhongYuanUpload;
+import com.br.marketing.mapper.ZhongYuanUploadMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -26,7 +29,10 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
 
     @Resource
     private RedisChgService redisChgService;
-    
+
+    @Resource
+    private ZhongYuanUploadMapper zhongYuanUploadMapper;
+
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
     private static final String TOKEN_PREFIX = "zyxj:token:";
@@ -110,8 +116,38 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
                 return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.PARAM_ERROR.getCode(), "参数错误：批次编号或任务数据列表为空");
             }
 
-            // 4. 生成batchUid和taskUid
-            String batchUid = generateBatchUid();
+            // 4. 保存原始数据到b_marketing_zhongyuan_upload表
+            ZhongYuanUpload zhongYuanUpload = new ZhongYuanUpload();
+            zhongYuanUpload.setApiCode("7492860");
+            // 从baseRequest获取公共字段
+            zhongYuanUpload.setFlowid(StringUtils.hasText(baseRequest.getFlowId()) ? baseRequest.getFlowId() : null);
+            zhongYuanUpload.setSysid(StringUtils.hasText(baseRequest.getSysId()) ? baseRequest.getSysId() : null);
+            zhongYuanUpload.setTimestamp(StringUtils.hasText(baseRequest.getTimestamp()) ? baseRequest.getTimestamp() : null);
+            zhongYuanUpload.setVersion(StringUtils.hasText(baseRequest.getVersion()) ? baseRequest.getVersion() : null);
+            zhongYuanUpload.setToken(StringUtils.hasText(baseRequest.getToken()) ? baseRequest.getToken() : null);
+            // 从batchData获取批次相关字段
+            zhongYuanUpload.setBatchname(StringUtils.hasText(batchData.getBatchName()) ? batchData.getBatchName() : null);
+            zhongYuanUpload.setBatchno(batchData.getBatchNo());
+            zhongYuanUpload.setStarttime(StringUtils.hasText(batchData.getStartTime()) ? batchData.getStartTime() : null);
+            zhongYuanUpload.setEndtime(StringUtils.hasText(batchData.getEndTime()) ? batchData.getEndTime() : null);
+            zhongYuanUpload.setFestivalban(batchData.getFestivalBan() != null ? String.valueOf(batchData.getFestivalBan()) : null);
+            zhongYuanUpload.setPriority(batchData.getPriority() != null ? String.valueOf(batchData.getPriority()) : null);
+            zhongYuanUpload.setReportendflag(StringUtils.hasText(batchData.getReportEndFlag()) ? batchData.getReportEndFlag() : null);
+            zhongYuanUpload.setCreateTime(new Date());
+            zhongYuanUpload.setUpdateTime(new Date());
+
+            // 将taskDataList转换为JSON字符串
+            if (batchData.getTaskDataList() != null && !batchData.getTaskDataList().isEmpty()) {
+                zhongYuanUpload.setTaskdatalist(JSON.toJSONString(batchData.getTaskDataList()));
+            }
+
+            // 保存到数据库
+            int insertResult = zhongYuanUploadMapper.insertSelective(zhongYuanUpload);
+            log.warn("中原消金批量任务数据入库成功，batchNo: {}, insertResult: {}, id: {}", 
+                    batchData.getBatchNo(), insertResult, zhongYuanUpload.getId());
+
+            // 5. TODO: 数据清洗和推送逻辑
+
             List<BatchTaskResponse.TaskInfo> taskInfoList = new ArrayList<>();
             for (BatchTaskRequest.TaskData taskData : batchData.getTaskDataList()) {
                 BatchTaskResponse.TaskInfo taskInfo = new BatchTaskResponse.TaskInfo();
@@ -121,7 +157,9 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
                 taskInfoList.add(taskInfo);
             }
 
-            // 5. 构建响应
+            // 6. 生成batchUid和taskUid
+            String batchUid = generateBatchUid();
+            // 7. 构建响应
             BatchTaskResponse batchTaskResponse = new BatchTaskResponse();
             batchTaskResponse.setBatchNo(batchData.getBatchNo());
             batchTaskResponse.setBatchUid(batchUid);
@@ -131,10 +169,6 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
 
             log.warn("中原消金批量任务上报成功，batchNo: {}, batchUid: {}, taskCount: {}",
                     batchData.getBatchNo(), batchUid, taskInfoList.size());
-
-            // TODO: 保存原始数据到b_marketing_zhongyuan_upload表
-            // TODO: 数据清洗和推送逻辑
-
             return response;
 
         } catch (Exception e) {

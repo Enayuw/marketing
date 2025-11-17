@@ -1,0 +1,400 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.ZhongYuanUploadMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.ZhongYuanUpload" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="flowId" property="flowid" jdbcType="VARCHAR" />
+    <result column="sysId" property="sysid" jdbcType="VARCHAR" />
+    <result column="timestamp" property="timestamp" jdbcType="VARCHAR" />
+    <result column="version" property="version" jdbcType="VARCHAR" />
+    <result column="token" property="token" jdbcType="VARCHAR" />
+    <result column="batchName" property="batchname" jdbcType="VARCHAR" />
+    <result column="batchNo" property="batchno" jdbcType="VARCHAR" />
+    <result column="startTime" property="starttime" jdbcType="VARCHAR" />
+    <result column="endTime" property="endtime" jdbcType="VARCHAR" />
+    <result column="festivalBan" property="festivalban" jdbcType="VARCHAR" />
+    <result column="priority" property="priority" jdbcType="VARCHAR" />
+    <result column="reportEndFlag" property="reportendflag" jdbcType="VARCHAR" />
+    <result column="taskDataList" property="taskdatalist" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, api_code, flowId, `sysId`, `timestamp`, version, token, batchName, batchNo, startTime, 
+    endTime, festivalBan, priority, reportEndFlag, taskDataList, create_time, update_time
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.ZhongYuanUploadExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_marketing_zhongyuan_upload
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from b_marketing_zhongyuan_upload
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_marketing_zhongyuan_upload
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.ZhongYuanUploadExample" >
+    delete from b_marketing_zhongyuan_upload
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.ZhongYuanUpload" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_marketing_zhongyuan_upload (api_code, flowId, `sysId`, 
+      `timestamp`, version, token, 
+      batchName, batchNo, startTime, 
+      endTime, festivalBan, priority, 
+      reportEndFlag, taskDataList, create_time, 
+      update_time)
+    values (#{apiCode,jdbcType=VARCHAR}, #{flowid,jdbcType=VARCHAR}, #{sysid,jdbcType=VARCHAR}, 
+      #{timestamp,jdbcType=VARCHAR}, #{version,jdbcType=VARCHAR}, #{token,jdbcType=VARCHAR}, 
+      #{batchname,jdbcType=VARCHAR}, #{batchno,jdbcType=VARCHAR}, #{starttime,jdbcType=VARCHAR}, 
+      #{endtime,jdbcType=VARCHAR}, #{festivalban,jdbcType=VARCHAR}, #{priority,jdbcType=VARCHAR}, 
+      #{reportendflag,jdbcType=VARCHAR}, #{taskdatalist,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.ZhongYuanUpload" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_marketing_zhongyuan_upload
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="flowid != null" >
+        flowId,
+      </if>
+      <if test="sysid != null" >
+        `sysId`,
+      </if>
+      <if test="timestamp != null" >
+        `timestamp`,
+      </if>
+      <if test="version != null" >
+        version,
+      </if>
+      <if test="token != null" >
+        token,
+      </if>
+      <if test="batchname != null" >
+        batchName,
+      </if>
+      <if test="batchno != null" >
+        batchNo,
+      </if>
+      <if test="starttime != null" >
+        startTime,
+      </if>
+      <if test="endtime != null" >
+        endTime,
+      </if>
+      <if test="festivalban != null" >
+        festivalBan,
+      </if>
+      <if test="priority != null" >
+        priority,
+      </if>
+      <if test="reportendflag != null" >
+        reportEndFlag,
+      </if>
+      <if test="taskdatalist != null" >
+        taskDataList,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="flowid != null" >
+        #{flowid,jdbcType=VARCHAR},
+      </if>
+      <if test="sysid != null" >
+        #{sysid,jdbcType=VARCHAR},
+      </if>
+      <if test="timestamp != null" >
+        #{timestamp,jdbcType=VARCHAR},
+      </if>
+      <if test="version != null" >
+        #{version,jdbcType=VARCHAR},
+      </if>
+      <if test="token != null" >
+        #{token,jdbcType=VARCHAR},
+      </if>
+      <if test="batchname != null" >
+        #{batchname,jdbcType=VARCHAR},
+      </if>
+      <if test="batchno != null" >
+        #{batchno,jdbcType=VARCHAR},
+      </if>
+      <if test="starttime != null" >
+        #{starttime,jdbcType=VARCHAR},
+      </if>
+      <if test="endtime != null" >
+        #{endtime,jdbcType=VARCHAR},
+      </if>
+      <if test="festivalban != null" >
+        #{festivalban,jdbcType=VARCHAR},
+      </if>
+      <if test="priority != null" >
+        #{priority,jdbcType=VARCHAR},
+      </if>
+      <if test="reportendflag != null" >
+        #{reportendflag,jdbcType=VARCHAR},
+      </if>
+      <if test="taskdatalist != null" >
+        #{taskdatalist,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.ZhongYuanUploadExample" resultType="java.lang.Integer" >
+    select count(*) from b_marketing_zhongyuan_upload
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_marketing_zhongyuan_upload
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.flowid != null" >
+        flowId = #{record.flowid,jdbcType=VARCHAR},
+      </if>
+      <if test="record.sysid != null" >
+        `sysId` = #{record.sysid,jdbcType=VARCHAR},
+      </if>
+      <if test="record.timestamp != null" >
+        `timestamp` = #{record.timestamp,jdbcType=VARCHAR},
+      </if>
+      <if test="record.version != null" >
+        version = #{record.version,jdbcType=VARCHAR},
+      </if>
+      <if test="record.token != null" >
+        token = #{record.token,jdbcType=VARCHAR},
+      </if>
+      <if test="record.batchname != null" >
+        batchName = #{record.batchname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.batchno != null" >
+        batchNo = #{record.batchno,jdbcType=VARCHAR},
+      </if>
+      <if test="record.starttime != null" >
+        startTime = #{record.starttime,jdbcType=VARCHAR},
+      </if>
+      <if test="record.endtime != null" >
+        endTime = #{record.endtime,jdbcType=VARCHAR},
+      </if>
+      <if test="record.festivalban != null" >
+        festivalBan = #{record.festivalban,jdbcType=VARCHAR},
+      </if>
+      <if test="record.priority != null" >
+        priority = #{record.priority,jdbcType=VARCHAR},
+      </if>
+      <if test="record.reportendflag != null" >
+        reportEndFlag = #{record.reportendflag,jdbcType=VARCHAR},
+      </if>
+      <if test="record.taskdatalist != null" >
+        taskDataList = #{record.taskdatalist,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_marketing_zhongyuan_upload
+    set id = #{record.id,jdbcType=BIGINT},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      flowId = #{record.flowid,jdbcType=VARCHAR},
+      `sysId` = #{record.sysid,jdbcType=VARCHAR},
+      `timestamp` = #{record.timestamp,jdbcType=VARCHAR},
+      version = #{record.version,jdbcType=VARCHAR},
+      token = #{record.token,jdbcType=VARCHAR},
+      batchName = #{record.batchname,jdbcType=VARCHAR},
+      batchNo = #{record.batchno,jdbcType=VARCHAR},
+      startTime = #{record.starttime,jdbcType=VARCHAR},
+      endTime = #{record.endtime,jdbcType=VARCHAR},
+      festivalBan = #{record.festivalban,jdbcType=VARCHAR},
+      priority = #{record.priority,jdbcType=VARCHAR},
+      reportEndFlag = #{record.reportendflag,jdbcType=VARCHAR},
+      taskDataList = #{record.taskdatalist,jdbcType=VARCHAR},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.ZhongYuanUpload" >
+    update b_marketing_zhongyuan_upload
+    <set >
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="flowid != null" >
+        flowId = #{flowid,jdbcType=VARCHAR},
+      </if>
+      <if test="sysid != null" >
+        `sysId` = #{sysid,jdbcType=VARCHAR},
+      </if>
+      <if test="timestamp != null" >
+        `timestamp` = #{timestamp,jdbcType=VARCHAR},
+      </if>
+      <if test="version != null" >
+        version = #{version,jdbcType=VARCHAR},
+      </if>
+      <if test="token != null" >
+        token = #{token,jdbcType=VARCHAR},
+      </if>
+      <if test="batchname != null" >
+        batchName = #{batchname,jdbcType=VARCHAR},
+      </if>
+      <if test="batchno != null" >
+        batchNo = #{batchno,jdbcType=VARCHAR},
+      </if>
+      <if test="starttime != null" >
+        startTime = #{starttime,jdbcType=VARCHAR},
+      </if>
+      <if test="endtime != null" >
+        endTime = #{endtime,jdbcType=VARCHAR},
+      </if>
+      <if test="festivalban != null" >
+        festivalBan = #{festivalban,jdbcType=VARCHAR},
+      </if>
+      <if test="priority != null" >
+        priority = #{priority,jdbcType=VARCHAR},
+      </if>
+      <if test="reportendflag != null" >
+        reportEndFlag = #{reportendflag,jdbcType=VARCHAR},
+      </if>
+      <if test="taskdatalist != null" >
+        taskDataList = #{taskdatalist,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.ZhongYuanUpload" >
+    update b_marketing_zhongyuan_upload
+    set api_code = #{apiCode,jdbcType=VARCHAR},
+      flowId = #{flowid,jdbcType=VARCHAR},
+      `sysId` = #{sysid,jdbcType=VARCHAR},
+      `timestamp` = #{timestamp,jdbcType=VARCHAR},
+      version = #{version,jdbcType=VARCHAR},
+      token = #{token,jdbcType=VARCHAR},
+      batchName = #{batchname,jdbcType=VARCHAR},
+      batchNo = #{batchno,jdbcType=VARCHAR},
+      startTime = #{starttime,jdbcType=VARCHAR},
+      endTime = #{endtime,jdbcType=VARCHAR},
+      festivalBan = #{festivalban,jdbcType=VARCHAR},
+      priority = #{priority,jdbcType=VARCHAR},
+      reportEndFlag = #{reportendflag,jdbcType=VARCHAR},
+      taskDataList = #{taskdatalist,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>
