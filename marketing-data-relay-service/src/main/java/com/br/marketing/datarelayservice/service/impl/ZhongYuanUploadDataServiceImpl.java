@@ -33,7 +33,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
     private static final long TOKEN_EXPIRE_TIME = 7200; // 2小时
 
     @Override
-    public ZhongYuanBaseResponse<?> login(String jsonData, HttpServletRequest request) {
+    public ZhongYuanBaseResponse<?> login(String jsonData) {
         try {
             log.warn("中原消金登录接口请求，jsonData: {}", jsonData);
 
@@ -83,7 +83,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
     }
 
     @Override
-    public ZhongYuanBaseResponse<?> batchTask(String jsonData, HttpServletRequest request) {
+    public ZhongYuanBaseResponse<?> batchTask(String jsonData) {
         try {
             log.warn("中原消金批量任务上报接口请求，jsonData长度: {}", jsonData != null ? jsonData.length() : 0);
 
@@ -97,7 +97,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             }
 
             // 2. Token验证
-            ZhongYuanBaseResponse<?> tokenResponse = validateTokenFromRequest(baseRequest, request);
+            ZhongYuanBaseResponse<?> tokenResponse = validateTokenFromRequest(baseRequest);
             if (!"0000000".equals(tokenResponse.getCode())) {
                 return tokenResponse;
             }
@@ -144,7 +144,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
     }
 
     @Override
-    public ZhongYuanBaseResponse<?> sceneVariable(String jsonData, HttpServletRequest request) {
+    public ZhongYuanBaseResponse<?> sceneVariable(String jsonData) {
         try {
             log.warn("中原消金场景变量查询接口请求，jsonData: {}", jsonData);
 
@@ -158,7 +158,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             }
 
             // 2. Token验证
-            ZhongYuanBaseResponse<?> tokenResponse = validateTokenFromRequest(baseRequest, request);
+            ZhongYuanBaseResponse<?> tokenResponse = validateTokenFromRequest(baseRequest);
             if (!"0000000".equals(tokenResponse.getCode())) {
                 return tokenResponse;
             }
@@ -171,7 +171,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             }
 
             // 4. 查询场景变量
-            List<SceneVariableResponse> sceneVariableList = getSceneVariables(sceneData.getSceneCode());
+            List<SceneVariableResponse> sceneVariableList = getSceneVariables();
 
             // 5. 构建响应
             ZhongYuanBaseResponse<List<SceneVariableResponse>> response = ZhongYuanBaseResponse.success(sceneVariableList);
@@ -207,10 +207,9 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
      * 从baseRequest或request参数中获取token并验证
      *
      * @param baseRequest 基础请求对象
-     * @param request     HTTP请求对象
      * @return 验证结果响应，成功返回success响应，失败返回fail响应
      */
-    private ZhongYuanBaseResponse<?> validateTokenFromRequest(ZhongYuanBaseRequest<?> baseRequest, HttpServletRequest request) {
+    private ZhongYuanBaseResponse<?> validateTokenFromRequest(ZhongYuanBaseRequest<?> baseRequest) {
         // 1. 从baseRequest获取token
         String token = baseRequest != null ? baseRequest.getToken() : null;
         
@@ -236,10 +235,9 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
     /**
      * 获取场景变量列表
      *
-     * @param sceneCode 场景代码
      * @return 场景变量列表
      */
-    private List<SceneVariableResponse> getSceneVariables(String sceneCode) {
+    private List<SceneVariableResponse> getSceneVariables() {
         // 查询数据库（这里使用固定数据，实际应该从数据库查询）
         List<SceneVariableResponse> variableList = new ArrayList<>();
         variableList.add(createSceneVariable("custName", "客户姓名", null));

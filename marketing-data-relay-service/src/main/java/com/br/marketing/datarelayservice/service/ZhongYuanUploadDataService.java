@@ -16,26 +16,23 @@ public interface ZhongYuanUploadDataService {
      * 用户登录接口
      *
      * @param jsonData 请求JSON数据
-     * @param request  HTTP请求
      * @return 响应结果
      */
-    ZhongYuanBaseResponse<?> login(String jsonData, HttpServletRequest request);
+    ZhongYuanBaseResponse<?> login(String jsonData);
 
     /**
      * 外呼上报接口
      *
      * @param jsonData 请求JSON数据
-     * @param request  HTTP请求
      * @return 响应结果
      */
-    ZhongYuanBaseResponse<?> batchTask(String jsonData, HttpServletRequest request);
+    ZhongYuanBaseResponse<?> batchTask(String jsonData);
 
     /**
      * 场景变量信息接口
      *
      * @param jsonData 请求JSON数据
-     * @param request  HTTP请求
      * @return 响应结果
      */
-    ZhongYuanBaseResponse<?> sceneVariable(String jsonData, HttpServletRequest request);
+    ZhongYuanBaseResponse<?> sceneVariable(String jsonData);
 }
