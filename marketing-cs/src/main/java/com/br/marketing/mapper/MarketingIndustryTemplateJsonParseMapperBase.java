@@ -21,9 +21,11 @@ public interface MarketingIndustryTemplateJsonParseMapperBase {
 
     MarketingIndustryTemplateJsonParse selectByPrimaryKey(Long id);
 
-    int updateByExampleSelective(@Param("record") MarketingIndustryTemplateJsonParse record, @Param("example") MarketingIndustryTemplateJsonParseExample example);
+    int updateByExampleSelective(@Param("record") MarketingIndustryTemplateJsonParse record
+            , @Param("example") MarketingIndustryTemplateJsonParseExample example);
 
-    int updateByExample(@Param("record") MarketingIndustryTemplateJsonParse record, @Param("example") MarketingIndustryTemplateJsonParseExample example);
+    int updateByExample(@Param("record") MarketingIndustryTemplateJsonParse record
+            , @Param("example") MarketingIndustryTemplateJsonParseExample example);
 
     int updateByPrimaryKeySelective(MarketingIndustryTemplateJsonParse record);
 

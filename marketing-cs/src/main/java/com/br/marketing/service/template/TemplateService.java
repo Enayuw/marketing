@@ -11,7 +11,8 @@ public interface TemplateService {
 
     Result<Boolean> addTemplate(MarketingIndustryTemplateDTO marketingIndustryTemplateDTO);
 
-    Result<PageResultReturn<MarketingIndustryTemplate>> queryAllTemplate(Integer current, Integer pageSize, String templateName, String firstDepartment, String secondDepartment, String apiType);
+    Result<PageResultReturn<MarketingIndustryTemplate>> queryAllTemplate(Integer current, Integer pageSize
+            , String templateName, String firstDepartment, String secondDepartment, String apiType);
 
     Result<Boolean> editTemplate(MarketingIndustryTemplateDTO marketingIndustryTemplateDTO);
 

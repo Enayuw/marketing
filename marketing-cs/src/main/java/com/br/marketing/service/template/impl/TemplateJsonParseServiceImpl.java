@@ -32,7 +32,8 @@ public class TemplateJsonParseServiceImpl implements TemplateJsonParseService {
     private MarketingIndustryTemplateJsonParseMapper marketingIndustryTemplateJsonParseMapper;
 
     @Override
-    public Result<JSONArray> queryIndustryTemplateJsonParses(String firstDepartment, String secondDepartment, String apiType, Integer systemType, Integer dataType) {
+    public Result<JSONArray> queryIndustryTemplateJsonParses(String firstDepartment, String secondDepartment
+            , String apiType, Integer systemType, Integer dataType) {
         try {
             //根据apiType和dataType查询行业模板id
             MarketingIndustryTemplateExample templateExample = new MarketingIndustryTemplateExample();
@@ -52,7 +53,8 @@ public class TemplateJsonParseServiceImpl implements TemplateJsonParseService {
             MarketingIndustryTemplateJsonParseExample jsonParseExample = new MarketingIndustryTemplateJsonParseExample();
             jsonParseExample.createCriteria().andInterfaceTemplateIdEqualTo(templateId);
 
-            List<MarketingIndustryTemplateJsonParse> marketingIndustryTemplateJsonParseList = marketingIndustryTemplateJsonParseMapper.selectByExample(jsonParseExample);
+            List<MarketingIndustryTemplateJsonParse> marketingIndustryTemplateJsonParseList =
+                    marketingIndustryTemplateJsonParseMapper.selectByExample(jsonParseExample);
             if (!marketingIndustryTemplateJsonParseList.isEmpty()) {
                 return new Result<>().success().setDate(JSON.parseArray(JSON.toJSONString(marketingIndustryTemplateJsonParseList)));
             } else {
@@ -74,7 +76,8 @@ public class TemplateJsonParseServiceImpl implements TemplateJsonParseService {
             MarketingBuildInTemplateJsonParseExample example = new MarketingBuildInTemplateJsonParseExample();
             example.createCriteria().andSystemTypeEqualTo(systemType).andDataTypeEqualTo(dataType);
 
-            List<MarketingBuildInTemplateJsonParse> marketingBuildInTemplateJsonParseList = marketingBuildInTemplateJsonParseMapper.selectByExample(example);
+            List<MarketingBuildInTemplateJsonParse> marketingBuildInTemplateJsonParseList =
+                    marketingBuildInTemplateJsonParseMapper.selectByExample(example);
             if (!marketingBuildInTemplateJsonParseList.isEmpty()) {
                 return marketingBuildInTemplateJsonParseList;
             } else {

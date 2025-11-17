@@ -41,7 +41,8 @@ public class TemplateServiceImpl implements TemplateService {
     @Transactional(rollbackFor = Exception.class)
     public Result<Boolean> addTemplate(MarketingIndustryTemplateDTO marketingIndustryTemplateDTO) {
         MarketingIndustryTemplate marketingIndustryTemplate = marketingIndustryTemplateDTO.getMarketingIndustryTemplate();
-        List<MarketingIndustryTemplateJsonParse> marketingIndustryTemplateJsonParseList = marketingIndustryTemplateDTO.getMarketingIndustryTemplateJsonParseList();
+        List<MarketingIndustryTemplateJsonParse> marketingIndustryTemplateJsonParseList =
+                marketingIndustryTemplateDTO.getMarketingIndustryTemplateJsonParseList();
 
         //非空校验
         String errorMsg = paramValid(marketingIndustryTemplate);
@@ -74,7 +75,8 @@ public class TemplateServiceImpl implements TemplateService {
     }
 
     @Override
-    public Result<PageResultReturn<MarketingIndustryTemplate>> queryAllTemplate(Integer current, Integer pageSize, String templateName, String firstDepartment, String secondDepartment, String apiType) {
+    public Result<PageResultReturn<MarketingIndustryTemplate>> queryAllTemplate(Integer current, Integer pageSize
+            , String templateName, String firstDepartment, String secondDepartment, String apiType) {
         PageMethod.startPage(current, pageSize);
 
         MarketingIndustryTemplateExample example = new MarketingIndustryTemplateExample();
@@ -96,7 +98,8 @@ public class TemplateServiceImpl implements TemplateService {
             List<MarketingIndustryTemplate> marketingIndustryTemplateList = marketingIndustryTemplateMapper.selectByExample(example);
             if (!marketingIndustryTemplateList.isEmpty()) {
                 logger.warn("查询行业模板成功，行业模板总条数：{}", marketingIndustryTemplateList.size());
-                return new Result<PageResultReturn<MarketingIndustryTemplate>>().success().setDate(PageResultReturn.setPageResult(marketingIndustryTemplateList, current, pageSize));
+                return new Result<PageResultReturn<MarketingIndustryTemplate>>().success().setDate(
+                        PageResultReturn.setPageResult(marketingIndustryTemplateList, current, pageSize));
             } else {
                 logger.warn("未查询到行业模板信息，查询条件：templateName={}，firstDepartment={}，secondDepartment={}，apiType={}",
                         templateName, firstDepartment, secondDepartment, apiType);
@@ -113,7 +116,8 @@ public class TemplateServiceImpl implements TemplateService {
     @Transactional(rollbackFor = Exception.class)
     public Result<Boolean> editTemplate(MarketingIndustryTemplateDTO marketingIndustryTemplateDTO) {
         MarketingIndustryTemplate marketingIndustryTemplate = marketingIndustryTemplateDTO.getMarketingIndustryTemplate();
-        List<MarketingIndustryTemplateJsonParse> marketingIndustryTemplateJsonParseList = marketingIndustryTemplateDTO.getMarketingIndustryTemplateJsonParseList();
+        List<MarketingIndustryTemplateJsonParse> marketingIndustryTemplateJsonParseList =
+                marketingIndustryTemplateDTO.getMarketingIndustryTemplateJsonParseList();
         try {
             if (marketingIndustryTemplateJsonParseList != null && !marketingIndustryTemplateJsonParseList.isEmpty()) {
                 //更新模板信息
@@ -167,7 +171,8 @@ public class TemplateServiceImpl implements TemplateService {
 
             MarketingIndustryTemplateJsonParseExample example = new MarketingIndustryTemplateJsonParseExample();
             example.createCriteria().andInterfaceTemplateIdEqualTo(id);
-            List<MarketingIndustryTemplateJsonParse> marketingIndustryTemplateJsonParseList = marketingIndustryTemplateJsonParseMapper.selectByExample(example);
+            List<MarketingIndustryTemplateJsonParse> marketingIndustryTemplateJsonParseList =
+                    marketingIndustryTemplateJsonParseMapper.selectByExample(example);
 
             if (marketingIndustryTemplate != null) {
                 logger.warn("行业模板查询成功，行业模板id：{}", id);

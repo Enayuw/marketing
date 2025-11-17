@@ -10,7 +10,8 @@ import java.util.List;
 @Service
 public interface TemplateJsonParseService {
 
-    Result<JSONArray> queryIndustryTemplateJsonParses(String firstDepartment, String secondDepartment, String apiType, Integer systemType, Integer dataType);
+    Result<JSONArray> queryIndustryTemplateJsonParses(String firstDepartment, String secondDepartment
+            , String apiType, Integer systemType, Integer dataType);
 
     List<MarketingBuildInTemplateJsonParse> queryBuildInTemplateJsonParses(Integer systemType, Integer dataType);
 

@@ -186,13 +186,13 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 .andAcceptTypeEqualTo(config.getAcceptType())
                 .andIsDelEqualTo(1);
         List<MarketingDataCleanGeneralConfig> existingConfigs = cleanGeneralConfigMapper.selectByExample(configExample);
-        
+
         if (existingConfigs == null || existingConfigs.isEmpty()) {
             return true;
         }
-        
+
         Long configId = existingConfigs.get(0).getId();
-        
+
         // 查询已存在的规则字段配置
         MarketingDataCleanGeneralRuleConfigExample ruleExample = new MarketingDataCleanGeneralRuleConfigExample();
         ruleExample.createCriteria()
@@ -200,7 +200,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 .andApiCodeEqualTo(config.getApiCode())
                 .andIsDelEqualTo(1);
         List<MarketingDataCleanGeneralRuleConfig> existingRules = cleanGeneralRuleConfigMapper.selectByExample(ruleExample);
-        
+
         if (existingRules == null || existingRules.isEmpty()) {
             return true;
         }
@@ -395,7 +395,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                             if (DataProcessEnum.AcceptTypeEnum.GENERAL.getCode().equals(acceptType)) {
                                 // 通用类型：查询b_marketing_sync_info表
                                 log.info("查询通用上传表获取字段值: apiCode={}, field={}", apiCode, nodeName);
-                                
+
                                 // 查询最新的一条记录
                                 MarketingSyncInfoExample example = new MarketingSyncInfoExample();
                                 example.createCriteria()
@@ -404,16 +404,16 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                                 example.setOrderByClause("create_time DESC");
                                 // 使用PageHelper限制结果数量
                                 PageHelper.startPage(1, 1);
-                                
+
                                 List<MarketingSyncInfo> infoList = marketingSyncInfoMapper.selectByExample(example);
                                 if (!CollectionUtils.isEmpty(infoList)) {
                                     MarketingSyncInfo info = infoList.get(0);
                                     String jsonData = info.getJsonData();
                                     createTime = info.getCreateTime();
-                                    
+
                                     // 从JSON数据中提取指定字段值
                                     nodeValue = extractValueFromJson(jsonData, nodeName);
-                                    
+
                                     if (StringUtils.isNotBlank(nodeValue)) {
                                         // 更新JSON结构表
                                         updateNodeValue(node.getId(), nodeValue);
@@ -423,7 +423,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                             } else if (DataProcessEnum.AcceptTypeEnum.CUSTOM.getCode().equals(acceptType)) {
                                 // 定制类型：查询b_marketing_customer_original_data表
                                 log.info("查询定制上传表获取字段值: apiCode={}, field={}", apiCode, nodeName);
-                                
+
                                 // 查询最新的一条记录
                                 MarketingCustomerOriginalDataExample example = new MarketingCustomerOriginalDataExample();
                                 example.createCriteria()
@@ -432,16 +432,16 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                                 example.setOrderByClause("create_time DESC");
                                 // 使用PageHelper限制结果数量
                                 PageHelper.startPage(1, 1);
-                                
+
                                 List<MarketingCustomerOriginalData> dataList = marketingCustomerOriginalDataMapper.selectByExample(example);
                                 if (!CollectionUtils.isEmpty(dataList)) {
                                     MarketingCustomerOriginalData data = dataList.get(0);
                                     String jsonData = data.getJsonData();
                                     createTime = data.getCreateTime();
-                                    
+
                                     // 从JSON数据中提取指定字段值
                                     nodeValue = extractValueFromJson(jsonData, nodeName);
-                                    
+
                                     if (StringUtils.isNotBlank(nodeValue)) {
                                         // 更新JSON结构表
                                         updateNodeValue(node.getId(), nodeValue);
@@ -672,7 +672,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
         return fieldSample;
     }
-    
+
     /**
      * 预览字段清洗结果
      *
@@ -728,25 +728,25 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         if (nodeParse == null) {
             throw new BusinessException("节点解析对象不能为空");
         }
-        
+
         if (cleaningRule == null) {
             throw new BusinessException("清洗规则不能为空");
         }
-        
+
         Boolean isMapping = cleaningRule.getIsMapping();
         String cleanFields = cleaningRule.getCleanFields();
         String parentPath = cleaningRule.getParentPath();
         Integer level = cleaningRule.getLevel();
         Integer isDel = cleaningRule.getIsDel();
-        
+
         if ("9".equals(isDel)) {
             return "";
         }
-        
+
         if (StringUtils.isBlank(cleanFields)) {
             throw new BusinessException("清洗字段不能为空");
         }
-        
+
         Object fieldValue = null;
         if (ObjectUtil.isNotEmpty(parentPath) || ObjectUtil.isNotEmpty(level)) {
             fieldValue = JsonParseUtils.findFirstValueByKey(nodeParse, cleanFields, parentPath);
@@ -759,42 +759,42 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             log.warn("未找到字段值: cleanFields={}", cleanFields);
             return "";
         }
-        
+
         String firstValueByKey = fieldValue.toString();
-        
+
         if (isMapping) {
             String mappingRule = cleaningRule.getMappingRule();
             if (StringUtils.isBlank(mappingRule)) {
                 log.warn("映射规则为空，无法执行清洗: cleanFields={}", cleanFields);
                 return firstValueByKey;
             }
-            
+
             Object result = previewFieldCleaning(firstValueByKey, mappingRule, nodeParse);
             return result;
         }
-        
+
         return firstValueByKey;
     }
 
-    
+
     /**
      * 执行单个清洗规则
      */
     private Object executeSingleRule(String fieldSample, String cleaningRule, Object nodeParse) {
         //log.warn("执行单个规则 - 输入值: {}, 规则: {}", fieldSample, cleaningRule);
-        
+
         Map<String, Object> ruleMap = null;
         try {
             ruleMap = JSON.parseObject(cleaningRule, Map.class);
         } catch (Exception e) {
             throw new BusinessException("解析清洗规则失败！");
         }
-        
+
         if (ruleMap == null || ruleMap.isEmpty()) {
             //log.warn("规则映射为空，返回原值");
             return fieldSample;
         }
-        
+
         // 获取操作类型
         String operator = ruleMap.containsKey("operator") ? String.valueOf(ruleMap.get("operator")) : null;
         if (StringUtils.isBlank(operator)) {
@@ -803,7 +803,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
 
         //log.warn("操作类型: {}", operator);
-        
+
         // 根据操作类型执行不同的清洗逻辑
         Object result = fieldSample;
 
@@ -879,7 +879,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         String operator = String.valueOf(ruleMap.get("operator"));
         log.warn("处理数学运算 - 输入值: {}, 操作符: {}", fieldSample, operator);
         String type = String.valueOf(ruleMap.get("type"));
-        
+
         // 计算所有操作数
         Object value = null;
         if ("field".equals(type)) {
@@ -1025,15 +1025,15 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             // 首先检查原字符串是否包含关键字（不区分大小写）
             Pattern pattern = Pattern.compile(Pattern.quote(patternField), Pattern.CASE_INSENSITIVE);
             Matcher matcher = pattern.matcher(fieldSample);
-            
+
             if (!matcher.find()) {
                 //log.warn("保留关键字操作（忽略大小写）：原值 '{}' 不包含关键字 '{}'，返回原值", fieldSample, patternField);
                 return fieldSample;
             }
-            
+
             // 重置匹配器，重新开始查找
             matcher.reset();
-            
+
             // 收集所有匹配项
             StringBuilder result = new StringBuilder();
             while (matcher.find()) {
@@ -1062,7 +1062,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         String regex = "(?i)" + Pattern.quote(oldValue);
         String result = fieldSample.replaceAll(regex, newValue);
         //log.warn("替换操作（忽略大小写）：原值 '{}' 替换 '{}' 为 '{}' 结果是 '{}'", fieldSample, oldValue, newValue, result);
-        
+
         return result;
     }
 
@@ -1114,7 +1114,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         int length = fieldSample.length();
         /*log.warn("截取参数(从1开始的索引): 字符串长度={}, 开始索引={}, 结束索引={}, 方向={}",
                 length, startIndex, endIndex, startLocation);*/
-        
+
         // 转换为Java的0基索引
         int javaStartIndex = startIndex - 1;
         // endIndex就表示要包含的字符数
@@ -1131,7 +1131,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
             /*log.warn("右侧起算修正后: 右侧开始索引={}, 右侧结束索引={}",
                     rightStartIndex, rightEndIndex);*/
-            
+
             // 不需要交换，只需要确保索引有效
             javaStartIndex = Math.max(0, rightStartIndex);
             javaEndIndex = Math.min(length, rightEndIndex);
@@ -1142,7 +1142,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         javaEndIndex = Math.max(javaStartIndex, Math.min(javaEndIndex, length));
 
         //log.warn("最终Java索引: startIndex={}, endIndex={}", javaStartIndex, javaEndIndex);
-        
+
         // 如果开始和结束索引相同，返回空字符串
         if (javaStartIndex == javaEndIndex) {
             log.warn("开始索引等于结束索引，返回空字符串");
@@ -1228,7 +1228,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
         // 获取并处理fieldValue，支持多种格式
         List<String> fieldValues = new ArrayList<>();
-        
+
         if (fieldSample instanceof List) {
             // 已经是列表，直接使用
             List<?> rawList = (List<?>) fieldSample;
@@ -1252,7 +1252,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             }
         } else if (fieldSample instanceof String) {
             String strValue = (String) fieldSample;
-            
+
             // 尝试判断是否为JSON数组格式
             if (strValue.startsWith("[") && strValue.endsWith("]")) {
                 try {
@@ -1285,7 +1285,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 fieldValues.addAll(Arrays.asList(strValue.split(",")));
             }
         }
-        
+
         log.warn("解析fieldValue得到的值列表: {}", fieldValues);
 
         // 获取优先级条件
@@ -1305,7 +1305,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         // 优先级排序后的结果
         List<String> processedValues = new ArrayList<>(fieldValues);
         log.warn("初始字段值列表: {}", processedValues);
-        
+
         // 记录是否有条件匹配
         boolean anyConditionMatched = false;
 
@@ -1324,7 +1324,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 // 检查是否所有值都是纯字符串（不包含数字）
                 boolean allPureStrings = processedValues.stream()
                         .allMatch(v -> !v.matches(".*\\d+.*"));
-                
+
                 if (allPureStrings) {
                     // 纯字符串按字母排序
                     if ("desc".equals(sort)) {
@@ -1362,7 +1362,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     }
                 }
                 anyConditionMatched = true;
-                
+
             } else if ("keyword".equals(priorityType)) {
                 // 按关键字过滤（忽略大小写）
                 String keyword = String.valueOf(condition.get("keywordValue"));
@@ -1390,22 +1390,22 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             log.warn("条件匹配成功，返回排序后的第一个值: {}", processedValues.get(0));
             return processedValues.get(0);
         }
-        
+
         // 如果没有条件匹配或处理后没有值，使用兜底方案
         log.warn("没有条件匹配或处理后没有值，使用兜底方案");
-        
+
         // 使用defaultValue作为索引从原始列表中选择（下标从1开始）
         if (ruleMap.containsKey("defaultValue")) {
             try {
                 // 获取defaultValue值(从1开始计数)
                 int defaultIdx = Integer.parseInt(String.valueOf(ruleMap.get("defaultValue")));
-                
+
                 // 验证defaultValue不能为空且必须大于0
                 if (defaultIdx <= 0) {
                     log.warn("兜底方案索引值必须大于0，当前值: {}", defaultIdx);
                     return fieldSample;
                 }
-                
+
                 // 转换为0基索引
                 defaultIdx = defaultIdx - 1;
                 // 确保索引在有效范围内
@@ -1425,31 +1425,31 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         // 如果前面的处理都没有返回结果，返回原始样例
         return fieldSample;
     }
-    
+
     /**
      * 辅助类：用于解析和排序包含数字的字符串
      */
     private static class NumberStringPair {
         private final String originalString;
         private final double number;
-        
+
         public NumberStringPair(String str) {
             this.originalString = str;
             this.number = extractNumber(str);
         }
-        
+
         public String getOriginalString() {
             return originalString;
         }
-        
+
         public double getNumber() {
             return number;
         }
-        
+
         private double extractNumber(String str) {
             StringBuilder sb = new StringBuilder();
             boolean hasDecimalPoint = false;
-            
+
             for (char c : str.toCharArray()) {
                 if (Character.isDigit(c)) {
                     sb.append(c);
@@ -1458,7 +1458,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     hasDecimalPoint = true;
                 }
             }
-            
+
             if (sb.length() > 0) {
                 try {
                     return Double.parseDouble(sb.toString());
@@ -1467,7 +1467,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     log.warn("无法解析数字: '{}', 返回0", sb.toString(), e);
                 }
             }
-            
+
             return 0;
         }
     }
@@ -1505,7 +1505,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         if (systemType == null) {
             throw new BusinessException("数据来源不能为空");
         }
-        
+
         MarketingDataCleanGeneralFieldConfigExample fieldConfigExample = new MarketingDataCleanGeneralFieldConfigExample();
         fieldConfigExample.createCriteria().andDataTypeEqualTo(dataType).andSystemTypeEqualTo(systemType);
         List<MarketingDataCleanGeneralFieldConfig> fieldConfigList = marketingDataCleanGeneralFieldConfigMapper.selectByExample(fieldConfigExample);
@@ -1528,23 +1528,23 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             if (fieldConfigVO == null) {
                 throw new BusinessException("字段配置不能为空");
             }
-            
+
             if (fieldConfigVO.getDataType() == null) {
                 throw new BusinessException("数据类型不能为空");
             }
-            
+
             if (StringUtils.isBlank(fieldConfigVO.getFieldCollect())) {
                 throw new BusinessException("字段集合不能为空");
             }
-            
+
             MarketingUserDetail user = ThreadContextInfo.getUser();
             String fieldStr = fieldConfigVO.getFieldCollect();
             List<String> fieldList = Arrays.asList(fieldStr.split(","));
-            
+
             Set<String> baseField = Sets.newHashSet("cell", "id", "name", "userType", "custNum", "operateType", "taskId", "requestId");
             baseField.addAll(fieldList);
             String fieldCollect = String.join(",", baseField);
-            
+
             if (Objects.isNull(fieldConfigVO.getId())) {
                 //插入
                 MarketingDataCleanGeneralFieldConfig fieldConfig = new MarketingDataCleanGeneralFieldConfig();
@@ -1562,7 +1562,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 if (update == null) {
                     throw new BusinessException("模版字段配置不存在，无法更新");
                 }
-                
+
                 BeanUtils.copyProperties(fieldConfigVO, update);
                 update.setFieldCollect(fieldCollect);
                 update.setOptUserId(Long.valueOf(user.getId()));
@@ -1588,7 +1588,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         if (StringUtils.isBlank(jsonData) || StringUtils.isBlank(fieldName)) {
             return null;
         }
-        
+
         try {
             // 尝试解析为JSONObject
             if (jsonData.trim().startsWith("{")) {
@@ -1605,7 +1605,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         } catch (Exception e) {
             log.warn("JSON解析失败！错误信息：{}", e.getMessage(), e);
         }
-        
+
         return null;
     }
 
@@ -1620,24 +1620,24 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         if (jsonObject == null) {
             return null;
         }
-        
+
         // 直接查找字段
         if (jsonObject.containsKey(fieldName)) {
             Object value = jsonObject.get(fieldName);
             return value != null ? value.toString() : null;
         }
-        
+
         // 递归查找所有嵌套的JSON对象
         for (String key : jsonObject.keySet()) {
             Object value = jsonObject.get(key);
-            
+
             // 递归处理嵌套的JSONObject
             if (value instanceof JSONObject) {
                 String nestedResult = findValueInJsonObject((JSONObject) value, fieldName);
                 if (nestedResult != null) {
                     return nestedResult;
                 }
-            } 
+            }
             // 递归处理JSONArray中的所有JSONObject
             else if (value instanceof JSONArray) {
                 JSONArray jsonArray = (JSONArray) value;
@@ -1651,7 +1651,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 }
             }
         }
-        
+
         return null;
     }
 
@@ -1665,7 +1665,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         if (StringUtils.isBlank(mappingRule)) {
             return "";
         }
-        
+
         try {
             // 尝试解析JSON数组格式的规则
             if (mappingRule.trim().startsWith("[")) {
@@ -1682,7 +1682,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                         }
                     }
                 }
-            } 
+            }
             // 尝试解析单个JSON对象格式的规则
             else if (mappingRule.trim().startsWith("{")) {
                 JSONObject jsonObj = JSON.parseObject(mappingRule);
@@ -1693,20 +1693,20 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     if (expression.containsKey("fieldValue")) {
                         return expression.getString("fieldValue");
                     }
-                } 
+                }
                 // 检查是否本身就是一个expression对象
                 else if (jsonObj.containsKey("fieldValue")) {
                     return jsonObj.getString("fieldValue");
                 }
             }
-            
+
             // 记录未找到的情况
             log.warn("在清洗规则中未找到fieldValue: {}", mappingRule);
-            
+
         } catch (Exception e) {
             log.warn("解析清洗规则提取fieldValue失败！错误信息：{}", e.getMessage(), e);
         }
-        
+
         return "";
     }
 
@@ -1839,20 +1839,22 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             String secondDepartment = marketingCustomer.getSecondDepartment();
             String apiType = marketingCustomer.getApiType();
             // 2. 查询行业模板
-            Result<JSONArray> jsonArrayResult = templateJsonParseService.queryIndustryTemplateJsonParses(firstDepartment, secondDepartment, apiType,systemType, dataType);
+            Result<JSONArray> jsonArrayResult = templateJsonParseService.queryIndustryTemplateJsonParses(
+                    firstDepartment, secondDepartment, apiType, systemType, dataType);
             if (!jsonArrayResult.isSuccess()) {
                 log.warn("查询行业模板失败: {}", JSONObject.toJSONString(jsonArrayResult));
                 return result;
             }
             JSONArray data = jsonArrayResult.getData();
-            List<MarketingBuildInTemplateJsonParse> marketingIndustryTemplates = JSON.parseArray(data.toJSONString(), MarketingBuildInTemplateJsonParse.class);
-            
+            List<MarketingBuildInTemplateJsonParse> marketingIndustryTemplates =
+                    JSON.parseArray(data.toJSONString(), MarketingBuildInTemplateJsonParse.class);
+
             // 3. 处理行业模板字段并构建字段标识集合
             Set<String> templateFieldKeys = processIndustryTemplates(result, ruleConfigList, marketingIndustryTemplates);
-            
+
             // 4. 处理ruleConfigList特有的字段（在marketingIndustryTemplates中不存在的字段）
             addRuleConfigOnlyFields(result, ruleConfigList, templateFieldKeys);
-            
+
             return result;
         }
         // 客户已传输数据
@@ -1910,13 +1912,13 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
     /**
      * 处理行业模板字段并构建字段标识集合
-     * 
+     *
      * @param result 结果列表
      * @param ruleConfigList 规则配置列表
      * @param marketingIndustryTemplates 行业模板列表
      * @return 模板字段标识集合（nodeName_level）
      */
-    private Set<String> processIndustryTemplates(List<FieldSampleDTO> result, 
+    private Set<String> processIndustryTemplates(List<FieldSampleDTO> result,
                                                   List<MarketingDataCleanGeneralRuleConfig> ruleConfigList,
                                                   List<MarketingBuildInTemplateJsonParse> marketingIndustryTemplates) {
         Set<String> templateFieldKeys = new HashSet<>();
@@ -1936,7 +1938,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
     /**
      * 处理ruleConfigList特有的字段（在marketingIndustryTemplates中不存在的字段）
-     * 
+     *
      * @param result 结果列表
      * @param ruleConfigList 规则配置列表
      * @param templateFieldKeys 模板字段标识集合
@@ -1964,7 +1966,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
     /**
      * 从规则配置创建FieldSampleDTO
-     * 
+     *
      * @param ruleConfig 规则配置
      * @return FieldSampleDTO对象
      */

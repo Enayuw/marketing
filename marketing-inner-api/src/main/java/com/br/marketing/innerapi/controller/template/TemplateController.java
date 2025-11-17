@@ -79,12 +79,12 @@ public class TemplateController {
             , @ApiImplicitParam(name = "secondDepartment", value = "二级部门", paramType = "query", dataType = "String", required = false)
             , @ApiImplicitParam(name = "apiType", value = "三级部门", paramType = "query", dataType = "String", required = false)})
     @PostMapping(value = "/queryAllTemplate")
-    public ApiResult<PageResultReturn<MarketingIndustryTemplate>> queryAllTemplate(@RequestParam(name = "current") Integer current,
-                                                                                   @RequestParam(name = "pageSize") Integer pageSize,
-                                                                                   @RequestParam(name = "templateName", required = false) String templateName,
-                                                                                   @RequestParam(name = "firstDepartment", required = false) String firstDepartment,
-                                                                                   @RequestParam(name = "secondDepartment", required = false) String secondDepartment,
-                                                                                   @RequestParam(name = "apiType", required = false) String apiType) {
+    public ApiResult<PageResultReturn<MarketingIndustryTemplate>> queryAllTemplate(@RequestParam(name = "current") Integer current
+            , @RequestParam(name = "pageSize") Integer pageSize
+            , @RequestParam(name = "templateName", required = false) String templateName
+            , @RequestParam(name = "firstDepartment", required = false) String firstDepartment
+            , @RequestParam(name = "secondDepartment", required = false) String secondDepartment
+            , @RequestParam(name = "apiType", required = false) String apiType) {
         try {
             Result<PageResultReturn<MarketingIndustryTemplate>> result = templateService.queryAllTemplate(current, pageSize, templateName, firstDepartment, secondDepartment, apiType);
             if (result.isSuccess()) {

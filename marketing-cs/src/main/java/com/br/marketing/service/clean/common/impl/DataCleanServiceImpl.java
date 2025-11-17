@@ -109,7 +109,8 @@ public class DataCleanServiceImpl implements DataCleanService {
         try {
             CustomerMqDataJsonParse customerMqDataJsonParse = JSON.parseObject(message, CustomerMqDataJsonParse.class);
             //获取表名
-            String tableName = DataProcessEnum.getByTypes(customerMqDataJsonParse.getDataType(), customerMqDataJsonParse.getAcceptType()).getTableName();
+            String tableName = DataProcessEnum.getByTypes(customerMqDataJsonParse.getDataType()
+                    , customerMqDataJsonParse.getAcceptType()).getTableName();
 
             Map<String, Object> originalData = marketingJsonNodeParseMapper.getOriginalData(customerMqDataJsonParse.getDataId(), tableName);
             String jsonData = (String) originalData.get("json_data");
@@ -980,7 +981,8 @@ public class DataCleanServiceImpl implements DataCleanService {
             return new Result().failure().setMessage("参数错误").setDate(null);
         }
 
-        pushRuleService.sendJsonParseMq(dto.getApiCode(), 0, dto.getSystemType(), dto.getDataType(), dto.getAcceptType(), String.valueOf(dto.getJsonData()));
+        pushRuleService.sendJsonParseMq(dto.getApiCode(), 0, dto.getSystemType()
+                , dto.getDataType(), dto.getAcceptType(), String.valueOf(dto.getJsonData()));
 
         //查询清洗通用配置表
         MarketingDataCleanGeneralConfigExample example = new MarketingDataCleanGeneralConfigExample();
@@ -999,7 +1001,8 @@ public class DataCleanServiceImpl implements DataCleanService {
         //查询清洗规则表
         MarketingDataCleanGeneralRuleConfigExample ruleConfigExample = new MarketingDataCleanGeneralRuleConfigExample();
         ruleConfigExample.createCriteria().andCleanConfigIdEqualTo(generalConfigId);
-        List<MarketingDataCleanGeneralRuleConfig> marketingDataCleanGeneralRuleConfigList = marketingDataCleanGeneralRuleConfigMapper.selectByExample(ruleConfigExample);
+        List<MarketingDataCleanGeneralRuleConfig> marketingDataCleanGeneralRuleConfigList =
+                marketingDataCleanGeneralRuleConfigMapper.selectByExample(ruleConfigExample);
         if (marketingDataCleanGeneralRuleConfigList.isEmpty()) {
             log.warn("未查询到数据清洗规则，systemType:{},dataType:{},acceptType:{}", dto.getSystemType(), dto.getDataType(), dto.getAcceptType());
             return new Result().success().setDate(dto.getJsonData());
@@ -1011,7 +1014,9 @@ public class DataCleanServiceImpl implements DataCleanService {
         //层级字段处理
         String levelField = null;
         List<MarketingDataCleanGeneralRuleConfig> ruleConfigListTmp = new ArrayList<>(marketingDataCleanGeneralRuleConfigList);
-        List<MarketingDataCleanGeneralRuleConfig> dataItemList = ruleConfigListTmp.stream().filter(ruleConfig -> ruleConfig.getMappingField().equals("dataItems")).collect(Collectors.toList());
+        List<MarketingDataCleanGeneralRuleConfig> dataItemList = ruleConfigListTmp.stream().filter(
+                ruleConfig -> ruleConfig.getMappingField().equals("dataItems")
+        ).collect(Collectors.toList());
         if (!CollectionUtils.isEmpty(dataItemList)) {
             levelField = dataItemList.get(0).getCleanFields();
         }
