@@ -2,6 +2,7 @@ package com.br.marketing.datarelayservice.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.datarelayservice.enums.ZhongYuanResponseCodeEnum;
 import com.br.marketing.datarelayservice.service.ZhongYuanUploadDataService;
 import com.br.marketing.dto.zhongyuan.*;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -11,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
 /**
@@ -43,20 +43,20 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
                     });
 
             if (baseRequest == null || baseRequest.getData() == null) {
-                return ZhongYuanBaseResponse.fail("1000001", "参数错误");
+                return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.PARAM_ERROR.getCode(), ZhongYuanResponseCodeEnum.PARAM_ERROR.getMessage());
             }
 
             LoginRequest loginData = baseRequest.getData();
 
             // 2. 参数校验
             if (!StringUtils.hasText(loginData.getAppUser()) || !StringUtils.hasText(loginData.getAppKey())) {
-                return ZhongYuanBaseResponse.fail("1000001", "参数错误：appUser或appKey为空");
+                return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.PARAM_ERROR.getCode(), "参数错误：appUser或appKey为空");
             }
 
             // 3. 验证appUser和appKey
             if (!validateCredentials(loginData.getAppUser(), loginData.getAppKey())) {
                 log.warn("登录失败，用户名或密码错误，appUser: {}", loginData.getAppUser());
-                return ZhongYuanBaseResponse.fail("1000001", "用户名或密码错误");
+                return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.PARAM_ERROR.getCode(), "用户名或密码错误");
             }
 
             // 4. 直接检查Redis中是否存在有效的Token（通过appUser）
@@ -78,7 +78,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
 
         } catch (Exception e) {
             log.error("中原消金登录接口异常", e);
-            return ZhongYuanBaseResponse.fail("1000006", "系统异常：" + e.getMessage());
+            return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.SYSTEM_ERROR.getCode(), ZhongYuanResponseCodeEnum.SYSTEM_ERROR.getMessage() + "：" + e.getMessage());
         }
     }
 
@@ -93,12 +93,12 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
                     });
 
             if (baseRequest == null || baseRequest.getData() == null) {
-                return ZhongYuanBaseResponse.fail("1000001", "参数错误");
+                return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.PARAM_ERROR.getCode(), ZhongYuanResponseCodeEnum.PARAM_ERROR.getMessage());
             }
 
             // 2. Token验证
             ZhongYuanBaseResponse<?> tokenResponse = validateTokenFromRequest(baseRequest);
-            if (!"0000000".equals(tokenResponse.getCode())) {
+            if (!ZhongYuanResponseCodeEnum.SUCCESS.getCode().equals(tokenResponse.getCode())) {
                 return tokenResponse;
             }
 
@@ -107,7 +107,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             // 3. 参数校验
             if (!StringUtils.hasText(batchData.getBatchNo()) || batchData.getTaskDataList() == null
                     || batchData.getTaskDataList().isEmpty()) {
-                return ZhongYuanBaseResponse.fail("1000001", "参数错误：批次编号或任务数据列表为空");
+                return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.PARAM_ERROR.getCode(), "参数错误：批次编号或任务数据列表为空");
             }
 
             // 4. 生成batchUid和taskUid
@@ -139,7 +139,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
 
         } catch (Exception e) {
             log.error("中原消金批量任务上报接口异常", e);
-            return ZhongYuanBaseResponse.fail("1000006", "系统异常：" + e.getMessage());
+            return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.SYSTEM_ERROR.getCode(), ZhongYuanResponseCodeEnum.SYSTEM_ERROR.getMessage() + "：" + e.getMessage());
         }
     }
 
@@ -154,12 +154,12 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
                     });
 
             if (baseRequest == null || baseRequest.getData() == null) {
-                return ZhongYuanBaseResponse.fail("1000001", "参数错误");
+                return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.PARAM_ERROR.getCode(), ZhongYuanResponseCodeEnum.PARAM_ERROR.getMessage());
             }
 
             // 2. Token验证
             ZhongYuanBaseResponse<?> tokenResponse = validateTokenFromRequest(baseRequest);
-            if (!"0000000".equals(tokenResponse.getCode())) {
+            if (!ZhongYuanResponseCodeEnum.SUCCESS.getCode().equals(tokenResponse.getCode())) {
                 return tokenResponse;
             }
 
@@ -167,7 +167,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
 
             // 3. 参数校验
             if (!StringUtils.hasText(sceneData.getSceneCode())) {
-                return ZhongYuanBaseResponse.fail("1000001", "参数错误：场景代码为空");
+                return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.PARAM_ERROR.getCode(), "参数错误：场景代码为空");
             }
 
             // 4. 查询场景变量
@@ -183,7 +183,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
 
         } catch (Exception e) {
             log.error("中原消金场景变量查询接口异常", e);
-            return ZhongYuanBaseResponse.fail("1000006", "系统异常：" + e.getMessage());
+            return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.SYSTEM_ERROR.getCode(), ZhongYuanResponseCodeEnum.SYSTEM_ERROR.getMessage() + "：" + e.getMessage());
         }
     }
 
@@ -215,7 +215,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
         
         // 2. Token为空检查
         if (!StringUtils.hasText(token)) {
-            return ZhongYuanBaseResponse.fail("1000002", "Token无效");
+            return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.TOKEN_INVALID.getCode(), ZhongYuanResponseCodeEnum.TOKEN_INVALID.getMessage());
         }
         
         // 3. 验证Token
@@ -225,10 +225,10 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             return ZhongYuanBaseResponse.success(null);
         } catch (RuntimeException e) {
             String errorMsg = e.getMessage();
-            if (errorMsg != null && errorMsg.contains("1000002")) {
-                return ZhongYuanBaseResponse.fail("1000002", errorMsg.substring(errorMsg.indexOf(":") + 1));
+            if (errorMsg != null && errorMsg.contains(ZhongYuanResponseCodeEnum.TOKEN_INVALID.getCode())) {
+                return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.TOKEN_INVALID.getCode(), errorMsg.substring(errorMsg.indexOf(":") + 1));
             }
-            return ZhongYuanBaseResponse.fail("1000002", "Token无效");
+            return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.TOKEN_INVALID.getCode(), ZhongYuanResponseCodeEnum.TOKEN_INVALID.getMessage());
         }
     }
 
@@ -320,12 +320,12 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
     public void validateToken(String token) {
         // 1. Token存在性校验
         if (!StringUtils.hasText(token)) {
-            throw new RuntimeException("1000002:Token无效");
+            throw new RuntimeException(ZhongYuanResponseCodeEnum.TOKEN_INVALID.getCode() + ":Token无效");
         }
 
         // 2. Token格式校验
         if (!isValidTokenFormat(token)) {
-            throw new RuntimeException("1000002:Token格式错误");
+            throw new RuntimeException(ZhongYuanResponseCodeEnum.TOKEN_INVALID.getCode() + ":Token格式错误");
         }
 
         // 3. 从配置获取appUser，然后查询Redis验证token
@@ -333,7 +333,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
         String appUser = zhongYuanIdentity.get("appUser");
         
         if (!StringUtils.hasText(appUser)) {
-            throw new RuntimeException("1000002:系统配置错误");
+            throw new RuntimeException(ZhongYuanResponseCodeEnum.TOKEN_INVALID.getCode() + ":系统配置错误");
         }
 
         // 4. 从Redis获取存储的token
@@ -341,12 +341,12 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
         String storedToken = redisChgService.get(userTokenKey);
 
         if (!StringUtils.hasText(storedToken)) {
-            throw new RuntimeException("1000002:Token无效或已过期");
+            throw new RuntimeException(ZhongYuanResponseCodeEnum.TOKEN_INVALID.getCode() + ":Token无效或已过期");
         }
 
         // 5. 验证token是否匹配
         if (!token.equals(storedToken)) {
-            throw new RuntimeException("1000002:Token无效");
+            throw new RuntimeException(ZhongYuanResponseCodeEnum.TOKEN_INVALID.getCode() + ":Token无效");
         }
 
         // 6. 更新过期时间（续期）
