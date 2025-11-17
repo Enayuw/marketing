@@ -303,8 +303,10 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                             Result result = serviceImpl.actionTransferToFile(datum, myParam);
                             if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                                 String localPath = datum.getFilePath();
-                                sftpUploadHandlerService.insertSftpUploadTask(datum.getApiCode(),localPath,datum.getFileName(), DataTypeEnum.TRANSFER.getValue(),
-                                        "update b_transfer_file_task set status = 4 where api_code ='"+datum.getApiCode() +"' and file_name = '"+datum.getFileName()+"'");
+                                sftpUploadHandlerService.insertSftpUploadTask(datum.getApiCode(),localPath,datum.getFileName(),
+                                        DataTypeEnum.TRANSFER.getValue(),
+                                        "update b_transfer_file_task set status = 4 where api_code ='"+datum.getApiCode()
+                                                +"' and file_name = '"+datum.getFileName()+"'");
                                     //第一次执行，查询为空，不会进行删除，直接返回
                                     //第二次执行，删除b_sync_log的记录
                                     /*String fileChildDir = "";

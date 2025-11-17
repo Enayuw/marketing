@@ -59,9 +59,10 @@ public class PushServiceImpl implements PushService {
 
     private void pushToSftp(List<LoanFile> files) throws Exception {
         for(LoanFile blf:files){
-            sftpUploadHandlerService.insertSftpUploadTask(blf.getApiCode(),blf.getFilePath().concat("/"),blf.getZipFileName(), DataTypeEnum.SCORE.getValue(),
-                    "UPDATE stra_his_file SET status=2, update_time=now() where api_code ='"+blf.getApiCode()+"' AND zipFile_name = '"
-                    +blf.getZipFileName()+"'");
+            sftpUploadHandlerService.insertSftpUploadTask(blf.getApiCode(), blf.getFilePath().concat("/"), blf.getZipFileName(),
+                    DataTypeEnum.SCORE.getValue(),
+                    "UPDATE stra_his_file SET status=2, update_time=now() where api_code ='" + blf.getApiCode() + "' AND zipFile_name = '"
+                            + blf.getZipFileName() + "'");
         }
         /*String apiCode=files.get(0).getApiCode();
         SftpClient sftpClient = new SftpClient(sftpHost,sftpPort,sftpUsername,sftpPwd);

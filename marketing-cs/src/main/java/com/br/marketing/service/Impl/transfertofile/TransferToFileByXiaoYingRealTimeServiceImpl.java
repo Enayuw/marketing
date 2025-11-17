@@ -251,9 +251,9 @@ public class TransferToFileByXiaoYingRealTimeServiceImpl implements ITransferToF
     private File createMkdirFile(TransferFileTask transferFileTask) {
         String apiCode = transferFileTask.getApiCode();
         String recordDate = transferFileTask.getStartDate();
-        String childDir = StringUtils.isNotEmpty(transferFileTask.getFileChildDir()) ? transferFileTask.getFileChildDir() + "/" : "";
-        String descPath = syncConfigService.getPath().concat("transferToFile").concat(File.separator).concat(childDir).concat(apiCode).concat(File.separator)
-                .concat(recordDate).concat(File.separator);
+        String childDir = StringUtils.isNotEmpty(transferFileTask.getFileChildDir()) ? (transferFileTask.getFileChildDir() + "/") : "";
+        String descPath = syncConfigService.getPath().concat("transferToFile").concat(File.separator).concat(childDir).concat(apiCode).
+                concat(File.separator).concat(recordDate).concat(File.separator);
         File writeDic = new File(descPath);
         if (!writeDic.exists()) {
             if (!writeDic.mkdirs()) {
