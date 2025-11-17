@@ -14,10 +14,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ThreadContextInfo;
-import com.br.marketing.dto.CostPriceExRecordDto;
-import com.br.marketing.dto.DdLineBaseInfoDto;
-import com.br.marketing.dto.DdLinsSmsCostAlarmDto;
-import com.br.marketing.dto.DdSmsBaseInfoDto;
+import com.br.marketing.dto.*;
 import com.br.marketing.dto.account.*;
 import com.br.marketing.entity.CostPriceExRecord;
 import com.br.marketing.entity.DdDataLineCostPrice;
@@ -87,6 +84,9 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
     @Resource
     private CostPriceExRecordMapper costPriceExRecordMapper;
 
+    @Resource
+    private LineBaseInfoNormalMapper lineBaseInfoNormalMapper;
+
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -143,7 +143,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
         DdLinsSmsCostAlarmDto linsCostAlarmDto = new DdLinsSmsCostAlarmDto();
         linsCostAlarmDto.setCardTitle(marketingCommonConfig.getLinsSmsCostToDbConfig().getString("lineCardTitle"));
         //2.获取基础信息
-        List<DdLineBaseInfoDto> ddLineBaseInfoDtoList =  getLineBaseInfo();
+        List<DdLineBaseInfoDto> ddLineBaseInfoDtoList = getLineBaseInfoByDb();
         //3.查询原始数据
         Long searchId = 0L;
         while(true) {
@@ -159,6 +159,8 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
         }
         return linsCostAlarmDto;
     }
+
+
 
 
     private void dealAlarm(DdLinsSmsCostAlarmDto smsCostAlarmDto) {
@@ -299,8 +301,33 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                 }
             }
         }
+
         return ddLineBaseInfoDtoList;
-        //TODO 调用下游方法 从db获取 三方配置信息
+    }
+
+    /**
+     * 调用下游方法 从db获取 三方配置信息
+     * DdLineBaseInfoDto
+     *    private Long gatewayId;
+     *    private String caller;
+     *    private String outboundNumber;
+     *    private String lineSupplier;
+     *    private String projectName;
+     * @return
+     */
+    private List<DdLineBaseInfoDto> getLineBaseInfoByDb() {
+        List<DdLineBaseInfoDto> ddLineBaseInfoDtoList = new ArrayList<>();
+        List<LineBaseFullInfoDto> lineBaseFullInfoDtoList = lineBaseInfoNormalMapper.selectLineBaeFullInfoList();
+        lineBaseFullInfoDtoList.forEach(lineBaseFullInfoDto -> {
+            DdLineBaseInfoDto dto = new DdLineBaseInfoDto();
+            dto.setGatewayId(lineBaseFullInfoDto.getGatewayId());
+            dto.setCaller(lineBaseFullInfoDto.getCaller());
+            dto.setOutboundNumber(lineBaseFullInfoDto.getOutboundNumber());
+            dto.setLineSupplier(lineBaseFullInfoDto.getLineSupplier());
+            dto.setProjectName(lineBaseFullInfoDto.getProjectName());
+            ddLineBaseInfoDtoList.add(dto);
+        });
+        return ddLineBaseInfoDtoList;
     }
 
 
