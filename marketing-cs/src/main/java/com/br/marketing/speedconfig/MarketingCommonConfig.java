@@ -3509,7 +3509,7 @@ public class MarketingCommonConfig {
 
     /**
      * 中原消金权限验证
-     * {"appUser":"zyxfjr_coll","appKey":"87C5FCB80F872B8D67BA3306BB09157C"}
+     * {"apiCode":"7492860","appUser":"zyxfjr_coll","appKey":"87C5FCB80F872B8D67BA3306BB09157C"}
      */
     private Map<String, String> zhongYuanIdentity;
 

@@ -1,13 +1,16 @@
 package com.br.marketing.datarelayservice.service.impl;
-import java.util.Date;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.datarelayservice.enums.ZhongYuanResponseCodeEnum;
 import com.br.marketing.datarelayservice.service.ZhongYuanUploadDataService;
 import com.br.marketing.dto.zhongyuan.*;
+import com.br.marketing.entity.MarketingCustomerOriginalData;
 import com.br.marketing.entity.ZhongYuanUpload;
+import com.br.marketing.enums.clean.DataProcessEnum;
 import com.br.marketing.mapper.ZhongYuanUploadMapper;
+import com.br.marketing.mapper.rulecleaning.MarketingCustomerOriginalDataMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -15,7 +18,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName ZhongYuanUploadDataServiceImpl
@@ -29,10 +35,10 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
 
     @Resource
     private RedisChgService redisChgService;
-
     @Resource
     private ZhongYuanUploadMapper zhongYuanUploadMapper;
-
+    @Resource
+    MarketingCustomerOriginalDataMapper marketingCustomerOriginalDataMapper;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
     private static final String TOKEN_PREFIX = "zyxj:token:";
@@ -118,7 +124,9 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
 
             // 4. 保存原始数据到b_marketing_zhongyuan_upload表
             ZhongYuanUpload zhongYuanUpload = new ZhongYuanUpload();
-            zhongYuanUpload.setApiCode("7492860");
+            Map<String, String> zhongYuanIdentity = marketingCommonConfig.getZhongYuanIdentity();
+            String apiCode = zhongYuanIdentity.get("apiCode");
+            zhongYuanUpload.setApiCode(StringUtils.hasText(apiCode) ? apiCode : "3760019");
             // 从baseRequest获取公共字段
             zhongYuanUpload.setFlowid(StringUtils.hasText(baseRequest.getFlowId()) ? baseRequest.getFlowId() : null);
             zhongYuanUpload.setSysid(StringUtils.hasText(baseRequest.getSysId()) ? baseRequest.getSysId() : null);
@@ -148,20 +156,28 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             log.warn("中原消金批量任务数据入库成功，batchNo: {}, insertResult: {}, id: {}", 
                     batchData.getBatchNo(), insertResult, zhongYuanUpload.getId());
 
-            // 5. TODO: 数据清洗和推送逻辑
+            // 5. 数据清洗和推送逻辑，返回batchUid和每条数据的taskUid映射
+            Map<String, Object> uidMap = buildPushUpload(apiCode, batchData);
+            String batchUid = (String) uidMap.get("batchUid");
+            Map<String, String> taskUidMap = (Map<String, String>) uidMap.get("taskUidMap");
 
+            // 6. 构建响应
             List<BatchTaskResponse.TaskInfo> taskInfoList = new ArrayList<>();
             for (BatchTaskRequest.TaskData taskData : batchData.getTaskDataList()) {
                 BatchTaskResponse.TaskInfo taskInfo = new BatchTaskResponse.TaskInfo();
-                taskInfo.setTaskUid(generateTaskUid());
+                // taskUid的值是每条数据的batchNumber
+                String taskUid = null;
+                if (StringUtils.hasText(taskData.getTaskNo()) && taskUidMap != null) {
+                    // 优先通过taskNo获取
+                    taskUid = taskUidMap.get(taskData.getTaskNo());
+                }
+                taskInfo.setTaskUid(taskUid);
                 taskInfo.setTaskNo(taskData.getTaskNo());
                 taskInfo.setTelNo(taskData.getTelNo());
                 taskInfoList.add(taskInfo);
             }
 
-            // 6. 生成batchUid和taskUid
-            String batchUid = generateBatchUid();
-            // 7. 构建响应
+            // 7. 组装响应
             BatchTaskResponse batchTaskResponse = new BatchTaskResponse();
             batchTaskResponse.setBatchNo(batchData.getBatchNo());
             batchTaskResponse.setBatchUid(batchUid);
@@ -177,6 +193,212 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             log.error("中原消金批量任务上报接口异常", e);
             return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.SYSTEM_ERROR.getCode(), ZhongYuanResponseCodeEnum.SYSTEM_ERROR.getMessage() + "：" + e.getMessage());
         }
+    }
+
+    /**
+     * 解析客户原始数据 组装成标准上传数据
+     *
+     * @param apiCode    商户编号
+     * @param batchData  批次任务数据
+     * @return Map包含batchUid和taskUidMap，taskUidMap的key是taskNo，value是batchNumber（taskUid）
+     */
+    private Map<String, Object> buildPushUpload(String apiCode, BatchTaskRequest batchData) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            // 1. 构建标准上传数据结构
+            JSONObject pushData = new JSONObject();
+            
+            // 2. 生成taskId: yyyymmdd_apicode_sceneCode，作为batchUid
+            String dateStr = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String sceneCode = StringUtils.hasText(batchData.getSceneCode()) ? batchData.getSceneCode() : "";
+            String taskId = dateStr + "_" + apiCode + "_" + sceneCode;
+            pushData.put("taskId", taskId);
+            // batchUid的值是taskId
+            result.put("batchUid", taskId);
+            
+            // 3. 生成requestId: yyyymmdd_apicode_ + 5位随机数 + 毫秒时间戳
+            String random5Digits = String.format("%05d", new Random().nextInt(100000));
+            String requestId = dateStr + "_" + apiCode + "_" + random5Digits + System.currentTimeMillis();
+            pushData.put("requestId", requestId);
+            
+            // 4. 设置total
+            if (batchData.getTaskDataList() != null) {
+                pushData.put("total", String.valueOf(batchData.getTaskDataList().size()));
+            }
+            
+            // 5. 构建dataItems数组，同时收集taskUid映射（taskNo -> batchNumber，如果没有taskNo则使用索引）
+            List<JSONObject> dataItems = new ArrayList<>();
+            Map<String, String> taskUidMap = new HashMap<>();
+            if (batchData.getTaskDataList() != null) {
+                for (BatchTaskRequest.TaskData taskData : batchData.getTaskDataList()) {
+                    Map<String, Object> itemResult = buildDataItem(taskData, batchData);
+                    if (itemResult != null) {
+                        JSONObject dataItem = (JSONObject) itemResult.get("dataItem");
+                        String batchNumber = (String) itemResult.get("batchNumber");
+                        if (dataItem != null) {
+                            dataItems.add(dataItem);
+                        }
+                        // 记录taskNo到batchNumber的映射（batchNumber就是taskUid）
+                        if (StringUtils.hasText(taskData.getTaskNo()) && StringUtils.hasText(batchNumber)) {
+                            taskUidMap.put(taskData.getTaskNo(), batchNumber);
+                        }
+                    }
+                }
+            }
+            pushData.put("dataItems", dataItems);
+            result.put("taskUidMap", taskUidMap);
+            
+            // 6. 转换为JSON字符串并保存
+            String jsonData = JSON.toJSONString(pushData);
+            log.warn("中原消金数据清洗推送成功，jsonData: {}", jsonData);
+
+            MarketingCustomerOriginalData originalData = new MarketingCustomerOriginalData();
+            originalData.setApiCode(apiCode);
+            originalData.setRequestId(requestId);
+            originalData.setJsonData(jsonData);
+            originalData.setDataType(DataProcessEnum.DataTypeEnum.UPLOAD.getCode());
+            originalData.setAcceptType(DataProcessEnum.AcceptTypeEnum.CUSTOM.getCode());
+            originalData.setReceiveDate(LocalDate.now().toString());
+            marketingCustomerOriginalDataMapper.insertSelective(originalData);
+            
+            log.warn("中原消金数据清洗推送成功，taskId: {}, requestId: {}, dataItemsCount: {}", 
+                    taskId, requestId, dataItems.size());
+        } catch (Exception e) {
+            log.error("中原消金数据清洗推送异常", e);
+        }
+        return result;
+    }
+
+    /**
+     * 构建单个dataItem对象
+     *
+     * @param taskData  任务数据
+     * @param batchData 批次数据
+     * @return Map包含dataItem和batchNumber
+     */
+    private Map<String, Object> buildDataItem(BatchTaskRequest.TaskData taskData, BatchTaskRequest batchData) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            JSONObject dataItem = new JSONObject();
+            
+            // 1. cell: 电话号码的MD5值
+            if (StringUtils.hasText(taskData.getTelNo())) {
+                dataItem.put("cell", taskData.getTelNo());
+            }
+            
+            // 2. custNum: 唯一用户ID（使用taskNo或生成taskUid）
+            if (StringUtils.hasText(taskData.getTaskNo())) {
+                dataItem.put("custNum", taskData.getTaskNo());
+            }
+            
+            // 3. operateType: 固定值"6"
+            dataItem.put("operateType", "6");
+            
+            // 4. 构建reserveField1，同时获取batchNumber
+            Map<String, Object> reserveFieldResult = buildReserveField1(taskData, batchData);
+            JSONObject reserveField1 = (JSONObject) reserveFieldResult.get("reserveField1");
+            String batchNumber = (String) reserveFieldResult.get("batchNumber");
+            dataItem.put("reserveField1", reserveField1);
+            
+            // 5. reserveField2: 可选，默认为空字符串
+            dataItem.put("reserveField2", "");
+
+            result.put("dataItem", dataItem);
+            result.put("batchNumber", batchNumber);
+            return result;
+        } catch (Exception e) {
+            log.error("构建dataItem异常，taskNo: {}", taskData.getTaskNo(), e);
+            return null;
+        }
+    }
+
+    /**
+     * 构建reserveField1对象
+     *
+     * @param taskData  任务数据
+     * @param batchData 批次数据
+     * @return Map包含reserveField1和batchNumber
+     */
+    private Map<String, Object> buildReserveField1(BatchTaskRequest.TaskData taskData, BatchTaskRequest batchData) {
+        Map<String, Object> result = new HashMap<>();
+        JSONObject reserveField1 = new JSONObject();
+        
+        // 从变量列表中提取字段值
+        Map<String, String> variableMap = new HashMap<>();
+        if (taskData.getVariableList() != null) {
+            variableMap = taskData.getVariableList().stream()
+                    .collect(Collectors.toMap(
+                            BatchTaskRequest.Variable::getCode,
+                            BatchTaskRequest.Variable::getValue,
+                            (v1, v2) -> v1));
+        }
+
+        // 记录已处理的字段名，用于后续过滤
+        Set<String> processedFields = new HashSet<>();
+
+        // firstName: 用户姓(明文) - 从custName变量提取
+        String firstName = variableMap.get("custName");
+        if (StringUtils.hasText(firstName)) {
+            reserveField1.put("firstName", firstName);
+            processedFields.add("custName");
+        }
+
+        // userType: 机构运营场景(数字枚举)，必填，对应sceneCode
+        String userType = StringUtils.hasText(batchData.getSceneCode()) ? batchData.getSceneCode() : "";
+        reserveField1.put("userType", userType);
+        
+        // gender: 用户性别(数字枚举)，0女1男
+        String gender = variableMap.get("gender");
+        if (StringUtils.hasText(gender)) {
+            reserveField1.put("gender", gender);
+            processedFields.add("gender");
+        }
+        
+        // overDays: 逾期天数
+        String overDays = variableMap.get("overDays");
+        reserveField1.put("overDays", StringUtils.hasText(overDays) ? overDays : "3");
+        processedFields.add("overDays");
+        
+        // overAmt: 逾期金额
+        String overAmt = variableMap.get("overAmt");
+        if (StringUtils.hasText(overAmt)) {
+            reserveField1.put("overAmt", overAmt);
+            processedFields.add("overAmt");
+        }
+        
+        // compName: 企业名称
+        String compName = variableMap.get("compName");
+        reserveField1.put("compName", StringUtils.hasText(compName) ? compName : "中原消费金融");
+        processedFields.add("compName");
+
+        // compTel: 客服电话
+        String compTel = variableMap.get("compTel");
+        reserveField1.put("compTel", StringUtils.hasText(compTel) ? compTel : "4001112233");
+        processedFields.add("compTel");
+        
+        // batchNo: 批量编码（话术变量）
+        String batchNo = StringUtils.hasText(batchData.getBatchNo()) ? batchData.getBatchNo() : "";
+        reserveField1.put("batchNo", batchNo);
+        processedFields.add("batchNo");
+        
+        // batchNumber: 数据集编号 todo 需要按照6规则提前生成
+        String batchNumber = StringUtils.hasText(taskData.getTaskNo()) ? taskData.getTaskNo() : "";
+        reserveField1.put("batchNumber", batchNumber);
+        processedFields.add("batchNumber");
+
+        // 将其他未处理的变量也放入reserveField1
+        for (Map.Entry<String, String> entry : variableMap.entrySet()) {
+            String code = entry.getKey();
+            String value = entry.getValue();
+            // 只处理未在reserveField1中设置的字段
+            if (!processedFields.contains(code) && StringUtils.hasText(value)) {
+                reserveField1.put(code, value);
+            }
+        }
+        
+        result.put("reserveField1", reserveField1);
+        result.put("batchNumber", batchNumber);
+        return result;
     }
 
     @Override
@@ -299,28 +521,6 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
         variable.setName(name);
         variable.setDefValue(defValue);
         return variable;
-    }
-
-    /**
-     * 生成批次唯一标识
-     *
-     * @return batchUid
-     */
-    private String generateBatchUid() {
-        // 使用Base64编码生成唯一标识
-        String raw = UUID.randomUUID().toString() + System.currentTimeMillis();
-        return Base64.getEncoder().encodeToString(raw.getBytes()).substring(0, 32);
-    }
-
-    /**
-     * 生成任务唯一标识
-     *
-     * @return taskUid
-     */
-    private String generateTaskUid() {
-        // 使用Base64编码生成唯一标识
-        String raw = UUID.randomUUID().toString() + System.currentTimeMillis();
-        return Base64.getEncoder().encodeToString(raw.getBytes()).substring(0, 32);
     }
 
     /**
