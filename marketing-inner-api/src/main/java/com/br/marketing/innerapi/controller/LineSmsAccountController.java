@@ -224,13 +224,13 @@ public class LineSmsAccountController {
     @GetMapping("/getLineAccountLogs")
     public ApiResult getLineAccountLogs(@RequestParam(defaultValue = "1") Integer current,
                                        @RequestParam(defaultValue = "10") Integer size,
-                                       @RequestParam(name = "sourceIdStr") String sourceIdStr) {
+                                       @RequestParam(name = "groupIdStr") String groupIdStr) {
         try {
-            if (StringUtils.isEmpty(sourceIdStr)) {
+            if (StringUtils.isEmpty(groupIdStr)) {
                 return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
             }
-            Long sourceId = Long.parseLong(sourceIdStr);
-            PageResultReturn page = lineSmsAccountNormalService.getLineAccountLogs(current,size,sourceId);
+            Long groupId = Long.parseLong(groupIdStr);
+            PageResultReturn page = lineSmsAccountNormalService.getLineAccountLogs(current,size,groupId);
             return new ApiResult<>().success(page);
         }catch (Exception e) {
             log.error(e.getMessage(), e);

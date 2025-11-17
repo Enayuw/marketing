@@ -23,7 +23,7 @@ public interface LineSmsAccountNormalService {
 
     List<LineAccountDetailVO> getLineAccountsByGroupId(Long groupId);
 
-    PageResultReturn getLineAccountLogs(Integer current, Integer size, Long sourceId);
+    PageResultReturn getLineAccountLogs(Integer current, Integer size, Long groupId);
 
     Result forbLineAccount(Long groupId);
 

@@ -198,9 +198,9 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
     }
 
     @Override
-    public PageResultReturn getLineAccountLogs(Integer current, Integer size, Long sourceId) {
+    public PageResultReturn getLineAccountLogs(Integer current, Integer size, Long groupId) {
         PageHelper.startPage(current, size);
-        List<LineAccountLogNormal> lineDbLogList = lineAccountLogNormalMapper.getLineAccountLogs(sourceId);
+        List<LineAccountLogNormal> lineDbLogList = lineAccountLogNormalMapper.getLineAccountLogs(groupId);
         Page<LineAccountLogNormal> page = (Page<LineAccountLogNormal>) lineDbLogList;
         List<LineAccountLogNormalVO> voList = convertToLineAccountLogVoList(lineDbLogList);
         return PageResultReturn.setPageResult(voList, page.getPageNum(), page.getPageSize(), page.getTotal());
