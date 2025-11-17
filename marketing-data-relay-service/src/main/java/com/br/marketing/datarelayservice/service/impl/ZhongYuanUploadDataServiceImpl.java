@@ -3,6 +3,7 @@ package com.br.marketing.datarelayservice.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.datarelayservice.enums.ZhongYuanResponseCodeEnum;
 import com.br.marketing.datarelayservice.service.ZhongYuanUploadDataService;
 import com.br.marketing.dto.zhongyuan.*;
@@ -11,6 +12,7 @@ import com.br.marketing.entity.ZhongYuanUpload;
 import com.br.marketing.enums.clean.DataProcessEnum;
 import com.br.marketing.mapper.ZhongYuanUploadMapper;
 import com.br.marketing.mapper.rulecleaning.MarketingCustomerOriginalDataMapper;
+import com.br.marketing.rule.ai.policy.OperateSixProcessor;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -39,6 +41,8 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
     private ZhongYuanUploadMapper zhongYuanUploadMapper;
     @Resource
     MarketingCustomerOriginalDataMapper marketingCustomerOriginalDataMapper;
+    @Resource
+    OperateSixProcessor operateSixProcessor;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
     private static final String TOKEN_PREFIX = "zyxj:token:";
@@ -231,7 +235,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             Map<String, String> taskUidMap = new HashMap<>();
             if (batchData.getTaskDataList() != null) {
                 for (BatchTaskRequest.TaskData taskData : batchData.getTaskDataList()) {
-                    Map<String, Object> itemResult = buildDataItem(taskData, batchData);
+                    Map<String, Object> itemResult = buildDataItem(taskData, batchData, apiCode);
                     if (itemResult != null) {
                         JSONObject dataItem = (JSONObject) itemResult.get("dataItem");
                         String batchNumber = (String) itemResult.get("batchNumber");
@@ -276,7 +280,8 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
      * @param batchData 批次数据
      * @return Map包含dataItem和batchNumber
      */
-    private Map<String, Object> buildDataItem(BatchTaskRequest.TaskData taskData, BatchTaskRequest batchData) {
+    private Map<String, Object> buildDataItem(BatchTaskRequest.TaskData taskData,
+                                              BatchTaskRequest batchData, String apiCode) {
         Map<String, Object> result = new HashMap<>();
         try {
             JSONObject dataItem = new JSONObject();
@@ -295,7 +300,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             dataItem.put("operateType", "6");
             
             // 4. 构建reserveField1，同时获取batchNumber
-            Map<String, Object> reserveFieldResult = buildReserveField1(taskData, batchData);
+            Map<String, Object> reserveFieldResult = buildReserveField1(taskData, batchData, apiCode);
             JSONObject reserveField1 = (JSONObject) reserveFieldResult.get("reserveField1");
             String batchNumber = (String) reserveFieldResult.get("batchNumber");
             dataItem.put("reserveField1", reserveField1);
@@ -319,7 +324,8 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
      * @param batchData 批次数据
      * @return Map包含reserveField1和batchNumber
      */
-    private Map<String, Object> buildReserveField1(BatchTaskRequest.TaskData taskData, BatchTaskRequest batchData) {
+    private Map<String, Object> buildReserveField1(BatchTaskRequest.TaskData taskData,
+                                                   BatchTaskRequest batchData,String apiCode) {
         Map<String, Object> result = new HashMap<>();
         JSONObject reserveField1 = new JSONObject();
         
@@ -381,9 +387,13 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
         reserveField1.put("batchNo", batchNo);
         processedFields.add("batchNo");
         
-        // batchNumber: 数据集编号 todo 需要按照6规则提前生成
-        String batchNumber = StringUtils.hasText(taskData.getTaskNo()) ? taskData.getTaskNo() : "";
+        // batchNumber: 数据集编号
+        String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
+        String batchNumber = operateSixProcessor.getBatchNumber(yyyyMMdd, apiCode,
+                userType, 1);
+
         reserveField1.put("batchNumber", batchNumber);
+        reserveField1.put("zyxj", batchNumber);
         processedFields.add("batchNumber");
 
         // 将其他未处理的变量也放入reserveField1
