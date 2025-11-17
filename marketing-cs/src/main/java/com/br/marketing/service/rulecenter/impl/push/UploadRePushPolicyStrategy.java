@@ -263,12 +263,26 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
      */
     private Map<String, Object> buildFieldValueMap(MarketingSyncUser syncUser, Collection<MarketingDataCleanGeneralRuleConfig> ruleConfigs) {
         Map<String, Object> fieldValueMap = new HashMap<>();
-        //剔除基础字段，并且无规则映射的字段
-        ruleConfigs.removeIf(ruleConfig -> (!"dataItems.item.reserveField1".equals(ruleConfig.getParentPath()))
-                && StringUtils.isEmpty(ruleConfig.getMappingRule()));
-        ruleConfigs.removeIf(ruleConfig -> ("userType".equals(ruleConfig.getMappingField())
-                && StringUtils.isEmpty(ruleConfig.getMappingRule())));
-        List<String> mappingFields = ruleConfigs.stream().map(ruleConfig -> ruleConfig.getMappingField()).collect(Collectors.toList());
+        // 过滤规则配置，保留不被删除的配置
+        List<MarketingDataCleanGeneralRuleConfig> filteredConfigs = ruleConfigs.stream()
+                .filter(ruleConfig -> {
+                    // 第一个条件：如果 parentPath 不是 "dataItems.item.reserveField1" 且 mappingRule 为空，则删除
+                    if (!"dataItems.item.reserveField1".equals(ruleConfig.getParentPath())
+                            && StringUtils.isEmpty(ruleConfig.getMappingRule())) {
+                        return false;
+                    }
+                    // 第二个条件：如果 mappingField 是 "userType" 且 mappingRule 为空，则删除
+                    if ("userType".equals(ruleConfig.getMappingField())
+                            && StringUtils.isEmpty(ruleConfig.getMappingRule())) {
+                        return false;  // 不保留
+                    }
+                    return true;
+                })
+                .collect(Collectors.toList());
+
+        List<String> mappingFields = filteredConfigs.stream()
+                .map(MarketingDataCleanGeneralRuleConfig::getMappingField)
+                .collect(Collectors.toList());
         Map<String, String> fieldMapping = getFieldNameMapping();
         for (String fieldName : mappingFields) {
             // 根据字段名获取对应的值（硬编码方式，性能更好）
