@@ -8,6 +8,9 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.dto.*;
+import com.br.marketing.dto.rulecenter.XcCycleDeleteDTO;
+import com.br.marketing.dto.rulecenter.XcCycleDeleteNumDTO;
+import com.br.marketing.dto.rulecenter.XcDeleteMagnitudeDistDTO;
 import com.br.marketing.enums.InterfaceOperationsEnum;
 import com.br.marketing.innerapi.service.RuleCenterCollidingService;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
@@ -29,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.validation.Valid;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -203,7 +207,7 @@ public class PushRuleFilterController {
 
 
     /**
-     * 撞库数据剔除
+     * 撞库数据剔除，非周期数据动态补充包剔除、黑名单剔除
      * @param dto
      * @return
      */
@@ -211,6 +215,12 @@ public class PushRuleFilterController {
     @PostMapping("/collidingDataDelete")
     public ApiResult collidingDataDelete(@RequestBody PushCustomerDTO dto) {
         return new ApiResult().fromResult(pushRuleService.collidingDataDelete(dto), CODE_1);
+    }
+
+    @ApiOperation(value = "撞库周期数据剔除", notes = "撞库周期数据剔除", httpMethod = "POST")
+    @PostMapping("/collidingDataCycleDelete")
+    public ApiResult collidingDataCycleDelete(@RequestBody @Valid XcCycleDeleteDTO dto) {
+        return new ApiResult().fromResult(pushRuleService.collidingDataCycleDelete(dto), CODE_1);
     }
 
     /**
@@ -224,6 +234,13 @@ public class PushRuleFilterController {
             extendInfo = "使用{#dto.mRuleCondition}，进行数据量级{#dto.mPlanNum}的数据剔除")
     public ApiResult collidingDataDeleteNum(@RequestBody PushCustomerDTO dto) {
         return new ApiResult<Integer>().fromResult(pushRuleService.collidingDataDeleteNum(dto), CODE_1);
+    }
+
+    @ApiOperation(value = "撞库数据周期剔除量级分布", notes = "撞库数据周期剔除量级分布", httpMethod = "POST")
+    @PostMapping("/collidingDataCycleDeleteMagnitudeDist")
+    public ApiResult collidingDataCycleDeleteMagnitudeDist(@RequestBody @Valid XcCycleDeleteNumDTO dto) {
+        return new ApiResult<List<XcDeleteMagnitudeDistDTO>>()
+                .fromResult(pushRuleService.collidingDataCycleDeleteMagnitudeDist(dto), CODE_1);
     }
 
     /**

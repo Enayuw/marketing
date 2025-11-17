@@ -5,6 +5,7 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.XcProcessTaskEnum;
@@ -267,7 +268,8 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                 .andApiCodeEqualTo(apiCode)
                 .andTaskStartTimeGreaterThanOrEqualTo(getStartOfDate())
                 .andTaskTypeIn(taskTypes)
-                .andTaskStatusNotEqualTo(2);
+                .andTaskStatusNotEqualTo(2)
+                .andIsDeleteEqualTo(0);
         int deletingTaskCount = taskMapper.countByExample(processTaskExample);
         if (deletingTaskCount > 0) {
             return false;
@@ -346,7 +348,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         XiechengCollidingTaskBatchExample taskBatchExample = new XiechengCollidingTaskBatchExample();
         taskBatchExample.createCriteria()
                 .andApiCodeEqualTo(vo.getApiCode())
-                .andCollidingDataTaskIdEqualTo(vo.getCollidingDataTaskId());
+                .andCollidingDataTaskIdEqualTo(vo.getCollidingDataTaskId()).andIsDeleteEqualTo(Constants.DATA_ISDELETE_NO);
         List<XiechengCollidingTaskBatch> batchList = taskBatchMapper.selectByExample(taskBatchExample);
         long deletingBatchCount = batchList.stream().filter(batch -> batch.getStatus() == 0 || batch.getStatus() == 1).count();
         if (deletingBatchCount == 0) {
@@ -398,7 +400,8 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         for(; ; ) {
             List<Long> longs = null;
             if (type == XcProcessTaskEnum.PROCESS_DELETE.getBatchType()) {
-                longs = cycleMapper.selectIdsOfTrueDataProcessTasktikv_(minId, queryRuleScoreDataSql, tableName, pageSize);
+                    longs = cycleMapper.selectIdsOfTrueDataProcessTaskWithRangetikv_(
+                            minId, queryRuleScoreDataSql, tableName, vo.getReleaseTimeBegin(), vo.getReleaseTimeEnd(), pageSize);
             } else if (type == XcProcessTaskEnum.PROCESS_DYNA_FALSE.getBatchType()) {
                 longs = robMapper.selectIdsOfDynaFalseDataProcessTasktikv_(minId, queryRuleScoreDataSql, tableName, pageSize);
             }
@@ -452,6 +455,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
             XiechengCollidingDataProcessTask processTask = new XiechengCollidingDataProcessTask();
             processTask.setId(vo.getCollidingDataTaskId());
             processTask.setTaskStatus(1);
+            processTask.setTaskExecuteTime(new Date());
             processTask.setUpdateTime(new Date());
             taskMapper.updateByPrimaryKeySelective(processTask);
         }
