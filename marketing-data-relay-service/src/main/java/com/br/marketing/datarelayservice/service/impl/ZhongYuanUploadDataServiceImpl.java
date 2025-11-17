@@ -3,6 +3,7 @@ package com.br.marketing.datarelayservice.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.datarelayservice.enums.ZhongYuanResponseCodeEnum;
 import com.br.marketing.datarelayservice.service.ZhongYuanUploadDataService;
@@ -13,6 +14,7 @@ import com.br.marketing.enums.clean.DataProcessEnum;
 import com.br.marketing.mapper.ZhongYuanUploadMapper;
 import com.br.marketing.mapper.rulecleaning.MarketingCustomerOriginalDataMapper;
 import com.br.marketing.rule.ai.policy.OperateSixProcessor;
+import com.br.marketing.rule.common.CommonRuleLabelEnum;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -286,12 +288,12 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
         try {
             JSONObject dataItem = new JSONObject();
             
-            // 1. cell: 电话号码的MD5值
+            // 1. cell: 使用telNo
             if (StringUtils.hasText(taskData.getTelNo())) {
                 dataItem.put("cell", taskData.getTelNo());
             }
             
-            // 2. custNum: 唯一用户ID（使用taskNo或生成taskUid）
+            // 2. custNum: 使用taskNo
             if (StringUtils.hasText(taskData.getTaskNo())) {
                 dataItem.put("custNum", taskData.getTaskNo());
             }
@@ -339,14 +341,10 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
                             (v1, v2) -> v1));
         }
 
-        // 记录已处理的字段名，用于后续过滤
-        Set<String> processedFields = new HashSet<>();
-
         // firstName: 用户姓(明文) - 从custName变量提取
         String firstName = variableMap.get("custName");
         if (StringUtils.hasText(firstName)) {
             reserveField1.put("firstName", firstName);
-            processedFields.add("custName");
         }
 
         // userType: 机构运营场景(数字枚举)，必填，对应sceneCode
@@ -357,51 +355,42 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
         String gender = variableMap.get("gender");
         if (StringUtils.hasText(gender)) {
             reserveField1.put("gender", gender);
-            processedFields.add("gender");
         }
         
         // overDays: 逾期天数
         String overDays = variableMap.get("overDays");
         reserveField1.put("overDays", StringUtils.hasText(overDays) ? overDays : "3");
-        processedFields.add("overDays");
         
         // overAmt: 逾期金额
         String overAmt = variableMap.get("overAmt");
         if (StringUtils.hasText(overAmt)) {
             reserveField1.put("overAmt", overAmt);
-            processedFields.add("overAmt");
         }
         
         // compName: 企业名称
         String compName = variableMap.get("compName");
         reserveField1.put("compName", StringUtils.hasText(compName) ? compName : "中原消费金融");
-        processedFields.add("compName");
 
         // compTel: 客服电话
         String compTel = variableMap.get("compTel");
         reserveField1.put("compTel", StringUtils.hasText(compTel) ? compTel : "4001112233");
-        processedFields.add("compTel");
         
         // batchNo: 批量编码（话术变量）
         String batchNo = StringUtils.hasText(batchData.getBatchNo()) ? batchData.getBatchNo() : "";
         reserveField1.put("batchNo", batchNo);
-        processedFields.add("batchNo");
         
-        // batchNumber: 数据集编号
-        String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
-        String batchNumber = operateSixProcessor.getBatchNumber(yyyyMMdd, apiCode,
-                userType, 1);
+        // batchNumber: 数据集编号，使用Redis自增生成pushCount
+        String batchNumber = generateBatchNumberWithRedisIncr(apiCode, userType);
 
         reserveField1.put("batchNumber", batchNumber);
         reserveField1.put("zyxj", batchNumber);
-        processedFields.add("batchNumber");
 
         // 将其他未处理的变量也放入reserveField1
         for (Map.Entry<String, String> entry : variableMap.entrySet()) {
             String code = entry.getKey();
             String value = entry.getValue();
             // 只处理未在reserveField1中设置的字段
-            if (!processedFields.contains(code) && StringUtils.hasText(value)) {
+            if (!reserveField1.containsKey(code)) {
                 reserveField1.put(code, value);
             }
         }
@@ -409,6 +398,30 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
         result.put("reserveField1", reserveField1);
         result.put("batchNumber", batchNumber);
         return result;
+    }
+
+    /**
+     * 使用Redis自增生成batchNumber
+     * 通过Redis的原子操作确保并发安全，每条数据都有唯一的pushCount
+     *
+     * @param apiCode 商户编号
+     * @param userType 用户类型（场景代码）
+     * @return batchNumber
+     */
+    private String generateBatchNumberWithRedisIncr(String apiCode, String userType) {
+        String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
+        // 构建Redis key: yyyyMMdd:apiCode:userType:AI_To_Policy_PatLoan_OperaType_Six
+        // 使用全局计数器，确保每条数据都有唯一的pushCount（并发安全）
+        String redisKey = RedisKeyConstant.AI_TOPOLICY_PUSH_COUNTER.concat(
+                String.format("%s:%s:%s:%s", yyyyMMdd, apiCode, userType,
+                        CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_SIX.getCode()));
+        // 使用Redis自增获取pushCount（原子操作，并发安全）
+        Long pushCount = redisChgService.incr(redisKey);
+        if (pushCount == null || pushCount <= 0) {
+            log.warn("中原消金Redis自增获取pushCount失败，redisKey: {}, 使用默认值1", redisKey);
+            pushCount = 1L;
+        }
+        return operateSixProcessor.getBatchNumber(yyyyMMdd, apiCode, userType, pushCount.intValue());
     }
 
     @Override
