@@ -274,12 +274,8 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
             List<String> callerFullnames = baseInfoNormalList.stream()
                     .map(baseInfo -> baseInfo.getProjectName() + "-" + baseInfo.getCaller())
                     .collect(Collectors.toList());
-            dbLogDetailObj.put("callerFullnames", callerFullnames);
-            dbLogDetailObj.put("gatewayIds", gatewayIdList);
-            dbLogDetailObj.put("priceDates", JSON.parseArray(dbLogDetailObj.getString("priceDates")));
-
-            vo.setDetail(dbLogDetailObj.toString());
-
+            dbLogDetailObj.put("callerFullnames", JSONArray.toJSONString(callerFullnames));
+            vo.setDetail(dbLogDetailObj.toJSONString());
             vo.setUserId(dbDto.getUserId());
             vo.setUserName(dbDto.getUserName());
             vo.setRealName(dbDto.getRealName());
