@@ -21,6 +21,7 @@ import com.br.marketing.service.LineSmsAccountNormalService;
 import com.br.marketing.vo.LineAccountDetailVO;
 import com.br.marketing.vo.LineAccountLogNormalVO;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import org.slf4j.Logger;
@@ -39,6 +40,7 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
 
     private static final Logger log = LoggerFactory.getLogger(LineSmsAccountNormalServiceImpl.class);
 
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Resource
     private LineSmsAccountDataNormalService lineSmsAccountDataNormalService;
@@ -198,7 +200,7 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
     }
 
     @Override
-    public PageResultReturn getLineAccountLogs(Integer current, Integer size, Long groupId) {
+    public PageResultReturn getLineAccountLogs(Integer current, Integer size, Long groupId){
         PageHelper.startPage(current, size);
         List<LineAccountLogNormal> lineDbLogList = lineAccountLogNormalMapper.getLineAccountLogs(groupId);
         Page<LineAccountLogNormal> page = (Page<LineAccountLogNormal>) lineDbLogList;
@@ -260,12 +262,12 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
     private List<LineAccountLogNormalVO> convertToLineAccountLogVoList(List<LineAccountLogNormal> lineDbLogList) {
         List<LineAccountLogNormalVO> voList = new ArrayList<>();
         lineDbLogList.forEach(dbDto -> {
-           LineAccountLogNormalVO vo = new LineAccountLogNormalVO();
-           vo.setId(dbDto.getId());
-           vo.setGroupId(dbDto.getGroupId().toString());
+            LineAccountLogNormalVO vo = new LineAccountLogNormalVO();
+            vo.setId(dbDto.getId());
+            vo.setGroupId(dbDto.getGroupId().toString());
 
-           LineSupplierInfoNormal lineSupplierInfoNormal = lineSupplierInfoNormalMapper.selectByPrimaryKey(dbDto.getLineSupplierId());
-           vo.setLineSupplier(lineSupplierInfoNormal.getLineSupplier());
+            LineSupplierInfoNormal lineSupplierInfoNormal = lineSupplierInfoNormalMapper.selectByPrimaryKey(dbDto.getLineSupplierId());
+            vo.setLineSupplier(lineSupplierInfoNormal.getLineSupplier());
 
             JSONObject dbLogDetailObj = JSONObject.parseObject(dbDto.getDetail());
             String gatewayIdsStr = dbLogDetailObj.getString("gatewayIds");
@@ -274,7 +276,12 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
             List<String> callerFullnames = baseInfoNormalList.stream()
                     .map(baseInfo -> baseInfo.getProjectName() + "-" + baseInfo.getCaller())
                     .collect(Collectors.toList());
-            dbLogDetailObj.put("callerFullnames", JSONArray.toJSONString(callerFullnames));
+            try {
+                dbLogDetailObj.put("callerFullnames", objectMapper.writeValueAsString(callerFullnames));
+            } catch (JsonProcessingException e) {
+                log.error("JSON序列化失败", e);
+                throw new RuntimeException(e);
+            }
             vo.setDetail(dbLogDetailObj.toJSONString());
             vo.setUserId(dbDto.getUserId());
             vo.setUserName(dbDto.getUserName());
@@ -283,7 +290,6 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
             vo.setCreateTime(dbDto.getCreateTime());
             vo.setUpdateTime(dbDto.getUpdateTime());
             vo.setIsDelete(dbDto.getIsDelete());
-
             voList.add(vo);
         });
         return voList;
