@@ -76,7 +76,7 @@ public class ZhongBangAIPullFileDataJob extends AbstractSimpleElasticJob {
             ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(25, 50, new SynchronousQueue<>());
             v.forEach((fileName, tableHead) -> {
                 String fileNumber = getFileNumber(apiCode, cId);
-                String fileNameNew = fileName.concat(dateStr).concat(fileNumber);
+                String fileNameNew = fileName.concat(dateStr).concat("_").concat(fileNumber);
                 zhongBangAIService.fileQueryAndDownload(apiCode, cId, fileNameNew.concat(okFileExtension)
                         , tableHead, filePath.concat(fileNameNew).concat(File.separator), beginDateTime, endDateTime
                         , threadPool);
