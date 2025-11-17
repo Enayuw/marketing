@@ -20,7 +20,9 @@ public interface LineBaseInfoNormalMapper extends LineBaseInfoNormalMapperBase{
                              @Param("projectName") String projectName,
                              @Param("opeStatus") Integer opeStatus);
 
-    List<Long> selectGatewayIdByFiled(@Param("lineSupplierId")Long lineSupplierId, @Param("projectName") String projectName, @Param("caller") String caller);
+    List<Long> selectGatewayIdByFiled(@Param("lineSupplierId")Long lineSupplierId,
+                                      @Param("projectName") String projectName,
+                                      @Param("caller") String caller);
 
     List<LineBaseInfoNormal> selectByIdList(@Param("gatewayIdList") List<Long> gatewayIdList);
 }
