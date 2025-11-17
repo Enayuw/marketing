@@ -56,8 +56,7 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
     private LineAccountLogNormalMapper lineAccountLogNormalMapper;
 
     @Override
-    public ApiResult getLineAccountBasInfo() {
-        ApiResult apiResult = new ApiResult().success();
+    public List<LineBaseShowInfoDto> getLineAccountBasInfo() {
         List<LineBaseFullInfoDTO> lineBaseFullInfoDtoList = lineBaseInfoNormalMapper.selectLineBaeFullInfoList();
         List<LineBaseShowInfoDto> lineBaseShowInfoDtoList = lineBaseFullInfoDtoList.stream()
                 .collect(Collectors.groupingBy(
@@ -71,7 +70,7 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
                     return dto;
                 }).collect(Collectors.toList());
 
-        return apiResult.setData(lineBaseShowInfoDtoList);
+        return lineBaseShowInfoDtoList;
     }
 
 

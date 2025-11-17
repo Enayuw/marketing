@@ -4,6 +4,7 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.LineBaseShowInfoDto;
 import com.br.marketing.dto.account.LineAccountDto;
 import com.br.marketing.dto.account.SmsAccountDto;
 import com.br.marketing.entity.MarketingDict;
@@ -185,7 +186,8 @@ public class LineSmsAccountController {
     @GetMapping("/getLineAccountBasInfo")
     public ApiResult getLineAccountBasInfo() {
         try {
-            return lineSmsAccountNormalService.getLineAccountBasInfo();
+            List<LineBaseShowInfoDto> baseShowInfoDtoList = lineSmsAccountNormalService.getLineAccountBasInfo();
+            return new ApiResult().success(baseShowInfoDtoList);
         }catch (Exception e) {
             log.error(e.getMessage(), e);
             return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
