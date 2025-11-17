@@ -123,11 +123,13 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             zhongYuanUpload.setFlowid(StringUtils.hasText(baseRequest.getFlowId()) ? baseRequest.getFlowId() : null);
             zhongYuanUpload.setSysid(StringUtils.hasText(baseRequest.getSysId()) ? baseRequest.getSysId() : null);
             zhongYuanUpload.setTimestamp(StringUtils.hasText(baseRequest.getTimestamp()) ? baseRequest.getTimestamp() : null);
+            zhongYuanUpload.setChannelno(StringUtils.hasText(baseRequest.getChannelNo()) ? baseRequest.getChannelNo() : null);
             zhongYuanUpload.setVersion(StringUtils.hasText(baseRequest.getVersion()) ? baseRequest.getVersion() : null);
             zhongYuanUpload.setToken(StringUtils.hasText(baseRequest.getToken()) ? baseRequest.getToken() : null);
             // 从batchData获取批次相关字段
             zhongYuanUpload.setBatchname(StringUtils.hasText(batchData.getBatchName()) ? batchData.getBatchName() : null);
             zhongYuanUpload.setBatchno(batchData.getBatchNo());
+            zhongYuanUpload.setScenecode(StringUtils.hasText(batchData.getSceneCode()) ? batchData.getSceneCode() : null);
             zhongYuanUpload.setStarttime(StringUtils.hasText(batchData.getStartTime()) ? batchData.getStartTime() : null);
             zhongYuanUpload.setEndtime(StringUtils.hasText(batchData.getEndTime()) ? batchData.getEndTime() : null);
             zhongYuanUpload.setFestivalban(batchData.getFestivalBan() != null ? String.valueOf(batchData.getFestivalBan()) : null);

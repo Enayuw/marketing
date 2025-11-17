@@ -29,6 +29,11 @@ public class ZhongYuanUpload {
     private String timestamp;
 
     /**
+     * 厂商编号
+     */
+    private String channelno;
+
+    /**
      * 版本号，默认1.0
      */
     private String version;
@@ -47,6 +52,11 @@ public class ZhongYuanUpload {
      * 批次编号
      */
     private String batchno;
+
+    /**
+     * 场景代码
+     */
+    private String scenecode;
 
     /**
      * 开始时间
@@ -128,6 +138,14 @@ public class ZhongYuanUpload {
         this.timestamp = timestamp == null ? null : timestamp.trim();
     }
 
+    public String getChannelno() {
+        return channelno;
+    }
+
+    public void setChannelno(String channelno) {
+        this.channelno = channelno == null ? null : channelno.trim();
+    }
+
     public String getVersion() {
         return version;
     }
@@ -158,6 +176,14 @@ public class ZhongYuanUpload {
 
     public void setBatchno(String batchno) {
         this.batchno = batchno == null ? null : batchno.trim();
+    }
+
+    public String getScenecode() {
+        return scenecode;
+    }
+
+    public void setScenecode(String scenecode) {
+        this.scenecode = scenecode == null ? null : scenecode.trim();
     }
 
     public String getStarttime() {

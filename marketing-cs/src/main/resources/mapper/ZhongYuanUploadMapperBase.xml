@@ -7,10 +7,12 @@
     <result column="flowId" property="flowid" jdbcType="VARCHAR" />
     <result column="sysId" property="sysid" jdbcType="VARCHAR" />
     <result column="timestamp" property="timestamp" jdbcType="VARCHAR" />
+    <result column="channelNo" property="channelno" jdbcType="VARCHAR" />
     <result column="version" property="version" jdbcType="VARCHAR" />
     <result column="token" property="token" jdbcType="VARCHAR" />
     <result column="batchName" property="batchname" jdbcType="VARCHAR" />
     <result column="batchNo" property="batchno" jdbcType="VARCHAR" />
+    <result column="sceneCode" property="scenecode" jdbcType="VARCHAR" />
     <result column="startTime" property="starttime" jdbcType="VARCHAR" />
     <result column="endTime" property="endtime" jdbcType="VARCHAR" />
     <result column="festivalBan" property="festivalban" jdbcType="VARCHAR" />
@@ -79,8 +81,9 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, flowId, `sysId`, `timestamp`, version, token, batchName, batchNo, startTime, 
-    endTime, festivalBan, priority, reportEndFlag, taskDataList, create_time, update_time
+    id, api_code, flowId, `sysId`, `timestamp`, channelNo, version, token, batchName, 
+    batchNo, sceneCode, startTime, endTime, festivalBan, priority, reportEndFlag, taskDataList, 
+    create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.ZhongYuanUploadExample" >
     select
@@ -117,17 +120,19 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_marketing_zhongyuan_upload (api_code, flowId, `sysId`, 
-      `timestamp`, version, token, 
-      batchName, batchNo, startTime, 
-      endTime, festivalBan, priority, 
-      reportEndFlag, taskDataList, create_time, 
-      update_time)
+      `timestamp`, channelNo, version, 
+      token, batchName, batchNo, 
+      sceneCode, startTime, endTime, 
+      festivalBan, priority, reportEndFlag, 
+      taskDataList, create_time, update_time
+      )
     values (#{apiCode,jdbcType=VARCHAR}, #{flowid,jdbcType=VARCHAR}, #{sysid,jdbcType=VARCHAR}, 
-      #{timestamp,jdbcType=VARCHAR}, #{version,jdbcType=VARCHAR}, #{token,jdbcType=VARCHAR}, 
-      #{batchname,jdbcType=VARCHAR}, #{batchno,jdbcType=VARCHAR}, #{starttime,jdbcType=VARCHAR}, 
-      #{endtime,jdbcType=VARCHAR}, #{festivalban,jdbcType=VARCHAR}, #{priority,jdbcType=VARCHAR}, 
-      #{reportendflag,jdbcType=VARCHAR}, #{taskdatalist,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP})
+      #{timestamp,jdbcType=VARCHAR}, #{channelno,jdbcType=VARCHAR}, #{version,jdbcType=VARCHAR}, 
+      #{token,jdbcType=VARCHAR}, #{batchname,jdbcType=VARCHAR}, #{batchno,jdbcType=VARCHAR}, 
+      #{scenecode,jdbcType=VARCHAR}, #{starttime,jdbcType=VARCHAR}, #{endtime,jdbcType=VARCHAR}, 
+      #{festivalban,jdbcType=VARCHAR}, #{priority,jdbcType=VARCHAR}, #{reportendflag,jdbcType=VARCHAR}, 
+      #{taskdatalist,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.ZhongYuanUpload" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -147,6 +152,9 @@
       <if test="timestamp != null" >
         `timestamp`,
       </if>
+      <if test="channelno != null" >
+        channelNo,
+      </if>
       <if test="version != null" >
         version,
       </if>
@@ -158,6 +166,9 @@
       </if>
       <if test="batchno != null" >
         batchNo,
+      </if>
+      <if test="scenecode != null" >
+        sceneCode,
       </if>
       <if test="starttime != null" >
         startTime,
@@ -197,6 +208,9 @@
       <if test="timestamp != null" >
         #{timestamp,jdbcType=VARCHAR},
       </if>
+      <if test="channelno != null" >
+        #{channelno,jdbcType=VARCHAR},
+      </if>
       <if test="version != null" >
         #{version,jdbcType=VARCHAR},
       </if>
@@ -208,6 +222,9 @@
       </if>
       <if test="batchno != null" >
         #{batchno,jdbcType=VARCHAR},
+      </if>
+      <if test="scenecode != null" >
+        #{scenecode,jdbcType=VARCHAR},
       </if>
       <if test="starttime != null" >
         #{starttime,jdbcType=VARCHAR},
@@ -259,6 +276,9 @@
       <if test="record.timestamp != null" >
         `timestamp` = #{record.timestamp,jdbcType=VARCHAR},
       </if>
+      <if test="record.channelno != null" >
+        channelNo = #{record.channelno,jdbcType=VARCHAR},
+      </if>
       <if test="record.version != null" >
         version = #{record.version,jdbcType=VARCHAR},
       </if>
@@ -270,6 +290,9 @@
       </if>
       <if test="record.batchno != null" >
         batchNo = #{record.batchno,jdbcType=VARCHAR},
+      </if>
+      <if test="record.scenecode != null" >
+        sceneCode = #{record.scenecode,jdbcType=VARCHAR},
       </if>
       <if test="record.starttime != null" >
         startTime = #{record.starttime,jdbcType=VARCHAR},
@@ -307,10 +330,12 @@
       flowId = #{record.flowid,jdbcType=VARCHAR},
       `sysId` = #{record.sysid,jdbcType=VARCHAR},
       `timestamp` = #{record.timestamp,jdbcType=VARCHAR},
+      channelNo = #{record.channelno,jdbcType=VARCHAR},
       version = #{record.version,jdbcType=VARCHAR},
       token = #{record.token,jdbcType=VARCHAR},
       batchName = #{record.batchname,jdbcType=VARCHAR},
       batchNo = #{record.batchno,jdbcType=VARCHAR},
+      sceneCode = #{record.scenecode,jdbcType=VARCHAR},
       startTime = #{record.starttime,jdbcType=VARCHAR},
       endTime = #{record.endtime,jdbcType=VARCHAR},
       festivalBan = #{record.festivalban,jdbcType=VARCHAR},
@@ -338,6 +363,9 @@
       <if test="timestamp != null" >
         `timestamp` = #{timestamp,jdbcType=VARCHAR},
       </if>
+      <if test="channelno != null" >
+        channelNo = #{channelno,jdbcType=VARCHAR},
+      </if>
       <if test="version != null" >
         version = #{version,jdbcType=VARCHAR},
       </if>
@@ -349,6 +377,9 @@
       </if>
       <if test="batchno != null" >
         batchNo = #{batchno,jdbcType=VARCHAR},
+      </if>
+      <if test="scenecode != null" >
+        sceneCode = #{scenecode,jdbcType=VARCHAR},
       </if>
       <if test="starttime != null" >
         startTime = #{starttime,jdbcType=VARCHAR},
@@ -383,10 +414,12 @@
       flowId = #{flowid,jdbcType=VARCHAR},
       `sysId` = #{sysid,jdbcType=VARCHAR},
       `timestamp` = #{timestamp,jdbcType=VARCHAR},
+      channelNo = #{channelno,jdbcType=VARCHAR},
       version = #{version,jdbcType=VARCHAR},
       token = #{token,jdbcType=VARCHAR},
       batchName = #{batchname,jdbcType=VARCHAR},
       batchNo = #{batchno,jdbcType=VARCHAR},
+      sceneCode = #{scenecode,jdbcType=VARCHAR},
       startTime = #{starttime,jdbcType=VARCHAR},
       endTime = #{endtime,jdbcType=VARCHAR},
       festivalBan = #{festivalban,jdbcType=VARCHAR},

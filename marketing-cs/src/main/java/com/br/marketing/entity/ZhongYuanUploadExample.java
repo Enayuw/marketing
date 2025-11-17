@@ -445,6 +445,76 @@ public class ZhongYuanUploadExample {
             return (Criteria) this;
         }
 
+        public Criteria andChannelnoIsNull() {
+            addCriterion("channelNo is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andChannelnoIsNotNull() {
+            addCriterion("channelNo is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andChannelnoEqualTo(String value) {
+            addCriterion("channelNo =", value, "channelno");
+            return (Criteria) this;
+        }
+
+        public Criteria andChannelnoNotEqualTo(String value) {
+            addCriterion("channelNo <>", value, "channelno");
+            return (Criteria) this;
+        }
+
+        public Criteria andChannelnoGreaterThan(String value) {
+            addCriterion("channelNo >", value, "channelno");
+            return (Criteria) this;
+        }
+
+        public Criteria andChannelnoGreaterThanOrEqualTo(String value) {
+            addCriterion("channelNo >=", value, "channelno");
+            return (Criteria) this;
+        }
+
+        public Criteria andChannelnoLessThan(String value) {
+            addCriterion("channelNo <", value, "channelno");
+            return (Criteria) this;
+        }
+
+        public Criteria andChannelnoLessThanOrEqualTo(String value) {
+            addCriterion("channelNo <=", value, "channelno");
+            return (Criteria) this;
+        }
+
+        public Criteria andChannelnoLike(String value) {
+            addCriterion("channelNo like", value, "channelno");
+            return (Criteria) this;
+        }
+
+        public Criteria andChannelnoNotLike(String value) {
+            addCriterion("channelNo not like", value, "channelno");
+            return (Criteria) this;
+        }
+
+        public Criteria andChannelnoIn(List<String> values) {
+            addCriterion("channelNo in", values, "channelno");
+            return (Criteria) this;
+        }
+
+        public Criteria andChannelnoNotIn(List<String> values) {
+            addCriterion("channelNo not in", values, "channelno");
+            return (Criteria) this;
+        }
+
+        public Criteria andChannelnoBetween(String value1, String value2) {
+            addCriterion("channelNo between", value1, value2, "channelno");
+            return (Criteria) this;
+        }
+
+        public Criteria andChannelnoNotBetween(String value1, String value2) {
+            addCriterion("channelNo not between", value1, value2, "channelno");
+            return (Criteria) this;
+        }
+
         public Criteria andVersionIsNull() {
             addCriterion("version is null");
             return (Criteria) this;
@@ -722,6 +792,76 @@ public class ZhongYuanUploadExample {
 
         public Criteria andBatchnoNotBetween(String value1, String value2) {
             addCriterion("batchNo not between", value1, value2, "batchno");
+            return (Criteria) this;
+        }
+
+        public Criteria andScenecodeIsNull() {
+            addCriterion("sceneCode is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andScenecodeIsNotNull() {
+            addCriterion("sceneCode is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andScenecodeEqualTo(String value) {
+            addCriterion("sceneCode =", value, "scenecode");
+            return (Criteria) this;
+        }
+
+        public Criteria andScenecodeNotEqualTo(String value) {
+            addCriterion("sceneCode <>", value, "scenecode");
+            return (Criteria) this;
+        }
+
+        public Criteria andScenecodeGreaterThan(String value) {
+            addCriterion("sceneCode >", value, "scenecode");
+            return (Criteria) this;
+        }
+
+        public Criteria andScenecodeGreaterThanOrEqualTo(String value) {
+            addCriterion("sceneCode >=", value, "scenecode");
+            return (Criteria) this;
+        }
+
+        public Criteria andScenecodeLessThan(String value) {
+            addCriterion("sceneCode <", value, "scenecode");
+            return (Criteria) this;
+        }
+
+        public Criteria andScenecodeLessThanOrEqualTo(String value) {
+            addCriterion("sceneCode <=", value, "scenecode");
+            return (Criteria) this;
+        }
+
+        public Criteria andScenecodeLike(String value) {
+            addCriterion("sceneCode like", value, "scenecode");
+            return (Criteria) this;
+        }
+
+        public Criteria andScenecodeNotLike(String value) {
+            addCriterion("sceneCode not like", value, "scenecode");
+            return (Criteria) this;
+        }
+
+        public Criteria andScenecodeIn(List<String> values) {
+            addCriterion("sceneCode in", values, "scenecode");
+            return (Criteria) this;
+        }
+
+        public Criteria andScenecodeNotIn(List<String> values) {
+            addCriterion("sceneCode not in", values, "scenecode");
+            return (Criteria) this;
+        }
+
+        public Criteria andScenecodeBetween(String value1, String value2) {
+            addCriterion("sceneCode between", value1, value2, "scenecode");
+            return (Criteria) this;
+        }
+
+        public Criteria andScenecodeNotBetween(String value1, String value2) {
+            addCriterion("sceneCode not between", value1, value2, "scenecode");
             return (Criteria) this;
         }
 
