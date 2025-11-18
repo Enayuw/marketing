@@ -13,7 +13,7 @@ import java.util.List;
 public class PushCustomerDTO {
 
     @ApiModelProperty(value = "商户编号")
-    @NotNull(message = "商户编个号不能为空")
+    @NotNull(message = "商户编号不能为空")
     private String apiCode;
 
     @ApiModelProperty(value = "上传开始时间")
