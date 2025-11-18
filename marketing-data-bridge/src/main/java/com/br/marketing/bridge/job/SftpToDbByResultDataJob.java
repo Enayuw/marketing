@@ -5,6 +5,7 @@ import com.br.marketing.bridge.model.dto.FileContext;
 import com.br.marketing.bridge.service.todb.impl.SftpToDbByCommonService;
 import com.br.marketing.bridge.service.todb.impl.SftpToDbByDXService;
 import com.br.marketing.client.SftpClient;
+import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.MarketingCustomer;
@@ -100,7 +101,8 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
         List<String> apiCodes = marketingCustomers.stream().filter(t->iCompatibleService.isAction(t.getExtendConfigInfo(),jobExecutionMultipleShardingContext.getJobName()))
                 .map(t -> t.getApiCode()).collect(Collectors.toList());
         SyncConfigExample syncConfigExample = new SyncConfigExample();
-        syncConfigExample.createCriteria().andApiCodeIn(apiCodes).andStatusEqualTo(1).andDataTypeEqualTo(3).andTypeEqualTo(1);
+        syncConfigExample.createCriteria().andApiCodeIn(apiCodes).andStatusEqualTo(1).andDataTypeEqualTo(DataTypeEnum.DIANXIAO.getValue())
+                .andTypeEqualTo(1);
         List<SyncConfig> syncConfigs = syncConfigMapper.selectByExample(syncConfigExample);
         syncConfigs.forEach(t -> {
             if (StringUtils.isNotBlank(t.getTargetPath())) {

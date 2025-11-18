@@ -135,7 +135,8 @@ public class TransferToFileByYonghuiServiceImpl implements ITransferToFileServic
                 ? LocalDate.now().toString() : jobParameter;
         Result<String> result = new Result<>();
         String apiCode = transferFileTask.getApiCode();
-        String descPath = syncConfigService.getPath().concat("transferToFile/")
+        String childDir = StringUtils.isNotEmpty(transferFileTask.getFileChildDir()) ? (transferFileTask.getFileChildDir() + "/") : "";
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(childDir)
                 .concat(apiCode).concat("/").concat(transferFileTask.getStartDate()).concat("/");
         File writeDic = new File(descPath);
         if (!writeDic.exists()) {

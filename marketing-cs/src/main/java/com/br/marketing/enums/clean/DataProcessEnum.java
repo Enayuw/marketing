@@ -104,7 +104,9 @@ public enum DataProcessEnum {
     public enum FileStatusEnum {
         READY(0, "待开始"),
         RUNNING(1, "清洗中"),
-        SUCCESS(2, "清洗完成");
+        SUCCESS(2, "清洗完成"),
+        FAIL(3, "失败");
+
 
         private  Integer code;
         private  String desc;
