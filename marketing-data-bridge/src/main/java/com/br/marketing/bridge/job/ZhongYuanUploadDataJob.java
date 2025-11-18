@@ -1,11 +1,7 @@
 package com.br.marketing.bridge.job;
 
-import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
-import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.dto.dataclean.mq.MqDataJsonParse;
 import com.br.marketing.entity.MarketingCustomerOriginalData;
 import com.br.marketing.entity.MarketingCustomerOriginalDataExample;
@@ -36,16 +32,10 @@ public class ZhongYuanUploadDataJob extends AbstractSimpleElasticJob {
 
     @Resource
     private MarketingCustomerOriginalDataMapper marketingCustomerOriginalDataMapper;
-    
     @Resource
     private RedisChgService redisChgService;
-    
-    @Resource
-    private RocketMqSwitch rocketMqSwitch;
-    
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
-    
     private static final int REDIS_EXPIRE_SECONDS = 86400; // 1天过期时间
     private static final String TITLE = "【中原消金数据上传】";
 
