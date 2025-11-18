@@ -29,7 +29,7 @@ public enum ZhongYuanResponseCodeEnum {
     /**
      * 系统异常
      */
-    SYSTEM_ERROR("1000006", "系统异常");
+    SYSTEM_ERROR("1000003", "系统异常");
 
     /**
      * 响应码
