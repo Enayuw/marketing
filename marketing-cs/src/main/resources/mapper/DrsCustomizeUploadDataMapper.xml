@@ -163,6 +163,15 @@
         order by id asc limit #{pageSize};
     </select>
 
+    <select id="getDrsCustomizeUploadDataBySyncStatus"
+            resultType="com.br.marketing.entity.DrsCustomizeUploadData">
+        select * from b_drs_customize_upload_data${tCid} where sync_status = #{syncStatus}
+    </select>
+
+    <select id="getQiFuUploadDataOriginalBySerialNo"
+            resultType="com.br.marketing.entity.BQifuUploadDataOriginal">
+        select * from b_qifu_upload_data_original where serial_no = 'RB6613222165716406277' order by create_time desc limit 1
+    </select>
 
     <update id="updateExtendAndStatusById">
         update b_drs_customize_upload_data${tCid} set extend = #{extend},sync_status = #{syncStatus}  where id = #{id}

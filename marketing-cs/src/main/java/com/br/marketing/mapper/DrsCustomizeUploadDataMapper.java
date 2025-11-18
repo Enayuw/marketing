@@ -1,5 +1,6 @@
 package com.br.marketing.mapper;
 
+import com.br.marketing.entity.BQifuUploadDataOriginal;
 import com.br.marketing.entity.DrsCustomizeUploadData;
 import org.apache.ibatis.annotations.Param;
 
@@ -33,17 +34,6 @@ public interface DrsCustomizeUploadDataMapper {
     List<DrsCustomizeUploadData> selectByApiCodeAndDate(@Param("tCid") String tCid, @Param("apiCode") String apiCode, @Param("createDate") String createDate);
 
     /**
-     * 查询数据的最大最小id
-     *
-     * @param dateType  日期类型：history表示<=，today表示=
-     * @param dateValue 日期值
-     */
-    Map<String, Long> getDataIdRange(@Param("tCid") String tCid
-            , @Param("apiCodes") List<String> apiCodes
-            , @Param("dateType") String dateType
-            , @Param("dateValue") String dateValue);
-
-    /**
      * 根据id范围查询数据（用于分批处理）
      *
      * @param pageSize  分页大小
@@ -59,4 +49,10 @@ public interface DrsCustomizeUploadDataMapper {
             , @Param("maxId") Long maxId
             , @Param("dateType") String dateType
             , @Param("dateValue") String dateValue);
+
+    List<DrsCustomizeUploadData> getDrsCustomizeUploadDataBySyncStatus(@Param("tCid") String tCid,
+                                                                       @Param("syncStatus") Integer syncStatus);
+
+    List<BQifuUploadDataOriginal> getQiFuUploadDataOriginalBySerialNo(@Param("tCid") String tCid,
+                                                                      @Param("serialNo") String serialNo);
 }
