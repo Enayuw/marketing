@@ -72,7 +72,7 @@ public class LineBaseInfoSyncServiceImpl implements LineBaseInfoSyncService {
         List<DdLineBaseInfoDto> ddLineBaseInfoDtoList =  getLineBaseInfo();
 
         // db-库表数据组合查询: b_marketing_line_supplier_info_normal 里面 ope_status = 0 ---> b_marketing_line_supplier_info_normal 里面 ope_status in(0,2) ,的配置进行比较
-        List<LineBaseFullInfoDto> lineBaseFullInfoDtoList = lineBaseInfoNormalMapper.selectLineBaeFullInfoList();
+        List<LineBaseFullInfoDTO> lineBaseFullInfoDtoList = lineBaseInfoNormalMapper.selectLineBaeFullInfoList();
 
         // 场景1-差集剔除(库表有,三方接口没有)
         dealSceneOne(ddLineBaseInfoDtoList,lineBaseFullInfoDtoList);
@@ -88,10 +88,10 @@ public class LineBaseInfoSyncServiceImpl implements LineBaseInfoSyncService {
      * 场景1-差集剔除
      * (库表有,三方接口没有)
      */
-    private void dealSceneOne(List<DdLineBaseInfoDto> ddLineBaseInfoDtoList, List<LineBaseFullInfoDto> lineBaseFullInfoDtoList) {
+    private void dealSceneOne(List<DdLineBaseInfoDto> ddLineBaseInfoDtoList, List<LineBaseFullInfoDTO> lineBaseFullInfoDtoList) {
         try {
             List<Long> gatewayIdList = ddLineBaseInfoDtoList.stream().map(DdLineBaseInfoDto::getGatewayId).toList();
-            List<Long> dbGatewayIdList = lineBaseFullInfoDtoList.stream().map(LineBaseFullInfoDto::getGatewayId).toList();
+            List<Long> dbGatewayIdList = lineBaseFullInfoDtoList.stream().map(LineBaseFullInfoDTO::getGatewayId).toList();
             List<Long> onlyInDbIdList = dbGatewayIdList.stream()
                     .filter(id -> !gatewayIdList.contains(id)).toList();
             // 修改这些记录 ope_status = 3
@@ -108,10 +108,10 @@ public class LineBaseInfoSyncServiceImpl implements LineBaseInfoSyncService {
      * 场景2-新增集处理
      * (库表没有, 三方接口有)
      */
-    private void dealSceneTwo(List<DdLineBaseInfoDto> ddLineBaseInfoDtoList, List<LineBaseFullInfoDto> lineBaseFullInfoDtoList) {
+    private void dealSceneTwo(List<DdLineBaseInfoDto> ddLineBaseInfoDtoList, List<LineBaseFullInfoDTO> lineBaseFullInfoDtoList) {
         try {
             Set<Long> dbGatewayIds = lineBaseFullInfoDtoList.stream()
-                    .map(LineBaseFullInfoDto::getGatewayId).collect(Collectors.toSet());
+                    .map(LineBaseFullInfoDTO::getGatewayId).collect(Collectors.toSet());
             List<DdLineBaseInfoDto> onlyInGatewayDtoList = ddLineBaseInfoDtoList.stream()
                     .filter(dto -> !dbGatewayIds.contains(dto.getGatewayId())).toList();
             // 添加记录
@@ -136,19 +136,19 @@ public class LineBaseInfoSyncServiceImpl implements LineBaseInfoSyncService {
      *    private String lineSupplier;
      *    private String projectName;
      */
-    private void dealSceneThree(List<DdLineBaseInfoDto> ddLineBaseInfoDtoList, List<LineBaseFullInfoDto> lineBaseFullInfoDtoList) {
+    private void dealSceneThree(List<DdLineBaseInfoDto> ddLineBaseInfoDtoList, List<LineBaseFullInfoDTO> lineBaseFullInfoDtoList) {
         LinsChangeAlarmDto  linsChangeAlarmDto = new LinsChangeAlarmDto();
         linsChangeAlarmDto.setCardTitle(marketingCommonConfig.getLinsSmsChangeConfig().getString("lineCardTitle"));
         Map<Long, DdLineBaseInfoDto> ddLineMap = ddLineBaseInfoDtoList.stream()
                                     .collect(Collectors.toMap(DdLineBaseInfoDto::getGatewayId, dto -> dto));
-        Map<Long, LineBaseFullInfoDto> fullDbInfoMap = lineBaseFullInfoDtoList.stream()
-                                    .collect(Collectors.toMap(LineBaseFullInfoDto::getGatewayId, dto -> dto));
+        Map<Long, LineBaseFullInfoDTO> fullDbInfoMap = lineBaseFullInfoDtoList.stream()
+                                    .collect(Collectors.toMap(LineBaseFullInfoDTO::getGatewayId, dto -> dto));
         Map<String,Integer> existChangeMap = new HashMap<>();
         //子场景 判断修改
         ddLineMap.forEach((gatewayId, ddLineInfoItem) -> {
             try {
                 if (fullDbInfoMap.containsKey(gatewayId)) {
-                    LineBaseFullInfoDto dbFullInfoItem = fullDbInfoMap.get(gatewayId);
+                    LineBaseFullInfoDTO dbFullInfoItem = fullDbInfoMap.get(gatewayId);
                     //3.1 场景 lineSupplier修改 //3.2 场景 其它字段发生修改
                     if (!ddLineInfoItem.getLineSupplier().equals(dbFullInfoItem.getLineSupplier())) {
                         //3.1场景 lineSupplier修改

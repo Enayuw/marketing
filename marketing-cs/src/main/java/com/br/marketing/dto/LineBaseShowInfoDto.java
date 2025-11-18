@@ -2,6 +2,8 @@ package com.br.marketing.dto;
 
 import lombok.Data;
 
+import java.util.List;
+
 /**
  *
  CREATE TABLE `b_marketing_line_base_info_normal` (
@@ -20,13 +22,17 @@ import lombok.Data;
  */
 
 @Data
-public class LineBaseFullInfoDto {
-   private  Long id;
-   private Long gatewayId;
-   private String caller;
-   private String projectName;
-   private String outboundNumber;
-   private Long lineSupplierId;
+public class LineBaseShowInfoDto {
    private String lineSupplier;
+   private List<LineBaseInfo> channelDTOList;
 
+   @Data
+   public static class LineBaseInfo {
+      private Long gatewayId;
+      private String caller;
+      private String projectName;
+      private String outboundNumber;
+      private String lineSupplier;
+      private String callerFullName;
+   }
 }

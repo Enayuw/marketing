@@ -21,6 +21,7 @@ import com.br.marketing.entity.DdDataLineCostPrice;
 import com.br.marketing.entity.DdDataSmsCostPrice;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mapper.*;
+import com.br.marketing.service.LineSmsAccountNormalService;
 import com.br.marketing.service.LineSmsAccountService;
 import com.br.marketing.service.dingding2.LineSmsCostToDbService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -57,6 +58,9 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
 
     @Resource
     private LineSmsAccountService lineSmsAccountService;
+
+    @Resource
+    private LineSmsAccountNormalService lineSmsAccountNormalService;
 
     @Resource
     private RobotaiApiServiceClient robotaiApiServiceClient;
@@ -317,7 +321,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
      */
     private List<DdLineBaseInfoDto> getLineBaseInfoByDb() {
         List<DdLineBaseInfoDto> ddLineBaseInfoDtoList = new ArrayList<>();
-        List<LineBaseFullInfoDto> lineBaseFullInfoDtoList = lineBaseInfoNormalMapper.selectLineBaeFullInfoList();
+        List<LineBaseFullInfoDTO> lineBaseFullInfoDtoList = lineBaseInfoNormalMapper.selectLineBaeFullInfoList();
         lineBaseFullInfoDtoList.forEach(lineBaseFullInfoDto -> {
             DdLineBaseInfoDto dto = new DdLineBaseInfoDto();
             dto.setGatewayId(lineBaseFullInfoDto.getGatewayId());
@@ -453,7 +457,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                         fillThreadLocalUserInfo(0,lineCost.getLastModifiedUserName(),lineCost.getLastModifiedUserId());
                         LineAccountDto lineAccountDto = fillLineAccountInfo(lineCost, lineDto);
                         try {
-                            Result result = lineSmsAccountService.addLineAccount(lineAccountDto);
+                            Result result = lineSmsAccountNormalService.addLineAccount(lineAccountDto);
                             if (result.isSuccess()) {
                                 linsCostAlarmDto.setSuccessCost(linsCostAlarmDto.getSuccessCost() + 1);
                             } else {

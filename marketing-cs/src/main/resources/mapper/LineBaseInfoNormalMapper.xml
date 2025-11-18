@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.LineBaseInfoNormalMapper" >
 
-    <select id="selectLineBaeFullInfoList" resultType="com.br.marketing.dto.LineBaseFullInfoDto">
+    <select id="selectLineBaeFullInfoList" resultType="com.br.marketing.dto.LineBaseFullInfoDTO">
         select
             bb.id,bb.gateway_id,bb.caller,bb.project_name,bb.outbound_number,bb.line_supplier_id,ss.line_supplier
         from
@@ -10,6 +10,18 @@
                 inner join b_marketing_line_supplier_info_normal ss on bb.line_supplier_id = ss.id
         where
             bb.ope_status in (0, 2) and bb.is_delete = 0 and ss.ope_status = 0 and ss.is_delete = 0
+    </select>
+
+    <select id="selectGatewayIdByFiled" resultType="java.lang.Long">
+        select
+            gateway_id
+        from  b_marketing_line_base_info_normal
+        where
+            line_supplier_id = #{lineSupplierId}
+            and project_name=#{projectName}
+            and caller =#{caller}
+            and ope_status in (0,2)
+            and is_delete = 0
     </select>
 
 
@@ -29,6 +41,20 @@
                                                    ope_status = #{opeStatus},ope_time = now()
         where id = #{id} and ope_status in (0,2)
     </update>
+
+
+    <select id="selectByIdList" resultType="com.br.marketing.entity.LineBaseInfoNormal">
+        SELECT
+            id, gateway_id, caller, line_supplier_id, project_name, outbound_number, create_time,
+               update_time, ope_status, ope_time, is_delete
+        FROM b_marketing_line_base_info_normal
+        WHERE gateway_id in (
+            <foreach collection="gatewayIdList" item="gateway_id" index="index" separator=",">
+                #{gateway_id}
+            </foreach>
+            ) and ope_status in (0,2)
+    </select>
+
 
 
 </mapper>
