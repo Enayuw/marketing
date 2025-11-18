@@ -91,6 +91,12 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
     @Resource
     private LineBaseInfoNormalMapper lineBaseInfoNormalMapper;
 
+    @Resource
+    private LineSupplierInfoNormalMapper lineSupplierInfoNormalMapper;
+
+    @Resource
+    private LineAccountDetailNormalMapper lineAccountDetailNormalMapper;
+
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -452,7 +458,8 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
 
                 // 4. 判断数据库配置 是否存在(存在跳过，不存在插入)
                 filterList.forEach(lineDto -> {
-                    Long count = lineAccountDetailMapper.selectCount(lineDto.getGatewayId());
+                    Long lineSupplierId = lineSupplierInfoNormalMapper.selectIdByLineSupplier(lineDto.getLineSupplier());
+                    Long count = lineAccountDetailNormalMapper.selectCount(lineSupplierId,lineDto.getGatewayId());
                     if (count == 0) {
                         fillThreadLocalUserInfo(0,lineCost.getLastModifiedUserName(),lineCost.getLastModifiedUserId());
                         LineAccountDto lineAccountDto = fillLineAccountInfo(lineCost, lineDto);
@@ -471,7 +478,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                                 reasonObj.put("lineDto", JSONObject.toJSONString(lineDto));
                                 reasonObj.put("failMsg",result.getMessage());
                                 costPriceExRecord.setReason(JSONObject.toJSONString(reasonObj));
-                               costPriceExRecordMapper.insertSelective(costPriceExRecord);
+                                costPriceExRecordMapper.insertSelective(costPriceExRecord);
                                 List<CostPriceExRecordDto> costPriceExRecordList = linsCostAlarmDto.getCostPriceExRecordDtoList();
                                 costPriceExRecordList.add(convertPriceExRecordDto(costPriceExRecord,ddReason));
                                 linsCostAlarmDto.setCostPriceExRecordDtoList(costPriceExRecordList);
