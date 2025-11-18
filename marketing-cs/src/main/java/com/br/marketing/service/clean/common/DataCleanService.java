@@ -40,7 +40,8 @@ public interface DataCleanService {
 
     List<JSONObject> fileDataAssemble(List<String> batchLines, String[] headers, String fileName, int startIndex);
 
-    void uploadDetailCleanHandler(JSONObject jsonObject, Collection<MarketingDataCleanGeneralRuleConfig> ruleConfigList, MarketingSyncUser marketingSyncUser);
+    void uploadDetailCleanHandler(JSONObject jsonObject, Collection<MarketingDataCleanGeneralRuleConfig> ruleConfigList,
+                                  MarketingSyncUser marketingSyncUser);
 
 
 }

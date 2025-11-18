@@ -516,6 +516,7 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
         return pushContext;
     }
 
+    @Override
     protected RuleCenterPushContext assemblePushContext(CustomerInfoPushMain customerInfoPushMain) {
         RuleCenterPushContext pushContext = super.assemblePushContext(customerInfoPushMain);
         pushContext.setPartitionCount(1);

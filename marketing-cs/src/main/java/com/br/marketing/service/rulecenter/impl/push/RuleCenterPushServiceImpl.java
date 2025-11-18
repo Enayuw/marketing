@@ -46,7 +46,7 @@ public class RuleCenterPushServiceImpl implements IRuleCenterPushService {
         if (pushTargetEnum == null) {
             return new Result<Boolean>().setCode(ResultCode.FAIL.getValue()).setMessage("规则中心数据处理-未匹配到到推送实现");
         }
-        AbstractRuleCenterPushStrategy pushStrategy = SpringContextUtil.getBean(pushTargetEnum.getPushAchieve(), AbstractRuleCenterPushStrategy.class);
+        AbstractRuleCenterPushStrategy pushStrategy = SpringContextUtil.getBean(pushTargetEnum.getPushAchieve(),AbstractRuleCenterPushStrategy.class);
         //获取上下文
         RuleCenterPushContext context = pushStrategy.assemblePushContext(customerInfoPushMain);
         //设置线程信息

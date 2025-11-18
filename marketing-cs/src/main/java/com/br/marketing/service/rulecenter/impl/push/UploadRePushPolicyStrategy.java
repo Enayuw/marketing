@@ -89,7 +89,7 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
 
     private static final String TITLE = "[上传重推决策]";
 
-
+    @Override
     protected Result<Boolean> preProcess(RuleCenterPushContext context) {
         long start = System.currentTimeMillis();
         // 补推逻辑
@@ -122,7 +122,8 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
         List<Future<Boolean>> resList = new ArrayList<>();
         //通用调用,查询清洗规则配置
         Map<String, MarketingDataCleanGeneralRuleConfig> configRule = dataCleanService.getConfigRule(apiCode,
-                DataProcessEnum.DataTypeEnum.UPLOAD.getCode(), DataProcessEnum.AcceptTypeEnum.GENERAL.getCode(), DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode());
+                DataProcessEnum.DataTypeEnum.UPLOAD.getCode(), DataProcessEnum.AcceptTypeEnum.GENERAL.getCode(),
+                DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode());
         if (CollectionUtils.isEmpty(configRule)) {
             log.warn(TITLE + "清洗配置为空，apiCode={}", apiCode);
             return result;
@@ -133,7 +134,8 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
             Date createTime = LocalDate.now().toString().equals(appletDate) ? pushMain.getCreateTime() : null;
             Long minId = null;
             while (true) {
-                List<MarketingSyncUser> syncUsers = marketingSyncInfoMapper.getMarketingSyncByCondition(apiCode, null, appletDate, userType, createTime, condition, minId);
+                List<MarketingSyncUser> syncUsers = marketingSyncInfoMapper.getMarketingSyncByCondition(apiCode, null, appletDate,
+                        userType, createTime, condition, minId);
                 if (CollectionUtils.isEmpty(syncUsers)) {
                     break;
                 }
@@ -177,12 +179,14 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
 
     }
 
+    @Override
     protected Result<Boolean> validateData(RuleCenterPushContext context) {
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
     }
 
 
-    private Boolean cleanUploadData(List<MarketingSyncUser> syncUserList, Collection<MarketingDataCleanGeneralRuleConfig> ruleConfigList, String apiCode) {
+    private Boolean cleanUploadData(List<MarketingSyncUser> syncUserList, Collection<MarketingDataCleanGeneralRuleConfig> ruleConfigList,
+                                    String apiCode) {
         Boolean result = Boolean.TRUE;
         try {
             // 构建批量更新的字段值映射列表
@@ -250,11 +254,9 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
             setClauses.add(caseWhen.toString());
         }
 
-        sql.append(String.join(", ", setClauses));
-        // 添加 WHERE 子句
-        sql.append(" WHERE id IN (");
-        sql.append(updateIds.stream().map(String::valueOf).collect(Collectors.joining(", ")));
-        sql.append(")");
+        sql.append(String.join(", ", setClauses))
+                // 添加 WHERE 子句
+                .append(" WHERE id IN (").append(updateIds.stream().map(String::valueOf).collect(Collectors.joining(", "))).append(")");
         return sql.toString();
     }
 
@@ -314,6 +316,7 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
     }
 
 
+    @Override
     protected Result<Boolean> doExecutePush(RuleCenterPushContext context) {
         long start = System.currentTimeMillis();
         // 推送决策
@@ -425,7 +428,8 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
         CustomerTagsVO tags = customerTagsProcessService.getTags(apiCode);
         Long minId = null;
         while (true) {
-            List<MarketingSyncUser> syncUsers = marketingSyncInfoMapper.getMarketingSyncByCondition(apiCode, operateType, appletDate, userType, createTime, condition, minId);
+            List<MarketingSyncUser> syncUsers = marketingSyncInfoMapper.getMarketingSyncByCondition(apiCode, operateType, appletDate, userType,
+                    createTime, condition, minId);
             if (CollectionUtils.isEmpty(syncUsers)) {
                 break;
             }
@@ -472,7 +476,8 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
         CustomerTagsVO tags = customerTagsProcessService.getTags(apiCode);
         Long minId = null;
         while (true) {
-            List<MarketingSyncUser> syncUsers = marketingSyncInfoMapper.getMarketingSyncByCondition(apiCode, operateType, appletDate, userType, createTime, condition, minId);
+            List<MarketingSyncUser> syncUsers = marketingSyncInfoMapper.getMarketingSyncByCondition(apiCode, operateType, appletDate, userType,
+                    createTime, condition, minId);
             if (CollectionUtils.isEmpty(syncUsers)) {
                 break;
             }
@@ -508,7 +513,8 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
         CustomerTagsVO tags = customerTagsProcessService.getTags(apiCode);
         Long minId = null;
         while (true) {
-            List<MarketingSyncUser> syncUsers = marketingSyncInfoMapper.getMarketingSyncByCondition(apiCode, operateType, appletDate, userType, createTime, condition, minId);
+            List<MarketingSyncUser> syncUsers = marketingSyncInfoMapper.getMarketingSyncByCondition(apiCode, operateType, appletDate, userType,
+                    createTime, condition, minId);
             if (CollectionUtils.isEmpty(syncUsers)) {
                 break;
             }
@@ -539,7 +545,8 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
         CustomerTagsVO tags = customerTagsProcessService.getTags(apiCode);
         Long minId = null;
         while (true) {
-            List<MarketingSyncUser> syncUsers = marketingSyncInfoMapper.getMarketingSyncByCondition(apiCode, operateType, appletDate, userType, createTime, condition, minId);
+            List<MarketingSyncUser> syncUsers = marketingSyncInfoMapper.getMarketingSyncByCondition(apiCode, operateType, appletDate, userType,
+                    createTime, condition, minId);
             if (CollectionUtils.isEmpty(syncUsers)) {
                 break;
             }
@@ -565,10 +572,12 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
     private Boolean uploadPushPolicy(List<PushMarketingUserDetailByRuleDTO> pushList, CustomerInfoPushMain pushMain) {
         Boolean pushResult = Boolean.TRUE;
         String apiCode = pushMain.getmApiCode();
-        Map<String, List<PushMarketingUserDetailByRuleDTO>> batchMap = pushList.stream().collect(Collectors.groupingBy(PushMarketingUserDetailByRuleDTO::getBatchNumber));
+        Map<String, List<PushMarketingUserDetailByRuleDTO>> batchMap = pushList.stream().collect(Collectors.groupingBy
+                (PushMarketingUserDetailByRuleDTO::getBatchNumber));
         for (String batch : batchMap.keySet()) {
             List<PushMarketingUserDetailByRuleDTO> ruleLists = batchMap.get(batch);
-            Map<String, List<PushMarketingUserDetailByRuleDTO>> strategyMap = ruleLists.stream().collect(Collectors.groupingBy(PushMarketingUserDetailByRuleDTO::getStrategyCode));
+            Map<String, List<PushMarketingUserDetailByRuleDTO>> strategyMap = ruleLists.stream().collect(Collectors.groupingBy
+                    (PushMarketingUserDetailByRuleDTO::getStrategyCode));
             for (String strategy : strategyMap.keySet()) {
                 List<PushMarketingUserDetailByRuleDTO> datas = strategyMap.get(strategy);
                 Map<String, List<PushMarketingUserDetailByRuleDTO>> batchNameMap = datas.stream()
@@ -720,48 +729,6 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
         return sqlCondition;
     }
 
-
-    private void customizFieldMapping(String apiCode, JSONObject jsonObject) {
-        HashMap<String, JSONObject> fieldKeyMapping = marketingCommonConfig.getFieldKeyMapping();
-        JSONObject mapping = fieldKeyMapping.get(apiCode);
-        if (ObjectUtil.isNotEmpty(mapping)) {
-            for (String s : mapping.keySet()) {
-                String toKey = mapping.getString(s);
-                String oldV = jsonObject.getString(toKey);
-                String newV = jsonObject.getString(s);
-                if (StringUtils.isBlank(oldV) && StringUtils.isNotBlank(newV)) {
-                    jsonObject.put(toKey, newV);
-                }
-            }
-        }
-    }
-
-    /**
-     * 构建营销同步用户的JSON对象
-     *
-     * @param jsonObject 目标JSON对象
-     * @param syncUser   营销同步用户数据
-     * @param jc3keyType 加密类型(null表示未配置)
-     * @return 构建好的JSON对象
-     */
-    private JSONObject buildJson(JSONObject jsonObject, MarketingSyncUser syncUser, Integer jc3keyType) {
-        // 添加基础字段
-        jsonObject.put("cusBatch", emptyDefault(syncUser.getCusBatch()));
-        jsonObject.put("requestBatch", emptyDefault(syncUser.getRequestBatch()));
-        jsonObject.put("custNum", emptyDefault(syncUser.getCustNum()));
-        jsonObject.put("groupType", emptyDefault(syncUser.getGroupType()));
-        jsonObject.put("operateType", emptyDefault(syncUser.getOperateType()));
-        jsonObject.put("registerDate", emptyDefault(syncUser.getRegisterDate()));
-        jsonObject.put("appletDate", emptyDefault(syncUser.getAppletDate()));
-        jsonObject.put("taskId", emptyDefault(syncUser.getCusBatch()));
-        // 处理敏感信息(姓名和身份证)
-        pushRuleService.processSensitiveInfo(jsonObject, syncUser, jc3keyType);
-        // 添加用户姓名
-        cusNameOfJo(syncUser.getName(), jsonObject);
-
-        return jsonObject;
-    }
-
     private String emptyDefault(String value) {
         return com.br.common.util.StringUtils.isNotEmpty(value) ? value : "";
     }
@@ -797,6 +764,7 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
         return pushContext;
     }
 
+    @Override
     protected RuleCenterPushContext assemblePushContext(CustomerInfoPushMain customerInfoPushMain) {
         RuleCenterPushContext pushContext = new RuleCenterPushContext();
         pushContext.setCustomerInfoPushMain(customerInfoPushMain);

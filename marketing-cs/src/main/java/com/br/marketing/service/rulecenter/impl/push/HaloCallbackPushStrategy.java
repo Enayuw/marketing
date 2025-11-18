@@ -470,6 +470,7 @@ public class HaloCallbackPushStrategy extends AbstractRuleCenterPushStrategy {
         return result;
     }
 
+    @Override
     protected RuleCenterPushContext assemblePushContext(CustomerInfoPushMain customerInfoPushMain) {
         RuleCenterPushContext pushContext = super.assemblePushContext(customerInfoPushMain);
         pushContext.setPartitionCount(1);

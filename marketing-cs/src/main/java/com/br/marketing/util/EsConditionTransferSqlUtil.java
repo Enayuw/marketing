@@ -5,12 +5,17 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.utils.DateHelper;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 
 @Slf4j
 public class EsConditionTransferSqlUtil {
+
+    // 添加这个常量 - 用于匹配数字（整数或小数，可选的正负号）
+    private static final Pattern NUMERIC_PATTERN = Pattern.compile("^[+-]?\\d+(\\.\\d+)?$");
 
 
     /**
@@ -221,11 +226,10 @@ public class EsConditionTransferSqlUtil {
      * @return true-是数字，false-不是数字
      */
     private static boolean isNumeric(String str) {
-        if (str == null || str.trim().isEmpty()) {
+        if (StringUtils.isBlank(str)) {
             return false;
         }
-        // 匹配：可选的+/-号 + 至少一个数字 + 可选的小数部分
-        return str.matches("^[+-]?\\d+(\\.\\d+)?$");
+        return NUMERIC_PATTERN.matcher(str).matches();
     }
 
 

@@ -842,7 +842,8 @@ public class DataCleanServiceImpl implements DataCleanService {
     }
 
     @Override
-    public void uploadDetailCleanHandler(JSONObject jsonObject, Collection<MarketingDataCleanGeneralRuleConfig> ruleConfigList, MarketingSyncUser marketingSyncUser) {
+    public void uploadDetailCleanHandler(JSONObject jsonObject, Collection<MarketingDataCleanGeneralRuleConfig> ruleConfigList,
+                                         MarketingSyncUser marketingSyncUser) {
         ruleConfigList.forEach(ruleConfig -> {
             //数据清洗
             Object result = ruleCleaningService.executeCleaningRule(jsonObject, ruleConfig);

@@ -17,12 +17,6 @@ import java.util.HashMap;
 @Slf4j
 public class OperateFourRePushProcessor extends OperateFourProcessor {
 
-    @Autowired
-    MarketingCommonConfig marketingCommonConfig;
-
-    @Autowired
-    AiToPolicyRecordMapperBase aiToPolicyRecordMapperBase;
-
     @Override
     public String getOperationType() {
         return "4_RE";
