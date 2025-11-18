@@ -33,22 +33,22 @@ public class ZhongYuanCustomizeController {
     @ApiOperation(value = "用户登录接口")
     @PostMapping("/task/login")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
-    public ZhongYuanBaseResponse<?> login(@RequestBody String jsonData) {
-        return zhongYuanUploadDataService.login(jsonData);
+    public ZhongYuanBaseResponse<?> login(@RequestBody String jsonData, HttpServletRequest request) {
+        return zhongYuanUploadDataService.login(jsonData, request);
     }
 
     @ApiOperation(value = "外呼上报接口")
     @PostMapping("/batchTask")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
-    public ZhongYuanBaseResponse<?> batchTask(@RequestBody String jsonData) {
-        return zhongYuanUploadDataService.batchTask(jsonData);
+    public ZhongYuanBaseResponse<?> batchTask(@RequestBody String jsonData, HttpServletRequest request) {
+        return zhongYuanUploadDataService.batchTask(jsonData, request);
     }
 
     @ApiOperation(value = "场景变量信息接口")
     @PostMapping("/sceneVariable")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
-    public ZhongYuanBaseResponse<?> sceneVariable(@RequestBody String jsonData) {
-        return zhongYuanUploadDataService.sceneVariable(jsonData);
+    public ZhongYuanBaseResponse<?> sceneVariable(@RequestBody String jsonData, HttpServletRequest request) {
+        return zhongYuanUploadDataService.sceneVariable(jsonData, request);
     }
 
 }

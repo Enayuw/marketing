@@ -22,10 +22,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @ClassName ZhongYuanUploadDataServiceImpl
@@ -51,7 +51,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
     private static final long TOKEN_EXPIRE_TIME = 7200; // 2小时
 
     @Override
-    public ZhongYuanBaseResponse<?> login(String jsonData) {
+    public ZhongYuanBaseResponse<?> login(String jsonData, HttpServletRequest request) {
         try {
             log.warn("中原消金登录接口请求，jsonData: {}", jsonData);
 
@@ -101,7 +101,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
     }
 
     @Override
-    public ZhongYuanBaseResponse<?> batchTask(String jsonData) {
+    public ZhongYuanBaseResponse<?> batchTask(String jsonData, HttpServletRequest request) {
         try {
             log.warn("中原消金批量任务上报接口请求，jsonData长度: {}", jsonData != null ? jsonData.length() : 0);
 
@@ -131,8 +131,9 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             // 4. 保存原始数据到b_marketing_zhongyuan_upload表
             ZhongYuanUpload zhongYuanUpload = new ZhongYuanUpload();
             Map<String, String> zhongYuanIdentity = marketingCommonConfig.getZhongYuanIdentity();
-            String apiCode = zhongYuanIdentity.get("apiCode");
-            zhongYuanUpload.setApiCode(StringUtils.hasText(apiCode) ? apiCode : "3760019");
+            String testApiCode = request.getHeader("Test-ApiCode");
+            String apiCode = testApiCode != null ? testApiCode : zhongYuanIdentity.get("apiCode");
+            zhongYuanUpload.setApiCode(apiCode);
             // 从baseRequest获取公共字段
             zhongYuanUpload.setFlowid(StringUtils.hasText(baseRequest.getFlowId()) ? baseRequest.getFlowId() : null);
             zhongYuanUpload.setSysid(StringUtils.hasText(baseRequest.getSysId()) ? baseRequest.getSysId() : null);
@@ -442,7 +443,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
     }
 
     @Override
-    public ZhongYuanBaseResponse<?> sceneVariable(String jsonData) {
+    public ZhongYuanBaseResponse<?> sceneVariable(String jsonData, HttpServletRequest request) {
         try {
             log.warn("中原消金场景变量查询接口请求，jsonData: {}", jsonData);
 
