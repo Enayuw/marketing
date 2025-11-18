@@ -25,7 +25,7 @@ public interface QiFuAiEventPushService {
      */
     List<BQifuUploadDataOriginal> getQiFuUploadDataOriginalBySerialNo(String serialNo);
 
-
+    void insertRealTimeData(List<BQifuUploadDataOriginal> qifuUploadDataOriginalList);
 
     void queryCallMessage(List<BQifuUploadDataOriginal> qifuUploadDataOriginalList);
 }

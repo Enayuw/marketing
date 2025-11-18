@@ -10,6 +10,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.entity.BQifuUploadDataOriginal;
 import com.br.marketing.entity.DrsCustomizeUploadData;
+import com.br.marketing.mapper.BQifuUploadDataOriginalMapper;
 import com.br.marketing.mapper.DrsCustomizeUploadDataMapper;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import org.apache.commons.collections4.ListUtils;
@@ -36,6 +37,9 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
     private DrsCustomizeUploadDataMapper drsCustomizeUploadDataMapper;
 
     @Resource
+    private BQifuUploadDataOriginalMapper qiFuUploadDataOriginalMapper;
+
+    @Resource
     private MethodRetryHandlerService methodRetryHandlerService;
 
     @Override
@@ -46,6 +50,13 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
     @Override
     public List<BQifuUploadDataOriginal> getQiFuUploadDataOriginalBySerialNo(String serialNo) {
         return drsCustomizeUploadDataMapper.getQiFuUploadDataOriginalBySerialNo("robot_event_push", serialNo);
+    }
+
+    @Override
+    public void insertRealTimeData(List<BQifuUploadDataOriginal> qifuUploadDataOriginalList) {
+        for (BQifuUploadDataOriginal qiFuUploadDataOriginal : qifuUploadDataOriginalList) {
+            qiFuUploadDataOriginalMapper.insertSelective(qiFuUploadDataOriginal);
+        }
     }
 
     @Override

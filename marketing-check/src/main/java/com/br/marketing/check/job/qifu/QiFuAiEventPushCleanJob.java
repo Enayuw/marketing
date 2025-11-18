@@ -39,8 +39,7 @@ public class QiFuAiEventPushCleanJob extends AbstractSimpleElasticJob {
             logger.warn("不存在未处理的事件推送数据");
         } else {
             List<BQifuUploadDataOriginal> uploadDataOriginalList = assembleRealTimeUploadDataOriginal(drsCustomizeUploadDataList);
-
-
+            qiFuAiEventPushService.insertRealTimeData(uploadDataOriginalList);
         }
 
     }
