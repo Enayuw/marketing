@@ -25,4 +25,9 @@ public class MqDataJsonParse {
      */
     private Integer acceptType;
 
+    /**
+     * 数据主键Id
+     */
+    private Long dataId;
+
 }
