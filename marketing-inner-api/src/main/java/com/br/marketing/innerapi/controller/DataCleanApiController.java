@@ -6,6 +6,8 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.service.clean.common.DataCleanService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,16 +25,18 @@ import javax.annotation.Resource;
 @Api(value = "通用数据清洗接口", tags = "通用数据清洗接口", produces = "application/json", consumes = "application/json", protocols = "http")
 public class DataCleanApiController {
 
+    private static final Logger logger = LoggerFactory.getLogger(DataCleanApiController.class);
+
     @Resource
     private DataCleanService dataCleanService;
 
     @ApiOperation(value = "数据清洗通用接口", notes = "数据清洗通用接口")
     @PostMapping(value = "/commonClean")
     public ApiResult commonClean(@RequestBody DataCleanDTO dataCleanDTO) {
-
+        logger.warn("数据清洗通用接口接收到请求，params:{}", dataCleanDTO);
         Result result = dataCleanService.commonClean(dataCleanDTO);
+        logger.warn("数据清洗完成，清洗结果:{}",result.getData());
         return new ApiResult().setCode(String.valueOf(result.getCode())).setMessage(result.getMessage()).setData(result.getData());
-
     }
 
 }

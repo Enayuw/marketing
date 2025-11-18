@@ -978,6 +978,7 @@ public class DataCleanServiceImpl implements DataCleanService {
         //参数校验，填充默认值
         Boolean valid = paramsValid(dto);
         if (!valid) {
+            log.warn("数据清洗通用接口参数错误");
             return new Result().failure().setMessage("参数错误").setDate(null);
         }
 
@@ -997,7 +998,7 @@ public class DataCleanServiceImpl implements DataCleanService {
         }
         MarketingDataCleanGeneralConfig marketingDataCleanGeneralConfig = marketingDataCleanGeneralConfigList.get(0);
         Long generalConfigId = marketingDataCleanGeneralConfig.getId();
-
+        log.warn("数据清洗通用接口，generalConfigId:{}", generalConfigId);
         //查询清洗规则表
         MarketingDataCleanGeneralRuleConfigExample ruleConfigExample = new MarketingDataCleanGeneralRuleConfigExample();
         ruleConfigExample.createCriteria().andCleanConfigIdEqualTo(generalConfigId);
