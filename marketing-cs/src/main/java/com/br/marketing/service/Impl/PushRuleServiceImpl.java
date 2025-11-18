@@ -52,7 +52,7 @@ import com.br.marketing.context.RuntimeDataContext;
 import com.br.marketing.dto.*;
 import com.br.marketing.dto.customer.PushCustomerRequestDTO;
 import com.br.marketing.dto.dataclean.mq.CommonMqDataJsonParse;
-import com.br.marketing.dto.dataclean.mq.CustomerMqDataJsonParse;
+import com.br.marketing.dto.dataclean.mq.MqDataJsonParse;
 import com.br.marketing.dto.msg.mq.ApiDataInfoDTO;
 import com.br.marketing.dto.msg.mq.UserTypeCollectionDTO;
 import com.br.marketing.dto.rulecenter.XieChengCollidingFilterDTO;
@@ -2626,12 +2626,12 @@ public class PushRuleServiceImpl implements PushRuleService {
             if (exists) {
                 return;
             }
-            CustomerMqDataJsonParse customerMqDataJsonParse = new CustomerMqDataJsonParse();
-            customerMqDataJsonParse.setDataId(Long.valueOf(syncInfoId));
-            customerMqDataJsonParse.setDataType(DataProcessEnum.DataTypeEnum.UPLOAD.getCode());
-            customerMqDataJsonParse.setAcceptType(DataProcessEnum.AcceptTypeEnum.GENERAL.getCode());
+            MqDataJsonParse mqDataJsonParse = new MqDataJsonParse();
+            mqDataJsonParse.setDataId(Long.valueOf(syncInfoId));
+            mqDataJsonParse.setDataType(DataProcessEnum.DataTypeEnum.UPLOAD.getCode());
+            mqDataJsonParse.setAcceptType(DataProcessEnum.AcceptTypeEnum.GENERAL.getCode());
             rocketMqSwitch.sendMessage(apiCode, MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_MARKETING_CUSTOMER_DATA_JSON_PARSE,
-                    JSON.toJSONString(customerMqDataJsonParse), MQConstants.ROUTING_KEY_MARKETING_CUSTOMER_DATA_JSON_PARSE);
+                    JSON.toJSONString(mqDataJsonParse), MQConstants.ROUTING_KEY_MARKETING_CUSTOMER_DATA_JSON_PARSE);
             //存储标识
             caffeineCache.storeIdentifier(cacheKey, Boolean.TRUE.toString());
         } catch (Exception e) {
@@ -2660,12 +2660,12 @@ public class PushRuleServiceImpl implements PushRuleService {
             if (exists) {
                 return;
             }
-            CustomerMqDataJsonParse customerMqDataJsonParse = new CustomerMqDataJsonParse();
-            customerMqDataJsonParse.setDataId(id);
-            customerMqDataJsonParse.setDataType(dataType);
-            customerMqDataJsonParse.setAcceptType(acceptType);
+            MqDataJsonParse mqDataJsonParse = new MqDataJsonParse();
+            mqDataJsonParse.setDataId(id);
+            mqDataJsonParse.setDataType(dataType);
+            mqDataJsonParse.setAcceptType(acceptType);
             rocketMqSwitch.sendMessage(apiCode, MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_MARKETING_CUSTOMER_DATA_JSON_PARSE,
-                    JSON.toJSONString(customerMqDataJsonParse), MQConstants.ROUTING_KEY_MARKETING_CUSTOMER_DATA_JSON_PARSE);
+                    JSON.toJSONString(mqDataJsonParse), MQConstants.ROUTING_KEY_MARKETING_CUSTOMER_DATA_JSON_PARSE);
             //存储标识
             caffeineCache.storeIdentifier(cacheKey, Boolean.TRUE.toString());
         } catch (Exception e) {

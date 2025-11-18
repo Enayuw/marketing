@@ -19,7 +19,7 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.dto.dataclean.mq.CommonMqDataJsonParse;
-import com.br.marketing.dto.dataclean.mq.CustomerMqDataJsonParse;
+import com.br.marketing.dto.dataclean.mq.MqDataJsonParse;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.clean.DataCleanStatusEnum;
 import com.br.marketing.enums.clean.DataProcessEnum;
@@ -107,12 +107,12 @@ public class DataCleanServiceImpl implements DataCleanService {
         Result<Boolean> result = new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(false);
 
         try {
-            CustomerMqDataJsonParse customerMqDataJsonParse = JSON.parseObject(message, CustomerMqDataJsonParse.class);
+            MqDataJsonParse mqDataJsonParse = JSON.parseObject(message, MqDataJsonParse.class);
             //获取表名
-            String tableName = DataProcessEnum.getByTypes(customerMqDataJsonParse.getDataType()
-                    , customerMqDataJsonParse.getAcceptType()).getTableName();
+            String tableName = DataProcessEnum.getByTypes(mqDataJsonParse.getDataType()
+                    , mqDataJsonParse.getAcceptType()).getTableName();
 
-            Map<String, Object> originalData = marketingJsonNodeParseMapper.getOriginalData(customerMqDataJsonParse.getDataId(), tableName);
+            Map<String, Object> originalData = marketingJsonNodeParseMapper.getOriginalData(mqDataJsonParse.getDataId(), tableName);
             String jsonData = (String) originalData.get("json_data");
             String apiCode = (String) originalData.get("api_code");
             // 解析JSON
@@ -122,9 +122,9 @@ public class DataCleanServiceImpl implements DataCleanService {
                 // 记录节点路径并递归遍历JSON结构
                 processJsonNode(
                         apiCode,
-                        customerMqDataJsonParse.getSystemType(),
-                        customerMqDataJsonParse.getDataType(),
-                        customerMqDataJsonParse.getAcceptType(),
+                        mqDataJsonParse.getSystemType(),
+                        mqDataJsonParse.getDataType(),
+                        mqDataJsonParse.getAcceptType(),
                         "",
                         "",
                         jsonObject,
@@ -133,7 +133,7 @@ public class DataCleanServiceImpl implements DataCleanService {
                 );
 
             } else {
-                log.warn("数据ID: {} 的JSON数据为空", customerMqDataJsonParse.getDataId());
+                log.warn("数据ID: {} 的JSON数据为空", mqDataJsonParse.getDataId());
             }
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
