@@ -601,13 +601,20 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
                     PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
                     pushMarketingUserDTO.setApiCode(apiCode);
                     pushMarketingUserDTO.setJsonData(taskInfoDTO);
-                    result = intelligentCustomerServiceClient.pushRuleCenterToPolicy(pushMarketingUserDTO, mainId,
-                            accessNumber, size);
-                    //重试
-                    if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())
-                            || ResultCode.TIME_OUT.getValue().equals(result.getCode())) {
+                    // 模拟推决策异常
+                    boolean b = toPolicyByRuleService.mockSwitch(pushMarketingUserDTO.getApiCode(),
+                            MockSwitchEnum.GENERAL.getValue(), MockSwitchEnum.POLICYRETRY.getValue());
+                    if (b) {
+                        result.setCode(ResultCode.TIME_OUT.getValue());
+                    } else {
                         result = intelligentCustomerServiceClient.pushRuleCenterToPolicy(pushMarketingUserDTO, mainId,
                                 accessNumber, size);
+                        //重试
+                        if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())
+                                || ResultCode.TIME_OUT.getValue().equals(result.getCode())) {
+                            result = intelligentCustomerServiceClient.pushRuleCenterToPolicy(pushMarketingUserDTO, mainId,
+                                    accessNumber, size);
+                        }
                     }
                     if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                         log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode()
