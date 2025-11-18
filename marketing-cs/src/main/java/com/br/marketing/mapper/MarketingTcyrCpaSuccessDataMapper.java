@@ -8,4 +8,6 @@ import java.util.List;
 public interface MarketingTcyrCpaSuccessDataMapper extends MarketingTcyrCpaSuccessDataMapperBase {
 
     void batchSave(@Param("list") List<MarketingTcyrCpaSuccessData> list);
+
+    List<MarketingTcyrCpaSuccessData> selectBySyncFileId(@Param("syncFileId") Long syncFileId, @Param("minId") Long minId);
 }
