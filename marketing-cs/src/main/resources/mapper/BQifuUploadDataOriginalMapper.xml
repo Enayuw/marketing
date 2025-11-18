@@ -63,4 +63,37 @@
         and receive_date = #{todayDate}
         and select_status = 2
     </select>
+
+    <select id="selectDataForCleanByUserTypeAndDate" resultType="com.br.marketing.entity.BQifuUploadDataOriginal">
+        select *
+        from b_qifu_upload_data_original
+        where event_type is null
+        and user_type = #{userType}
+        and receive_date = #{todayDate}
+        and status = 0
+        and select_status in
+        <foreach collection="selectStatusList" item="status" open="(" close=")" separator=",">
+            #{status}
+        </foreach>
+        <if test="indexId != null and indexId > 0">
+            and id > #{indexId}
+        </if>
+        order by id asc
+        limit #{pageSize}
+    </select>
+
+    <update id="batchUpdateStatus">
+        update b_qifu_upload_data_original
+        set status = CASE id
+        <foreach collection="records" item="record">
+            WHEN #{record.id} THEN #{record.status}
+        </foreach>
+        ELSE status
+        END,
+        update_time = now()
+        where id in
+        <foreach collection="records" item="record" open="(" separator="," close=")">
+            #{record.id}
+        </foreach>
+    </update>
 </mapper>

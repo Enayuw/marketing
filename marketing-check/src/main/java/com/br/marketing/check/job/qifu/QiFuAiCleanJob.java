@@ -1,6 +1,6 @@
 package com.br.marketing.check.job.qifu;
 
-import com.br.marketing.service.Impl.qifu.IQiFuService;
+import com.br.marketing.check.service.qifu.QiFuAiCleanService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
@@ -15,13 +15,13 @@ import javax.annotation.Resource;
 @Slf4j
 public class QiFuAiCleanJob extends AbstractSimpleElasticJob {
     @Resource
-    private IQiFuService iQiFuService;
+    private QiFuAiCleanService qiFuAiCleanService;
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         log.warn("奇富ai清洗开始");
         long start = System.currentTimeMillis();
-        iQiFuService.aiCleanProcess();
+        qiFuAiCleanService.aiCleanProcessFromOriginal();
         long end = System.currentTimeMillis();
         log.warn("奇富ai清洗耗时："+(end-start));
     }
