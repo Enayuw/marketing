@@ -54,7 +54,11 @@ public enum ThreadPoolNameEnum {
     HALO_CALLBACK_3710212(31,"halo_callback_3710212","哈啰硅基人数据回调"),
 
     XIECHENG_CALL_SMS_REPORT(32,"xiecheng_call_sms_report", "携程通话&短信明细上报"),
+
+    TCYR_CPA_COLLIDING_DATA_COLLECT(33,"tcyr_cpa_colliding_data_collect_3710208","同程易融cpa_colliding_data_collect流程"),
+
     HALO_CALLBACK_DATA_3710217(40,"halo_callback_data_3710217","哈啰营销数据回传"),
+
 
     ;
 

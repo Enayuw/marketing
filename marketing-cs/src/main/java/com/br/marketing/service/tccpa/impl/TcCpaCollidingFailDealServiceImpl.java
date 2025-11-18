@@ -10,11 +10,11 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingTcyrCpaFailData;
 import com.br.marketing.entity.MarketingTcyrCpaFailFile;
 import com.br.marketing.entity.MarketingTcyrCpaFailFileExample;
-import com.br.marketing.enums.TcCpaCollidingDealStatusEnum;
-import com.br.marketing.enums.TcCpaIsDelEnum;
-import com.br.marketing.enums.TcFileDataDealStatusEnum;
+import com.br.marketing.entity.TcyrCpaCollectTask;
+import com.br.marketing.enums.*;
 import com.br.marketing.mapper.MarketingTcyrCpaFailDataMapper;
 import com.br.marketing.mapper.MarketingTcyrCpaFailFileMapper;
+import com.br.marketing.mapper.TcyrCpaCollectTaskMapper;
 import com.br.marketing.service.tccpa.TcCpaCollidingFailDealService;
 import com.br.marketing.service.tccpa.TcCpaCustCellMappingService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -45,6 +45,9 @@ public class TcCpaCollidingFailDealServiceImpl implements TcCpaCollidingFailDeal
 
     @Resource
     private MarketingTcyrCpaFailDataMapper tcyrCpaFailDataMapper;
+
+    @Resource
+    private TcyrCpaCollectTaskMapper tcyrCpaCollectTaskMapper;
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -127,6 +130,10 @@ public class TcCpaCollidingFailDealServiceImpl implements TcCpaCollidingFailDeal
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
             updateFile.setTotalCount(totalCount);
             updateFile.setCollidingDataDealStatus(TcCpaCollidingDealStatusEnum.DEAL_SUCCESS.getValue());
+            TcyrCpaCollectTask tcyrCpaCollectTask = TcyrCpaCollectTask.builder()
+                    .status(TcCpaSyncDealStatusEnum.DEAL_NO.getValue()).sourceId(tcyrCpaFailFile.getId())
+                    .sourceType(TcCpaCollidingSourceTypeEnum.FAIL.getValue()).build();
+            tcyrCpaCollectTaskMapper.insert(tcyrCpaCollectTask);
             tcyrCpaFailFileMapper.updateByPrimaryKeySelective(updateFile);
         } catch (Exception e) {
             //4.修改quick_deal_status 异常状态

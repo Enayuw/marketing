@@ -8,4 +8,18 @@
             (#{item.apiCode}, #{item.batchNo}, #{item.syncFileId}, #{item.userKey}, #{item.cell}, #{item.failMsg}, #{item.releaseTime}, #{item.createTime}, #{item.status}, #{item.statusMsg}, #{item.isDel}, #{item.originText}, #{item.extend})
         </foreach>
     </insert>
+
+    <select id="selectBySyncFileId" resultType="com.br.marketing.entity.MarketingTcyrCpaFailData">
+        SELECT id,api_code,batch_no,sync_file_id,user_key,cell,is_match,start_date,
+        end_date,create_time,update_time,status,status_msg,is_del,extend,origin_text
+        FROM b_tcyr_cpa_fail_data
+        WHERE 1 = 1
+        <if test="minId != null and minId >0">
+            AND id >=#{minId}
+        </if>
+        <if test="syncFileId != null">
+            AND sync_file_id != #{syncFileId}
+        </if>
+        order by id asc limit 2000;
+    </select>
 </mapper>
