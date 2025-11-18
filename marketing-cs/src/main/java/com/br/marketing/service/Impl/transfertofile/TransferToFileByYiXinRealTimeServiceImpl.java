@@ -331,7 +331,9 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         log.warn("宜信实时数据提取real-pass)-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
         String apiCode = transferFileTask.getApiCode();
         String recordDate = transferFileTask.getStartDate();//yyyyMMdd
-        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(recordDate).concat("/");
+        String childDir = StringUtils.isNotEmpty(transferFileTask.getFileChildDir()) ? (transferFileTask.getFileChildDir() + "/") : "";
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(childDir).concat(apiCode).concat("/")
+                .concat(recordDate).concat("/");
         File writeDic = new File(descPath);
         if (!writeDic.exists()) {
             writeDic.mkdirs();
@@ -470,7 +472,9 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         log.warn("宜信非实时数据提取pass)-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
         String apiCode = transferFileTask.getApiCode();
         String recordDate = transferFileTask.getStartDate();//yyyyMMdd
-        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(recordDate).concat("/");
+        String childDir = StringUtils.isNotEmpty(transferFileTask.getFileChildDir()) ? (transferFileTask.getFileChildDir() + "/") : "";
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(childDir).concat(apiCode).concat("/")
+                .concat(recordDate).concat("/");
         File writeDic = new File(descPath);
         if (!writeDic.exists()) {
             writeDic.mkdirs();
@@ -624,7 +628,9 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         String apiCode = transferFileTask.getApiCode();
         String recordDate = transferFileTask.getStartDate();//yyyyMMdd
         String date = LocalDate.parse(recordDate, YYYYMMDDSHORTDF).format(YYYYMMDDLINEDF);//yyyy-MM-dd
-        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(recordDate).concat("/");
+        String childDir = StringUtils.isNotEmpty(transferFileTask.getFileChildDir()) ? (transferFileTask.getFileChildDir() + "/") : "";
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(childDir).concat(apiCode).concat("/").
+                concat(recordDate).concat("/");
         File writeDic = new File(descPath);
         if (!writeDic.exists()) {
             writeDic.mkdirs();
@@ -653,7 +659,9 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         String apiCode = transferFileTask.getApiCode();
         String recordDate = transferFileTask.getStartDate();//yyyyMMdd
         String date = LocalDate.parse(recordDate, YYYYMMDDSHORTDF).format(YYYYMMDDLINEDF);//yyyy-MM-dd
-        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(recordDate).concat("/");
+        String childDir = StringUtils.isNotEmpty(transferFileTask.getFileChildDir()) ? (transferFileTask.getFileChildDir() + "/") : "";
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(childDir).concat(apiCode).concat("/")
+                .concat(recordDate).concat("/");
         File writeDic = new File(descPath);
         if (!writeDic.exists()) {
             writeDic.mkdirs();
@@ -682,7 +690,9 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         String apiCode = transferFileTask.getApiCode();
         String recordDate = transferFileTask.getStartDate();//yyyyMMdd
         String date = LocalDate.parse(recordDate, YYYYMMDDSHORTDF).format(YYYYMMDDLINEDF);//yyyy-MM-dd
-        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(recordDate).concat("/");
+        String childDir = StringUtils.isNotEmpty(transferFileTask.getFileChildDir()) ? (transferFileTask.getFileChildDir() + "/") : "";
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(childDir).concat(apiCode).concat("/")
+                .concat(recordDate).concat("/");
         File writeDic = new File(descPath);
         if (!writeDic.exists()) {
             writeDic.mkdirs();
@@ -1079,7 +1089,9 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
         String apiCode = transferFileTask.getApiCode();
         String recordDate = transferFileTask.getStartDate();
         String date = LocalDate.parse(recordDate, YYYYMMDDSHORTDF).format(YYYYMMDDLINEDF);
-        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(recordDate).concat("/");
+        String childDir = StringUtils.isNotEmpty(transferFileTask.getFileChildDir()) ? (transferFileTask.getFileChildDir() + "/") : "";
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(childDir).concat(apiCode).concat("/")
+                .concat(recordDate).concat("/");
         File writeDic = new File(descPath);
         if (!writeDic.exists()) {
             writeDic.mkdirs();
@@ -1419,7 +1431,8 @@ public class TransferToFileByYiXinRealTimeServiceImpl implements ITransferToFile
     private String createFilePath(TransferFileTask transferFileTask, String fileNamePrefix, String fileNameEnd) {
         //yyyyMMdd
         String recordDate = transferFileTask.getStartDate();
-        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(transferFileTask.getApiCode())
+        String childDir = StringUtils.isNotEmpty(transferFileTask.getFileChildDir()) ? (transferFileTask.getFileChildDir() + "/") : "";
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(childDir).concat(transferFileTask.getApiCode())
                 .concat("/").concat(recordDate).concat("/");
         File writeDic = new File(descPath);
         if (!writeDic.exists()) {

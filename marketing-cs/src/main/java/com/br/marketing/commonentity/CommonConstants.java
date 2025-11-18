@@ -14,8 +14,10 @@ public class CommonConstants {
     public static final String  COMMA = ",";
 
 
+    public static final String API_CODE = "apiCode";
 
 
+    public static final String FILE_NAME = "fileName";
 
 
 }
