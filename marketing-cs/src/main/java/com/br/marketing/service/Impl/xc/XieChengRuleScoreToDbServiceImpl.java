@@ -88,8 +88,9 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
             List<StraHisFile> straHisFiles = getStraHisFiles(apiCode);
 
             // 获取分片后的跑分记录
-            List<StraHisFile> shardStraHisFiles = straHisFiles.stream().filter((StraHisFile t) -> Longitems.contains(Math.floorMod(t.getId(),
-                    shardingTotalCount))).collect(Collectors.toList());
+            List<StraHisFile> shardStraHisFiles = straHisFiles.stream()
+                    .filter((StraHisFile t) -> Longitems.contains((long)Math.floorMod(t.getId(), shardingTotalCount)))
+                    .collect(Collectors.toList());
 
             if (CollectionUtils.isEmpty(shardStraHisFiles)) {
                 return;
