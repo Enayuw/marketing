@@ -1,7 +1,11 @@
 package com.br.marketing.bridge.job;
 
+import com.alibaba.fastjson2.JSON;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
+import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.dto.dataclean.mq.MqDataJsonParse;
 import com.br.marketing.entity.MarketingCustomerOriginalData;
 import com.br.marketing.entity.MarketingCustomerOriginalDataExample;
@@ -34,6 +38,8 @@ public class ZhongYuanUploadDataJob extends AbstractSimpleElasticJob {
     private MarketingCustomerOriginalDataMapper marketingCustomerOriginalDataMapper;
     @Resource
     private RedisChgService redisChgService;
+    @Resource
+    private RocketMqSwitch rocketMqSwitch;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
     private static final int REDIS_EXPIRE_SECONDS = 86400; // 1天过期时间
@@ -143,10 +149,10 @@ public class ZhongYuanUploadDataJob extends AbstractSimpleElasticJob {
             mqDataJsonParse.setDataType(DataProcessEnum.DataTypeEnum.UPLOAD.getCode());
             mqDataJsonParse.setAcceptType(DataProcessEnum.AcceptTypeEnum.CUSTOM.getCode());
             
-            //rocketMqSwitch.sendMessage(apiCode, MarketingAssistConstants.TOPIC,
-            //        MarketingAssistConstants.TAG_MARKETING_CUSTOMER_DATA_JSON_PARSE,
-            //        JSON.toJSONString(mqDataJsonParse),
-            //        MQConstants.ROUTING_KEY_MARKETING_CUSTOMER_DATA_JSON_PARSE);
+            rocketMqSwitch.sendMessage(apiCode, MarketingAssistConstants.TOPIC,
+                    MarketingAssistConstants.TAG_MARKETING_CUSTOMER_DATA_JSON_PARSE,
+                    JSON.toJSONString(mqDataJsonParse),
+                    MQConstants.ROUTING_KEY_MARKETING_CUSTOMER_DATA_JSON_PARSE);
             
             log.warn("{}Job发送MQ消息成功，apiCode: {}, dataId: {}", TITLE, apiCode, dataId);
         } catch (Exception e) {
