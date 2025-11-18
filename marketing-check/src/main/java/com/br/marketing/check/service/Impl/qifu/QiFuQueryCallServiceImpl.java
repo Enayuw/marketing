@@ -328,7 +328,7 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
             if (!matchedDetails.isEmpty()) {
                 // 将返回信息存在extend里
                 record.setExtend(JSON.toJSONString(matchedDetails));
-                record.setSelectStatus(2); // 查询成功
+                record.setSelectStatus(2);
             } else {
                 // 没有匹配到数据，可能是无卷信息，更新select_status为4（重试-无卷信息）
                 record.setSelectStatus(4);
