@@ -1,5 +1,66 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.BQifuUploadDataOriginalMapper" >
-</mapper>
+<mapper namespace="com.br.marketing.mapper.BQifuUploadDataOriginalMapper">
+    <select id="selectDataForQueryCallByUserTypeAndDate" resultType="com.br.marketing.entity.BQifuUploadDataOriginal">
+        select *
+        from b_qifu_upload_data_original
+        where event_type is null
+        and user_type = #{userType}
+        and receive_date = #{todayDate}
+        and select_status in
+        <foreach collection="selectStatusList" item="status" open="(" close=")" separator=",">
+            #{status}
+        </foreach>
+        <if test="indexId != null and indexId > 0">
+            and id > #{indexId}
+        </if>
+        order by id asc
+        limit #{pageSize}
+    </select>
 
+    <update id="batchUpdateExtendAndSelectStatus">
+        update b_qifu_upload_data_original
+        set extend = CASE id
+        <foreach collection="records" item="record">
+            WHEN #{record.id} THEN #{record.extend}
+        </foreach>
+        ELSE extend
+        END,
+        select_status = CASE id
+        <foreach collection="records" item="record">
+            WHEN #{record.id} THEN #{record.selectStatus}
+        </foreach>
+        ELSE select_status
+        END,
+        update_time = now()
+        where id in
+        <foreach collection="records" item="record" open="(" separator="," close=")">
+            #{record.id}
+        </foreach>
+    </update>
+
+    <select id="selectDistinctUserTypeByDate" resultType="java.lang.String">
+        select distinct user_type
+        from b_qifu_upload_data_original
+        where user_type is not null
+        and user_type != ''
+        and receive_date = #{todayDate}
+    </select>
+
+    <select id="countByUserTypeAndSelectStatusAndDate" resultType="java.lang.Long">
+        select count(*)
+        from b_qifu_upload_data_original
+        where user_type = #{userType}
+        and event_type is null
+        and receive_date = #{todayDate}
+    </select>
+
+    <select id="countCouponDataByUserTypeAndDate" resultType="java.lang.Long">
+        select count(*)
+        from b_qifu_upload_data_original
+        where user_type = #{userType}
+        and event_type is null
+        and receive_date = #{todayDate}
+        and select_status = 2
+    </select>
+</mapper>
