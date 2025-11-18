@@ -228,7 +228,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             }
         }
 
-        return anyRuleDeleted && allSuccess;
+        // 如果有需要删除的规则，则返回是否全部删除成功
+        return !anyRuleDeleted || allSuccess;
     }
 
     /**
