@@ -8,6 +8,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.dto.*;
+import com.br.marketing.dto.tccpa.TcCpDataPackageGenDTO;
 import com.br.marketing.enums.InterfaceOperationsEnum;
 import com.br.marketing.innerapi.service.RuleCenterCollidingService;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
@@ -16,6 +17,7 @@ import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.ReportScoreRuleService;
 import com.br.marketing.service.datagroup.rulecenter.RuleCenterLabelService;
 import com.br.marketing.service.halo.HaloRuleCenterCallbackService;
+import com.br.marketing.service.tccpa.TcCpaDataPackageService;
 import com.br.marketing.vo.*;
 import com.br.marketing.vo.xiecheng.PushViewVO;
 import com.br.marketing.vo.xiecheng.XiechengCollidingDataVO;
@@ -69,6 +71,8 @@ public class PushRuleFilterController {
     @Autowired
     HaloRuleCenterCallbackService haloRuleCenterCallbackService;
 
+    @Resource
+    TcCpaDataPackageService tcCpaDataPackageService;
 
     /**
      * 根据apiCode 查询信息
@@ -349,6 +353,17 @@ public class PushRuleFilterController {
     @PostMapping("/canPushCallback")
     public ApiResult canPushCallback(@RequestParam("apiCode") String apiCode){
         return new ApiResult().fromResult(haloRuleCenterCallbackService.canPushCallback(apiCode),CODE_1);
+    }
+
+    /**
+     * 同程CPA跑分待清洗数据包生成
+     * @param dto
+     * @return
+     */
+    @ApiOperation(value = "同程CPA跑分待清洗数据包生成", notes = "同程CPA跑分待清洗数据包生成", httpMethod = "POST")
+    @PostMapping("/tcDataPackageGen")
+    public ApiResult tcDataPackageGen(@RequestBody TcCpDataPackageGenDTO dto) {
+        return new ApiResult().fromResult(tcCpaDataPackageService.tcDataPackageGen(dto), CODE_1);
     }
 
 }
