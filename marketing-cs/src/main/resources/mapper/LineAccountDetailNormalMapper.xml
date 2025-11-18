@@ -108,7 +108,7 @@
             b_marketing_line_account_detail_normal
         where
             line_supplier_id = #{lineSupplierId}
-            and gateway_id = #{gateWayId}
+            and gateway_id = #{gatewayId}
             and is_delete = 0
     </select>
 </mapper>
