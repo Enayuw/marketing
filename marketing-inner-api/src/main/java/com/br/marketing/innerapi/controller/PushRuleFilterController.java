@@ -21,7 +21,6 @@ import com.br.marketing.service.tccpa.TcCpaDataPackageService;
 import com.br.marketing.vo.*;
 import com.br.marketing.vo.xiecheng.PushViewVO;
 import com.br.marketing.vo.xiecheng.XiechengCollidingDataVO;
-import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
 import org.slf4j.Logger;
