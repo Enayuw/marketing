@@ -163,7 +163,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
                     batchData.getBatchNo(), insertResult, zhongYuanUpload.getId());
 
             // 5. 数据清洗和推送逻辑，返回batchUid和每条数据的taskUid映射
-            Map<String, Object> uidMap = buildPushUpload(apiCode, batchData);
+            Map<String, Object> uidMap = buildPushUpload(apiCode, batchData, baseRequest);
             String batchUid = (String) uidMap.get("batchUid");
             Map<String, String> taskUidMap = (Map<String, String>) uidMap.get("taskUidMap");
 
@@ -206,9 +206,10 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
      *
      * @param apiCode    商户编号
      * @param batchData  批次任务数据
+     * @param baseRequest 基础请求对象
      * @return Map包含batchUid和taskUidMap，taskUidMap的key是taskNo，value是batchNumber（taskUid）
      */
-    private Map<String, Object> buildPushUpload(String apiCode, BatchTaskRequest batchData) {
+    private Map<String, Object> buildPushUpload(String apiCode, BatchTaskRequest batchData, ZhongYuanBaseRequest<BatchTaskRequest> baseRequest) {
         Map<String, Object> result = new HashMap<>();
         try {
             // 1. 构建标准上传数据结构
@@ -226,18 +227,13 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             String random5Digits = String.format("%05d", new Random().nextInt(100000));
             String requestId = dateStr + "_" + apiCode + "_" + random5Digits + System.currentTimeMillis();
             pushData.put("requestId", requestId);
-            
-            // 4. 设置total
-            if (batchData.getTaskDataList() != null) {
-                pushData.put("total", String.valueOf(batchData.getTaskDataList().size()));
-            }
-            
-            // 5. 构建dataItems数组，同时收集taskUid映射（taskNo -> batchNumber，如果没有taskNo则使用索引）
+
+            // 4. 构建dataItems数组，同时收集taskUid映射（taskNo -> batchNumber）
             List<JSONObject> dataItems = new ArrayList<>();
             Map<String, String> taskUidMap = new HashMap<>();
             if (batchData.getTaskDataList() != null) {
                 for (BatchTaskRequest.TaskData taskData : batchData.getTaskDataList()) {
-                    Map<String, Object> itemResult = buildDataItem(taskData, batchData, apiCode);
+                    Map<String, Object> itemResult = buildDataItem(taskData, batchData, baseRequest, apiCode);
                     if (itemResult != null) {
                         JSONObject dataItem = (JSONObject) itemResult.get("dataItem");
                         String batchNumber = (String) itemResult.get("batchNumber");
@@ -254,7 +250,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             pushData.put("dataItems", dataItems);
             result.put("taskUidMap", taskUidMap);
             
-            // 6. 转换为JSON字符串并保存
+            // 5. 转换为JSON字符串并保存
             String jsonData = JSON.toJSONString(pushData);
             log.warn("中原消金数据清洗推送成功，jsonData: {}", jsonData);
 
@@ -278,12 +274,16 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
     /**
      * 构建单个dataItem对象
      *
-     * @param taskData  任务数据
-     * @param batchData 批次数据
+     * @param taskData   任务数据
+     * @param batchData  批次数据
+     * @param baseRequest 基础请求对象
+     * @param apiCode    商户编号
      * @return Map包含dataItem和batchNumber
      */
     private Map<String, Object> buildDataItem(BatchTaskRequest.TaskData taskData,
-                                              BatchTaskRequest batchData, String apiCode) {
+                                              BatchTaskRequest batchData, 
+                                              ZhongYuanBaseRequest<BatchTaskRequest> baseRequest,
+                                              String apiCode) {
         Map<String, Object> result = new HashMap<>();
         try {
             JSONObject dataItem = new JSONObject();
@@ -302,12 +302,10 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             dataItem.put("operateType", "6");
             
             // 4. 构建reserveField1，同时获取batchNumber
-            Map<String, Object> reserveFieldResult = buildReserveField1(taskData, batchData, apiCode);
+            Map<String, Object> reserveFieldResult = buildReserveField1(taskData, batchData, baseRequest, apiCode);
             JSONObject reserveField1 = (JSONObject) reserveFieldResult.get("reserveField1");
             String batchNumber = (String) reserveFieldResult.get("batchNumber");
             dataItem.put("reserveField1", reserveField1);
-            
-            // 5. reserveField2: 可选，默认为空字符串
             dataItem.put("reserveField2", "");
 
             result.put("dataItem", dataItem);
@@ -321,79 +319,98 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
 
     /**
      * 构建reserveField1对象
+     * 除了taskId和batchNumber外，其他所有字段都直接放入reserveField1中
      *
-     * @param taskData  任务数据
-     * @param batchData 批次数据
+     * @param taskData   任务数据
+     * @param batchData  批次数据
+     * @param baseRequest 基础请求对象
+     * @param apiCode    商户编号
      * @return Map包含reserveField1和batchNumber
      */
     private Map<String, Object> buildReserveField1(BatchTaskRequest.TaskData taskData,
-                                                   BatchTaskRequest batchData,String apiCode) {
+                                                   BatchTaskRequest batchData,
+                                                   ZhongYuanBaseRequest<BatchTaskRequest> baseRequest,
+                                                   String apiCode) {
         Map<String, Object> result = new HashMap<>();
         JSONObject reserveField1 = new JSONObject();
         
-        // 从变量列表中提取字段值
-        Map<String, String> variableMap = new HashMap<>();
-        if (taskData.getVariableList() != null) {
-            variableMap = taskData.getVariableList().stream()
-                    .collect(Collectors.toMap(
-                            BatchTaskRequest.Variable::getCode,
-                            BatchTaskRequest.Variable::getValue,
-                            (v1, v2) -> v1));
-        }
-
-        // firstName: 用户姓(明文) - 从custName变量提取
-        String firstName = variableMap.get("custName");
-        if (StringUtils.hasText(firstName)) {
-            reserveField1.put("firstName", firstName);
-        }
-
-        // userType: 机构运营场景(数字枚举)，必填，对应sceneCode
-        String userType = StringUtils.hasText(batchData.getSceneCode()) ? batchData.getSceneCode() : "";
-        reserveField1.put("userType", userType);
-        
-        // gender: 用户性别(数字枚举)，0女1男
-        String gender = variableMap.get("gender");
-        if (StringUtils.hasText(gender)) {
-            reserveField1.put("gender", gender);
-        }
-        
-        // overDays: 逾期天数
-        String overDays = variableMap.get("overDays");
-        reserveField1.put("overDays", StringUtils.hasText(overDays) ? overDays : "3");
-        
-        // overAmt: 逾期金额
-        String overAmt = variableMap.get("overAmt");
-        if (StringUtils.hasText(overAmt)) {
-            reserveField1.put("overAmt", overAmt);
-        }
-        
-        // compName: 企业名称
-        String compName = variableMap.get("compName");
-        reserveField1.put("compName", StringUtils.hasText(compName) ? compName : "中原消费金融");
-
-        // compTel: 客服电话
-        String compTel = variableMap.get("compTel");
-        reserveField1.put("compTel", StringUtils.hasText(compTel) ? compTel : "4001112233");
-        
-        // batchNo: 批量编码（话术变量）
-        String batchNo = StringUtils.hasText(batchData.getBatchNo()) ? batchData.getBatchNo() : "";
-        reserveField1.put("batchNo", batchNo);
-        
-        // batchNumber: 数据集编号，使用Redis自增生成pushCount
-        String batchNumber = generateBatchNumberWithRedisIncr(apiCode, userType);
-
-        reserveField1.put("batchNumber", batchNumber);
-        reserveField1.put("zyxj", batchNumber);
-
-        // 将其他未处理的变量也放入reserveField1
-        for (Map.Entry<String, String> entry : variableMap.entrySet()) {
-            String code = entry.getKey();
-            String value = entry.getValue();
-            // 只处理未在reserveField1中设置的字段
-            if (!reserveField1.containsKey(code)) {
-                reserveField1.put(code, value);
+        // 1. 从baseRequest获取所有字段，直接放入reserveField1
+        if (baseRequest != null) {
+            if (StringUtils.hasText(baseRequest.getFlowId())) {
+                reserveField1.put("flowId", baseRequest.getFlowId());
+            }
+            if (StringUtils.hasText(baseRequest.getSysId())) {
+                reserveField1.put("sysId", baseRequest.getSysId());
+            }
+            if (StringUtils.hasText(baseRequest.getTimestamp())) {
+                reserveField1.put("timestamp", baseRequest.getTimestamp());
+            }
+            if (StringUtils.hasText(baseRequest.getChannelNo())) {
+                reserveField1.put("channelNo", baseRequest.getChannelNo());
+            }
+            if (StringUtils.hasText(baseRequest.getVersion())) {
+                reserveField1.put("version", baseRequest.getVersion());
+            }
+            if (StringUtils.hasText(baseRequest.getToken())) {
+                reserveField1.put("token", baseRequest.getToken());
             }
         }
+        
+        // 2. 从batchData获取所有字段，直接放入reserveField1
+        if (batchData != null) {
+            if (StringUtils.hasText(batchData.getBatchName())) {
+                reserveField1.put("batchName", batchData.getBatchName());
+            }
+            if (StringUtils.hasText(batchData.getBatchNo())) {
+                reserveField1.put("batchNo", batchData.getBatchNo());
+            }
+            if (StringUtils.hasText(batchData.getSceneCode())) {
+                reserveField1.put("sceneCode", batchData.getSceneCode());
+            }
+            if (StringUtils.hasText(batchData.getStartTime())) {
+                reserveField1.put("startTime", batchData.getStartTime());
+            }
+            if (StringUtils.hasText(batchData.getEndTime())) {
+                reserveField1.put("endTime", batchData.getEndTime());
+            }
+            if (batchData.getFestivalBan() != null) {
+                reserveField1.put("festivalBan", batchData.getFestivalBan());
+            }
+            if (batchData.getPriority() != null) {
+                reserveField1.put("priority", batchData.getPriority());
+            }
+            if (StringUtils.hasText(batchData.getReportEndFlag())) {
+                reserveField1.put("reportEndFlag", batchData.getReportEndFlag());
+            }
+        }
+        
+        // 3. 从taskData获取所有字段，直接放入reserveField1
+        if (taskData != null) {
+            if (StringUtils.hasText(taskData.getTaskNo())) {
+                reserveField1.put("taskNo", taskData.getTaskNo());
+            }
+            if (StringUtils.hasText(taskData.getTelNo())) {
+                reserveField1.put("telNo", taskData.getTelNo());
+            }
+            
+            // 4. 从variableList获取所有变量，直接放入reserveField1
+            if (taskData.getVariableList() != null) {
+                for (BatchTaskRequest.Variable variable : taskData.getVariableList()) {
+                    if (variable != null && StringUtils.hasText(variable.getCode()) && StringUtils.hasText(variable.getValue())) {
+                        // 如果字段已存在，跳过（避免覆盖）
+                        if (!reserveField1.containsKey(variable.getCode())) {
+                            reserveField1.put(variable.getCode(), variable.getValue());
+                        }
+                    }
+                }
+            }
+        }
+        
+        // 5. 生成batchNumber（特殊处理）
+        String userType = batchData != null && StringUtils.hasText(batchData.getSceneCode()) ? batchData.getSceneCode() : "";
+        String batchNumber = generateBatchNumberWithRedisIncr(apiCode, userType);
+        reserveField1.put("batchNumber", batchNumber);
+        reserveField1.put("zyxj", batchNumber);
         
         result.put("reserveField1", reserveField1);
         result.put("batchNumber", batchNumber);
