@@ -188,7 +188,8 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
             );
         }
 
-        Long totalCount = lineAccountDetailNormalMapper.selectTotalCount(nowDate);
+
+        Long totalCount = lineAccountDetailNormalMapper.selectTotalCount(lineSupplierId,gatewayIdList,price,nowDate);
         List<LineAccountDetailDTO> detailDbDtoList = lineAccountDetailNormalMapper.selectList(lineSupplierId,
                 gatewayIdList,price,nowDate,size,Math.max((current - 1) * size, 0));
         return PageResultReturn.setPageResult(converToShowVOList(detailDbDtoList), current, size, totalCount);
