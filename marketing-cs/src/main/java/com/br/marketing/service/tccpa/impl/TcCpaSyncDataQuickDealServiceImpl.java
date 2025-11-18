@@ -18,7 +18,6 @@ import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.TcCpaMatchStatusEnum;
 import com.br.marketing.enums.TcCpaSyncDealStatusEnum;
-import com.br.marketing.enums.TcRecordCleanStatusEnum;
 import com.br.marketing.mapper.MarketingTcyrCpaSuccessFileMapper;
 import com.br.marketing.mapper.MarketingTcyrCpaSuccessRecordMapper;
 import com.br.marketing.service.PushInfoService;
@@ -78,6 +77,7 @@ public class TcCpaSyncDataQuickDealServiceImpl implements TcCpaSyncDataQuickDeal
         String lockValue =UUID.randomUUID().toString();
         TpDynamicExecutor actionPool = TpDynamicExecutorFactory.getThreadPool(
                 ThreadPoolNameEnum.TCYR_CPA_SYNC_DEAL.getName(), 2, 2);
+        List<String> fileHeads = marketingCommonConfig.getTcyrCpaSuccessFileHeads();
         try {
             for (;;) {
                 if (!marketingCommonConfig.getTcyrCpaSyncQuickDealShardConfig().getBoolean("jobSwitch")) {
@@ -95,7 +95,7 @@ public class TcCpaSyncDataQuickDealServiceImpl implements TcCpaSyncDataQuickDeal
                 tcyrCpaSuccessFileMapper.updateSyncDataDealStatus(tcyrCpaSuccessFile.getId(),TcCpaSyncDealStatusEnum.DEAL_MIDDLE.getValue());
                 redisChgService.unlock(lockKey, lockValue);
                 //4.csvFile 快速处理流程
-                csvFileQuickDeal(tcyrCpaSuccessFile,actionPool);
+                csvFileQuickDeal(tcyrCpaSuccessFile, fileHeads, actionPool);
             }
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
@@ -107,7 +107,7 @@ public class TcCpaSyncDataQuickDealServiceImpl implements TcCpaSyncDataQuickDeal
         }
     }
 
-    private void csvFileQuickDeal(MarketingTcyrCpaSuccessFile tcyrCpaFile, TpDynamicExecutor actionPool) {
+    private void csvFileQuickDeal(MarketingTcyrCpaSuccessFile tcyrCpaFile, List<String> fileHeads, TpDynamicExecutor actionPool) {
         long startTime = System.currentTimeMillis();
         log.warn("TITLE:{},file_id:{} cpa_sync_deal执行", TITLE, tcyrCpaFile.getId());
         //1.判断文件存在
@@ -133,8 +133,15 @@ public class TcCpaSyncDataQuickDealServiceImpl implements TcCpaSyncDataQuickDeal
                     Integer randomNumber = 10000 + random.nextInt(90000);
                     List<String> batchDealData = new ArrayList<>(batchData);
                     futures.add(CompletableFuture.runAsync(() ->
-                            quickDealBatchLine(tcyrCpaFile.getApiCode(), tcyrCpaSuccessRecord.getBatchNo(),
-                                    tcyrCpaSuccessRecord.getData(), tcyrCpaFile.getId(),batchDealData, successCount,randomNumber
+                            quickDealBatchLine(
+                                    tcyrCpaFile.getApiCode(),
+                                    tcyrCpaSuccessRecord.getBatchNo(),
+                                    tcyrCpaSuccessRecord.getData(),
+                                    tcyrCpaFile.getId(),
+                                    batchDealData,
+                                    successCount,
+                                    randomNumber,
+                                    fileHeads
                             ),actionPool));
                     batchData.clear();
                 }
@@ -143,8 +150,14 @@ public class TcCpaSyncDataQuickDealServiceImpl implements TcCpaSyncDataQuickDeal
                 Integer randomNumber = 10000 + random.nextInt(90000);
                 List<String> batchDealData = new ArrayList<>(batchData);
                 futures.add(CompletableFuture.runAsync(() ->
-                        quickDealBatchLine(tcyrCpaFile.getApiCode(), tcyrCpaSuccessRecord.getBatchNo(),
-                                tcyrCpaSuccessRecord.getData(), tcyrCpaFile.getId(),batchDealData, successCount,randomNumber
+                        quickDealBatchLine(tcyrCpaFile.getApiCode(),
+                                tcyrCpaSuccessRecord.getBatchNo(),
+                                tcyrCpaSuccessRecord.getData(),
+                                tcyrCpaFile.getId(),
+                                batchDealData,
+                                successCount,
+                                randomNumber,
+                                fileHeads
                         ),actionPool));
                 batchData.clear();
             }
@@ -165,10 +178,11 @@ public class TcCpaSyncDataQuickDealServiceImpl implements TcCpaSyncDataQuickDeal
      */
     private void quickDealBatchLine(String apiCode, String batchNo, String customerData,
                                     Long syncFileId, List<String> batchData,
-                                    AtomicLong successCount,Integer randomNumber) {
+                                    AtomicLong successCount, Integer randomNumber, List<String> fileHeads) {
         try {
             // 1.数据匹配和封装
-            List<MarketingTcyrCpaSuccessData> tcyrSyncList = processBatchData(apiCode, batchNo, customerData, syncFileId, batchData);
+            List<MarketingTcyrCpaSuccessData> tcyrSyncList =
+                    processBatchData(apiCode, batchNo, customerData, syncFileId, batchData, fileHeads);
             if (tcyrSyncList.isEmpty()) {
                 return;
             }
@@ -207,7 +221,8 @@ public class TcCpaSyncDataQuickDealServiceImpl implements TcCpaSyncDataQuickDeal
     /**
      * 数据匹配与封装
      */
-    private List<MarketingTcyrCpaSuccessData> processBatchData(String apiCode, String batchNo, String customerData, Long syncFileId, List<String> batchData) {
+    private List<MarketingTcyrCpaSuccessData> processBatchData(
+            String apiCode, String batchNo, String customerData, Long syncFileId, List<String> batchData, List<String> fileHeads) {
         JSONObject customJson = JSONObject.parseObject(customerData);
         SimpleDateFormat sdf = new SimpleDateFormat(DateHelper.LINE_DATE_FORMAT);
         List<MarketingTcyrCpaSuccessData> tcyrSyncList = new ArrayList<>();
@@ -260,6 +275,10 @@ public class TcCpaSyncDataQuickDealServiceImpl implements TcCpaSyncDataQuickDeal
                         syncItem.setStartDate(sdf.parse(customJson.getString("startDate")));
                         syncItem.setEndDate(sdf.parse(customJson.getString("endDate")));
                         extentJson.put("syncFileId", syncFileId);
+                        //将所有列输出为扩展字段
+                        for (int i = 0; i < Math.min(lineData.length, fileHeads.size()); i++) {
+                            extentJson.put(fileHeads.get(i), lineData[i]);
+                        }
                         syncItem.setExtend(extentJson.toJSONString());
                         tcyrSyncList.add(syncItem);
                     }

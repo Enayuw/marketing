@@ -24,6 +24,7 @@ import com.br.marketing.mapper.shunfeng.ShunfengCompanyDataMapper;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -269,8 +270,7 @@ public class ShunFengServiceImpl implements ShunFengService {
     private void modifyCorePoolSize(ThreadPoolExecutor pool) {
         Integer threadNum =
                 marketingCommonConfig.getShunFengCompanyThreadNum();
-        pool.setCorePoolSize(threadNum);
-        pool.setMaximumPoolSize(threadNum);
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(pool, threadNum);
         log.warn("顺丰获取企业信息线程数core={}，max={}", pool.getCorePoolSize(), pool.getMaximumPoolSize());
 
     }

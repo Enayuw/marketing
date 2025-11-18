@@ -207,7 +207,7 @@ public class DingDingTableSyncToDbJob extends AbstractSimpleElasticJob {
             int commentIdx = line.toLowerCase().indexOf("comment '");
             if (commentIdx != -1) {
                 int start = commentIdx + 9;
-                int end = line.indexOf("'", start);
+                int end = line.indexOf('\'', start);
                 if (end != -1) {
                     fieldComment = line.substring(start, end).trim();
                 }

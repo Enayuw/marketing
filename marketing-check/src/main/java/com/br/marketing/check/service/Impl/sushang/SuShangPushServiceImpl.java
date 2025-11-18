@@ -9,6 +9,7 @@ import com.br.marketing.mapper.SushangCallRecordDataMapper;
 import com.br.marketing.mapper.SushangPushResultDataMapper;
 import com.br.marketing.mapper.SushangTransferDataMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -204,8 +205,7 @@ public class SuShangPushServiceImpl implements SuShangPushService {
     private void modifyCorePoolSize(ThreadPoolExecutor pool) {
         Integer threadNum =
                 marketingCommonConfig.getSuShangPushThreadNum();
-        pool.setCorePoolSize(threadNum);
-        pool.setMaximumPoolSize(threadNum);
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(pool, threadNum);
         log.warn("苏商推送通话明细线程数core={}，max={}", pool.getCorePoolSize(), pool.getMaximumPoolSize());
 
     }
