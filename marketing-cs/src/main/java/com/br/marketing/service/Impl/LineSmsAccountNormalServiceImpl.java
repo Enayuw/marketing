@@ -181,7 +181,6 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
         Long totalCount = lineAccountDetailNormalMapper.selectTotalCount(lineSupplierId,gatewayIdList,price,nowDate);
         List<LineAccountDetailDTO> detailDbDtoList = lineAccountDetailNormalMapper.selectList(lineSupplierId,
                 gatewayIdList,price,nowDate,size,Math.max((current - 1) * size, 0));
-        log.warn("getLineAccounts,数据detailDbDtoList:{},数据showVoList:{}",JSON.toJSONString(detailDbDtoList),JSON.toJSONString(converToShowVOList(detailDbDtoList)));
         return PageResultReturn.setPageResult(converToShowVOList(detailDbDtoList), current, size, totalCount);
     }
 
@@ -218,13 +217,33 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
     /**
      * //detailDbDtoList -> showDtoList
      * @param detailDbDtoList
+     *
+     * LineAccountDetailVO
+     *    private String groupId;
+     *    private String lineSupplier;
+     *    private String linesInfo;
+     *    private BigDecimal price;
+     *    private Date effectStartDate;
+     *    private Date effectEndDate;
+     *    private Integer enabled;
+     *    private Date createTime;
+     *    private Date updateTime;
+     *    private Integer isDelete;
      * @return
      */
     private List<LineAccountDetailVO> converToShowVOList(List<LineAccountDetailDTO> detailDbDtoList) {
         List<LineAccountDetailVO> detailShowDTOList = new ArrayList<>();
         detailDbDtoList.forEach(dto -> {
             LineAccountDetailVO showDTOItem = new LineAccountDetailVO();
-            BeanUtils.copyProperties(dto, showDTOItem);
+            showDTOItem.setGroupId(String.valueOf(dto.getGroupId()));
+            showDTOItem.setPrice(dto.getPrice());
+            showDTOItem.setEffectStartDate(dto.getEffectStartDate());
+            showDTOItem.setEffectEndDate(dto.getEffectEndDate());
+            showDTOItem.setEnabled(dto.getEnabled());
+            showDTOItem.setCreateTime(dto.getCreateTime());
+            showDTOItem.setUpdateTime(dto.getUpdateTime());
+            showDTOItem.setIsDelete(dto.getIsDelete());
+
             LineSupplierInfoNormal lineSupplierItem = lineSupplierInfoNormalMapper.selectByPrimaryKey(dto.getLineSupplierId());
             showDTOItem.setLineSupplier(lineSupplierItem.getLineSupplier());
 
