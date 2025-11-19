@@ -89,7 +89,7 @@ public class TcCpaDataPackageServiceImpl implements TcCpaDataPackageService {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("存在清洗中或待清洗的任务，禁止新增清洗任务");
         }
         TcyrCpaCollidingDataCleanTask cleanTask = new TcyrCpaCollidingDataCleanTask();
-        cleanTask.setPackageIds(String.join(",", dto.getPackageList()));
+        cleanTask.setCleanPackageIds(String.join(",", dto.getPackageList()));
         cleanTask.setCleanStatus(DataCleanStatusEnum.READY.getCode());
         tcyrCpaCollidingDataCleanTaskMapper.insertSelective(cleanTask);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
