@@ -1,10 +1,12 @@
 package com.br.marketing.util;
 
+import com.br.marketing.entity.common.TimeRange;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -412,6 +414,53 @@ public class TimeUtils {
             log.error("无法解析日期:{}", value);
         }
         return value;
+    }
+
+    /**
+     * 将一段时间，按自然日分割
+     * @param releaseTimeBegin
+     * @param releaseTimeEnd
+     * @return
+     */
+    public static List<TimeRange> splitByNaturalDays(LocalDateTime releaseTimeBegin, LocalDateTime releaseTimeEnd) {
+        // 验证时间范围有效性
+        if (releaseTimeBegin == null || releaseTimeEnd == null) {
+            throw new IllegalArgumentException("时间范围不能为空");
+        }
+        if (releaseTimeBegin.isAfter(releaseTimeEnd)) {
+            throw new IllegalArgumentException("开始时间不能晚于结束时间");
+        }
+
+        List<TimeRange> result = new ArrayList<>();
+
+        // 获取开始日期和结束日期
+        LocalDate startDate = releaseTimeBegin.toLocalDate();
+        LocalDate endDate = releaseTimeEnd.toLocalDate();
+
+        // 如果开始和结束在同一天
+        if (startDate.equals(endDate)) {
+            result.add(new TimeRange(releaseTimeBegin, releaseTimeEnd));
+            return result;
+        }
+
+        // 处理第一天
+        LocalDateTime firstDayEnd = startDate.atTime(LocalTime.MAX);
+        result.add(new TimeRange(releaseTimeBegin, firstDayEnd));
+
+        // 处理中间的完整天数
+        LocalDate currentDate = startDate.plusDays(1);
+        while (currentDate.isBefore(endDate)) {
+            LocalDateTime dayStart = currentDate.atStartOfDay();
+            LocalDateTime dayEnd = currentDate.atTime(LocalTime.MAX);
+            result.add(new TimeRange(dayStart, dayEnd));
+            currentDate = currentDate.plusDays(1);
+        }
+
+        // 处理最后一天
+        LocalDateTime lastDayStart = endDate.atStartOfDay();
+        result.add(new TimeRange(lastDayStart, releaseTimeEnd));
+
+        return result;
     }
 
     //7883
