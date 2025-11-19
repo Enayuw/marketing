@@ -354,13 +354,9 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
             
             // 处理templateNo
             String templateStr = record.getTemplateNo();
-            String userType = "";
             String strategyCode = "";
             if (templateStr.length() > 12) {
-                userType = templateStr.substring(0, templateStr.length() - 12);
                 strategyCode = templateStr.substring(templateStr.length() - 12);
-            } else {
-                userType = templateStr;
             }
             boolean flag = marketingCommonConfig.getQifuAiCleanStrategyCodeFlag();
             if (flag) {
@@ -370,7 +366,7 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
                 extendKey.put("strategyCode", strategyCode);
                 extendKey.put("strategyName", strategyCode);
             }
-            extendKey.put("userType", userType);
+            extendKey.put("userType", record.getUserType());
             
             // 设置其他字段
             extendKey.put("flowNo", record.getFlowNo());
