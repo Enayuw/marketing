@@ -152,13 +152,23 @@ public class Constants {
     public static final String LOAN_BUSINESSTYPECODE = "A202";
     public static final Integer DATA_VALID = 1;
 
+    public static final Integer DATA_DELING = 2;
+
     public static final Integer DATA_DEL = 9;
     public static final Integer STATUS_VOID = 0;
     public static final Integer STATUS_START = 1;
     public static final Integer STATUS_DELETE = 2;
+
+    //禁用
+    public static final Integer ENABLED_FORB = 0;
+
+    //启用
+    public static final Integer ENABLED_ACT = 1;
     /**
      * 加解密key
      */
     public static final String TAG_KEY = "id,name,cell";
     public static final String JSON_DATA_KEYARR = "dataItems";
+
+
 }

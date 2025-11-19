@@ -175,52 +175,52 @@ public class TcyrCpaCollidingDataExample {
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdEqualTo(Integer value) {
+        public Criteria andPackageIdEqualTo(Long value) {
             addCriterion("package_id =", value, "packageId");
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdNotEqualTo(Integer value) {
+        public Criteria andPackageIdNotEqualTo(Long value) {
             addCriterion("package_id <>", value, "packageId");
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdGreaterThan(Integer value) {
+        public Criteria andPackageIdGreaterThan(Long value) {
             addCriterion("package_id >", value, "packageId");
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdGreaterThanOrEqualTo(Integer value) {
+        public Criteria andPackageIdGreaterThanOrEqualTo(Long value) {
             addCriterion("package_id >=", value, "packageId");
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdLessThan(Integer value) {
+        public Criteria andPackageIdLessThan(Long value) {
             addCriterion("package_id <", value, "packageId");
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdLessThanOrEqualTo(Integer value) {
+        public Criteria andPackageIdLessThanOrEqualTo(Long value) {
             addCriterion("package_id <=", value, "packageId");
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdIn(List<Integer> values) {
+        public Criteria andPackageIdIn(List<Long> values) {
             addCriterion("package_id in", values, "packageId");
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdNotIn(List<Integer> values) {
+        public Criteria andPackageIdNotIn(List<Long> values) {
             addCriterion("package_id not in", values, "packageId");
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdBetween(Integer value1, Integer value2) {
+        public Criteria andPackageIdBetween(Long value1, Long value2) {
             addCriterion("package_id between", value1, value2, "packageId");
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdNotBetween(Integer value1, Integer value2) {
+        public Criteria andPackageIdNotBetween(Long value1, Long value2) {
             addCriterion("package_id not between", value1, value2, "packageId");
             return (Criteria) this;
         }

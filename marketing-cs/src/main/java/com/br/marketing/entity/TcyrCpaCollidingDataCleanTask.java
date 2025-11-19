@@ -9,9 +9,14 @@ public class TcyrCpaCollidingDataCleanTask {
     private Long id;
 
     /**
-     * 数据包id集合
+     * 清洗数据包id集合
      */
-    private String packageIds;
+    private String cleanPackageIds;
+
+    /**
+     * 删除数据包id集合
+     */
+    private String deletePackageIds;
 
     /**
      * 清洗状态 0-待清洗；1-清洗中；2-清洗完成
@@ -46,12 +51,20 @@ public class TcyrCpaCollidingDataCleanTask {
         this.id = id;
     }
 
-    public String getPackageIds() {
-        return packageIds;
+    public String getCleanPackageIds() {
+        return cleanPackageIds;
     }
 
-    public void setPackageIds(String packageIds) {
-        this.packageIds = packageIds == null ? null : packageIds.trim();
+    public void setCleanPackageIds(String cleanPackageIds) {
+        this.cleanPackageIds = cleanPackageIds == null ? null : cleanPackageIds.trim();
+    }
+
+    public String getDeletePackageIds() {
+        return deletePackageIds;
+    }
+
+    public void setDeletePackageIds(String deletePackageIds) {
+        this.deletePackageIds = deletePackageIds == null ? null : deletePackageIds.trim();
     }
 
     public Integer getCleanStatus() {

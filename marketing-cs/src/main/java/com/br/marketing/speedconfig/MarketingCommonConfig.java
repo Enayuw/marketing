@@ -3527,4 +3527,8 @@ public class MarketingCommonConfig {
      */
     private List<String> tcyrCpaSuccessFileHeads;
 
+    /**
+     * 同程易融cpa撞库数据清洗
+     */
+    private JSONObject tcyrCpaCollidingDataCleanConfig;
 }

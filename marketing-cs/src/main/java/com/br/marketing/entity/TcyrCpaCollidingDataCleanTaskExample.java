@@ -165,73 +165,143 @@ public class TcyrCpaCollidingDataCleanTaskExample {
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdsIsNull() {
-            addCriterion("package_ids is null");
+        public Criteria andCleanPackageIdsIsNull() {
+            addCriterion("clean_package_ids is null");
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdsIsNotNull() {
-            addCriterion("package_ids is not null");
+        public Criteria andCleanPackageIdsIsNotNull() {
+            addCriterion("clean_package_ids is not null");
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdsEqualTo(String value) {
-            addCriterion("package_ids =", value, "packageIds");
+        public Criteria andCleanPackageIdsEqualTo(String value) {
+            addCriterion("clean_package_ids =", value, "cleanPackageIds");
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdsNotEqualTo(String value) {
-            addCriterion("package_ids <>", value, "packageIds");
+        public Criteria andCleanPackageIdsNotEqualTo(String value) {
+            addCriterion("clean_package_ids <>", value, "cleanPackageIds");
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdsGreaterThan(String value) {
-            addCriterion("package_ids >", value, "packageIds");
+        public Criteria andCleanPackageIdsGreaterThan(String value) {
+            addCriterion("clean_package_ids >", value, "cleanPackageIds");
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdsGreaterThanOrEqualTo(String value) {
-            addCriterion("package_ids >=", value, "packageIds");
+        public Criteria andCleanPackageIdsGreaterThanOrEqualTo(String value) {
+            addCriterion("clean_package_ids >=", value, "cleanPackageIds");
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdsLessThan(String value) {
-            addCriterion("package_ids <", value, "packageIds");
+        public Criteria andCleanPackageIdsLessThan(String value) {
+            addCriterion("clean_package_ids <", value, "cleanPackageIds");
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdsLessThanOrEqualTo(String value) {
-            addCriterion("package_ids <=", value, "packageIds");
+        public Criteria andCleanPackageIdsLessThanOrEqualTo(String value) {
+            addCriterion("clean_package_ids <=", value, "cleanPackageIds");
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdsLike(String value) {
-            addCriterion("package_ids like", value, "packageIds");
+        public Criteria andCleanPackageIdsLike(String value) {
+            addCriterion("clean_package_ids like", value, "cleanPackageIds");
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdsNotLike(String value) {
-            addCriterion("package_ids not like", value, "packageIds");
+        public Criteria andCleanPackageIdsNotLike(String value) {
+            addCriterion("clean_package_ids not like", value, "cleanPackageIds");
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdsIn(List<String> values) {
-            addCriterion("package_ids in", values, "packageIds");
+        public Criteria andCleanPackageIdsIn(List<String> values) {
+            addCriterion("clean_package_ids in", values, "cleanPackageIds");
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdsNotIn(List<String> values) {
-            addCriterion("package_ids not in", values, "packageIds");
+        public Criteria andCleanPackageIdsNotIn(List<String> values) {
+            addCriterion("clean_package_ids not in", values, "cleanPackageIds");
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdsBetween(String value1, String value2) {
-            addCriterion("package_ids between", value1, value2, "packageIds");
+        public Criteria andCleanPackageIdsBetween(String value1, String value2) {
+            addCriterion("clean_package_ids between", value1, value2, "cleanPackageIds");
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdsNotBetween(String value1, String value2) {
-            addCriterion("package_ids not between", value1, value2, "packageIds");
+        public Criteria andCleanPackageIdsNotBetween(String value1, String value2) {
+            addCriterion("clean_package_ids not between", value1, value2, "cleanPackageIds");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeletePackageIdsIsNull() {
+            addCriterion("delete_package_ids is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeletePackageIdsIsNotNull() {
+            addCriterion("delete_package_ids is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeletePackageIdsEqualTo(String value) {
+            addCriterion("delete_package_ids =", value, "deletePackageIds");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeletePackageIdsNotEqualTo(String value) {
+            addCriterion("delete_package_ids <>", value, "deletePackageIds");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeletePackageIdsGreaterThan(String value) {
+            addCriterion("delete_package_ids >", value, "deletePackageIds");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeletePackageIdsGreaterThanOrEqualTo(String value) {
+            addCriterion("delete_package_ids >=", value, "deletePackageIds");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeletePackageIdsLessThan(String value) {
+            addCriterion("delete_package_ids <", value, "deletePackageIds");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeletePackageIdsLessThanOrEqualTo(String value) {
+            addCriterion("delete_package_ids <=", value, "deletePackageIds");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeletePackageIdsLike(String value) {
+            addCriterion("delete_package_ids like", value, "deletePackageIds");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeletePackageIdsNotLike(String value) {
+            addCriterion("delete_package_ids not like", value, "deletePackageIds");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeletePackageIdsIn(List<String> values) {
+            addCriterion("delete_package_ids in", values, "deletePackageIds");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeletePackageIdsNotIn(List<String> values) {
+            addCriterion("delete_package_ids not in", values, "deletePackageIds");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeletePackageIdsBetween(String value1, String value2) {
+            addCriterion("delete_package_ids between", value1, value2, "deletePackageIds");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeletePackageIdsNotBetween(String value1, String value2) {
+            addCriterion("delete_package_ids not between", value1, value2, "deletePackageIds");
             return (Criteria) this;
         }
 
