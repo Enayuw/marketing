@@ -55,7 +55,7 @@ public class LineSmsAccountDataNormalServiceImpl implements LineSmsAccountDataNo
         long groupId = Long.parseLong(
                 ThreadLocalRandom.current().nextInt(100, 1000)
                         + String.valueOf(System.currentTimeMillis()));
-        Long lineSupplierId = lineSupplierInfoNormalMapper.selectIdByLineSupplier(dto.getLineSupplier());
+        Long lineSupplierId = lineSupplierInfoNormalMapper.selectIdByLineSupplierNoOpeStatus(dto.getLineSupplier());
         List<Long> gatewayIds = dto.getLines().stream().map(LineCallerDto::getGatewayId).collect(Collectors.toList());
         List<LineAccountDetailNormal> objList = new ArrayList<>();
         gatewayIds.forEach(gatewayId -> {
@@ -101,7 +101,7 @@ public class LineSmsAccountDataNormalServiceImpl implements LineSmsAccountDataNo
         lineAccountDetailNormalMapper.updateByExampleSelective(updateAccountDetailNormal, lineAccountDetailNormalExample);
 
         //2.新增
-        Long lineSupplierId = lineSupplierInfoNormalMapper.selectIdByLineSupplier(dto.getLineSupplier());
+        Long lineSupplierId = lineSupplierInfoNormalMapper.selectIdByLineSupplierNoOpeStatus(dto.getLineSupplier());
         List<Long> gatewayIds = dto.getLines().stream().map(LineCallerDto::getGatewayId).collect(Collectors.toList());
         List<LineAccountDetailNormal> objList = new ArrayList<>();
         gatewayIds.forEach(gatewayId -> {

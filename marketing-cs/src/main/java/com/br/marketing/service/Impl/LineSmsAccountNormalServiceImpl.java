@@ -166,7 +166,7 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
     @Override
     public PageResultReturn getLineAccounts(Integer current, Integer size, String lineSupplier, String callerFullName, Double price) {
         Date nowDate = new Date(System.currentTimeMillis());
-        Long lineSupplierId = lineSupplierInfoNormalMapper.selectIdByLineSupplier(lineSupplier);
+        Long lineSupplierId = lineSupplierInfoNormalMapper.selectIdByLineSupplierNoOpeStatus(lineSupplier);
         //TODO 相同的lineSupplier,是否存在projectName + caller 相同的多条gatewayId记录
         // (场景不会，但理论绝对值会,此处查询idList做兼容 若没有配置 后续过滤及分组会过滤调)
         List<Long> gatewayIdList = new ArrayList<>();
