@@ -68,7 +68,7 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
     @Autowired
     SyncConfigService syncConfigService;
 
-    @Value("${datasource.database.marketingDoris.replicationAllocation:1}")
+    @Value("${datasource.database.marketing-doris.replicationAllocation:1}")
     String replicationAllocation;
 
     @Autowired
