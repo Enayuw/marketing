@@ -330,7 +330,8 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
     /**
      * 处理BQifuUploadDataOriginal数据的上传
      */
-    private void pushProcessForOriginal(List<BQifuUploadDataOriginal> dataList, String operateType) {
+    @Override
+    public void pushProcessForOriginal(List<BQifuUploadDataOriginal> dataList, String operateType) {
         for (BQifuUploadDataOriginal record : dataList) {
             // 生成推送对象
             Result<MarketingPreUserDTO> result = buildPushDtoFromOriginal(record, operateType);
