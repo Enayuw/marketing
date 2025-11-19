@@ -157,6 +157,7 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
             }
         } catch (Exception ex) {
             log.error("推送决策 获取线程结果异常" + ex.getMessage(), ex);
+            Thread.currentThread().interrupt();
         }
         // 关闭线程池
         cleanPool.shutdown();
@@ -165,7 +166,7 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
                 log.info("等待线程池结束");
             }
         } catch (InterruptedException ex) {
-            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SUNING_SERVICEERROR.getCode(), "苏商推送规则二线程池停止异常！"), ex);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), "上传数据重推决策线程池停止异常！"), ex);
             Thread.currentThread().interrupt();
         }
         if (ResultCode.FAIL.getValue().equals(result.getCode())) {
@@ -377,6 +378,7 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
             }
         } catch (Exception ex) {
             log.error("推送决策 获取线程结果异常" + ex.getMessage(), ex);
+            Thread.currentThread().interrupt();
         }
         // 关闭线程池
         pushPool.shutdown();
@@ -727,23 +729,6 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
             sqlCondition = m.replaceAll(Matcher.quoteReplacement(mappedFieldName));
         }
         return sqlCondition;
-    }
-
-    private String emptyDefault(String value) {
-        return com.br.common.util.StringUtils.isNotEmpty(value) ? value : "";
-    }
-
-    private void cusNameOfJo(String name, JSONObject jo) {
-        if (StringUtils.isBlank(name)) {
-            return;
-        }
-        if (ObjectUtil.isEmpty(jo)) {
-            return;
-        }
-        String cusName = jo.getString("cusName");
-        if (StringUtils.isBlank(cusName)) {
-            jo.put("cusName", BrCipherMaker.getInstance().decode(name));
-        }
     }
 
     @Override
