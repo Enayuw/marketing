@@ -70,4 +70,6 @@ public interface BQifuUploadDataOriginalMapper extends BQifuUploadDataOriginalMa
      * 批量更新status
      */
     void batchUpdateStatus(@Param("records") List<BQifuUploadDataOriginal> records);
+
+    List<BQifuUploadDataOriginal> selectRealTimeDataForClean(@Param("minId") Long minId, @Param("pageSize") Integer pageSize);
 }

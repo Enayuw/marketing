@@ -1,7 +1,6 @@
 package com.br.marketing.check.service.Impl.qifu;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.check.service.qifu.QiFuQueryCallService;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.qifu.ResponseData;
@@ -347,7 +346,8 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
     /**
      * 更新select_status
      */
-    private void updateSelectStatus(List<BQifuUploadDataOriginal> dataList, Integer selectStatus) {
+    @Override
+    public void updateSelectStatus(List<BQifuUploadDataOriginal> dataList, Integer selectStatus) {
         List<BQifuUploadDataOriginal> updateRecords = dataList.stream()
                 .map(record -> {
                     BQifuUploadDataOriginal updateRecord = new BQifuUploadDataOriginal();

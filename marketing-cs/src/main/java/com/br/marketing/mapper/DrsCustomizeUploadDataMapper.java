@@ -66,4 +66,5 @@ public interface DrsCustomizeUploadDataMapper {
 
     List<BQifuUploadDataOriginal> getQiFuUploadDataOriginalBySerialNo(@Param("tCid") String tCid,
                                                                       @Param("serialNo") String serialNo);
+
 }

@@ -2,6 +2,7 @@ package com.br.marketing.check.service.Impl.qifu;
 
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.check.service.qifu.QiFuAiEventPushService;
+import com.br.marketing.check.service.qifu.QiFuQueryCallService;
 import com.br.marketing.client.qifu.ResponseData;
 import com.br.marketing.client.qifu.callrealtime.CallRealTimeDTO;
 import com.br.marketing.client.qifu.callrealtime.QryCallRealTimeReq;
@@ -33,6 +34,8 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
 
     private static final Logger logger = LoggerFactory.getLogger(QiFuAiEventPushServiceImpl.class);
 
+    private static final String ROBOT_EVENT_PUSH = "_robot_event_push";
+
     @Resource
     private DrsCustomizeUploadDataMapper drsCustomizeUploadDataMapper;
 
@@ -42,19 +45,29 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
     @Resource
     private MethodRetryHandlerService methodRetryHandlerService;
 
+    @Resource
+    private QiFuQueryCallService qiFuQueryCallService;
+
     @Override
     public List<DrsCustomizeUploadData> getDrsCustomizeUploadDataBySyncStatus(Integer syncStatus) {
-        return drsCustomizeUploadDataMapper.getDrsCustomizeUploadDataBySyncStatus("robot_event_push", syncStatus);
+        return drsCustomizeUploadDataMapper.getDrsCustomizeUploadDataBySyncStatus(ROBOT_EVENT_PUSH, syncStatus);
     }
 
     @Override
     public List<BQifuUploadDataOriginal> getQiFuUploadDataOriginalBySerialNo(String serialNo) {
-        return drsCustomizeUploadDataMapper.getQiFuUploadDataOriginalBySerialNo("robot_event_push", serialNo);
+        return drsCustomizeUploadDataMapper.getQiFuUploadDataOriginalBySerialNo(ROBOT_EVENT_PUSH, serialNo);
+    }
+
+    @Override
+    public void updateSyncStatusById(String id, Integer syncStatus) {
+        drsCustomizeUploadDataMapper.updateSyncStatusById(ROBOT_EVENT_PUSH, id, syncStatus);
     }
 
     @Override
     public void insertRealTimeData(List<BQifuUploadDataOriginal> qifuUploadDataOriginalList) {
         for (BQifuUploadDataOriginal qiFuUploadDataOriginal : qifuUploadDataOriginalList) {
+            qiFuUploadDataOriginal.setCreateTime(new Date());
+            qiFuUploadDataOriginal.setUpdateTime(new Date());
             qiFuUploadDataOriginalMapper.insertSelective(qiFuUploadDataOriginal);
         }
     }
@@ -86,16 +99,23 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
         //存在失败请求，直接返回
         if (!failureList.isEmpty()) {
             logger.warn("事件推送实时查询外呼接口异常，失败数量：{}", failureList.size());
+            // 有异常，更新select_status为3（重试-接口异常）
+            qifuUploadDataOriginalList.stream().forEach(qiFuUploadDataOriginal -> {
+                qiFuUploadDataOriginal.setId(null);
+                qiFuUploadDataOriginal.setSelectStatus(3);
+                qiFuUploadDataOriginal.setCreateTime(new Date());
+                qiFuUploadDataOriginal.setUpdateTime(new Date());
+            });
             return;
         }
 
         //收集所有查询结果的CallRealTimeDTO列表
         List<CallRealTimeDTO> allCallRealTimeList = new ArrayList<>();
         for (Result<ResponseData<QryCallRealTimeResp>> result : resultList) {
-            if (result.getData() != null 
-                && result.getData().getData() != null 
-                && result.getData().getData().getT() != null 
-                && !CollectionUtils.isEmpty(result.getData().getData().getT().getDataDetails())) {
+            if (result.getData() != null
+                    && result.getData().getData() != null
+                    && result.getData().getData().getT() != null
+                    && !CollectionUtils.isEmpty(result.getData().getData().getT().getDataDetails())) {
                 allCallRealTimeList.addAll(result.getData().getData().getT().getDataDetails());
             }
         }
@@ -112,6 +132,8 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
                 CallRealTimeDTO callRealTimeDTO = callRealTimeMap.get(serialNo);
                 //将查询结果转换为JSON字符串存入extend字段
                 originalData.setExtend(JSON.toJSONString(callRealTimeDTO));
+                originalData.setSelectStatus(2);
+                originalData.setUpdateTime(new Date());
             }
         }
 

@@ -170,7 +170,7 @@
 
     <select id="getQiFuUploadDataOriginalBySerialNo"
             resultType="com.br.marketing.entity.BQifuUploadDataOriginal">
-        select * from b_qifu_upload_data_original where serial_no = 'RB6613222165716406277' order by create_time desc limit 1
+        select * from b_qifu_upload_data_original where serial_no = #{serialNo} and event_type is null order by create_time desc limit 1
     </select>
 
     <update id="updateExtendAndStatusById">

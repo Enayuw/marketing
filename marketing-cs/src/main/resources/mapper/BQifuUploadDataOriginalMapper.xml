@@ -82,6 +82,20 @@
         limit #{pageSize}
     </select>
 
+    <select id="selectRealTimeDataForClean" resultType="com.br.marketing.entity.BQifuUploadDataOriginal">
+        select *
+        from
+            b_qifu_upload_data_original
+        where event_type is not null
+        and status = 0
+        and select_status = 2
+        <if test="minId != null and minId > 0">
+            and id > #{minId}
+        </if>
+        order by id
+        limit #{pageSize}
+    </select>
+
     <update id="batchUpdateStatus">
         update b_qifu_upload_data_original
         set status = CASE id
