@@ -217,7 +217,7 @@ public class PushRuleFilterController {
         return new ApiResult().fromResult(pushRuleService.collidingDataDelete(dto), CODE_1);
     }
 
-    @ApiOperation(value = "撞库周期数据剔除", notes = "撞库周期数据剔除", httpMethod = "POST")
+    @Operation(summary = "撞库周期数据剔除", description = "撞库周期数据剔除")
     @PostMapping("/collidingDataCycleDelete")
     public ApiResult collidingDataCycleDelete(@RequestBody @Valid XcCycleDeleteDTO dto) {
         return new ApiResult().fromResult(pushRuleService.collidingDataCycleDelete(dto), CODE_1);
@@ -236,7 +236,7 @@ public class PushRuleFilterController {
         return new ApiResult<Integer>().fromResult(pushRuleService.collidingDataDeleteNum(dto), CODE_1);
     }
 
-    @ApiOperation(value = "撞库数据周期剔除量级分布", notes = "撞库数据周期剔除量级分布", httpMethod = "POST")
+    @Operation(summary = "撞库数据周期剔除量级分布", description = "撞库数据周期剔除量级分布")
     @PostMapping("/collidingDataCycleDeleteMagnitudeDist")
     public ApiResult collidingDataCycleDeleteMagnitudeDist(@RequestBody @Valid XcCycleDeleteNumDTO dto) {
         return new ApiResult<List<XcDeleteMagnitudeDistDTO>>()
