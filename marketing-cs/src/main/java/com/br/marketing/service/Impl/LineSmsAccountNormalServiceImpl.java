@@ -63,7 +63,8 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
         List<LineBaseShowInfoDto> lineBaseShowInfoDtoList = lineBaseFullInfoDtoList.stream()
                 .collect(Collectors.groupingBy(
                         LineBaseFullInfoDTO::getLineSupplier,
-                        Collectors.mapping(this::convertToLineBaseInfo, Collectors.toList())))
+                        Collectors.mapping(this::convertToLineBaseInfo, Collectors.toList())
+                ))
                 .entrySet().stream()
                 .map(entry -> {
                     LineBaseShowInfoDto dto = new LineBaseShowInfoDto();

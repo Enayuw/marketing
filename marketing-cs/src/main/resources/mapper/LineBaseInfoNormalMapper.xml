@@ -9,7 +9,7 @@
             b_marketing_line_base_info_normal bb
                 inner join b_marketing_line_supplier_info_normal ss on bb.line_supplier_id = ss.id
         where
-            bb.ope_status in (0, 2) and bb.is_delete = 0 and ss.ope_status = 0 and ss.is_delete = 0
+            bb.is_delete = 0 and ss.is_delete = 0
     </select>
 
     <select id="selectGatewayIdByFiled" resultType="java.lang.Long">
