@@ -4,6 +4,7 @@ import org.bouncycastle.util.encoders.Hex;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
+import java.util.Base64;
 
 public class AesHexUtil {
     private static final String KEY_ALGORITHM = "AES";
@@ -57,8 +58,53 @@ public class AesHexUtil {
         }
     }
 
+    /**
+     * 加密 泰康专用
+     *
+     * @param str jsonString
+     * @param key aes key
+     * @return 结果
+     * @throws Exception
+     */
+    public static String AesEncrypt(String str, String key) {
+        try {
+        if (str == null || key == null) {
+            return null;
+        }
+        Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+        cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(key.getBytes("utf-8"), "AES"));
+        byte[] bytes = cipher.doFinal(str.getBytes("utf-8"));
+        return new String(Base64.getEncoder().encode(bytes));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * 解密 /Users/zhangchao/IdeaProjects/marketing/marketing-cs/src/main/java/com/br/marketing/util/aes/AesHexUtil.java
+     *
+     * @param str string
+     * @param key aes key
+     * @return 结果
+     * @throws Exception
+     */
+    public static String AesDecrypt(String str, String key) throws Exception {
+        if (str == null || key == null){
+            return null;
+        }
+        Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+        cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(key.getBytes("utf-8"), "AES"));
+        byte[] bytes = Base64.getDecoder().decode(str.getBytes());
+        bytes = cipher.doFinal(bytes);
+        return new String(bytes, "utf-8");
+    }
+
     public static void main(String[] args) {
-        String cell = encrypt("13497814301", "Vje1kFHChlm8khlc");
-//        System.out.println(cell);
+        String cell = encrypt("13497814301", "nX7zCFT1HaUllNbM");
+        String nX7zCFT1HaUllNbM = decrypt("8c1eaa61a12d91865cf47826ad242dbe", "nX7zCFT1HaUllNbM");
+        String s = AesEncrypt("13497814301", "nX7zCFT1HaUllNbM");
+        System.out.println(cell);
+        System.out.println(s);
+        System.out.println(nX7zCFT1HaUllNbM);
     }
 }
