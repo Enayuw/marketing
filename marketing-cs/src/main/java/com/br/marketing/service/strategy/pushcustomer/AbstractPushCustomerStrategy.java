@@ -52,7 +52,7 @@ public abstract class AbstractPushCustomerStrategy implements IPushCustomerStrat
         if (dto.getmPlanNum() != null && dto.getmPlanNum() <= 0) {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("推送数量不能小于等于0");
         }
-        if (dto.getmPercentage() != null && dto.getmPercentage().compareTo(new BigDecimal(0)) <= 0) {
+        if (dto.getmPercentage() != null && dto.getmPercentage().compareTo(BigDecimal.ZERO) <= 0) {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("百分比不能小于等于0");
         }
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue());

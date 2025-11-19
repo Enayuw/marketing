@@ -49,7 +49,7 @@ public class MergeScorePushPreviewStrategy implements IPushPreviewStrategy {
         
         // 处理百分比逻辑（原getScoreTotal方法中的逻辑）
         if (dto.getmPercentage() != null) {
-            if (dto.getmPercentage().compareTo(new BigDecimal(0)) <= 0) {
+            if (dto.getmPercentage().compareTo(BigDecimal.ZERO) <= 0) {
                 return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("百分比不能小于等于0");
             }
             Integer res = dto.getmPercentage().multiply(new BigDecimal(total)).setScale(0, RoundingMode.UP).intValue();
