@@ -11,7 +11,7 @@ public class TcyrCpaCollidingData {
     /**
      * 数据包id
      */
-    private Integer packageId;
+    private Long packageId;
 
     /**
      * 优先级
@@ -51,11 +51,11 @@ public class TcyrCpaCollidingData {
         this.id = id;
     }
 
-    public Integer getPackageId() {
+    public Long getPackageId() {
         return packageId;
     }
 
-    public void setPackageId(Integer packageId) {
+    public void setPackageId(Long packageId) {
         this.packageId = packageId;
     }
 

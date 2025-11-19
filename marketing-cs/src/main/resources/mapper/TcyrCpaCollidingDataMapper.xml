@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.TcyrCpaCollidingDataMapper" >
+    <insert id="insertBatchWithPriority">
+        insert into tcyr_cpa_colliding_data (package_id, priority, user_key)
+        values
+        <foreach collection="dataList" item="item" separator=",">
+            (#{item.packageId}, #{item.priority}, #{item.userKey})
+        </foreach>
+        on duplicate key update
+            <![CDATA[ package_id = if(VALUES(priority) <= priority, VALUES(package_id), package_id),
+            priority = if(VALUES(priority) <= priority, VALUES(priority), priority) ]]>
+    </insert>
+
+    <update id="updateDeleteWithPage">
+        update tcyr_cpa_colliding_data set is_del = 9
+        where package_id = #{packageId} and is_del = 1
+        order by id limit #{pageSize} offset #{offset}
+    </update>
+
+    <select id="queryCountByPackageIdtiflash_" resultType="java.lang.Integer">
+        select count(1) from tcyr_cpa_colliding_data
+        where package_id = #{packageId}
+        and is_del = 1
+  </select>
+
+    <select id="queryScoreDataWithPagedoris_" resultType="com.br.marketing.entity.TcyrCpaScoreData">
+        ${querySql}
+    </select>
+
+</mapper>
