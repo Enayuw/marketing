@@ -22,14 +22,18 @@ public class AesTaiKang {
      * @return 结果
      * @throws Exception
      */
-    public static String AesEncrypt(String str, String key) throws Exception {
-        if (str == null || key == null) {
+    public static String AesEncrypt(String str, String key)  {
+        try {
+            if (str == null || key == null) {
+                return null;
+            }
+            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(key.getBytes("utf-8"), "AES"));
+            byte[] bytes = cipher.doFinal(str.getBytes("utf-8"));
+            return new String(Base64.getEncoder().encode(bytes));
+        }catch (Exception e){
             return null;
         }
-        Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-        cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(key.getBytes("utf-8"), "AES"));
-        byte[] bytes = cipher.doFinal(str.getBytes("utf-8"));
-        return new String(Base64.getEncoder().encode(bytes));
     }
 
     /**
@@ -40,14 +44,18 @@ public class AesTaiKang {
      * @return 结果
      * @throws Exception
      */
-    public static String AesDecrypt(String str, String key) throws Exception {
-        if (str == null || key == null){
+    public static String AesDecrypt(String str, String key)  {
+        try {
+            if (str == null || key == null){
+                return null;
+            }
+            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(key.getBytes("utf-8"), "AES"));
+            byte[] bytes = Base64.getDecoder().decode(str.getBytes());
+            bytes = cipher.doFinal(bytes);
+            return new String(bytes, "utf-8");
+        }catch (Exception e){
             return null;
         }
-        Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-        cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(key.getBytes("utf-8"), "AES"));
-        byte[] bytes = Base64.getDecoder().decode(str.getBytes());
-        bytes = cipher.doFinal(bytes);
-        return new String(bytes, "utf-8");
     }
 }
