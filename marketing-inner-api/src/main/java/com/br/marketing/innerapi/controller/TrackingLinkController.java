@@ -78,6 +78,22 @@ public class TrackingLinkController {
         }
     }
 
+    @PostMapping("/getLinkDetailListByApiCode")
+    @ApiOperation(value = "根据apiCode和日期查询链路详情列表", notes = "根据apiCode和日期查询链路详情列表，支持按日期查询，日期格式：yyyy-MM-dd，若不传则默认查询当天数据")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "request", value = "查询参数", required = true, dataType = "QueryLinkByApiCodeRequest")
+    })
+    @AddDataAuthBusiness
+    public ApiResult<List<LinkDetailResponse>> getLinkDetailListByApiCode(@RequestBody @Validated QueryLinkByApiCodeRequest request) {
+        try {
+            return trackingLinkService.getLinkDetailListByApiCode(request);
+        } catch (Exception e) {
+            log.error("根据apiCode查询链路详情列表失败: apiCode={}, startDate={}, endDate={}", 
+                    request.getApiCode(), request.getStartDate(), request.getEndDate(), e);
+            return new ApiResult<List<LinkDetailResponse>>().fail("根据apiCode查询链路详情列表失败: " + e.getMessage());
+        }
+    }
+
     @PostMapping("/updateLink")
     @ApiOperation(value = "更新链路配置", notes = "更新链路配置")
     @ApiImplicitParams({

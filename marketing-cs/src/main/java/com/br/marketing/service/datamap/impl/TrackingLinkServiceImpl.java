@@ -23,6 +23,7 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -135,10 +136,59 @@ public class TrackingLinkServiceImpl implements TrackingLinkService {
         String statDate = StringUtils.isEmpty(request.getStartDate()) ? currentDate : request.getStartDate();
         String endDate = StringUtils.isEmpty(request.getEndDate()) ? currentDate : request.getEndDate();
 
-        // 3. 查询链路节点信息
+        // 3. 构建链路详情响应
+        LinkDetailResponse response = buildLinkDetailResponse(link, statDate, endDate);
+        return new ApiResult<LinkDetailResponse>().success(response);
+    }
+
+    @Override
+    public ApiResult<List<LinkDetailResponse>> getLinkDetailListByApiCode(QueryLinkByApiCodeRequest request) {
+        // 1. 参数校验
+        if (StringUtils.isEmpty(request.getApiCode())) {
+            return new ApiResult<List<LinkDetailResponse>>().fail("apiCode不能为空");
+        }
+
+        // 2. 根据apiCode查询所有链路
+        BizTrackingLinkExample example = new BizTrackingLinkExample();
+        example.createCriteria().andApiCodeEqualTo(request.getApiCode());
+        List<BizTrackingLink> links = linkMapper.selectByExample(example);
+        
+        if (CollectionUtils.isEmpty(links)) {
+            return new ApiResult<List<LinkDetailResponse>>().success(new ArrayList<>());
+        }
+
+        // 3. 处理日期参数，若未传则默认为当天
+        String currentDate = LocalDate.now().format(DATE_FORMATTER);
+        String statDate = StringUtils.isEmpty(request.getStartDate()) ? currentDate : request.getStartDate();
+        String endDate = StringUtils.isEmpty(request.getEndDate()) ? currentDate : request.getEndDate();
+
+        // 4. 遍历每个链路，构建详情信息
+        List<LinkDetailResponse> resultList = new ArrayList<>();
+        for (BizTrackingLink link : links) {
+            LinkDetailResponse linkDetail = buildLinkDetailResponse(link, statDate, endDate);
+            if (linkDetail != null) {
+                resultList.add(linkDetail);
+            }
+        }
+
+        return new ApiResult<List<LinkDetailResponse>>().success(resultList);
+    }
+
+    /**
+     * 构建链路详情响应（提取公共逻辑）
+     * 
+     * @param link 链路实体
+     * @param statDate 开始日期
+     * @param endDate 结束日期
+     * @return 链路详情响应
+     */
+    private LinkDetailResponse buildLinkDetailResponse(BizTrackingLink link, String statDate, String endDate) {
+        Long linkId = link.getId();
+
+        // 1. 查询链路节点信息
         List<LinkNodeDetailDTO> nodeDetailDTOList = linkNodeMapper.selectLinkNodeDetailsWithStatistics(linkId);
 
-        // 4. 查询节点统计信息（来自 Doris）并聚合计算链路总统计
+        // 2. 查询节点统计信息（来自 Doris）并聚合计算链路总统计
         LinkStatisticsDTO linkStatistics = null;
         if (!CollectionUtils.isEmpty(nodeDetailDTOList)) {
             List<Long> linkNodeIds = nodeDetailDTOList.stream()
@@ -147,7 +197,7 @@ public class TrackingLinkServiceImpl implements TrackingLinkService {
 
             List<MkNodeStatistics> statistics = statisticsMapper.selectByLinkNodeIdsbI_(linkNodeIds, statDate, endDate);
 
-            // 5. 一次遍历完成：将统计信息合并到节点详情 + 聚合计算链路总统计
+            // 3. 一次遍历完成：将统计信息合并到节点详情 + 聚合计算链路总统计
             if (!CollectionUtils.isEmpty(statistics)) {
                 // 初始化链路总统计的累加变量
                 long totalCountSum = 0L;
@@ -158,7 +208,7 @@ public class TrackingLinkServiceImpl implements TrackingLinkService {
                 
                 // 一次遍历同时完成节点信息合并和链路统计聚合
                 for (MkNodeStatistics stat : statistics) {
-                    // 5.1 将统计信息合并到对应的节点详细信息中
+                    // 3.1 将统计信息合并到对应的节点详细信息中
                     nodeDetailDTOList.stream()
                             .filter(node -> node.getId().equals(stat.getLinkNodeId()))
                             .findFirst()
@@ -170,7 +220,7 @@ public class TrackingLinkServiceImpl implements TrackingLinkService {
                                 node.setUpdateCount(stat.getUpdateCount());
                             });
 
-                    // 5.2 累加计算链路总统计
+                    // 3.2 累加计算链路总统计
                     totalCountSum += (stat.getTotalCount() != null ? stat.getTotalCount() : 0L);
                     totalMagnitudeSum += (stat.getTotalMagnitude() != null ? stat.getTotalMagnitude() : 0L);
                     updateCountSum += (stat.getUpdateCount() != null ? stat.getUpdateCount() : 0);
@@ -199,7 +249,7 @@ public class TrackingLinkServiceImpl implements TrackingLinkService {
             }
         }
 
-        // 7. 构建链接信息
+        // 4. 构建链接信息
         LinkInfoVO linkInfo = LinkInfoVO.builder()
                 .id(link.getId())
                 .apiCode(link.getApiCode())
@@ -213,7 +263,7 @@ public class TrackingLinkServiceImpl implements TrackingLinkService {
                 .updatedTime(link.getUpdatedTime())
                 .build();
 
-        // 8. 将统计信息填充到链接信息中（如果可用）
+        // 5. 将统计信息填充到链接信息中（如果可用）
         if (linkStatistics != null) {
             linkInfo.setTotalCount(linkStatistics.getTotalCount());
             linkInfo.setTotalMagnitude(linkStatistics.getTotalMagnitude());
@@ -222,7 +272,7 @@ public class TrackingLinkServiceImpl implements TrackingLinkService {
             linkInfo.setUpdateCount(linkStatistics.getUpdateCount());
         }
 
-        // 9. 构建节点列表
+        // 6. 构建节点列表
         List<LinkNodeDetailVO> nodes = nodeDetailDTOList.stream()
                 .map(node -> LinkNodeDetailVO.builder()
                         .id(node.getId())
@@ -243,12 +293,10 @@ public class TrackingLinkServiceImpl implements TrackingLinkService {
                         .build())
                 .collect(Collectors.toList());
 
-        LinkDetailResponse response = LinkDetailResponse.builder()
+        return LinkDetailResponse.builder()
                 .linkInfo(linkInfo)
                 .nodes(nodes)
                 .build();
-
-        return new ApiResult<LinkDetailResponse>().success(response);
     }
 
     @Override

@@ -39,6 +39,14 @@ public interface TrackingLinkService {
     ApiResult<LinkDetailResponse> getLinkDetail(QueryLinkRequest request);
     
     /**
+     * 根据apiCode和日期查询链路详情列表
+     * 
+     * @param request 查询请求
+     * @return 链路详情列表
+     */
+    ApiResult<List<LinkDetailResponse>> getLinkDetailListByApiCode(QueryLinkByApiCodeRequest request);
+    
+    /**
      * 更新链路
      *
      * @param request 更新链路请求
