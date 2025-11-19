@@ -406,15 +406,13 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
             } else {
                 // 非实时推送逻辑
                 batch = record.getReceiveDate().replaceAll("-", "").concat("_").concat(record.getApiCode());
-
+                userType = record.getUserType();
                 // 处理templateNo
                 String templateStr = record.getTemplateNo();
                 if (templateStr.length() > 12) {
-                    userType = templateStr.substring(0, templateStr.length() - 12);
                     strategyCode = templateStr.substring(templateStr.length() - 12);
                     strategyName = strategyCode;
                 } else {
-                    userType = templateStr;
                     strategyCode = "";
                     strategyName = "";
                 }
