@@ -9,6 +9,8 @@ import java.util.List;
 @Service
 public interface QiFuAiEventPushService {
 
+    void assembleRealTimeUploadDataOriginal();
+
     /**
      * 根据同步状态筛选数据
      *
