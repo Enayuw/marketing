@@ -112,7 +112,8 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
                 try {
                     processUserTypeDataForClean(finalUserType, finalTodayDate);
                 } catch (Exception e) {
-                    log.error("处理userType={}的清洗数据失败，error: {}", finalUserType, e.getMessage(), e);
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode()
+                            , "奇富360ai清洗数据异常[userType: " + finalUserType + "]" + e.getMessage()), e);
                 }
             });
         }
@@ -275,7 +276,8 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
 
             return false;
         } catch (Exception e) {
-            log.error("检查userType={}的Redis开关失败，error: {}", userType, e.getMessage(), e);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode()
+                    , "奇富360ai清洗数据异常[检查Redis开关失败, userType: " + userType + "]" + e.getMessage()), e);
             return false;
         }
     }
@@ -304,7 +306,8 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
             log.warn("userType={} 今天 {} 有卷比例计算：总数={}，有卷数={}，比例={}", userType, todayDate, totalCount, couponCount, ratio);
             return ratio;
         } catch (Exception e) {
-            log.error("计算userType={}今天 {} 的有卷比例失败，error: {}", userType, todayDate, e.getMessage(), e);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode()
+                    , "奇富360ai清洗数据异常[计算有卷比例失败, userType: " + userType + ", todayDate: " + todayDate + "]" + e.getMessage()), e);
             return 0.0;
         }
     }

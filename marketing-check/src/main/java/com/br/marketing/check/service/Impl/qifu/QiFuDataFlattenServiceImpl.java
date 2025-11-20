@@ -3,7 +3,9 @@ package com.br.marketing.check.service.Impl.qifu;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.check.service.qifu.QiFuDataFlattenService;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.BQifuUploadDataOriginal;
@@ -141,7 +143,9 @@ public class QiFuDataFlattenServiceImpl implements QiFuDataFlattenService {
                 try {
                     processDataBatch(tcId, apiCodes, finalMinId, finalMaxId, dateType, dateValue);
                 } catch (Exception e) {
-                    log.error("处理{}批次失败，minId={}, maxId={}, error: {}", dataType, finalMinId, finalMaxId, e.getMessage(), e);
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode()
+                            , "奇富360ai数据打平异常[批次: " + dataType + ", minId: "
+                                    + finalMinId + ", maxId: " + finalMaxId + "]" + e.getMessage()), e);
                 }
             });
 
@@ -218,7 +222,8 @@ public class QiFuDataFlattenServiceImpl implements QiFuDataFlattenService {
             }
             log.warn("{}打平完成", dataType);
         } catch (InterruptedException e) {
-            log.error("{}打平线程池中断异常", dataType, e);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode()
+                    , "奇富360ai数据打平线程池中断异常[" + dataType + "]"), e);
             threadPool.shutdownNow();
             Thread.currentThread().interrupt();
         }
