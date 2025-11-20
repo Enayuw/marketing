@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.TcyrCpaCollidingDataPackageMapper" >
+
+  <select id="queryPackageInfo" resultType="com.br.marketing.entity.TcyrCpaCollidingDataPackage">
+    select id, package_name, magnitude
+    from b_tcyr_cpa_colliding_data_package
+    where clean_status = 2 and is_del = 1
+  </select>
+</mapper>

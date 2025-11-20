@@ -2,6 +2,9 @@ package com.br.marketing.common.utils;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -9,6 +12,13 @@ import java.util.List;
 
 @Slf4j
 public class JsonParseUtils {
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    static {
+        //只序列化非空且非空的字符串
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+    }
 
     /**
      * 递归查找第一个匹配的值并提前返回（支持处理字符串形式的JSON嵌套结构）
@@ -390,6 +400,14 @@ public class JsonParseUtils {
         expectedPath = expectedPath.replaceAll("^\\.|\\.$", "");
 
         return expectedPath;
+    }
+
+    public static String toJson(Object obj) {
+        try {
+            return objectMapper.writeValueAsString(obj);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("JSON转换失败", e);
+        }
     }
 
 

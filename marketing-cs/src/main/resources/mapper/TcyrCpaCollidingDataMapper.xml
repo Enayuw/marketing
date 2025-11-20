@@ -8,7 +8,8 @@
             (#{item.packageId}, #{item.priority}, #{item.userKey})
         </foreach>
         on duplicate key update
-            <![CDATA[ package_id = if(VALUES(priority) <= priority, VALUES(package_id), package_id),
+            <![CDATA[ last_package_id = if(VALUES(priority) <= priority, package_id, last_package_id),
+            package_id = if(VALUES(priority) <= priority, VALUES(package_id), package_id),
             priority = if(VALUES(priority) <= priority, VALUES(priority), priority) ]]>
     </insert>
 

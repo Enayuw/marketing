@@ -425,6 +425,76 @@ public class TcyrCpaCollidingDataCleanTaskExample {
             return (Criteria) this;
         }
 
+        public Criteria andExecuteInfoIsNull() {
+            addCriterion("execute_info is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteInfoIsNotNull() {
+            addCriterion("execute_info is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteInfoEqualTo(String value) {
+            addCriterion("execute_info =", value, "executeInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteInfoNotEqualTo(String value) {
+            addCriterion("execute_info <>", value, "executeInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteInfoGreaterThan(String value) {
+            addCriterion("execute_info >", value, "executeInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteInfoGreaterThanOrEqualTo(String value) {
+            addCriterion("execute_info >=", value, "executeInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteInfoLessThan(String value) {
+            addCriterion("execute_info <", value, "executeInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteInfoLessThanOrEqualTo(String value) {
+            addCriterion("execute_info <=", value, "executeInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteInfoLike(String value) {
+            addCriterion("execute_info like", value, "executeInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteInfoNotLike(String value) {
+            addCriterion("execute_info not like", value, "executeInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteInfoIn(List<String> values) {
+            addCriterion("execute_info in", values, "executeInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteInfoNotIn(List<String> values) {
+            addCriterion("execute_info not in", values, "executeInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteInfoBetween(String value1, String value2) {
+            addCriterion("execute_info between", value1, value2, "executeInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteInfoNotBetween(String value1, String value2) {
+            addCriterion("execute_info not between", value1, value2, "executeInfo");
+            return (Criteria) this;
+        }
+
         public Criteria andExtendIsNull() {
             addCriterion("extend is null");
             return (Criteria) this;
