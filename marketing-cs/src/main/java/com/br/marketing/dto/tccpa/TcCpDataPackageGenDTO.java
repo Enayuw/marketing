@@ -10,6 +10,10 @@ import java.util.List;
 @Data
 public class TcCpDataPackageGenDTO {
 
+    @Schema(value = "商户编号")
+    @NotNull(message = "商户编号不能为空")
+    private String apiCode;
+
     @Schema(description = "跑分文件批次号")
     @NotEmpty(message = "跑分文件批次号不能为空")
     private List<String> batchNumberList;

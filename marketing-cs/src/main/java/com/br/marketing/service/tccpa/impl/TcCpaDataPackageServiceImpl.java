@@ -46,6 +46,7 @@ public class TcCpaDataPackageServiceImpl implements TcCpaDataPackageService {
         //2.插入【b_tcyr_cpa_colliding_data_package】
         JSONObject conditionJson = JSON.parseObject(dto.getMRuleCondition());
         TcyrCpaCollidingDataPackage dataPackage = new TcyrCpaCollidingDataPackage();
+        dataPackage.setApiCode(dto.getApiCode());
         dataPackage.setPackageName(dto.getPackageName());
         dataPackage.setBatchNumbers(String.join(",", dto.getBatchNumberList()));
         dataPackage.setConditions(EsConditionTransferSqlUtil.jsonTransferSql(conditionJson, ""));

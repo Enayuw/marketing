@@ -29,4 +29,11 @@
         ${querySql}
     </select>
 
+    <select id="queryPackageMagnitudetiflash_" resultType="java.util.Map">
+        select package_id as packageId, count(1) as magnitude
+        from tcyr_cpa_colliding_data
+        where is_del = 1
+        group by package_id
+    </select>
+
 </mapper>
