@@ -1,6 +1,8 @@
 package com.br.marketing.service.Impl;
 import java.util.Date;
 
+import cn.hutool.core.date.DatePattern;
+import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.*;
 import com.br.arch.geo.pulsar.ProductPulsarClientManager;
 import com.br.arch.geo.pulsar.ProductPulsarProducer;
@@ -6018,16 +6020,17 @@ public class PushRuleServiceImpl implements PushRuleService {
             if (!finalReserveFieldObject.getString("supportDeduct").contains("协议")) {
                 finalReserveFieldObject.put("supportDeduct", "");
             }
-            // 把loanTime的值20251120调整成2025-11-20的格式，并赋值到LoanTimes上
+            // 把loanTime的值20251120调整成2025-11-20的格式，并赋值到loanTimes上
             String loanTime = finalReserveFieldObject.getString("loanTime");
             if (StringUtils.isNotBlank(loanTime)) {
-                LocalDate date = LocalDate.parse(loanTime, DateTimeFormatter.ofPattern("yyyyMMdd"));
-                finalReserveFieldObject.put("LoanTimes", date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+                Date date = DateUtil.parse(loanTime);
+                // 格式化为yyyy-MM-dd格式
+                String formattedDate = DateUtil.format(date, DatePattern.NORM_DATE_PATTERN);
+                finalReserveFieldObject.put("loanTimes", formattedDate);
             }
         } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.INITDATA_MUST_ERROR.getCode()
-                    , String.format("携程贷后定制清洗异常，reserve_field1【%s】", JSON.toJSONString(finalReserveFieldObject))
-                    , AlarmSendCodeEnum.INITDATA_MUST_ERROR.getMessage()));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.INITDATA_MUST_ERROR.getCode(),
+                    "携程贷后定制清洗异常" + e + "，reserve_field1:" + JSON.toJSONString(finalReserveFieldObject) + "msg:" + e.getMessage()));
         }
     }
 }
