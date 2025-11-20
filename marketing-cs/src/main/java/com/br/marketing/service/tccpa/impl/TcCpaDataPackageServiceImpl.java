@@ -15,9 +15,11 @@ import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.TcyrCpaCollidingDataCleanTaskMapper;
 import com.br.marketing.mapper.TcyrCpaCollidingDataPackageMapper;
 import com.br.marketing.service.tccpa.TcCpaDataPackageService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.EsConditionTransferSqlUtil;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -32,6 +34,9 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class TcCpaDataPackageServiceImpl implements TcCpaDataPackageService {
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     @Resource
     TcyrCpaCollidingDataPackageMapper tcyrCpaCollidingDataPackageMapper;
@@ -58,6 +63,7 @@ public class TcCpaDataPackageServiceImpl implements TcCpaDataPackageService {
         TcyrCpaCollidingDataPackage dataPackage = new TcyrCpaCollidingDataPackage();
         dataPackage.setApiCode(dto.getApiCode());
         dataPackage.setPackageName(dto.getPackageName());
+        dataPackage.setApiCode(marketingCommonConfig.getTcyrCpaApiCode());
         dataPackage.setBatchNumbers(String.join(",", dto.getBatchNumberList()));
         dataPackage.setConditions(EsConditionTransferSqlUtil.jsonTransferSql(conditionJson, ""));
         tcyrCpaCollidingDataPackageMapper.insertSelective(dataPackage);
@@ -74,6 +80,9 @@ public class TcCpaDataPackageServiceImpl implements TcCpaDataPackageService {
             example.createCriteria().andEnabledEqualTo(status);
         }
         List<TcyrCpaCollidingDataPackage> packages = tcyrCpaCollidingDataPackageMapper.selectByExample(example);
+        if(CollectionUtils.isEmpty(packages)) {
+            return PageResultReturn.setPageResult(Lists.newArrayList(), page, pageSize);
+        }
         List<String> apiCodes = packages.stream().map(TcyrCpaCollidingDataPackage::getApiCode).collect(Collectors.toList());
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         customerExample.createCriteria().andApiCodeIn(apiCodes);
