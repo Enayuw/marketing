@@ -21,13 +21,6 @@ import java.util.HashMap;
 @Component
 @Slf4j
 public class OperateFourProcessor extends AbstractBaseAiToPolicy {
-
-    @Autowired
-    MarketingCommonConfig marketingCommonConfig;
-
-    @Autowired
-    AiToPolicyRecordMapperBase aiToPolicyRecordMapperBase;
-
     @Override
     public String getOperationType() {
         return "4";

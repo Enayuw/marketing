@@ -30,12 +30,6 @@ import java.util.UUID;
 public class OperateFiveProcessor extends AbstractBaseAiToPolicy {
 
     @Autowired
-    MarketingCommonConfig marketingCommonConfig;
-
-    @Autowired
-    AiToPolicyRecordMapperBase aiToPolicyRecordMapperBase;
-
-    @Autowired
     RedisChgService redisChgService;
 
     @Override
