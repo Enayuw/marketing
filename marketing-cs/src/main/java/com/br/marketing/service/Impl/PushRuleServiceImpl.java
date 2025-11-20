@@ -3880,7 +3880,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             });
             cleanData(finalReserveFieldObject, finalReserveFileld1Json, apiCode);
             // 携程贷后定制
-            xieChengPostLoanHandle(finalReserveFieldObject);
+            if (marketingCommonConfig.getXieChengPostLoanApiCodeLists().contains(apiCode)) {
+                xieChengPostLoanHandle(finalReserveFieldObject);
+            }
         }
         return JSONObject.toJSONString(finalReserveFieldObject);
     }
@@ -6007,17 +6009,17 @@ public class PushRuleServiceImpl implements PushRuleService {
     private void xieChengPostLoanHandle(JSONObject finalReserveFieldObject) {
         try {
             // 如果ifMinRepay=false，则ifMinRepay和minRepayAmt的值置空
-            if (!finalReserveFieldObject.getBoolean("ifMinRepay")) {
+            if (finalReserveFieldObject.containsKey("ifMinRepay") && !finalReserveFieldObject.getBoolean("ifMinRepay")) {
                 finalReserveFieldObject.put("ifMinRepay", "");
                 finalReserveFieldObject.put("minRepayAmt", "");
             }
             // 如果supportWx=0时，置空
-            if (finalReserveFieldObject.getInteger("supportWx") == 0
-                    || "0".equals(finalReserveFieldObject.getString("supportWx"))) {
+            if (finalReserveFieldObject.containsKey("supportWx") && (finalReserveFieldObject.getInteger("supportWx") == 0
+                    || "0".equals(finalReserveFieldObject.getString("supportWx")))) {
                 finalReserveFieldObject.put("supportWx", "");
             }
             // 如果supportDeduct中不包含“协议”则置空
-            if (!finalReserveFieldObject.getString("supportDeduct").contains("协议")) {
+            if (finalReserveFieldObject.containsKey("supportDeduct") && !finalReserveFieldObject.getString("supportDeduct").contains("协议")) {
                 finalReserveFieldObject.put("supportDeduct", "");
             }
             // 把loanTime的值20251120调整成2025-11-20的格式，并赋值到loanTimes上
