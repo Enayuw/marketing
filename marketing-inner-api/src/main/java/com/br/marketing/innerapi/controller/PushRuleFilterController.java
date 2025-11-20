@@ -380,7 +380,7 @@ public class PushRuleFilterController {
      * @return
      */
     @ApiOperation(value = "同程CPA跑分待清洗数据包生成", notes = "同程CPA跑分待清洗数据包生成", httpMethod = "POST")
-    @PostMapping("/tcDataPackageGen")
+    @PostMapping("/tcCpaDataPackageGen")
     public ApiResult tcDataPackageGen(@RequestBody @Valid TcCpDataPackageGenDTO dto) {
         return new ApiResult().fromResult(tcCpaDataPackageService.tcDataPackageGen(dto), CODE_1);
     }
