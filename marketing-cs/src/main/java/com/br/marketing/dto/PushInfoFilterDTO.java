@@ -31,7 +31,7 @@ public class PushInfoFilterDTO {
     @Schema(description = "页大小")
     private Integer size;
 
-    @ApiModelProperty(value = "任务类型 0：跑分任务，1：上传任务")
+    @Schema(description = "任务类型 0：跑分任务，1：上传任务")
     private Integer taskType;
 
     public List<String> getmStatusList() {

@@ -13,7 +13,7 @@ public class PushViewVO {
     @Schema(description = "筛选数量")
     private Integer total;
 
-    @ApiModelProperty("重推框定数据时间")
+    @Schema(description = "重推框定数据时间")
     private String repushTime;
 
 }
