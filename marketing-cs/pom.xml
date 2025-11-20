@@ -402,6 +402,21 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>com.br</groupId>
+            <artifactId>grpc-monitor-jdk17</artifactId>
+            <version>1.0.3</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.grpc</groupId>
+                    <artifactId>grpc-all</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
             <groupId>com.br.marketing.es</groupId>
             <artifactId>marketing-es-core</artifactId>
             <version>4.0.16-SNAPSHOT</version>
