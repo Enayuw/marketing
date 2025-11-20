@@ -24,6 +24,11 @@ public class TcyrCpaCollidingData {
     private String userKey;
 
     /**
+     * 上个数据包id
+     */
+    private Long lastPackageId;
+
+    /**
      * 删除状态 1-可用 9-删除
      */
     private Integer isDel;
@@ -73,6 +78,14 @@ public class TcyrCpaCollidingData {
 
     public void setUserKey(String userKey) {
         this.userKey = userKey == null ? null : userKey.trim();
+    }
+
+    public Long getLastPackageId() {
+        return lastPackageId;
+    }
+
+    public void setLastPackageId(Long lastPackageId) {
+        this.lastPackageId = lastPackageId;
     }
 
     public Integer getIsDel() {

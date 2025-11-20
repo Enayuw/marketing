@@ -9,6 +9,11 @@ public class TcyrCpaCollidingDataPackage {
     private Long id;
 
     /**
+     * 商户编号
+     */
+    private String apiCode;
+
+    /**
      * 包名称
      */
     private String packageName;
@@ -69,6 +74,14 @@ public class TcyrCpaCollidingDataPackage {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getApiCode() {
+        return apiCode;
+    }
+
+    public void setApiCode(String apiCode) {
+        this.apiCode = apiCode == null ? null : apiCode.trim();
     }
 
     public String getPackageName() {

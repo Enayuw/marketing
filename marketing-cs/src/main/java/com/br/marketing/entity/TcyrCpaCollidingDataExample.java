@@ -355,6 +355,66 @@ public class TcyrCpaCollidingDataExample {
             return (Criteria) this;
         }
 
+        public Criteria andLastPackageIdIsNull() {
+            addCriterion("last_package_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastPackageIdIsNotNull() {
+            addCriterion("last_package_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastPackageIdEqualTo(Long value) {
+            addCriterion("last_package_id =", value, "lastPackageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastPackageIdNotEqualTo(Long value) {
+            addCriterion("last_package_id <>", value, "lastPackageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastPackageIdGreaterThan(Long value) {
+            addCriterion("last_package_id >", value, "lastPackageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastPackageIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("last_package_id >=", value, "lastPackageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastPackageIdLessThan(Long value) {
+            addCriterion("last_package_id <", value, "lastPackageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastPackageIdLessThanOrEqualTo(Long value) {
+            addCriterion("last_package_id <=", value, "lastPackageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastPackageIdIn(List<Long> values) {
+            addCriterion("last_package_id in", values, "lastPackageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastPackageIdNotIn(List<Long> values) {
+            addCriterion("last_package_id not in", values, "lastPackageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastPackageIdBetween(Long value1, Long value2) {
+            addCriterion("last_package_id between", value1, value2, "lastPackageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andLastPackageIdNotBetween(Long value1, Long value2) {
+            addCriterion("last_package_id not between", value1, value2, "lastPackageId");
+            return (Criteria) this;
+        }
+
         public Criteria andIsDelIsNull() {
             addCriterion("is_del is null");
             return (Criteria) this;

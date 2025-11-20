@@ -5,6 +5,7 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.Constants;
+import com.br.marketing.common.utils.JsonParseUtils;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.TcCpaCleanStatusEnum;
 import com.br.marketing.mapper.TcyrCpaCollidingDataCleanTaskMapper;
@@ -99,8 +100,12 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
                 deletePackageData(deletePackages, cleanConfig, threadPool, futures);
             }
             //7.清洗新包
+            String beforePackageInfo;
+            String afterPackageInfo;
             if(CollectionUtils.isNotEmpty(cleanPackages)) {
+                beforePackageInfo = packageInfoAssemble();
                 cleanPackageData(cleanPackages, cleanConfig, threadPool, futures);
+                afterPackageInfo = packageInfoAssemble();
             }
             cleanTask.setCleanStatus(TcCpaCleanStatusEnum.CLEAN_SUCCESS.getValue());
             tcyrCpaCollidingDataCleanTaskMapper.updateByPrimaryKeySelective(cleanTask);
@@ -115,6 +120,14 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
             }
         }
 
+    }
+
+    private String packageInfoAssemble() {
+        List<TcyrCpaCollidingDataPackage> dataPackages = tcyrCpaCollidingDataPackageMapper.queryPackageInfo();
+        if (CollectionUtils.isEmpty(dataPackages)) {
+            return null;
+        }
+        return JsonParseUtils.toJson(dataPackages);
     }
 
     /**
