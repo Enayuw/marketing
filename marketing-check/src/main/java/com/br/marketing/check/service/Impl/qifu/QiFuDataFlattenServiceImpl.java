@@ -168,7 +168,8 @@ public class QiFuDataFlattenServiceImpl implements QiFuDataFlattenService {
         Long indexId = minId - 1L;
 
         while (indexId < maxId) {
-            List<DrsCustomizeUploadData> dataList = drsCustomizeUploadDataMapper.getDataByIdRange(tcId, apiCodes, PAGE_SIZE, indexId, maxId, dateType, dateValue);
+            List<DrsCustomizeUploadData> dataList =
+                    drsCustomizeUploadDataMapper.getDataByIdRange(tcId, apiCodes, PAGE_SIZE, indexId, maxId, dateType, dateValue);
             if (dataList == null || dataList.isEmpty()) {
                 break;
             }

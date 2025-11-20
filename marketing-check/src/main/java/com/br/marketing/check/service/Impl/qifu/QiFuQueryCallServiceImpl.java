@@ -63,7 +63,7 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
     /**
      * 时间阈值（12:00）
      */
-    private static final LocalTime TIME_THRESHOLD = LocalTime.of(12, 00);
+    private static final LocalTime TIME_THRESHOLD = LocalTime.of(12, 0);
 
     /**
      * Redis过期时间（秒），24小时

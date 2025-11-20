@@ -127,11 +127,9 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
         //获取待清洗的数据
         List<BQifuUploadDataOriginal> uploadDataOriginalList = new ArrayList<>();
         Long minId = null;
-        Boolean actionMark = true;
-        while (actionMark) {
+        while (true) {
             uploadDataOriginalList = bQifuUploadDataOriginalMapper.selectRealTimeDataForClean(minId, PAGE_SIZE);
             if (uploadDataOriginalList == null || uploadDataOriginalList.isEmpty()) {
-                actionMark = false;
                 break;
             }
 
@@ -211,17 +209,17 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
     }
 
     public void insertLog(List<BQifuUploadDataOriginal> dataList) {
-        ArrayList<Long> ids = new ArrayList<>();
-        StringBuilder insertLogSql = new StringBuilder();
-        insertLogSql.append("insert into b_log_360ai ");
-        insertLogSql.append("(data_id,status) ");
-        insertLogSql.append("values ");
+        StringBuilder insertLogSql = new StringBuilder()
+                .append("insert into b_log_360ai ")
+                .append("(data_id,status) ")
+                .append("values ");
         for (BQifuUploadDataOriginal record : dataList) {
             insertLogSql.append(String.format("(%d,%d),", record.getId(), QiFuCleanStatusEnum.RUNNING.getValue()));
-            ids.add(record.getId());
         }
-        String insertLog = insertLogSql.toString().substring(0, insertLogSql.toString().length() - 1);
-        log360aiMapper.batchSaveLog(insertLog);
+        if (insertLogSql.length() > 0) {
+            insertLogSql.setLength(insertLogSql.length() - 1);
+        }
+        log360aiMapper.batchSaveLog(insertLogSql.toString());
     }
 
     /**
