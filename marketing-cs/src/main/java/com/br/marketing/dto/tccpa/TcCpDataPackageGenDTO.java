@@ -22,5 +22,4 @@ public class TcCpDataPackageGenDTO {
     @ApiModelProperty(value = "数据包名称")
     @NotNull(message = "数据包名称不能为空")
     private String packageName;
-
 }
