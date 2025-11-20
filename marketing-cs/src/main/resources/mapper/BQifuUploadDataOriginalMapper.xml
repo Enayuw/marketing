@@ -40,11 +40,12 @@
     </update>
 
     <select id="selectDistinctUserTypeByDate" resultType="java.lang.String">
-        select distinct user_type
+        select user_type
         from b_qifu_upload_data_original
         where user_type is not null
         and user_type != ''
         and receive_date = #{todayDate}
+        group by user_type
     </select>
 
     <select id="countByUserTypeAndSelectStatusAndDate" resultType="java.lang.Long">
