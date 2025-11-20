@@ -2,13 +2,8 @@ package com.br.marketing.innerapi.controller;
 
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.context.ThreadContextInfo;
-import com.br.marketing.dto.tccpa.TcCpDataCleanTaskDTO;
 import com.br.marketing.dto.tccpa.TcCpDataPackageGenDTO;
-import com.br.marketing.dto.tccpa.TcCpDataPackageVO;
 import com.br.marketing.dto.tccpa.TcyrCpaCollidingDataPackageVO;
-import com.br.marketing.entity.TcyrCpaCollidingDataPackage;
-import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.service.tccpa.TcCpaDataPackageService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -73,17 +68,6 @@ public class TcCpaCustomizeController {
     @PostMapping("/delete")
     public ApiResult delete(@RequestBody TcCpDataPackageGenDTO dto) {
         return new ApiResult().fromResult(tcCpaDataPackageService.delete(dto), CODE_1);
-    }
-
-    /**
-     * 同程CPA跑分文件数据包删除
-     * @param packageVO 数据包
-     * @return
-     */
-    @ApiOperation(value = "同程CPA跑分文件数据包启用禁用", notes = "同程CPA跑分文件数据包启用禁用", httpMethod = "POST")
-    @PostMapping("/enable")
-    public ApiResult enable(@RequestBody TcCpDataPackageVO packageVO) {
-        return new ApiResult().fromResult(tcCpaDataPackageService.enable(packageVO.getPackageName(), packageVO.getStatus()), CODE_1);
     }
 
     /**
