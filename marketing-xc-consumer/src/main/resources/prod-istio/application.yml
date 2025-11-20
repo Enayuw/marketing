@@ -28,7 +28,8 @@ spring:
 
 server:
   port: 18888
-  maxHttpPostSize: 209715200
+  tomcat:
+    max-http-form-post-size: 209715200
   shutdown: graceful  # 启用优雅关闭
 
 mybatis-plus:
