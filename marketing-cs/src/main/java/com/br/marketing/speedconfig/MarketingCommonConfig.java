@@ -3507,4 +3507,9 @@ public class MarketingCommonConfig {
      */
     private Map<String, Boolean> pushDataSwitch;
 
+    /**
+     * 携程贷后apicode集合
+     */
+    private List<String> xieChengPostLoanApiCodeLists;
+
 }
