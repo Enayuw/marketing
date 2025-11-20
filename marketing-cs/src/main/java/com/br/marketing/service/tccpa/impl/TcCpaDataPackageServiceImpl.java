@@ -18,12 +18,10 @@ import com.br.marketing.mapper.TcyrCpaCollidingDataCleanTaskMapper;
 import com.br.marketing.mapper.TcyrCpaCollidingDataPackageMapper;
 import com.br.marketing.service.tccpa.TcCpaDataPackageService;
 import com.br.marketing.util.EsConditionTransferSqlUtil;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -112,7 +110,7 @@ public class TcCpaDataPackageServiceImpl implements TcCpaDataPackageService {
     }
 
     @Override
-    public Result genCleanTask(TcCpDataCleanTaskDTO dto) {
+    public Result genCleanTask() {
         TcyrCpaCollidingDataCleanTaskExample taskExample = new TcyrCpaCollidingDataCleanTaskExample();
         taskExample.createCriteria().andCleanStatusIn(Lists.newArrayList(DataCleanStatusEnum.READY.getCode(),
                 DataCleanStatusEnum.RUNNING.getCode()));
@@ -120,7 +118,6 @@ public class TcCpaDataPackageServiceImpl implements TcCpaDataPackageService {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("存在清洗中或待清洗的任务，禁止新增清洗任务");
         }
         TcyrCpaCollidingDataCleanTask cleanTask = new TcyrCpaCollidingDataCleanTask();
-        cleanTask.setCleanPackageIds(String.join(",", dto.getPackageList()));
         cleanTask.setCleanStatus(DataCleanStatusEnum.READY.getCode());
         tcyrCpaCollidingDataCleanTaskMapper.insertSelective(cleanTask);
         return new Result().setCode(ResultCode.SUCCESS.getValue());

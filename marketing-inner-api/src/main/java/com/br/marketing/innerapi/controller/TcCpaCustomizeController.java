@@ -30,7 +30,7 @@ import javax.annotation.Resource;
  * 营销平台筛选接口
  */
 @RestController
-@RequestMapping("/tcCpa")
+@RequestMapping("/tcCpa/customize/dataPackage")
 @Tag(value = "TcCpaCustomizeController")
 public class TcCpaCustomizeController {
 
@@ -84,13 +84,12 @@ public class TcCpaCustomizeController {
 
     /**
      * 同程CPA跑分文件数据包删除
-     * @param dto
      * @return
      */
     @Operation(value = "同程CPA跑分文件清洗分层任务生成", notes = "同程CPA跑分文件清洗分层任务生成", httpMethod = "POST")
     @PostMapping("/genCleanTask")
-    public ApiResult genCleanTask(@RequestBody TcCpDataCleanTaskDTO dto) {
-        return new ApiResult().fromResult(tcCpaDataPackageService.genCleanTask(dto), CODE_1);
+    public ApiResult genCleanTask() {
+        return new ApiResult().fromResult(tcCpaDataPackageService.genCleanTask(), CODE_1);
     }
 
 }

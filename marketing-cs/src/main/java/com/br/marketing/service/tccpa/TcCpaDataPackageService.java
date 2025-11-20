@@ -51,8 +51,7 @@ public interface TcCpaDataPackageService {
 
     /**
      * 同程数据包清洗任务新增
-     * @param task
      * @return
      */
-    Result genCleanTask(TcCpDataCleanTaskDTO task);
+    Result genCleanTask();
 }
