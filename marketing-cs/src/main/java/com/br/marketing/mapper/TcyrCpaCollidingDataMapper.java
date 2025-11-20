@@ -5,6 +5,7 @@ import com.br.marketing.entity.TcyrCpaScoreData;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Map;
 
 public interface TcyrCpaCollidingDataMapper extends TcyrCpaCollidingDataMapperBase{
 
@@ -18,5 +19,7 @@ public interface TcyrCpaCollidingDataMapper extends TcyrCpaCollidingDataMapperBa
     List<TcyrCpaScoreData> queryScoreDataWithPagedoris_(@Param("querySql") String querySql);
 
     void insertBatchWithPriority(@Param("dataList") List<TcyrCpaCollidingData> dataList);
+
+    List<Map<Long, Integer>> queryPackageMagnitudetiflash_();
 
 }
