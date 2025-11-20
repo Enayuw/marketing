@@ -9,7 +9,6 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>marketing-cs</artifactId>
     <properties>
-        <grpc.version>1.61.1</grpc.version>
         <netty.version>4.1.124.Final</netty.version>
         <grpc.version>1.76.0</grpc.version>
     </properties>
@@ -420,56 +419,6 @@
             <groupId>com.br.marketing.es</groupId>
             <artifactId>marketing-es-core</artifactId>
             <version>4.0.16-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-classic</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-access</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-netty-shaded</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-stub</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-context</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-all</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.google.guava</groupId>
-                    <artifactId>guava</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.br</groupId>
-                    <artifactId>br-grpc-common</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.br</groupId>
-                    <artifactId>grpc-es-center-rely</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.br</groupId>
