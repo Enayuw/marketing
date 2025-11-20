@@ -6,15 +6,15 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.entity.CustomerInfoPushMain;
-import com.br.marketing.entity.ErrorMark;
-import com.br.marketing.entity.ErrorMarkExample;
+import com.br.marketing.entity.*;
 import com.br.marketing.enums.*;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
+import com.br.marketing.mapper.CustomerInfoPushBatchMapper;
 import com.br.marketing.mapper.CustomerInfoPushMainMapper;
 import com.br.marketing.mapper.ErrorMarkMapper;
+import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.service.Impl.PushRuleServiceImpl;
 import com.br.marketing.service.ToPolicyByRuleService;
 import com.br.marketing.service.rulecenter.IEsActionService;
@@ -25,21 +25,22 @@ import com.br.marketing.service.rulecenter.impl.esquery.EsQueryResult;
 import com.br.marketing.service.rulecenter.impl.esquery.EsQueryExecutor;
 import com.br.marketing.service.rulecenter.impl.esquery.EsQueryParams;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.GeneScriptUtil;
 import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.CollectionUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -75,6 +76,12 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
 
     @Autowired
     IEsActionService iEsActionService;
+
+    @Resource
+    CustomerInfoPushBatchMapper customerInfoPushBatchMapper;
+
+    @Resource
+    StraHisFileMapper straHisFileMapper;
 
 
     @Override
@@ -421,6 +428,75 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
     protected EsQueryResult executeEsQuery(EsQueryParams params, int currentPage) {
         return esQueryExecutor.executeQuery(params, currentPage);
     }
+
+
+    /**
+     * 组装推送上下文
+     */
+    protected RuleCenterPushContext assemblePushContext(CustomerInfoPushMain customerInfoPushMain) {
+        CustomerInfoPushBatchExample searchPushBatch = new CustomerInfoPushBatchExample();
+        searchPushBatch.createCriteria().andMIdEqualTo(customerInfoPushMain.getId());
+        List<CustomerInfoPushBatch> customerInfoPushBatches = customerInfoPushBatchMapper.selectByExample(searchPushBatch);
+
+        List<String> numList = new ArrayList<>();
+        List<Long> fileIds = new ArrayList<>();
+        for (CustomerInfoPushBatch customerInfoPushBatch : customerInfoPushBatches) {
+            numList.add(customerInfoPushBatch.getmBatchNumber());
+            fileIds.add(customerInfoPushBatch.getmFileId());
+        }
+        List<StraHisFile> straHisFiles;
+        StraHisFileExample fileExample = new StraHisFileExample();
+        fileExample.createCriteria().andIdIn(fileIds);
+        straHisFiles = straHisFileMapper.selectByExample(fileExample);
+        String scoreFileYhTime = marketingCommonConfig.getScoreFileYhTime();
+        Date yhTime = null;
+        try {
+            yhTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(scoreFileYhTime);
+        } catch (ParseException e) {
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), e.getMessage()), e);
+        }
+        Date yh = yhTime;
+        Integer parNum = 0;
+        long beforeCount = straHisFiles.stream().filter(t -> t.getCreateTime().compareTo(yh) <= 0).count();
+        Optional<StraHisFile> first = straHisFiles.stream().sorted(Comparator.comparing(StraHisFile::getIndexNum).reversed()).findFirst();
+
+        if (first.isPresent()) {
+            parNum = first.get().getIndexNum();
+        }
+        boolean isSigle = (customerInfoPushMain.getmPercentage() != null
+                && customerInfoPushMain.getmPercentage().compareTo(BigDecimal.ZERO) > 0)
+                || (customerInfoPushMain.getmPlanNum() != null && customerInfoPushMain.getmPlanNum() > 0)
+                || beforeCount > 0;
+        if (isSigle) {
+            parNum = 1;
+        }
+
+        Boolean markWithEsFlag = marketingCommonConfig.getPushPolicyMarkWithEsFlag();
+        String scoreCondition = customerInfoPushMain.getmScoreCondition();
+        Object lableObject = null;
+        if (StringUtils.isNotEmpty(scoreCondition)) {
+            if (markWithEsFlag) {
+                lableObject = GeneScriptUtil.esLableScript(scoreCondition);
+            } else {
+                lableObject = GeneScriptUtil.getScoreLables(scoreCondition, markWithEsFlag);
+            }
+        }
+        //构建上下文
+        RuleCenterPushContext context = new RuleCenterPushContext();
+        context.setBatchNumbers(numList);
+        context.setFileIds(fileIds);
+        context.setCustomerInfoPushMain(customerInfoPushMain);
+        context.setSinglePartition(isSigle);
+        context.setMarkWithEsFlag(markWithEsFlag);
+        context.setLabelObject(lableObject);
+        context.setPartitionCount(parNum);
+        return context;
+    }
+
+    /**
+     * 设置线程池大小，子类各自实现
+     */
+    protected abstract RuleCenterPushContext setThreadPoolNum(RuleCenterPushContext pushContext);
 
 
 }
