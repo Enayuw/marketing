@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -42,12 +43,11 @@ public class TaiKangPushDataCustomerJob extends AbstractSimpleElasticJob {
                 jsonObject.put("channelCode", "RongDa");
                 jsonObject.put("applicantName", "");
                 jsonObject.put("browseDate", "2025-11-20 12:04:00");
-                SimpleDataPackToolsV2 simpleDataPackToolsV2 = new SimpleDataPackToolsV2();
                 ChannelRequest channelRequest = simpleDataPackToolsV2.clientPacking(
                         taiKangConfig.get("remotePublicKey"),taiKangConfig.get("localPrivateKey"),
                         jsonObject);
-                String send = httpProxyClient.send(channelRequest.toString(), taiKangConfig.get("url"), true);
-                System.out.println(send);
+                HashMap<String, String> send = httpProxyClient.sendByCode(channelRequest.toString(), taiKangConfig.get("url"), true);
+                log.warn("泰康返回参数：{}",send);
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }

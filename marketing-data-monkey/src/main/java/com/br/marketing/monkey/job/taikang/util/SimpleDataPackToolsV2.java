@@ -122,7 +122,7 @@ public class SimpleDataPackToolsV2 {
         String key = UUID.randomUUID().toString();
 
         //SM4密钥长度也为128位(可以与AES采用项目算法产生密钥), SecureRandom当种子一样时产生一样的序列
-        SecretKey secretKey = KeyUtil.generateKey(symmetricCryEnum.name(), 128, new SecureRandom(key.getBytes()));
+        SecretKey secretKey = KeyUtil.generateKey(symmetricCryEnum.name(), 128);
         return secretKey.getEncoded();
     }
 
