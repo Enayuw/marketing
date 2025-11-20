@@ -188,11 +188,26 @@ public class LineSmsAccountDataNormalServiceImpl implements LineSmsAccountDataNo
 
     @Override
     public void deleteLineAccount(Long groupId) {
+        //2.删除配置(id_delete=1)
         LineAccountDetailNormalExample lineAccountDetailNormalExample = new LineAccountDetailNormalExample();
         lineAccountDetailNormalExample.createCriteria().andGroupIdEqualTo(groupId);
         LineAccountDetailNormal updateAccountDetailNormal = new LineAccountDetailNormal();
         updateAccountDetailNormal.setIsDelete(ISDELETED_DEL);
         lineAccountDetailNormalMapper.updateByExampleSelective(updateAccountDetailNormal, lineAccountDetailNormalExample);
+
+        //3.新增删除日志
+        LineAccountLogNormalExample logNormalExample = new LineAccountLogNormalExample();
+        logNormalExample.createCriteria().andGroupIdEqualTo(groupId).andIsDeleteEqualTo(0);
+        logNormalExample.setOrderByClause("create_time desc limit 1");
+        LineAccountLogNormal oldLogNormal = lineAccountLogNormalMapper.selectByExample(logNormalExample).get(0);
+        LineAccountLogNormal newLogNormal = new LineAccountLogNormal();
+        BeanUtils.copyProperties(oldLogNormal, newLogNormal);
+        newLogNormal.setId(null);
+        userRecord(newLogNormal);
+        newLogNormal.setOpeType(OpeTypeEnum.OPE_TYPE_DEL.getType());
+        newLogNormal.setCreateTime(null);
+        newLogNormal.setUpdateTime(null);
+        lineAccountLogNormalMapper.insertSelective(newLogNormal);
     }
 
     private void userRecord(LineAccountLogNormal logItem) {
