@@ -3507,4 +3507,6 @@ public class MarketingCommonConfig {
      */
     private Map<String, Boolean> pushDataSwitch;
 
+    private Map<String,String> taiKangConfig;
+
 }

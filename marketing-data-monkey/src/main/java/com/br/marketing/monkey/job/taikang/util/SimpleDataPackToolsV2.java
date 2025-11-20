@@ -186,17 +186,22 @@ public class SimpleDataPackToolsV2 {
 
     public static void main(String[] args) {
         String s = AESUtil.encryptAES("nX7zCFT1HaUllNbM", "15122334455");
-        System.out.println(s);
-
-
+//        System.out.println(s);
+//
+//
 //        JSONObject jsonObject = new JSONObject();
 //        HttpProxyClient httpProxyClient = new HttpProxyClient();
 //        try {
-//            jsonObject.put("cell","33333");
+//            jsonObject.put("applicantPhone",s);
+//            jsonObject.put("eventId","channel_browse_interruption");
+//            jsonObject.put("channelCode","RongDa");
+//            jsonObject.put("applicantName","");
+//            jsonObject.put("browseDate","2025-11-20 12:04:00");
 //            SimpleDataPackToolsV2 simpleDataPackToolsV2 = new SimpleDataPackToolsV2();
 //            ChannelRequest channelRequest = simpleDataPackToolsV2.clientPacking(
-//                    "MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAENrSiW2mZ5wLk2vAB/a5entcbtGi5uKOemaDLwWog6gzBnL09htyT0m4O6bxpoSGxL3pkV7uCHovvse6ldQnrTA==",
-//                    "MIGTAgEAMBMGByqGSM49AgEGCCqBHM9VAYItBHkwdwIBAQQgv94yAb0j68nmfqyv6L0XtmzPCVH1VFcR10nccNvhKqmgCgYIKoEcz1UBgi2hRANCAAQ2tKJbaZnnAuTa8AH9rl6e1xu0aLm4o56ZoMvBaiDqDMGcvT2G3JPSbg7pvGmhIbEvemRXu4Iei++x7qV1CetM",
+//                    "MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEs9zja+l2Fd9B664O1q1Oy4fsiEoLhNiBS9zhKPuUI075vZ/dADBdE2zMbCP5oVDFBOter9IH/C1iX8C2HFrl0w==",
+//                    "MIGTAgEAMBMGByqGSM49AgEGCCqBHM9VAYItBHkwdwIBAQQgaOxhL7Oj8kLi8zpgXaGJIyfBOjxzqVf68ITblLXsYIOgCgYIKoEcz1UBgi2hRANCAATjyRdmnS4msSglH4Vv9QdLyC7Bl1Em8myRlzVqKmU9+pSYIPAqv8F4sIn9eYz9XHObW1aIcH4uqHeK6TYtSoQj\n" +
+//                            "\n",
 //                    jsonObject);
 //            String send = httpProxyClient.send(channelRequest.toString(), "http://49.233.178.183/e/channel/dataReplay", false);
 //            System.out.println(send);
