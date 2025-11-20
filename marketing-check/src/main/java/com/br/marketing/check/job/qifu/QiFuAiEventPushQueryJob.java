@@ -1,21 +1,14 @@
 package com.br.marketing.check.job.qifu;
 
 
-import com.alibaba.fastjson2.JSONObject;
 import com.br.marketing.check.service.qifu.QiFuAiEventPushService;
-import com.br.marketing.entity.BQifuUploadDataOriginal;
-import com.br.marketing.entity.DrsCustomizeUploadData;
-import com.br.marketing.entity.EventPushData;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @ClassName QiFuAiEventPushCleanJob
@@ -32,47 +25,11 @@ public class QiFuAiEventPushQueryJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
-
-        //查找未同步的事件推送数据sync_status = 0
-        List<DrsCustomizeUploadData> drsCustomizeUploadDataList = qiFuAiEventPushService.getDrsCustomizeUploadDataBySyncStatus(0);
-        if (CollectionUtils.isEmpty(drsCustomizeUploadDataList)) {
-            logger.warn("不存在未处理的事件推送数据");
-        } else {
-            List<BQifuUploadDataOriginal> uploadDataOriginalList = assembleRealTimeUploadDataOriginal(drsCustomizeUploadDataList);
-            qiFuAiEventPushService.insertRealTimeData(uploadDataOriginalList);
-        }
-
-    }
-
-    public List<BQifuUploadDataOriginal> assembleRealTimeUploadDataOriginal(List<DrsCustomizeUploadData> drsCustomizeUploadDataList) {
-        //解析事件推送接口原始数据
-        List<BQifuUploadDataOriginal> resultList = new ArrayList<>();
-        for (DrsCustomizeUploadData drsCustomizeUploadData : drsCustomizeUploadDataList) {
-
-            JSONObject jsonObject = JSONObject.parseObject(drsCustomizeUploadData.getRequestJsonData());
-            List<EventPushData> eventPushDataList = jsonObject.getJSONArray("eventList").toJavaList(EventPushData.class);
-
-            if (eventPushDataList != null && !CollectionUtils.isEmpty(eventPushDataList)) {
-                for (EventPushData eventPushData : eventPushDataList) {
-                    String serialNo = eventPushData.getSerialNo();
-
-                    //根据serialNo查询明细表
-                    List<BQifuUploadDataOriginal> uploadDataOriginalList = qiFuAiEventPushService.getQiFuUploadDataOriginalBySerialNo(serialNo);
-                    if (!CollectionUtils.isEmpty(uploadDataOriginalList)) {
-                        BQifuUploadDataOriginal bqifuUploadDataOriginal = uploadDataOriginalList.get(0);
-                        bqifuUploadDataOriginal.setEventType(eventPushData.getEventType());
-                        bqifuUploadDataOriginal.setSerialNo(serialNo);
-                        bqifuUploadDataOriginal.setTemplateNo(eventPushData.getTemplateNo());
-                        bqifuUploadDataOriginal.setFlowNo(eventPushData.getFlowNo());
-                        resultList.add(bqifuUploadDataOriginal);
-                    }
-                }
-            }
-            //更新上传原始表的sync_status = 1
-            qiFuAiEventPushService.updateSyncStatusById(String.valueOf(drsCustomizeUploadData.getId()), 1);
-        }
-        qiFuAiEventPushService.queryCallMessage(resultList);
-        return resultList;
+        logger.warn("奇富ai事件推送实时数据查询开始");
+        long start = System.currentTimeMillis();
+        qiFuAiEventPushService.assembleRealTimeUploadDataOriginal();
+        long end = System.currentTimeMillis();
+        logger.warn("奇富ai事件推送实时数据查询耗时：{}", (end - start));
     }
 }
 
