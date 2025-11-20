@@ -5,8 +5,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.Constants;
+import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.tccpa.TcCpDataCleanTaskDTO;
 import com.br.marketing.dto.tccpa.TcCpDataPackageGenDTO;
+import com.br.marketing.dto.tccpa.TcyrCpaCollidingDataPackageVO;
 import com.br.marketing.entity.TcyrCpaCollidingDataCleanTask;
 import com.br.marketing.entity.TcyrCpaCollidingDataCleanTaskExample;
 import com.br.marketing.entity.TcyrCpaCollidingDataPackage;
@@ -16,11 +18,17 @@ import com.br.marketing.mapper.TcyrCpaCollidingDataCleanTaskMapper;
 import com.br.marketing.mapper.TcyrCpaCollidingDataPackageMapper;
 import com.br.marketing.service.tccpa.TcCpaDataPackageService;
 import com.br.marketing.util.EsConditionTransferSqlUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.List;
+import java.util.Objects;
 
 @Service
 @Slf4j
@@ -51,6 +59,28 @@ public class TcCpaDataPackageServiceImpl implements TcCpaDataPackageService {
         dataPackage.setBatchNumbers(String.join(",", dto.getBatchNumberList()));
         dataPackage.setConditions(EsConditionTransferSqlUtil.jsonTransferSql(conditionJson, ""));
         tcyrCpaCollidingDataPackageMapper.insertSelective(dataPackage);
+        return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    @Override
+    public PageResultReturn<TcyrCpaCollidingDataPackage> page(int page, int pageSize, String packageName, Integer status) {
+        TcyrCpaCollidingDataPackageExample example = new TcyrCpaCollidingDataPackageExample();
+        if(StringUtils.isNotEmpty(packageName)) {
+            example.createCriteria().andPackageNameLike("%" + packageName + "%");
+        }
+        if(Objects.nonNull(status)) {
+            example.createCriteria().andEnabledEqualTo(status);
+        }
+        List<TcyrCpaCollidingDataPackage> packages = tcyrCpaCollidingDataPackageMapper.selectByExample(example);
+        return PageResultReturn.setPageResult(packages, page, pageSize);
+    }
+
+    @Override
+    public Result update(TcyrCpaCollidingDataPackageVO packageVO) {
+        TcyrCpaCollidingDataPackage dataPackage = new TcyrCpaCollidingDataPackage();
+        BeanUtils.copyProperties(packageVO, dataPackage);
+
+        tcyrCpaCollidingDataPackageMapper.updateByPrimaryKey(dataPackage);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
