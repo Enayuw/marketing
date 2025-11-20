@@ -9,7 +9,7 @@
     <result column="task_name" property="taskName" jdbcType="VARCHAR" />
     <result column="task_id" property="taskId" jdbcType="INTEGER" />
     <result column="cust_num" property="custNum" jdbcType="VARCHAR" />
-    <result column="detail" property="detail" jdbcType="OTHER" />
+    <result column="detail" property="detail" jdbcType="VARCHAR" />
     <result column="session_id" property="sessionId" jdbcType="VARCHAR" />
     <result column="call_start_time" property="callStartTime" jdbcType="BIGINT" />
     <result column="call_connect_time" property="callConnectTime" jdbcType="BIGINT" />
@@ -22,11 +22,6 @@
     <result column="intention_grade" property="intentionGrade" jdbcType="VARCHAR" />
     <result column="tag_list" property="tagList" jdbcType="VARCHAR" />
     <result column="reserve_field1" property="reserveField1" jdbcType="VARCHAR" />
-    <result column="call_time" property="callTime" jdbcType="VARCHAR" />
-    <result column="cell" property="cell" jdbcType="VARCHAR" />
-    <result column="call_time_s" property="callTimeS" jdbcType="VARCHAR" />
-    <result column="drop_type" property="dropType" jdbcType="INTEGER" />
-    <result column="return_result" property="returnResult" jdbcType="VARCHAR" />
     <result column="version" property="version" jdbcType="VARCHAR" />
     <result column="status" property="status" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
@@ -93,8 +88,8 @@
   <sql id="Base_Column_List" >
     id, cid, api_code, call_back_type, task_name, task_id, cust_num, detail, session_id, 
     call_start_time, call_connect_time, call_end_time, dialog_turn, call_status, is_connect, 
-    call_dialog, recording_path, intention_grade, tag_list, reserve_field1, call_time, 
-    cell, call_time_s, drop_type, return_result, version, `status`, create_time, update_time
+    call_dialog, recording_path, intention_grade, tag_list, reserve_field1, version, 
+    `status`, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.CallRecordingExample" >
     select
@@ -136,20 +131,16 @@
       call_connect_time, call_end_time, dialog_turn, 
       call_status, is_connect, call_dialog, 
       recording_path, intention_grade, tag_list, 
-      reserve_field1, call_time, cell, 
-      call_time_s, drop_type, return_result, 
-      version, `status`, create_time, 
-      update_time)
+      reserve_field1, version, `status`, 
+      create_time, update_time)
     values (#{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{callBackType,jdbcType=INTEGER}, 
       #{taskName,jdbcType=VARCHAR}, #{taskId,jdbcType=INTEGER}, #{custNum,jdbcType=VARCHAR}, 
-      #{detail,jdbcType=OTHER}, #{sessionId,jdbcType=VARCHAR}, #{callStartTime,jdbcType=BIGINT}, 
+      #{detail,jdbcType=VARCHAR}, #{sessionId,jdbcType=VARCHAR}, #{callStartTime,jdbcType=BIGINT}, 
       #{callConnectTime,jdbcType=BIGINT}, #{callEndTime,jdbcType=BIGINT}, #{dialogTurn,jdbcType=INTEGER}, 
       #{callStatus,jdbcType=INTEGER}, #{isConnect,jdbcType=INTEGER}, #{callDialog,jdbcType=VARCHAR}, 
       #{recordingPath,jdbcType=VARCHAR}, #{intentionGrade,jdbcType=VARCHAR}, #{tagList,jdbcType=VARCHAR}, 
-      #{reserveField1,jdbcType=VARCHAR}, #{callTime,jdbcType=VARCHAR}, #{cell,jdbcType=VARCHAR}, 
-      #{callTimeS,jdbcType=VARCHAR}, #{dropType,jdbcType=INTEGER}, #{returnResult,jdbcType=VARCHAR}, 
-      #{version,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP})
+      #{reserveField1,jdbcType=VARCHAR}, #{version,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.CallRecording" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -214,21 +205,6 @@
       <if test="reserveField1 != null" >
         reserve_field1,
       </if>
-      <if test="callTime != null" >
-        call_time,
-      </if>
-      <if test="cell != null" >
-        cell,
-      </if>
-      <if test="callTimeS != null" >
-        call_time_s,
-      </if>
-      <if test="dropType != null" >
-        drop_type,
-      </if>
-      <if test="returnResult != null" >
-        return_result,
-      </if>
       <if test="version != null" >
         version,
       </if>
@@ -262,7 +238,7 @@
         #{custNum,jdbcType=VARCHAR},
       </if>
       <if test="detail != null" >
-        #{detail,jdbcType=OTHER},
+        #{detail,jdbcType=VARCHAR},
       </if>
       <if test="sessionId != null" >
         #{sessionId,jdbcType=VARCHAR},
@@ -299,21 +275,6 @@
       </if>
       <if test="reserveField1 != null" >
         #{reserveField1,jdbcType=VARCHAR},
-      </if>
-      <if test="callTime != null" >
-        #{callTime,jdbcType=VARCHAR},
-      </if>
-      <if test="cell != null" >
-        #{cell,jdbcType=VARCHAR},
-      </if>
-      <if test="callTimeS != null" >
-        #{callTimeS,jdbcType=VARCHAR},
-      </if>
-      <if test="dropType != null" >
-        #{dropType,jdbcType=INTEGER},
-      </if>
-      <if test="returnResult != null" >
-        #{returnResult,jdbcType=VARCHAR},
       </if>
       <if test="version != null" >
         #{version,jdbcType=VARCHAR},
@@ -360,7 +321,7 @@
         cust_num = #{record.custNum,jdbcType=VARCHAR},
       </if>
       <if test="record.detail != null" >
-        detail = #{record.detail,jdbcType=OTHER},
+        detail = #{record.detail,jdbcType=VARCHAR},
       </if>
       <if test="record.sessionId != null" >
         session_id = #{record.sessionId,jdbcType=VARCHAR},
@@ -398,21 +359,6 @@
       <if test="record.reserveField1 != null" >
         reserve_field1 = #{record.reserveField1,jdbcType=VARCHAR},
       </if>
-      <if test="record.callTime != null" >
-        call_time = #{record.callTime,jdbcType=VARCHAR},
-      </if>
-      <if test="record.cell != null" >
-        cell = #{record.cell,jdbcType=VARCHAR},
-      </if>
-      <if test="record.callTimeS != null" >
-        call_time_s = #{record.callTimeS,jdbcType=VARCHAR},
-      </if>
-      <if test="record.dropType != null" >
-        drop_type = #{record.dropType,jdbcType=INTEGER},
-      </if>
-      <if test="record.returnResult != null" >
-        return_result = #{record.returnResult,jdbcType=VARCHAR},
-      </if>
       <if test="record.version != null" >
         version = #{record.version,jdbcType=VARCHAR},
       </if>
@@ -439,7 +385,7 @@
       task_name = #{record.taskName,jdbcType=VARCHAR},
       task_id = #{record.taskId,jdbcType=INTEGER},
       cust_num = #{record.custNum,jdbcType=VARCHAR},
-      detail = #{record.detail,jdbcType=OTHER},
+      detail = #{record.detail,jdbcType=VARCHAR},
       session_id = #{record.sessionId,jdbcType=VARCHAR},
       call_start_time = #{record.callStartTime,jdbcType=BIGINT},
       call_connect_time = #{record.callConnectTime,jdbcType=BIGINT},
@@ -452,11 +398,6 @@
       intention_grade = #{record.intentionGrade,jdbcType=VARCHAR},
       tag_list = #{record.tagList,jdbcType=VARCHAR},
       reserve_field1 = #{record.reserveField1,jdbcType=VARCHAR},
-      call_time = #{record.callTime,jdbcType=VARCHAR},
-      cell = #{record.cell,jdbcType=VARCHAR},
-      call_time_s = #{record.callTimeS,jdbcType=VARCHAR},
-      drop_type = #{record.dropType,jdbcType=INTEGER},
-      return_result = #{record.returnResult,jdbcType=VARCHAR},
       version = #{record.version,jdbcType=VARCHAR},
       `status` = #{record.status,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
@@ -487,7 +428,7 @@
         cust_num = #{custNum,jdbcType=VARCHAR},
       </if>
       <if test="detail != null" >
-        detail = #{detail,jdbcType=OTHER},
+        detail = #{detail,jdbcType=VARCHAR},
       </if>
       <if test="sessionId != null" >
         session_id = #{sessionId,jdbcType=VARCHAR},
@@ -525,21 +466,6 @@
       <if test="reserveField1 != null" >
         reserve_field1 = #{reserveField1,jdbcType=VARCHAR},
       </if>
-      <if test="callTime != null" >
-        call_time = #{callTime,jdbcType=VARCHAR},
-      </if>
-      <if test="cell != null" >
-        cell = #{cell,jdbcType=VARCHAR},
-      </if>
-      <if test="callTimeS != null" >
-        call_time_s = #{callTimeS,jdbcType=VARCHAR},
-      </if>
-      <if test="dropType != null" >
-        drop_type = #{dropType,jdbcType=INTEGER},
-      </if>
-      <if test="returnResult != null" >
-        return_result = #{returnResult,jdbcType=VARCHAR},
-      </if>
       <if test="version != null" >
         version = #{version,jdbcType=VARCHAR},
       </if>
@@ -563,7 +489,7 @@
       task_name = #{taskName,jdbcType=VARCHAR},
       task_id = #{taskId,jdbcType=INTEGER},
       cust_num = #{custNum,jdbcType=VARCHAR},
-      detail = #{detail,jdbcType=OTHER},
+      detail = #{detail,jdbcType=VARCHAR},
       session_id = #{sessionId,jdbcType=VARCHAR},
       call_start_time = #{callStartTime,jdbcType=BIGINT},
       call_connect_time = #{callConnectTime,jdbcType=BIGINT},
@@ -576,11 +502,6 @@
       intention_grade = #{intentionGrade,jdbcType=VARCHAR},
       tag_list = #{tagList,jdbcType=VARCHAR},
       reserve_field1 = #{reserveField1,jdbcType=VARCHAR},
-      call_time = #{callTime,jdbcType=VARCHAR},
-      cell = #{cell,jdbcType=VARCHAR},
-      call_time_s = #{callTimeS,jdbcType=VARCHAR},
-      drop_type = #{dropType,jdbcType=INTEGER},
-      return_result = #{returnResult,jdbcType=VARCHAR},
       version = #{version,jdbcType=VARCHAR},
       `status` = #{status,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},

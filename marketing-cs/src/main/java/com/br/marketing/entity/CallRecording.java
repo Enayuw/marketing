@@ -41,7 +41,7 @@ public class CallRecording {
     /**
      * 拨打明细详情
      */
-    private Object detail;
+    private String detail;
 
     /**
      * 通话记录编号
@@ -102,31 +102,6 @@ public class CallRecording {
      * 预留字段1
      */
     private String reserveField1;
-
-    /**
-     * 计费分钟数
-     */
-    private String callTime;
-
-    /**
-     * 用户手机号
-     */
-    private String cell;
-
-    /**
-     * 通话时长(秒)
-     */
-    private String callTimeS;
-
-    /**
-     * 挂断方式(0:机器人挂断;1:客户挂断)
-     */
-    private Integer dropType;
-
-    /**
-     * 大模型总结
-     */
-    private String returnResult;
 
     /**
      * 版本号
@@ -204,12 +179,12 @@ public class CallRecording {
         this.custNum = custNum == null ? null : custNum.trim();
     }
 
-    public Object getDetail() {
+    public String getDetail() {
         return detail;
     }
 
-    public void setDetail(Object detail) {
-        this.detail = detail;
+    public void setDetail(String detail) {
+        this.detail = detail == null ? null : detail.trim();
     }
 
     public String getSessionId() {
@@ -306,46 +281,6 @@ public class CallRecording {
 
     public void setReserveField1(String reserveField1) {
         this.reserveField1 = reserveField1 == null ? null : reserveField1.trim();
-    }
-
-    public String getCallTime() {
-        return callTime;
-    }
-
-    public void setCallTime(String callTime) {
-        this.callTime = callTime == null ? null : callTime.trim();
-    }
-
-    public String getCell() {
-        return cell;
-    }
-
-    public void setCell(String cell) {
-        this.cell = cell == null ? null : cell.trim();
-    }
-
-    public String getCallTimeS() {
-        return callTimeS;
-    }
-
-    public void setCallTimeS(String callTimeS) {
-        this.callTimeS = callTimeS == null ? null : callTimeS.trim();
-    }
-
-    public Integer getDropType() {
-        return dropType;
-    }
-
-    public void setDropType(Integer dropType) {
-        this.dropType = dropType;
-    }
-
-    public String getReturnResult() {
-        return returnResult;
-    }
-
-    public void setReturnResult(String returnResult) {
-        this.returnResult = returnResult == null ? null : returnResult.trim();
     }
 
     public String getVersion() {

@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.CallRecordingMapper" >
+
+    <!-- 插入所有字段到记录表（动态SQL） -->
+    <insert id="insertAllFields">
+        ${insertSql}
+    </insert>
+
 </mapper>
