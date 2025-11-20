@@ -12,6 +12,7 @@ import com.br.marketing.common.bean.ScoreLable;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.PushCustomerDTO;
 import com.br.marketing.entity.CustomerInfoPushMain;
 import com.br.marketing.entity.ErrorMark;
@@ -495,5 +496,30 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
         errorMark.setCreateTime(new Date());
         errorMark.setUpdateTime(new Date());
         errorMarkMapper.insertSelective(errorMark);
+    }
+
+    @Override
+    protected RuleCenterPushContext setThreadPoolNum(RuleCenterPushContext pushContext) {
+        Integer getEsNum = marketingCommonConfig.getScoreByEsThreadNum() != null
+                && marketingCommonConfig.getScoreByEsThreadNum() > 0
+                ? marketingCommonConfig.getScoreByEsThreadNum()
+                : 10;
+
+        Integer getJcNum = marketingCommonConfig.getScoreToJcThreadNum() != null
+                && marketingCommonConfig.getScoreToJcThreadNum() > 0
+                ? marketingCommonConfig.getScoreToJcThreadNum()
+                : 2;
+        ThreadPoolExecutor actionEs = BrExecutors.getThreadPool(getEsNum, getEsNum, 50);
+        ThreadPoolExecutor pushJc = BrExecutors.getThreadPool(getJcNum, getJcNum, 50);
+        pushContext.setEsThreadPool(actionEs);
+        pushContext.setPushThreadPool(pushJc);
+        return pushContext;
+    }
+
+    @Override
+    protected RuleCenterPushContext assemblePushContext(CustomerInfoPushMain customerInfoPushMain) {
+        RuleCenterPushContext pushContext = super.assemblePushContext(customerInfoPushMain);
+        pushContext.setPartitionCount(1);
+        return pushContext;
     }
 }

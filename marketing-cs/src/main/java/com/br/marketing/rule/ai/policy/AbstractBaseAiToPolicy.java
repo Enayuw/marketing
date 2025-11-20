@@ -243,6 +243,11 @@ public abstract class AbstractBaseAiToPolicy implements AiToPolicyProcessor {
 
         // 添加用户姓名
         addUserName(jsonObject, syncUser);
+
+        //剔除重推次数，重复次数字段
+        jsonObject.remove("rePeatNum");
+        jsonObject.remove("rePushNum");
+
     }
 
     /**

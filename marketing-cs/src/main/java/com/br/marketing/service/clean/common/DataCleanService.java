@@ -7,6 +7,7 @@ import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.entity.MarketingCleanDataFile;
 import com.br.marketing.entity.MarketingDataCleanGeneralConfig;
 import com.br.marketing.entity.MarketingDataCleanGeneralRuleConfig;
+import com.br.marketing.entity.MarketingSyncUser;
 
 import java.util.Collection;
 import java.util.List;
@@ -38,5 +39,9 @@ public interface DataCleanService {
                             MarketingCleanDataFile marketingCleanDataFile,Integer actualNum);
 
     List<JSONObject> fileDataAssemble(List<String> batchLines, String[] headers, String fileName, int startIndex);
+
+    void uploadDetailCleanHandler(JSONObject jsonObject, Collection<MarketingDataCleanGeneralRuleConfig> ruleConfigList,
+                                  MarketingSyncUser marketingSyncUser);
+
 
 }

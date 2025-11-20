@@ -2105,6 +2105,76 @@ public class CustomerInfoPushMainExample {
             addCriterion("label_name not between", value1, value2, "labelName");
             return (Criteria) this;
         }
+
+        public Criteria andUploadReportIdsIsNull() {
+            addCriterion("upload_report_ids is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andUploadReportIdsIsNotNull() {
+            addCriterion("upload_report_ids is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andUploadReportIdsEqualTo(String value) {
+            addCriterion("upload_report_ids =", value, "uploadReportIds");
+            return (Criteria) this;
+        }
+
+        public Criteria andUploadReportIdsNotEqualTo(String value) {
+            addCriterion("upload_report_ids <>", value, "uploadReportIds");
+            return (Criteria) this;
+        }
+
+        public Criteria andUploadReportIdsGreaterThan(String value) {
+            addCriterion("upload_report_ids >", value, "uploadReportIds");
+            return (Criteria) this;
+        }
+
+        public Criteria andUploadReportIdsGreaterThanOrEqualTo(String value) {
+            addCriterion("upload_report_ids >=", value, "uploadReportIds");
+            return (Criteria) this;
+        }
+
+        public Criteria andUploadReportIdsLessThan(String value) {
+            addCriterion("upload_report_ids <", value, "uploadReportIds");
+            return (Criteria) this;
+        }
+
+        public Criteria andUploadReportIdsLessThanOrEqualTo(String value) {
+            addCriterion("upload_report_ids <=", value, "uploadReportIds");
+            return (Criteria) this;
+        }
+
+        public Criteria andUploadReportIdsLike(String value) {
+            addCriterion("upload_report_ids like", value, "uploadReportIds");
+            return (Criteria) this;
+        }
+
+        public Criteria andUploadReportIdsNotLike(String value) {
+            addCriterion("upload_report_ids not like", value, "uploadReportIds");
+            return (Criteria) this;
+        }
+
+        public Criteria andUploadReportIdsIn(List<String> values) {
+            addCriterion("upload_report_ids in", values, "uploadReportIds");
+            return (Criteria) this;
+        }
+
+        public Criteria andUploadReportIdsNotIn(List<String> values) {
+            addCriterion("upload_report_ids not in", values, "uploadReportIds");
+            return (Criteria) this;
+        }
+
+        public Criteria andUploadReportIdsBetween(String value1, String value2) {
+            addCriterion("upload_report_ids between", value1, value2, "uploadReportIds");
+            return (Criteria) this;
+        }
+
+        public Criteria andUploadReportIdsNotBetween(String value1, String value2) {
+            addCriterion("upload_report_ids not between", value1, value2, "uploadReportIds");
+            return (Criteria) this;
+        }
     }
 
     /**

@@ -840,6 +840,39 @@ public class DataCleanServiceImpl implements DataCleanService {
         }
         log.warn( "文件清洗处理线程数core={}，max={}", pool.getCorePoolSize(), pool.getMaximumPoolSize());
     }
+
+    @Override
+    public void uploadDetailCleanHandler(JSONObject jsonObject, Collection<MarketingDataCleanGeneralRuleConfig> ruleConfigList,
+                                         MarketingSyncUser marketingSyncUser) {
+        ruleConfigList.forEach(ruleConfig -> {
+            //数据清洗
+            Object result = ruleCleaningService.executeCleaningRule(jsonObject, ruleConfig);
+            switch (ruleConfig.getMappingField()) {
+                case "name":
+                    marketingSyncUser.setName((String) result);
+                    break;
+                case "cell":
+                    marketingSyncUser.setCell((String) result);
+                    break;
+                case "id":
+                    marketingSyncUser.setIdCard((String) result);
+                    break;
+                case "custNum":
+                    marketingSyncUser.setCustNum((String) result);
+                    break;
+                case "operateType":
+                    marketingSyncUser.setOperateType((String) result);
+                    break;
+                default:
+                    marketingSyncUser.setReserveField1(setExtendField(marketingSyncUser.getReserveField1(), ruleConfig.getMappingField(), result));
+
+            }
+        });
+
+    }
+
+
+
 }
 
 
