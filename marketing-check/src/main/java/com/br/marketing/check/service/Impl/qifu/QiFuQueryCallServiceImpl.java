@@ -1,8 +1,10 @@
 package com.br.marketing.check.service.Impl.qifu;
 
 import com.alibaba.fastjson.JSON;
+import com.br.common.log.AlertLog;
 import com.br.marketing.check.service.qifu.QiFuQueryCallService;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.client.qifu.ResponseData;
 import com.br.marketing.client.qifu.callrealtime.CallRealTimeDTO;
 import com.br.marketing.client.qifu.callrealtime.QryCallRealTimeReq;
@@ -99,7 +101,8 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
                 try {
                     processUserTypeData(finalUserType, finalTodayDate);
                 } catch (Exception e) {
-                    log.error("处理userType={}的数据失败，error: {}", finalUserType, e.getMessage(), e);
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode()
+                            , "奇富360ai查询外呼信息异常[userType: " + finalUserType + "]" + e.getMessage()), e);
                 }
             });
         }
@@ -165,7 +168,8 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
 
             return false;
         } catch (Exception e) {
-            log.error("检查userType={}的Redis开关失败，error: {}", userType, e.getMessage(), e);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode()
+                    , "奇富360ai查询外呼信息异常[检查Redis开关失败, userType: " + userType + "]" + e.getMessage()), e);
             return false;
         }
     }
@@ -201,7 +205,8 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
             log.warn("userType={} 今天 {} 有卷比例计算：总数={}，有卷数={}，比例={}", userType, todayDate, totalCount, couponCount, ratio);
             return ratio;
         } catch (Exception e) {
-            log.error("计算userType={}今天 {} 的有卷比例失败，error: {}", userType, todayDate, e.getMessage(), e);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode()
+                    , "奇富360ai查询外呼信息异常[计算有卷比例失败, userType: " + userType + ", todayDate: " + todayDate + "]" + e.getMessage()), e);
             return 0.0;
         }
     }
@@ -221,7 +226,8 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
             redisChgService.setex(redisKey, String.valueOf(ratio), REDIS_EXPIRE_SECONDS);
             log.warn("userType={} 今天 {} 更新有卷比例={}到Redis", userType, todayDate, ratio);
         } catch (Exception e) {
-            log.error("更新userType={}今天 {} 的有卷比例到Redis失败，error: {}", userType, todayDate, e.getMessage(), e);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode()
+                    , "奇富360ai查询外呼信息异常[更新有卷比例到Redis失败, userType: " + userType + ", todayDate: " + todayDate + "]" + e.getMessage()), e);
         }
     }
 
@@ -387,7 +393,8 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
             }
             log.warn("查询外呼信息完成");
         } catch (InterruptedException e) {
-            log.error("查询外呼信息线程池关闭异常", e);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode()
+                    , "奇富360ai查询外呼信息线程池关闭异常"), e);
             threadPool.shutdownNow();
             Thread.currentThread().interrupt();
         }
