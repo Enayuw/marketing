@@ -1405,6 +1405,76 @@ public class CallRecordingExample {
             return (Criteria) this;
         }
 
+        public Criteria andReturnResultIsNull() {
+            addCriterion("return_result is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnResultIsNotNull() {
+            addCriterion("return_result is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnResultEqualTo(String value) {
+            addCriterion("return_result =", value, "returnResult");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnResultNotEqualTo(String value) {
+            addCriterion("return_result <>", value, "returnResult");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnResultGreaterThan(String value) {
+            addCriterion("return_result >", value, "returnResult");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnResultGreaterThanOrEqualTo(String value) {
+            addCriterion("return_result >=", value, "returnResult");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnResultLessThan(String value) {
+            addCriterion("return_result <", value, "returnResult");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnResultLessThanOrEqualTo(String value) {
+            addCriterion("return_result <=", value, "returnResult");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnResultLike(String value) {
+            addCriterion("return_result like", value, "returnResult");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnResultNotLike(String value) {
+            addCriterion("return_result not like", value, "returnResult");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnResultIn(List<String> values) {
+            addCriterion("return_result in", values, "returnResult");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnResultNotIn(List<String> values) {
+            addCriterion("return_result not in", values, "returnResult");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnResultBetween(String value1, String value2) {
+            addCriterion("return_result between", value1, value2, "returnResult");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnResultNotBetween(String value1, String value2) {
+            addCriterion("return_result not between", value1, value2, "returnResult");
+            return (Criteria) this;
+        }
+
         public Criteria andVersionIsNull() {
             addCriterion("version is null");
             return (Criteria) this;
