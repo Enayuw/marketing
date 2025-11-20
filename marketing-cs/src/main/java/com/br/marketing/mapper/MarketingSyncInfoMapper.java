@@ -302,4 +302,12 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
 
     List<String> getBatchNameByUsertikv_(@Param("apiCode") String apiCode,@Param("syncReportList") List<MarketingSyncReport> syncReportList,
                                                               @Param("filterCondition") String filterCondition);
+    /**
+     * 根据apiCode和requestBatch查询MarketingSyncInfo
+     * @param apiCode
+     * @param requestBatch
+     * @return
+     */
+    MarketingSyncInfo getByApiCodeAndRequestBatch(@Param("apiCode") String apiCode, @Param("requestBatch") String requestBatch);
+
 }
