@@ -61,7 +61,7 @@ public class PushInfoListVO {
     @Schema(description = "推送类型")
     private Integer pushTarget;
 
-    @ApiModelProperty(value = "上传数据记录id:多个,分割")
+    @Schema(description = "上传数据记录id:多个,分割")
     private String uploadReportIds;
 
     public String getmStatusDesc() {
