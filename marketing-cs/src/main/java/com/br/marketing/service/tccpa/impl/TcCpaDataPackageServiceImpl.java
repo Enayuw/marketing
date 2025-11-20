@@ -134,10 +134,16 @@ public class TcCpaDataPackageServiceImpl implements TcCpaDataPackageService {
     public Result genCleanTask() {
         TcyrCpaCollidingDataCleanTaskExample taskExample = new TcyrCpaCollidingDataCleanTaskExample();
         taskExample.createCriteria().andCleanStatusIn(Lists.newArrayList(DataCleanStatusEnum.READY.getCode(),
-                DataCleanStatusEnum.RUNNING.getCode()));
+                DataCleanStatusEnum.RUNNING.getCode())).andIsDelNotEqualTo(Constants.STATUS_DELETE);
         if (tcyrCpaCollidingDataCleanTaskMapper.countByExample(taskExample) > 0) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("存在清洗中或待清洗的任务，禁止新增清洗任务");
         }
+        TcyrCpaCollidingDataPackageExample dataPackageExample = new TcyrCpaCollidingDataPackageExample();
+        dataPackageExample.createCriteria().andIsDelEqualTo(Constants.STATUS_START).andPriorityIsNull();
+        if(tcyrCpaCollidingDataPackageMapper.countByExample(dataPackageExample) > 0) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("存在未配置优先级的数据包，不能执行清洗操作");
+        }
+
         TcyrCpaCollidingDataCleanTask cleanTask = new TcyrCpaCollidingDataCleanTask();
         cleanTask.setCleanStatus(DataCleanStatusEnum.READY.getCode());
         tcyrCpaCollidingDataCleanTaskMapper.insertSelective(cleanTask);
