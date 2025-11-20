@@ -220,6 +220,21 @@ public class LineSmsAccountController {
     }
 
 
+    @ApiOperation(value = "线路对账配置删除")
+    @PatchMapping("/deleteLineAccount")
+    public ApiResult deleteLineAccount(@RequestParam String groupIdStr) {
+        try {
+            if (StringUtils.isNotEmpty(groupIdStr)) {
+                Long groupId = Long.parseLong(groupIdStr);
+                return new ApiResult().fromResult(lineSmsAccountNormalService.deleteLineAccount(groupId), CODE_1);
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
+        }
+        return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
+    }
+
     @ApiOperation(value = "线路对账配置变更查询")
     @GetMapping("/getLineAccountLogs")
     public ApiResult getLineAccountLogs(@RequestParam(defaultValue = "1") Integer current,

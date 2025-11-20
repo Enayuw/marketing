@@ -211,7 +211,11 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue());
     }
 
-
+    @Override
+    public Result deleteLineAccount(Long groupId) {
+        lineSmsAccountDataNormalService.deleteLineAccount(groupId);
+        return new Result<String>().setCode(ResultCode.SUCCESS.getValue());
+    }
 
 
     /**

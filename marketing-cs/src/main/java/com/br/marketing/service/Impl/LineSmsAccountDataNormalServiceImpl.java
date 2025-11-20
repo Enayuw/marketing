@@ -186,6 +186,15 @@ public class LineSmsAccountDataNormalServiceImpl implements LineSmsAccountDataNo
         lineAccountLogNormalMapper.insertSelective(newLogNormal);
     }
 
+    @Override
+    public void deleteLineAccount(Long groupId) {
+        LineAccountDetailNormalExample lineAccountDetailNormalExample = new LineAccountDetailNormalExample();
+        lineAccountDetailNormalExample.createCriteria().andGroupIdEqualTo(groupId);
+        LineAccountDetailNormal updateAccountDetailNormal = new LineAccountDetailNormal();
+        updateAccountDetailNormal.setIsDelete(ISDELETED_DEL);
+        lineAccountDetailNormalMapper.updateByExampleSelective(updateAccountDetailNormal, lineAccountDetailNormalExample);
+    }
+
     private void userRecord(LineAccountLogNormal logItem) {
         MarketingUserDetail userDetail = ThreadContextInfo.getUser();
         if (userDetail != null) {
