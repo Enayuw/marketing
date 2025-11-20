@@ -3,10 +3,14 @@ package com.br.marketing.innerapi.controller;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.dto.tccpa.TcCpDataCleanTaskDTO;
 import com.br.marketing.dto.tccpa.TcCpDataPackageGenDTO;
+import com.br.marketing.dto.tccpa.TcCpDataPackageVO;
 import com.br.marketing.service.tccpa.TcCpaDataPackageService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 
@@ -15,7 +19,7 @@ import javax.annotation.Resource;
  * 营销平台筛选接口
  */
 @RestController
-@RequestMapping("/tcCpa")
+@RequestMapping("/tcCpa/customize/dataPackage")
 @Api(value = "TcCpaCustomizeController")
 public class TcCpaCustomizeController {
 
@@ -37,14 +41,13 @@ public class TcCpaCustomizeController {
 
     /**
      * 同程CPA跑分文件数据包删除
-     * @param packageName 数据包名称
-     * @param status 状态 0:禁用 1:启用
+     * @param packageVO 数据包
      * @return
      */
     @ApiOperation(value = "同程CPA跑分文件数据包启用禁用", notes = "同程CPA跑分文件数据包启用禁用", httpMethod = "POST")
-    @GetMapping("/enable")
-    public ApiResult delete(@RequestParam("packageName") String packageName, @RequestParam("status") Integer status) {
-        return new ApiResult().fromResult(tcCpaDataPackageService.enable(packageName, status), CODE_1);
+    @PostMapping("/enable")
+    public ApiResult enable(@RequestBody TcCpDataPackageVO packageVO) {
+        return new ApiResult().fromResult(tcCpaDataPackageService.enable(packageVO.getPackageName(), packageVO.getStatus()), CODE_1);
     }
 
     /**
