@@ -102,7 +102,7 @@ public class TcCpaDataPackageServiceImpl implements TcCpaDataPackageService {
     }
 
     @Override
-    public Result delete(TcCpDataPackageGenDTO dto) {
+    public Result delete(Long id) {
         TcyrCpaCollidingDataCleanTaskExample taskExample = new TcyrCpaCollidingDataCleanTaskExample();
         taskExample.createCriteria().andCleanStatusIn(Lists.newArrayList(DataCleanStatusEnum.READY.getCode(),
                 DataCleanStatusEnum.RUNNING.getCode()));
@@ -110,7 +110,7 @@ public class TcCpaDataPackageServiceImpl implements TcCpaDataPackageService {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("存在清洗中或待清洗的任务，禁止删除数据包");
         }
         TcyrCpaCollidingDataPackageExample dataPackageExample = new TcyrCpaCollidingDataPackageExample();
-        dataPackageExample.createCriteria().andPackageNameEqualTo(dto.getPackageName());
+        dataPackageExample.createCriteria().andIdEqualTo(id);
         TcyrCpaCollidingDataPackage dataPackage = new TcyrCpaCollidingDataPackage();
         dataPackage.setIsDel(Constants.STATUS_DELETE);
         tcyrCpaCollidingDataPackageMapper.updateByExampleSelective(dataPackage, dataPackageExample);

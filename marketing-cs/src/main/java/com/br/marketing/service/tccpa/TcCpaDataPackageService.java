@@ -36,10 +36,10 @@ public interface TcCpaDataPackageService {
 
     /**
      * 同程数据包删除
-     * @param dto
+     * @param id
      * @return
      */
-    Result delete(TcCpDataPackageGenDTO dto);
+    Result delete(Long id);
 
     /**
      * 同程数据包清洗任务新增

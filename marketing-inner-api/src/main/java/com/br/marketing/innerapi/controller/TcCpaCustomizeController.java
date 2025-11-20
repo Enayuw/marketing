@@ -61,13 +61,12 @@ public class TcCpaCustomizeController {
 
     /**
      * 同程CPA跑分文件数据包删除
-     * @param dto
      * @return
      */
     @ApiOperation(value = "同程CPA跑分文件数据包删除", notes = "同程CPA跑分文件数据包删除", httpMethod = "POST")
-    @PostMapping("/delete")
-    public ApiResult delete(@RequestBody TcCpDataPackageGenDTO dto) {
-        return new ApiResult().fromResult(tcCpaDataPackageService.delete(dto), CODE_1);
+    @GetMapping("/delete")
+    public ApiResult delete(@RequestParam("id") Long id) {
+        return new ApiResult().fromResult(tcCpaDataPackageService.delete(id), CODE_1);
     }
 
     /**
