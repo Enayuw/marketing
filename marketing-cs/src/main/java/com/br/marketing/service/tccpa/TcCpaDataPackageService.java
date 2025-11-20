@@ -42,14 +42,6 @@ public interface TcCpaDataPackageService {
     Result delete(TcCpDataPackageGenDTO dto);
 
     /**
-     * 同程数据包 启用禁用
-     * @param packageName 数据包名称
-     * @param status 状态：1启用 0禁用
-     * @return
-     */
-    Result enable(String packageName, Integer status);
-
-    /**
      * 同程数据包清洗任务新增
      * @return
      */

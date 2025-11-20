@@ -9,11 +9,9 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.tccpa.TcCpDataCleanTaskDTO;
 import com.br.marketing.dto.tccpa.TcCpDataPackageGenDTO;
 import com.br.marketing.dto.tccpa.TcyrCpaCollidingDataPackageVO;
-import com.br.marketing.entity.TcyrCpaCollidingDataCleanTask;
-import com.br.marketing.entity.TcyrCpaCollidingDataCleanTaskExample;
-import com.br.marketing.entity.TcyrCpaCollidingDataPackage;
-import com.br.marketing.entity.TcyrCpaCollidingDataPackageExample;
+import com.br.marketing.entity.*;
 import com.br.marketing.enums.clean.DataCleanStatusEnum;
+import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.TcyrCpaCollidingDataCleanTaskMapper;
 import com.br.marketing.mapper.TcyrCpaCollidingDataPackageMapper;
 import com.br.marketing.service.tccpa.TcCpaDataPackageService;
@@ -26,7 +24,10 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -34,6 +35,9 @@ public class TcCpaDataPackageServiceImpl implements TcCpaDataPackageService {
 
     @Resource
     TcyrCpaCollidingDataPackageMapper tcyrCpaCollidingDataPackageMapper;
+
+    @Resource
+    private MarketingCustomerMapper marketingCustomerMapper;
 
     @Resource
     private TcyrCpaCollidingDataCleanTaskMapper tcyrCpaCollidingDataCleanTaskMapper;
@@ -61,7 +65,7 @@ public class TcCpaDataPackageServiceImpl implements TcCpaDataPackageService {
     }
 
     @Override
-    public PageResultReturn<TcyrCpaCollidingDataPackage> page(int page, int pageSize, String packageName, Integer status) {
+    public PageResultReturn<TcyrCpaCollidingDataPackageVO> page(int page, int pageSize, String packageName, Integer status) {
         TcyrCpaCollidingDataPackageExample example = new TcyrCpaCollidingDataPackageExample();
         if(StringUtils.isNotEmpty(packageName)) {
             example.createCriteria().andPackageNameLike("%" + packageName + "%");
@@ -70,7 +74,23 @@ public class TcCpaDataPackageServiceImpl implements TcCpaDataPackageService {
             example.createCriteria().andEnabledEqualTo(status);
         }
         List<TcyrCpaCollidingDataPackage> packages = tcyrCpaCollidingDataPackageMapper.selectByExample(example);
-        return PageResultReturn.setPageResult(packages, page, pageSize);
+        List<String> apiCodes = packages.stream().map(TcyrCpaCollidingDataPackage::getApiCode).collect(Collectors.toList());
+        MarketingCustomerExample customerExample = new MarketingCustomerExample();
+        customerExample.createCriteria().andApiCodeIn(apiCodes);
+        Map<String, MarketingCustomer> customers = marketingCustomerMapper.selectByExample(customerExample)
+                .stream().collect(Collectors.toMap(MarketingCustomer::getApiCode, customer -> customer));
+        List<TcyrCpaCollidingDataPackageVO> packageVOS = packages.stream().map(dataPackage -> {
+            TcyrCpaCollidingDataPackageVO vo = new TcyrCpaCollidingDataPackageVO();
+            BeanUtils.copyProperties(dataPackage, vo);
+
+            MarketingCustomer customer = customers.get(dataPackage.getApiCode());
+            if (customer != null) {
+                vo.setCid(customer.getCid());
+                vo.setCustomerName(customer.getShortName());
+            }
+            return vo;
+        }).collect(Collectors.toList());
+        return PageResultReturn.setPageResult(packageVOS, page, pageSize);
     }
 
     @Override
@@ -94,17 +114,6 @@ public class TcCpaDataPackageServiceImpl implements TcCpaDataPackageService {
         dataPackageExample.createCriteria().andPackageNameEqualTo(dto.getPackageName());
         TcyrCpaCollidingDataPackage dataPackage = new TcyrCpaCollidingDataPackage();
         dataPackage.setIsDel(Constants.STATUS_DELETE);
-        tcyrCpaCollidingDataPackageMapper.updateByExampleSelective(dataPackage, dataPackageExample);
-        return new Result().setCode(ResultCode.SUCCESS.getValue());
-    }
-
-    @Override
-    public Result enable(String packageName, Integer status) {
-        TcyrCpaCollidingDataPackageExample dataPackageExample = new TcyrCpaCollidingDataPackageExample();
-        dataPackageExample.createCriteria().andPackageNameEqualTo(packageName);
-
-        TcyrCpaCollidingDataPackage dataPackage = new TcyrCpaCollidingDataPackage();
-        dataPackage.setEnabled(status);
         tcyrCpaCollidingDataPackageMapper.updateByExampleSelective(dataPackage, dataPackageExample);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }

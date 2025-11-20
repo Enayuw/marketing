@@ -2,13 +2,8 @@ package com.br.marketing.innerapi.controller;
 
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.context.ThreadContextInfo;
-import com.br.marketing.dto.tccpa.TcCpDataCleanTaskDTO;
 import com.br.marketing.dto.tccpa.TcCpDataPackageGenDTO;
-import com.br.marketing.dto.tccpa.TcCpDataPackageVO;
 import com.br.marketing.dto.tccpa.TcyrCpaCollidingDataPackageVO;
-import com.br.marketing.entity.TcyrCpaCollidingDataPackage;
-import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.service.tccpa.TcCpaDataPackageService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;

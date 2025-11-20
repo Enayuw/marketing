@@ -17,6 +17,21 @@ public class TcyrCpaCollidingDataPackageVO {
     private Long id;
 
     /**
+     * 客户编号
+     */
+    private String cid;
+
+    /**
+     * 客户名称
+     */
+    private String customerName;
+
+    /**
+     * apiCode
+     */
+    private String apiCode;
+
+    /**
      * 包名称
      */
     private String packageName;
