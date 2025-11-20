@@ -3821,7 +3821,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         } catch (DuplicateKeyException keyException) {
             alarmClient.sendAlarm(String.format("pulsar上传数据消费requestId冲突 requestId：%s", jsonData.getRequestId())
                     , "pulsar上传数据消费异常", AlarmSendCodeEnum.REQUESTID_CONFLICT.getCode());
-            
+
             // 查询数据库中是否存在该requestId的数据且status为1
             try {
                 MarketingSyncInfo existingSyncInfo = marketingSyncInfoMapper.getByApiCodeAndRequestBatch(apiCode, jsonData.getRequestId());
@@ -4040,7 +4040,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         } catch (DuplicateKeyException keyException) {
             alarmClient.sendAlarm(String.format("pulsar转化数据消费requestId冲突 requestId：%s", transferDataDTO.getRequestId())
                     , "pulsar转化数据消费异常", AlarmSendCodeEnum.REQUESTID_CONFLICT.getCode());
-            
+
             // 查询数据库中是否存在该requestId的数据且status为1（进行中状态）
             try {
                 MarketingTransferInfo existingTransferInfo = marketingTransferInfoMapper
