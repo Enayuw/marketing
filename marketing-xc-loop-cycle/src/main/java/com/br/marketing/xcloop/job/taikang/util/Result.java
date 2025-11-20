@@ -1,4 +1,4 @@
-package com.br.marketing.monkey.job.taikang.util;
+package com.br.marketing.xcloop.job.taikang.util;
 
 import lombok.Data;
 

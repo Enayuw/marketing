@@ -1,7 +1,7 @@
-package com.br.marketing.monkey.job.taikang.util;
+package com.br.marketing.xcloop.job.taikang.util;
 
-import org.apache.commons.lang3.StringUtils;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * 渠道数据请求参数

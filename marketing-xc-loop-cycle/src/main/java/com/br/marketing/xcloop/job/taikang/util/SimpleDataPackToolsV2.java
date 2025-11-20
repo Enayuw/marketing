@@ -1,4 +1,4 @@
-package com.br.marketing.monkey.job.taikang.util;
+package com.br.marketing.xcloop.job.taikang.util;
 
 import cn.hutool.core.util.HexUtil;
 import cn.hutool.core.util.StrUtil;
@@ -11,16 +11,11 @@ import cn.hutool.crypto.asymmetric.SM2;
 import cn.hutool.crypto.symmetric.SM4;
 import com.alibaba.fastjson2.JSON;
 import com.br.marketing.api.customer.upload.service.weiju.util.AESUtil;
-import com.br.marketing.client.HttpProxyClient;
 import lombok.extern.slf4j.Slf4j;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.UUID;
 
