@@ -98,7 +98,10 @@ public class TcCpaDataPackageServiceImpl implements TcCpaDataPackageService {
         TcyrCpaCollidingDataPackage dataPackage = new TcyrCpaCollidingDataPackage();
         BeanUtils.copyProperties(packageVO, dataPackage);
 
-        tcyrCpaCollidingDataPackageMapper.updateByPrimaryKey(dataPackage);
+        TcyrCpaCollidingDataPackageExample example = new TcyrCpaCollidingDataPackageExample();
+        example.createCriteria().andIdEqualTo(packageVO.getId());
+
+        tcyrCpaCollidingDataPackageMapper.updateByExampleSelective(dataPackage, example);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
