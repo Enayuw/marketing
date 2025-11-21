@@ -975,75 +975,82 @@ public class DataCleanServiceImpl implements DataCleanService {
     @Override
     public Result commonClean(DataCleanDTO dto) {
 
-        //参数校验，填充默认值
-        Boolean valid = paramsValid(dto);
-        if (!valid) {
-            log.warn("数据清洗通用接口参数错误");
-            return new Result().failure().setMessage("参数错误").setDate(null);
-        }
-
-        pushRuleService.sendJsonParseMq(dto.getApiCode(), 0, dto.getSystemType()
-                , dto.getDataType(), dto.getAcceptType(), String.valueOf(dto.getJsonData()));
-
-        //查询清洗通用配置表
-        MarketingDataCleanGeneralConfigExample example = new MarketingDataCleanGeneralConfigExample();
-        example.createCriteria().andApiCodeEqualTo(dto.getApiCode())
-                .andSystemTypeEqualTo(dto.getSystemType())
-                .andDataTypeEqualTo(dto.getDataType())
-                .andAcceptTypeEqualTo(dto.getAcceptType());
-        List<MarketingDataCleanGeneralConfig> marketingDataCleanGeneralConfigList = marketingDataCleanGeneralConfigMapper.selectByExample(example);
-        if (marketingDataCleanGeneralConfigList.isEmpty()) {
-            log.warn("未查询到数据清洗通用配置，systemType:{},dataType:{},acceptType:{}", dto.getSystemType(), dto.getDataType(), dto.getAcceptType());
-            return new Result().success().setDate(dto.getJsonData());
-        }
-        MarketingDataCleanGeneralConfig marketingDataCleanGeneralConfig = marketingDataCleanGeneralConfigList.get(0);
-        Long generalConfigId = marketingDataCleanGeneralConfig.getId();
-        log.warn("数据清洗通用接口，generalConfigId:{}", generalConfigId);
-        //查询清洗规则表
-        MarketingDataCleanGeneralRuleConfigExample ruleConfigExample = new MarketingDataCleanGeneralRuleConfigExample();
-        ruleConfigExample.createCriteria().andCleanConfigIdEqualTo(generalConfigId);
-        List<MarketingDataCleanGeneralRuleConfig> marketingDataCleanGeneralRuleConfigList =
-                marketingDataCleanGeneralRuleConfigMapper.selectByExample(ruleConfigExample);
-        if (marketingDataCleanGeneralRuleConfigList.isEmpty()) {
-            log.warn("未查询到数据清洗规则，systemType:{},dataType:{},acceptType:{}", dto.getSystemType(), dto.getDataType(), dto.getAcceptType());
-            return new Result().success().setDate(dto.getJsonData());
-        }
-
-        //数据清洗
-        JSONObject jsonObject = JSON.parseObject(dto.getJsonData());
-
-        //层级字段处理
-        String levelField = null;
-        List<MarketingDataCleanGeneralRuleConfig> ruleConfigListTmp = new ArrayList<>(marketingDataCleanGeneralRuleConfigList);
-        List<MarketingDataCleanGeneralRuleConfig> dataItemList = ruleConfigListTmp.stream().filter(
-                ruleConfig -> ruleConfig.getMappingField().equals("dataItems")
-        ).collect(Collectors.toList());
-        if (!CollectionUtils.isEmpty(dataItemList)) {
-            levelField = dataItemList.get(0).getCleanFields();
-        }
-
-        if (StringUtils.isNotEmpty(levelField)) {
-            // 如果有层级字段，提取该字段对应的数组进行清洗
-            List<JSONObject> jsonObjectLists = JsonParseUtils.parseJsonArrayByName(jsonObject, levelField);
-            // 清洗数组中的数据
-            dataCleanByRules(jsonObjectLists, marketingDataCleanGeneralRuleConfigList);
-            // 将清洗后的数组转换为JSONArray并直接替换原JSON对象中的字段
-            JSONArray cleanedArray = new JSONArray();
-            for (JSONObject cleanedJson : jsonObjectLists) {
-                JSONObject object = cleanedJson.getJSONObject(levelField);
-                cleanedArray.add(object);
+        try {
+            //参数校验，填充默认值
+            Boolean valid = paramsValid(dto);
+            if (Boolean.FALSE.equals(valid)) {
+                log.warn("数据清洗通用接口参数错误,params={}", dto);
+                return new Result().failure().setMessage("参数错误").setDate(null);
             }
-            // 直接替换顶层的levelField字段，避免递归查找导致的问题
-            jsonObject.put(levelField, cleanedArray);
-            // 返回完整的JSON对象
-            return new Result().success().setDate(jsonObject);
-        } else {
-            // 没有层级字段，直接清洗整个对象
-            List<JSONObject> jsonObjectLists = new ArrayList<>();
-            jsonObjectLists.add(jsonObject);
-            dataCleanByRules(jsonObjectLists, marketingDataCleanGeneralRuleConfigList);
-            // 返回清洗后的对象
-            return new Result().success().setDate(jsonObject);
+
+            pushRuleService.sendJsonParseMq(dto.getApiCode(), 0, dto.getSystemType()
+                    , dto.getDataType(), dto.getAcceptType(), String.valueOf(dto.getJsonData()));
+
+            //查询清洗通用配置表
+            MarketingDataCleanGeneralConfigExample example = new MarketingDataCleanGeneralConfigExample();
+            example.createCriteria().andApiCodeEqualTo(dto.getApiCode())
+                    .andSystemTypeEqualTo(dto.getSystemType())
+                    .andDataTypeEqualTo(dto.getDataType())
+                    .andAcceptTypeEqualTo(dto.getAcceptType());
+            List<MarketingDataCleanGeneralConfig> marketingDataCleanGeneralConfigList = marketingDataCleanGeneralConfigMapper.selectByExample(example);
+            if (marketingDataCleanGeneralConfigList.isEmpty()) {
+                log.warn("未查询到数据清洗通用配置，apiCode:{},systemType:{},dataType:{},acceptType:{}"
+                        , dto.getApiCode(),dto.getSystemType(), dto.getDataType(), dto.getAcceptType());
+                return new Result().failure().setDate(dto.getJsonData()).setMessage("未查询到数据清洗通用配置");
+            }
+            MarketingDataCleanGeneralConfig marketingDataCleanGeneralConfig = marketingDataCleanGeneralConfigList.get(0);
+            Long generalConfigId = marketingDataCleanGeneralConfig.getId();
+            log.warn("数据清洗通用接口，generalConfigId:{}", generalConfigId);
+            //查询清洗规则表
+            MarketingDataCleanGeneralRuleConfigExample ruleConfigExample = new MarketingDataCleanGeneralRuleConfigExample();
+            ruleConfigExample.createCriteria().andCleanConfigIdEqualTo(generalConfigId);
+            List<MarketingDataCleanGeneralRuleConfig> marketingDataCleanGeneralRuleConfigList =
+                    marketingDataCleanGeneralRuleConfigMapper.selectByExample(ruleConfigExample);
+            if (marketingDataCleanGeneralRuleConfigList.isEmpty()) {
+                log.warn("未查询到数据清洗规则，apiCode:{},systemType:{},dataType:{},acceptType:{}"
+                        , dto.getApiCode(), dto.getSystemType(), dto.getDataType(), dto.getAcceptType());
+                return new Result().failure().setDate(dto.getJsonData()).setMessage("未查询到数据清洗规则");
+            }
+
+            //数据清洗
+            JSONObject jsonObject = JSON.parseObject(dto.getJsonData());
+
+            //层级字段处理
+            String levelField = null;
+            List<MarketingDataCleanGeneralRuleConfig> ruleConfigListTmp = new ArrayList<>(marketingDataCleanGeneralRuleConfigList);
+            List<MarketingDataCleanGeneralRuleConfig> dataItemList = ruleConfigListTmp.stream().filter(
+                    ruleConfig -> ruleConfig.getMappingField().equals("dataItems")
+            ).collect(Collectors.toList());
+            if (!CollectionUtils.isEmpty(dataItemList)) {
+                levelField = dataItemList.get(0).getCleanFields();
+            }
+
+            if (StringUtils.isNotEmpty(levelField)) {
+                // 如果有层级字段，提取该字段对应的数组进行清洗
+                List<JSONObject> jsonObjectLists = JsonParseUtils.parseJsonArrayByName(jsonObject, levelField);
+                // 清洗数组中的数据
+                dataCleanByRules(jsonObjectLists, marketingDataCleanGeneralRuleConfigList);
+                // 将清洗后的数组转换为JSONArray并直接替换原JSON对象中的字段
+                JSONArray cleanedArray = new JSONArray();
+                for (JSONObject cleanedJson : jsonObjectLists) {
+                    JSONObject object = cleanedJson.getJSONObject(levelField);
+                    cleanedArray.add(object);
+                }
+                // 直接替换顶层的levelField字段，避免递归查找导致的问题
+                jsonObject.put(levelField, cleanedArray);
+                // 返回完整的JSON对象
+                return new Result().success().setDate(jsonObject);
+            } else {
+                // 没有层级字段，直接清洗整个对象
+                List<JSONObject> jsonObjectLists = new ArrayList<>();
+                jsonObjectLists.add(jsonObject);
+                dataCleanByRules(jsonObjectLists, marketingDataCleanGeneralRuleConfigList);
+                // 返回清洗后的对象
+                return new Result().success().setDate(jsonObject);
+            }
+        } catch (Exception e) {
+            log.error("通用数据清洗异常，message:{}", e.getMessage());
+            return new Result().failure().setMessage(e.getMessage());
         }
     }
 
