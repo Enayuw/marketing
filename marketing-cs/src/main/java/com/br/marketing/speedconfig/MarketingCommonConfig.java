@@ -3522,13 +3522,4 @@ public class MarketingCommonConfig {
      */
     private JSONObject linsSmsCostToDbConfig;
 
-
-
-    /**
-     * 线路短信-三方字段同步相关系统配置
-     * {"lineCardTitle":"线路供应商变化","isProxy":false,"aviatorScriptUrl":"",
-     * "scriptCode":"daf28be2440042bdb9aec90605f48bd0"}
-     */
-    private JSONObject linsSmsChangeConfig;
-
 }

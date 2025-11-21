@@ -33,27 +33,14 @@ public class LineBaseInfoSyncServiceImpl implements LineBaseInfoSyncService {
 
     private final static String TITLE = "【线路侧-基础信息同步任务任务】";
 
-
-    @Resource
-    private MarketingCommonConfig marketingCommonConfig;
-
-
     @Resource
     private IbmpApiServiceClient ibmpApiServiceClient;
-
-    @Resource
-    private MiddleHeavenAviatorScriptApiClient aviatorScriptApiClient;
-
 
     @Resource
     private LineBaseInfoNormalMapper lineBaseInfoNormalMapper;
 
     @Resource
     private LineSupplierInfoNormalMapper lineSupplierInfoNormalMapper;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
 
     /**
      * 基础信息表(b_marketing_line_base_info_normal) ope_status
@@ -137,8 +124,6 @@ public class LineBaseInfoSyncServiceImpl implements LineBaseInfoSyncService {
      *    private String projectName;
      */
     private void dealSceneThree(List<DdLineBaseInfoDto> ddLineBaseInfoDtoList, List<LineBaseFullInfoDTO> lineBaseFullInfoDtoList) {
-        LinsChangeAlarmDto  linsChangeAlarmDto = new LinsChangeAlarmDto();
-        linsChangeAlarmDto.setCardTitle(marketingCommonConfig.getLinsSmsChangeConfig().getString("lineCardTitle"));
         Map<Long, DdLineBaseInfoDto> ddLineMap = ddLineBaseInfoDtoList.stream()
                                     .collect(Collectors.toMap(DdLineBaseInfoDto::getGatewayId, dto -> dto));
         Map<Long, LineBaseFullInfoDTO> fullDbInfoMap = lineBaseFullInfoDtoList.stream()
@@ -161,16 +146,6 @@ public class LineBaseInfoSyncServiceImpl implements LineBaseInfoSyncService {
                         //添加新的lineSupplier->lineSupplierId->对应的新的gatewayId记录
                         Long newLineSupplierId = selectLineSupplierId(ddLineInfoItem.getLineSupplier());
                         lineBaseInfoNormalMapper.insertSelective(fillLineBaseInfo(ddLineInfoItem,newLineSupplierId));
-                        String lineSupplierChange = dbFullInfoItem.getLineSupplier()+"-"+ddLineInfoItem.getLineSupplier();
-                        if (!existChangeMap.containsKey(lineSupplierChange)) {
-                            //记录报警 老的变成新的 供应商发生变化,老[]->新[]
-                            linsChangeAlarmDto.setLineSupplierChangeCount(linsChangeAlarmDto.getLineSupplierChangeCount()+1);
-                            List<String> lineSupplierChangeList = linsChangeAlarmDto.getLineSupplierChangeList();
-                            lineSupplierChangeList.add("供应商变化,老["+dbFullInfoItem.getLineSupplier()+"]"+"->新["+ddLineInfoItem.getLineSupplier()+"]");
-                            linsChangeAlarmDto.setLineSupplierChangeList(lineSupplierChangeList);
-                            existChangeMap.put(lineSupplierChange,1);
-                        }
-
                     }else  {
                         // 3.2 场景 其它字段发生修改 一个update修改搞定
                         if (!ddLineInfoItem.getCaller().equals(dbFullInfoItem.getCaller()) ||
@@ -185,9 +160,6 @@ public class LineBaseInfoSyncServiceImpl implements LineBaseInfoSyncService {
                         e.getMessage(), TITLE), e);
             }
         });
-        if (linsChangeAlarmDto.getLineSupplierChangeCount() > 0) {
-            dealAlarm(linsChangeAlarmDto);
-        }
     }
 
     /**
@@ -271,30 +243,6 @@ public class LineBaseInfoSyncServiceImpl implements LineBaseInfoSyncService {
         itemObj.setLineSupplierId(lineSupplierId);
         itemObj.setProjectName(dto.getProjectName());
         return itemObj;
-    }
-
-
-    /**
-     * lineSuppier改变时钉钉通知
-     * 重新封装lineSupplier变化时候的报警信息
-     */
-    private void dealAlarm(LinsChangeAlarmDto linsChangeAlarmDto) {
-        JSONObject requstObj = new JSONObject();
-        JSONObject paramObj = new JSONObject();
-        paramObj.put("title", linsChangeAlarmDto.getCardTitle());
-        paramObj.put("lineSupplierChangeCount", linsChangeAlarmDto.getLineSupplierChangeCount());
-        try {
-            String errorListJson = objectMapper.writeValueAsString(linsChangeAlarmDto.getLineSupplierChangeList());
-            paramObj.put("lineSupplierChangeList", errorListJson);
-            requstObj.put("param", paramObj);
-            requstObj.put("scriptCode",marketingCommonConfig.getLinsSmsChangeConfig().getString("scriptCode"));
-            String aviatorScriptUrl = marketingCommonConfig.getLinsSmsChangeConfig().getString("aviatorScriptUrl");
-            boolean isProxy = marketingCommonConfig.getLinsSmsChangeConfig().getBoolean("isProxy");
-            aviatorScriptApiClient.dealAviatorScriptRequest(aviatorScriptUrl,requstObj,isProxy);
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MARKETING_AVIATORSCRIPT_LINE_CHANGE_ERROR.getCode(),
-                    e.getMessage(), TITLE), e);
-        }
     }
 
 }
