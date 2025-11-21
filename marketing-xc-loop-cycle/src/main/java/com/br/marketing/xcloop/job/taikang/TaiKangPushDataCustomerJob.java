@@ -1,5 +1,6 @@
 package com.br.marketing.xcloop.job.taikang;
 
+import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.util.aes.AesTaiKang;
 import com.br.marketing.xcloop.job.taikang.util.ChannelRequest;
@@ -7,7 +8,10 @@ import com.br.marketing.xcloop.job.taikang.util.SimpleDataPackToolsV2;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.Header;
+import org.apache.http.message.BasicHeader;
 import org.json.JSONObject;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -44,7 +48,11 @@ public class TaiKangPushDataCustomerJob extends AbstractSimpleElasticJob {
                     "MIGTAgEAMBMGByqGSM49AgEGCCqBHM9VAYItBHkwdwIBAQQgaOxhL7Oj8kLi8zpgXaGJIyfBOjxzqVf68ITblLXsYIOgCgYIKoEcz1UBgi2hRANCAATjyRdmnS4msSglH4Vv9QdLyC7Bl1Em8myRlzVqKmU9+pSYIPAqv8F4sIn9eYz9XHObW1aIcH4uqHeK6TYtSoQj",
                     jsonObject);
             log.warn("泰康返回参数channelRequest：{}",channelRequest);
-            HashMap<String, String> send = httpProxyClient.sendByCode(channelRequest.toString(), "http://49.233.178.183/e/channel/dataReplay", true);
+            Header[] headers = new Header[] {
+                    new BasicHeader("Content-Type", "application/json"),
+                    new BasicHeader("caller", "RongDa")
+            };
+            HashMap<String, String> send = httpProxyClient.sendByCodeWithLogWithHeader(channelRequest, "http://49.233.178.183/e/channel/dataReplay", false,MediaType.APPLICATION_JSON_UTF8_VALUE,jsonObject.toString(),true,false,headers);
             log.warn("泰康返回参数：{}",send);
         } catch (Exception e) {
             log.warn("调用异常",e);
