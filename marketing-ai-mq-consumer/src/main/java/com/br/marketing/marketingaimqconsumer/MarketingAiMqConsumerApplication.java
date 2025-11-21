@@ -20,7 +20,9 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-@SpringBootApplication(exclude = {MultipartAutoConfiguration.class, SpringBootConfiguration.class, GroovyTemplateAutoConfiguration.class}, scanBasePackages = {"com.br.marketing"})
+@SpringBootApplication(
+        exclude = {MultipartAutoConfiguration.class, SpringBootConfiguration.class, GroovyTemplateAutoConfiguration.class},
+        scanBasePackages = {"com.br.marketing"})
 @EnableAspectJAutoProxy
 @EnableFeignClients(basePackages = {"com.br.marketing"})
 @MapperScan("com.br.marketing.mapper")

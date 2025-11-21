@@ -29,7 +29,9 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
  * @UpdateRemark 修改内容
  * @Version 1.0
  */
-@SpringBootApplication(exclude = {MultipartAutoConfiguration.class, SpringBootConfiguration.class, GroovyTemplateAutoConfiguration.class}, scanBasePackages = {"com.br.marketing"})
+@SpringBootApplication(
+        exclude = {MultipartAutoConfiguration.class, SpringBootConfiguration.class, GroovyTemplateAutoConfiguration.class},
+        scanBasePackages = {"com.br.marketing"})
 @EnableAspectJAutoProxy
 @EnableFeignClients(basePackages = {"com.br.marketing"})
 @MapperScan("com.br.marketing.mapper")
