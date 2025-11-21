@@ -46,13 +46,9 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.stream.Collectors;
 
 
 /**
@@ -443,7 +439,7 @@ public class HttpProxyClient {
             }
             post.setEntity(requestEntity);
             post.setHeaders(headers);
-            interfaceLog.setHeader(post.getAllHeaders().toString());
+            interfaceLog.setHeader(headersToString(post.getAllHeaders()));
             RequestConfig requestConfig = getRequestConfig(isPorxy, 20000, null);
             post.setConfig(requestConfig);
             HttpResponse response = null;
@@ -499,7 +495,11 @@ public class HttpProxyClient {
         }
         return res;
     }
-
+    public String headersToString(Header[] headers) {
+        return Arrays.stream(headers)
+                .map(header -> header.getName() + ": " + header.getValue())
+                .collect(Collectors.joining("; "));
+    }
     /**
      * 获取httpClient
      *

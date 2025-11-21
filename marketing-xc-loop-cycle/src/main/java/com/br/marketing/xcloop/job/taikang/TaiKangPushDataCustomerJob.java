@@ -52,7 +52,7 @@ public class TaiKangPushDataCustomerJob extends AbstractSimpleElasticJob {
                     new BasicHeader("Content-Type", "application/json"),
                     new BasicHeader("caller", "RongDa")
             };
-            HashMap<String, String> send = httpProxyClient.sendByCodeWithLogWithHeader(channelRequest, "http://49.233.178.183/e/channel/dataReplay", false,MediaType.APPLICATION_JSON_UTF8_VALUE,jsonObject.toString(),true,false,headers);
+            HashMap<String, String> send = httpProxyClient.sendByCodeWithLogWithHeader(channelRequest, "http://49.233.178.183/e/channel/dataReplay", true,MediaType.APPLICATION_JSON_UTF8_VALUE,jsonObject.toString(),true,false,headers);
             log.warn("泰康返回参数：{}",send);
         } catch (Exception e) {
             log.warn("调用异常",e);
