@@ -161,12 +161,12 @@ otherConfig:
     appName: marketing
     outsideSecretKey: 11e6a1a63c10d2855d662a0265ea91c4
     outsideAppName: marketing-out
-  encodeMapping:
-    appName: loan-warning
-    appSecretKey: a938d0e974746651a11ddcdbcea31404
   userCenter:
-    appName: loan-strategy
-    appSecretKey: 7357430aa11febfe81d45945c02706b3
+    appName: marketing-api
+    appSecretKey: 77786bf195aa73044af33f8fce6c0441
+  encodeMapping:
+    appName: marketing
+    appSecretKey: d37f90c97204a2ef3fe774fc5f106cf5
   mom:
     appSecretKey: 0eccd42aceae3d2f557fad6e393d7ebe
     appName: marketing_query_producer
