@@ -200,7 +200,8 @@ public class ZhongBangAIServiceImpl implements ZhongBangAIService {
             , String apiCode, String[] tableHead, int heads, String regex, LocalFile localFile, int rowNum) {
         PullCustomerFileData fileData = new PullCustomerFileData();
         String[] rows;
-        if (StringUtils.isBlank(lineTxt) || (rows = lineTxt.split(regex)).length != heads) {
+        if (StringUtils.isBlank(lineTxt) || (rows = lineTxt.split(regex,-1)).length != heads) {
+            log.warn("文件数据分割长度rowlength={},headlength={}",lineTxt.split(regex).length,heads);
             fileData.setDataStatus(2);
             localFile.setComplete(StringUtils.isBlank(lineTxt) ? null : "3");
             localFile.setErrorActualNumber(localFile.getErrorActualNumber() + 1);

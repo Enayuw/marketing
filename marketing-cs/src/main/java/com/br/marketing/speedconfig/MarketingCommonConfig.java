@@ -3514,4 +3514,10 @@ public class MarketingCommonConfig {
      */
     private Map<String, List<Map<String, String>>> zhongBangAIPullFileDataConfigMap;
 
+
+    /**
+     * 众邦AI上传录音文件明细配置,{"b_zhongbang_voice_file_detail":{"fileType":"zhongbang_ai_voice","uploadPoolSize":5,"getFilePoolSize":5}}
+     */
+    private Map<String, JSONObject> zhongBangAIVoiceFileConfig = new HashMap<>();
+
 }

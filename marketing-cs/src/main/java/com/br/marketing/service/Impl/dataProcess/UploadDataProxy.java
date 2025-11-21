@@ -52,7 +52,7 @@ public abstract class UploadDataProxy extends DataProcessAbstractProxy {
                 Result result = marketingApiService.callUploadDataByUrlRetry(uploadDataUrlDTO, null);
                 if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                     errorMark.getAndIncrement();
-                    log.error("批量上传数据失败，taskId: {}, 错误信息: {}",
+                    log.error("批量上传数据失败，apiCode: {}, 错误信息: {}",
                             uploadDataDTO.getApiCode(), result.getMessage());
                     callResult.setCode(ResultCode.FAIL.getValue());
                 }

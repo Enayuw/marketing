@@ -7,4 +7,27 @@
         ${insertSql}
     </insert>
 
+
+    <update id="updateBatchByIds">
+        update b_marketing_call_recording
+        set status=#{status}
+        where id in
+        <foreach collection='idList' item='id' open='(' close=')' separator=','>
+            #{id}
+        </foreach>
+    </update>
+
+
+    <select id="getCallRecord" resultType="com.br.marketing.entity.CallRecording">
+        select *
+        from b_marketing_call_recording
+        where api_code = #{apiCode}
+        and create_time >= #{date}
+        <if test="indexId != null and indexId != ''">
+            and id > #{indexId}
+        </if>
+        order by id asc limit #{pageSize}
+    </select>
+
+
 </mapper>
