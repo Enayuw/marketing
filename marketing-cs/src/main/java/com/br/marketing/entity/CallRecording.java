@@ -104,6 +104,11 @@ public class CallRecording {
     private String reserveField1;
 
     /**
+     * 大模型总结
+     */
+    private String returnResult;
+
+    /**
      * 版本号
      */
     private String version;
@@ -281,6 +286,14 @@ public class CallRecording {
 
     public void setReserveField1(String reserveField1) {
         this.reserveField1 = reserveField1 == null ? null : reserveField1.trim();
+    }
+
+    public String getReturnResult() {
+        return returnResult;
+    }
+
+    public void setReturnResult(String returnResult) {
+        this.returnResult = returnResult == null ? null : returnResult.trim();
     }
 
     public String getVersion() {
