@@ -327,7 +327,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
      */
     private List<DdLineBaseInfoDto> getLineBaseInfoByDb() {
         List<DdLineBaseInfoDto> ddLineBaseInfoDtoList = new ArrayList<>();
-        List<LineBaseFullInfoDTO> lineBaseFullInfoDtoList = lineBaseInfoNormalMapper.selectLineBaeFullInfoList();
+        List<LineBaseFullInfoDTO> lineBaseFullInfoDtoList = lineBaseInfoNormalMapper.selectLineBaeUseInfoList();
         lineBaseFullInfoDtoList.forEach(lineBaseFullInfoDto -> {
             DdLineBaseInfoDto dto = new DdLineBaseInfoDto();
             dto.setGatewayId(lineBaseFullInfoDto.getGatewayId());
