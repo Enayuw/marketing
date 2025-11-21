@@ -36,7 +36,10 @@ public class DataCleanApiController {
         logger.warn("数据清洗通用接口接收到请求，params:{}", dataCleanDTO);
         Result result = dataCleanService.commonClean(dataCleanDTO);
         logger.warn("数据清洗完成，清洗结果:{}",result.getData());
-        return new ApiResult().setCode(String.valueOf(result.getCode())).setMessage(result.getMessage()).setData(result.getData());
+        if (result.isSuccess()) {
+            return new ApiResult().success(result.getData());
+        }
+        return new ApiResult().fail(result.getMessage()).setData(result.getData());
     }
 
 }
