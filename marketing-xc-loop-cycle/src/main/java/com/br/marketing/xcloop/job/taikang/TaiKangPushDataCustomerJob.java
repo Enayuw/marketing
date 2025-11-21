@@ -48,11 +48,7 @@ public class TaiKangPushDataCustomerJob extends AbstractSimpleElasticJob {
                     "MIGTAgEAMBMGByqGSM49AgEGCCqBHM9VAYItBHkwdwIBAQQgaOxhL7Oj8kLi8zpgXaGJIyfBOjxzqVf68ITblLXsYIOgCgYIKoEcz1UBgi2hRANCAATjyRdmnS4msSglH4Vv9QdLyC7Bl1Em8myRlzVqKmU9+pSYIPAqv8F4sIn9eYz9XHObW1aIcH4uqHeK6TYtSoQj",
                     jsonObject);
             log.warn("泰康返回参数channelRequest：{}",channelRequest);
-            Header[] headers = new Header[] {
-                    new BasicHeader("Content-Type", "application/json"),
-                    new BasicHeader("caller", "RongDa")
-            };
-            HashMap<String, String> send = httpProxyClient.sendByCodeWithLogWithHeader(channelRequest, "http://49.233.178.183/e/channel/dataReplay", true,MediaType.APPLICATION_JSON_UTF8_VALUE,jsonObject.toString(),true,false,headers);
+            HashMap<String, String> send = httpProxyClient.sendByCodePoolTaikang(channelRequest, "http://49.233.178.183/e/channel/dataReplay", true,jsonObject.toString());
             log.warn("泰康返回参数：{}",send);
         } catch (Exception e) {
             log.warn("调用异常",e);
