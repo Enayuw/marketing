@@ -16,7 +16,7 @@
         FROM b_tcyr_cpa_success_data
         WHERE 1 = 1
         <if test="minId != null and minId >0">
-            AND id >=#{minId}
+            AND id >= #{minId}
         </if>
         <if test="syncFileId != null">
             AND sync_file_id != #{syncFileId}

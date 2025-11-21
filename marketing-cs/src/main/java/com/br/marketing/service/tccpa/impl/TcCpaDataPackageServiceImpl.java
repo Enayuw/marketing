@@ -63,7 +63,6 @@ public class TcCpaDataPackageServiceImpl implements TcCpaDataPackageService {
         TcyrCpaCollidingDataPackage dataPackage = new TcyrCpaCollidingDataPackage();
         dataPackage.setApiCode(dto.getApiCode());
         dataPackage.setPackageName(dto.getPackageName());
-        dataPackage.setApiCode(marketingCommonConfig.getTcyrCpaApiCode());
         dataPackage.setBatchNumbers(String.join(",", dto.getBatchNumberList()));
         dataPackage.setConditions(EsConditionTransferSqlUtil.jsonTransferSql(conditionJson, ""));
         tcyrCpaCollidingDataPackageMapper.insertSelective(dataPackage);
