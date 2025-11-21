@@ -23,6 +23,16 @@ public class OperateThreeProcessor extends AbstractBaseAiToPolicy {
 
     @Override
     public String generateBatchNumber(MarketingSyncUser syncUser) {
+        return generateBaseBatchNumber(syncUser);
+    }
+
+    /**
+     * 生成基础批次号（供子类复用）
+     *
+     * @param syncUser 同步用户信息
+     * @return 基础批次号
+     */
+    protected String generateBaseBatchNumber(MarketingSyncUser syncUser) {
         String apiCode = syncUser.getApiCode();
         String appletDate = syncUser.getAppletDate().replace("-", "");
         String reserveField1 = syncUser.getReserveField1();
