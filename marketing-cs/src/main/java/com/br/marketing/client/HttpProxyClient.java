@@ -10,7 +10,10 @@ import com.br.marketing.entity.InterfaceLog;
 import com.br.marketing.mapper.datasource.log.InterfaceLogMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.*;
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.ChallengeState;
@@ -405,7 +408,7 @@ public class HttpProxyClient {
         }
         return res;
     }
-    public HashMap<String, String> sendByCodePoolTaikang(Object param, String url, Boolean isPorxy, String extendInfo) {
+    public HashMap<String, String> sendByCodePoolTaikang(Object param, String url, Boolean isPorxy, String extendInfo,Header[] headers) {
         InterfaceLog interfaceLog = new InterfaceLog();
         interfaceLog.setExtendInfo(extendInfo);
         interfaceLog.setRequestId(UUID.randomUUID().toString());
@@ -424,14 +427,7 @@ public class HttpProxyClient {
 
             // ========== 修正Header设置 ==========
             // 正确设置Content-Type（推荐方式）
-            post.setHeader(HttpHeaders.CONTENT_TYPE, "application/json;charset=UTF-8");
-
-            // 设置caller header（修正拼写）
-            post.setHeader("caller", "RongDa");  // 根据要求改为 RonDa
-
-            // 或者使用addHeader避免覆盖（如果需要多个同名的header）
-            // post.addHeader(HttpHeaders.CONTENT_TYPE, "application/json;charset=UTF-8");
-            // post.addHeader("caller", "RonDa");
+            post.setHeaders(headers);
 
             // 记录header日志（修正后的）
             String headerString = Arrays.stream(post.getAllHeaders())

@@ -3507,6 +3507,9 @@ public class MarketingCommonConfig {
      */
     private Map<String, Boolean> pushDataSwitch;
 
+    /**
+     * 泰康请求参数
+     */
     private Map<String,String> taiKangConfig;
 
 }

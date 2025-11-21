@@ -1,4 +1,4 @@
-package com.br.marketing.xcloop.job.taikang.util;
+package com.br.marketing.client.taikang.util;
 
 import lombok.Data;
 
