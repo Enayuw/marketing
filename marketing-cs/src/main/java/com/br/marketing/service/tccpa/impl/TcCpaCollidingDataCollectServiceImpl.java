@@ -1,8 +1,6 @@
 package com.br.marketing.service.tccpa.impl;
 
 import com.br.common.log.AlertLog;
-import com.br.marketing.client.RedisChgService;
-import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.entity.*;
@@ -24,7 +22,6 @@ import javax.annotation.Resource;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -35,9 +32,6 @@ import java.util.stream.Collectors;
 public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataCollectService {
 
     private final static String TITLE = "【同程易融CPA-colliding data collect任务】";
-
-    @Resource
-    private RedisChgService redisChgService;
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -59,66 +53,36 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
 
     @Override
     public void process(String apiCode) {
-        String lockKey = RedisKeyConstant.tcyrCpaCollidingFailDeal.concat(apiCode);
-        String lockValue = UUID.randomUUID().toString();
         TcyrCpaCollectTaskExample example = new TcyrCpaCollectTaskExample();
         example.createCriteria().andStatusEqualTo(TcCpaSyncDealStatusEnum.DEAL_NO.getValue());
         List<TcyrCpaCollectTask> tcyrCpaCollectTasks = tcyrCpaCollectTaskMapper.selectByExample(example);
         if (CollectionUtils.isEmpty(tcyrCpaCollectTasks)) {
-            redisChgService.unlock(lockKey, lockValue);
             return;
         }
-        // todo 更新【b_tcyr_cpa_colliding_task】，记录任务id collidingTaskId
-
+        // todo 更新【b_tcyr_cpa_colliding_task】和【b_tcyr_cpa_delete_rule】
         for (TcyrCpaCollectTask tcyrCpaCollectTask : tcyrCpaCollectTasks) {
             tcyrCpaCollectTask.setStatus(TcCpaSyncDealStatusEnum.DEAL_MIDDLE.getValue());
             tcyrCpaCollectTaskMapper.updateByPrimaryKey(tcyrCpaCollectTask);
 
             Long syncFileId = tcyrCpaCollectTask.getSourceId();
-            int threadCount = 50;
+            TpDynamicExecutor actionPool = TpDynamicExecutorFactory.getThreadPool(
+                    ThreadPoolNameEnum.TCYR_CPA_COLLIDING_DATA_COLLECT.getName(), 50, 50);
+            int threadCount = actionPool.getMaximumPoolSize();
+
             if (Objects.equals(tcyrCpaCollectTask.getSourceType(), TcCpaCollidingSourceTypeEnum.SUCCESS.getValue())) {
-                successProcess(tcyrCpaCollectTask, syncFileId, threadCount);
+                successProcess(tcyrCpaCollectTask, syncFileId, actionPool, threadCount);
             } else {
-                failProcess(tcyrCpaCollectTask, syncFileId, threadCount);
+                failProcess(tcyrCpaCollectTask, syncFileId, actionPool, threadCount);
             }
-        }
-
-    }
-
-    private void failProcess(TcyrCpaCollectTask tcyrCpaCollectTask, Long syncFileId, int threadCount) {
-        BlockingQueue<List<MarketingTcyrCpaFailData>> dataQueue = new LinkedBlockingQueue<>(500);
-        new Thread(() -> searchFailData(syncFileId, dataQueue, threadCount)).start();
-
-        List<CompletableFuture<Void>> allFutures = Lists.newArrayList();
-        TpDynamicExecutor actionPool = TpDynamicExecutorFactory.getThreadPool(
-                ThreadPoolNameEnum.TCYR_CPA_COLLIDING_DATA_COLLECT.getName(), 50, 50);
-        try {
-            for (int i = 0; i < threadCount; i++) {
-                allFutures.add(CompletableFuture.runAsync(() -> {
-                    try {
-                        failProcess(dataQueue);
-                    } catch (Exception e) {
-                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
-                                e.getMessage(), TITLE), e);
-                    }
-                }, actionPool));
-            }
-            CompletableFuture.allOf(allFutures.toArray(new CompletableFuture[0])).join();
-            tcyrCpaCollectTask.setStatus(TcCpaSyncDealStatusEnum.DEAL_SUCCESS.getValue());
-            tcyrCpaCollectTaskMapper.updateByPrimaryKey(tcyrCpaCollectTask);
-        } catch (Exception e) {
-            tcyrCpaCollectTask.setStatus(TcCpaSyncDealStatusEnum.DEAL_FAIL.getValue());
-            tcyrCpaCollectTaskMapper.updateByPrimaryKey(tcyrCpaCollectTask);
         }
     }
 
-    private void successProcess(TcyrCpaCollectTask tcyrCpaCollectTask, Long syncFileId, int threadCount) {
+    private void successProcess(TcyrCpaCollectTask tcyrCpaCollectTask, Long syncFileId,
+                                TpDynamicExecutor actionPool, int threadCount) {
         BlockingQueue<List<MarketingTcyrCpaSuccessData>> dataQueue = new LinkedBlockingQueue<>(500);
         new Thread(() -> searchSuccessData(syncFileId, dataQueue, threadCount)).start();
 
         List<CompletableFuture<Void>> allFutures = Lists.newArrayList();
-        TpDynamicExecutor actionPool = TpDynamicExecutorFactory.getThreadPool(
-                ThreadPoolNameEnum.TCYR_CPA_COLLIDING_DATA_COLLECT.getName(), 50, 50);
         try {
             for (int i = 0; i < threadCount; i++) {
                 allFutures.add(CompletableFuture.runAsync(() -> {
@@ -136,6 +100,8 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
         } catch (Exception e) {
             tcyrCpaCollectTask.setStatus(TcCpaSyncDealStatusEnum.DEAL_FAIL.getValue());
             tcyrCpaCollectTaskMapper.updateByPrimaryKey(tcyrCpaCollectTask);
+        } finally {
+            actionPool.shutdownAndAwaitTermination();
         }
     }
 
@@ -144,34 +110,6 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
         try {
             while (true) {
                 List<MarketingTcyrCpaSuccessData> marketingSyncs = marketingTcyrCpaSuccessDataMapper
-                        .selectBySyncFileId(syncFileId, minId);
-                if (CollectionUtils.isEmpty(marketingSyncs)) {
-                    break;
-                }
-                dataQueue.put(marketingSyncs);
-                minId = marketingSyncs.get(marketingSyncs.size() - 1).getId() + 1;
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
-                    e.getMessage(), TITLE), e);
-        } finally {
-            for (int i = 0; i < threadCount; i++) {
-                try {
-                    dataQueue.put(Collections.emptyList());
-                } catch (InterruptedException e) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
-                            e.getMessage(), TITLE), e);
-                }
-            }
-        }
-    }
-
-    private void searchFailData(Long syncFileId, BlockingQueue<List<MarketingTcyrCpaFailData>> dataQueue, int threadCount) {
-        Long minId = null;
-        try {
-            while (true) {
-                List<MarketingTcyrCpaFailData> marketingSyncs = marketingTcyrCpaFailDataMapper
                         .selectBySyncFileId(syncFileId, minId);
                 if (CollectionUtils.isEmpty(marketingSyncs)) {
                     break;
@@ -215,6 +153,62 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
             Thread.currentThread().interrupt();
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
                     e.getMessage(), TITLE), e);
+        }
+    }
+
+    private void failProcess(TcyrCpaCollectTask tcyrCpaCollectTask, Long syncFileId,
+                             TpDynamicExecutor actionPool, int threadCount) {
+        BlockingQueue<List<MarketingTcyrCpaFailData>> dataQueue = new LinkedBlockingQueue<>(500);
+        new Thread(() -> searchFailData(syncFileId, dataQueue, threadCount)).start();
+
+        List<CompletableFuture<Void>> allFutures = Lists.newArrayList();
+        try {
+            for (int i = 0; i < threadCount; i++) {
+                allFutures.add(CompletableFuture.runAsync(() -> {
+                    try {
+                        failProcess(dataQueue);
+                    } catch (Exception e) {
+                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
+                                e.getMessage(), TITLE), e);
+                    }
+                }, actionPool));
+            }
+            CompletableFuture.allOf(allFutures.toArray(new CompletableFuture[0])).join();
+            tcyrCpaCollectTask.setStatus(TcCpaSyncDealStatusEnum.DEAL_SUCCESS.getValue());
+            tcyrCpaCollectTaskMapper.updateByPrimaryKey(tcyrCpaCollectTask);
+        } catch (Exception e) {
+            tcyrCpaCollectTask.setStatus(TcCpaSyncDealStatusEnum.DEAL_FAIL.getValue());
+            tcyrCpaCollectTaskMapper.updateByPrimaryKey(tcyrCpaCollectTask);
+        } finally {
+            actionPool.shutdownAndAwaitTermination();
+        }
+    }
+
+    private void searchFailData(Long syncFileId, BlockingQueue<List<MarketingTcyrCpaFailData>> dataQueue, int threadCount) {
+        Long minId = null;
+        try {
+            while (true) {
+                List<MarketingTcyrCpaFailData> marketingSyncs = marketingTcyrCpaFailDataMapper
+                        .selectBySyncFileId(syncFileId, minId);
+                if (CollectionUtils.isEmpty(marketingSyncs)) {
+                    break;
+                }
+                dataQueue.put(marketingSyncs);
+                minId = marketingSyncs.get(marketingSyncs.size() - 1).getId() + 1;
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
+                    e.getMessage(), TITLE), e);
+        } finally {
+            for (int i = 0; i < threadCount; i++) {
+                try {
+                    dataQueue.put(Collections.emptyList());
+                } catch (InterruptedException e) {
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
+                            e.getMessage(), TITLE), e);
+                }
+            }
         }
     }
 

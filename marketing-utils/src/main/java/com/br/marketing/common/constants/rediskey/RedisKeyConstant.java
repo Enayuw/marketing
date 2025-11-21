@@ -390,6 +390,11 @@ public class RedisKeyConstant {
     public static final String tcyrCpaCollidingFailDeal = prefix.concat("tcyr_cpa:collidingFailDeal");
 
     /**
+     * 同程CPA-撞库失败数据处理流程锁
+     */
+    public static final String tcyrCpaDataCollectDeal = prefix.concat("tcyr_cpa:dataCollect");
+
+    /**
      * 雪花算法
      */
     public static final String SNOWFLAKE = prefix.concat("snowflake:");
