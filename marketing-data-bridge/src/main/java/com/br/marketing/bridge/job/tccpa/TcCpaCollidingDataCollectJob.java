@@ -1,5 +1,6 @@
 package com.br.marketing.bridge.job.tccpa;
 
+import com.br.marketing.service.tccpa.TcCpaCollidingDataCollectService;
 import com.br.marketing.service.tccpa.TcCpaCollidingDealService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -20,10 +21,10 @@ public class TcCpaCollidingDataCollectJob extends AbstractSimpleElasticJob {
     private MarketingCommonConfig marketingCommonConfig;
 
     @Resource
-    private TcCpaCollidingDealService tcCpaCollidingDealService;
+    private TcCpaCollidingDataCollectService tcCpaCollidingDataCollectService;
 
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
-        tcCpaCollidingDealService.shardProcess(marketingCommonConfig.getTcyrCpaApiCode());
+        tcCpaCollidingDataCollectService.process(marketingCommonConfig.getTcyrCpaApiCode());
     }
 }
