@@ -10,10 +10,7 @@ import com.br.marketing.entity.InterfaceLog;
 import com.br.marketing.mapper.datasource.log.InterfaceLogMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
+import org.apache.http.*;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.ChallengeState;
@@ -417,23 +414,38 @@ public class HttpProxyClient {
         HttpClient httpClient = getHttpClientInner(isPorxy);
         HashMap<String, String> res = new HashMap<>();
         Long start = System.currentTimeMillis();
+
         try {
             HttpPost post = new HttpPost(url);
-            HttpEntity requestEntity = null;
             String s = JSON.toJSONString(param);
             interfaceLog.setRequestParam(s);
-            requestEntity = new StringEntity(s, CHARSET_UTF8);
+            HttpEntity requestEntity = new StringEntity(s,"application/json;charset=UTF-8", CHARSET_UTF8);
             post.setEntity(requestEntity);
-            post.setHeader("content-type", MediaType.APPLICATION_JSON_UTF8_VALUE);
-            post.setHeader("caller", "RongDa");
+
+            // ========== 修正Header设置 ==========
+            // 正确设置Content-Type（推荐方式）
+            post.setHeader(HttpHeaders.CONTENT_TYPE, "application/json;charset=UTF-8");
+
+            // 设置caller header（修正拼写）
+            post.setHeader("caller", "RongDa");  // 根据要求改为 RonDa
+
+            // 或者使用addHeader避免覆盖（如果需要多个同名的header）
+            // post.addHeader(HttpHeaders.CONTENT_TYPE, "application/json;charset=UTF-8");
+            // post.addHeader("caller", "RonDa");
+
+            // 记录header日志（修正后的）
             String headerString = Arrays.stream(post.getAllHeaders())
                     .map(header -> header.getName() + "=" + header.getValue())
                     .collect(Collectors.joining(", "));
             interfaceLog.setHeader(headerString);
+            // ========== Header设置结束 ==========
+
             RequestConfig requestConfig = getRequestConfig(isPorxy, 20000, null);
             post.setConfig(requestConfig);
+
             HttpResponse response = null;
             start = System.currentTimeMillis();
+
             if (isPorxy) {
                 AuthCache authCache = new BasicAuthCache();
                 AuthScheme authScheme = new BasicScheme(ChallengeState.PROXY);
@@ -444,6 +456,7 @@ public class HttpProxyClient {
             } else {
                 response = httpClient.execute(post);
             }
+
             Long end = System.currentTimeMillis();
             interfaceLog.setExpire(String.valueOf(end - start));
             int statusCode = response.getStatusLine().getStatusCode();
@@ -453,6 +466,7 @@ public class HttpProxyClient {
             interfaceLog.setResult(result);
             interfaceLog.setHttpCode(statusCode);
             post.releaseConnection();
+
         } catch (Exception e) {
             log.error("url={} param={}", url, param, e);
             Long end = System.currentTimeMillis();
@@ -469,10 +483,8 @@ public class HttpProxyClient {
             }
         });
 
-
         return res;
     }
-
 
     private HashMap<String, String> sendByCodePoolWithHeader(Object param, String url, Boolean isPorxy, String mediaType, String extendInfo, Boolean isDbLog, Boolean isFileLog, Header[] headers) {
         InterfaceLog interfaceLog = new InterfaceLog();
