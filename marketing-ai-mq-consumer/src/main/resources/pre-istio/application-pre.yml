@@ -8,7 +8,6 @@ datasource:
       password: ENC(mysql-pre-ai-marketing-password)
       type: com.zaxxer.hikari.HikariDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
-      isSharding: true
       minimum-idle: 1 # 最小空闲连接数
       maximum-pool-size: 300 # 最大连接池数量
       connection-timeout: 60000 # 获取连接超时时间，单位毫秒
