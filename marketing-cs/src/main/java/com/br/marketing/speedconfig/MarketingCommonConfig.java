@@ -3527,4 +3527,9 @@ public class MarketingCommonConfig {
      */
     private List<String> tcyrCpaSuccessFileHeads;
 
+    /**
+     * 携程贷后apicode集合
+     */
+    private List<String> xieChengPostLoanApiCodeLists;
+
 }

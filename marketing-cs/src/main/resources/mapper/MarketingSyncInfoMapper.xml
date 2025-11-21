@@ -590,4 +590,46 @@
         limit 1
     </select>
 
+    <select id="getMarketingSyncByCondition" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select * from b_marketing_sync_${apiCode}
+        <where>
+            <if test="operateType != null">
+                and operate_type = #{operateType}
+            </if>
+            <if test="appletDate != null">
+                and applet_date = #{appletDate}
+            </if>
+            <if test="userType != null">
+                and user_type = #{userType}
+            </if>
+            <if test="createTime != null">
+                and create_time <![CDATA[<=]]> #{createTime}
+            </if>
+            <if test="filterCondition != null">
+                and ${filterCondition}
+            </if>
+
+            <if test="minId != null and minId >0">
+                and id >#{minId}
+            </if>
+            and status = 1  and is_repeat in (1, 2)
+            order by id asc limit 2000
+        </where>
+    </select>
+
+
+    <select id="getBatchNameByUsertikv_" resultType="java.lang.String">
+        select distinct JSON_UNQUOTE(JSON_EXTRACT(reserve_field1, '$.batchName')) from
+        b_marketing_sync_${apiCode}
+        where
+        (applet_date, user_type) in
+        <foreach collection="syncReportList" item="item" open="(" close=")" separator=",">
+            (#{item.appletDate}, #{item.userType})
+        </foreach>
+        <if test="filterCondition != null">
+            AND ${filterCondition}
+        </if>
+        AND status = 1 AND is_repeat in (1, 2)
+    </select>
+
 </mapper>
