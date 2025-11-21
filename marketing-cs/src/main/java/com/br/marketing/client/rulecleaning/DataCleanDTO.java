@@ -19,6 +19,6 @@ public class DataCleanDTO {
 
     private Integer acceptType;
 
-    private JSONObject jsonData;
+    private String jsonData;
 
 }

@@ -1010,7 +1010,7 @@ public class DataCleanServiceImpl implements DataCleanService {
         }
 
         //数据清洗
-        JSONObject jsonObject = JSON.parseObject(dto.getJsonData().toString());
+        JSONObject jsonObject = JSON.parseObject(dto.getJsonData());
 
         //层级字段处理
         String levelField = null;
