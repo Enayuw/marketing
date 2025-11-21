@@ -25,6 +25,6 @@ public class TcCpaCollidingDataCollectJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
-        tcCpaCollidingDataCollectService.process(marketingCommonConfig.getTcyrCpaApiCode());
+        tcCpaCollidingDataCollectService.process();
     }
 }

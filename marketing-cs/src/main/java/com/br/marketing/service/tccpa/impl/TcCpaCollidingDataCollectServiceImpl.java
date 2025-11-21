@@ -52,7 +52,7 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
     private MarketingTcyrCpaSuccessDataMapper marketingTcyrCpaSuccessDataMapper;
 
     @Override
-    public void process(String apiCode) {
+    public void process() {
         TcyrCpaCollectTaskExample example = new TcyrCpaCollectTaskExample();
         example.createCriteria().andStatusEqualTo(TcCpaSyncDealStatusEnum.DEAL_NO.getValue());
         List<TcyrCpaCollectTask> tcyrCpaCollectTasks = tcyrCpaCollectTaskMapper.selectByExample(example);
@@ -137,7 +137,7 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
         try {
             while (true) {
                 List<MarketingTcyrCpaSuccessData> batch = dataQueue.take();
-                if (batch.isEmpty()) {
+                if (CollectionUtils.isEmpty(batch)) {
                     break;
                 }
                 List<TcyrCpaLockData> batchLockData = batch.stream().map(successData -> {
@@ -216,7 +216,7 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
         try {
             while (true) {
                 List<MarketingTcyrCpaFailData> batch = dataQueue.take();
-                if (batch.isEmpty()) {
+                if (CollectionUtils.isEmpty(batch)) {
                     break;
                 }
                 List<TcyrCpaLockData> batchLockData = batch.stream()
