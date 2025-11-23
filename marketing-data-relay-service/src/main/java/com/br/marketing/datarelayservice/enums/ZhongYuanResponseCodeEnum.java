@@ -29,7 +29,17 @@ public enum ZhongYuanResponseCodeEnum {
     /**
      * 系统异常
      */
-    SYSTEM_ERROR("1000003", "系统异常");
+    SYSTEM_ERROR("1000003", "系统异常"),
+
+    /**
+     * 部分成功（批量操作时部分成功）
+     */
+    PARTIAL_SUCCESS("1111111", "部分成功"),
+
+    /**
+     * 全部失败（批量操作时全部失败）
+     */
+    ALL_FAILED("2222222", "全部失败");
 
     /**
      * 响应码
