@@ -51,4 +51,11 @@ public interface ZnkfPushService {
      * @return
      */
     String smsCallBackAtOnce(SmsRecordDTO dto);
+
+    /**
+     * 接收回调数据并入库（通用接口，支持不同版本）
+     * @param jsonData 原始JSON串
+     * @return 处理结果
+     */
+    ApiResult callbackDataInsert(String jsonData);
 }
