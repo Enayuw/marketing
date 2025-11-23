@@ -60,6 +60,18 @@
                     <groupId>io.grpc</groupId>
                     <artifactId>grpc-netty-shaded</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>io.grpc</groupId>
+                    <artifactId>grpc-stub</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.protobuf</groupId>
+                    <artifactId>protobuf-java-util</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
