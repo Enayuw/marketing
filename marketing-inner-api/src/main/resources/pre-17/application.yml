@@ -1,0 +1,91 @@
+spring:
+  application:
+    name: marketing-inner-api
+  profiles:
+    active: pre
+  main:
+    allow-circular-references: true  # 允许循环依赖
+  autoconfigure:
+    exclude:
+      - com.br.transfer.config.log.Log4j2DynamicAutoConfiguration
+      - com.br.transfer.config.log.TempLog4j2DynamicAutoConfiguration
+  aop:
+   proxy-target-class: true
+   auto: true
+  lifecycle:
+    timeout-per-shutdown-phase: 30s  # 优雅关闭超时时间
+  threadpool:
+    queueCapacity: 50000
+    # 线程池所使用的缓冲队列
+    corePoolSize: 30
+    # 线程池维护线程的最少数量
+    maxPoolSize: 35
+    # 线程池维护线程的最大数量
+    keepAliveSeconds: 30000
+    # 线程池维护线程所允许的空闲时间
+    threadNamePrefix: ThreadPool-Common
+    # 线程池所生产的线程名前缀
+
+server:
+  port: 18704
+  tomcat:
+    max-http-form-post-size: 20971520
+  shutdown: graceful  # 启用优雅关闭
+
+mybatis-plus:
+  mapper-locations: mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: isDeleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# 分页插件配置
+pagehelper:
+  helperDialect: mysql #标识数据库
+  supportMethodsArguments: false #自动分页
+  offsetAsPageNum: true
+  rowBoundsWithCount: true
+  reasonable: true #启用合理化，如果pageNum<1会查询第一页，如果pageNum>pages会查询最后一页
+  params: count=countSql
+
+# SpringDoc OpenAPI 配置
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    config-url: /compass-api/api/marketing-inner-api/v3/api-docs/swagger-config
+    url: /compass-api/api/marketing-inner-api/v3/api-docs
+    path: /swagger-ui.html
+    disable-swagger-default-url: true
+
+#exporter监控
+endpoints:
+  prometheus:
+    enabled: true
+    path: /prometheus
+    sensitive: false
+
+# 线程池动态配置监控
+tp:
+  dynamic:
+    metric:
+      enabled: true
+
+#fastDfs配置
+fdfs:
+  tracker-list:            #TrackerList参数,支持多个
+    - 10.100.123.110:22122
+  so-timeout: 1501
+  connect-timeout: 601
+  thumb-image:             #缩略图生成参数
+    width: 200
+    height: 200
+  pool:
+    max-total: 500
+    max-wait-millis: 150000
+    max-total-per-key: 100
