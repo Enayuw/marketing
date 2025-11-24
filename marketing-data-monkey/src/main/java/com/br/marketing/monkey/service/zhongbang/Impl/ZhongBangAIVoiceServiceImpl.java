@@ -21,6 +21,7 @@ import com.br.marketing.monkey.service.zhongbang.ZhongBangAIVoiceService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.jcraft.jsch.SftpException;
 import com.zbank.file.bean.UploadInfo;
 import com.zbank.file.common.utils.Md5EncodeUtil;
@@ -327,8 +328,7 @@ public class ZhongBangAIVoiceServiceImpl implements ZhongBangAIVoiceService {
         Map<String, JSONObject> voiceFileConfig = getVoiceAIFileConfig();
         int poolSize = voiceFileConfig.get(tableName).getIntValue(poolKey);
         if (poolSize > 0 && poolSize != poolExecutor.getCorePoolSize()) {
-            poolExecutor.setCorePoolSize(poolSize);
-            poolExecutor.setMaximumPoolSize(poolSize);
+            ThreadPoolAdjustmentUtil.adjustThreadPoolSize(poolExecutor,poolSize);
         }
     }
 
