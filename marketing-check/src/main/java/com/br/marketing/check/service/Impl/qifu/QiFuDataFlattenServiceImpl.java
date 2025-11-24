@@ -12,6 +12,8 @@ import com.br.marketing.entity.BQifuUploadDataOriginal;
 import com.br.marketing.entity.DrsCustomizeUploadData;
 import com.br.marketing.mapper.BQifuUploadDataOriginalMapper;
 import com.br.marketing.mapper.DrsCustomizeUploadDataMapper;
+import com.br.marketing.service.Impl.qifu.enums.QiFuDataTypeEnum;
+import com.br.marketing.service.Impl.qifu.enums.QiFuSelectStatusEnum;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
@@ -171,7 +173,7 @@ public class QiFuDataFlattenServiceImpl implements QiFuDataFlattenService {
             }
 
             // 处理数据列表
-            processDataList(dataList);
+            processDataList(dataList, tcId);
             
             // 更新indexId为最后一条记录的id
             indexId = dataList.get(dataList.size() - 1).getId();
@@ -187,7 +189,7 @@ public class QiFuDataFlattenServiceImpl implements QiFuDataFlattenService {
      *
      * @param dataList 源数据列表
      */
-    private void processDataList(List<DrsCustomizeUploadData> dataList) {
+    private void processDataList(List<DrsCustomizeUploadData> dataList, String tcId) {
         List<BQifuUploadDataOriginal> flattenDataList = new ArrayList<>();
         List<Long> successIds = new ArrayList<>();
 
@@ -208,8 +210,7 @@ public class QiFuDataFlattenServiceImpl implements QiFuDataFlattenService {
 
         // 更新打平状态为1（已打平）
         if (!successIds.isEmpty() && !dataList.isEmpty()) {
-            String tCid = dataList.get(0).getTCid();
-            drsCustomizeUploadDataMapper.updateFlattenStatusByIds(tCid, successIds, 1);
+            drsCustomizeUploadDataMapper.updateFlattenStatusByIds(tcId, successIds, 1);
         }
     }
 
@@ -310,7 +311,7 @@ public class QiFuDataFlattenServiceImpl implements QiFuDataFlattenService {
         target.setRetryNums(requestJson.getString("retryNums"));
         target.setRetryInterval(requestJson.getString("retryInterval"));
         target.setEventType(requestJson.getString("eventType"));
-        target.setIsReal(0);
+        target.setIsReal(QiFuDataTypeEnum.NON_REALTIME.getCode());
         target.setReceiveDate(sourceData.getReceiveDate());
 
         // 从 dataList 中获取
@@ -320,7 +321,7 @@ public class QiFuDataFlattenServiceImpl implements QiFuDataFlattenService {
         target.setSurname(dataItem.getString("surname"));
 
         // 默认值
-        target.setSelectStatus(0);
+        target.setSelectStatus(QiFuSelectStatusEnum.WAIT_QUERY.getCode());
         target.setStatus(null);
 
         String userType = "";

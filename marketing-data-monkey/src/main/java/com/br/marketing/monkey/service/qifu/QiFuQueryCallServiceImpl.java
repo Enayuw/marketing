@@ -1,4 +1,4 @@
-package com.br.marketing.service.Impl.qifu;
+package com.br.marketing.monkey.service.qifu;
 
 import com.alibaba.fastjson.JSON;
 import com.br.common.log.AlertLog;
@@ -14,6 +14,8 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.BQifuUploadDataOriginal;
 import com.br.marketing.mapper.BQifuUploadDataOriginalMapper;
+import com.br.marketing.service.Impl.qifu.enums.QiFuProcessStatusEnum;
+import com.br.marketing.service.Impl.qifu.enums.QiFuSelectStatusEnum;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
@@ -177,8 +179,8 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
 
     /**
      * 计算有卷比例（基于今天的数据）
-     * 查询该user_type下select_status为0、3、4的数据，统计有卷的比例
-     * 有卷：extend字段不为空或者select_status=2（查询成功）
+     * 查询该user_type下的数据，统计有卷的比例
+     * 有卷：extend字段不为空或者select_status=查询成功
      * 
      * @param userType 场景标识
      * @param todayDate 今天的日期 yyyy-MM-dd
@@ -242,11 +244,18 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
         // 根据开关状态确定查询的select_status列表
         List<Integer> selectStatusList;
         if (switchOpen) {
-            // 开关打开：查询 select_status in (0, 3)
-            selectStatusList = Arrays.asList(0, 3);
+            // 开关打开：查询 select_status in (待查询, 重试-接口异常)
+            selectStatusList = Arrays.asList(
+                QiFuSelectStatusEnum.WAIT_QUERY.getCode(), 
+                QiFuSelectStatusEnum.RETRY_INTERFACE_ERROR.getCode()
+            );
         } else {
-            // 开关关闭：查询 select_status in (0, 3, 4)
-            selectStatusList = Arrays.asList(0, 3, 4);
+            // 开关关闭：查询 select_status in (待查询, 重试-接口异常, 重试-无卷信息)
+            selectStatusList = Arrays.asList(
+                QiFuSelectStatusEnum.WAIT_QUERY.getCode(), 
+                QiFuSelectStatusEnum.RETRY_INTERFACE_ERROR.getCode(),
+                QiFuSelectStatusEnum.RETRY_NO_COUPON.getCode()
+            );
         }
 
         Long indexId = null;
@@ -332,7 +341,7 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
             // 判断当前记录所在的批次是否失败
             if (failedSerialNoSet.contains(serialNo)) {
                 // 该记录所在批次失败，标记为接口异常
-                record.setSelectStatus(3);
+                record.setSelectStatus(QiFuSelectStatusEnum.RETRY_INTERFACE_ERROR.getCode());
             } else {
                 // 该记录所在批次成功，查找对应的返回数据
                 List<CallRealTimeDTO> matchedDetails = allDetailList.stream()
@@ -342,15 +351,15 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
                 if (!matchedDetails.isEmpty()) {
                     // 将返回信息存在extend里
                     record.setExtend(JSON.toJSONString(matchedDetails));
-                    record.setStatus(0);
-                    record.setSelectStatus(2);
+                    record.setStatus(QiFuProcessStatusEnum.UNPROCESSED.getCode());
+                    record.setSelectStatus(QiFuSelectStatusEnum.QUERY_SUCCESS.getCode());
                 } else {
-                    // 没有匹配到数据，可能是无卷信息，更新select_status为4（重试-无卷信息）
-                    record.setSelectStatus(4);
+                    // 没有匹配到数据，可能是无卷信息，更新select_status为重试-无卷信息
+                    record.setSelectStatus(QiFuSelectStatusEnum.RETRY_NO_COUPON.getCode());
                 }
             }
             if (switchOpen) {
-                record.setStatus(0);
+                record.setStatus(QiFuProcessStatusEnum.UNPROCESSED.getCode());
             }
             updateRecords.add(record);
         }
@@ -361,23 +370,6 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
             // 更新Redis中的有卷比例
             updateCouponRatio(userType, todayDate);
         }
-    }
-
-    /**
-     * 更新select_status
-     */
-    @Override
-    public void updateSelectStatus(List<BQifuUploadDataOriginal> dataList, Integer selectStatus) {
-        List<BQifuUploadDataOriginal> updateRecords = dataList.stream()
-                .map(record -> {
-                    BQifuUploadDataOriginal updateRecord = new BQifuUploadDataOriginal();
-                    updateRecord.setId(record.getId());
-                    updateRecord.setSelectStatus(selectStatus);
-                    return updateRecord;
-                })
-                .collect(Collectors.toList());
-
-        batchUpdateRecords(updateRecords);
     }
 
     /**
