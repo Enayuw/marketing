@@ -607,8 +607,8 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             marketingCallRecordVersionMapper.insertData(insertSql);
             log.warn("插入版本明细表成功，tableName={}, sessionId={}", tableName, sessionId);
 
-            // 判断version版本是不是1
-            if ("1".equals(version)) {
+            // 判断version版本是不是 LLMResultV2
+            if ("LLMResultV2".equals(version)) {
                 // 构建插入到b_marketing_call_recording表的SQL（插入所有字段）
                 String recordingInsertSql = buildRecordingInsertSql(jsonObject, sessionId);
                 callRecordingMapper.insertAllFields(recordingInsertSql);
