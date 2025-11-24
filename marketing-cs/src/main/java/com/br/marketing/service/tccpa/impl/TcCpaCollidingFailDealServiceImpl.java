@@ -130,7 +130,7 @@ public class TcCpaCollidingFailDealServiceImpl implements TcCpaCollidingFailDeal
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
             updateFile.setTotalCount(totalCount);
             updateFile.setCollidingDataDealStatus(TcCpaCollidingDealStatusEnum.DEAL_SUCCESS.getValue());
-            TcyrCpaCollectTask tcyrCpaCollectTask = TcyrCpaCollectTask.builder()
+            TcyrCpaCollectTask tcyrCpaCollectTask = TcyrCpaCollectTask.builder().batchNo(tcyrCpaFailFile.getBatchNo())
                     .status(TcCpaSyncDealStatusEnum.DEAL_NO.getValue()).sourceId(tcyrCpaFailFile.getId())
                     .sourceType(TcCpaCollidingSourceTypeEnum.FAIL.getValue()).build();
             tcyrCpaCollectTaskMapper.insert(tcyrCpaCollectTask);
