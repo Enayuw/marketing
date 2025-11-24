@@ -54,14 +54,12 @@ public interface BQifuUploadDataOriginalMapper extends BQifuUploadDataOriginalMa
     /**
      * 查询需要清洗的数据（按user_type维度，基于今天的数据）
      * @param userType 场景标识
-     * @param selectStatusList select_status列表
      * @param todayDate 今天的日期 yyyy-MM-dd
      * @param pageSize 分页大小
      * @param indexId 起始id
      * @return 数据列表
      */
     List<BQifuUploadDataOriginal> selectDataForCleanByUserTypeAndDate(@Param("userType") String userType,
-                                                                       @Param("selectStatusList") List<Integer> selectStatusList,
                                                                        @Param("todayDate") String todayDate,
                                                                        @Param("pageSize") Integer pageSize,
                                                                        @Param("indexId") Long indexId);
