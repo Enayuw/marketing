@@ -16,6 +16,6 @@ public interface QiFuAiCleanService {
     /**
      * 处理BQifuUploadDataOriginal数据的上传
      */
-    void pushProcessForOriginal(List<BQifuUploadDataOriginal> dataList, String operateType, List<String> apiCodes);
+    void pushProcessForOriginal(List<BQifuUploadDataOriginal> dataList, String operateType);
 }
 
