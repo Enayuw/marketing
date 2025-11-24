@@ -1,8 +1,15 @@
 package com.br.marketing.entity;
 
+import java.io.Serializable;
 import java.util.Date;
+import lombok.Data;
 
-public class CallRecording {
+/**
+ * b_marketing_call_recording
+ * @author 
+ */
+@Data
+public class CallRecording implements Serializable {
     /**
      * 主键ID
      */
@@ -13,9 +20,6 @@ public class CallRecording {
      */
     private String cid;
 
-    /**
-     * 
-     */
     private String apiCode;
 
     /**
@@ -41,7 +45,7 @@ public class CallRecording {
     /**
      * 拨打明细详情
      */
-    private String detail;
+    private Object detail;
 
     /**
      * 通话记录编号
@@ -128,203 +132,10 @@ public class CallRecording {
      */
     private Date updateTime;
 
-    public Long getId() {
-        return id;
-    }
+    /**
+     * 接收日期
+     */
+    private String receiveDate;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getCid() {
-        return cid;
-    }
-
-    public void setCid(String cid) {
-        this.cid = cid == null ? null : cid.trim();
-    }
-
-    public String getApiCode() {
-        return apiCode;
-    }
-
-    public void setApiCode(String apiCode) {
-        this.apiCode = apiCode == null ? null : apiCode.trim();
-    }
-
-    public Integer getCallBackType() {
-        return callBackType;
-    }
-
-    public void setCallBackType(Integer callBackType) {
-        this.callBackType = callBackType;
-    }
-
-    public String getTaskName() {
-        return taskName;
-    }
-
-    public void setTaskName(String taskName) {
-        this.taskName = taskName == null ? null : taskName.trim();
-    }
-
-    public Integer getTaskId() {
-        return taskId;
-    }
-
-    public void setTaskId(Integer taskId) {
-        this.taskId = taskId;
-    }
-
-    public String getCustNum() {
-        return custNum;
-    }
-
-    public void setCustNum(String custNum) {
-        this.custNum = custNum == null ? null : custNum.trim();
-    }
-
-    public String getDetail() {
-        return detail;
-    }
-
-    public void setDetail(String detail) {
-        this.detail = detail == null ? null : detail.trim();
-    }
-
-    public String getSessionId() {
-        return sessionId;
-    }
-
-    public void setSessionId(String sessionId) {
-        this.sessionId = sessionId == null ? null : sessionId.trim();
-    }
-
-    public Long getCallStartTime() {
-        return callStartTime;
-    }
-
-    public void setCallStartTime(Long callStartTime) {
-        this.callStartTime = callStartTime;
-    }
-
-    public Long getCallConnectTime() {
-        return callConnectTime;
-    }
-
-    public void setCallConnectTime(Long callConnectTime) {
-        this.callConnectTime = callConnectTime;
-    }
-
-    public Long getCallEndTime() {
-        return callEndTime;
-    }
-
-    public void setCallEndTime(Long callEndTime) {
-        this.callEndTime = callEndTime;
-    }
-
-    public Integer getDialogTurn() {
-        return dialogTurn;
-    }
-
-    public void setDialogTurn(Integer dialogTurn) {
-        this.dialogTurn = dialogTurn;
-    }
-
-    public Integer getCallStatus() {
-        return callStatus;
-    }
-
-    public void setCallStatus(Integer callStatus) {
-        this.callStatus = callStatus;
-    }
-
-    public Integer getIsConnect() {
-        return isConnect;
-    }
-
-    public void setIsConnect(Integer isConnect) {
-        this.isConnect = isConnect;
-    }
-
-    public String getCallDialog() {
-        return callDialog;
-    }
-
-    public void setCallDialog(String callDialog) {
-        this.callDialog = callDialog == null ? null : callDialog.trim();
-    }
-
-    public String getRecordingPath() {
-        return recordingPath;
-    }
-
-    public void setRecordingPath(String recordingPath) {
-        this.recordingPath = recordingPath == null ? null : recordingPath.trim();
-    }
-
-    public String getIntentionGrade() {
-        return intentionGrade;
-    }
-
-    public void setIntentionGrade(String intentionGrade) {
-        this.intentionGrade = intentionGrade == null ? null : intentionGrade.trim();
-    }
-
-    public String getTagList() {
-        return tagList;
-    }
-
-    public void setTagList(String tagList) {
-        this.tagList = tagList == null ? null : tagList.trim();
-    }
-
-    public String getReserveField1() {
-        return reserveField1;
-    }
-
-    public void setReserveField1(String reserveField1) {
-        this.reserveField1 = reserveField1 == null ? null : reserveField1.trim();
-    }
-
-    public String getReturnResult() {
-        return returnResult;
-    }
-
-    public void setReturnResult(String returnResult) {
-        this.returnResult = returnResult == null ? null : returnResult.trim();
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version == null ? null : version.trim();
-    }
-
-    public Integer getStatus() {
-        return status;
-    }
-
-    public void setStatus(Integer status) {
-        this.status = status;
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public Date getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
-    }
+    private static final long serialVersionUID = 1L;
 }

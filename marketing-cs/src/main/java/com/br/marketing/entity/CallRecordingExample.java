@@ -12,7 +12,7 @@ public class CallRecordingExample {
     protected List<Criteria> oredCriteria;
 
     public CallRecordingExample() {
-        oredCriteria = new ArrayList<Criteria>();
+        oredCriteria = new ArrayList<>();
     }
 
     public void setOrderByClause(String orderByClause) {
@@ -69,7 +69,7 @@ public class CallRecordingExample {
 
         protected GeneratedCriteria() {
             super();
-            criteria = new ArrayList<Criterion>();
+            criteria = new ArrayList<>();
         }
 
         public boolean isValid() {
@@ -575,52 +575,52 @@ public class CallRecordingExample {
             return (Criteria) this;
         }
 
-        public Criteria andDetailEqualTo(String value) {
+        public Criteria andDetailEqualTo(Object value) {
             addCriterion("detail =", value, "detail");
             return (Criteria) this;
         }
 
-        public Criteria andDetailNotEqualTo(String value) {
+        public Criteria andDetailNotEqualTo(Object value) {
             addCriterion("detail <>", value, "detail");
             return (Criteria) this;
         }
 
-        public Criteria andDetailGreaterThan(String value) {
+        public Criteria andDetailGreaterThan(Object value) {
             addCriterion("detail >", value, "detail");
             return (Criteria) this;
         }
 
-        public Criteria andDetailGreaterThanOrEqualTo(String value) {
+        public Criteria andDetailGreaterThanOrEqualTo(Object value) {
             addCriterion("detail >=", value, "detail");
             return (Criteria) this;
         }
 
-        public Criteria andDetailLessThan(String value) {
+        public Criteria andDetailLessThan(Object value) {
             addCriterion("detail <", value, "detail");
             return (Criteria) this;
         }
 
-        public Criteria andDetailLessThanOrEqualTo(String value) {
+        public Criteria andDetailLessThanOrEqualTo(Object value) {
             addCriterion("detail <=", value, "detail");
             return (Criteria) this;
         }
 
-        public Criteria andDetailIn(List<String> values) {
+        public Criteria andDetailIn(List<Object> values) {
             addCriterion("detail in", values, "detail");
             return (Criteria) this;
         }
 
-        public Criteria andDetailNotIn(List<String> values) {
+        public Criteria andDetailNotIn(List<Object> values) {
             addCriterion("detail not in", values, "detail");
             return (Criteria) this;
         }
 
-        public Criteria andDetailBetween(String value1, String value2) {
+        public Criteria andDetailBetween(Object value1, Object value2) {
             addCriterion("detail between", value1, value2, "detail");
             return (Criteria) this;
         }
 
-        public Criteria andDetailNotBetween(String value1, String value2) {
+        public Criteria andDetailNotBetween(Object value1, Object value2) {
             addCriterion("detail not between", value1, value2, "detail");
             return (Criteria) this;
         }
@@ -1724,10 +1724,81 @@ public class CallRecordingExample {
             addCriterion("update_time not between", value1, value2, "updateTime");
             return (Criteria) this;
         }
+
+        public Criteria andReceiveDateIsNull() {
+            addCriterion("receive_date is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateIsNotNull() {
+            addCriterion("receive_date is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateEqualTo(String value) {
+            addCriterion("receive_date =", value, "receiveDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateNotEqualTo(String value) {
+            addCriterion("receive_date <>", value, "receiveDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateGreaterThan(String value) {
+            addCriterion("receive_date >", value, "receiveDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateGreaterThanOrEqualTo(String value) {
+            addCriterion("receive_date >=", value, "receiveDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateLessThan(String value) {
+            addCriterion("receive_date <", value, "receiveDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateLessThanOrEqualTo(String value) {
+            addCriterion("receive_date <=", value, "receiveDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateLike(String value) {
+            addCriterion("receive_date like", value, "receiveDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateNotLike(String value) {
+            addCriterion("receive_date not like", value, "receiveDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateIn(List<String> values) {
+            addCriterion("receive_date in", values, "receiveDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateNotIn(List<String> values) {
+            addCriterion("receive_date not in", values, "receiveDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateBetween(String value1, String value2) {
+            addCriterion("receive_date between", value1, value2, "receiveDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateNotBetween(String value1, String value2) {
+            addCriterion("receive_date not between", value1, value2, "receiveDate");
+            return (Criteria) this;
+        }
     }
 
+    /**
+     */
     public static class Criteria extends GeneratedCriteria {
-
         protected Criteria() {
             super();
         }
