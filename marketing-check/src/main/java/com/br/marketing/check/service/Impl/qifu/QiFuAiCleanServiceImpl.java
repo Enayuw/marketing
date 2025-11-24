@@ -19,6 +19,8 @@ import com.br.marketing.entity.Log360ai;
 import com.br.marketing.entity.Log360aiExample;
 import com.br.marketing.mapper.BQifuUploadDataOriginalMapper;
 import com.br.marketing.mapper.Log360aiMapper;
+import com.br.marketing.service.Impl.qifu.enums.QiFuProcessStatusEnum;
+import com.br.marketing.service.Impl.qifu.enums.QiFuSelectStatusEnum;
 import com.br.marketing.service.Impl.qifu.valobj.QiFuCleanStatusEnum;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -135,7 +137,7 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
 
             minId = uploadDataOriginalList.get(uploadDataOriginalList.size() - 1).getId();
 
-            // 数据清洗：设置 status=1,批量更新数据库
+            // 数据清洗：设置 status=处理中,批量更新数据库
             updateStatus(uploadDataOriginalList);
 
             // 记录日志并调用上传接口
@@ -157,11 +159,14 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
         // 根据开关状态确定查询的select_status列表
         List<Integer> selectStatusList;
         if (switchOpen) {
-            // 开关打开：查询 select_status = 2
-            selectStatusList = Arrays.asList(2);
+            // 开关打开：查询 select_status = 查询成功
+            selectStatusList = Arrays.asList(QiFuSelectStatusEnum.QUERY_SUCCESS.getCode());
         } else {
-            // 开关关闭：查询 select_status in (2, 4)
-            selectStatusList = Arrays.asList(2, 4);
+            // 开关关闭：查询 select_status in (查询成功, 重试-无卷信息)
+            selectStatusList = Arrays.asList(
+                QiFuSelectStatusEnum.QUERY_SUCCESS.getCode(),
+                QiFuSelectStatusEnum.RETRY_NO_COUPON.getCode()
+            );
         }
 
         Long indexId = null;
@@ -178,7 +183,7 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
 
             indexId = dataList.get(dataList.size() - 1).getId();
 
-            // 数据清洗：设置 status=1,批量更新数据库
+            // 数据清洗：设置 status=处理中,批量更新数据库
             updateStatus(dataList);
 
             // 记录日志并调用上传接口
@@ -194,12 +199,12 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
     }
 
     public void updateStatus(List<BQifuUploadDataOriginal> dataList) {
-        // 数据清洗：设置 status=1
+        // 数据清洗：设置 status=处理中
         List<BQifuUploadDataOriginal> updateRecords = dataList.stream()
                 .map(record -> {
                     BQifuUploadDataOriginal updateRecord = new BQifuUploadDataOriginal();
                     updateRecord.setId(record.getId());
-                    updateRecord.setStatus(1); // 设置为处理中
+                    updateRecord.setStatus(QiFuProcessStatusEnum.PROCESSING.getCode());
                     return updateRecord;
                 })
                 .collect(Collectors.toList());

@@ -3,7 +3,6 @@ package com.br.marketing.check.service.Impl.qifu;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.br.marketing.check.service.qifu.QiFuAiEventPushService;
-import com.br.marketing.check.service.qifu.QiFuQueryCallService;
 import com.br.marketing.client.qifu.ResponseData;
 import com.br.marketing.client.qifu.callrealtime.CallRealTimeDTO;
 import com.br.marketing.client.qifu.callrealtime.QryCallRealTimeReq;
@@ -15,6 +14,7 @@ import com.br.marketing.entity.DrsCustomizeUploadData;
 import com.br.marketing.entity.EventPushData;
 import com.br.marketing.mapper.BQifuUploadDataOriginalMapper;
 import com.br.marketing.mapper.DrsCustomizeUploadDataMapper;
+import com.br.marketing.service.Impl.qifu.enums.QiFuSelectStatusEnum;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import org.apache.commons.collections4.ListUtils;
 import org.slf4j.Logger;
@@ -146,7 +146,7 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
             // 有异常，更新select_status为3（重试-接口异常）
             qifuUploadDataOriginalList.forEach(qiFuUploadDataOriginal -> {
                 qiFuUploadDataOriginal.setId(null);
-                qiFuUploadDataOriginal.setSelectStatus(3);
+                qiFuUploadDataOriginal.setSelectStatus(QiFuSelectStatusEnum.RETRY_INTERFACE_ERROR.getCode());
                 qiFuUploadDataOriginal.setCreateTime(new Date());
                 qiFuUploadDataOriginal.setUpdateTime(new Date());
             });
@@ -176,7 +176,7 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
                 CallRealTimeDTO callRealTimeDTO = callRealTimeMap.get(serialNo);
                 //将查询结果转换为JSON字符串存入extend字段
                 originalData.setExtend(JSON.toJSONString(callRealTimeDTO));
-                originalData.setSelectStatus(2);
+                originalData.setSelectStatus(QiFuSelectStatusEnum.QUERY_SUCCESS.getCode());
                 originalData.setUpdateTime(new Date());
             }
         }
