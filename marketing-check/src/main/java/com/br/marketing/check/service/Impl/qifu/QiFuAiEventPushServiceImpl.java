@@ -20,6 +20,7 @@ import org.apache.commons.collections4.ListUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
@@ -51,6 +52,7 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
     private QiFuAiEventPushService qiFuAiEventPushService;
 
     @Override
+    @Transactional
     public void assembleRealTimeUploadDataOriginal() {
 
         //查找未同步的事件推送数据sync_status = 0
