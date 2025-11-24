@@ -451,7 +451,15 @@ public class DataCleanServiceImpl implements DataCleanService {
         }
         List<JSONObject> jsonObjectList = new ArrayList<>();
         if (StringUtils.isNotEmpty(levelField)) {
-            jsonObjectList = JsonParseUtils.parseJsonArrayByName(jsonData, levelField);
+            JSONArray dataArray = jsonData.getJSONArray(levelField);
+            if (dataArray != null && !dataArray.isEmpty()) {
+                for (int i = 0; i < dataArray.size(); i++) {
+                    Object item = dataArray.get(i);
+                    if (item instanceof JSONObject) {
+                        jsonObjectList.add((JSONObject) item);
+                    }
+                }
+            }
         } else {
             jsonObjectList.add(jsonData);
         }
@@ -477,7 +485,8 @@ public class DataCleanServiceImpl implements DataCleanService {
         List<Long> ids = snowflakeRedisGeneratorHandle.nextIds(jsonObjectList.size());
         AtomicInteger index = new AtomicInteger(0);
         jsonObjectList.forEach(jsonObject -> {
-            MarketingPreUserDetailDTO marketingPreUserDetailDTO = new MarketingPreUserDetailDTO();
+            MarketingPreUserDetailDTO marketingPreUserDetailDTO = JSON.parseObject(String.valueOf(jsonObject), new TypeReference<MarketingPreUserDetailDTO>() {
+            }.getType());
             //数据清洗
             dataCleanHandler(jsonObject, ruleConfigListTmp, marketingPreUserDetailDTO);
             marketingPreUserDetailDTO.setFingerprint(ids.get(index.getAndIncrement()));

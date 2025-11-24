@@ -3532,4 +3532,9 @@ public class MarketingCommonConfig {
      */
     private List<String> xieChengPostLoanApiCodeLists;
 
+    /**
+     * 中原消金权限验证
+     * {"apiCode":"7492860","appUser":"zyxfjr_coll","appKey":"87C5FCB80F872B8D67BA3306BB09157C"}
+     */
+    private Map<String, String> zhongYuanIdentity;
 }
