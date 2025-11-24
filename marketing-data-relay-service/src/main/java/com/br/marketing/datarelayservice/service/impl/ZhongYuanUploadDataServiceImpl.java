@@ -279,8 +279,8 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
                 dataItem.put("custNum", taskData.getTaskNo());
             }
             
-            // 3. operateType: 固定值"6"
-            dataItem.put("operateType", "6");
+            // 3. operateType: 固定值"5"
+            dataItem.put("operateType", "5");
             
             // 4. 构建reserveField1
             Map<String, Object> reserveFieldResult = buildReserveField1(taskData, batchData, baseRequest);
