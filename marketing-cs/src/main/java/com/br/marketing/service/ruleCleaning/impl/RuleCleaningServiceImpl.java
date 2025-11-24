@@ -735,10 +735,10 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         Object fieldValue = null;
         if (ObjectUtil.isNotEmpty(parentPath) || ObjectUtil.isNotEmpty(level)) {
             fieldValue = JsonParseUtils.findFirstValueByKey(nodeParse, cleanFields, parentPath);
-            log.warn("取值操作逻辑（新）从nodeParse获取字段 {} 的值: {}", cleanFields, fieldValue);
+            //log.warn("取值操作逻辑（新）从nodeParse获取字段 {} 的值: {}", cleanFields, fieldValue);
         } else {
             fieldValue = JsonParseUtils.findFirstValueByKey(nodeParse, cleanFields);
-            log.warn("取值操作逻辑（老）从nodeParse获取字段 {} 的值: {}", cleanFields, fieldValue);
+            //log.warn("取值操作逻辑（老）从nodeParse获取字段 {} 的值: {}", cleanFields, fieldValue);
         }
         if (fieldValue == null) {
             log.warn("未找到字段值: cleanFields={}", cleanFields);

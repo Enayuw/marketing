@@ -51,4 +51,11 @@ public class ZhongYuanCustomizeController {
         return zhongYuanUploadDataService.sceneVariable(jsonData, request);
     }
 
+    @ApiOperation(value = "批量外呼任务状态修改接口")
+    @PostMapping("/task/status")
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
+    public ZhongYuanBaseResponse<?> status(@RequestBody String jsonData, HttpServletRequest request) {
+        return zhongYuanUploadDataService.status(jsonData, request);
+    }
+
 }

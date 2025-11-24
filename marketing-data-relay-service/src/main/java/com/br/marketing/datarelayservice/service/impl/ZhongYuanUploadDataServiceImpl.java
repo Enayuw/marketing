@@ -8,9 +8,12 @@ import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.datarelayservice.enums.ZhongYuanResponseCodeEnum;
 import com.br.marketing.datarelayservice.service.ZhongYuanUploadDataService;
 import com.br.marketing.dto.zhongyuan.*;
+import com.br.marketing.entity.CallRecording;
+import com.br.marketing.entity.CallRecordingExample;
 import com.br.marketing.entity.MarketingCustomerOriginalData;
 import com.br.marketing.entity.ZhongYuanUpload;
 import com.br.marketing.enums.clean.DataProcessEnum;
+import com.br.marketing.mapper.CallRecordingMapper;
 import com.br.marketing.mapper.ZhongYuanUploadMapper;
 import com.br.marketing.mapper.rulecleaning.MarketingCustomerOriginalDataMapper;
 import com.br.marketing.rule.ai.policy.OperateSixProcessor;
@@ -47,6 +50,8 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
     OperateSixProcessor operateSixProcessor;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+    @Resource
+    private CallRecordingMapper callRecordingMapper;
     private static final String TOKEN_PREFIX = "zyxj:token:";
     private static final long TOKEN_EXPIRE_TIME = 7200; // 2小时
 
@@ -645,6 +650,130 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
         }
         // 字符集：0-9, a-f
         return token.matches("^[0-9a-f]{32}$");
+    }
+
+    @Override
+    public ZhongYuanBaseResponse<?> status(String jsonData, HttpServletRequest request) {
+        try {
+            log.warn("中原消金批量外呼任务状态修改接口请求，jsonData: {}", jsonData);
+
+            // 1. 解析请求数据
+            ZhongYuanBaseRequest<TaskStatusRequest> baseRequest = JSON.parseObject(jsonData,
+                    new com.alibaba.fastjson.TypeReference<ZhongYuanBaseRequest<TaskStatusRequest>>() {
+                    });
+
+            if (baseRequest == null || baseRequest.getData() == null) {
+                return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.PARAM_ERROR.getCode(), ZhongYuanResponseCodeEnum.PARAM_ERROR.getMessage());
+            }
+
+            // 2. Token验证
+            ZhongYuanBaseResponse<?> tokenResponse = validateTokenFromRequest(baseRequest);
+            if (!ZhongYuanResponseCodeEnum.SUCCESS.getCode().equals(tokenResponse.getCode())) {
+                return tokenResponse;
+            }
+
+            TaskStatusRequest statusData = baseRequest.getData();
+
+            // 3. 参数校验
+            if (statusData.getTaskUidList() == null || statusData.getTaskUidList().isEmpty()) {
+                return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.PARAM_ERROR.getCode(), "参数错误：任务UID列表为空");
+            }
+
+            if (!StringUtils.hasText(statusData.getOperation()) || !"cancel".equals(statusData.getOperation())) {
+                return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.PARAM_ERROR.getCode(), "参数错误：操作类型必须为cancel");
+            }
+
+            // 4. 将taskUidList转换为Integer列表（taskUid = taskId）
+            List<Integer> taskIdList = new ArrayList<>();
+            for (String taskUid : statusData.getTaskUidList()) {
+                try {
+                    Integer taskId = Integer.parseInt(taskUid);
+                    taskIdList.add(taskId);
+                } catch (NumberFormatException e) {
+                    log.warn("任务UID格式错误，无法转换为Integer，taskUid: {}", taskUid);
+                }
+            }
+
+            if (taskIdList.isEmpty()) {
+                return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.PARAM_ERROR.getCode(), "参数错误：任务UID列表格式错误");
+            }
+
+            // 5. 查询通话明细记录
+            CallRecordingExample example = new CallRecordingExample();
+            CallRecordingExample.Criteria criteria = example.createCriteria();
+            criteria.andTaskIdIn(taskIdList);
+            List<CallRecording> callRecordingList = callRecordingMapper.selectByExample(example);
+
+            // 6. 构建taskId到CallRecording的映射
+            Map<Integer, CallRecording> taskIdToRecordingMap = new HashMap<>();
+            for (CallRecording recording : callRecordingList) {
+                if (recording.getTaskId() != null) {
+                    taskIdToRecordingMap.put(recording.getTaskId(), recording);
+                }
+            }
+
+            // 7. 处理每个taskUid，判断是否可以剔除
+            List<TaskStatusResponse.FailInfo> failList = new ArrayList<>();
+            int successCount = 0;
+            int failCount = 0;
+
+            for (String taskUid : statusData.getTaskUidList()) {
+                try {
+                    Integer taskId = Integer.parseInt(taskUid);
+                    CallRecording recording = taskIdToRecordingMap.get(taskId);
+
+                    // 7.1 当callStatus>=12或无通话明细，返回操作成功
+                    if (recording == null || recording.getCallStatus() == null || recording.getCallStatus() >= 12) {
+                        successCount++;
+                    } else {
+                        // 7.2 当callStatus<12，返回已拨号完毕无法剔除
+                        TaskStatusResponse.FailInfo failInfo = new TaskStatusResponse.FailInfo();
+                        failInfo.setTaskUid(taskUid);
+                        failInfo.setMessage("已拨号完毕无法剔除");
+                        failList.add(failInfo);
+                        failCount++;
+                    }
+                } catch (NumberFormatException e) {
+                    // taskUid格式错误，加入失败列表
+                    TaskStatusResponse.FailInfo failInfo = new TaskStatusResponse.FailInfo();
+                    failInfo.setTaskUid(taskUid);
+                    failInfo.setMessage("任务UID格式错误");
+                    failList.add(failInfo);
+                    failCount++;
+                }
+            }
+
+            // 8. 构建响应
+            TaskStatusResponse responseData = new TaskStatusResponse();
+            responseData.setFailList(failList);
+
+            // 9. 根据成功和失败情况返回不同的响应码
+            ZhongYuanResponseCodeEnum responseCodeEnum;
+            if (failCount == 0) {
+                // 全部成功
+                responseCodeEnum = ZhongYuanResponseCodeEnum.SUCCESS;
+            } else if (successCount > 0) {
+                // 部分成功
+                responseCodeEnum = ZhongYuanResponseCodeEnum.PARTIAL_SUCCESS;
+            } else {
+                // 全部失败
+                responseCodeEnum = ZhongYuanResponseCodeEnum.ALL_FAILED;
+            }
+
+            ZhongYuanBaseResponse<TaskStatusResponse> response = new ZhongYuanBaseResponse<>();
+            response.setCode(responseCodeEnum.getCode());
+            response.setMessage(responseCodeEnum.getMessage());
+            response.setData(responseData);
+
+            log.warn("中原消金批量外呼任务状态修改完成，成功数: {}, 失败数: {}, 响应码: {}",
+                    successCount, failCount, responseCodeEnum.getCode());
+
+            return response;
+
+        } catch (Exception e) {
+            log.error("中原消金批量外呼任务状态修改接口异常", e);
+            return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.SYSTEM_ERROR.getCode(), ZhongYuanResponseCodeEnum.SYSTEM_ERROR.getMessage() + "：" + e.getMessage());
+        }
     }
 
 }

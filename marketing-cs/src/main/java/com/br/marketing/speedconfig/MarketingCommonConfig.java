@@ -3513,4 +3513,9 @@ public class MarketingCommonConfig {
      */
     private Map<String, String> zhongYuanIdentity;
 
+    /**
+     * 携程贷后apicode集合
+     */
+    private List<String> xieChengPostLoanApiCodeLists;
+
 }
