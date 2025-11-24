@@ -9,6 +9,7 @@ import com.br.marketing.dto.zhongyuan.*;
 import com.br.marketing.entity.CallRecording;
 import com.br.marketing.entity.CallRecordingExample;
 import com.br.marketing.entity.MarketingCustomerOriginalData;
+import com.br.marketing.entity.ZhongYuanTransfer;
 import com.br.marketing.entity.ZhongYuanUpload;
 import com.br.marketing.enums.clean.DataProcessEnum;
 import com.br.marketing.mapper.CallRecordingMapper;
@@ -613,8 +614,36 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
 
             TaskStatusRequest statusData = baseRequest.getData();
 
+            // 2.1 保存原始数据到b_marketing_zhongyuan_transfer表
+            ZhongYuanTransfer zhongYuanTransfer = new ZhongYuanTransfer();
+            Map<String, String> zhongYuanIdentity = marketingCommonConfig.getZhongYuanIdentity();
+            String testApiCode = request.getHeader("Test-ApiCode");
+            String apiCode = testApiCode != null ? testApiCode : zhongYuanIdentity.get("apiCode");
+            zhongYuanTransfer.setApiCode(apiCode);
+            // 从baseRequest获取公共字段
+            zhongYuanTransfer.setFlowId(StringUtils.hasText(baseRequest.getFlowId()) ? baseRequest.getFlowId() : null);
+            zhongYuanTransfer.setSysId(StringUtils.hasText(baseRequest.getSysId()) ? baseRequest.getSysId() : null);
+            zhongYuanTransfer.setTimestamp(StringUtils.hasText(baseRequest.getTimestamp()) ? baseRequest.getTimestamp() : null);
+            zhongYuanTransfer.setChannelNo(StringUtils.hasText(baseRequest.getChannelNo()) ? baseRequest.getChannelNo() : null);
+            zhongYuanTransfer.setVersion(StringUtils.hasText(baseRequest.getVersion()) ? baseRequest.getVersion() : null);
+            zhongYuanTransfer.setToken(StringUtils.hasText(baseRequest.getToken()) ? baseRequest.getToken() : null);
+            // 从statusData获取状态修改相关字段
+            zhongYuanTransfer.setBatchUid(StringUtils.hasText(statusData.getBatchUid()) ? statusData.getBatchUid() : null);
+            zhongYuanTransfer.setOperation(StringUtils.hasText(statusData.getOperation()) ? statusData.getOperation() : null);
+            // 将taskUidList转换为JSON字符串
+            if (statusData.getTaskUidList() != null && !statusData.getTaskUidList().isEmpty()) {
+                zhongYuanTransfer.setTaskuidList(JSON.toJSONString(statusData.getTaskUidList()));
+            }
+            zhongYuanTransfer.setCleanStatus(0); // 0-待清洗
+            zhongYuanTransfer.setCreateTime(new Date());
+            zhongYuanTransfer.setUpdateTime(new Date());
 
-            // 增加入库逻辑 zhongYuanTransferMapper
+            // 保存到数据库
+            int insertResult = zhongYuanTransferMapper.insertSelective(zhongYuanTransfer);
+            log.warn("中原消金批量外呼任务状态修改数据入库成功，operation: {}, taskUidCount: {}, insertResult: {}, id: {}",
+                    statusData.getOperation(), 
+                    statusData.getTaskUidList() != null ? statusData.getTaskUidList().size() : 0,
+                    insertResult, zhongYuanTransfer.getId());
 
             // 3. 参数校验
             if (statusData.getTaskUidList() == null || statusData.getTaskUidList().isEmpty()) {
