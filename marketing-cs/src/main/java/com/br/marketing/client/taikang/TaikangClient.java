@@ -4,10 +4,8 @@ import com.alibaba.fastjson2.JSON;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.taikang.util.ChannelRequest;
 import com.br.marketing.client.taikang.util.SimpleDataPackToolsV2;
-import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.aes.AesTaiKang;
-import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
@@ -36,24 +34,48 @@ public class TaikangClient {
     MarketingCommonConfig marketingCommonConfig;
 
     public void process(TaikangMarketingEvent taikangMarketingEvent) {
+        Map<String, String> taikangConfig = marketingCommonConfig.getTaiKangConfig();
         try {
-        Map<String, String> taiKangConfig = marketingCommonConfig.getTaiKangConfig();
-        taikangMarketingEvent.setApplicantPhone(AesTaiKang.AesEncrypt(taikangMarketingEvent.getApplicantPhone(), taiKangConfig.get("aesKey").replace("*","=")));
-        taikangMarketingEvent.setEventId(taiKangConfig.get("eventId"));
-        taikangMarketingEvent.setChannelCode(taiKangConfig.get("channelCode"));
-            SimpleDataPackToolsV2 simpleDataPackToolsV2 = new SimpleDataPackToolsV2();
-            ChannelRequest channelRequest = simpleDataPackToolsV2.clientPacking(
-                    taiKangConfig.get("remotePublicKey").replace("*","=") ,
-                    taiKangConfig.get("localPrivateKey").replace("*","=") ,
-                    taikangMarketingEvent);
-            Header[] headers = new Header[] {
-                    new BasicHeader(HttpHeaders.CONTENT_TYPE, "application/json;charset=UTF-8"),
-                    new BasicHeader("caller", taiKangConfig.get("caller")),
-            };
-            HashMap<String, String> result = httpProxyClient.sendByCodePoolTaikang(channelRequest,  taiKangConfig.get("url"), true, JSON.toJSONString(taiKangConfig),headers);
-            log.warn("荣达泰康返回结果:{}",result);
+            enrichEventWithConfig(taikangMarketingEvent, taikangConfig);
+            ChannelRequest channelRequest = buildChannelRequest(taikangMarketingEvent, taikangConfig);
+            Header[] headers = buildHeaders(taikangConfig);
+            HashMap<String, String> result = httpProxyClient.sendByCodePoolTaikang(
+                    channelRequest,
+                    taikangConfig.get("url"),
+                    true,
+                    JSON.toJSONString(taikangConfig),
+                    headers);
+            log.warn("荣达泰康返回结果:{}", result);
         } catch (Exception e) {
-            log.warn("异常：{}",e.getMessage());
+            log.error("调用泰康营销事件失败,eventId={}, cause={}", taikangMarketingEvent.getEventId(), e.getMessage(), e);
         }
+    }
+
+    private void enrichEventWithConfig(TaikangMarketingEvent taikangMarketingEvent, Map<String, String> config) {
+        taikangMarketingEvent.setApplicantPhone(
+                AesTaiKang.AesEncrypt(
+                        taikangMarketingEvent.getApplicantPhone(),
+                        normalizeKey(config.get("aesKey"))));
+        taikangMarketingEvent.setEventId(config.get("eventId"));
+        taikangMarketingEvent.setChannelCode(config.get("channelCode"));
+    }
+
+    private ChannelRequest buildChannelRequest(TaikangMarketingEvent taikangMarketingEvent, Map<String, String> config) {
+        SimpleDataPackToolsV2 dataPackTools = new SimpleDataPackToolsV2();
+        return dataPackTools.clientPacking(
+                normalizeKey(config.get("remotePublicKey")),
+                normalizeKey(config.get("localPrivateKey")),
+                taikangMarketingEvent);
+    }
+
+    private Header[] buildHeaders(Map<String, String> config) {
+        return new Header[]{
+                new BasicHeader(HttpHeaders.CONTENT_TYPE, "application/json;charset=UTF-8"),
+                new BasicHeader("caller", config.get("caller"))
+        };
+    }
+
+    private String normalizeKey(String key) {
+        return key == null ? null : key.replace("*", "=");
     }
 }
