@@ -1,8 +1,7 @@
-package com.br.marketing.check.service.Impl.qifu;
+package com.br.marketing.service.Impl.qifu;
 
 import com.alibaba.fastjson.JSON;
 import com.br.common.log.AlertLog;
-import com.br.marketing.check.service.qifu.QiFuQueryCallService;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.client.qifu.ResponseData;

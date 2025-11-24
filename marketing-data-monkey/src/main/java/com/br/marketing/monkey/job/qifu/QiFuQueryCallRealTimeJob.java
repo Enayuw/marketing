@@ -1,6 +1,6 @@
-package com.br.marketing.check.job.qifu;
+package com.br.marketing.monkey.job.qifu;
 
-import com.br.marketing.check.service.qifu.QiFuQueryCallService;
+import com.br.marketing.service.Impl.qifu.QiFuQueryCallService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
@@ -33,3 +33,4 @@ public class QiFuQueryCallRealTimeJob extends AbstractSimpleElasticJob {
         log.warn("奇富360定制查询外呼信息耗时{} ms", System.currentTimeMillis() - start);
     }
 }
+
