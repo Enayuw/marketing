@@ -4,6 +4,8 @@ import java.util.List;
 
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.rulecenter.XcDeleteTaskQueryDTO;
+import com.br.marketing.dto.rulecenter.XcDeleteTaskVO;
 import com.br.marketing.vo.xiecheng.XiechengCollidingRuleVO;
 import com.br.marketing.vo.xiecheng.XiechengCollidingStagingRuleVO;
 import com.br.marketing.vo.xiecheng.XiechengPackageVO;
@@ -143,5 +145,15 @@ public interface XieChengCollidingRuleService {
      * @date 2024/08/07
      */
     Boolean updateRound(UpdateRoundParam param);
+    
+    /**
+     * @description 剔除任务列表查询
+     * @param queryDTO
+     * @return com.br.marketing.commonentity.PageResultReturn<com.br.marketing.dto.rulecenter.XcDeleteTaskVO>
+     * @author hedongshuo
+     * @date 2025/11/3 15:32
+     **/
+    PageResultReturn<XcDeleteTaskVO> getCollidingDataDeleteTaskList(XcDeleteTaskQueryDTO queryDTO);
 
+    Boolean deleteCollidingDataDeleteTask(Long taskId);
 }
