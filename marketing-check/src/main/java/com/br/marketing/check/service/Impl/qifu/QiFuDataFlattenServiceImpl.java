@@ -33,11 +33,6 @@ import java.util.concurrent.TimeUnit;
 public class QiFuDataFlattenServiceImpl implements QiFuDataFlattenService {
 
     /**
-     * 上线日期常量 yyyy-MM-dd
-     */
-    private static final String ONLINE_DATE = "2025-11-25";
-
-    /**
      * 批次大小常量
      */
     private static final int BATCH_SIZE = 2000;
@@ -64,27 +59,28 @@ public class QiFuDataFlattenServiceImpl implements QiFuDataFlattenService {
     @Override
     public void flattenDataProcess() {
         LocalDate currentDate = LocalDate.now();
-        LocalDate onlineDate = LocalDate.parse(ONLINE_DATE, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         JSONObject qifuAiCleanConfig = marketingCommonConfig.getQifuAiCleanConfig();
         String tcId = getValueOfJson(qifuAiCleanConfig, "tCid", "");
+        String date = getValueOfJson(qifuAiCleanConfig, "onlineDate", "");
         List<String> apiCodes = Arrays.asList(getValueOfJson(qifuAiCleanConfig, "cleanApiCode", "3700226").split(","));
+        LocalDate onlineDate = LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         if (currentDate.isBefore(onlineDate) || currentDate.isEqual(onlineDate)) {
             // 当前日期小于等于上线日，执行历史数据打平
             log.warn("当前日期 {} 小于等于上线日 {}，执行历史数据打平", currentDate, onlineDate);
-            flattenHistoryData(tcId, apiCodes);
+            flattenHistoryData(tcId, apiCodes, onlineDate.toString());
         } else {
             // 当前日期大于上线日，执行实时打平
             log.warn("当前日期 {} 大于上线日 {}，执行实时数据打平", currentDate, onlineDate);
-            flattenRealtimeData(tcId, apiCodes);
+            flattenRealtimeData(tcId, apiCodes, onlineDate.toString());
         }
     }
 
     /**
      * 历史数据打平逻辑
      */
-    private void flattenHistoryData(String tcId, List<String> apiCodes) {
-        Map<String, Long> idRange = drsCustomizeUploadDataMapper.getDataIdRange(tcId, apiCodes, "history", ONLINE_DATE);
+    private void flattenHistoryData(String tcId, List<String> apiCodes, String onlineDate) {
+        Map<String, Long> idRange = drsCustomizeUploadDataMapper.getDataIdRange(tcId, apiCodes, "history", onlineDate);
         if (idRange == null || idRange.get("minId") == null || idRange.get("maxId") == null) {
             log.warn("历史数据id范围查询为空，无需打平");
             return;
@@ -95,13 +91,13 @@ public class QiFuDataFlattenServiceImpl implements QiFuDataFlattenService {
         log.warn("历史数据id范围：minId={}, maxId={}", minId, maxId);
 
         // 使用通用方法处理数据打平
-        processDataWithMultiThread(tcId, apiCodes, minId, maxId, "历史数据", "qifuFlattenHistory", "history", ONLINE_DATE);
+        processDataWithMultiThread(tcId, apiCodes, minId, maxId, "历史数据", "qifuFlattenHistory", "history", onlineDate);
     }
 
     /**
      * 实时数据打平逻辑
      */
-    private void flattenRealtimeData(String tcId, List<String> apiCodes) {
+    private void flattenRealtimeData(String tcId, List<String> apiCodes, String onlineDate) {
         String todayDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         
         Map<String, Long> idRange = drsCustomizeUploadDataMapper.getDataIdRange(tcId, apiCodes,"today", todayDate);
@@ -193,11 +189,13 @@ public class QiFuDataFlattenServiceImpl implements QiFuDataFlattenService {
      */
     private void processDataList(List<DrsCustomizeUploadData> dataList) {
         List<BQifuUploadDataOriginal> flattenDataList = new ArrayList<>();
+        List<Long> successIds = new ArrayList<>();
 
         for (DrsCustomizeUploadData sourceData : dataList) {
             try {
                 List<BQifuUploadDataOriginal> flattened = flattenSingleRecord(sourceData);
                 flattenDataList.addAll(flattened);
+                successIds.add(sourceData.getId());
             } catch (Exception e) {
                 log.warn("打平数据失败，id: {}, error: {}", sourceData.getId(), e.getMessage(), e);
             }
@@ -206,6 +204,12 @@ public class QiFuDataFlattenServiceImpl implements QiFuDataFlattenService {
         // 批量插入打平后的数据
         if (!flattenDataList.isEmpty()) {
             batchInsertFlattenData(flattenDataList);
+        }
+
+        // 更新打平状态为1（已打平）
+        if (!successIds.isEmpty() && !dataList.isEmpty()) {
+            String tCid = dataList.get(0).getTCid();
+            drsCustomizeUploadDataMapper.updateFlattenStatusByIds(tCid, successIds, 1);
         }
     }
 
@@ -306,6 +310,7 @@ public class QiFuDataFlattenServiceImpl implements QiFuDataFlattenService {
         target.setRetryNums(requestJson.getString("retryNums"));
         target.setRetryInterval(requestJson.getString("retryInterval"));
         target.setEventType(requestJson.getString("eventType"));
+        target.setIsReal(0);
         target.setReceiveDate(sourceData.getReceiveDate());
 
         // 从 dataList 中获取
@@ -316,7 +321,7 @@ public class QiFuDataFlattenServiceImpl implements QiFuDataFlattenService {
 
         // 默认值
         target.setSelectStatus(0);
-        target.setStatus(0);
+        target.setStatus(null);
 
         String userType = "";
         if (templateNo.length() > 12) {

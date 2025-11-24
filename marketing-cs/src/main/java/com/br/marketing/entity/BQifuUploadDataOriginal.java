@@ -98,6 +98,11 @@ public class BQifuUploadDataOriginal {
     private String eventType;
 
     /**
+     * 是否是实时数据：0-否,1-是
+     */
+    private Integer isReal;
+
+    /**
      * 是否发送短信，Y-是，N-否
      */
     private String sendMsg;
