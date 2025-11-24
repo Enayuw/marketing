@@ -13,6 +13,8 @@ import com.br.marketing.vo.VariableDicSelectVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +33,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping(value = "/rule/vd")
-@Tag(value = "客户配置变量值", tags = "客户配置变量值字典", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "客户配置变量值", description = "客户配置变量值字典")
 public class VariableDicController {
 
     private static final Logger log = LoggerFactory.getLogger(CustomerController.class);
@@ -50,10 +52,10 @@ public class VariableDicController {
      * @dateTime 2021/9/1 15:14
      */
     @Operation(summary = "配置变量值字典", description = "集合")
-    @Parameters({@Parameter(name = "cid", value = "合作客户id", paramType = "path", dataType = "string")
-            , @Parameter(name = "apiCode", value = "接口编号", paramType = "path", dataType = "string")
+    @Parameters({@Parameter(name = "cid", description = "合作客户id")
+            , @Parameter(name = "apiCode", description = "接口编号")
     })
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = VariableDicSelectVO.class)})
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR")})
     @GetMapping({"/list/{cid}/{apiCode}"})
     public ApiResult<List<VariableDicSelectVO>> findListByCidAndApiCode(@PathVariable(value = "cid") String cid
             , @PathVariable(value = "apiCode") String apiCode) {
@@ -64,10 +66,10 @@ public class VariableDicController {
 
     @GetMapping("/getVariableDicList")
     @Operation(summary = "客户配置变量值列表数据", description = "客户配置变量值列表数据")
-    @Parameters({@Parameter(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
-            , @Parameter(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
-            , @Parameter(name = "cid", value = "合作客户id", paramType = "query", dataType = "string")
-            , @Parameter(name = "apiCode", paramType = "query", dataType = "string")
+    @Parameters({@Parameter(name = "current", description = "页号")
+            , @Parameter(name = "size", description = "页大小")
+            , @Parameter(name = "cid", description = "合作客户id")
+            , @Parameter(name = "apiCode", description = "接口编号")
     })
     @AddDataAuthBusiness
     public ApiResult<PageResultReturn> getVariableDicList(@RequestParam(defaultValue = "1") int current

@@ -5,6 +5,8 @@ import com.br.marketing.service.bi.ZhongAnControlGroupService;
 import com.br.marketing.vo.zhongan.ZhongAnCustomInfoVO;
 import com.br.marketing.vo.zhongan.param.ControlGroupDTO;
 import com.br.marketing.vo.zhongan.param.ZhongAnControlGroupParam;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,7 +21,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/controlGroup")
-@Tag(value = "众安对照组配置", tags = "众安对照组配置相关接口")
+@Tag(name = "众安对照组配置", description = "众安对照组配置相关接口")
 @Slf4j
 public class ZhongAnControlGroupController {
 

@@ -11,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
@@ -29,7 +31,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("test")
-@Tag(value = "http测试接口", tags = "http测试", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "http测试接口", description = "http测试")
 @Slf4j
 public class HttpTestController {
 

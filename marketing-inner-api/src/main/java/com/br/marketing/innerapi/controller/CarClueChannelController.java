@@ -13,8 +13,10 @@ import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.carclue.web.CarClueChannelService;
 import com.br.marketing.vo.CarClueChannelConfigVO;
 import com.br.marketing.vo.CarClueChannelVo;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -34,7 +36,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping(value = "/carChannel")
-@Tag(value = "车线索外采渠道管理", tags = "车线索外采渠道管理", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "车线索外采渠道管理", description = "车线索外采渠道管理")
 public class CarClueChannelController {
 
     @Resource
@@ -44,7 +46,7 @@ public class CarClueChannelController {
 
     @PostMapping("/getCarClueChannelList")
     @Operation(summary = "车线索外采渠道管理列表", description = "车线索外采渠道管理列表")
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = CarClueChannelVo.class)})
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR")})
     @AddDataAuthBusiness
     public ApiResult<PageResultReturn> getCarClueChannelList(@RequestBody @Valid CarClueChannelDTO request) {
         PageResultReturn result = carClueChannelService.getCarClueChannelList(request);

@@ -60,6 +60,18 @@
                     <groupId>io.grpc</groupId>
                     <artifactId>grpc-netty-shaded</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>io.grpc</groupId>
+                    <artifactId>grpc-stub</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.protobuf</groupId>
+                    <artifactId>protobuf-java-util</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -216,14 +228,14 @@
     </repositories>
     <distributionManagement>
         <repository>
-            <id>100credit_release</id>
+            <id>br_server</id>
             <name>100credit Release Repository</name>
-            <url>http://maven.100credit.cn/nexus/content/repositories/releases/</url>
+            <url>http://maven.100credit.cn/repository/maven-releases/</url>
         </repository>
         <snapshotRepository>
-            <id>100credit_snapshots</id>
+            <id>br_server</id>
             <name>100credit Snapshot Repository</name>
-            <url>http://maven.100credit.cn/nexus/content/repositories/snapshots/</url>
+            <url>http://maven.100credit.cn/repository/maven-snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
     <dependencyManagement>

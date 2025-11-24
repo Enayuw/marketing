@@ -12,6 +12,8 @@ import com.br.marketing.vo.dataclean.CleanFieldConfigVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
@@ -30,7 +32,7 @@ import com.br.marketing.client.rulecleaning.CleanConfigDTO;
  */
 @RestController
 @RequestMapping(value = "/ruleCleaning")
-@Tag(value = "规则数据清洗", tags = "规则数据清洗", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "规则数据清洗", description = "规则数据清洗")
 @Slf4j
 public class RuleCleaningController {
 
@@ -38,15 +40,15 @@ public class RuleCleaningController {
     private RuleCleaningService ruleCleaningService;
 
     @GetMapping("/getRuleList")
-    @Operation(value = "规则列表查询", notes = "规则列表查询接口", httpMethod = "GET")
+    @Operation(summary = "规则列表查询", description = "规则列表查询接口")
     @Parameters({
-            @Parameter(name = "current", value = "当前页", paramType = "query", dataType = "integer", defaultValue = "1"),
-            @Parameter(name = "size", value = "每页条数", paramType = "query", dataType = "integer", defaultValue = "10"),
-            @Parameter(name = "apiCode", value = "API编码", paramType = "query", dataType = "string"),
-            @Parameter(name = "accountType", value = "账号类型", paramType = "query", dataType = "string"),
-            @Parameter(name = "acceptType", value = "接口类型", paramType = "query", dataType = "integer")
+            @Parameter(name = "current", description = "当前页"),
+            @Parameter(name = "size", description = "每页条数"),
+            @Parameter(name = "apiCode", description = "API编码"),
+            @Parameter(name = "accountType", description = "账号类型"),
+            @Parameter(name = "acceptType", description = "接口类型")
     })
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_warn")})
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_warn")})
     public ApiResult<PageResultReturn> getRuleList(
             @RequestParam(defaultValue = "1") int current,
             @RequestParam(defaultValue = "10") int size,
@@ -59,11 +61,11 @@ public class RuleCleaningController {
     }
 
     @GetMapping("/getRuleDetailById")
-    @Operation(value = "根据规则ID查询规则明细", notes = "根据规则ID查询规则明细", httpMethod = "GET")
+    @Operation(summary = "根据规则ID查询规则明细", description = "根据规则ID查询规则明细")
     @Parameters({
-            @Parameter(name = "ruleId", value = "规则ID", paramType = "query", dataType = "Long", required = true)
+            @Parameter(name = "ruleId", description = "规则ID", required = true)
     })
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_warn")})
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_warn")})
     public ApiResult<MarketingDataCleanGeneralConfig> getRuleDetailById(@RequestParam("ruleId") Long ruleId) {
         MarketingDataCleanGeneralConfig ruleDetail = ruleCleaningService.getRuleDetailById(ruleId);
         if (ruleDetail == null) {
@@ -73,13 +75,13 @@ public class RuleCleaningController {
     }
 
     @GetMapping("/getPreviewFieldSamples")
-    @Operation(value = "新增配置字段样例查询", notes = "新增配置字段样例查询", httpMethod = "GET")
+    @Operation(summary = "新增配置字段样例查询", description = "新增配置字段样例查询")
     @Parameters({
-            @Parameter(name = "apiCode", value = "API编码", paramType = "query", dataType = "string", required = true),
-            @Parameter(name = "dataType", value = "数据类型：0上传，1转化", paramType = "query", dataType = "integer", required = true),
-            @Parameter(name = "acceptType", value = "接口类型：0通用,1定制,2FTP", paramType = "query", dataType = "integer", required = true)
+            @Parameter(name = "apiCode", description = "API编码", required = true),
+            @Parameter(name = "dataType", description = "数据类型：0上传，1转化", required = true),
+            @Parameter(name = "acceptType", description = "接口类型：0通用,1定制,2FTP", required = true)
     })
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_warn")})
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_warn")})
     public ApiResult<List<FieldSampleDTO>> getPreviewFieldSamples(
             @RequestParam String apiCode,
             @RequestParam Integer dataType,
@@ -92,13 +94,13 @@ public class RuleCleaningController {
 
 
     @GetMapping("/getFieldSamples")
-    @Operation(value = "字段样例查询", notes = "查询定制化接口字段和字段样例", httpMethod = "GET")
+    @Operation(summary = "字段样例查询", description = "查询定制化接口字段和字段样例")
     @Parameters({
-            @Parameter(name = "apiCode", value = "API编码", paramType = "query", dataType = "string", required = true),
-            @Parameter(name = "dataType", value = "数据类型：0上传，1转化", paramType = "query", dataType = "integer", required = true),
-            @Parameter(name = "acceptType", value = "接口类型：0通用,1定制,2FTP", paramType = "query", dataType = "integer", required = true)
+            @Parameter(name = "apiCode", description = "API编码", required = true),
+            @Parameter(name = "dataType", description = "数据类型：0上传，1转化", required = true),
+            @Parameter(name = "acceptType", description = "接口类型：0通用,1定制,2FTP", required = true)
     })
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_warn")})
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_warn")})
     public ApiResult<List<FieldSampleDTO>> getFieldSamples(
             @RequestParam String apiCode,
             @RequestParam Integer dataType,
@@ -110,13 +112,13 @@ public class RuleCleaningController {
 
 
     @GetMapping("/getpreviewField")
-    @Operation(value = "数据预览", notes = "数据预览", httpMethod = "GET")
+    @Operation(summary = "数据预览", description = "数据预览")
     @Parameters({
-            @Parameter(name = "apiCode", value = "API编码", paramType = "query", dataType = "string", required = true),
-            @Parameter(name = "dataType", value = "数据类型：0上传，1转化", paramType = "query", dataType = "integer", required = true),
-            @Parameter(name = "acceptType", value = "接口类型：0通用,1定制,2FTP", paramType = "query", dataType = "integer", required = true)
+            @Parameter(name = "apiCode", description = "API编码", required = true),
+            @Parameter(name = "dataType", description = "数据类型：0上传，1转化", required = true),
+            @Parameter(name = "acceptType", description = "接口类型：0通用,1定制,2FTP", required = true)
     })
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_warn")})
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_warn")})
     public ApiResult<String> getpreviewField(
             @RequestParam String apiCode,
             @RequestParam Integer dataType,
@@ -129,10 +131,10 @@ public class RuleCleaningController {
 
 
     @PostMapping("/previewFieldCleaning")
-    @Operation(value = "字段清洗结果预览", notes = "预览字段清洗规则应用后的结果", httpMethod = "POST")
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_warn")})
+    @Operation(summary = "字段清洗结果预览", description = "预览字段清洗规则应用后的结果")
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_warn")})
     public ApiResult<Object> previewFieldCleaning(
-            @RequestBody @Parameter(value = "预览请求参数", required = true) FieldCleaningPreviewDTO previewDTO) {
+            @RequestBody @Parameter(description = "预览请求参数", required = true) FieldCleaningPreviewDTO previewDTO) {
         
         log.info("接收到字段清洗预览请求: {}", previewDTO);
         Object cleanedData = ruleCleaningService.previewFieldCleaning(previewDTO.getFieldSample(),
@@ -142,8 +144,8 @@ public class RuleCleaningController {
 
 
     @PostMapping("/field/saveOrUpdate")
-    @Operation(value = "模版字段配置保存更新", notes = "模版字段配置保存更新", httpMethod = "POST")
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_warn")})
+    @Operation(summary = "模版字段配置保存更新", description = "模版字段配置保存更新")
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_warn")})
     public ApiResult<Boolean> fieldSaveOrUpdate(@RequestBody CleanFieldConfigVO fieldConfigVO) {
         boolean result = ruleCleaningService.fieldSaveOrUpdate(fieldConfigVO);
         return new ApiResult<Boolean>().success(result);
@@ -151,12 +153,12 @@ public class RuleCleaningController {
 
 
     @GetMapping("/field/getFieldConfig")
-    @Operation(value = "模版字段配置查询", notes = "模版字段配置查询", httpMethod = "GET")
+    @Operation(summary = "模版字段配置查询", description = "模版字段配置查询")
     @Parameters({
-            @Parameter(name = "dataType", value = "数据类型：0上传，1转化", paramType = "query", dataType = "integer", required = true),
-            @Parameter(name = "acceptType", value = "接口类型：0通用,1定制,2FTP", paramType = "query", dataType = "integer", required = false)
+            @Parameter(name = "dataType", description = "数据类型：0上传，1转化", required = true),
+            @Parameter(name = "acceptType", description = "接口类型：0通用,1定制,2FTP")
     })
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_warn")})
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_warn")})
     public ApiResult<MarketingDataCleanGeneralFieldConfig> getFieldConfg(@RequestParam(required = true) Integer dataType,
                                                                          @RequestParam(required = false) Integer acceptType) {
         
@@ -165,11 +167,11 @@ public class RuleCleaningController {
     }
 
     @GetMapping("/getLastMonthDataDates")
-    @Operation(value = "查询近一个月有数据的日期集合", notes = "查询近一个月有数据的日期集合", httpMethod = "GET")
+    @Operation(summary = "查询近一个月有数据的日期集合", description = "查询近一个月有数据的日期集合")
     @Parameters({
-            @Parameter(name = "apiCode", value = "API编码", paramType = "query", dataType = "string", required = true),
-            @Parameter(name = "acceptType", value = "接口类型：0通用,1定制,2FTP", paramType = "query", dataType = "integer", required = true),
-            @Parameter(name = "sftpPath", value = "sftp地址，接口类型为FTP则必填", paramType = "query", dataType = "String", required = false)
+            @Parameter(name = "apiCode", description = "API编码", required = true),
+            @Parameter(name = "acceptType", description = "接口类型：0通用,1定制,2FTP", required = true),
+            @Parameter(name = "sftpPath", description = "sftp地址，接口类型为FTP则必填")
     })
     public ApiResult<List<String>> getLastMonthDataDates(@RequestParam("apiCode") String apiCode, @RequestParam("acceptType") Integer acceptType, @RequestParam(required = false) String sftpPath) {
 
@@ -179,8 +181,8 @@ public class RuleCleaningController {
 
 
     @PostMapping("/config/save")
-    @Operation(value = "清洗配置保存", notes = "清洗配置保存", httpMethod = "POST")
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_warn")})
+    @Operation(summary = "清洗配置保存", description = "清洗配置保存")
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_warn")})
     public ApiResult<Boolean> saveConfig(@RequestBody @Validated CleanConfigDTO configDTO) {
         // 调用Service处理业务逻辑
         boolean result = ruleCleaningService.saveCleanConfig(configDTO);
@@ -189,10 +191,10 @@ public class RuleCleaningController {
 
 
     @GetMapping("/getFileSftpPath")
-    @Operation(value = "获取文件SFTP路径", notes = "获取文件SFTP路径", httpMethod = "GET")
+    @Operation(summary = "获取文件SFTP路径", description = "获取文件SFTP路径")
     @Parameters({
-            @Parameter(name = "apiCode", value = "API编码", paramType = "query", dataType = "string", required = true),
-            @Parameter(name = "fileType", value = "文件类型：13:上传清洗周期文件,14:转化清洗周期文件", paramType = "query", dataType = "integer", required = true)
+            @Parameter(name = "apiCode", description = "API编码", required = true),
+            @Parameter(name = "fileType", description = "文件类型：13:上传清洗周期文件,14:转化清洗周期文件", required = true)
 
     })
     public ApiResult<List<String>> getFileSftpPath(@RequestParam("apiCode") String apiCode,@RequestParam("fileType") Integer fileType) {
@@ -201,9 +203,9 @@ public class RuleCleaningController {
     }
 
     @GetMapping("/getRuleDetail")
-    @Operation(value = "获取清洗规则配置", notes = "获取清洗规则配置", httpMethod = "GET")
+    @Operation(summary = "获取清洗规则配置", description = "获取清洗规则配置")
     @Parameters({
-            @Parameter(name = "configId", value = "配置Id", paramType = "query", dataType = "Long", required = true)
+            @Parameter(name = "configId", description = "配置Id", required = true)
 
     })
     public ApiResult<List<FieldSampleDTO>> getRuleDetail(@RequestParam("configId") Long configId) {
@@ -213,8 +215,8 @@ public class RuleCleaningController {
 
 
     @PostMapping("/rule/save")
-    @Operation(value = "清洗规则保存", notes = "清洗规则保存", httpMethod = "POST")
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_warn")})
+    @Operation(summary = "清洗规则保存", description = "清洗规则保存")
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_warn")})
     public ApiResult<Boolean> saveCleanRule(@RequestBody @Validated RuleCleaningConfigDTO ruleCleaningConfigDTO) {
         // 调用Service处理业务逻辑
         boolean result = ruleCleaningService.saveCleanRule(ruleCleaningConfigDTO);
@@ -223,14 +225,14 @@ public class RuleCleaningController {
 
 
     @PostMapping("/trailProcess")
-    @Operation(value = "试跑验证规则有效性",notes = "试跑验证规则有效性",httpMethod = "POST")
+    @Operation(summary = "试跑验证规则有效性", description = "试跑验证规则有效性")
     public ApiResult<List<List<RuleCleaningResult>>> trailProcess(@RequestBody RuleTrialConfigDTO ruleTrialConfigDTO){
         Result<List<List<RuleCleaningResult>>> result = ruleCleaningService.trialProcess(ruleTrialConfigDTO);
         return new ApiResult<List<List<RuleCleaningResult>>>().setData(result.getData()).success(result.getMessage());
     }
 
     @PostMapping("/ruleEffect")
-    @Operation(value = "规则生效处理",notes = "规则生效处理",httpMethod = "POST")
+    @Operation(summary = "规则生效处理", description = "规则生效处理")
     public ApiResult<Boolean> ruleEffect(@RequestParam("ruleId") Long ruleId){
         boolean result = ruleCleaningService.ruleEffect(ruleId);
         return new ApiResult<Boolean>().success(result);
