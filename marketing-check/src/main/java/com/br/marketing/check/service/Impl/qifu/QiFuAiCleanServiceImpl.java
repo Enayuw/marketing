@@ -103,6 +103,7 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
         }
 
         JSONObject qifuAiCleanConfig = marketingCommonConfig.getQifuAiCleanConfig();
+        List<String> apiCodes = Arrays.asList(getValueOfJson(qifuAiCleanConfig, "cleanApiCode", "3700226").split(","));
         Integer threadNum = Integer.valueOf(getValueOfJson(qifuAiCleanConfig, "threadNum", "10"));
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum, "qiAiCleanOriginal", 200);
 
@@ -112,7 +113,7 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
             final String finalTodayDate = todayDate;
             threadPool.submit(() -> {
                 try {
-                    processUserTypeDataForClean(finalUserType, finalTodayDate);
+                    processUserTypeDataForClean(finalUserType, finalTodayDate, apiCodes);
                 } catch (Exception e) {
                     log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode()
                             , "奇富360ai清洗数据异常[userType: " + finalUserType + "]" + e.getMessage()), e);
@@ -124,32 +125,10 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
         shutdownThreadPool(threadPool);
     }
 
-    @Override
-    public void aiRealTimeCleanProcessFromOriginal() {
-        //获取待清洗的数据
-        List<BQifuUploadDataOriginal> uploadDataOriginalList = new ArrayList<>();
-        Long minId = null;
-        while (true) {
-            uploadDataOriginalList = bQifuUploadDataOriginalMapper.selectRealTimeDataForClean(minId, PAGE_SIZE);
-            if (uploadDataOriginalList == null || uploadDataOriginalList.isEmpty()) {
-                break;
-            }
-
-            minId = uploadDataOriginalList.get(uploadDataOriginalList.size() - 1).getId();
-
-            // 数据清洗：设置 status=处理中,批量更新数据库
-            updateStatus(uploadDataOriginalList);
-
-            // 调用上传接口
-            pushProcessForOriginal(uploadDataOriginalList, "3");
-        }
-
-    }
-
     /**
      * 处理某个userType的清洗数据（按场景维度处理，基于今天的数据）
      */
-    private void processUserTypeDataForClean(String userType, String todayDate) {
+    private void processUserTypeDataForClean(String userType, String todayDate, List<String> apiCodes) {
         Long indexId = null;
         boolean hasMore = true;
 
@@ -168,7 +147,7 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
             updateStatus(dataList);
 
             // 调用上传接口
-            pushProcessForOriginal(dataList, "3");
+            pushProcessForOriginal(dataList, "3", apiCodes);
 
             if (dataList.size() < PAGE_SIZE) {
                 hasMore = false;
@@ -191,95 +170,6 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
         batchUpdateStatus(updateRecords);
     }
 
-
-    /**
-     * 检查Redis开关（按user_type维度）
-     * 条件：user_type有卷比例>=75% 或者 当前时间>12:10
-     */
-    private boolean checkRedisSwitch(String userType, String todayDate) {
-        try {
-            // 检查当前时间是否>12:10
-            LocalTime currentTime = LocalTime.now();
-            if (currentTime.isAfter(TIME_THRESHOLD) || currentTime.equals(TIME_THRESHOLD)) {
-                log.warn("userType={} 当前时间 {} >= {}，Redis开关打开", userType, currentTime, TIME_THRESHOLD);
-                return true;
-            }
-
-            // 检查Redis中是否存在该user_type的开关
-            String redisKey = REDIS_SWITCH_KEY_PREFIX + userType;
-            Boolean exists = redisChgService.exists(redisKey);
-
-            if (exists == null || !exists) {
-                // Redis中不存在，查询数据库统计有卷比例并新增到Redis
-                double ratio = calculateCouponRatio(userType, todayDate);
-                // 新增到Redis
-                redisChgService.setex(redisKey, String.valueOf(ratio), REDIS_EXPIRE_SECONDS);
-                log.warn("userType={} Redis开关不存在，查询数据库统计今天有卷比例={}，已新增到Redis", userType, ratio);
-
-                if (ratio >= COUPON_RATIO_THRESHOLD) {
-                    log.warn("userType={} 有卷比例 {} >= {}，Redis开关打开", userType, ratio, COUPON_RATIO_THRESHOLD);
-                    return true;
-                }
-            } else {
-                // Redis中存在，获取有卷比例
-                String ratioStr = redisChgService.get(redisKey);
-                if (StringUtils.isNotBlank(ratioStr)) {
-                    try {
-                        double ratio = Double.parseDouble(ratioStr);
-                        if (ratio >= COUPON_RATIO_THRESHOLD) {
-                            log.warn("userType={} 有卷比例 {} >= {}，Redis开关打开", userType, ratio, COUPON_RATIO_THRESHOLD);
-                            return true;
-                        }
-                    } catch (NumberFormatException e) {
-                        log.warn("解析userType={}的有卷比例失败，ratioStr={}，重新计算", userType, ratioStr);
-                        // 解析失败，重新计算并更新Redis
-                        double ratio = calculateCouponRatio(userType, todayDate);
-                        redisChgService.setex(redisKey, String.valueOf(ratio), REDIS_EXPIRE_SECONDS);
-                        if (ratio >= COUPON_RATIO_THRESHOLD) {
-                            return true;
-                        }
-                    }
-                }
-            }
-
-            return false;
-        } catch (Exception e) {
-            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode()
-                    , "奇富360ai清洗数据异常[检查Redis开关失败, userType: " + userType + "]" + e.getMessage()), e);
-            return false;
-        }
-    }
-
-    /**
-     * 计算有卷比例（基于今天的数据）
-     */
-    private double calculateCouponRatio(String userType, String todayDate) {
-        try {
-            // 查询该user_type下今天的数据总数
-            Long totalCount = bQifuUploadDataOriginalMapper.countByUserTypeAndSelectStatusAndDate(userType, todayDate);
-
-            if (totalCount == null || totalCount == 0) {
-                log.warn("userType={} 今天 {} 没有查询到的数据", userType, todayDate);
-                return 0.0;
-            }
-
-            // 查询今天有卷的数据数量（select_status=2）
-            Long couponCount = bQifuUploadDataOriginalMapper.countCouponDataByUserTypeAndDate(userType, todayDate);
-
-            if (couponCount == null || couponCount == 0) {
-                return 0.0;
-            }
-
-            double ratio = (double) couponCount / totalCount;
-            log.warn("userType={} 今天 {} 有卷比例计算：总数={}，有卷数={}，比例={}", userType, todayDate, totalCount, couponCount, ratio);
-            return ratio;
-        } catch (Exception e) {
-            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode()
-                    , "奇富360ai清洗数据异常[计算有卷比例失败, userType: " + userType + ", todayDate: " + todayDate + "]" + e.getMessage()), e);
-            return 0.0;
-        }
-    }
-
     /**
      * 批量更新status
      */
@@ -300,22 +190,15 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
      * 处理BQifuUploadDataOriginal数据的上传
      */
     @Override
-    public void pushProcessForOriginal(List<BQifuUploadDataOriginal> dataList, String operateType) {
+    public void pushProcessForOriginal(List<BQifuUploadDataOriginal> dataList, String operateType, List<String> apiCodes) {
         for (BQifuUploadDataOriginal record : dataList) {
             // 生成推送对象
             Result<MarketingPreUserDTO> result = buildPushDtoFromOriginal(record, operateType);
             if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                Log360aiExample example = new Log360aiExample();
-                example.createCriteria().andDataIdEqualTo(record.getId());
-                Log360ai log360ai = new Log360ai();
-                log360ai.setStatus(QiFuCleanStatusEnum.FAILDATAACTION.getValue());
-                log360ai.setErrorMsg(result.getMessage());
-                log360aiMapper.updateByExampleSelective(log360ai, example);
                 continue;
             }
             // 推送
             UpLoadCleanDTO upLoadCleanDTO = new UpLoadCleanDTO();
-            upLoadCleanDTO.setDataId(record.getId());
             upLoadCleanDTO.setApiCode(record.getApiCode());
             upLoadCleanDTO.setJsonData(JSON.toJSONString(result.getData()));
             pushInfoService.pushUploadOfCleanRetry(upLoadCleanDTO, null);
