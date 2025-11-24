@@ -575,52 +575,52 @@ public class CallRecordingExample {
             return (Criteria) this;
         }
 
-        public Criteria andDetailEqualTo(String value) {
+        public Criteria andDetailEqualTo(Object value) {
             addCriterion("detail =", value, "detail");
             return (Criteria) this;
         }
 
-        public Criteria andDetailNotEqualTo(String value) {
+        public Criteria andDetailNotEqualTo(Object value) {
             addCriterion("detail <>", value, "detail");
             return (Criteria) this;
         }
 
-        public Criteria andDetailGreaterThan(String value) {
+        public Criteria andDetailGreaterThan(Object value) {
             addCriterion("detail >", value, "detail");
             return (Criteria) this;
         }
 
-        public Criteria andDetailGreaterThanOrEqualTo(String value) {
+        public Criteria andDetailGreaterThanOrEqualTo(Object value) {
             addCriterion("detail >=", value, "detail");
             return (Criteria) this;
         }
 
-        public Criteria andDetailLessThan(String value) {
+        public Criteria andDetailLessThan(Object value) {
             addCriterion("detail <", value, "detail");
             return (Criteria) this;
         }
 
-        public Criteria andDetailLessThanOrEqualTo(String value) {
+        public Criteria andDetailLessThanOrEqualTo(Object value) {
             addCriterion("detail <=", value, "detail");
             return (Criteria) this;
         }
 
-        public Criteria andDetailIn(List<String> values) {
+        public Criteria andDetailIn(List<Object> values) {
             addCriterion("detail in", values, "detail");
             return (Criteria) this;
         }
 
-        public Criteria andDetailNotIn(List<String> values) {
+        public Criteria andDetailNotIn(List<Object> values) {
             addCriterion("detail not in", values, "detail");
             return (Criteria) this;
         }
 
-        public Criteria andDetailBetween(String value1, String value2) {
+        public Criteria andDetailBetween(Object value1, Object value2) {
             addCriterion("detail between", value1, value2, "detail");
             return (Criteria) this;
         }
 
-        public Criteria andDetailNotBetween(String value1, String value2) {
+        public Criteria andDetailNotBetween(Object value1, Object value2) {
             addCriterion("detail not between", value1, value2, "detail");
             return (Criteria) this;
         }
@@ -1405,76 +1405,6 @@ public class CallRecordingExample {
             return (Criteria) this;
         }
 
-        public Criteria andReturnResultIsNull() {
-            addCriterion("return_result is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andReturnResultIsNotNull() {
-            addCriterion("return_result is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andReturnResultEqualTo(String value) {
-            addCriterion("return_result =", value, "returnResult");
-            return (Criteria) this;
-        }
-
-        public Criteria andReturnResultNotEqualTo(String value) {
-            addCriterion("return_result <>", value, "returnResult");
-            return (Criteria) this;
-        }
-
-        public Criteria andReturnResultGreaterThan(String value) {
-            addCriterion("return_result >", value, "returnResult");
-            return (Criteria) this;
-        }
-
-        public Criteria andReturnResultGreaterThanOrEqualTo(String value) {
-            addCriterion("return_result >=", value, "returnResult");
-            return (Criteria) this;
-        }
-
-        public Criteria andReturnResultLessThan(String value) {
-            addCriterion("return_result <", value, "returnResult");
-            return (Criteria) this;
-        }
-
-        public Criteria andReturnResultLessThanOrEqualTo(String value) {
-            addCriterion("return_result <=", value, "returnResult");
-            return (Criteria) this;
-        }
-
-        public Criteria andReturnResultLike(String value) {
-            addCriterion("return_result like", value, "returnResult");
-            return (Criteria) this;
-        }
-
-        public Criteria andReturnResultNotLike(String value) {
-            addCriterion("return_result not like", value, "returnResult");
-            return (Criteria) this;
-        }
-
-        public Criteria andReturnResultIn(List<String> values) {
-            addCriterion("return_result in", values, "returnResult");
-            return (Criteria) this;
-        }
-
-        public Criteria andReturnResultNotIn(List<String> values) {
-            addCriterion("return_result not in", values, "returnResult");
-            return (Criteria) this;
-        }
-
-        public Criteria andReturnResultBetween(String value1, String value2) {
-            addCriterion("return_result between", value1, value2, "returnResult");
-            return (Criteria) this;
-        }
-
-        public Criteria andReturnResultNotBetween(String value1, String value2) {
-            addCriterion("return_result not between", value1, value2, "returnResult");
-            return (Criteria) this;
-        }
-
         public Criteria andVersionIsNull() {
             addCriterion("version is null");
             return (Criteria) this;
@@ -1722,6 +1652,76 @@ public class CallRecordingExample {
 
         public Criteria andUpdateTimeNotBetween(Date value1, Date value2) {
             addCriterion("update_time not between", value1, value2, "updateTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateIsNull() {
+            addCriterion("receive_date is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateIsNotNull() {
+            addCriterion("receive_date is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateEqualTo(String value) {
+            addCriterion("receive_date =", value, "receiveDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateNotEqualTo(String value) {
+            addCriterion("receive_date <>", value, "receiveDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateGreaterThan(String value) {
+            addCriterion("receive_date >", value, "receiveDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateGreaterThanOrEqualTo(String value) {
+            addCriterion("receive_date >=", value, "receiveDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateLessThan(String value) {
+            addCriterion("receive_date <", value, "receiveDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateLessThanOrEqualTo(String value) {
+            addCriterion("receive_date <=", value, "receiveDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateLike(String value) {
+            addCriterion("receive_date like", value, "receiveDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateNotLike(String value) {
+            addCriterion("receive_date not like", value, "receiveDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateIn(List<String> values) {
+            addCriterion("receive_date in", values, "receiveDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateNotIn(List<String> values) {
+            addCriterion("receive_date not in", values, "receiveDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateBetween(String value1, String value2) {
+            addCriterion("receive_date between", value1, value2, "receiveDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveDateNotBetween(String value1, String value2) {
+            addCriterion("receive_date not between", value1, value2, "receiveDate");
             return (Criteria) this;
         }
     }

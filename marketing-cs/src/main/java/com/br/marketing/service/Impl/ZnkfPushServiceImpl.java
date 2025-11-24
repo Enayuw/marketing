@@ -50,6 +50,7 @@ import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 
@@ -606,8 +607,8 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             marketingCallRecordVersionMapper.insertData(insertSql);
             log.warn("插入版本明细表成功，tableName={}, sessionId={}", tableName, sessionId);
 
-            // 判断version版本是不是1
-            if ("1".equals(version)) {
+            // 判断version版本是不是 LLMResultV2
+            if ("LLMResultV2".equals(version)) {
                 // 构建插入到b_marketing_call_recording表的SQL（插入所有字段）
                 String recordingInsertSql = buildRecordingInsertSql(jsonObject, sessionId);
                 callRecordingMapper.insertAllFields(recordingInsertSql);
@@ -941,6 +942,13 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             values.append("0,");
         }
 
+        // receive_date（当日）
+        if (!addedColumns.contains("receive_date")) {
+            columns.append("`receive_date`,");
+            String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            values.append("'").append(currentDate).append("',");
+        }
+
         // 移除最后的逗号
         if (columns.length() > 0 && columns.charAt(columns.length() - 1) == ',') {
             columns.setLength(columns.length() - 1);
@@ -957,4 +965,6 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
 
         return sql.toString();
     }
+
+
 }

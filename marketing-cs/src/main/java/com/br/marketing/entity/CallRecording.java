@@ -41,7 +41,7 @@ public class CallRecording {
     /**
      * 拨打明细详情
      */
-    private String detail;
+    private Object detail;
 
     /**
      * 通话记录编号
@@ -104,11 +104,6 @@ public class CallRecording {
     private String reserveField1;
 
     /**
-     * 大模型总结
-     */
-    private String returnResult;
-
-    /**
      * 版本号
      */
     private String version;
@@ -127,6 +122,11 @@ public class CallRecording {
      * 更新时间
      */
     private Date updateTime;
+
+    /**
+     * 接收日期
+     */
+    private String receiveDate;
 
     public Long getId() {
         return id;
@@ -184,12 +184,12 @@ public class CallRecording {
         this.custNum = custNum == null ? null : custNum.trim();
     }
 
-    public String getDetail() {
+    public Object getDetail() {
         return detail;
     }
 
-    public void setDetail(String detail) {
-        this.detail = detail == null ? null : detail.trim();
+    public void setDetail(Object detail) {
+        this.detail = detail;
     }
 
     public String getSessionId() {
@@ -288,14 +288,6 @@ public class CallRecording {
         this.reserveField1 = reserveField1 == null ? null : reserveField1.trim();
     }
 
-    public String getReturnResult() {
-        return returnResult;
-    }
-
-    public void setReturnResult(String returnResult) {
-        this.returnResult = returnResult == null ? null : returnResult.trim();
-    }
-
     public String getVersion() {
         return version;
     }
@@ -326,5 +318,13 @@ public class CallRecording {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public String getReceiveDate() {
+        return receiveDate;
+    }
+
+    public void setReceiveDate(String receiveDate) {
+        this.receiveDate = receiveDate == null ? null : receiveDate.trim();
     }
 }
