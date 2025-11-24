@@ -569,7 +569,7 @@
     />
 
     <job:simple id="【bridge】-TcCpaCollidingDataCollectJob"
-                class="com.br.marketing.bridge.job.tccpa.TcCpaCollidingFailDealShardJob"
+                class="com.br.marketing.bridge.job.tccpa.TcCpaCollidingDataCollectJob"
                 cron="0 0/10 7-16 * * ?"
                 description="同程CPA撞库数据同步任务"
                 registry-center-ref="regCenter"

@@ -10,15 +10,14 @@
     </insert>
 
     <select id="selectBySyncFileId" resultType="com.br.marketing.entity.MarketingTcyrCpaFailData">
-        SELECT id,api_code,batch_no,sync_file_id,user_key,cell,is_match,start_date,
-        end_date,create_time,update_time,status,status_msg,is_del,extend,origin_text
+        SELECT api_code,batch_no,sync_file_id,user_key,fail_msg,release_time,status,status_msg,extend
         FROM b_tcyr_cpa_fail_data
-        WHERE 1 = 1
+        WHERE is_del = 1
         <if test="minId != null and minId >0">
             AND id >=#{minId}
         </if>
         <if test="syncFileId != null">
-            AND sync_file_id != #{syncFileId}
+            AND sync_file_id = #{syncFileId}
         </if>
         order by id asc limit 2000;
     </select>

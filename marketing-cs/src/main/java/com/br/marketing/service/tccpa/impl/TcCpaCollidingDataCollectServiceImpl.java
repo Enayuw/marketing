@@ -79,20 +79,25 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
 
     private void successProcess(TcyrCpaCollectTask tcyrCpaCollectTask, Long syncFileId,
                                 TpDynamicExecutor actionPool, int threadCount) {
-        BlockingQueue<List<MarketingTcyrCpaSuccessData>> dataQueue = new LinkedBlockingQueue<>(500);
-        new Thread(() -> searchSuccessData(syncFileId, dataQueue, threadCount)).start();
+        long minId = 0;
+        List<MarketingTcyrCpaSuccessData> marketingSyncs = marketingTcyrCpaSuccessDataMapper
+                .selectBySyncFileId(syncFileId, minId);
+        if (CollectionUtils.isEmpty(marketingSyncs)) {
+        }
+        minId = marketingSyncs.get(marketingSyncs.size() - 1).getId() + 1;
 
         List<CompletableFuture<Void>> allFutures = Lists.newArrayList();
         try {
             for (int i = 0; i < threadCount; i++) {
-                allFutures.add(CompletableFuture.runAsync(() -> {
-                    try {
-                        successProcess(dataQueue);
-                    } catch (Exception e) {
-                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
-                                e.getMessage(), TITLE), e);
-                    }
-                }, actionPool));
+                List<TcyrCpaLockData> batchLockData = batch.stream().map(successData -> {
+                    TcyrCpaLockData lockData = new TcyrCpaLockData();
+                    BeanUtils.copyProperties(successData, lockData);
+                    lockData.setReleaseTime(successData.getEndDate());
+                    lockData.setTaskId(taskId);
+                    lockData.setLockBelong(1);
+                    return lockData;
+                }).collect(Collectors.toList());
+                tcyrCpaLockDataMapper.batchSave(batchLockData);
             }
             CompletableFuture.allOf(allFutures.toArray(new CompletableFuture[0])).join();
             tcyrCpaCollectTask.setStatus(TcCpaSyncDealStatusEnum.DEAL_SUCCESS.getValue());
@@ -102,57 +107,6 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
             tcyrCpaCollectTaskMapper.updateByPrimaryKey(tcyrCpaCollectTask);
         } finally {
             actionPool.shutdownAndAwaitTermination();
-        }
-    }
-
-    private void searchSuccessData(Long syncFileId, BlockingQueue<List<MarketingTcyrCpaSuccessData>> dataQueue, int threadCount) {
-        Long minId = null;
-        try {
-            while (true) {
-                List<MarketingTcyrCpaSuccessData> marketingSyncs = marketingTcyrCpaSuccessDataMapper
-                        .selectBySyncFileId(syncFileId, minId);
-                if (CollectionUtils.isEmpty(marketingSyncs)) {
-                    break;
-                }
-                dataQueue.put(marketingSyncs);
-                minId = marketingSyncs.get(marketingSyncs.size() - 1).getId() + 1;
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
-                    e.getMessage(), TITLE), e);
-        } finally {
-            for (int i = 0; i < threadCount; i++) {
-                try {
-                    dataQueue.put(Collections.emptyList());
-                } catch (InterruptedException e) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
-                            e.getMessage(), TITLE), e);
-                }
-            }
-        }
-    }
-
-    private void successProcess(BlockingQueue<List<MarketingTcyrCpaSuccessData>> dataQueue) {
-        try {
-            while (true) {
-                List<MarketingTcyrCpaSuccessData> batch = dataQueue.take();
-                if (CollectionUtils.isEmpty(batch)) {
-                    break;
-                }
-                List<TcyrCpaLockData> batchLockData = batch.stream().map(successData -> {
-                    TcyrCpaLockData lockData = new TcyrCpaLockData();
-                    BeanUtils.copyProperties(successData, lockData);
-                    lockData.setReleaseTime(successData.getEndDate());
-                    lockData.setLockBelong(1);
-                    return lockData;
-                }).collect(Collectors.toList());
-                tcyrCpaLockDataMapper.batchSave(batchLockData);
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
-                    e.getMessage(), TITLE), e);
         }
     }
 
@@ -166,7 +120,7 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
             for (int i = 0; i < threadCount; i++) {
                 allFutures.add(CompletableFuture.runAsync(() -> {
                     try {
-                        failProcess(dataQueue);
+                        failProcess(dataQueue, tcyrCpaCollectTask.getId());
                     } catch (Exception e) {
                         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
                                 e.getMessage(), TITLE), e);
@@ -212,7 +166,7 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
         }
     }
 
-    private void failProcess(BlockingQueue<List<MarketingTcyrCpaFailData>> dataQueue) {
+    private void failProcess(BlockingQueue<List<MarketingTcyrCpaFailData>> dataQueue, Long taskId) {
         try {
             while (true) {
                 List<MarketingTcyrCpaFailData> batch = dataQueue.take();
@@ -225,6 +179,7 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
                             TcyrCpaLockData lockData = new TcyrCpaLockData();
                             BeanUtils.copyProperties(failData, lockData);
                             lockData.setReleaseTime(failData.getReleaseTime());
+                            lockData.setTaskId(taskId);
                             lockData.setLockBelong(2);
                             return lockData;
                         }).collect(Collectors.toList());
@@ -237,6 +192,7 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
                             BeanUtils.copyProperties(failData, lockData);
                             lockData.setReleaseTime(failData.getReleaseTime());
                             lockData.setFailMsg(failData.getFailMsg());
+                            lockData.setTaskId(taskId);
                             return lockData;
                         }).collect(Collectors.toList());
                 tcyrCpaInvalueDataMapper.batchSave(invalueData);
