@@ -385,70 +385,74 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
                 return res.setCode(ResultCode.FAIL.getValue()).setMessage(errorMsg.toString());
             }
 
-            String extend = record.getExtend();
-            String batch;
-            String strategyCode;
-            String strategyName;
-            String userType;
-            boolean isRealTime = StringUtils.isNotBlank(operateType);
-            if (isRealTime) {
-                // 实时推送逻辑
-                LocalDate today = LocalDate.now();
-                String currentDate = today.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String extend = record.getExtend();
+        String batch;
+        String strategyCode;
+        String strategyName;
+        String userType;
+        String finalStrategyCode;
+        String finalStrategyName;
 
-                batch = currentDate + "_" + record.getApiCode() + "_实时推送";
-                strategyCode = "CASTR0322614";
-                strategyName = "CASTR0322614";
+        boolean isRealTime = (record.getIsReal() == 1);
+        if (isRealTime) {
+            // 实时推送逻辑
+            LocalDate today = LocalDate.now();
+            String currentDate = today.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
-                // 处理templateNo，提取userType
-                String templateStr = record.getTemplateNo();
-                if (templateStr.length() > 12) {
-                    userType = templateStr.substring(0, templateStr.length() - 12);
-                } else {
-                    userType = templateStr;
-                }
+            batch = currentDate + "_" + record.getApiCode() + "_实时推送";
+            strategyCode = "CASTR0322614";
+            strategyName = "CASTR0322614";
+
+            // 处理templateNo，提取userType
+            String templateStr = record.getTemplateNo();
+            if (templateStr.length() > 12) {
+                userType = templateStr.substring(0, templateStr.length() - 12);
             } else {
-                // 非实时推送逻辑
-                batch = record.getReceiveDate().replaceAll("-", "").concat("_").concat(record.getApiCode());
-                userType = record.getUserType();
-                // 处理templateNo
-                String templateStr = record.getTemplateNo();
-                if (templateStr.length() > 12) {
-                    strategyCode = templateStr.substring(templateStr.length() - 12);
-                    strategyName = strategyCode;
-                } else {
-                    strategyCode = "";
-                    strategyName = "";
-                }
+                userType = templateStr;
             }
 
-            JSONObject extendKey = new JSONObject();
-            extendKey.put("batchName", batch);
-            extendKey.put("batchNumber", batch);
-
-            // 设置taskId和requestId
-            String taskId = record.getBatchNo();
-            String requestId = String.format("%s_%s", record.getId(), record.getFlowNo());
-            marketingPreUserDTO.setTaskId(taskId);
-            marketingPreUserDTO.setRequestId(requestId);
-
-            // 设置strategyCode和strategyName
-            if (isRealTime) {
-                // 实时推送直接使用固定的strategyCode
-                extendKey.put("strategyCode", strategyCode);
-                extendKey.put("strategyName", strategyName);
+            // 实时推送直接使用固定的strategyCode
+            finalStrategyCode = strategyCode;
+            finalStrategyName = strategyName;
+        } else {
+            // 非实时推送逻辑
+            batch = record.getReceiveDate().replaceAll("-", "").concat("_").concat(record.getApiCode());
+            userType = record.getUserType();
+            // 处理templateNo
+            String templateStr = record.getTemplateNo();
+            if (templateStr.length() > 12) {
+                strategyCode = templateStr.substring(templateStr.length() - 12);
+                strategyName = strategyCode;
             } else {
-                // 非实时推送根据配置决定是否使用strategyCode
-                boolean flag = marketingCommonConfig.getQifuAiCleanStrategyCodeFlag();
-                if (flag) {
-                    extendKey.put("strategyCode", "");
-                    extendKey.put("strategyName", "");
-                } else {
-                    extendKey.put("strategyCode", strategyCode);
-                    extendKey.put("strategyName", strategyName);
-                }
+                strategyCode = "";
+                strategyName = "";
             }
-            extendKey.put("userType", userType);
+
+            // 非实时推送根据配置决定是否使用strategyCode
+            boolean flag = marketingCommonConfig.getQifuAiCleanStrategyCodeFlag();
+            if (flag) {
+                finalStrategyCode = "";
+                finalStrategyName = "";
+            } else {
+                finalStrategyCode = strategyCode;
+                finalStrategyName = strategyName;
+            }
+        }
+
+        JSONObject extendKey = new JSONObject();
+        extendKey.put("batchName", batch);
+        extendKey.put("batchNumber", batch);
+
+        // 设置taskId和requestId
+        String taskId = record.getBatchNo();
+        String requestId = String.format("%s_%s", record.getId(), record.getFlowNo());
+        marketingPreUserDTO.setTaskId(taskId);
+        marketingPreUserDTO.setRequestId(requestId);
+
+        // 设置strategyCode和strategyName
+        extendKey.put("strategyCode", finalStrategyCode);
+        extendKey.put("strategyName", finalStrategyName);
+        extendKey.put("userType", userType);
 
             // 设置其他字段
             extendKey.put("flowNo", record.getFlowNo());
