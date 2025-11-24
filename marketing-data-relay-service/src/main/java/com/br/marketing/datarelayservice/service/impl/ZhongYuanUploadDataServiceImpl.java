@@ -3,8 +3,6 @@ package com.br.marketing.datarelayservice.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
-import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.datarelayservice.enums.ZhongYuanResponseCodeEnum;
 import com.br.marketing.datarelayservice.service.ZhongYuanUploadDataService;
 import com.br.marketing.dto.zhongyuan.*;
@@ -16,8 +14,6 @@ import com.br.marketing.enums.clean.DataProcessEnum;
 import com.br.marketing.mapper.CallRecordingMapper;
 import com.br.marketing.mapper.ZhongYuanUploadMapper;
 import com.br.marketing.mapper.rulecleaning.MarketingCustomerOriginalDataMapper;
-import com.br.marketing.rule.ai.policy.OperateSixProcessor;
-import com.br.marketing.rule.common.CommonRuleLabelEnum;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -46,8 +42,6 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
     private ZhongYuanUploadMapper zhongYuanUploadMapper;
     @Resource
     MarketingCustomerOriginalDataMapper marketingCustomerOriginalDataMapper;
-    @Resource
-    OperateSixProcessor operateSixProcessor;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
@@ -168,22 +162,14 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             log.warn("中原消金批量任务数据入库成功，batchNo: {}, insertResult: {}, id: {}", 
                     batchData.getBatchNo(), insertResult, zhongYuanUpload.getId());
 
-            // 5. 数据清洗和推送逻辑，返回batchUid和每条数据的taskUid映射
-            Map<String, Object> uidMap = buildPushUpload(apiCode, batchData, baseRequest);
-            String batchUid = (String) uidMap.get("batchUid");
-            Map<String, String> taskUidMap = (Map<String, String>) uidMap.get("taskUidMap");
+            // 5. 数据清洗和推送逻辑
+            buildPushUpload(apiCode, batchData, baseRequest);
 
             // 6. 构建响应
             List<BatchTaskResponse.TaskInfo> taskInfoList = new ArrayList<>();
             for (BatchTaskRequest.TaskData taskData : batchData.getTaskDataList()) {
                 BatchTaskResponse.TaskInfo taskInfo = new BatchTaskResponse.TaskInfo();
-                // taskUid的值是每条数据的batchNumber
-                String taskUid = null;
-                if (StringUtils.hasText(taskData.getTaskNo()) && taskUidMap != null) {
-                    // 优先通过taskNo获取
-                    taskUid = taskUidMap.get(taskData.getTaskNo());
-                }
-                taskInfo.setTaskUid(taskUid);
+                taskInfo.setTaskUid(taskData.getTaskNo());
                 taskInfo.setTaskNo(taskData.getTaskNo());
                 taskInfo.setTelNo(taskData.getTelNo());
                 taskInfoList.add(taskInfo);
@@ -192,18 +178,19 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             // 7. 组装响应
             BatchTaskResponse batchTaskResponse = new BatchTaskResponse();
             batchTaskResponse.setBatchNo(batchData.getBatchNo());
-            batchTaskResponse.setBatchUid(batchUid);
+            batchTaskResponse.setBatchUid(batchData.getBatchNo());
             batchTaskResponse.setTaskInfoList(taskInfoList);
 
             ZhongYuanBaseResponse<BatchTaskResponse> response = ZhongYuanBaseResponse.success(batchTaskResponse);
 
-            log.warn("中原消金批量任务上报成功，batchNo: {}, batchUid: {}, taskCount: {}",
-                    batchData.getBatchNo(), batchUid, taskInfoList.size());
+            log.warn("中原消金批量任务上报成功，batchNo: {}, taskCount: {}",
+                    batchData.getBatchNo(), taskInfoList.size());
             return response;
 
         } catch (Exception e) {
             log.error("中原消金批量任务上报接口异常", e);
-            return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.SYSTEM_ERROR.getCode(), ZhongYuanResponseCodeEnum.SYSTEM_ERROR.getMessage() + "：" + e.getMessage());
+            return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.SYSTEM_ERROR.getCode(),
+                    ZhongYuanResponseCodeEnum.SYSTEM_ERROR.getMessage() + "：" + e.getMessage());
         }
     }
 
@@ -215,46 +202,34 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
      * @param baseRequest 基础请求对象
      * @return Map包含batchUid和taskUidMap，taskUidMap的key是taskNo，value是batchNumber（taskUid）
      */
-    private Map<String, Object> buildPushUpload(String apiCode, BatchTaskRequest batchData, ZhongYuanBaseRequest<BatchTaskRequest> baseRequest) {
-        Map<String, Object> result = new HashMap<>();
+    private void buildPushUpload(String apiCode, BatchTaskRequest batchData, ZhongYuanBaseRequest<BatchTaskRequest> baseRequest) {
         try {
             // 1. 构建标准上传数据结构
             JSONObject pushData = new JSONObject();
             
-            // 2. 生成taskId: yyyymmdd_apicode_sceneCode，作为batchUid
-            String dateStr = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-            String sceneCode = StringUtils.hasText(batchData.getSceneCode()) ? batchData.getSceneCode() : "";
-            String taskId = dateStr + "_" + apiCode + "_" + sceneCode;
-            pushData.put("taskId", taskId);
-            // batchUid的值是taskId
-            result.put("batchUid", taskId);
-            
+            // 2. batchNo=batchUid=上传taskId
+            pushData.put("taskId", batchData.getBatchNo());
+
             // 3. 生成requestId: yyyymmdd_apicode_ + 5位随机数 + 毫秒时间戳
+            String dateStr = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             String random5Digits = String.format("%05d", new Random().nextInt(100000));
             String requestId = dateStr + "_" + apiCode + "_" + random5Digits + System.currentTimeMillis();
             pushData.put("requestId", requestId);
 
-            // 4. 构建dataItems数组，同时收集taskUid映射（taskNo -> batchNumber）
+            // 4. 构建dataItems数组
             List<JSONObject> dataItems = new ArrayList<>();
-            Map<String, String> taskUidMap = new HashMap<>();
             if (batchData.getTaskDataList() != null) {
                 for (BatchTaskRequest.TaskData taskData : batchData.getTaskDataList()) {
                     Map<String, Object> itemResult = buildDataItem(taskData, batchData, baseRequest, apiCode);
                     if (itemResult != null) {
                         JSONObject dataItem = (JSONObject) itemResult.get("dataItem");
-                        String batchNumber = (String) itemResult.get("batchNumber");
                         if (dataItem != null) {
                             dataItems.add(dataItem);
-                        }
-                        // 记录taskNo到batchNumber的映射（batchNumber就是taskUid）
-                        if (StringUtils.hasText(taskData.getTaskNo()) && StringUtils.hasText(batchNumber)) {
-                            taskUidMap.put(taskData.getTaskNo(), batchNumber);
                         }
                     }
                 }
             }
             pushData.put("dataItems", dataItems);
-            result.put("taskUidMap", taskUidMap);
             
             // 5. 转换为JSON字符串并保存
             String jsonData = JSON.toJSONString(pushData);
@@ -268,13 +243,9 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             originalData.setAcceptType(DataProcessEnum.AcceptTypeEnum.CUSTOM.getCode());
             originalData.setReceiveDate(LocalDate.now().toString());
             marketingCustomerOriginalDataMapper.insertSelective(originalData);
-            
-            log.warn("中原消金数据清洗推送成功，taskId: {}, requestId: {}, dataItemsCount: {}", 
-                    taskId, requestId, dataItems.size());
         } catch (Exception e) {
             log.error("中原消金数据清洗推送异常", e);
         }
-        return result;
     }
 
     /**
@@ -307,15 +278,13 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             // 3. operateType: 固定值"6"
             dataItem.put("operateType", "6");
             
-            // 4. 构建reserveField1，同时获取batchNumber
-            Map<String, Object> reserveFieldResult = buildReserveField1(taskData, batchData, baseRequest, apiCode);
+            // 4. 构建reserveField1
+            Map<String, Object> reserveFieldResult = buildReserveField1(taskData, batchData, baseRequest);
             JSONObject reserveField1 = (JSONObject) reserveFieldResult.get("reserveField1");
-            String batchNumber = (String) reserveFieldResult.get("batchNumber");
             dataItem.put("reserveField1", reserveField1);
             dataItem.put("reserveField2", "");
 
             result.put("dataItem", dataItem);
-            result.put("batchNumber", batchNumber);
             return result;
         } catch (Exception e) {
             log.error("构建dataItem异常，taskNo: {}", taskData.getTaskNo(), e);
@@ -330,13 +299,12 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
      * @param taskData   任务数据
      * @param batchData  批次数据
      * @param baseRequest 基础请求对象
-     * @param apiCode    商户编号
      * @return Map包含reserveField1和batchNumber
      */
     private Map<String, Object> buildReserveField1(BatchTaskRequest.TaskData taskData,
                                                    BatchTaskRequest batchData,
-                                                   ZhongYuanBaseRequest<BatchTaskRequest> baseRequest,
-                                                   String apiCode) {
+                                                   ZhongYuanBaseRequest<BatchTaskRequest> baseRequest
+                                                   ) {
         Map<String, Object> result = new HashMap<>();
         JSONObject reserveField1 = new JSONObject();
         
@@ -411,40 +379,8 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
                 }
             }
         }
-        
-        // 5. 生成batchNumber（特殊处理）
-        String userType = batchData != null && StringUtils.hasText(batchData.getSceneCode()) ? batchData.getSceneCode() : "";
-        String batchNumber = generateBatchNumberWithRedisIncr(apiCode, userType);
-        reserveField1.put("batchNumber", batchNumber);
-        reserveField1.put("zyxj", batchNumber);
-        
         result.put("reserveField1", reserveField1);
-        result.put("batchNumber", batchNumber);
         return result;
-    }
-
-    /**
-     * 使用Redis自增生成batchNumber
-     * 通过Redis的原子操作确保并发安全，每条数据都有唯一的pushCount
-     *
-     * @param apiCode 商户编号
-     * @param userType 用户类型（场景代码）
-     * @return batchNumber
-     */
-    private String generateBatchNumberWithRedisIncr(String apiCode, String userType) {
-        String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
-        // 构建Redis key: yyyyMMdd:apiCode:userType:AI_To_Policy_PatLoan_OperaType_Six
-        // 使用全局计数器，确保每条数据都有唯一的pushCount（并发安全）
-        String redisKey = RedisKeyConstant.AI_TOPOLICY_PUSH_COUNTER.concat(
-                String.format("%s:%s:%s:%s", yyyyMMdd, apiCode, userType,
-                        CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_SIX.getCode()));
-        // 使用Redis自增获取pushCount（原子操作，并发安全）
-        Long pushCount = redisChgService.incr(redisKey);
-        if (pushCount == null || pushCount <= 0) {
-            log.warn("中原消金Redis自增获取pushCount失败，redisKey: {}, 使用默认值1", redisKey);
-            pushCount = 1L;
-        }
-        return operateSixProcessor.getBatchNumber(yyyyMMdd, apiCode, userType, pushCount.intValue());
     }
 
     @Override
@@ -683,32 +619,24 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
                 return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.PARAM_ERROR.getCode(), "参数错误：操作类型必须为cancel");
             }
 
-            // 4. 将taskUidList转换为Integer列表（taskUid = taskId）
-            List<Integer> taskIdList = new ArrayList<>();
-            for (String taskUid : statusData.getTaskUidList()) {
-                try {
-                    Integer taskId = Integer.parseInt(taskUid);
-                    taskIdList.add(taskId);
-                } catch (NumberFormatException e) {
-                    log.warn("任务UID格式错误，无法转换为Integer，taskUid: {}", taskUid);
-                }
-            }
+            // 4. （taskUid = custNum）
+            List<String> taskUidList = statusData.getTaskUidList();
 
-            if (taskIdList.isEmpty()) {
+            if (taskUidList.isEmpty()) {
                 return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.PARAM_ERROR.getCode(), "参数错误：任务UID列表格式错误");
             }
 
             // 5. 查询通话明细记录
             CallRecordingExample example = new CallRecordingExample();
             CallRecordingExample.Criteria criteria = example.createCriteria();
-            criteria.andTaskIdIn(taskIdList);
+            criteria.andCustNumIn(taskUidList);
             List<CallRecording> callRecordingList = callRecordingMapper.selectByExample(example);
 
-            // 6. 构建taskId到CallRecording的映射
-            Map<Integer, CallRecording> taskIdToRecordingMap = new HashMap<>();
+            // 6. 构建custNum到CallRecording的映射,taskUid=taskNo=上传custNum
+            Map<String, CallRecording> taskUidToRecordingMap = new HashMap<>();
             for (CallRecording recording : callRecordingList) {
-                if (recording.getTaskId() != null) {
-                    taskIdToRecordingMap.put(recording.getTaskId(), recording);
+                if (recording.getCustNum() != null) {
+                    taskUidToRecordingMap.put(recording.getCustNum(), recording);
                 }
             }
 
@@ -717,10 +645,9 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             int successCount = 0;
             int failCount = 0;
 
-            for (String taskUid : statusData.getTaskUidList()) {
+            for (String taskUid : taskUidList) {
                 try {
-                    Integer taskId = Integer.parseInt(taskUid);
-                    CallRecording recording = taskIdToRecordingMap.get(taskId);
+                    CallRecording recording = taskUidToRecordingMap.get(taskUid);
 
                     // 7.1 当callStatus>=12或无通话明细，返回操作成功
                     if (recording == null || recording.getCallStatus() == null || recording.getCallStatus() >= 12) {

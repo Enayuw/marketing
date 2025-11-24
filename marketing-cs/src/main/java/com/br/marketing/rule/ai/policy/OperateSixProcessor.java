@@ -1,12 +1,10 @@
 package com.br.marketing.rule.ai.policy;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.DateHelper;
-import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.AiToPolicyRecord;
 import com.br.marketing.entity.AiToPolicyRecordExample;
 import com.br.marketing.entity.MarketingSyncUser;
@@ -65,8 +63,14 @@ public class OperateSixProcessor extends AbstractBaseAiToPolicy {
         try {
             redisChgService.lock(key, lockValue);
             try {
-                batchNumber = getOrGenerateBatchNumber(syncUser, createDate, apiCode,
-                        userType, cell, yyyyMMdd);
+                // custNum临时存为cell的log加密
+                AiToPolicyRecordExample example = new AiToPolicyRecordExample();
+                example.createCriteria().andCreateDateEqualTo(createDate)
+                        .andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType)
+                        .andRuleLabelEqualTo(CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_SIX.getCode())
+                        .andCustNumEqualTo(cell);
+                int pushCount = aiToPolicyRecordMapperBase.countByExample(example) + 1;
+                batchNumber = yyyyMMdd + "-" + apiCode + "-6" + "-" + userType + "-" + pushCount;
 
                 AiToPolicyRecord aiToPolicyRecord = new AiToPolicyRecord();
                 aiToPolicyRecord.setFingerprint(syncUser.getFingerprint());
@@ -96,49 +100,4 @@ public class OperateSixProcessor extends AbstractBaseAiToPolicy {
             redisChgService.unlock(key, lockValue);
         }
     }
-
-    /**
-     * 获取或生成batchNumber
-     * 判断是否是中原消金定制客户，如果是则使用reserveField1中的zyxj字段，否则生成新的batchNumber
-     *
-     * @param syncUser  同步用户对象
-     * @param createDate 创建日期
-     * @param apiCode   商户编号
-     * @param userType  用户类型
-     * @param cell      手机号
-     * @param yyyyMMdd  日期字符串
-     * @return batchNumber
-     */
-    private String getOrGenerateBatchNumber(MarketingSyncUser syncUser, Integer createDate, String apiCode,
-                                            String userType, String cell, String yyyyMMdd) {
-        // 判断是否是中原消金定制客户
-        String reserveField1 = syncUser.getReserveField1();
-        JSONObject jsonObject = JSONObject.parseObject(reserveField1);
-        String zyxj = jsonObject.getString("zyxj");
-        if (StringUtils.isEmpty(zyxj)) {
-            // custNum临时存为cell的log加密
-            AiToPolicyRecordExample example = new AiToPolicyRecordExample();
-            example.createCriteria().andCreateDateEqualTo(createDate)
-                    .andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType)
-                    .andRuleLabelEqualTo(CommonRuleLabelEnum.AI_TO_POLICY_PATLOAN_OPERATYPE_SIX.getCode())
-                    .andCustNumEqualTo(cell);
-            int pushCount = aiToPolicyRecordMapperBase.countByExample(example) + 1;
-            return getBatchNumber(yyyyMMdd, apiCode, userType, pushCount);
-        } else {
-            return zyxj;
-        }
-    }
-
-    /**
-     * 生成batchNumber
-     * @param yyyyMMdd
-     * @param apiCode
-     * @param userType
-     * @param pushCount
-     * @return
-     */
-    public String getBatchNumber(String yyyyMMdd, String apiCode, String userType, Integer pushCount) {
-        return yyyyMMdd + "-" + apiCode + "-6" + "-" + userType + "-" + pushCount;
-    }
-
 }
