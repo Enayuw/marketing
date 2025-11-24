@@ -2,7 +2,7 @@ package com.br.marketing.entity;
 
 import java.util.Date;
 
-public class ZhongYuanUpload {
+public class ZhongYuanTransfer {
     /**
      * 主键ID
      */
@@ -44,49 +44,24 @@ public class ZhongYuanUpload {
     private String token;
 
     /**
-     * 批次名称
-     */
-    private String batchName;
-
-    /**
      * 批次编号
      */
-    private String batchNo;
+    private String batchUid;
 
     /**
-     * 场景代码
+     * 案件编号列表
      */
-    private String sceneCode;
+    private String taskuidList;
 
     /**
-     * 开始时间
+     * 操作
      */
-    private String startTime;
+    private String operation;
 
     /**
-     * 结束时间
+     * 清洗状态 0-待清洗 1-清洗中 2-清洗完成
      */
-    private String endTime;
-
-    /**
-     * 节假日禁止标识
-     */
-    private String festivalBan;
-
-    /**
-     * 优先级
-     */
-    private String priority;
-
-    /**
-     * 上报结束标识
-     */
-    private String reportEndFlag;
-
-    /**
-     * 任务数据列表（JSON格式）
-     */
-    private String taskdataList;
+    private Integer cleanStatus;
 
     /**
      * 创建时间
@@ -162,76 +137,36 @@ public class ZhongYuanUpload {
         this.token = token == null ? null : token.trim();
     }
 
-    public String getBatchName() {
-        return batchName;
+    public String getBatchUid() {
+        return batchUid;
     }
 
-    public void setBatchName(String batchName) {
-        this.batchName = batchName == null ? null : batchName.trim();
+    public void setBatchUid(String batchUid) {
+        this.batchUid = batchUid == null ? null : batchUid.trim();
     }
 
-    public String getBatchNo() {
-        return batchNo;
+    public String getTaskuidList() {
+        return taskuidList;
     }
 
-    public void setBatchNo(String batchNo) {
-        this.batchNo = batchNo == null ? null : batchNo.trim();
+    public void setTaskuidList(String taskuidList) {
+        this.taskuidList = taskuidList == null ? null : taskuidList.trim();
     }
 
-    public String getSceneCode() {
-        return sceneCode;
+    public String getOperation() {
+        return operation;
     }
 
-    public void setSceneCode(String sceneCode) {
-        this.sceneCode = sceneCode == null ? null : sceneCode.trim();
+    public void setOperation(String operation) {
+        this.operation = operation == null ? null : operation.trim();
     }
 
-    public String getStartTime() {
-        return startTime;
+    public Integer getCleanStatus() {
+        return cleanStatus;
     }
 
-    public void setStartTime(String startTime) {
-        this.startTime = startTime == null ? null : startTime.trim();
-    }
-
-    public String getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(String endTime) {
-        this.endTime = endTime == null ? null : endTime.trim();
-    }
-
-    public String getFestivalBan() {
-        return festivalBan;
-    }
-
-    public void setFestivalBan(String festivalBan) {
-        this.festivalBan = festivalBan == null ? null : festivalBan.trim();
-    }
-
-    public String getPriority() {
-        return priority;
-    }
-
-    public void setPriority(String priority) {
-        this.priority = priority == null ? null : priority.trim();
-    }
-
-    public String getReportEndFlag() {
-        return reportEndFlag;
-    }
-
-    public void setReportEndFlag(String reportEndFlag) {
-        this.reportEndFlag = reportEndFlag == null ? null : reportEndFlag.trim();
-    }
-
-    public String getTaskdataList() {
-        return taskdataList;
-    }
-
-    public void setTaskdataList(String taskdataList) {
-        this.taskdataList = taskdataList == null ? null : taskdataList.trim();
+    public void setCleanStatus(Integer cleanStatus) {
+        this.cleanStatus = cleanStatus;
     }
 
     public Date getCreateTime() {

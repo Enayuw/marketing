@@ -12,6 +12,7 @@ import com.br.marketing.entity.MarketingCustomerOriginalData;
 import com.br.marketing.entity.ZhongYuanUpload;
 import com.br.marketing.enums.clean.DataProcessEnum;
 import com.br.marketing.mapper.CallRecordingMapper;
+import com.br.marketing.mapper.ZhongYuanTransferMapper;
 import com.br.marketing.mapper.ZhongYuanUploadMapper;
 import com.br.marketing.mapper.rulecleaning.MarketingCustomerOriginalDataMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -40,6 +41,8 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
     private RedisChgService redisChgService;
     @Resource
     private ZhongYuanUploadMapper zhongYuanUploadMapper;
+    @Resource
+    private ZhongYuanTransferMapper zhongYuanTransferMapper;
     @Resource
     MarketingCustomerOriginalDataMapper marketingCustomerOriginalDataMapper;
     @Resource
@@ -134,27 +137,27 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             String apiCode = testApiCode != null ? testApiCode : zhongYuanIdentity.get("apiCode");
             zhongYuanUpload.setApiCode(apiCode);
             // 从baseRequest获取公共字段
-            zhongYuanUpload.setFlowid(StringUtils.hasText(baseRequest.getFlowId()) ? baseRequest.getFlowId() : null);
-            zhongYuanUpload.setSysid(StringUtils.hasText(baseRequest.getSysId()) ? baseRequest.getSysId() : null);
+            zhongYuanUpload.setFlowId(StringUtils.hasText(baseRequest.getFlowId()) ? baseRequest.getFlowId() : null);
+            zhongYuanUpload.setSysId(StringUtils.hasText(baseRequest.getSysId()) ? baseRequest.getSysId() : null);
             zhongYuanUpload.setTimestamp(StringUtils.hasText(baseRequest.getTimestamp()) ? baseRequest.getTimestamp() : null);
-            zhongYuanUpload.setChannelno(StringUtils.hasText(baseRequest.getChannelNo()) ? baseRequest.getChannelNo() : null);
+            zhongYuanUpload.setChannelNo(StringUtils.hasText(baseRequest.getChannelNo()) ? baseRequest.getChannelNo() : null);
             zhongYuanUpload.setVersion(StringUtils.hasText(baseRequest.getVersion()) ? baseRequest.getVersion() : null);
             zhongYuanUpload.setToken(StringUtils.hasText(baseRequest.getToken()) ? baseRequest.getToken() : null);
             // 从batchData获取批次相关字段
-            zhongYuanUpload.setBatchname(StringUtils.hasText(batchData.getBatchName()) ? batchData.getBatchName() : null);
-            zhongYuanUpload.setBatchno(batchData.getBatchNo());
-            zhongYuanUpload.setScenecode(StringUtils.hasText(batchData.getSceneCode()) ? batchData.getSceneCode() : null);
-            zhongYuanUpload.setStarttime(StringUtils.hasText(batchData.getStartTime()) ? batchData.getStartTime() : null);
-            zhongYuanUpload.setEndtime(StringUtils.hasText(batchData.getEndTime()) ? batchData.getEndTime() : null);
-            zhongYuanUpload.setFestivalban(batchData.getFestivalBan() != null ? String.valueOf(batchData.getFestivalBan()) : null);
+            zhongYuanUpload.setBatchName(StringUtils.hasText(batchData.getBatchName()) ? batchData.getBatchName() : null);
+            zhongYuanUpload.setBatchNo(batchData.getBatchNo());
+            zhongYuanUpload.setSceneCode(StringUtils.hasText(batchData.getSceneCode()) ? batchData.getSceneCode() : null);
+            zhongYuanUpload.setStartTime(StringUtils.hasText(batchData.getStartTime()) ? batchData.getStartTime() : null);
+            zhongYuanUpload.setEndTime(StringUtils.hasText(batchData.getEndTime()) ? batchData.getEndTime() : null);
+            zhongYuanUpload.setFestivalBan(batchData.getFestivalBan() != null ? String.valueOf(batchData.getFestivalBan()) : null);
             zhongYuanUpload.setPriority(batchData.getPriority() != null ? String.valueOf(batchData.getPriority()) : null);
-            zhongYuanUpload.setReportendflag(StringUtils.hasText(batchData.getReportEndFlag()) ? batchData.getReportEndFlag() : null);
+            zhongYuanUpload.setReportEndFlag(StringUtils.hasText(batchData.getReportEndFlag()) ? batchData.getReportEndFlag() : null);
             zhongYuanUpload.setCreateTime(new Date());
             zhongYuanUpload.setUpdateTime(new Date());
 
             // 将taskDataList转换为JSON字符串
             if (batchData.getTaskDataList() != null && !batchData.getTaskDataList().isEmpty()) {
-                zhongYuanUpload.setTaskdatalist(JSON.toJSONString(batchData.getTaskDataList()));
+                zhongYuanUpload.setTaskdataList(JSON.toJSONString(batchData.getTaskDataList()));
             }
 
             // 保存到数据库
@@ -609,6 +612,9 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             }
 
             TaskStatusRequest statusData = baseRequest.getData();
+
+
+            // 增加入库逻辑 zhongYuanTransferMapper
 
             // 3. 参数校验
             if (statusData.getTaskUidList() == null || statusData.getTaskUidList().isEmpty()) {
