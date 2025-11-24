@@ -323,14 +323,14 @@ spring:
       password: strategy_distribute
       publisher-confirms: true
       publisher-returns: true
-      virtual-host: marketing-flow
+      virtual-host: marketing-flow-default
     yz:
       addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
       username: strategy_distribute
       password: strategy_distribute
       publisher-confirms: true
       publisher-returns: true
-      virtual-host: marketing-flow
+      virtual-host: marketing-flow-default
     listener:
       retry:
         enabled: true
@@ -348,7 +348,7 @@ innerSftp:
   uploadpath: /UploadFiles/marketing/
 #elastic-job配置
 SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181
-NAMESPACE: marketing-job
+NAMESPACE: marketing-job-default
 BASE_SLEEP_TIME_MILLISECONDS: 1000
 MAX_SLEEP_TIME_MILLISECONDS: 3000
 MAX_RETRIES: 3
@@ -357,7 +357,7 @@ NESTED_DATA_DIR: target/test_zk_data/
 # 雪花算法数据中心ID
 snowflake:
   datacenter:
-    id: ${SNOWFLAKE_DATACENTER_ID:0}
+    id: ${SNOWFLAKE_DATACENTER_ID:1}
 rocketmq:
   # 多个NameServer，host:port;host:port，RocketMQProperties
   name-server: 10.100.123.171:9876;10.100.123.172:9876;10.100.123.173:9876
@@ -384,6 +384,7 @@ rocketmq:
     enableMsgTrace: false
     # 消息跟踪主题的名称值。如果不进行配置，可以使用默认的跟踪主题名称
     customizedTraceTopic: RMQ_SYS_TRACE_TOPIC
+    namespace: ${ROCKETMQ_NAMESPACE:pre_istio}
   consumer:
 #    # 配置指定group是否启动监听器 group1.topic1 = false
 #    listeners:
@@ -398,3 +399,4 @@ rocketmq:
     # 一次拉取消息最大值，注意是拉取消息的最大值而非消费最大值
     pull-batch-size: 5
     # 其他配置参考属性类
+    namespace: ${ROCKETMQ_NAMESPACE:pre_istio}
