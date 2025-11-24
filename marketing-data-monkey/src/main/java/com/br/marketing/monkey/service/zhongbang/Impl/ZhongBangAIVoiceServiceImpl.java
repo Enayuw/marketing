@@ -174,7 +174,7 @@ public class ZhongBangAIVoiceServiceImpl implements ZhongBangAIVoiceService {
 
 
     private Map<String, JSONObject> getVoiceAIFileConfig() {
-        Map<String, JSONObject> zhongBangVoiceFileConfig = marketingCommonConfig.getZhongBangVoiceFileConfig();
+        Map<String, JSONObject> zhongBangVoiceFileConfig = marketingCommonConfig.getZhongBangAIVoiceFileConfig();
         if (zhongBangVoiceFileConfig.isEmpty()) {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("fileType", "zhongbang_ai_voice");
@@ -527,8 +527,8 @@ public class ZhongBangAIVoiceServiceImpl implements ZhongBangAIVoiceService {
                 break;
             }
             indexId = callRecordingList.get(callRecordingList.size() - 1).getId();
-            /*threadPool.submit(() ->*/
-            pushVoiceDeatil(callRecordingList, localFile)/*)*/;
+            threadPool.submit(() ->
+                    pushVoiceDeatil(callRecordingList, localFile));
         }
         threadPool.shutdown();
         try {

@@ -59,6 +59,7 @@ public class ZhongBangAIPushVoiceDetailJob extends AbstractSimpleElasticJob {
         List<LocalFile> localFileList = localFileMapper.selectByExample(localFileExample);
         if (CollectionUtils.isEmpty(localFileList)) {
             log.warn("众邦AI推送录音明细不满足开始条件或已完成");
+            return;
         }
         zhongBangAIVoiceService.voiceAIFileUploadDetail(localFileList.get(0), localDate);
     }
