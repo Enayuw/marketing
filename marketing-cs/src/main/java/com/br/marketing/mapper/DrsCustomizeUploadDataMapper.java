@@ -64,7 +64,9 @@ public interface DrsCustomizeUploadDataMapper {
             , @Param("dateValue") String dateValue);
 
     List<DrsCustomizeUploadData> getDrsCustomizeUploadDataBySyncStatus(@Param("tCid") String tCid,
-                                                                       @Param("syncStatus") Integer syncStatus);
+                                                                       @Param("syncStatus") Integer syncStatus,
+                                                                       @Param("minId") Long minId,
+                                                                       @Param("pageSize") Integer pageSize);
 
     List<BQifuUploadDataOriginal> getQiFuUploadDataOriginalBySerialNo(@Param("tCid") String tCid,
                                                                       @Param("serialNo") String serialNo);

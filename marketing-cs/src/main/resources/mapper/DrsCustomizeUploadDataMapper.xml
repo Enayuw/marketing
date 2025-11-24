@@ -181,7 +181,14 @@
 
     <select id="getDrsCustomizeUploadDataBySyncStatus"
             resultType="com.br.marketing.entity.DrsCustomizeUploadData">
-        select * from b_drs_customize_upload_data${tCid} where sync_status = #{syncStatus}
+        select *
+        from b_drs_customize_upload_data${tCid}
+        where sync_status = #{syncStatus}
+        <if test="minId != null and minId!=''">
+            and id > #{minId}
+        </if>
+        order by id asc
+        limit #{pageSize}
     </select>
 
     <select id="getQiFuUploadDataOriginalBySerialNo"

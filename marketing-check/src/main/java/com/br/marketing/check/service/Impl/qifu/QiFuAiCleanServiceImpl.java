@@ -124,27 +124,19 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
 
     @Override
     public void aiRealTimeCleanProcessFromOriginal() {
-        //获取待清洗的数据
-        List<BQifuUploadDataOriginal> uploadDataOriginalList = new ArrayList<>();
+        log.warn("奇富ai实时清洗开始");
         Long minId = null;
         while (true) {
-            uploadDataOriginalList = bQifuUploadDataOriginalMapper.selectRealTimeDataForClean(minId, PAGE_SIZE);
-            if (uploadDataOriginalList == null || uploadDataOriginalList.isEmpty()) {
+            List<BQifuUploadDataOriginal> dataList = bQifuUploadDataOriginalMapper.selectRealTimeDataForClean(minId, PAGE_SIZE);
+            if (dataList == null || dataList.isEmpty()) {
                 break;
             }
 
-            minId = uploadDataOriginalList.get(uploadDataOriginalList.size() - 1).getId();
+            minId = dataList.get(dataList.size() - 1).getId();
 
-            // 数据清洗：设置 status=1,批量更新数据库
-            updateStatus(uploadDataOriginalList);
-
-            // 记录日志并调用上传接口
-            insertLog(uploadDataOriginalList);
-
-            // 调用上传接口
-            pushProcessForOriginal(uploadDataOriginalList, "3");
+            // 执行清洗和推送
+            processCleanAndPush(dataList);
         }
-
     }
 
     /**
@@ -165,32 +157,34 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
         }
 
         Long indexId = null;
-        boolean hasMore = true;
-
-        while (hasMore) {
+        while (true) {
             // 查询当前场景今天需要清洗的数据
             List<BQifuUploadDataOriginal> dataList = bQifuUploadDataOriginalMapper.selectDataForCleanByUserTypeAndDate(
                     userType, selectStatusList, todayDate, PAGE_SIZE, indexId);
             if (dataList == null || dataList.isEmpty()) {
-                hasMore = false;
                 break;
             }
 
             indexId = dataList.get(dataList.size() - 1).getId();
 
-            // 数据清洗：设置 status=1,批量更新数据库
-            updateStatus(dataList);
-
-            // 记录日志并调用上传接口
-            insertLog(dataList);
-
-            // 调用上传接口
-            pushProcessForOriginal(dataList, "3");
+            // 执行清洗和推送
+            processCleanAndPush(dataList);
 
             if (dataList.size() < PAGE_SIZE) {
-                hasMore = false;
+                break;
             }
         }
+    }
+
+    /**
+     * 通用的数据清洗和推送处理方法
+     */
+    private void processCleanAndPush(List<BQifuUploadDataOriginal> dataList) {
+        // 数据清洗：设置 status=1,批量更新数据库
+        updateStatus(dataList);
+
+        // 调用上传接口
+        pushProcessForOriginal(dataList, "3");
     }
 
     public void updateStatus(List<BQifuUploadDataOriginal> dataList) {
@@ -380,70 +374,74 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
                 return res.setCode(ResultCode.FAIL.getValue()).setMessage(errorMsg.toString());
             }
 
-            String extend = record.getExtend();
-            String batch;
-            String strategyCode;
-            String strategyName;
-            String userType;
-            boolean isRealTime = StringUtils.isNotBlank(operateType);
-            if (isRealTime) {
-                // 实时推送逻辑
-                LocalDate today = LocalDate.now();
-                String currentDate = today.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String extend = record.getExtend();
+        String batch;
+        String strategyCode;
+        String strategyName;
+        String userType;
+        String finalStrategyCode;
+        String finalStrategyName;
+        
+        boolean isRealTime = (record.getIsReal() == 1);
+        if (isRealTime) {
+            // 实时推送逻辑
+            LocalDate today = LocalDate.now();
+            String currentDate = today.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
-                batch = currentDate + "_" + record.getApiCode() + "_实时推送";
-                strategyCode = "CASTR0322614";
-                strategyName = "CASTR0322614";
+            batch = currentDate + "_" + record.getApiCode() + "_实时推送";
+            strategyCode = "CASTR0322614";
+            strategyName = "CASTR0322614";
 
-                // 处理templateNo，提取userType
-                String templateStr = record.getTemplateNo();
-                if (templateStr.length() > 12) {
-                    userType = templateStr.substring(0, templateStr.length() - 12);
-                } else {
-                    userType = templateStr;
-                }
+            // 处理templateNo，提取userType
+            String templateStr = record.getTemplateNo();
+            if (templateStr.length() > 12) {
+                userType = templateStr.substring(0, templateStr.length() - 12);
             } else {
-                // 非实时推送逻辑
-                batch = record.getReceiveDate().replaceAll("-", "").concat("_").concat(record.getApiCode());
-                userType = record.getUserType();
-                // 处理templateNo
-                String templateStr = record.getTemplateNo();
-                if (templateStr.length() > 12) {
-                    strategyCode = templateStr.substring(templateStr.length() - 12);
-                    strategyName = strategyCode;
-                } else {
-                    strategyCode = "";
-                    strategyName = "";
-                }
+                userType = templateStr;
             }
-
-            JSONObject extendKey = new JSONObject();
-            extendKey.put("batchName", batch);
-            extendKey.put("batchNumber", batch);
-
-            // 设置taskId和requestId
-            String taskId = record.getBatchNo();
-            String requestId = String.format("%s_%s", record.getId(), record.getFlowNo());
-            marketingPreUserDTO.setTaskId(taskId);
-            marketingPreUserDTO.setRequestId(requestId);
-
-            // 设置strategyCode和strategyName
-            if (isRealTime) {
-                // 实时推送直接使用固定的strategyCode
-                extendKey.put("strategyCode", strategyCode);
-                extendKey.put("strategyName", strategyName);
+            
+            // 实时推送直接使用固定的strategyCode
+            finalStrategyCode = strategyCode;
+            finalStrategyName = strategyName;
+        } else {
+            // 非实时推送逻辑
+            batch = record.getReceiveDate().replaceAll("-", "").concat("_").concat(record.getApiCode());
+            userType = record.getUserType();
+            // 处理templateNo
+            String templateStr = record.getTemplateNo();
+            if (templateStr.length() > 12) {
+                strategyCode = templateStr.substring(templateStr.length() - 12);
+                strategyName = strategyCode;
             } else {
-                // 非实时推送根据配置决定是否使用strategyCode
-                boolean flag = marketingCommonConfig.getQifuAiCleanStrategyCodeFlag();
-                if (flag) {
-                    extendKey.put("strategyCode", "");
-                    extendKey.put("strategyName", "");
-                } else {
-                    extendKey.put("strategyCode", strategyCode);
-                    extendKey.put("strategyName", strategyName);
-                }
+                strategyCode = "";
+                strategyName = "";
             }
-            extendKey.put("userType", userType);
+            
+            // 非实时推送根据配置决定是否使用strategyCode
+            boolean flag = marketingCommonConfig.getQifuAiCleanStrategyCodeFlag();
+            if (flag) {
+                finalStrategyCode = "";
+                finalStrategyName = "";
+            } else {
+                finalStrategyCode = strategyCode;
+                finalStrategyName = strategyName;
+            }
+        }
+
+        JSONObject extendKey = new JSONObject();
+        extendKey.put("batchName", batch);
+        extendKey.put("batchNumber", batch);
+
+        // 设置taskId和requestId
+        String taskId = record.getBatchNo();
+        String requestId = String.format("%s_%s", record.getId(), record.getFlowNo());
+        marketingPreUserDTO.setTaskId(taskId);
+        marketingPreUserDTO.setRequestId(requestId);
+
+        // 设置strategyCode和strategyName
+        extendKey.put("strategyCode", finalStrategyCode);
+        extendKey.put("strategyName", finalStrategyName);
+        extendKey.put("userType", userType);
 
             // 设置其他字段
             extendKey.put("flowNo", record.getFlowNo());
