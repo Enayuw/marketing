@@ -4,7 +4,7 @@
     <select id="selectDataForQueryCallByUserTypeAndDate" resultType="com.br.marketing.entity.BQifuUploadDataOriginal">
         select *
         from b_qifu_upload_data_original
-        where event_type is null
+        where is_real = 0
         and user_type = #{userType}
         and receive_date = #{todayDate}
         and select_status in
@@ -42,7 +42,8 @@
     <select id="selectDistinctUserTypeByDate" resultType="java.lang.String">
         select user_type
         from b_qifu_upload_data_original
-        where user_type is not null
+        where is_real = 0
+        and user_type is not null
         and user_type != ''
         and receive_date = #{todayDate}
         group by user_type
