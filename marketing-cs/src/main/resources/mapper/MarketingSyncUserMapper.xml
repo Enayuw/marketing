@@ -1208,7 +1208,20 @@
         </where>
     </select>
 
-
-
+    <!-- 新增：支持 filterCondition 的单条件查询 -->
+    <select id="countByCondition" resultType="java.lang.Integer">
+        select count(*)
+        from b_marketing_sync_${apiCode}
+        where applet_date = #{appletDate}
+        <if test="repushTime != null and repushTime.trim() neq ''">
+            <![CDATA[ and create_time <= #{repushTime} ]]>
+        </if>
+        and user_type = #{userType}
+        and status = 1
+        and is_repeat in (1, 2)
+        <if test="filterCondition != null and filterCondition.trim() neq ''">
+            and ${filterCondition}
+        </if>
+    </select>
 
 </mapper>

@@ -33,15 +33,15 @@ public class PushCustomerDTO {
     private String scoreEndTime;
 
     @ApiModelProperty(value = "批次号")
-    @NotNull(message = "批次号不能为空")
-    @NotEmpty(message = "批次号不能为空")
-    @Size(min = 1,message = "批次号不能为空")
+    //@NotNull(message = "批次号不能为空")
+    //@NotEmpty(message = "批次号不能为空")
+    //@Size(min = 1,message = "批次号不能为空")
     private List<String> batchNumberList;
 
     @ApiModelProperty(value = "跑分记录id")
-    @NotNull(message = "fileIdList不能为空")
-    @NotEmpty(message = "fileIdList不能为空")
-    @Size(min = 1,message = "fileIdList不能为空")
+    //@NotNull(message = "fileIdList不能为空")
+    //@NotEmpty(message = "fileIdList不能为空")
+    //@Size(min = 1,message = "fileIdList不能为空")
     private List<Long> fileIdList;
 
     @ApiModelProperty(value = "查询规则")
@@ -89,6 +89,14 @@ public class PushCustomerDTO {
     @ApiModelProperty(value = "推送系统类型")
     private Integer pushTarget;
 
+    @ApiModelProperty(value = "任务类型 0：跑分任务，1：上传任务")
+    private Integer taskType;
+
+    @ApiModelProperty(value = "上传记录id，多个用，分割")
+    private String uploadReportId;
+
+    @ApiModelProperty("重推框定数据时间")
+    private String repushTime;
 
     public Integer getmPrePlanNum() {
         return mPrePlanNum;
@@ -274,4 +282,29 @@ public class PushCustomerDTO {
     public void setPushTarget(Integer pushTarget) {
         this.pushTarget = pushTarget;
     }
+
+    public Integer getTaskType() {
+        return taskType;
+    }
+
+    public void setTaskType(Integer taskType) {
+        this.taskType = taskType;
+    }
+
+    public String getUploadReportId() {
+        return uploadReportId;
+    }
+
+    public void setUploadReportId(String uploadReportId) {
+        this.uploadReportId = uploadReportId;
+    }
+
+    public String getRepushTime() {
+        return repushTime;
+    }
+
+    public void setRepushTime(String repushTime) {
+        this.repushTime = repushTime;
+    }
+
 }
