@@ -10,7 +10,7 @@ import com.br.marketing.enums.DingDingAlarmFunctionEnum;
 import com.br.speed.client.common.annotations.SpeedFile;
 import lombok.Data;
 import org.springframework.context.annotation.Configuration;
-import com.google.common.collect.Lists;
+import shaded.com.google.common.collect.Lists;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -3527,8 +3527,5 @@ public class MarketingCommonConfig {
      */
     private List<String> tcyrCpaSuccessFileHeads;
 
-    /**
-     * 同程易融cpa撞库数据清洗
-     */
-    private JSONObject tcyrCpaCollidingDataCleanConfig;
+    private Map<String, Boolean> tcCpaMockConfig;
 }

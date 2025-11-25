@@ -16,10 +16,15 @@ public interface TcyrCpaCollidingDataMapper extends TcyrCpaCollidingDataMapperBa
             @Param("pageSize")Integer pageSize,
             @Param("offset")Integer offset);
 
-    List<TcyrCpaScoreData> queryScoreDataWithPagedoris_(@Param("querySql") String querySql);
+    List<String> queryScoreDataWithPagedoris_(@Param("querySql") String querySql, @Param("minCusNum") String minCusNum);
 
     void insertBatchWithPriority(@Param("dataList") List<TcyrCpaCollidingData> dataList);
 
     List<Map<Long, Integer>> queryPackageMagnitudetiflash_();
 
+    List<Long> queryIdsWithPagetikv_(@Param("packageId")Long packageId, @Param("minId")Long minId);
+
+    int updateIsDelByIds(@Param("ids") List<Long> ids);
+
+    Long queryUnDeleteCounttiflash_(@Param("packageId")Long packageId);
 }

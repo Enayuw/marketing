@@ -3,6 +3,7 @@ package com.br.marketing.common.utils;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,9 @@ public class JsonParseUtils {
     static {
         //只序列化非空且非空的字符串
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+        // 禁用转义字符
+        objectMapper.configure(JsonGenerator.Feature.ESCAPE_NON_ASCII, false);
+        objectMapper.configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false);
     }
 
     /**

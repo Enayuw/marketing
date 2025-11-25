@@ -5,13 +5,13 @@
     UPDATE b_tcyr_cpa_colliding_data_package
     SET
     magnitude = CASE id
-    <foreach collection="list" item="item">
+    <foreach collection="updPkgs" item="item">
       WHEN #{item.id} THEN #{item.magnitude}
     </foreach>
     END,
     update_time = NOW()
     WHERE id IN
-    <foreach collection="list" item="item" open="(" separator="," close=")">
+    <foreach collection="updPkgs" item="item" open="(" separator="," close=")">
       #{item.id}
     </foreach>
   </update>

@@ -5,13 +5,13 @@
        xmlns:job="http://www.dangdang.com/schema/ddframe/job"
        xmlns="http://www.springframework.org/schema/beans"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-                        http://www.springframework.org/schema/beans/spring-beans.xsd
-                        http://www.springframework.org/schema/context
-                        http://www.springframework.org/schema/context/spring-context.xsd
-                        http://www.dangdang.com/schema/ddframe/reg
-                        http://www.dangdang.com/schema/ddframe/reg/reg.xsd
-                        http://www.dangdang.com/schema/ddframe/job
-                        http://www.dangdang.com/schema/ddframe/job/job.xsd
+                        http://www.springframework.org/schema/beans/spring-beans.xsd 
+                        http://www.springframework.org/schema/context 
+                        http://www.springframework.org/schema/context/spring-context.xsd 
+                        http://www.dangdang.com/schema/ddframe/reg 
+                        http://www.dangdang.com/schema/ddframe/reg/reg.xsd 
+                        http://www.dangdang.com/schema/ddframe/job 
+                        http://www.dangdang.com/schema/ddframe/job/job.xsd 
                         ">
     <context:component-scan base-package="com.br.marketing.bridge.job"/>
 
@@ -125,7 +125,7 @@
     />
     <job:simple id="【bridge】-JinMeiXinBlackListFileCheckJob"
                 class="com.br.marketing.bridge.job.jinmeixin.JinMeiXinBlackListFileCheckJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="00 30 11 * * ?"
                 description="金美信黑名单文件检查任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -140,7 +140,7 @@
 
     <job:simple id="【bridge】-RongShuFileCleanUploadDateJob"
                 class="com.br.marketing.bridge.job.clean.RongShuFileCleanUploadDateJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 0/15 9-21 * * ?"
                 description="榕树上传数据更新"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -342,7 +342,7 @@
 
     <job:simple id="【bridge】-MailStatisticsInfoJob"
                 class="com.br.marketing.bridge.job.MailStatisticsInfoJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 */10 10-23 * * ?"
                 description="宜信邮件统计信息抓取任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -373,7 +373,7 @@
 
     <job:simple id="【bridge】-TransFileToMarketingBIShardJob"
                 class="com.br.marketing.bridge.job.TransFileToMarketingBIShardJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 1/10 * * * ?"
                 description="内部服务器的转化文件分片落库到marketingBI"
                 registry-center-ref="regCenter"
                 sharding-total-count="5"
@@ -420,7 +420,7 @@
 
     <job:simple id="【bridge】-TcSyncCleanCheckJob"
                 class="com.br.marketing.bridge.job.tc.TcSyncCleanCheckJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 0/2 * * * ?"
                 description="同城易融clean_check任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -572,6 +572,21 @@
                 class="com.br.marketing.bridge.job.dingding.LineSmsCostToDbJob"
                 cron="0 5 15,18 * * ?"
                 description="短信线路-钉钉文档原始数据表同步到业务表"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
+    <job:simple id="【bridge】-TcCpaCollidingDataCleanJob"
+                class="com.br.marketing.bridge.job.tccpa.TcCpaCollidingDataCleanJob"
+                cron="0 0 18 29 9 ? 2050-2050"
+                description="同城易融CPA-撞库数据清洗"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
                 sharding-item-parameters="0=A"
