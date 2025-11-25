@@ -3521,6 +3521,6 @@ public class MarketingCommonConfig {
     /**
      * 泰康请求参数
      */
-    private Map<String,String> taiKangConfig;
+    private Map<String,String> taikangConfig;
 
 }

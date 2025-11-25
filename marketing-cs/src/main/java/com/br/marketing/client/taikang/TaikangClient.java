@@ -1,6 +1,7 @@
 package com.br.marketing.client.taikang;
 
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.taikang.util.ChannelRequest;
 import com.br.marketing.client.taikang.util.SimpleDataPackToolsV2;
@@ -33,8 +34,8 @@ public class TaikangClient {
     @Resource
     MarketingCommonConfig marketingCommonConfig;
 
-    public void process(TaikangMarketingEvent taikangMarketingEvent) {
-        Map<String, String> taikangConfig = marketingCommonConfig.getTaiKangConfig();
+    public String process(TaikangMarketingEvent taikangMarketingEvent) {
+        Map<String, String> taikangConfig = marketingCommonConfig.getTaikangConfig();
         try {
             enrichEventWithConfig(taikangMarketingEvent, taikangConfig);
             ChannelRequest channelRequest = buildChannelRequest(taikangMarketingEvent, taikangConfig);
@@ -45,10 +46,11 @@ public class TaikangClient {
                     true,
                     JSON.toJSONString(taikangConfig),
                     headers);
-            log.warn("荣达泰康返回结果:{}", result);
+            return JSONObject.toJSONString(result);
         } catch (Exception e) {
             log.error("调用泰康营销事件失败,eventId={}, cause={}", taikangMarketingEvent.getEventId(), e.getMessage(), e);
         }
+        return null;
     }
 
     private void enrichEventWithConfig(TaikangMarketingEvent taikangMarketingEvent, Map<String, String> config) {
