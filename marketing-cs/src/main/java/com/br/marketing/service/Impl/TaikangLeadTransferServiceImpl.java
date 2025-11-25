@@ -12,8 +12,10 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.CallRecording;
 import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.entity.TaikangTransferDataLog;
 import com.br.marketing.mapper.CallRecordingMapper;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
+import com.br.marketing.mapper.TaikangTransferDataLogMapper;
 import com.br.marketing.service.TaikangLeadTransferService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import java.util.Date;
@@ -35,6 +37,8 @@ public class TaikangLeadTransferServiceImpl implements TaikangLeadTransferServic
     private TaikangClient taikangClient;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+    @Resource
+    private TaikangTransferDataLogMapper taikangTransferDataLogMapper;
 
 
     @Override
@@ -64,6 +68,17 @@ public class TaikangLeadTransferServiceImpl implements TaikangLeadTransferServic
             taikangMarketingEvent.setBrowseDate(browseDate);
             taikangMarketingEvent.setApplicantName(applicantName);
             String response = taikangClient.process(taikangMarketingEvent);
+            try {
+                TaikangTransferDataLog taikangTransferDataLog = new TaikangTransferDataLog();
+                taikangTransferDataLog.setCallRecordId(Long.valueOf(id));
+                taikangTransferDataLog.setApiCode(callRecording.getApiCode());
+                taikangTransferDataLog.setCell(syncUser.getCell());
+                taikangTransferDataLog.setName(applicantName);
+                taikangTransferDataLog.setBusinessCode(JSONObject.parseObject(response).getInteger("code"));
+                taikangTransferDataLog.setReturnContent(response);
+            } catch (NumberFormatException e) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAIKANG_MARKING_SERVICEERROR.getCode(), "泰康大健康线索线索推送客户记录日志异常，拨打明细id:" + id));
+            }
             log.warn("泰康大健康线索线索推送客户response:{}", response);
         } else {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAIKANG_MARKING_SERVICEERROR.getCode(), "泰康大健康线索线索推送客户，未查询到该id:" + id +
