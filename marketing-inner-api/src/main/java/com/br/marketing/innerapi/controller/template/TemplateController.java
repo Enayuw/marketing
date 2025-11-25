@@ -48,11 +48,7 @@ public class TemplateController {
             }else {
                 result = templateService.addTemplate(marketingIndustryTemplateDTO);
             }
-            if (result.isSuccess()) {
-                return new ApiResult<Boolean>().success().setData(result.getData());
-            } else {
-                return new ApiResult<Boolean>().fail().setMessage(result.getMessage()).setData(result.getData());
-            }
+            return new ApiResult<Boolean>().fromResult(result,1);
         } catch (Exception e) {
             logger.error("新增行业模板异常,message:{}", e.getMessage());
             return new ApiResult<Boolean>().fail().setMessage(e.getMessage()).setData(Boolean.FALSE);
@@ -87,11 +83,7 @@ public class TemplateController {
             , @RequestParam(name = "apiType", required = false) String apiType) {
         try {
             Result<PageResultReturn<MarketingIndustryTemplate>> result = templateService.queryAllTemplate(current, pageSize, templateName, firstDepartment, secondDepartment, apiType);
-            if (result.isSuccess()) {
-                return new ApiResult<PageResultReturn<MarketingIndustryTemplate>>().success().setData(result.getData());
-            } else {
-                return new ApiResult<PageResultReturn<MarketingIndustryTemplate>>().fail().setMessage(result.getMessage());
-            }
+            return new ApiResult<PageResultReturn<MarketingIndustryTemplate>>().fromResult(result,1);
         } catch (Exception e) {
             logger.error("查询行业模板异常,message:{}", e.getMessage());
             return new ApiResult<PageResultReturn<MarketingIndustryTemplate>>().fail().setMessage(e.getMessage()).setData(null);
@@ -109,11 +101,7 @@ public class TemplateController {
     public ApiResult<Boolean> editTemplate(@RequestBody MarketingIndustryTemplateDTO marketingIndustryTemplateDTO) {
         try {
             Result<Boolean> result = templateService.editTemplate(marketingIndustryTemplateDTO);
-            if (result.isSuccess()) {
-                return new ApiResult<Boolean>().success().setData(result.getData());
-            } else {
-                return new ApiResult<Boolean>().fail().setMessage(result.getMessage());
-            }
+            return new ApiResult<Boolean>().fromResult(result,1);
         } catch (Exception e) {
             logger.error("修改行业模板异常,message:{}", e.getMessage());
             return new ApiResult<Boolean>().fail().setMessage(e.getMessage()).setData(null);
@@ -131,11 +119,7 @@ public class TemplateController {
     public ApiResult<Boolean> deleteTemplate(@RequestParam(name = "id") Long id) {
         try {
             Result<Boolean> result = templateService.deleteTemplate(id);
-            if (result.isSuccess()) {
-                return new ApiResult<Boolean>().success().setData(result.getData());
-            } else {
-                return new ApiResult<Boolean>().fail().setMessage(result.getMessage());
-            }
+            return new ApiResult<Boolean>().fromResult(result,1);
         } catch (Exception e) {
             logger.error("删除行业模板异常,message:{}", e.getMessage());
             return new ApiResult<Boolean>().fail().setMessage(e.getMessage()).setData(null);
@@ -147,11 +131,7 @@ public class TemplateController {
     public ApiResult<MarketingIndustryTemplateDTO> queryTemplateById(@RequestParam(name = "id") Long id) {
         try {
             Result<MarketingIndustryTemplateDTO> result = templateService.queryTemplateById(id);
-            if (result.isSuccess()) {
-                return new ApiResult<MarketingIndustryTemplateDTO>().success().setData(result.getData());
-            } else {
-                return new ApiResult<MarketingIndustryTemplateDTO>().fail().setMessage(result.getMessage());
-            }
+            return new ApiResult<MarketingIndustryTemplateDTO>().fromResult(result,1);
         } catch (Exception e) {
             logger.error("根据id查询行业模板异常,message:{}", e.getMessage());
             return new ApiResult<MarketingIndustryTemplateDTO>().fail().setMessage(e.getMessage()).setData(null);

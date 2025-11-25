@@ -40,11 +40,7 @@ public class TemplateJsonParseController {
         try {
             Result<JSONArray> result =
                     templateJsonParseService.queryIndustryTemplateJsonParses(firstDepartment, secondDepartment, apiType, systemType, dataType);
-            if (result.isSuccess()) {
-                return new ApiResult<JSONArray>().success().setData(result.getData());
-            } else {
-                return new ApiResult<JSONArray>().fail().setMessage(result.getMessage());
-            }
+            return new ApiResult<JSONArray>().fromResult(result, 1);
         } catch (Exception e) {
             logger.error("根据三级部门及数据类型查询行业模板异常，message:{}", e.getMessage());
             return new ApiResult<JSONArray>().fail().setMessage(e.getMessage()).setData(null);
