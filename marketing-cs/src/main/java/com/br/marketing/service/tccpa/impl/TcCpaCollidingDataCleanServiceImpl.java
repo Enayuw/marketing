@@ -137,18 +137,29 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
     }
 
     private void packageMagnitudeUpd() {
+        //1.查询所有需要更新的包ID
+        List<Long> allPackageIds  = tcyrCpaCollidingDataPackageMapper.queryPackageIdstikv_();
+        //2.查询有数据的包的量级
         List<Map<Long, Integer>> magnitudes = tcyrCpaCollidingDataMapper.queryPackageMagnitudetiflash_();
         if (CollectionUtils.isEmpty(magnitudes)) {
             return;
         }
-        List<TcyrCpaCollidingDataPackage> updPkgs = magnitudes.stream()
-                .map(result -> {
+        //3.构建包ID到量级的映射
+        Map<Long, Integer> magnitudeMap = magnitudes.stream()
+                .collect(Collectors.toMap(
+                        result -> ((Number) result.get("packageId")).longValue(),
+                        result -> ((Number) result.get("magnitude")).intValue()
+                ));
+        //4.为所有包构建更新列表，量级为0的包设为0
+        List<TcyrCpaCollidingDataPackage> updPkgs = allPackageIds.stream()
+                .map(packageId -> {
                     TcyrCpaCollidingDataPackage pkg = new TcyrCpaCollidingDataPackage();
-                    pkg.setId(((Number) result.get("packageId")).longValue());
-                    pkg.setMagnitude(((Number) result.get("magnitude")).intValue());
+                    pkg.setId(packageId);
+                    pkg.setMagnitude(magnitudeMap.getOrDefault(packageId, 0)); // 没有数据的包量级为0
                     return pkg;
                 })
                 .collect(Collectors.toList());
+        //5.批量更新
         tcyrCpaCollidingDataPackageMapper.batchUpdatePackageMagnitude(updPkgs);
     }
 

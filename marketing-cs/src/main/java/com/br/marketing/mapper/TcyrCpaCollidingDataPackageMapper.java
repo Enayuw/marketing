@@ -12,4 +12,5 @@ public interface TcyrCpaCollidingDataPackageMapper extends TcyrCpaCollidingDataP
 
     Integer batchUpdatePackageMagnitude(@Param("updPkgs")List<TcyrCpaCollidingDataPackage> updPkgs);
 
+    List<Long> queryPackageIdstikv_();
 }
