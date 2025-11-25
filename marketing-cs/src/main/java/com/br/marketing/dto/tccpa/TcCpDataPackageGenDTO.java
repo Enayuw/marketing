@@ -10,7 +10,7 @@ import java.util.List;
 @Data
 public class TcCpDataPackageGenDTO {
 
-    @Schema(value = "商户编号")
+    @Schema(description = "商户编号")
     @NotNull(message = "商户编号不能为空")
     private String apiCode;
 
