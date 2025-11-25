@@ -986,13 +986,9 @@ public class DataCleanServiceImpl implements DataCleanService {
             pushRuleService.sendJsonParseMq(dto.getApiCode(), 0, dto.getSystemType()
                     , dto.getDataType(), dto.getAcceptType(), String.valueOf(dto.getJsonData()));
 
-            //查询清洗通用配置表
-            MarketingDataCleanGeneralConfigExample example = new MarketingDataCleanGeneralConfigExample();
-            example.createCriteria().andApiCodeEqualTo(dto.getApiCode())
-                    .andSystemTypeEqualTo(dto.getSystemType())
-                    .andDataTypeEqualTo(dto.getDataType())
-                    .andAcceptTypeEqualTo(dto.getAcceptType());
-            List<MarketingDataCleanGeneralConfig> marketingDataCleanGeneralConfigList = marketingDataCleanGeneralConfigMapper.selectByExample(example);
+            List<MarketingDataCleanGeneralConfig> marketingDataCleanGeneralConfigList =
+                    ruleCleaningService.queryCleanConfigCommon(dto.getApiCode(), dto.getSystemType(), dto.getDataType(), dto.getAcceptType());
+
             if (marketingDataCleanGeneralConfigList.isEmpty()) {
                 log.warn("未查询到数据清洗通用配置，apiCode:{},systemType:{},dataType:{},acceptType:{}"
                         , dto.getApiCode(),dto.getSystemType(), dto.getDataType(), dto.getAcceptType());
@@ -1003,7 +999,9 @@ public class DataCleanServiceImpl implements DataCleanService {
             log.warn("数据清洗通用接口，generalConfigId:{}", generalConfigId);
             //查询清洗规则表
             MarketingDataCleanGeneralRuleConfigExample ruleConfigExample = new MarketingDataCleanGeneralRuleConfigExample();
-            ruleConfigExample.createCriteria().andCleanConfigIdEqualTo(generalConfigId);
+            ruleConfigExample.createCriteria()
+                    .andCleanConfigIdEqualTo(generalConfigId)
+                    .andIsDelEqualTo(1);
             List<MarketingDataCleanGeneralRuleConfig> marketingDataCleanGeneralRuleConfigList =
                     marketingDataCleanGeneralRuleConfigMapper.selectByExample(ruleConfigExample);
             if (marketingDataCleanGeneralRuleConfigList.isEmpty()) {

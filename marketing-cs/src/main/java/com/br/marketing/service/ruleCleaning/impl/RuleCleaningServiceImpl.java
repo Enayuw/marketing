@@ -179,13 +179,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     @Override
     public boolean deleteRule(MarketingDataCleanGeneralConfig config, List<String> mappingFields) {
         // 查询已存在的规则配置
-        MarketingDataCleanGeneralConfigExample configExample = new MarketingDataCleanGeneralConfigExample();
-        configExample.createCriteria()
-                .andApiCodeEqualTo(config.getApiCode())
-                .andDataTypeEqualTo(config.getDataType())
-                .andAcceptTypeEqualTo(config.getAcceptType())
-                .andIsDelEqualTo(1);
-        List<MarketingDataCleanGeneralConfig> existingConfigs = cleanGeneralConfigMapper.selectByExample(configExample);
+        List<MarketingDataCleanGeneralConfig> existingConfigs =
+                queryCleanConfigCommon(config.getApiCode(),config.getSystemType(),config.getDataType(),config.getAcceptType());
 
         if (existingConfigs == null || existingConfigs.isEmpty()) {
             return true;
@@ -240,9 +235,13 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
      * @return 字段样例列表
      */
     @Override
-    public List<FieldSampleDTO> getPreviewFieldSamples(String apiCode, Integer dataType, Integer acceptType) {
+    public List<FieldSampleDTO> getPreviewFieldSamples(String apiCode, Integer systemType, Integer dataType, Integer acceptType) {
         List<FieldSampleDTO> result = new ArrayList<>();
         // 参数验证
+        if (systemType != DataProcessEnum.SystemTypeEnum.MARKETING.getCode() && systemType != DataProcessEnum.SystemTypeEnum.CALL.getCode()){
+            throw new BusinessException("数据来源无效，应为0(营销中台)或1(外呼系统)");
+        }
+
         if (dataType != DataProcessEnum.DataTypeEnum.UPLOAD.getCode() && dataType != DataProcessEnum.DataTypeEnum.TRANSFORM.getCode()) {
             throw new BusinessException("数据类型无效，应为0(上传)或1(转化)");
         }
@@ -253,13 +252,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             throw new BusinessException("接口类型无效，应为0(通用)、1(定制)或2(FTP)");
         }
 
-        MarketingDataCleanGeneralConfigExample configExample = new MarketingDataCleanGeneralConfigExample();
-        configExample.createCriteria()
-                .andApiCodeEqualTo(apiCode)
-                .andDataTypeEqualTo(dataType)
-                .andAcceptTypeEqualTo(acceptType)
-                .andIsDelEqualTo(1);
-        List<MarketingDataCleanGeneralConfig> configs = cleanGeneralConfigMapper.selectByExample(configExample);
+        List<MarketingDataCleanGeneralConfig> configs = queryCleanConfigCommon(apiCode, systemType, dataType, acceptType);
         if (ObjectUtil.isNotEmpty(configs)) {
             throw new BusinessException("该用户清洗配置已存在");
         }
@@ -267,6 +260,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         MarketingJsonNodeParseExample nodeExample = new MarketingJsonNodeParseExample();
         nodeExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
+                .andSystemTypeEqualTo(systemType)
                 .andDataTypeEqualTo(dataType)
                 .andAcceptTypeEqualTo(acceptType);
         List<MarketingJsonNodeParse> nodes = jsonNodeParseMapper.selectByExample(nodeExample);
@@ -321,9 +315,13 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
      * @return 字段样例列表
      */
     @Override
-    public List<FieldSampleDTO> getFieldSamples(String apiCode, Integer dataType, Integer acceptType) {
+    public List<FieldSampleDTO> getFieldSamples(String apiCode, Integer systemType, Integer dataType, Integer acceptType) {
         List<FieldSampleDTO> result = new ArrayList<>();
         // 参数验证
+        if (systemType != DataProcessEnum.SystemTypeEnum.MARKETING.getCode() && systemType != DataProcessEnum.SystemTypeEnum.CALL.getCode()){
+            throw new BusinessException("数据来源无效，应为0(营销中台)或1(外呼系统)");
+        }
+
         if (dataType != DataProcessEnum.DataTypeEnum.UPLOAD.getCode() && dataType != DataProcessEnum.DataTypeEnum.TRANSFORM.getCode()) {
             throw new BusinessException("数据类型无效，应为0(上传)或1(转化)");
         }
@@ -2507,6 +2505,17 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             log.warn("字段拼接操作失败！错误信息：{}", e.getMessage(), e);
             return fieldSample;
         }
+    }
+
+    public List<MarketingDataCleanGeneralConfig> queryCleanConfigCommon(String apiCode, Integer systemType, Integer dataType, Integer acceptType) {
+        //查询清洗通用配置表
+        MarketingDataCleanGeneralConfigExample example = new MarketingDataCleanGeneralConfigExample();
+        example.createCriteria().andApiCodeEqualTo(apiCode)
+                .andSystemTypeEqualTo(systemType)
+                .andDataTypeEqualTo(dataType)
+                .andAcceptTypeEqualTo(acceptType)
+                .andIsDelEqualTo(1);
+        return cleanGeneralConfigMapper.selectByExample(example);
     }
 
 }
