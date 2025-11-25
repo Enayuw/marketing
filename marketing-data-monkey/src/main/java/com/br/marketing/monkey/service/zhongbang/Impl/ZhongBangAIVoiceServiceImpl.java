@@ -11,12 +11,15 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.dto.zbank.ZbankAIVoiceFileDetailResultDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.entity.zhongbang.ZhongbangAiVoiceFileDetail;
 import com.br.marketing.entity.zhongbang.ZhongbangAiVoiceFileDetailExample;
 import com.br.marketing.mapper.*;
 import com.br.marketing.mapper.zhongbang.ZhongbangAiVoiceFileDetailMapper;
+import com.br.marketing.monkey.enums.zhongbangai.CallRecordStatusEnum;
+import com.br.marketing.monkey.enums.zhongbangai.PushFileStatusEnum;
 import com.br.marketing.monkey.service.zhongbang.ZhongBangAIVoiceService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -126,11 +129,12 @@ public class ZhongBangAIVoiceServiceImpl implements ZhongBangAIVoiceService {
                     int fileInfoCount;
                     PushCustomerFileInfoExample exampleInfoCount = new PushCustomerFileInfoExample();
                     exampleInfoCount.createCriteria().andApiCodeEqualTo(apiCode).andCidEqualTo(cId)
-                            .andStatusEqualTo(1).andPushStatusIn(Arrays.asList(0, 3)).andLocalFileIdEqualTo(localFileId);
+                            .andStatusEqualTo(1).andPushStatusIn(Arrays.asList(PushFileStatusEnum.READY.getCode(),
+                                    PushFileStatusEnum.PUSH_ERROR.getCode())).andLocalFileIdEqualTo(localFileId);
                     fileInfoCount = pushCustomerFileInfoMapper.countByExample(exampleInfoCount);
                     ZhongbangAiVoiceFileDetailExample exampleDetailCount = new ZhongbangAiVoiceFileDetailExample();
                     exampleDetailCount.createCriteria().andLocalIdEqualTo(localFileId).andStatusEqualTo(1)
-                            .andApiCodeEqualTo(apiCode).andPushStatusEqualTo(0).andIsDeletedEqualTo(0);
+                            .andApiCodeEqualTo(apiCode).andPushStatusEqualTo(PushFileStatusEnum.READY.getCode()).andIsDeletedEqualTo(0);
                     fileDetailsCount = zhongbangAiVoiceFileDetailMapper.countByExample(exampleDetailCount);
                     if (fileInfoCount != fileDetailsCount) {
                         // 下载远程文件
@@ -163,7 +167,7 @@ public class ZhongBangAIVoiceServiceImpl implements ZhongBangAIVoiceService {
                     }
                     //更新local_file
                     if (resultBool) {
-                        localFile.setPushStatus("1");
+                        localFile.setPushStatus(String.valueOf(PushFileStatusEnum.RUNNING.getCode()));
                         localFileMapper.updateByPrimaryKeySelective(localFile);
                     }
 
@@ -208,7 +212,7 @@ public class ZhongBangAIVoiceServiceImpl implements ZhongBangAIVoiceService {
     private List<FileDbConfig> getFileDbConfig(String apiCode, String fileType) {
         FileDbConfigExample fileDbConfigExample = new FileDbConfigExample();
         fileDbConfigExample.createCriteria().andApiCodeEqualTo(apiCode)
-                .andDelEqualTo(1).andFileTypeEqualTo(fileType);
+                .andDelEqualTo(Constants.DATA_VALID).andFileTypeEqualTo(fileType);
         return fileDbConfigMapper.selectByExample(fileDbConfigExample);
     }
 
@@ -328,7 +332,7 @@ public class ZhongBangAIVoiceServiceImpl implements ZhongBangAIVoiceService {
         Map<String, JSONObject> voiceFileConfig = getVoiceAIFileConfig();
         int poolSize = voiceFileConfig.get(tableName).getIntValue(poolKey);
         if (poolSize > 0 && poolSize != poolExecutor.getCorePoolSize()) {
-            ThreadPoolAdjustmentUtil.adjustThreadPoolSize(poolExecutor,poolSize);
+            ThreadPoolAdjustmentUtil.adjustThreadPoolSize(poolExecutor, poolSize);
         }
     }
 
@@ -350,7 +354,7 @@ public class ZhongBangAIVoiceServiceImpl implements ZhongBangAIVoiceService {
         fileInfo.setFileMd5(fileMd5);
         fileInfo.setLocalFileId(localFileId);
         // 待推送
-        fileInfo.setPushStatus(0);
+        fileInfo.setPushStatus(PushFileStatusEnum.READY.getCode());
         try {
             pushCustomerFileInfoMapper.insertSelective(fileInfo);
             return true;
@@ -430,7 +434,8 @@ public class ZhongBangAIVoiceServiceImpl implements ZhongBangAIVoiceService {
             PushCustomerFileInfoExample exampleSelect = new PushCustomerFileInfoExample();
             exampleSelect.createCriteria().andApiCodeEqualTo(apiCode)
                     .andCidEqualTo(cid).andLocalFileIdEqualTo(localFileId)
-                    .andStatusEqualTo(1).andPushStatusIn(Arrays.asList(0, 3)).andIdGreaterThan(maxId);
+                    .andStatusEqualTo(1).andPushStatusIn(Arrays.asList(PushFileStatusEnum.READY.getCode(),
+                            PushFileStatusEnum.PUSH_ERROR.getCode())).andIdGreaterThan(maxId);
             exampleSelect.setOrderByClause("id limit " + pageSize);
             List<PushCustomerFileInfo> infoList = pushCustomerFileInfoMapper.selectByExample(exampleSelect);
             if (infoList.isEmpty()) {
@@ -458,7 +463,7 @@ public class ZhongBangAIVoiceServiceImpl implements ZhongBangAIVoiceService {
                     int callRecord = callRecordingMapper.countByExample(callRecordingExample);
                     if (callRecord == 0) {
                         log.error("众邦AI推送录音文件，sessionId不存在callRecord中,sessionId={}", sessionId);
-                        fileInfo.setStatus(4);
+                        fileInfo.setStatus(3);
                         fileInfo.setRemark("sessionId不存在callRecord中");
                         pushCustomerFileInfoMapper.updateByPrimaryKeySelective(fileInfo);
                         return true;
@@ -468,9 +473,9 @@ public class ZhongBangAIVoiceServiceImpl implements ZhongBangAIVoiceService {
                             UploadInfo uploadInfo = zBankClient.uploadInputStream(inputStream
                                     , file.getName(), file.length(), fileInfo.getFileMd5());
                             voiceFileDetail.setCustomerFileId(uploadInfo.getFileId());
-                            voiceFileDetail.setPushStatus(2);
+                            voiceFileDetail.setPushStatus(PushFileStatusEnum.SUCCESS.getCode());
                             // 推送成功
-                            fileInfo.setPushStatus(2);
+                            fileInfo.setPushStatus(PushFileStatusEnum.SUCCESS.getCode());
                             fileInfo.setRemark("");
                         } catch (SDKException | IOException e) {
                             log.error(e.getMessage(), e);
@@ -480,7 +485,7 @@ public class ZhongBangAIVoiceServiceImpl implements ZhongBangAIVoiceService {
                                 fileInfo.setStatus(2);
                             }
                             // 推送失败
-                            fileInfo.setPushStatus(3);
+                            fileInfo.setPushStatus(PushFileStatusEnum.PUSH_ERROR.getCode());
                             pushCustomerFileInfoMapper.updateByPrimaryKeySelective(fileInfo);
                             return false;
                         }
@@ -517,7 +522,8 @@ public class ZhongBangAIVoiceServiceImpl implements ZhongBangAIVoiceService {
         String apiCode = localFile.getApiCode();
         String date = localDate.minusDays(1).toString();
         Integer pageSize = 2000;
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(5, 5, 30);
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(marketingCommonConfig.getZhongBangAIPushFileDetailNum(),
+                marketingCommonConfig.getZhongBangAIPushFileDetailNum(), 30);
         //查询api录音回调
         Long indexId = null;
         while (true) {
@@ -527,8 +533,13 @@ public class ZhongBangAIVoiceServiceImpl implements ZhongBangAIVoiceService {
                 break;
             }
             indexId = callRecordingList.get(callRecordingList.size() - 1).getId();
-            threadPool.submit(() ->
-                    pushVoiceDeatil(callRecordingList, localFile));
+            threadPool.submit(() -> {
+                try {
+                    pushVoiceDeatil(callRecordingList, localFile);
+                } catch (Exception ex) {
+                    log.error("众邦AI推送录音明细线程执行异常", ex);
+                }
+            });
         }
         threadPool.shutdown();
         try {
@@ -545,12 +556,12 @@ public class ZhongBangAIVoiceServiceImpl implements ZhongBangAIVoiceService {
         Date startDate = Date.from(zonedDateTime.toInstant());
         CallRecordingExample callRecordingExample = new CallRecordingExample();
         callRecordingExample.createCriteria().andApiCodeEqualTo(apiCode)
-                .andStatusEqualTo(3).andCreateTimeGreaterThanOrEqualTo(startDate);
+                .andStatusEqualTo(CallRecordStatusEnum.PUSH_ERROR.getCode()).andCreateTimeGreaterThanOrEqualTo(startDate);
         int errorNum = callRecordingMapper.countByExample(callRecordingExample);
         if (errorNum > 0) {
-            localFile.setPushStatus("3");
+            localFile.setPushStatus(String.valueOf(PushFileStatusEnum.PUSH_ERROR.getCode()));
         } else {
-            localFile.setPushStatus("2");
+            localFile.setPushStatus(String.valueOf(PushFileStatusEnum.SUCCESS.getCode()));
         }
         localFileMapper.updateByPrimaryKeySelective(localFile);
     }
@@ -592,13 +603,13 @@ public class ZhongBangAIVoiceServiceImpl implements ZhongBangAIVoiceService {
             paramJson.put("IsCnnct", callRecording.getIsConnect());
             if (Objects.nonNull(jsonObject)) {
                 paramJson.put("CalDrtn", jsonObject.get("callTimeS"));
+                paramJson.put("RspRst", jsonObject.get("returnResult"));
             }
             paramJson.put("EndTm", callRecording.getCallEndTime());
             paramJson.put("AskTms", callRecording.getDialogTurn());
             paramJson.put("Text", callRecording.getCallDialog());
             paramJson.put("CalSts", callRecording.getCallStatus());
             paramJson.put("IntntGrd", callRecording.getIntentionGrade());
-            paramJson.put("RspRst", callRecording.getReturnResult());
             paramJson.put("TgLst", callRecording.getTagList());
             if (!CollectionUtils.isEmpty(voiceFileDetails)) {
                 ZhongbangAiVoiceFileDetail fileDetail = voiceFileDetails.get(0);
@@ -617,11 +628,11 @@ public class ZhongBangAIVoiceServiceImpl implements ZhongBangAIVoiceService {
         });
         //更新状态
         if (!CollectionUtils.isEmpty(successIdList)) {
-            callRecordingMapper.updateBatchByIds(successIdList, 2);
+            callRecordingMapper.updateBatchByIds(successIdList, CallRecordStatusEnum.SUCCESS.getCode());
         }
         //失败状态
         if (!CollectionUtils.isEmpty(errorIdList)) {
-            callRecordingMapper.updateBatchByIds(errorIdList, 3);
+            callRecordingMapper.updateBatchByIds(errorIdList, CallRecordStatusEnum.PUSH_ERROR.getCode());
         }
     }
 

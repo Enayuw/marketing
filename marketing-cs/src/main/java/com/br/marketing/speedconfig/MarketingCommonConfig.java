@@ -3530,4 +3530,9 @@ public class MarketingCommonConfig {
      */
     private List<String> xieChengPostLoanApiCodeLists;
 
+    /**
+     * 众邦AI推送明细线程数
+     */
+    private Integer zhongBangAIPushFileDetailNum = 5;
+
 }

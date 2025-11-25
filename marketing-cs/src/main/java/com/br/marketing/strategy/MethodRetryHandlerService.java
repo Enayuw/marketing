@@ -1486,9 +1486,7 @@ public class MethodRetryHandlerService {
         jsonData.put("TxnSrlNo", requestId);
         jsonData.put("TxnDt", LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE));
         jsonData.put("TxnTs", LocalTime.now().format(DateTimeFormatter.ofPattern("HHmmss[SSS]")));
-        jsonData.put("TskId", "72031170-8d29-416b-8bc7-e76353e1c307");
-        jsonData.put("UserTp", "1120-百融AI-场景01");
-        jsonData.put("MblPhnId", "f95acfffa7d333327ebb25f286e821dc");
+        jsonData.putAll(json);
         object.put("request", jsonData);
         String jsonStr;
         try {

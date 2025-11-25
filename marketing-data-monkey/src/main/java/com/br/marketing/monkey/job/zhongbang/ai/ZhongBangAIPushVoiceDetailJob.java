@@ -7,6 +7,7 @@ import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.LocalFileExample;
 import com.br.marketing.entity.TransferActionFront;
 import com.br.marketing.mapper.LocalFileMapper;
+import com.br.marketing.monkey.enums.zhongbangai.PushFileStatusEnum;
 import com.br.marketing.monkey.service.zhongbang.ZhongBangAIVoiceService;
 import com.br.marketing.service.Impl.JobManager;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -53,9 +54,10 @@ public class ZhongBangAIPushVoiceDetailJob extends AbstractSimpleElasticJob {
         Date startDate = Date.from(zonedDateTime.toInstant());
         Date endDate = Date.from(zonedDateTime.plusDays(1).toInstant());
         LocalFileExample localFileExample = new LocalFileExample();
-        localFileExample.createCriteria().andPushStatusEqualTo("1")
+        localFileExample.createCriteria().andPushStatusEqualTo(String.valueOf(PushFileStatusEnum.RUNNING.getCode()))
                 .andApiCodeEqualTo(apiCode).andFileTypeEqualTo(SftpFileTypeEnum.ZHONGBANG_AI_VOICE.getValue())
                 .andCreateTimeGreaterThanOrEqualTo(startDate).andCreateTimeLessThan(endDate);
+        //查询推送录音完成的文件
         List<LocalFile> localFileList = localFileMapper.selectByExample(localFileExample);
         if (CollectionUtils.isEmpty(localFileList)) {
             log.warn("众邦AI推送录音明细不满足开始条件或已完成");

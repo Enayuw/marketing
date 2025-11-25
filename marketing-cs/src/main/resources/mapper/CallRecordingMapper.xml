@@ -22,7 +22,8 @@
         select *
         from b_marketing_call_recording
         where api_code = #{apiCode}
-        and create_time >= #{date}
+        and receive_date = #{date}
+        and status = 0
         <if test="indexId != null and indexId != ''">
             and id > #{indexId}
         </if>
