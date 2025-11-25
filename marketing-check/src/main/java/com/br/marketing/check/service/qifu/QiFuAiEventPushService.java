@@ -17,7 +17,7 @@ public interface QiFuAiEventPushService {
      * @param syncStatus 同步状态
      * @return 数据集
      */
-    List<DrsCustomizeUploadData> getDrsCustomizeUploadDataBySyncStatus(Integer syncStatus);
+    List<DrsCustomizeUploadData> getDrsCustomizeUploadDataBySyncStatus(Integer syncStatus, Long minId, Integer pageSize);
 
     /**
      * 根据serialNo在明细表中筛选最新一条数据
@@ -32,4 +32,13 @@ public interface QiFuAiEventPushService {
     void insertRealTimeData(List<BQifuUploadDataOriginal> qifuUploadDataOriginalList);
 
     void queryCallMessage(List<BQifuUploadDataOriginal> qifuUploadDataOriginalList);
+
+    /**
+     * 在事务中处理批次数据：插入数据 + 更新状态
+     *
+     * @param resultList 待插入的数据列表
+     * @param drsCustomizeUploadDataList 待更新状态的数据列表
+     */
+    void processBatchData(List<BQifuUploadDataOriginal> resultList,
+                                       List<DrsCustomizeUploadData> drsCustomizeUploadDataList);
 }

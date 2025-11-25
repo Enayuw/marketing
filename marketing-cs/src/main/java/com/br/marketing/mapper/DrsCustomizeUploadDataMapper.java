@@ -19,6 +19,8 @@ public interface DrsCustomizeUploadDataMapper {
 
     void updateSyncStatusByIds(@Param("tCid") String tCid, @Param("sourceIds") List<Long> sourceIds, @Param("syncStatus") int syncStatus);
 
+    void updateFlattenStatusByIds(@Param("tCid") String tCid, @Param("sourceIds") List<Long> sourceIds, @Param("flattenStatus") int flattenStatus);
+
     List<DrsCustomizeUploadData> getDataOfNeedClean(@Param("tCid") String tCid
             , @Param("apiCodes") List<String> apiCodes
             , @Param("receiveDates") List<String> receiveDates
@@ -62,7 +64,9 @@ public interface DrsCustomizeUploadDataMapper {
             , @Param("dateValue") String dateValue);
 
     List<DrsCustomizeUploadData> getDrsCustomizeUploadDataBySyncStatus(@Param("tCid") String tCid,
-                                                                       @Param("syncStatus") Integer syncStatus);
+                                                                       @Param("syncStatus") Integer syncStatus,
+                                                                       @Param("minId") Long minId,
+                                                                       @Param("pageSize") Integer pageSize);
 
     List<BQifuUploadDataOriginal> getQiFuUploadDataOriginalBySerialNo(@Param("tCid") String tCid,
                                                                       @Param("serialNo") String serialNo);

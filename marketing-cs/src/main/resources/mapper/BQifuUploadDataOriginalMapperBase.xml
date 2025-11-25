@@ -19,6 +19,7 @@
     <result column="operate_scene" property="operateScene" jdbcType="VARCHAR" />
     <result column="template_no" property="templateNo" jdbcType="VARCHAR" />
     <result column="event_type" property="eventType" jdbcType="VARCHAR" />
+    <result column="is_real" property="isReal" jdbcType="TINYINT" />
     <result column="send_msg" property="sendMsg" jdbcType="VARCHAR" />
     <result column="retry_call" property="retryCall" jdbcType="VARCHAR" />
     <result column="retry_range" property="retryRange" jdbcType="VARCHAR" />
@@ -91,7 +92,7 @@
   <sql id="Base_Column_List" >
     id, drs_id, batch_no, api_code, user_type, call_time_range, call_type, gender,
     phone_no_md5, serial_no, surname, select_status, status, flow_no, operate_scene,
-    template_no, event_type, send_msg, retry_call, retry_range, retry_nums, retry_interval,
+    template_no, event_type, is_real, send_msg, retry_call, retry_range, retry_nums, retry_interval,
     retry_call_strategy, extend, receive_date, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.BQifuUploadDataOriginalExample" >
@@ -133,7 +134,7 @@
     gender, phone_no_md5, serial_no,
     surname, select_status, status,
     flow_no, operate_scene, template_no,
-    event_type, send_msg, retry_call,
+    event_type, is_real, send_msg, retry_call,
     retry_range, retry_nums, retry_interval,
     retry_call_strategy, extend, receive_date,
     create_time, update_time)
@@ -142,7 +143,7 @@
     #{gender,jdbcType=VARCHAR}, #{phoneNoMd5,jdbcType=VARCHAR}, #{serialNo,jdbcType=VARCHAR},
     #{surname,jdbcType=VARCHAR}, #{selectStatus,jdbcType=TINYINT}, #{status,jdbcType=TINYINT},
     #{flowNo,jdbcType=VARCHAR}, #{operateScene,jdbcType=VARCHAR}, #{templateNo,jdbcType=VARCHAR},
-    #{eventType,jdbcType=VARCHAR}, #{sendMsg,jdbcType=VARCHAR}, #{retryCall,jdbcType=VARCHAR},
+    #{eventType,jdbcType=VARCHAR}, #{isReal,jdbcType=TINYINT}, #{sendMsg,jdbcType=VARCHAR}, #{retryCall,jdbcType=VARCHAR},
     #{retryRange,jdbcType=VARCHAR}, #{retryNums,jdbcType=VARCHAR}, #{retryInterval,jdbcType=VARCHAR},
     #{retryCallStrategy,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}, #{receiveDate,jdbcType=VARCHAR},
     #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
@@ -200,6 +201,9 @@
       </if>
       <if test="eventType != null" >
         event_type,
+      </if>
+      <if test="isReal != null" >
+        is_real,
       </if>
       <if test="sendMsg != null" >
         send_msg,
@@ -280,6 +284,9 @@
       </if>
       <if test="eventType != null" >
         #{eventType,jdbcType=VARCHAR},
+      </if>
+      <if test="isReal != null" >
+        #{isReal,jdbcType=TINYINT},
       </if>
       <if test="sendMsg != null" >
         #{sendMsg,jdbcType=VARCHAR},
@@ -373,6 +380,9 @@
       <if test="record.eventType != null" >
         event_type = #{record.eventType,jdbcType=VARCHAR},
       </if>
+      <if test="record.isReal != null" >
+        is_real = #{record.isReal,jdbcType=TINYINT},
+      </if>
       <if test="record.sendMsg != null" >
         send_msg = #{record.sendMsg,jdbcType=VARCHAR},
       </if>
@@ -427,6 +437,7 @@
     operate_scene = #{record.operateScene,jdbcType=VARCHAR},
     template_no = #{record.templateNo,jdbcType=VARCHAR},
     event_type = #{record.eventType,jdbcType=VARCHAR},
+    is_real = #{record.isReal,jdbcType=TINYINT},
     send_msg = #{record.sendMsg,jdbcType=VARCHAR},
     retry_call = #{record.retryCall,jdbcType=VARCHAR},
     retry_range = #{record.retryRange,jdbcType=VARCHAR},
@@ -492,6 +503,9 @@
       <if test="eventType != null" >
         event_type = #{eventType,jdbcType=VARCHAR},
       </if>
+      <if test="isReal != null" >
+        is_real = #{isReal,jdbcType=TINYINT},
+      </if>
       <if test="sendMsg != null" >
         send_msg = #{sendMsg,jdbcType=VARCHAR},
       </if>
@@ -543,6 +557,7 @@
         operate_scene = #{operateScene,jdbcType=VARCHAR},
         template_no = #{templateNo,jdbcType=VARCHAR},
         event_type = #{eventType,jdbcType=VARCHAR},
+        is_real = #{isReal,jdbcType=TINYINT},
         send_msg = #{sendMsg,jdbcType=VARCHAR},
         retry_call = #{retryCall,jdbcType=VARCHAR},
         retry_range = #{retryRange,jdbcType=VARCHAR},

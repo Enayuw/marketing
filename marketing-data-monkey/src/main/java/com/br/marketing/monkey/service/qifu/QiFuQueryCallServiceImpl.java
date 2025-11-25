@@ -1,8 +1,7 @@
-package com.br.marketing.check.service.Impl.qifu;
+package com.br.marketing.monkey.service.qifu;
 
 import com.alibaba.fastjson.JSON;
 import com.br.common.log.AlertLog;
-import com.br.marketing.check.service.qifu.QiFuQueryCallService;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.client.qifu.ResponseData;
@@ -15,6 +14,8 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.BQifuUploadDataOriginal;
 import com.br.marketing.mapper.BQifuUploadDataOriginalMapper;
+import com.br.marketing.service.Impl.qifu.enums.QiFuProcessStatusEnum;
+import com.br.marketing.service.Impl.qifu.enums.QiFuSelectStatusEnum;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
@@ -27,7 +28,9 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -176,8 +179,8 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
 
     /**
      * 计算有卷比例（基于今天的数据）
-     * 查询该user_type下select_status为0、3、4的数据，统计有卷的比例
-     * 有卷：extend字段不为空或者select_status=2（查询成功）
+     * 查询该user_type下的数据，统计有卷的比例
+     * 有卷：extend字段不为空或者select_status=查询成功
      * 
      * @param userType 场景标识
      * @param todayDate 今天的日期 yyyy-MM-dd
@@ -241,11 +244,18 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
         // 根据开关状态确定查询的select_status列表
         List<Integer> selectStatusList;
         if (switchOpen) {
-            // 开关打开：查询 select_status in (0, 3)
-            selectStatusList = Arrays.asList(0, 3);
+            // 开关打开：查询 select_status in (待查询, 重试-接口异常)
+            selectStatusList = Arrays.asList(
+                QiFuSelectStatusEnum.WAIT_QUERY.getCode(), 
+                QiFuSelectStatusEnum.RETRY_INTERFACE_ERROR.getCode()
+            );
         } else {
-            // 开关关闭：查询 select_status in (0, 3, 4)
-            selectStatusList = Arrays.asList(0, 3, 4);
+            // 开关关闭：查询 select_status in (待查询, 重试-接口异常, 重试-无卷信息)
+            selectStatusList = Arrays.asList(
+                QiFuSelectStatusEnum.WAIT_QUERY.getCode(), 
+                QiFuSelectStatusEnum.RETRY_INTERFACE_ERROR.getCode(),
+                QiFuSelectStatusEnum.RETRY_NO_COUPON.getCode()
+            );
         }
 
         Long indexId = null;
@@ -263,7 +273,7 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
             indexId = dataList.get(dataList.size() - 1).getId();
 
             // 处理当前场景的数据（单场景调用接口）
-            processUserTypeDataList(userType, dataList, todayDate);
+            processUserTypeDataList(userType, dataList, todayDate, switchOpen);
 
             if (dataList.size() < PAGE_SIZE) {
                 hasMore = false;
@@ -274,7 +284,7 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
     /**
      * 处理某个userType的数据列表（单场景调用接口）
      */
-    private void processUserTypeDataList(String userType, List<BQifuUploadDataOriginal> dataList, String todayDate) {
+    private void processUserTypeDataList(String userType, List<BQifuUploadDataOriginal> dataList, String todayDate, boolean switchOpen) {
         // 按serialNo分组，每50个一批调用接口
         List<String> serialNoList = dataList.stream()
                 .map(BQifuUploadDataOriginal::getSerialNo)
@@ -286,57 +296,70 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
         }
 
         List<List<String>> partitions = ListUtils.partition(serialNoList, 50);
-        List<Result<ResponseData<QryCallRealTimeResp>>> resultList = new ArrayList<>();
+        
+        // 收集所有成功返回的详情数据和失败批次的serialNo
+        List<CallRealTimeDTO> allDetailList = new ArrayList<>();
+        Set<String> failedSerialNoSet = new HashSet<>();
+        int successCount = 0;
+        int failCount = 0;
 
-        // 调用360查询接口
-        for (List<String> partition : partitions) {
+        // 调用360查询接口，按批次分别处理
+        for (int i = 0; i < partitions.size(); i++) {
+            List<String> partition = partitions.get(i);
             QryCallRealTimeReq qryCallRealTimeReq = new QryCallRealTimeReq();
             qryCallRealTimeReq.setCallType("AI");
             qryCallRealTimeReq.setRequestNo(UUID.randomUUID().toString());
             qryCallRealTimeReq.setSerialNoList(partition);
 
             Result<ResponseData<QryCallRealTimeResp>> result = methodRetryHandlerService.qryCallRealTime(qryCallRealTimeReq, 0);
-            resultList.add(result);
-        }
-
-        // 检查是否有失败的结果
-        List<Result<ResponseData<QryCallRealTimeResp>>> failResults = resultList.stream()
-                .filter(result -> !ResultCode.SUCCESS.getValue().equals(result.getCode()))
-                .collect(Collectors.toList());
-
-        if (!CollectionUtils.isEmpty(failResults)) {
-            log.warn("userType={} 查询外呼信息有失败，失败数量: {}", userType, failResults.size());
-            // 有异常，更新select_status为3（重试-接口异常）
-            updateSelectStatus(dataList, 3);
-            return;
-        }
-
-        // 收集所有返回的详情数据
-        List<CallRealTimeDTO> allDetailList = new ArrayList<>();
-        for (Result<ResponseData<QryCallRealTimeResp>> result : resultList) {
-            if (result.getData() != null && result.getData().getData() != null
-                    && result.getData().getData().getT() != null
-                    && result.getData().getData().getT().getDataDetails() != null) {
-                allDetailList.addAll(result.getData().getData().getT().getDataDetails());
+            
+            // 判断当前批次是否成功
+            if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                // 当前批次成功，收集返回数据
+                successCount++;
+                if (result.getData() != null && result.getData().getData() != null
+                        && result.getData().getData().getT() != null
+                        && result.getData().getData().getT().getDataDetails() != null) {
+                    allDetailList.addAll(result.getData().getData().getT().getDataDetails());
+                }
+            } else {
+                // 当前批次失败，记录失败的serialNo
+                failCount++;
+                failedSerialNoSet.addAll(partition);
+                log.warn("userType={} 第{}批次查询外呼信息失败，批次大小: {}, 错误码: {}, 错误信息: {}", 
+                        userType, i + 1, partition.size(), result.getCode(), result.getMessage());
             }
         }
 
-        // 构建serialNo -> CallRealTimeDTO的映射
-        // 更新数据：将返回信息存在extend里，更新select_status为2（查询成功）
+        log.info("userType={} 查询外呼信息完成，成功批次: {}, 失败批次: {}", userType, successCount, failCount);
+
+        // 更新数据：分别处理成功和失败的数据
         List<BQifuUploadDataOriginal> updateRecords = new ArrayList<>();
         for (BQifuUploadDataOriginal record : dataList) {
-            // 查找对应的返回数据
-            List<CallRealTimeDTO> matchedDetails = allDetailList.stream()
-                    .filter(detail -> record.getSerialNo().equals(detail.getSerialNo()))
-                    .collect(Collectors.toList());
-
-            if (!matchedDetails.isEmpty()) {
-                // 将返回信息存在extend里
-                record.setExtend(JSON.toJSONString(matchedDetails));
-                record.setSelectStatus(2);
+            String serialNo = record.getSerialNo();
+            
+            // 判断当前记录所在的批次是否失败
+            if (failedSerialNoSet.contains(serialNo)) {
+                // 该记录所在批次失败，标记为接口异常
+                record.setSelectStatus(QiFuSelectStatusEnum.RETRY_INTERFACE_ERROR.getCode());
             } else {
-                // 没有匹配到数据，可能是无卷信息，更新select_status为4（重试-无卷信息）
-                record.setSelectStatus(4);
+                // 该记录所在批次成功，查找对应的返回数据
+                List<CallRealTimeDTO> matchedDetails = allDetailList.stream()
+                        .filter(detail -> serialNo.equals(detail.getSerialNo()))
+                        .collect(Collectors.toList());
+
+                if (!matchedDetails.isEmpty()) {
+                    // 将返回信息存在extend里
+                    record.setExtend(JSON.toJSONString(matchedDetails));
+                    record.setStatus(QiFuProcessStatusEnum.UNPROCESSED.getCode());
+                    record.setSelectStatus(QiFuSelectStatusEnum.QUERY_SUCCESS.getCode());
+                } else {
+                    // 没有匹配到数据，可能是无卷信息，更新select_status为重试-无卷信息
+                    record.setSelectStatus(QiFuSelectStatusEnum.RETRY_NO_COUPON.getCode());
+                }
+            }
+            if (switchOpen) {
+                record.setStatus(QiFuProcessStatusEnum.UNPROCESSED.getCode());
             }
             updateRecords.add(record);
         }
@@ -347,23 +370,6 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
             // 更新Redis中的有卷比例
             updateCouponRatio(userType, todayDate);
         }
-    }
-
-    /**
-     * 更新select_status
-     */
-    @Override
-    public void updateSelectStatus(List<BQifuUploadDataOriginal> dataList, Integer selectStatus) {
-        List<BQifuUploadDataOriginal> updateRecords = dataList.stream()
-                .map(record -> {
-                    BQifuUploadDataOriginal updateRecord = new BQifuUploadDataOriginal();
-                    updateRecord.setId(record.getId());
-                    updateRecord.setSelectStatus(selectStatus);
-                    return updateRecord;
-                })
-                .collect(Collectors.toList());
-
-        batchUpdateRecords(updateRecords);
     }
 
     /**

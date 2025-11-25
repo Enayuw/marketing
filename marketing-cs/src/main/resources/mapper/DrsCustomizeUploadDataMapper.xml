@@ -14,6 +14,7 @@
             `extend`            longtext     DEFAULT NULL COMMENT '扩展字段',
             `status`            int(1)       DEFAULT '0' COMMENT '状态 0-无效、1-有效',
             `sync_status`       int(1)       DEFAULT '0' COMMENT '同步状态 0-未同步、1-已同步',
+            `flatten_status`    int(1)       DEFAULT '0' COMMENT '打平状态 0-未打平、1-已打平',
             `receive_date`      varchar(50)  DEFAULT '' COMMENT '接入日期yyyy-MM-dd',
             `create_time`       timestamp    DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
             `update_time`       timestamp    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
@@ -59,6 +60,9 @@
             <if test="syncStatus != null">
                 sync_status,
             </if>
+            <if test="flattenStatus != null">
+                flatten_status,
+            </if>
             <if test="receiveDate != null">
                 receive_date,
             </if>
@@ -96,6 +100,9 @@
             </if>
             <if test="syncStatus != null">
                 #{syncStatus,jdbcType=INTEGER},
+            </if>
+            <if test="flattenStatus != null">
+                #{flattenStatus,jdbcType=INTEGER},
             </if>
             <if test="receiveDate != null">
                 #{receiveDate,jdbcType=VARCHAR},
@@ -144,6 +151,15 @@
         </foreach>
     </update>
 
+    <update id="updateFlattenStatusByIds">
+        update b_drs_customize_upload_data${tCid}
+        set flatten_status = #{flattenStatus}
+        where id in
+        <foreach collection="sourceIds" separator="," item="sourceId" open="(" close=")">
+            #{sourceId}
+        </foreach>
+    </update>
+
     <select id="getDataOfToBeSync" resultType="com.br.marketing.entity.DrsCustomizeUploadData">
         select *
         from b_drs_customize_upload_data${tCid}
@@ -165,7 +181,14 @@
 
     <select id="getDrsCustomizeUploadDataBySyncStatus"
             resultType="com.br.marketing.entity.DrsCustomizeUploadData">
-        select * from b_drs_customize_upload_data${tCid} where sync_status = #{syncStatus}
+        select *
+        from b_drs_customize_upload_data${tCid}
+        where sync_status = #{syncStatus}
+        <if test="minId != null and minId!=''">
+            and id > #{minId}
+        </if>
+        order by id asc
+        limit #{pageSize}
     </select>
 
     <select id="getQiFuUploadDataOriginalBySerialNo"
@@ -183,41 +206,39 @@
 
     <select id="getDataIdRange" resultType="java.util.Map">
         select
-            min(a.id) as minId,
-            max(a.id) as maxId
-        from b_drs_customize_upload_data${tCid} a
-        left join b_qifu_upload_data_original b on a.id = b.drs_id
-        where a.api_code in
+            min(id) as minId,
+            max(id) as maxId
+        from b_drs_customize_upload_data${tCid}
+        where api_code in
         <foreach collection="apiCodes" item="apiCode" open="(" separator="," close=")">
             #{apiCode}
         </foreach>
-        and b.drs_id is null
+        and flatten_status = 0
         <if test="dateType == 'history'">
-            and a.receive_date &lt;= #{dateValue}
+            and receive_date &lt;= #{dateValue}
         </if>
         <if test="dateType == 'today'">
-            and a.receive_date = #{dateValue}
+            and receive_date = #{dateValue}
         </if>
     </select>
 
     <select id="getDataByIdRange" resultType="com.br.marketing.entity.DrsCustomizeUploadData">
-        select a.*
-        from b_drs_customize_upload_data${tCid} a
-        left join b_qifu_upload_data_original b on a.id = b.drs_id
-        where a.api_code in
+        select *
+        from b_drs_customize_upload_data${tCid}
+        where api_code in
         <foreach collection="apiCodes" item="apiCode" open="(" separator="," close=")">
             #{apiCode}
         </foreach>
-        and b.drs_id is null
+        and flatten_status = 0
         <if test="dateType == 'history'">
-            and a.receive_date &lt;= #{dateValue}
+            and receive_date &lt;= #{dateValue}
         </if>
         <if test="dateType == 'today'">
-            and a.receive_date = #{dateValue}
+            and receive_date = #{dateValue}
         </if>
-        and a.id > #{indexId}
-        and a.id &lt;= #{maxId}
-        order by a.id asc
+        and id > #{indexId}
+        and id &lt;= #{maxId}
+        order by id asc
         limit #{pageSize}
     </select>
 
