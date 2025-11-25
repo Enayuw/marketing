@@ -115,7 +115,7 @@ public class ZhongYuanUploadDataJob extends AbstractSimpleElasticJob {
                     .andReceiveDateEqualTo(LocalDate.now().toString())
                     .andDataTypeEqualTo(DataProcessEnum.DataTypeEnum.UPLOAD.getCode())
                     .andAcceptTypeEqualTo(DataProcessEnum.AcceptTypeEnum.CUSTOM.getCode());
-            example.setOrderByClause("id DESC");
+            example.setOrderByClause("create_time DESC");
             
             // 使用PageHelper限制结果数量为1
             PageHelper.startPage(1, 1);
