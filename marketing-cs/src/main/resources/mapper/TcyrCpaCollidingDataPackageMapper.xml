@@ -22,4 +22,10 @@
     where clean_status = 2 and is_del = 1
   </select>
 
+  <select id="queryPackageIdstikv_" resultType="java.lang.Long">
+    select id
+    from b_tcyr_cpa_colliding_data_package
+    where clean_status = 2 and is_del = 1
+  </select>
+
 </mapper>
