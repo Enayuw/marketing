@@ -57,5 +57,5 @@ public interface ZnkfPushService {
      * @param jsonData 原始JSON串
      * @return 处理结果
      */
-    ApiResult callbackDataInsert(String jsonData);
+    String callbackDataInsert(String jsonData);
 }

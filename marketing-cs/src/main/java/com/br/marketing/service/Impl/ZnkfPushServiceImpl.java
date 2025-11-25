@@ -551,19 +551,14 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
     }
 
     @Override
-    public ApiResult callbackDataInsert(String jsonData) {
+    public String callbackDataInsert(String jsonData) {
         try {
-            if (StringUtils.isEmpty(jsonData)) {
-                log.warn("回调数据为空");
-                return new ApiResult().fail("回调数据为空");
-            }
-
             // 解析JSON获取vision版本字段
             JSONObject jsonObject = JSONObject.parseObject(jsonData);
             String version = jsonObject.getString("version");
             if (StringUtils.isEmpty(version)) {
                 log.warn("JSON数据中缺少version字段");
-                return new ApiResult().fail("JSON数据中缺少version字段");
+                return "lack version";
             }
 
             // 生成版本明细表名
@@ -592,14 +587,14 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             String sessionId = getSessionIdFromJson(jsonObject);
             if (StringUtils.isEmpty(sessionId)) {
                 log.error("JSON数据中缺少sessionId字段");
-                return new ApiResult().fail("JSON数据中缺少sessionId字段");
+                return "lack sessionId";
             }
 
             // 判断数据是否存在
             Integer count = marketingCallRecordVersionMapper.countBySessionId(tableName, sessionId);
             if (count != null && count > 0) {
                 log.warn("数据已存在，sessionId={}", sessionId);
-                return new ApiResult().success("数据已存在");
+                return "The data already exists";
             }
 
             // 生成insert语句并执行插入
@@ -614,11 +609,10 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                 callRecordingMapper.insertAllFields(recordingInsertSql);
                 log.warn("插入记录表成功，sessionId={}", sessionId);
             }
-
-            return new ApiResult().success("处理成功");
+            return "success";
         } catch (Exception ex) {
             log.error("回调数据入库失败，错误信息：{}", ex.getMessage(), ex);
-            return new ApiResult().fail("回调数据入库失败：" + ex.getMessage());
+            return "fail";
         }
     }
 
