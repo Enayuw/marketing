@@ -160,6 +160,8 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
             lockData.setReleaseTime(successData.getEndDate());
             lockData.setLockBelong(1);
             lockData.setTaskId(taskId);
+            lockData.setIsDel(1);
+            lockData.setExtend(successData.getExtend());
             lockData.setCreateTime(new Date());
             lockData.setUpdateTime(new Date());
             return lockData;
@@ -251,6 +253,8 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
                     lockData.setReleaseTime(failData.getReleaseTime());
                     lockData.setTaskId(taskId);
                     lockData.setLockBelong(2);
+                    lockData.setIsDel(1);
+                    lockData.setExtend(failData.getExtend());
                     lockData.setCreateTime(new Date());
                     lockData.setUpdateTime(new Date());
                     return lockData;
@@ -268,6 +272,7 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
                     invalue.setReleaseTime(failData.getReleaseTime());
                     invalue.setFailMsg(failData.getFailMsg());
                     invalue.setTaskId(taskId);
+                    invalue.setExtend(failData.getExtend());
                     invalue.setCreateTime(new Date());
                     invalue.setUpdateTime(new Date());
                     return invalue;
