@@ -13,4 +13,14 @@ public interface MarketingTcyrCpaFailDataMapper extends MarketingTcyrCpaFailData
 
     List<MarketingTcyrCpaFailData> selectBySyncFileId(@Param("syncFileId") Long syncFileId, @Param("minId") Long minId);
 
+    Long selectMinIdBySyncFileId(@Param("syncFileId") Long syncFileId);
+
+    Long selectMaxIdBySyncFileId(@Param("syncFileId") Long syncFileId);
+
+    List<MarketingTcyrCpaFailData> selectBySyncFileIdAndIdRange(
+            @Param("syncFileId") Long syncFileId,
+            @Param("startId") Long startId,
+            @Param("endId") Long endId,
+            @Param("batchSize") Integer batchSize);
+
 }
