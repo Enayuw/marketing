@@ -50,6 +50,7 @@ import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 
@@ -98,6 +99,12 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
 
     @Resource
     private SnowflakeRedisGeneratorHandle snowflakeRedisGeneratorHandle;;
+
+    @Autowired
+    private MarketingCallRecordVersionMapper marketingCallRecordVersionMapper;
+
+    @Autowired
+    private CallRecordingMapper callRecordingMapper;
 
     @Value("${otherConfig.alarm.secretKey:00}")
     private String secretKey;
@@ -542,4 +549,422 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         int count = marketingTransferSyncUserMapper.countByExample(example);
         return count < 1;
     }
+
+    @Override
+    public ApiResult callbackDataInsert(String jsonData) {
+        try {
+            if (StringUtils.isEmpty(jsonData)) {
+                log.warn("回调数据为空");
+                return new ApiResult().fail("回调数据为空");
+            }
+
+            // 解析JSON获取vision版本字段
+            JSONObject jsonObject = JSONObject.parseObject(jsonData);
+            String version = jsonObject.getString("version");
+            if (StringUtils.isEmpty(version)) {
+                log.warn("JSON数据中缺少version字段");
+                return new ApiResult().fail("JSON数据中缺少version字段");
+            }
+
+            // 生成版本明细表名
+            String tableName = "b_marketing_call_record_" + version;
+
+            // 判断表是否存在
+            boolean tableExists = false;
+            try {
+                List<Map<String, Object>> tableInfo = marketingCallRecordVersionMapper.checkTableExist(tableName);
+                if (tableInfo != null && !tableInfo.isEmpty()) {
+                    tableExists = true;
+                }
+            } catch (Exception e) {
+                log.error("表{}不存在，需要创建", tableName);
+                tableExists = false;
+            }
+
+            // 如果表不存在，解析数据结构生成CREATE语句并执行
+            if (!tableExists) {
+                String createSql = buildCreateTableSqlByJson(tableName, jsonObject);
+                marketingCallRecordVersionMapper.createTable(createSql);
+                log.warn("创建版本明细表成功：{}", tableName);
+            }
+
+            // 解析数据结构，获取sessionId
+            String sessionId = getSessionIdFromJson(jsonObject);
+            if (StringUtils.isEmpty(sessionId)) {
+                log.error("JSON数据中缺少sessionId字段");
+                return new ApiResult().fail("JSON数据中缺少sessionId字段");
+            }
+
+            // 判断数据是否存在
+            Integer count = marketingCallRecordVersionMapper.countBySessionId(tableName, sessionId);
+            if (count != null && count > 0) {
+                log.warn("数据已存在，sessionId={}", sessionId);
+                return new ApiResult().success("数据已存在");
+            }
+
+            // 生成insert语句并执行插入
+            String insertSql = buildInsertSqlByJson(tableName, jsonObject);
+            marketingCallRecordVersionMapper.insertData(insertSql);
+            log.warn("插入版本明细表成功，tableName={}, sessionId={}", tableName, sessionId);
+
+            // 判断version版本是不是 LLMResultV2
+            if ("LLMResultV2".equals(version)) {
+                // 构建插入到b_marketing_call_recording表的SQL（插入所有字段）
+                String recordingInsertSql = buildRecordingInsertSql(jsonObject, sessionId);
+                callRecordingMapper.insertAllFields(recordingInsertSql);
+                log.warn("插入记录表成功，sessionId={}", sessionId);
+            }
+
+            return new ApiResult().success("处理成功");
+        } catch (Exception ex) {
+            log.error("回调数据入库失败，错误信息：{}", ex.getMessage(), ex);
+            return new ApiResult().fail("回调数据入库失败：" + ex.getMessage());
+        }
+    }
+
+    /**
+     * 从JSON中获取sessionId，优先从外层获取，如果没有则从detail中获取
+     */
+    private String getSessionIdFromJson(JSONObject jsonObject) {
+        String sessionId = jsonObject.getString("sessionId");
+        if (StringUtils.isEmpty(sessionId)) {
+            Object detailObj = jsonObject.get("detail");
+            if (detailObj instanceof JSONObject) {
+                JSONObject detail = (JSONObject) detailObj;
+                sessionId = detail.getString("sessionId");
+            }
+        }
+        return sessionId;
+    }
+
+    /**
+     * 根据JSON动态构建建表SQL（不能写死字段，只能解析接口入参去生成表结构）
+     */
+    private String buildCreateTableSqlByJson(String tableName, JSONObject jsonObject) {
+        StringBuilder sql = new StringBuilder();
+        sql.append("CREATE TABLE IF NOT EXISTS `").append(tableName).append("` (");
+        sql.append("`id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',");
+
+        // 用于记录已添加的列名，避免重复
+        Set<String> addedColumns = new HashSet<>();
+        addedColumns.add("id");
+
+        // 遍历JSON中的所有字段，动态生成表结构
+        for (String key : jsonObject.keySet()) {
+
+            Object value = jsonObject.get(key);
+            String columnName = camelToSnake(key);
+            
+            // 如果detail字段是JSONObject，需要展开其内部字段
+            if ("detail".equals(key) && value instanceof JSONObject) {
+                JSONObject detailObj = (JSONObject) value;
+                
+                // 先添加detail字段本身（json类型）
+                if (!addedColumns.contains(columnName)) {
+                    sql.append("`").append(columnName).append("` json DEFAULT NULL COMMENT '拨打明细详情',");
+                    addedColumns.add(columnName);
+                }
+                
+                // 遍历detail里的所有字段，作为独立列添加
+                for (String detailKey : detailObj.keySet()) {
+                    Object detailValue = detailObj.get(detailKey);
+                    String detailColumnName = camelToSnake(detailKey);
+                    
+                    // 避免与外层字段冲突，如果冲突则跳过（外层字段优先）
+                    if (!addedColumns.contains(detailColumnName)) {
+                        String columnDefinition = getColumnDefinition(detailKey, detailValue);
+                        sql.append("`").append(detailColumnName).append("` ").append(columnDefinition).append(",");
+                        addedColumns.add(detailColumnName);
+                    }
+                }
+            } else {
+                // 普通字段处理
+                if (!addedColumns.contains(columnName)) {
+                    String columnDefinition = getColumnDefinition(key, value);
+                    sql.append("`").append(columnName).append("` ").append(columnDefinition).append(",");
+                    addedColumns.add(columnName);
+                }
+            }
+        }
+        // 添加固定字段
+        if (!addedColumns.contains("create_time")) {
+            sql.append("`create_time` timestamp DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',");
+        }
+        if (!addedColumns.contains("update_time")) {
+            sql.append("`update_time` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',");
+        }
+        sql.append("PRIMARY KEY (`id`)");
+        sql.append(") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='通话回调记录表'");
+
+        return sql.toString();
+    }
+
+    /**
+     * 根据字段名和值推断数据库字段类型定义
+     */
+    private String getColumnDefinition(String fieldName, Object value) {
+        if (value == null) {
+            // 如果值为null，默认使用varchar(255)
+            return "varchar(255) DEFAULT NULL";
+        }
+
+        // 根据字段名特殊处理
+        if ("detail".equals(fieldName) || fieldName.toLowerCase().contains("detail")) {
+            return "json DEFAULT NULL COMMENT '拨打明细详情'";
+        }
+
+        // 根据值的类型推断
+        if (value instanceof String) {
+            String strValue = (String) value;
+            int length = strValue.length();
+            if (length > 1000) {
+                return "text DEFAULT NULL";
+            } else if (length > 255) {
+                return "varchar(1000) DEFAULT NULL";
+            } else {
+                return "varchar(255) DEFAULT NULL";
+            }
+        } else if (value instanceof Number) {
+            Number numValue = (Number) value;
+            // 判断是整数还是小数
+            if (numValue.doubleValue() == numValue.longValue()) {
+                // 整数
+                long longValue = numValue.longValue();
+                if (longValue > Integer.MAX_VALUE || longValue < Integer.MIN_VALUE) {
+                    return "bigint(20) DEFAULT NULL";
+                } else {
+                    return "int(11) DEFAULT NULL";
+                }
+            } else {
+                // 小数
+                return "decimal(18,2) DEFAULT NULL";
+            }
+        } else if (value instanceof Boolean) {
+            return "int(1) DEFAULT NULL";
+        } else if (value instanceof JSONObject || value instanceof Map) {
+            return "json DEFAULT NULL";
+        } else if (value instanceof List) {
+            return "text DEFAULT NULL";
+        } else {
+            // 默认使用text
+            return "text DEFAULT NULL";
+        }
+    }
+
+    /**
+     * 驼峰命名转下划线命名
+     */
+    private String camelToSnake(String camelCase) {
+        if (StringUtils.isEmpty(camelCase)) {
+            return camelCase;
+        }
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < camelCase.length(); i++) {
+            char c = camelCase.charAt(i);
+            if (Character.isUpperCase(c)) {
+                if (i > 0) {
+                    result.append('_');
+                }
+                result.append(Character.toLowerCase(c));
+            } else {
+                result.append(c);
+            }
+        }
+        return result.toString();
+    }
+
+    /**
+     * 根据JSON动态构建插入SQL
+     */
+    private String buildInsertSqlByJson(String tableName, JSONObject jsonObject) {
+        StringBuilder sql = new StringBuilder();
+        StringBuilder columns = new StringBuilder();
+        StringBuilder values = new StringBuilder();
+
+        // 用于记录已添加的列名，避免重复
+        Set<String> addedColumns = new HashSet<>();
+
+        // 遍历JSON中的所有字段，生成INSERT语句
+        for (String key : jsonObject.keySet()) {
+
+            Object value = jsonObject.get(key);
+            
+            // 如果detail字段是JSONObject，需要展开其内部字段
+            if ("detail".equals(key) && value instanceof JSONObject) {
+                JSONObject detailObj = (JSONObject) value;
+                
+                // 先添加detail字段本身（json类型）
+                String columnName = camelToSnake(key);
+                if (!addedColumns.contains(columnName)) {
+                    columns.append("`").append(columnName).append("`,");
+                    // JSON对象转为JSON字符串
+                    String jsonStr = JSON.toJSONString(value);
+                    jsonStr = jsonStr.replace("\\", "\\\\").replace("'", "\\'");
+                    values.append("'").append(jsonStr).append("',");
+                    addedColumns.add(columnName);
+                }
+                
+                // 遍历detail里的所有字段，作为独立列插入
+                for (String detailKey : detailObj.keySet()) {
+                    Object detailValue = detailObj.get(detailKey);
+                    String detailColumnName = camelToSnake(detailKey);
+                    
+                    // 避免与外层字段冲突，如果冲突则跳过（外层字段优先）
+                    if (!addedColumns.contains(detailColumnName) && detailValue != null) {
+                        columns.append("`").append(detailColumnName).append("`,");
+                        appendValue(values, detailValue);
+                        addedColumns.add(detailColumnName);
+                    }
+                }
+            } else if (value != null) {
+                // 普通字段处理
+                String columnName = camelToSnake(key);
+                if (!addedColumns.contains(columnName)) {
+                    columns.append("`").append(columnName).append("`,");
+                    appendValue(values, value);
+                    addedColumns.add(columnName);
+                }
+            }
+        }
+
+        // 移除最后的逗号
+        if (columns.length() > 0 && columns.charAt(columns.length() - 1) == ',') {
+            columns.setLength(columns.length() - 1);
+        }
+        if (values.length() > 0 && values.charAt(values.length() - 1) == ',') {
+            values.setLength(values.length() - 1);
+        }
+
+        sql.append("INSERT INTO `").append(tableName).append("` (");
+        sql.append(columns);
+        sql.append(") VALUES (");
+        sql.append(values);
+        sql.append(")");
+
+        return sql.toString();
+    }
+
+    /**
+     * 追加值到values字符串
+     */
+    private void appendValue(StringBuilder values, Object value) {
+        if (value instanceof String) {
+            String strValue = (String) value;
+            // 转义单引号和反斜杠，防止SQL注入
+            strValue = strValue.replace("\\", "\\\\").replace("'", "\\'");
+            values.append("'").append(strValue).append("',");
+        } else if (value instanceof Number || value instanceof Boolean) {
+            values.append(value).append(",");
+        } else if (value instanceof JSONObject || value instanceof Map) {
+            // JSON对象转为JSON字符串
+            String jsonStr = JSON.toJSONString(value);
+            jsonStr = jsonStr.replace("\\", "\\\\").replace("'", "\\'");
+            values.append("'").append(jsonStr).append("',");
+        } else if (value instanceof List) {
+            // List转为JSON字符串
+            String jsonStr = JSON.toJSONString(value);
+            jsonStr = jsonStr.replace("\\", "\\\\").replace("'", "\\'");
+            values.append("'").append(jsonStr).append("',");
+        } else {
+            // 其他类型转为字符串
+            String strValue = String.valueOf(value);
+            strValue = strValue.replace("\\", "\\\\").replace("'", "\\'");
+            values.append("'").append(strValue).append("',");
+        }
+    }
+
+    /**
+     * 构建插入到b_marketing_call_recording表的SQL（插入所有字段）
+     */
+    private String buildRecordingInsertSql(JSONObject jsonObject, String sessionId) {
+        StringBuilder sql = new StringBuilder();
+        StringBuilder columns = new StringBuilder();
+        StringBuilder values = new StringBuilder();
+
+        // 用于记录已添加的列名，避免重复
+        Set<String> addedColumns = new HashSet<>();
+
+        // 遍历JSON中的所有字段，生成INSERT语句
+        for (String key : jsonObject.keySet()) {
+
+            Object value = jsonObject.get(key);
+            
+            // 如果detail字段是JSONObject，需要展开其内部字段
+            if ("detail".equals(key) && value instanceof JSONObject) {
+                JSONObject detailObj = (JSONObject) value;
+                
+                // 先添加detail字段本身（json类型）
+                String columnName = camelToSnake(key);
+                if (!addedColumns.contains(columnName)) {
+                    columns.append("`").append(columnName).append("`,");
+                    // JSON对象转为JSON字符串
+                    String jsonStr = JSON.toJSONString(value);
+                    jsonStr = jsonStr.replace("\\", "\\\\").replace("'", "\\'");
+                    values.append("'").append(jsonStr).append("',");
+                    addedColumns.add(columnName);
+                }
+                
+                // 遍历detail里的所有字段，作为独立列插入
+                for (String detailKey : detailObj.keySet()) {
+                    Object detailValue = detailObj.get(detailKey);
+                    String detailColumnName = camelToSnake(detailKey);
+                    
+                    // 避免与外层字段冲突，如果冲突则跳过（外层字段优先）
+                    if (!addedColumns.contains(detailColumnName) && detailValue != null) {
+                        columns.append("`").append(detailColumnName).append("`,");
+                        appendValue(values, detailValue);
+                        addedColumns.add(detailColumnName);
+                    }
+                }
+            } else if (value != null) {
+                // 普通字段处理
+                String columnName = camelToSnake(key);
+                if (!addedColumns.contains(columnName)) {
+                    columns.append("`").append(columnName).append("`,");
+                    appendValue(values, value);
+                    addedColumns.add(columnName);
+                }
+            }
+        }
+
+        // 确保sessionId字段存在（如果JSON中没有，使用传入的参数）
+        String sessionIdColumn = "session_id";
+        if (!addedColumns.contains(sessionIdColumn) && StringUtils.isNotEmpty(sessionId)) {
+            columns.append("`").append(sessionIdColumn).append("`,");
+            String escapedSessionId = sessionId.replace("\\", "\\\\").replace("'", "\\'");
+            values.append("'").append(escapedSessionId).append("',");
+            addedColumns.add(sessionIdColumn);
+        }
+
+        // 添加status字段（默认0）
+        if (!addedColumns.contains("status")) {
+            columns.append("`status`,");
+            values.append("0,");
+        }
+
+        // receive_date（当日）
+        if (!addedColumns.contains("receive_date")) {
+            columns.append("`receive_date`,");
+            String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            values.append("'").append(currentDate).append("',");
+        }
+
+        // 移除最后的逗号
+        if (columns.length() > 0 && columns.charAt(columns.length() - 1) == ',') {
+            columns.setLength(columns.length() - 1);
+        }
+        if (values.length() > 0 && values.charAt(values.length() - 1) == ',') {
+            values.setLength(values.length() - 1);
+        }
+
+        sql.append("INSERT INTO `b_marketing_call_recording` (");
+        sql.append(columns);
+        sql.append(") VALUES (");
+        sql.append(values);
+        sql.append(")");
+
+        return sql.toString();
+    }
+
+
 }
