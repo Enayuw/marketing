@@ -3507,9 +3507,5 @@ public class MarketingCommonConfig {
      */
     private Map<String, Boolean> pushDataSwitch;
 
-    /**
-     * 同程易融cpa撞库数据清洗
-     */
-    private JSONObject tcyrCpaCollidingDataCleanConfig;
-
+    private Map<String, Boolean> tcCpaMockConfig;
 }
