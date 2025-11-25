@@ -6028,7 +6028,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 Date date = DateUtil.parse(loanTime);
                 // 格式化为yyyy-MM-dd格式
                 String formattedDate = DateUtil.format(date, DatePattern.NORM_DATE_PATTERN);
-                finalReserveFieldObject.put("loanTimes", formattedDate);
+                finalReserveFieldObject.put("loanTime", formattedDate);
             }
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.INITDATA_MUST_ERROR.getCode(),
