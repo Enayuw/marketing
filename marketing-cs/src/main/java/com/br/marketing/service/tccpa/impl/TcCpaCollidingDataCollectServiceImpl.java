@@ -100,7 +100,9 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
                 long startId = minId + i * rangeSize;
                 long endId = Math.min(startId + rangeSize - 1, maxId);
 
-                if (startId > maxId) break;
+                if (startId > maxId) {
+                    break;
+                }
 
                 final long threadStartId = startId;
                 final long threadEndId = endId;
@@ -132,7 +134,7 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
     private void processSuccessIdRange(long startId, long endId, Long syncFileId, Long taskId) {
         try {
             long currentStartId = startId;
-            final int batchSize = 2000;
+            int batchSize = 2000;
 
             while (currentStartId <= endId) {
                 long currentEndId = Math.min(currentStartId + batchSize - 1, endId);
@@ -193,9 +195,9 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
             for (int i = 0; i < threadCount; i++) {
                 long startId = minId + i * rangeSize;
                 long endId = Math.min(startId + rangeSize - 1, maxId);
-
-                if (startId > maxId) break;
-
+                if (startId > maxId) {
+                    break;
+                }
                 final long threadStartId = startId;
                 final long threadEndId = endId;
 
@@ -223,7 +225,7 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
     private void processIdRange(long startId, long endId, Long syncFileId, Long taskId) {
         try {
             long currentStartId = startId;
-            final int batchSize = 2000;
+            int batchSize = 2000;
 
             while (currentStartId <= endId) {
                 long currentEndId = Math.min(currentStartId + batchSize - 1, endId);
