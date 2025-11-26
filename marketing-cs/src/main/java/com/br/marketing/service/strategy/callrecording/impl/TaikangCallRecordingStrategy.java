@@ -39,18 +39,6 @@ public class TaikangCallRecordingStrategy implements CallRecordingInsertStrategy
     private TaikangTransferDataLogMapper taikangTransferDataLogMapper;
 
     /**
-     * 获取策略支持的apiCode
-     *
-     * @return apiCode字符串，如果支持所有则返回null
-     */
-    @Override
-    public List<String> getApiCodes() {
-        Map<String, String> taikangConfig = marketingCommonConfig.getTaikangConfig();
-        String apiCodes = taikangConfig.getOrDefault("apiCode", "3750004");
-        return Splitter.on(",").splitToList(apiCodes);
-    }
-
-    /**
      * 是否需要处理
      *
      * @param callRecordLLMResultV2 callRecordLLMResultV2
