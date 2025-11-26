@@ -352,6 +352,8 @@ public enum AlarmSendCodeEnum {
 
     MARKETING_AVIATORSCRIPT_LINESMS_ERROR("8001004", "短信/线路钉钉文档配置入库异常"),
 
+    MARKETING_AVIATORSCRIPT_LINE_CHANGE_ERROR("8001005", "线路三方字段同步异常"),
+
     ;
 
     /**
