@@ -62,8 +62,8 @@ public interface ZnkfPushService {
 
     /**
      * 从MQ消息中插入CallRecording记录（异步消费）
-     * @param message MQ消息体（CallRecordVersionInsertDTO的JSON字符串）
+     * @param message MQ消息体（id）
      * @return 处理结果
      */
-    Result<Boolean> insertCallRecordingFromMq(String message);
+    Result<Boolean> insertCallRecordingFromMq(Long message);
 }

@@ -2,7 +2,7 @@ package com.br.marketing.common.constants.rocketmq;
 
 /**
  * @ClassName MarketingCallRecordConstants
- * @Description TODO
+ * @Description 通用回调相关配置类
  * @Author kongbx
  * @Date 2025/11/26 14:27
  */

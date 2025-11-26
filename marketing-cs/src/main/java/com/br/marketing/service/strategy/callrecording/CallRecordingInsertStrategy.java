@@ -1,6 +1,5 @@
 package com.br.marketing.service.strategy.callrecording;
 
-import com.alibaba.fastjson.JSONObject;
 
 /**
  * CallRecording插入策略接口
@@ -20,9 +19,8 @@ public interface CallRecordingInsertStrategy {
     /**
      * 根据版本明细表数据构建CallRecording实体
      *
-     * @param jsonObject 版本明细表数据的JSONObject
      */
-    void buildCallRecording(JSONObject jsonObject);
+    void buildCallRecording();
 
 }
 

@@ -46,7 +46,14 @@ public class MarketingCallRecordVersionConsumer extends BaseMqMessageListener im
     @Override
     protected void handleMessage(MessageExt messageExt) throws Exception {
         String bodyString = new String(messageExt.getBody(), StandardCharsets.UTF_8);
-        consumerService.consumerRun(messageExt, (String message) -> znkfPushService.insertCallRecordingFromMq(message), bodyString);
+        try {
+            // 将MQ消息体（字符串）转换为Long类型的数据ID
+            Long dataId = Long.parseLong(bodyString.trim());
+            consumerService.consumerRun(messageExt, (Long message) -> znkfPushService.insertCallRecordingFromMq(message), dataId);
+        } catch (NumberFormatException e) {
+            log.error("MQ消息体格式错误，无法转换为Long类型，bodyString={}, msgId={}", bodyString, messageExt.getMsgId(), e);
+            throw new RuntimeException("MQ消息体格式错误，无法转换为Long类型：" + bodyString, e);
+        }
     }
 
     @Override

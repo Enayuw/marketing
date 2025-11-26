@@ -1,6 +1,5 @@
 package com.br.marketing.service.strategy.callrecording.impl;
 
-import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.service.strategy.callrecording.CallRecordingInsertStrategy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -16,7 +15,7 @@ import org.springframework.stereotype.Component;
 public class DefaultCallRecordingInsertStrategy implements CallRecordingInsertStrategy {
 
     @Override
-    public void buildCallRecording(JSONObject jsonObject) {
+    public void buildCallRecording() {
 
     }
 
