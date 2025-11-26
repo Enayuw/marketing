@@ -191,7 +191,7 @@ public class ZhongBangAIVoiceServiceImpl implements ZhongBangAIVoiceService {
             if (jsonObject == null) {
                 JSONObject jo = new JSONObject();
                 jo.put("fileType", "zhongbang_ai_voice");
-                jo.put("uploadPoolSize", 5);
+                jo.put("uploadPoolSize", 1);
                 jo.put("getFilePoolSize", 5);
                 zhongBangVoiceFileConfig.put("aiVoicePush", jo);
             } else {
@@ -607,7 +607,10 @@ public class ZhongBangAIVoiceServiceImpl implements ZhongBangAIVoiceService {
             }
             paramJson.put("EndTm", callRecording.getCallEndTime());
             paramJson.put("AskTms", callRecording.getDialogTurn());
-            paramJson.put("Text", callRecording.getCallDialog());
+            if(StringUtils.isNotEmpty(callRecording.getCallDialog())){
+                String cleanedDialog = callRecording.getCallDialog().replaceAll("<[^>]*>", "");
+                paramJson.put("Text", cleanedDialog);
+            }
             paramJson.put("CalSts", callRecording.getCallStatus());
             paramJson.put("IntntGrd", callRecording.getIntentionGrade());
             paramJson.put("TgLst", callRecording.getTagList());

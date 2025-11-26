@@ -96,14 +96,7 @@ public class ZhongBangAISyncCleanProxy extends UploadDataProxy {
         reserveField1.put("userType", dataList.get(header.indexOf("userType")).trim());
 
         String gender = dataList.get(header.indexOf("gender")).trim();
-        if ("女".equals(gender)) {
-            reserveField1.put("gender", "0");
-        } else if ("男".equals(gender)) {
-            reserveField1.put("gender", "1");
-        } else {
-            reserveField1.put("gender", gender);
-            log.error("众邦AI上传数据清洗,字段:gender,枚举非男女,id:{}", data.getId());
-        }
+        reserveField1.put("gender", gender);
 
         String useTeble = dataList.get(header.indexOf("useTeble")).trim();
         reserveField1.put("useTeble", useTeble);
