@@ -451,15 +451,7 @@ public class DataCleanServiceImpl implements DataCleanService {
         }
         List<JSONObject> jsonObjectList = new ArrayList<>();
         if (StringUtils.isNotEmpty(levelField)) {
-            JSONArray dataArray = jsonData.getJSONArray(levelField);
-            if (dataArray != null && !dataArray.isEmpty()) {
-                for (int i = 0; i < dataArray.size(); i++) {
-                    Object item = dataArray.get(i);
-                    if (item instanceof JSONObject) {
-                        jsonObjectList.add((JSONObject) item);
-                    }
-                }
-            }
+            jsonObjectList = JsonParseUtils.parseJsonArrayByName(jsonData, levelField);
         } else {
             jsonObjectList.add(jsonData);
         }
@@ -485,10 +477,10 @@ public class DataCleanServiceImpl implements DataCleanService {
         List<Long> ids = snowflakeRedisGeneratorHandle.nextIds(jsonObjectList.size());
         AtomicInteger index = new AtomicInteger(0);
         jsonObjectList.forEach(jsonObject -> {
-            MarketingPreUserDetailDTO marketingPreUserDetailDTO = JSON.parseObject(String.valueOf(jsonObject), new TypeReference<MarketingPreUserDetailDTO>() {
-            }.getType());
+            MarketingPreUserDetailDTO marketingPreUserDetailDTO = new MarketingPreUserDetailDTO();
             //数据清洗
             dataCleanHandler(jsonObject, ruleConfigListTmp, marketingPreUserDetailDTO);
+            dataCleanNotConfigHandler(jsonObject, ruleConfigListTmp, marketingPreUserDetailDTO);
             marketingPreUserDetailDTO.setFingerprint(ids.get(index.getAndIncrement()));
             syncUsers.add(marketingPreUserDetailDTO);
         });
@@ -497,7 +489,53 @@ public class DataCleanServiceImpl implements DataCleanService {
         return marketingPreUserDTO;
     }
 
-        /**
+    public void dataCleanNotConfigHandler(JSONObject jsonObject, Collection<MarketingDataCleanGeneralRuleConfig> ruleConfigList, MarketingPreUserDetailDTO marketingPreUserDetailDTO) {
+        // 收集ruleConfigList中所有的mappingField，用于快速判断字段是否已配置
+        Set<String> configuredFields = new HashSet<>();
+        if (!CollectionUtils.isEmpty(ruleConfigList)) {
+            ruleConfigList.forEach(ruleConfig -> {
+                if (ruleConfig.getMappingField() != null) {
+                    configuredFields.add(ruleConfig.getMappingField());
+                }
+            });
+        }
+
+        // 遍历jsonObject中的所有字段
+        for (Map.Entry<String, Object> entry : jsonObject.entrySet()) {
+            String fieldName = entry.getKey();
+            Object fieldValue = entry.getValue();
+
+            // 如果字段在ruleConfigList中存在，则跳过
+            if (configuredFields.contains(fieldName)) {
+                continue;
+            }
+
+            // 如果字段不在配置中，判断是否是固定字段
+            switch (fieldName) {
+                case "name":
+                    marketingPreUserDetailDTO.setName(fieldValue != null ? fieldValue.toString() : null);
+                    break;
+                case "cell":
+                    marketingPreUserDetailDTO.setCell(fieldValue != null ? fieldValue.toString() : null);
+                    break;
+                case "id":
+                    marketingPreUserDetailDTO.setId(fieldValue != null ? fieldValue.toString() : null);
+                    break;
+                case "custNum":
+                    marketingPreUserDetailDTO.setCustNum(fieldValue != null ? fieldValue.toString() : null);
+                    break;
+                case "operateType":
+                    marketingPreUserDetailDTO.setOperateType(fieldValue != null ? fieldValue.toString() : null);
+                    break;
+                default:
+                    // 其他字段都放在reserveField1中
+                    marketingPreUserDetailDTO.setReserveField1(setExtendField(marketingPreUserDetailDTO.getReserveField1(), fieldName, fieldValue));
+                    break;
+            }
+        }
+    }
+
+    /**
      * 插入清洗后的数据信息
      * 
      * @param apiCode API编码，用于标识数据来源
