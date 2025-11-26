@@ -20,6 +20,8 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -29,7 +31,7 @@ import java.util.List;
  * @Author hong.chen
  * @CreateTime 2023/06/28
  */
-@Tag(value = "BackendController")
+@Tag(name = "BackendController", description = "BackendController")
 @RequestMapping("/backend")
 @RestController
 public class BackEndController {

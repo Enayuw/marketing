@@ -9,7 +9,8 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>marketing-cs</artifactId>
     <properties>
-        <grpc.version>1.61.1</grpc.version>
+        <netty.version>4.1.124.Final</netty.version>
+        <grpc.version>1.76.0</grpc.version>
     </properties>
     <dependencies>
         <dependency>
@@ -103,41 +104,6 @@
             <version>${grpc.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.br</groupId>
-            <artifactId>grpc-monitor-jdk17</artifactId>
-            <version>1.0.3</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.google.protobuf</groupId>
-                    <artifactId>protobuf-java</artifactId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>protobuf-java-util</artifactId>
-                    <groupId>com.google.protobuf</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>simpleclient</artifactId>
-                    <groupId>io.prometheus</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>simpleclient_common</artifactId>
-                    <groupId>io.prometheus</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>simpleclient_hotspot</artifactId>
-                    <groupId>io.prometheus</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>simpleclient_httpserver</artifactId>
-                    <groupId>io.prometheus</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>simpleclient_pushgateway</artifactId>
-                    <groupId>io.prometheus</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-all</artifactId>
             <version>${grpc.version}</version>
@@ -192,7 +158,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>32.1.3-android</version>
+            <version>33.4.8-android</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.google.errorprone</groupId>
@@ -215,9 +181,25 @@
             <version>6.2.5.Final</version>
         </dependency>
         <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-transport-native-epoll</artifactId>
+            <version>${netty.version}</version>
+            <classifier>linux-x86_64</classifier>
+        </dependency>
+        <dependency>
             <groupId>com.brgroup</groupId>
             <artifactId>br-redis-client-jdk17</artifactId>
             <version>1.0.7</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-handler</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-common</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>io.etcd</groupId>
@@ -295,7 +277,21 @@
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-api</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>com.google.protobuf</groupId>
+                    <artifactId>protobuf-java</artifactId>
+                </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java-util</artifactId>
+            <version>3.25.8</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>3.25.8</version>
         </dependency>
         <!--grpc encode加解密客户端-->
         <dependency>
@@ -423,42 +419,10 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.br.marketing.es</groupId>
-            <artifactId>marketing-es-core</artifactId>
-            <version>4.0.14-SNAPSHOT</version>
+            <groupId>com.br</groupId>
+            <artifactId>grpc-monitor-jdk17</artifactId>
+            <version>1.0.3</version>
             <exclusions>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-classic</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-access</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-netty-shaded</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-stub</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-context</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-api</artifactId>
-                </exclusion>
                 <exclusion>
                     <groupId>io.grpc</groupId>
                     <artifactId>grpc-all</artifactId>
@@ -468,14 +432,19 @@
                     <artifactId>guava</artifactId>
                 </exclusion>
                 <exclusion>
-                    <groupId>com.br</groupId>
-                    <artifactId>br-grpc-common</artifactId>
+                    <groupId>com.google.protobuf</groupId>
+                    <artifactId>protobuf-java-util</artifactId>
                 </exclusion>
                 <exclusion>
-                    <groupId>com.br</groupId>
-                    <artifactId>grpc-es-center-rely</artifactId>
+                    <groupId>com.google.protobuf</groupId>
+                    <artifactId>protobuf-java</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.br.marketing.es</groupId>
+            <artifactId>marketing-es-core</artifactId>
+            <version>4.0.16-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.br</groupId>
@@ -598,7 +567,7 @@
         <dependency>
             <groupId>org.middleheavenframework.boot</groupId>
             <artifactId>tp-dynamic-metric-starter</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>2.0-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.netflix.hystrix</groupId>

@@ -28,7 +28,7 @@
             order by bcipm.id desc
     </select>
 
-    <select id="getPushInfoList" resultType="com.br.marketing.vo.PushInfoListVO" parameterType="com.br.marketing.dto.PushInfoFilterDTO">
+    <select id="getPushInfoList" resultType="com.br.marketing.vo.PushInfoListVO">
         select id,
         m_api_code as api_code,
         m_cus_batch_number_list as mCusBatchNumberList,
@@ -42,25 +42,32 @@
         m_status as mStatus,
         batch_name as  batchName,
         push_target as pushTarget,
-        extend
+        extend,
+        upload_report_ids as uploadReportIds
         from b_customer_info_push_main
         where is_del=1
-          and m_status !=-1 and push_target != 1
-        <if test="mApiCode !=null and mApiCode !=''">
-            and m_api_code = #{mApiCode}
+          and m_status !=-1
+        <if test="pushTargets !=null and pushTargets.size()>0">
+            and push_target in
+            <foreach collection="pushTargets" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
         </if>
-        <if test="pushBeginTime !=null and pushBeginTime!=''">
-            <![CDATA[  and create_time >=#{pushBeginTime} ]]>
+        <if test="dto.mApiCode !=null and dto.mApiCode !=''">
+            and m_api_code = #{dto.mApiCode}
         </if>
-        <if test="pushEndTime !=null and pushEndTime!=''">
-            <![CDATA[  and create_time <=#{pushEndTime} ]]>
+        <if test="dto.pushBeginTime !=null and dto.pushBeginTime!=''">
+            <![CDATA[  and create_time >=#{dto.pushBeginTime} ]]>
         </if>
-        <if test="pushInfoId !=null and pushInfoId!=''">
-            and id = #{pushInfoId}
+        <if test="dto.pushEndTime !=null and dto.pushEndTime!=''">
+            <![CDATA[  and create_time <=#{dto.pushEndTime} ]]>
         </if>
-        <if test="mStatusList !=null and mStatusList.size()>0">
+        <if test="dto.pushInfoId !=null and dto.pushInfoId!=''">
+            and id = #{dto.pushInfoId}
+        </if>
+        <if test="dto.mStatusList !=null and dto.mStatusList.size()>0">
             and m_status in
-            <foreach collection="mStatusList" item="item" open="(" close=")" separator=",">
+            <foreach collection="dto.mStatusList" item="item" open="(" close=")" separator=",">
                 #{item}
             </foreach>
         </if>

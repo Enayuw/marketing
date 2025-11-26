@@ -30,6 +30,7 @@ import com.br.marketing.rule.service.XieChengCollidingService;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.EncAndDecUtil;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.br.marketing.util.xiecheng.XieChengEsJsonHandler;
 import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
@@ -156,8 +157,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
                 }
                 minId = list.get(list.size() - 1).getId();
                 if (marketingCommonConfig.getXieChengCollidingDataPushPolicyThread() != null) {
-                    threadPool.setCorePoolSize(marketingCommonConfig.getXieChengCollidingDataPushPolicyThread());
-                    threadPool.setMaximumPoolSize(marketingCommonConfig.getXieChengCollidingDataPushPolicyThread());
+                    ThreadPoolAdjustmentUtil.adjustThreadPoolSize(threadPool, marketingCommonConfig.getXieChengCollidingDataPushPolicyThread());
                     log.warn(TITLE + "线程调整,corePoolSize={},maxPoolSize={}", threadPool.getCorePoolSize(), threadPool.getMaximumPoolSize());
                 }
                 //数据切分，为了兼容跑分文件重复数据，业务侧若保证撞库本次跑分文件不重复，该段逻辑去掉
@@ -383,8 +383,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
                     new TypeReference<List<XieChengCollidingDataLoopCycle>>() {}.getType());
 
             if (marketingCommonConfig.getXieChengCollidingDataPushPolicyThread() != null) {
-                threadPool.setCorePoolSize(marketingCommonConfig.getXieChengCollidingDataPushPolicyThread());
-                threadPool.setMaximumPoolSize(marketingCommonConfig.getXieChengCollidingDataPushPolicyThread());
+                ThreadPoolAdjustmentUtil.adjustThreadPoolSize(threadPool, marketingCommonConfig.getXieChengCollidingDataPushPolicyThread());
                 log.warn(TITLE + "线程调整,corePoolSize={},maxPoolSize={}", threadPool.getCorePoolSize(), threadPool.getMaximumPoolSize());
             }
 

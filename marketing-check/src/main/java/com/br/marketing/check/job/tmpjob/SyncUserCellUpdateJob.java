@@ -10,6 +10,7 @@ import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.MarketingCustomerService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
@@ -80,8 +81,7 @@ public class SyncUserCellUpdateJob extends AbstractSimpleElasticJob {
                 minId = marketingSyncUsers.get(marketingSyncUsers.size() - 1).getId();
                 if (updateConfig != null && !threadSize.equals(updateConfig.getInteger("threadSize"))) {
                     threadSize = updateConfig.getInteger("threadSize");
-                    threadPool.setCorePoolSize(threadSize);
-                    threadPool.setMaximumPoolSize(threadSize);
+                    ThreadPoolAdjustmentUtil.adjustThreadPoolSize(threadPool, threadSize);
                 }
                 threadPool.submit(() -> {
                     try {

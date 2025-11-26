@@ -7,13 +7,15 @@ import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.PushInfoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 
 @RestController
 @RequestMapping("/rule/pushInfo")
-@Tag(value = "执行记录", tags = "执行记录", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "执行记录", description = "执行记录")
 public class PushInfoController {
 
     private static final Logger log = LoggerFactory.getLogger(PushInfoController.class);

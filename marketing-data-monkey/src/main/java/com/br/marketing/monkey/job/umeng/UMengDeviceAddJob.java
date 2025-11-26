@@ -15,6 +15,7 @@ import com.br.marketing.service.Impl.umeng.IUMengDataService;
 import com.br.marketing.service.Impl.umeng.IUMengTimingTaskService;
 import com.br.marketing.service.LocalFileService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
@@ -117,8 +118,7 @@ public class UMengDeviceAddJob extends AbstractSimpleElasticJob {
 
     private void deviceAdd(List<UMengData> uMengDataList, UMengTimingTask timingTask,
                            ThreadPoolExecutor actionPool,List<CompletableFuture<Result>> futureList) {
-        actionPool.setCorePoolSize(marketingCommonConfig.getUMengDeviceAddPool());
-        actionPool.setMaximumPoolSize(marketingCommonConfig.getUMengDeviceAddPool());
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(actionPool, marketingCommonConfig.getUMengDeviceAddPool());
         futureList.add(CompletableFuture.supplyAsync(() -> processDeviceAdd(timingTask,uMengDataList), actionPool)
                 .whenComplete((processDataResult, throwable) -> {
                     if (throwable != null) {

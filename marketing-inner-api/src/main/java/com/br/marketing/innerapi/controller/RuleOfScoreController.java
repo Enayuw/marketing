@@ -12,6 +12,8 @@ import com.br.marketing.vo.ScoreRuleVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -27,7 +29,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping(value = "/rule/score")
-@Tag(value = "跑分配置", tags = "跑分配置", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "跑分配置", description = "跑分配置")
 public class RuleOfScoreController {
 
 
@@ -45,21 +47,18 @@ public class RuleOfScoreController {
      * @dateTime 2021/8/30 15:52
      */
     @GetMapping("/page")
-    @Operation(value = "列表数据", notes = "获取跑分配置列表数据", httpMethod = "GET")
-    @Parameters({@Parameter(name = "current", value = "页号", paramType = "query", dataType = "integer"
-            , defaultValue = "1")
-            , @Parameter(name = "size", value = "页大小", paramType = "query", dataType = "integer"
-            , defaultValue = "10")
-            , @Parameter(name = "search", value = "搜索：跑分规则/CID/APIcode", paramType = "query", dataType = "string")
-            , @Parameter(name = "status", value = "使用状态 1-开启；2-禁用；3-开启中", paramType = "query", dataType = "enum"
-            , allowableValues = "1,2,3")
-            , @Parameter(name = "cts", value = "创建时间开始", paramType = "query", dataType = "string")
-            , @Parameter(name = "cte", value = "创建时间结束", paramType = "query", dataType = "string")
-            , @Parameter(name = "uts", value = "更新时间开始", paramType = "query", dataType = "string")
-            , @Parameter(name = "ute", value = "更新时间结束", paramType = "query", dataType = "string")
-            , @Parameter(name = "execType", value = "任务执行策略 1-一次性全量；3-每个任务的周期;4-每日定时", paramType = "query", dataType = "Integer")
+    @Operation(summary = "列表数据", description = "获取跑分配置列表数据")
+    @Parameters({@Parameter(name = "current", description = "页号")
+            , @Parameter(name = "size", description = "页大小")
+            , @Parameter(name = "search", description = "搜索：跑分规则/CID/APIcode")
+            , @Parameter(name = "status", description = "使用状态 1-开启；2-禁用；3-开启中")
+            , @Parameter(name = "cts", description = "创建时间开始")
+            , @Parameter(name = "cte", description = "创建时间结束")
+            , @Parameter(name = "uts", description = "更新时间开始")
+            , @Parameter(name = "ute", description = "更新时间结束")
+            , @Parameter(name = "execType", description = "任务执行策略 1-一次性全量；3-每个任务的周期;4-每日定时")
     })
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = ScoreRuleConfigPageVO.class)})
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR")})
     @AddDataAuthBusiness
     public ApiResult<PageResultReturn> findListPage(@RequestParam(name = "current", defaultValue = "1") int page
             , @RequestParam(name = "size", defaultValue = "10") int pageSize
@@ -86,7 +85,7 @@ public class RuleOfScoreController {
      * @author zeqiang.guo@brgroup.com
      * @dateTime 2021/9/1 14:28
      */
-    @Operation(value = "添加跑分配置", notes = "新增操作", httpMethod = "POST")
+    @Operation(summary = "添加跑分配置", description = "新增操作")
     @PostMapping("/rule")
     @Validated
     public ApiResult<?> save(@Valid @RequestBody ScoreRuleVO scoreRuleVO, BindingResult bindingResult) {
@@ -108,10 +107,10 @@ public class RuleOfScoreController {
      * @author zeqiang.guo@brgroup.com
      * @dateTime 2021/9/3 11:01
      */
-    @Operation(value = "设置开启状态", notes = "设置开启状态 1-开启；2-禁用；3-开启中", httpMethod = "POST")
-    @Parameters({@Parameter(name = "rid", value = "规则主键", paramType = "path", dataType = "long")
-            , @Parameter(name = "crId", value = "规则与客户关系主键", paramType = "path", dataType = "long")
-            , @Parameter(name = "status", value = "状态", paramType = "path", dataType = "integer")})
+    @Operation(summary = "设置开启状态", description = "设置开启状态 1-开启；2-禁用；3-开启中")
+    @Parameters({@Parameter(name = "rid", description = "规则主键")
+            , @Parameter(name = "crId", description = "规则与客户关系主键")
+            , @Parameter(name = "status", description = "状态")})
     @PostMapping("/stare/{rid}/{crId}/{status}")
     public ApiResult<?> status(@PathVariable(name = "rid") Long rid
             , @PathVariable(name = "crId") Long crId
@@ -132,9 +131,9 @@ public class RuleOfScoreController {
      * @author zeqiang.guo@brgroup.com
      * @dateTime 2021/9/3 11:18
      */
-    @Operation(value = "详情", notes = "详情", httpMethod = "GET")
-    @Parameters({@Parameter(name = "rid", value = "规则主键", paramType = "path", dataType = "long")
-            , @Parameter(name = "crId", value = "规则与客户关系主键", paramType = "path", dataType = "long")})
+    @Operation(summary = "详情", description = "详情")
+    @Parameters({@Parameter(name = "rid", description = "规则主键")
+            , @Parameter(name = "crId", description = "规则与客户关系主键")})
     @GetMapping("/detail/{rid}/{crId}")
     public ApiResult<ScoreRuleVO> detail(@PathVariable(name = "rid") Long rid, @PathVariable(name = "crId") Long crId) {
         ScoreRuleVO scoreRuleVO = scoreRuleConfigService.detail(rid, crId);
@@ -147,7 +146,7 @@ public class RuleOfScoreController {
      * @author zeqiang.guo@brgroup.com
      * @dateTime 2021/9/3 14:11
      */
-    @Operation(value = "变更", notes = "变更操作", httpMethod = "POST")
+    @Operation(summary = "变更", description = "变更操作")
     @PostMapping("/modify")
     @Validated
     public ApiResult<?> modify(@Valid @RequestBody ScoreRuleVO scoreRuleVO, BindingResult bindingResult) {

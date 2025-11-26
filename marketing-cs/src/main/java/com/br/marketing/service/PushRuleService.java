@@ -15,6 +15,9 @@ import com.br.marketing.dto.PushCustomerDTO;
 import com.br.marketing.dto.RequestPushInfoDTO;
 import com.br.marketing.dto.SearchConditionDTO;
 import com.br.marketing.dto.TransferDataDTO;
+import com.br.marketing.dto.rulecenter.XcCycleDeleteDTO;
+import com.br.marketing.dto.rulecenter.XcCycleDeleteNumDTO;
+import com.br.marketing.dto.rulecenter.XcDeleteMagnitudeDistDTO;
 import com.br.marketing.entity.CustomerInfoPushMain;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferInfo;
@@ -215,9 +218,13 @@ public interface PushRuleService {
 
     Result collidingDataDelete(PushCustomerDTO dto);
 
+    Result collidingDataCycleDelete(XcCycleDeleteDTO dto);
+
     Result collidingDataPachageMake(PushCustomerDTO dto);
 
     Result<Integer> collidingDataDeleteNum(PushCustomerDTO dto);
+
+    Result<List<XcDeleteMagnitudeDistDTO>> collidingDataCycleDeleteMagnitudeDist(XcCycleDeleteNumDTO dto);
 
     void sendToMqByConfig(String apiCode, String defaultRoutingKey, String infoId, CustomerQueueEnum queueEnum);
     void sendToRocketMqByConfig(String apiCode, String topic, String tag, String infoId, CustomerQueueEnum queueEnum);
@@ -234,4 +241,6 @@ public interface PushRuleService {
     void sendJsonParseMq(String apiCode, String syncInfoId, Integer dataSourceType);
 
     void sendJsonParseMq(String apiCode, Long id, Integer dataSourceType, Integer dataType, Integer acceptType);
+
+
 }

@@ -17,8 +17,10 @@ import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.VariableAllocationService;
 import com.br.marketing.vo.VariableAllocationVO;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * 定制化配置
@@ -28,7 +30,7 @@ import io.swagger.v3.oas.annotations.Parameters;
  */
 @RestController
 @RequestMapping(value = "/rule/vac")
-@Tag(value = "定制化配置", tags = "定制化配置", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "定制化配置", description = "定制化配置")
 public class VariableAllocationController {
 
     private static final Logger log = LoggerFactory.getLogger(CustomerController.class);
@@ -52,7 +54,7 @@ public class VariableAllocationController {
 
     @Operation(summary = "变更配置列表", description = "变更配置列表")
     @PostMapping("/updateVariableList")
-    @Parameters({@Parameter(name = "id", value = "id", required = true, dataType = "Long")})
+    @Parameters({@Parameter(name = "id", description = "id", required = true)})
     public ApiResult<Boolean> updateVariableList(@RequestBody String params) {
         try {
             return variableAllocationService.updateVariableList(params);

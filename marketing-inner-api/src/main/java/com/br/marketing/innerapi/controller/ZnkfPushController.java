@@ -15,6 +15,8 @@ import com.br.marketing.dto.customer.SmsRecordDTO;
 import com.br.marketing.service.ZnkfPushService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,7 +29,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/znkePush")
-@Tag(value = "客服推送营销数据")
+@Tag(name = "客服推送营销数据", description = "客服推送营销数据")
 public class ZnkfPushController {
 
     private static final Logger log = LoggerFactory.getLogger(ZnkfPushController.class);

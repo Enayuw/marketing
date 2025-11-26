@@ -455,4 +455,28 @@
           #{idItem}
         </foreach>
   </select>
+
+  <select id="selectOperateTypeGroup" resultType="com.br.marketing.dto.SyncOperateTypeDTO">
+    select operate_type, applet_date, user_type from b_marketing_sync_${apiCode}
+    <where>
+      <if test="syncReportList != null and syncReportList.size() > 0">
+        and (applet_date, user_type) in
+        <foreach collection="syncReportList" item="item" open="(" close=")" separator=",">
+          (#{item.appletDate}, #{item.userType})
+        </foreach>
+      </if>
+      group by operate_type,applet_date,user_type
+      ORDER BY operate_type, applet_date;
+    </where>
+  </select>
+
+  <select id="selectByIds" resultType="com.br.marketing.entity.MarketingSyncReport">
+    SELECT *
+    FROM b_marketing_sync_report
+    WHERE id IN
+    <foreach collection="ids" item="id" open="(" separator="," close=")">
+      #{id}
+    </foreach>
+  </select>
+
 </mapper>

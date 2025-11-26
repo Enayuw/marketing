@@ -6,6 +6,7 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.FilterTypeEnum;
 import com.br.marketing.enums.PushRuleStatusEnum;
@@ -168,6 +169,7 @@ public class DataLabelPushStrategy extends AbstractRuleCenterPushStrategy {
         }
         return status;
     }
+
 
     /**
      * 推送决策任务实现类 - 完全照搬actionEs类的逻辑
@@ -363,6 +365,24 @@ public class DataLabelPushStrategy extends AbstractRuleCenterPushStrategy {
                 }
             });
         }
+    }
+
+    @Override
+    protected RuleCenterPushContext setThreadPoolNum(RuleCenterPushContext pushContext) {
+        Integer getEsNum = marketingCommonConfig.getScoreByEsThreadNum() != null
+                && marketingCommonConfig.getScoreByEsThreadNum() > 0
+                ? marketingCommonConfig.getScoreByEsThreadNum()
+                : 10;
+
+        Integer getJcNum = marketingCommonConfig.getScoreToJcThreadNum() != null
+                && marketingCommonConfig.getScoreToJcThreadNum() > 0
+                ? marketingCommonConfig.getScoreToJcThreadNum()
+                : 2;
+        ThreadPoolExecutor actionEs = BrExecutors.getThreadPool(getEsNum, getEsNum, 50);
+        ThreadPoolExecutor pushJc = BrExecutors.getThreadPool(getJcNum, getJcNum, 50);
+        pushContext.setEsThreadPool(actionEs);
+        pushContext.setPushThreadPool(pushJc);
+        return pushContext;
     }
 
 }
