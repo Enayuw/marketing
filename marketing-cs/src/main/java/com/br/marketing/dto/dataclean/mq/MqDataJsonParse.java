@@ -1,11 +1,9 @@
 package com.br.marketing.dto.dataclean.mq;
 
 import lombok.Data;
-
 /**
- * @ClassName MqCommonDataJsonParse
- * @Author hang.zhou
- * @Date 2025/11/11
+ * @desc :客户原始数据解析json消息实例
+ * @author
  */
 @Data
 public class MqDataJsonParse {
@@ -29,5 +27,7 @@ public class MqDataJsonParse {
      * 数据主键Id
      */
     private Long dataId;
+
+
 
 }
