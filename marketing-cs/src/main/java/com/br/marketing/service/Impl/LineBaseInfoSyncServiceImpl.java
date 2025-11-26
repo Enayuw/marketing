@@ -58,7 +58,8 @@ public class LineBaseInfoSyncServiceImpl implements LineBaseInfoSyncService {
         // 获取三方接口返回 基础信息
         List<DdLineBaseInfoDto> ddLineBaseInfoDtoList =  getLineBaseInfo();
 
-        // db-库表数据组合查询: b_marketing_line_supplier_info_normal 里面 ope_status = 0 ---> b_marketing_line_supplier_info_normal 里面 ope_status in(0,2) ,的配置进行比较
+        // db-库表数据组合查询: b_marketing_line_supplier_info_normal 里面 ope_status = 0
+        // ---> b_marketing_line_supplier_info_normal 里面 ope_status in(0,2) ,的配置进行比较
         List<LineBaseFullInfoDTO> lineBaseFullInfoDtoList = lineBaseInfoNormalMapper.selectLineBaeUseInfoList();
 
         // 场景1-差集剔除(库表有,三方接口没有)
