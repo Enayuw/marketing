@@ -12,6 +12,7 @@ import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.apache.rocketmq.spring.core.RocketMQPushConsumerLifecycleListener;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -22,13 +23,13 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
-@RocketMQMessageListener(topic = MarketingAssistConstants.TOPIC,
-        consumerGroup = MarketingAssistConstants.MARKETING_TAIKANG_LEAD_TRANSFER_QUEUE,
-        selectorExpression = MarketingAssistConstants.TAG_MARKETING_TAIKANG_LEAD_TRANSFER,
-        consumeThreadNumber = 1, consumeThreadMax = 1, awaitTerminationMillisWhenShutdown = 5000)
-public class MarketingTaikangLeadTransferConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt>, RocketMQPushConsumerLifecycleListener {
+@RocketMQMessageListener(topic = MarketingAssistConstants.TOPIC, consumerGroup = MarketingAssistConstants.MARKETING_TAIKANG_LEAD_TRANSFER_QUEUE,
+        selectorExpression = MarketingAssistConstants.TAG_MARKETING_TAIKANG_LEAD_TRANSFER, consumeThreadNumber = 1, consumeThreadMax = 1,
+        awaitTerminationMillisWhenShutdown = 5000)
+public class MarketingTaikangLeadTransferConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt>,
+        RocketMQPushConsumerLifecycleListener {
 
-    @Resource
+    @Autowired
     private RocketMqConsumerService consumerService;
 
     @Resource
