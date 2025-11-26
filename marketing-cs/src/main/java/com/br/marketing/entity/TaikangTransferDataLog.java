@@ -31,9 +31,14 @@ public class TaikangTransferDataLog {
     private String name;
 
     /**
+     * 请求码
+     */
+    private String httpCode;
+
+    /**
      * 业务异常码
      */
-    private Integer businessCode;
+    private String businessCode;
 
     /**
      * 扩展字段
