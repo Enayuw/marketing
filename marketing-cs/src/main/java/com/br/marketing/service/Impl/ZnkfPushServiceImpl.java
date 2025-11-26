@@ -8,11 +8,11 @@ import com.br.common.util.DateUtils;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
 import com.br.marketing.common.constants.rocketmq.MarketingTransferConstants;
 import com.br.marketing.common.constants.rocketmq.MarketingXieChengConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.DateHelper;
-import com.br.marketing.common.utils.SnowflakeIdGenerator;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.dto.customer.CallRecordBO;
@@ -22,11 +22,27 @@ import com.br.marketing.dto.shuhe.factory.UserTypeStrategyFactory;
 import com.br.marketing.dto.shuhe.strategy.BaseUserType;
 import com.br.marketing.dto.shuhe.strategy.CuFuJie;
 import com.br.marketing.dto.xiecheng.XieChengReportMessageDTO;
-import com.br.marketing.entity.*;
+import com.br.marketing.entity.CallRecord;
+import com.br.marketing.entity.CallRecording;
+import com.br.marketing.entity.CaseShuheUser;
+import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.entity.MarketingTransferSyncUserExample;
+import com.br.marketing.entity.RoboAIBlackPhoneMark;
+import com.br.marketing.entity.RoboAIBlackPhoneMarkExample;
+import com.br.marketing.entity.SmsCallback;
+import com.br.marketing.entity.SmsCallbackAtOnce;
+import com.br.marketing.entity.SmsCallbackAtOnceExample;
+import com.br.marketing.entity.SmsCallbackExample;
 import com.br.marketing.enums.XcReportTypeEnum;
 import com.br.marketing.enums.XieChengConsumer;
 import com.br.marketing.handle.SnowflakeRedisGeneratorHandle;
-import com.br.marketing.mapper.*;
+import com.br.marketing.mapper.CallRecordMapper;
+import com.br.marketing.mapper.CallRecordingMapper;
+import com.br.marketing.mapper.MarketingCallRecordVersionMapper;
+import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
+import com.br.marketing.mapper.RoboAIBlackPhoneMarkMapperBase;
+import com.br.marketing.mapper.SmsCallbackAtOnceMapper;
+import com.br.marketing.mapper.SmsCallbackMapper;
 import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.MrpMqFact;
@@ -36,6 +52,22 @@ import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.ZnkfPushService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
+import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAdjusters;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,15 +77,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
-
-import javax.annotation.Resource;
-import java.text.ParseException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAdjusters;
-import java.util.*;
 
 @Service
 @Slf4j
@@ -612,6 +635,8 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                 CallRecording callRecording = buildCallRecordingEntity(jsonObject, sessionId);
                 callRecordingMapper.insertSelective(callRecording);
                 log.warn("插入记录表成功，sessionId={}，插入ID={}", sessionId, callRecording.getId());
+                rocketMqSwitch.syncSend(MarketingAssistConstants.TOPIC
+                        , MarketingAssistConstants.TAG_MARKETING_TAIKANG_LEAD_TRANSFER, callRecording.getId());
             }
             return "success";
         } catch (Exception ex) {
@@ -653,22 +678,22 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
 
             Object value = jsonObject.get(key);
             String columnName = camelToSnake(key);
-            
+
             // 如果detail字段是JSONObject，需要展开其内部字段
             if ("detail".equals(key) && value instanceof JSONObject) {
                 JSONObject detailObj = (JSONObject) value;
-                
+
                 // 先添加detail字段本身（json类型）
                 if (!addedColumns.contains(columnName)) {
                     sql.append("`").append(columnName).append("` json DEFAULT NULL COMMENT '拨打明细详情',");
                     addedColumns.add(columnName);
                 }
-                
+
                 // 遍历detail里的所有字段，作为独立列添加
                 for (String detailKey : detailObj.keySet()) {
                     Object detailValue = detailObj.get(detailKey);
                     String detailColumnName = camelToSnake(detailKey);
-                    
+
                     // 避免与外层字段冲突，如果冲突则跳过（外层字段优先）
                     if (!addedColumns.contains(detailColumnName)) {
                         String columnDefinition = getColumnDefinition(detailKey, detailValue);
@@ -787,11 +812,11 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         for (String key : jsonObject.keySet()) {
 
             Object value = jsonObject.get(key);
-            
+
             // 如果detail字段是JSONObject，需要展开其内部字段
             if ("detail".equals(key) && value instanceof JSONObject) {
                 JSONObject detailObj = (JSONObject) value;
-                
+
                 // 先添加detail字段本身（json类型）
                 String columnName = camelToSnake(key);
                 if (!addedColumns.contains(columnName)) {
@@ -802,12 +827,12 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                     values.append("'").append(jsonStr).append("',");
                     addedColumns.add(columnName);
                 }
-                
+
                 // 遍历detail里的所有字段，作为独立列插入
                 for (String detailKey : detailObj.keySet()) {
                     Object detailValue = detailObj.get(detailKey);
                     String detailColumnName = camelToSnake(detailKey);
-                    
+
                     // 避免与外层字段冲突，如果冲突则跳过（外层字段优先）
                     if (!addedColumns.contains(detailColumnName) && detailValue != null) {
                         columns.append("`").append(detailColumnName).append("`,");
@@ -877,31 +902,31 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
      */
     private CallRecording buildCallRecordingEntity(JSONObject jsonObject, String sessionId) {
         CallRecording callRecording = new CallRecording();
-        
+
         // 用于记录已处理的字段，避免重复
         Set<String> processedFields = new HashSet<>();
 
         // 遍历JSON中的所有字段，设置实体属性
         for (String key : jsonObject.keySet()) {
             Object value = jsonObject.get(key);
-            
+
             // 如果detail字段是JSONObject，需要展开其内部字段
             if ("detail".equals(key) && value instanceof JSONObject) {
                 JSONObject detailObj = (JSONObject) value;
-                
+
                 // 设置detail字段本身（转换为JSON字符串，MySQL JSON字段需要字符串格式）
                 if (!processedFields.contains("detail")) {
                     String detailJsonStr = JSON.toJSONString(value);
                     callRecording.setDetail(detailJsonStr);
                     processedFields.add("detail");
                 }
-                
+
                 // 遍历detail里的所有字段，设置对应的实体属性
                 for (String detailKey : detailObj.keySet()) {
                     Object detailValue = detailObj.get(detailKey);
                     // 将字段名转换为驼峰命名（支持驼峰和下划线两种格式）
                     String fieldName = normalizeFieldName(detailKey);
-                    
+
                     // 避免与外层字段冲突，如果冲突则跳过（外层字段优先）
                     if (!processedFields.contains(fieldName) && detailValue != null) {
                         setFieldValue(callRecording, fieldName, detailValue);
@@ -963,7 +988,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             if (value == null) {
                 return;
             }
-            
+
             // 根据字段名设置对应的属性值
             switch (fieldName) {
                 case "cid":
