@@ -42,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
@@ -551,19 +552,15 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
     }
 
     @Override
-    public ApiResult callbackDataInsert(String jsonData) {
+    @Transactional(rollbackFor = Exception.class)
+    public String callbackDataInsert(String jsonData) {
         try {
-            if (StringUtils.isEmpty(jsonData)) {
-                log.warn("回调数据为空");
-                return new ApiResult().fail("回调数据为空");
-            }
-
             // 解析JSON获取vision版本字段
             JSONObject jsonObject = JSONObject.parseObject(jsonData);
             String version = jsonObject.getString("version");
             if (StringUtils.isEmpty(version)) {
                 log.warn("JSON数据中缺少version字段");
-                return new ApiResult().fail("JSON数据中缺少version字段");
+                return "lack version";
             }
 
             // 生成版本明细表名
@@ -582,6 +579,8 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             }
 
             // 如果表不存在，解析数据结构生成CREATE语句并执行
+            // 注意：DDL操作（CREATE TABLE）在MySQL中通常是自动提交的，但使用CREATE TABLE IF NOT EXISTS可以避免重复创建
+            // 如果后续DML操作失败，虽然DDL已提交，但DML操作会回滚，保证数据一致性
             if (!tableExists) {
                 String createSql = buildCreateTableSqlByJson(tableName, jsonObject);
                 marketingCallRecordVersionMapper.createTable(createSql);
@@ -592,14 +591,14 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             String sessionId = getSessionIdFromJson(jsonObject);
             if (StringUtils.isEmpty(sessionId)) {
                 log.error("JSON数据中缺少sessionId字段");
-                return new ApiResult().fail("JSON数据中缺少sessionId字段");
+                return "lack sessionId";
             }
 
             // 判断数据是否存在
             Integer count = marketingCallRecordVersionMapper.countBySessionId(tableName, sessionId);
             if (count != null && count > 0) {
                 log.warn("数据已存在，sessionId={}", sessionId);
-                return new ApiResult().success("数据已存在");
+                return "The data already exists";
             }
 
             // 生成insert语句并执行插入
@@ -609,16 +608,16 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
 
             // 判断version版本是不是 LLMResultV2
             if ("LLMResultV2".equals(version)) {
-                // 构建插入到b_marketing_call_recording表的SQL（插入所有字段）
-                String recordingInsertSql = buildRecordingInsertSql(jsonObject, sessionId);
-                callRecordingMapper.insertAllFields(recordingInsertSql);
-                log.warn("插入记录表成功，sessionId={}", sessionId);
+                // 构建CallRecording实体对象
+                CallRecording callRecording = buildCallRecordingEntity(jsonObject, sessionId);
+                callRecordingMapper.insertSelective(callRecording);
+                log.warn("插入记录表成功，sessionId={}，插入ID={}", sessionId, callRecording.getId());
             }
-
-            return new ApiResult().success("处理成功");
+            return "success";
         } catch (Exception ex) {
             log.error("回调数据入库失败，错误信息：{}", ex.getMessage(), ex);
-            return new ApiResult().fail("回调数据入库失败：" + ex.getMessage());
+            // 重新抛出异常，确保事务回滚所有DML操作
+            throw ex;
         }
     }
 
@@ -874,96 +873,221 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
     }
 
     /**
-     * 构建插入到b_marketing_call_recording表的SQL（插入所有字段）
+     * 构建CallRecording实体对象
      */
-    private String buildRecordingInsertSql(JSONObject jsonObject, String sessionId) {
-        StringBuilder sql = new StringBuilder();
-        StringBuilder columns = new StringBuilder();
-        StringBuilder values = new StringBuilder();
+    private CallRecording buildCallRecordingEntity(JSONObject jsonObject, String sessionId) {
+        CallRecording callRecording = new CallRecording();
+        
+        // 用于记录已处理的字段，避免重复
+        Set<String> processedFields = new HashSet<>();
 
-        // 用于记录已添加的列名，避免重复
-        Set<String> addedColumns = new HashSet<>();
-
-        // 遍历JSON中的所有字段，生成INSERT语句
+        // 遍历JSON中的所有字段，设置实体属性
         for (String key : jsonObject.keySet()) {
-
             Object value = jsonObject.get(key);
             
             // 如果detail字段是JSONObject，需要展开其内部字段
             if ("detail".equals(key) && value instanceof JSONObject) {
                 JSONObject detailObj = (JSONObject) value;
                 
-                // 先添加detail字段本身（json类型）
-                String columnName = camelToSnake(key);
-                if (!addedColumns.contains(columnName)) {
-                    columns.append("`").append(columnName).append("`,");
-                    // JSON对象转为JSON字符串
-                    String jsonStr = JSON.toJSONString(value);
-                    jsonStr = jsonStr.replace("\\", "\\\\").replace("'", "\\'");
-                    values.append("'").append(jsonStr).append("',");
-                    addedColumns.add(columnName);
+                // 设置detail字段本身（转换为JSON字符串，MySQL JSON字段需要字符串格式）
+                if (!processedFields.contains("detail")) {
+                    String detailJsonStr = JSON.toJSONString(value);
+                    callRecording.setDetail(detailJsonStr);
+                    processedFields.add("detail");
                 }
                 
-                // 遍历detail里的所有字段，作为独立列插入
+                // 遍历detail里的所有字段，设置对应的实体属性
                 for (String detailKey : detailObj.keySet()) {
                     Object detailValue = detailObj.get(detailKey);
-                    String detailColumnName = camelToSnake(detailKey);
+                    // 将字段名转换为驼峰命名（支持驼峰和下划线两种格式）
+                    String fieldName = normalizeFieldName(detailKey);
                     
                     // 避免与外层字段冲突，如果冲突则跳过（外层字段优先）
-                    if (!addedColumns.contains(detailColumnName) && detailValue != null) {
-                        columns.append("`").append(detailColumnName).append("`,");
-                        appendValue(values, detailValue);
-                        addedColumns.add(detailColumnName);
+                    if (!processedFields.contains(fieldName) && detailValue != null) {
+                        setFieldValue(callRecording, fieldName, detailValue);
+                        processedFields.add(fieldName);
                     }
+                }
+            } else if ("detail".equals(key) && value != null) {
+                // detail字段是其他类型（如字符串），直接设置
+                if (!processedFields.contains("detail")) {
+                    // 如果是字符串，直接使用（假设已经是有效的JSON字符串）
+                    // 如果是其他对象，转换为JSON字符串
+                    if (value instanceof String) {
+                        callRecording.setDetail(value);
+                    } else {
+                        // 非字符串类型，转换为JSON字符串
+                        callRecording.setDetail(JSON.toJSONString(value));
+                    }
+                    processedFields.add("detail");
                 }
             } else if (value != null) {
                 // 普通字段处理
-                String columnName = camelToSnake(key);
-                if (!addedColumns.contains(columnName)) {
-                    columns.append("`").append(columnName).append("`,");
-                    appendValue(values, value);
-                    addedColumns.add(columnName);
+                String fieldName = normalizeFieldName(key);
+                if (!processedFields.contains(fieldName)) {
+                    setFieldValue(callRecording, fieldName, value);
+                    processedFields.add(fieldName);
                 }
             }
         }
 
         // 确保sessionId字段存在（如果JSON中没有，使用传入的参数）
-        String sessionIdColumn = "session_id";
-        if (!addedColumns.contains(sessionIdColumn) && StringUtils.isNotEmpty(sessionId)) {
-            columns.append("`").append(sessionIdColumn).append("`,");
-            String escapedSessionId = sessionId.replace("\\", "\\\\").replace("'", "\\'");
-            values.append("'").append(escapedSessionId).append("',");
-            addedColumns.add(sessionIdColumn);
+        if (StringUtils.isEmpty(callRecording.getSessionId()) && StringUtils.isNotEmpty(sessionId)) {
+            callRecording.setSessionId(sessionId);
         }
 
-        // 添加status字段（默认0）
-        if (!addedColumns.contains("status")) {
-            columns.append("`status`,");
-            values.append("0,");
+        // 设置status字段（默认0）
+        if (callRecording.getStatus() == null) {
+            callRecording.setStatus(0);
         }
 
-        // receive_date（当日）
-        if (!addedColumns.contains("receive_date")) {
-            columns.append("`receive_date`,");
+        // 设置receive_date（当日）
+        if (StringUtils.isEmpty(callRecording.getReceiveDate())) {
             String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            values.append("'").append(currentDate).append("',");
+            callRecording.setReceiveDate(currentDate);
         }
 
-        // 移除最后的逗号
-        if (columns.length() > 0 && columns.charAt(columns.length() - 1) == ',') {
-            columns.setLength(columns.length() - 1);
-        }
-        if (values.length() > 0 && values.charAt(values.length() - 1) == ',') {
-            values.setLength(values.length() - 1);
+        // 设置创建时间
+        if (callRecording.getCreateTime() == null) {
+            callRecording.setCreateTime(new Date());
         }
 
-        sql.append("INSERT INTO `b_marketing_call_recording` (");
-        sql.append(columns);
-        sql.append(") VALUES (");
-        sql.append(values);
-        sql.append(")");
+        return callRecording;
+    }
 
-        return sql.toString();
+    /**
+     * 设置实体字段值
+     */
+    private void setFieldValue(CallRecording callRecording, String fieldName, Object value) {
+        try {
+            if (value == null) {
+                return;
+            }
+            
+            // 根据字段名设置对应的属性值
+            switch (fieldName) {
+                case "cid":
+                    callRecording.setCid(value.toString());
+                    break;
+                case "apiCode":
+                    callRecording.setApiCode(value.toString());
+                    break;
+                case "callBackType":
+                    if (value instanceof Number) {
+                        callRecording.setCallBackType(((Number) value).intValue());
+                    }
+                    break;
+                case "taskName":
+                    callRecording.setTaskName(value.toString());
+                    break;
+                case "taskId":
+                    if (value instanceof Number) {
+                        callRecording.setTaskId(((Number) value).intValue());
+                    }
+                    break;
+                case "custNum":
+                    callRecording.setCustNum(value.toString());
+                    break;
+                case "callStartTime":
+                    if (value instanceof Number) {
+                        callRecording.setCallStartTime(((Number) value).longValue());
+                    }
+                    break;
+                case "callConnectTime":
+                    if (value instanceof Number) {
+                        callRecording.setCallConnectTime(((Number) value).longValue());
+                    }
+                    break;
+                case "callEndTime":
+                    if (value instanceof Number) {
+                        callRecording.setCallEndTime(((Number) value).longValue());
+                    }
+                    break;
+                case "dialogTurn":
+                    if (value instanceof Number) {
+                        callRecording.setDialogTurn(((Number) value).intValue());
+                    }
+                    break;
+                case "callStatus":
+                    if (value instanceof Number) {
+                        callRecording.setCallStatus(((Number) value).intValue());
+                    }
+                    break;
+                case "isConnect":
+                    if (value instanceof Number) {
+                        callRecording.setIsConnect(((Number) value).intValue());
+                    }
+                    break;
+                case "callDialog":
+                    callRecording.setCallDialog(value.toString());
+                    break;
+                case "recordingPath":
+                    callRecording.setRecordingPath(value.toString());
+                    break;
+                case "intentionGrade":
+                    callRecording.setIntentionGrade(value.toString());
+                    break;
+                case "tagList":
+                    callRecording.setTagList(value.toString());
+                    break;
+                case "reserveField1":
+                    callRecording.setReserveField1(value.toString());
+                    break;
+                case "version":
+                    callRecording.setVersion(value.toString());
+                    break;
+                default:
+                    // 忽略未知字段
+                    break;
+            }
+        } catch (Exception e) {
+            log.warn("设置字段{}的值失败：{}", fieldName, e.getMessage());
+        }
+    }
+
+    /**
+     * 规范化字段名：将字段名统一转换为驼峰命名
+     * 如果字段名已经是驼峰命名，保持不变；如果是下划线命名，转换为驼峰命名
+     */
+    private String normalizeFieldName(String fieldName) {
+        if (StringUtils.isEmpty(fieldName)) {
+            return fieldName;
+        }
+        // 如果包含下划线，说明是下划线命名，需要转换为驼峰命名
+        if (fieldName.contains("_")) {
+            return snakeToCamel(fieldName);
+        }
+        // 如果已经是驼峰命名，直接返回（首字母小写）
+        if (fieldName.length() > 0 && Character.isLowerCase(fieldName.charAt(0))) {
+            return fieldName;
+        }
+        // 如果首字母是大写，转换为小写（处理特殊情况）
+        return Character.toLowerCase(fieldName.charAt(0)) + fieldName.substring(1);
+    }
+
+    /**
+     * 下划线命名转驼峰命名
+     */
+    private String snakeToCamel(String snakeCase) {
+        if (StringUtils.isEmpty(snakeCase)) {
+            return snakeCase;
+        }
+        StringBuilder result = new StringBuilder();
+        boolean nextUpperCase = false;
+        for (int i = 0; i < snakeCase.length(); i++) {
+            char c = snakeCase.charAt(i);
+            if (c == '_') {
+                nextUpperCase = true;
+            } else {
+                if (nextUpperCase) {
+                    result.append(Character.toUpperCase(c));
+                    nextUpperCase = false;
+                } else {
+                    result.append(c);
+                }
+            }
+        }
+        return result.toString();
     }
 
 
