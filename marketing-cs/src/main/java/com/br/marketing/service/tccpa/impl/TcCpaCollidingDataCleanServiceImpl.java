@@ -95,7 +95,9 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
             List<CompletableFuture<Void>> futures = new ArrayList<>();
             //6.删除数据包
             if (CollectionUtils.isNotEmpty(deletePackages)) {
-                if (deletePackageData(deletePackages, threadPool, futures, marketingCommonConfig)) {
+                //删除流程
+                boolean hasErrorForDelete = deletePackageData(deletePackages, threadPool, futures, marketingCommonConfig);
+                if(hasErrorForDelete) {
                     cleanTask.setCleanStatus(TcCpaCleanStatusEnum.CLEAN_FAIL.getValue());
                     cleanTask.setExtend("剔除流程异常，未执行后续清洗，需要人工介入");
                     tcyrCpaCollidingDataCleanTaskMapper.updateByPrimaryKeySelective(cleanTask);
@@ -107,7 +109,9 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
             String afterPackageInfo = null;
             if(CollectionUtils.isNotEmpty(cleanPackages)) {
                 beforePackageInfo = packageInfoAssemble(cleanPackages);
-                if (cleanPackageData(cleanPackages, threadPool, futures, marketingCommonConfig)) {
+                //清洗流程
+                boolean hasErrorForClean = cleanPackageData(cleanPackages, threadPool, futures, marketingCommonConfig);
+                if (hasErrorForClean) {
                     cleanTask.setCleanStatus(TcCpaCleanStatusEnum.CLEAN_FAIL.getValue());
                     cleanTask.setExtend("清洗流程异常，未执行后续清洗，需要人工介入");
                     tcyrCpaCollidingDataCleanTaskMapper.updateByPrimaryKeySelective(cleanTask);
@@ -140,14 +144,14 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
         //1.查询所有需要更新的包ID
         List<Long> allPackageIds  = tcyrCpaCollidingDataPackageMapper.queryPackageIdstikv_();
         //2.查询有数据的包的量级
-        List<Map<Long, Integer>> magnitudes = tcyrCpaCollidingDataMapper.queryPackageMagnitudetiflash_();
+        List<Map<String, Long>> magnitudes = tcyrCpaCollidingDataMapper.queryPackageMagnitudetiflash_();
         if (CollectionUtils.isEmpty(magnitudes)) {
             return;
         }
         //3.构建包ID到量级的映射
-        Map<Long, Integer> magnitudeMap = magnitudes.stream()
+        Map<String, Integer> magnitudeMap = magnitudes.stream()
                 .collect(Collectors.toMap(
-                        result -> ((Number) result.get("packageId")).longValue(),
+                        result -> (result.get("packageId")).toString(),
                         result -> ((Number) result.get("magnitude")).intValue()
                 ));
         //4.为所有包构建更新列表，量级为0的包设为0
@@ -155,7 +159,7 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
                 .map(packageId -> {
                     TcyrCpaCollidingDataPackage pkg = new TcyrCpaCollidingDataPackage();
                     pkg.setId(packageId);
-                    pkg.setMagnitude(magnitudeMap.getOrDefault(packageId, 0)); // 没有数据的包量级为0
+                    pkg.setMagnitude(magnitudeMap.getOrDefault(packageId.toString(), 0)); // 没有数据的包量级为0
                     return pkg;
                 })
                 .collect(Collectors.toList());
@@ -194,14 +198,19 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
      * @return
      */
     private boolean cleanPackageData(List<TcyrCpaCollidingDataPackage> cleanPackages,
-                                     TpDynamicExecutor threadPool, List<CompletableFuture<Void>> futures, MarketingCommonConfig marketingCommonConfig) {
-        // 创建原子标志，用于停止整个流程
+                                     TpDynamicExecutor threadPool,
+                                     List<CompletableFuture<Void>> futures,
+                                     MarketingCommonConfig marketingCommonConfig) {
+        //创建原子标志，用于停止整个流程
         AtomicBoolean hasError = new AtomicBoolean(false);
         AtomicReference<Exception> firstException = new AtomicReference<>();
         for (TcyrCpaCollidingDataPackage cleanPackage : cleanPackages) {
             if (hasError.get()) {
                 break;
             }
+            //更新数据包状态为1-清洗中
+            cleanPackage.setCleanStatus(TcCpaCleanStatusEnum.CLEANING.getValue());
+            tcyrCpaCollidingDataPackageMapper.updateByPrimaryKeySelective(cleanPackage);
             try {
                 String[] batchNumbers = cleanPackage.getBatchNumbers().split(",");
                 String conditions = cleanPackage.getConditions();

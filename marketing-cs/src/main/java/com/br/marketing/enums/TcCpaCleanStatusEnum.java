@@ -6,7 +6,7 @@ package com.br.marketing.enums;
 public enum TcCpaCleanStatusEnum {
 
     CLEAN_VOID(0,"待清洗"),
-    CLEANING(1,"清洗完成"),
+    CLEANING(1,"清洗中"),
     CLEAN_SUCCESS(2,"清洗成功"),
     CLEAN_FAIL(3,"清洗失败")
     ;
