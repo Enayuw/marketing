@@ -31,8 +31,6 @@ public class TaikangCallRecordingStrategy implements CallRecordingInsertStrategy
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
-    private MarketingSyncInfoMapper marketingSyncInfoMapper;
-    @Resource
     private TaikangClient taikangClient;
     @Resource
     private TaikangTransferDataLogMapper taikangTransferDataLogMapper;
