@@ -68,7 +68,7 @@ datasource:
       connection-test-query: select 1 # 连接测试查询
       replicationAllocation: tag.location.default:1
     marketing-log:
-      name: marketing_log
+      name: marketing-log
       type: com.zaxxer.hikari.HikariDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
       jdbc-url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing_log?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance

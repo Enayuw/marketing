@@ -14,16 +14,14 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ThreadContextInfo;
-import com.br.marketing.dto.CostPriceExRecordDto;
-import com.br.marketing.dto.DdLineBaseInfoDto;
-import com.br.marketing.dto.DdLinsSmsCostAlarmDto;
-import com.br.marketing.dto.DdSmsBaseInfoDto;
+import com.br.marketing.dto.*;
 import com.br.marketing.dto.account.*;
 import com.br.marketing.entity.CostPriceExRecord;
 import com.br.marketing.entity.DdDataLineCostPrice;
 import com.br.marketing.entity.DdDataSmsCostPrice;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mapper.*;
+import com.br.marketing.service.LineSmsAccountNormalService;
 import com.br.marketing.service.LineSmsAccountService;
 import com.br.marketing.service.dingding2.LineSmsCostToDbService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -62,6 +60,9 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
     private LineSmsAccountService lineSmsAccountService;
 
     @Resource
+    private LineSmsAccountNormalService lineSmsAccountNormalService;
+
+    @Resource
     private RobotaiApiServiceClient robotaiApiServiceClient;
 
     @Resource
@@ -86,6 +87,15 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
 
     @Resource
     private CostPriceExRecordMapper costPriceExRecordMapper;
+
+    @Resource
+    private LineBaseInfoNormalMapper lineBaseInfoNormalMapper;
+
+    @Resource
+    private LineSupplierInfoNormalMapper lineSupplierInfoNormalMapper;
+
+    @Resource
+    private LineAccountDetailNormalMapper lineAccountDetailNormalMapper;
 
 
     @Autowired
@@ -143,7 +153,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
         DdLinsSmsCostAlarmDto linsCostAlarmDto = new DdLinsSmsCostAlarmDto();
         linsCostAlarmDto.setCardTitle(marketingCommonConfig.getLinsSmsCostToDbConfig().getString("lineCardTitle"));
         //2.获取基础信息
-        List<DdLineBaseInfoDto> ddLineBaseInfoDtoList =  getLineBaseInfo();
+        List<DdLineBaseInfoDto> ddLineBaseInfoDtoList = getLineBaseInfoByDb();
         //3.查询原始数据
         Long searchId = 0L;
         while(true) {
@@ -159,6 +169,8 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
         }
         return linsCostAlarmDto;
     }
+
+
 
 
     private void dealAlarm(DdLinsSmsCostAlarmDto smsCostAlarmDto) {
@@ -299,6 +311,32 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                 }
             }
         }
+
+        return ddLineBaseInfoDtoList;
+    }
+
+    /**
+     * 调用下游方法 从db获取 三方配置信息
+     * DdLineBaseInfoDto
+     *    private Long gatewayId;
+     *    private String caller;
+     *    private String outboundNumber;
+     *    private String lineSupplier;
+     *    private String projectName;
+     * @return
+     */
+    private List<DdLineBaseInfoDto> getLineBaseInfoByDb() {
+        List<DdLineBaseInfoDto> ddLineBaseInfoDtoList = new ArrayList<>();
+        List<LineBaseFullInfoDTO> lineBaseFullInfoDtoList = lineBaseInfoNormalMapper.selectLineBaeUseInfoList();
+        lineBaseFullInfoDtoList.forEach(lineBaseFullInfoDto -> {
+            DdLineBaseInfoDto dto = new DdLineBaseInfoDto();
+            dto.setGatewayId(lineBaseFullInfoDto.getGatewayId());
+            dto.setCaller(lineBaseFullInfoDto.getCaller());
+            dto.setOutboundNumber(lineBaseFullInfoDto.getOutboundNumber());
+            dto.setLineSupplier(lineBaseFullInfoDto.getLineSupplier());
+            dto.setProjectName(lineBaseFullInfoDto.getProjectName());
+            ddLineBaseInfoDtoList.add(dto);
+        });
         return ddLineBaseInfoDtoList;
     }
 
@@ -348,7 +386,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                                 CostPriceExRecord costPriceExRecord = new CostPriceExRecord();
                                 costPriceExRecord.setJsonData(JSONObject.toJSONString(smsCost));
                                 costPriceExRecord.setType(1);
-                                String ddReason = "供应商["+smsCost.getLineSupplier()+"]线路["+smsCost.getLineName()+"],新增失败,请检查";
+                                String ddReason = "供应商["+smsCost.getLineSupplier()+"]线路["+smsCost.getLineName()+"],新增失败("+result.getMessage()+"),请检查";
                                 JSONObject reasonObj = new JSONObject();
                                 reasonObj.put("ddReason", ddReason);
                                 reasonObj.put("smsDto", smsDto);
@@ -420,12 +458,13 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
 
                 // 4. 判断数据库配置 是否存在(存在跳过，不存在插入)
                 filterList.forEach(lineDto -> {
-                    Long count = lineAccountDetailMapper.selectCount(lineDto.getGatewayId());
+                    Long lineSupplierId = lineSupplierInfoNormalMapper.selectIdByLineSupplier(lineDto.getLineSupplier());
+                    Long count = lineAccountDetailNormalMapper.selectCount(lineSupplierId,lineDto.getGatewayId());
                     if (count == 0) {
                         fillThreadLocalUserInfo(0,lineCost.getLastModifiedUserName(),lineCost.getLastModifiedUserId());
                         LineAccountDto lineAccountDto = fillLineAccountInfo(lineCost, lineDto);
                         try {
-                            Result result = lineSmsAccountService.addLineAccount(lineAccountDto);
+                            Result result = lineSmsAccountNormalService.addLineAccount(lineAccountDto);
                             if (result.isSuccess()) {
                                 linsCostAlarmDto.setSuccessCost(linsCostAlarmDto.getSuccessCost() + 1);
                             } else {
@@ -434,12 +473,13 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                                 costPriceExRecord.setJsonData(JSONObject.toJSONString(lineCost));
                                 costPriceExRecord.setType(2);
                                 JSONObject reasonObj = new JSONObject();
-                                String ddReason = "供应商[" + lineCost.getLineSupplier() + "]主叫号码[" + lineCost.getCaller()  + "],新增失败,请检查";
+                                String ddReason = "供应商[" + lineCost.getLineSupplier() + "]主叫号码[" + lineCost.getCaller()
+                                        + "],新增失败("+result.getMessage()+"),请检查";
                                 reasonObj.put("ddReason", ddReason);
                                 reasonObj.put("lineDto", JSONObject.toJSONString(lineDto));
                                 reasonObj.put("failMsg",result.getMessage());
                                 costPriceExRecord.setReason(JSONObject.toJSONString(reasonObj));
-                               costPriceExRecordMapper.insertSelective(costPriceExRecord);
+                                costPriceExRecordMapper.insertSelective(costPriceExRecord);
                                 List<CostPriceExRecordDto> costPriceExRecordList = linsCostAlarmDto.getCostPriceExRecordDtoList();
                                 costPriceExRecordList.add(convertPriceExRecordDto(costPriceExRecord,ddReason));
                                 linsCostAlarmDto.setCostPriceExRecordDtoList(costPriceExRecordList);

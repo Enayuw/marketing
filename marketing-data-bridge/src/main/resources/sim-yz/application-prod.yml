@@ -3,6 +3,7 @@ datasource:
     names: shardingmarketing,marketing-tikiv,marketing-tiflash,marketing-doris,marketing-bi,marketing-log
     defaultSource: shardingmarketing
     shardingmarketing:
+      name: shardingmarketing
       jdbc-url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
       username: ENC(mysql-prod-ai-marketing-user)
       password: ENC(mysql-prod-ai-marketing-password)
@@ -16,7 +17,7 @@ datasource:
       keepalive-time: 30000 # 连接保活时间，单位毫秒
       connection-test-query: select 1 # 连接测试查询
     marketing-tikiv:
-      name: marketing
+      name: marketing-tikiv
       type: com.zaxxer.hikari.HikariDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
       jdbc-url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
@@ -34,7 +35,7 @@ datasource:
     #      filters: stat,wall,log4j2
     #      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
     marketing-tiflash:
-      name: marketing
+      name: marketing-tiflash
       type: com.zaxxer.hikari.HikariDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
       jdbc-url: jdbc:mysql://tidb-tiflash-marketing.brapp.com:4020/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
@@ -52,7 +53,7 @@ datasource:
     #      filters: stat,wall,log4j2
     #      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
     marketing-doris:
-      name: marketing
+      name: marketing-doris
       type: com.zaxxer.hikari.HikariDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
       jdbc-url: jdbc:mysql://doris-w-marketing.brapp.com:6030/marketing
@@ -67,7 +68,7 @@ datasource:
       connection-test-query: select 1 # 连接测试查询
       replicationAllocation: tag.location.default:3
     marketing-bi:
-      name: marketing_bi
+      name: marketing-bi
       type: com.zaxxer.hikari.HikariDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
       jdbc-url: jdbc:mysql://doris-w-marketing.brapp.com:6030/marketing_bi?socketTimeout=1800000
@@ -82,7 +83,7 @@ datasource:
       connection-test-query: select 1 # 连接测试查询
       replicationAllocation: tag.location.default:3
     marketing-log:
-      name: marketing_log
+      name: marketing-log
       type: com.zaxxer.hikari.HikariDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
       jdbc-url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing_log?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=true&failOverReadOnly=false&useConfigs=maxPerformance
