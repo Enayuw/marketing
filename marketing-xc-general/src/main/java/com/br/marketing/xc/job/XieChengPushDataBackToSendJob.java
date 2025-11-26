@@ -1,6 +1,5 @@
 package com.br.marketing.xc.job;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.xiecheng.XieChengService;
@@ -35,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
+ * 2025-11-26废弃
  * 描述：： 携程上报数据补推
  * <p>
  * ------------------------------------

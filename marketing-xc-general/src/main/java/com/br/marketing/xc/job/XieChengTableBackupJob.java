@@ -15,6 +15,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 /**
+ * 2025-11-26 废弃
   * 表备份job，文档地址：https://c.100credit.cn/pages/viewpage.action?pageId=151477618
   * 携程周期表b_xiecheng_colliding_data_loop_cycle、非周期表b_xiecheng_colliding_data_rob、
   * 撞库结果日志表b_xiecheng_colliding_data_log、对比表b_xiecheng_colliding_data_contrast
