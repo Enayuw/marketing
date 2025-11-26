@@ -117,7 +117,7 @@ public class CustomerInfoPushMain implements Serializable {
     private String optUserName;
 
     /**
-     * 任务类型 0 跑分数据推决策, 1 跑分及撞库结果筛选推决策, 2 合并跑分数据推决策, 3 哈啰硅基人回调
+     * 任务类型 0 跑分数据推决策, 1 跑分及撞库结果筛选推决策
      */
     private Integer filterType;
 
@@ -149,7 +149,7 @@ public class CustomerInfoPushMain implements Serializable {
     private String tagContent;
 
     /**
-     * 0:推送决策,1:数据打标
+     * 0:推送决策,1:数据打标,2:合并数据推送决策
      */
     private Integer pushTarget;
 
@@ -157,6 +157,11 @@ public class CustomerInfoPushMain implements Serializable {
      * 标签名称
      */
     private String labelName;
+
+    /**
+     * 上传数据记录id:多个,分割
+     */
+    private String uploadReportIds;
 
     private static final long serialVersionUID = 1L;
 
@@ -406,5 +411,13 @@ public class CustomerInfoPushMain implements Serializable {
 
     public void setLabelName(String labelName) {
         this.labelName = labelName;
+    }
+
+    public String getUploadReportIds() {
+        return uploadReportIds;
+    }
+
+    public void setUploadReportIds(String uploadReportIds) {
+        this.uploadReportIds = uploadReportIds;
     }
 }
