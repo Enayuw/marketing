@@ -2,16 +2,6 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.br.marketing.mapper.MarketingCallRecordVersionMapper">
 
-    <!-- 检查表是否存在 -->
-    <select id="checkTableExist" parameterType="string" resultType="Map">
-        desc ${tableName}
-    </select>
-
-    <!-- 创建版本明细表 -->
-    <update id="createTable">
-        ${createSql}
-    </update>
-
     <!-- 根据sessionId查询数据是否存在 -->
     <select id="countBySessionId" resultType="Integer">
         select count(1) from ${tableName} where session_id = #{sessionId}

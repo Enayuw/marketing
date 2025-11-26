@@ -566,27 +566,6 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             // 生成版本明细表名
             String tableName = "b_marketing_call_record_" + version;
 
-            // 判断表是否存在
-            boolean tableExists = false;
-            try {
-                List<Map<String, Object>> tableInfo = marketingCallRecordVersionMapper.checkTableExist(tableName);
-                if (tableInfo != null && !tableInfo.isEmpty()) {
-                    tableExists = true;
-                }
-            } catch (Exception e) {
-                log.error("表{}不存在，需要创建", tableName);
-                tableExists = false;
-            }
-
-            // 如果表不存在，解析数据结构生成CREATE语句并执行
-            // 注意：DDL操作（CREATE TABLE）在MySQL中通常是自动提交的，但使用CREATE TABLE IF NOT EXISTS可以避免重复创建
-            // 如果后续DML操作失败，虽然DDL已提交，但DML操作会回滚，保证数据一致性
-            if (!tableExists) {
-                String createSql = buildCreateTableSqlByJson(tableName, jsonObject);
-                marketingCallRecordVersionMapper.createTable(createSql);
-                log.warn("创建版本明细表成功：{}", tableName);
-            }
-
             // 解析数据结构，获取sessionId
             String sessionId = getSessionIdFromJson(jsonObject);
             if (StringUtils.isEmpty(sessionId)) {
@@ -634,68 +613,6 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             }
         }
         return sessionId;
-    }
-
-    /**
-     * 根据JSON动态构建建表SQL（不能写死字段，只能解析接口入参去生成表结构）
-     */
-    private String buildCreateTableSqlByJson(String tableName, JSONObject jsonObject) {
-        StringBuilder sql = new StringBuilder();
-        sql.append("CREATE TABLE IF NOT EXISTS `").append(tableName).append("` (");
-        sql.append("`id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',");
-
-        // 用于记录已添加的列名，避免重复
-        Set<String> addedColumns = new HashSet<>();
-        addedColumns.add("id");
-
-        // 遍历JSON中的所有字段，动态生成表结构
-        for (String key : jsonObject.keySet()) {
-
-            Object value = jsonObject.get(key);
-            String columnName = camelToSnake(key);
-            
-            // 如果detail字段是JSONObject，需要展开其内部字段
-            if ("detail".equals(key) && value instanceof JSONObject) {
-                JSONObject detailObj = (JSONObject) value;
-                
-                // 先添加detail字段本身（json类型）
-                if (!addedColumns.contains(columnName)) {
-                    sql.append("`").append(columnName).append("` json DEFAULT NULL COMMENT '拨打明细详情',");
-                    addedColumns.add(columnName);
-                }
-                
-                // 遍历detail里的所有字段，作为独立列添加
-                for (String detailKey : detailObj.keySet()) {
-                    Object detailValue = detailObj.get(detailKey);
-                    String detailColumnName = camelToSnake(detailKey);
-                    
-                    // 避免与外层字段冲突，如果冲突则跳过（外层字段优先）
-                    if (!addedColumns.contains(detailColumnName)) {
-                        String columnDefinition = getColumnDefinition(detailKey, detailValue);
-                        sql.append("`").append(detailColumnName).append("` ").append(columnDefinition).append(",");
-                        addedColumns.add(detailColumnName);
-                    }
-                }
-            } else {
-                // 普通字段处理
-                if (!addedColumns.contains(columnName)) {
-                    String columnDefinition = getColumnDefinition(key, value);
-                    sql.append("`").append(columnName).append("` ").append(columnDefinition).append(",");
-                    addedColumns.add(columnName);
-                }
-            }
-        }
-        // 添加固定字段
-        if (!addedColumns.contains("create_time")) {
-            sql.append("`create_time` timestamp DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',");
-        }
-        if (!addedColumns.contains("update_time")) {
-            sql.append("`update_time` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',");
-        }
-        sql.append("PRIMARY KEY (`id`)");
-        sql.append(") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='通话回调记录表'");
-
-        return sql.toString();
     }
 
     /**
