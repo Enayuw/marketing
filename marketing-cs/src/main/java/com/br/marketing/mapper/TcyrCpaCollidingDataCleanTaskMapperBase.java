@@ -21,7 +21,8 @@ public interface TcyrCpaCollidingDataCleanTaskMapperBase {
 
     TcyrCpaCollidingDataCleanTask selectByPrimaryKey(Long id);
 
-    int updateByExampleSelective(@Param("record") TcyrCpaCollidingDataCleanTask record, @Param("example") TcyrCpaCollidingDataCleanTaskExample example);
+    int updateByExampleSelective(@Param("record") TcyrCpaCollidingDataCleanTask record,
+                                 @Param("example") TcyrCpaCollidingDataCleanTaskExample example);
 
     int updateByExample(@Param("record") TcyrCpaCollidingDataCleanTask record, @Param("example") TcyrCpaCollidingDataCleanTaskExample example);
 

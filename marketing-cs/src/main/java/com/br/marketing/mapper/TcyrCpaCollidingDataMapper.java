@@ -20,7 +20,7 @@ public interface TcyrCpaCollidingDataMapper extends TcyrCpaCollidingDataMapperBa
 
     void insertBatchWithPriority(@Param("dataList") List<TcyrCpaCollidingData> dataList);
 
-    List<Map<Long, Integer>> queryPackageMagnitudetiflash_();
+    List<Map<String, Long>> queryPackageMagnitudetiflash_();
 
     List<Long> queryIdsWithPagetikv_(@Param("packageId")Long packageId, @Param("minId")Long minId);
 
