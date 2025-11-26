@@ -76,14 +76,19 @@ public class TaikangCallRecordingStrategy implements CallRecordingInsertStrategy
     @Override
     public void process(CallRecordLLMResultV2 callRecordLLMResultV2) {
         Map<String, String> taikangConfig = marketingCommonConfig.getTaikangConfig();
-        String firstLevelKey = taikangConfig.getOrDefault("firstLevelKey", "et_returnName");
+        String nameKey = taikangConfig.getOrDefault("nameKey", "et_returnName");
+        String cellKey = taikangConfig.getOrDefault("cellKey", "cell");
         String applicantName = Optional.ofNullable(callRecordLLMResultV2.getReserveField1())
                 .map(TaikangCallRecordingStrategy::safeParseToJson)
-                .map((JSONObject reserveJson) -> reserveJson.getString(firstLevelKey))
+                .map((JSONObject reserveJson) -> reserveJson.getString(nameKey))
                 .orElse(null);
-        MarketingSyncUser syncUser = marketingSyncInfoMapper.getNewestByCusnumAndStatus(callRecordLLMResultV2.getApiCode(),
-                callRecordLLMResultV2.getCustNum());
-        String cell = syncUser.getCell();
+        String cell = Optional.ofNullable(callRecordLLMResultV2.getReserveField1())
+                .map(TaikangCallRecordingStrategy::safeParseToJson)
+                .map((JSONObject reserveJson) -> reserveJson.getString(cellKey))
+                .orElse(null);
+        if (cell == null) {
+            cell = callRecordLLMResultV2.getCustNum();
+        }
         String applicantPhone = BrCipherMaker.getInstance().decode(cell);
         if (applicantPhone == null) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAIKANG_MARKING_SERVICEERROR.getCode(), "泰康大健康线索线索推送客户，该cell:" + cell +
@@ -99,7 +104,7 @@ public class TaikangCallRecordingStrategy implements CallRecordingInsertStrategy
             TaikangTransferDataLog taikangTransferDataLog = new TaikangTransferDataLog();
             taikangTransferDataLog.setCallRecordId(callRecordLLMResultV2.getId());
             taikangTransferDataLog.setApiCode(callRecordLLMResultV2.getApiCode());
-            taikangTransferDataLog.setCell(syncUser.getCell());
+            taikangTransferDataLog.setCell(cell);
             taikangTransferDataLog.setName(applicantName);
             taikangTransferDataLog.setBusinessCode(JSONObject.parseObject(response).getInteger("code"));
             taikangTransferDataLog.setReturnContent(response);
