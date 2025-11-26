@@ -9,20 +9,24 @@ import com.br.common.util.StringUtils;
 import com.br.marketing.client.taikang.TaikangClient;
 import com.br.marketing.client.taikang.TaikangMarketingEvent;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.CallRecording;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.TaikangTransferDataLog;
+import com.br.marketing.entity.TaikangTransferDataLogExample;
 import com.br.marketing.mapper.CallRecordingMapper;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.TaikangTransferDataLogMapper;
 import com.br.marketing.service.TaikangLeadTransferService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -43,7 +47,15 @@ public class TaikangLeadTransferServiceImpl implements TaikangLeadTransferServic
 
     @Override
     public Result<Boolean> transferData(String id) {
-        Result<Boolean> result = new Result<>();
+        Result<Boolean> result = new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+        //消息 业务幂等逻辑
+        TaikangTransferDataLogExample example = new TaikangTransferDataLogExample();
+        example.createCriteria().andCreateTimeBetween(DateUtil.beginOfDay(new Date()), DateUtil.endOfDay(new Date())).andCallRecordIdEqualTo(Long.valueOf(id));
+        List<TaikangTransferDataLog> select = taikangTransferDataLogMapper.selectByExample(example);
+        if (CollectionUtils.isNotEmpty(select)) {
+            return result;
+        }
+
         CallRecording callRecording = callRecordingMapper.selectByPrimaryKey(Long.valueOf(id));
         if (callRecording != null) {
             Map<String, String> taikangConfig = marketingCommonConfig.getTaikangConfig();
@@ -76,6 +88,7 @@ public class TaikangLeadTransferServiceImpl implements TaikangLeadTransferServic
                 taikangTransferDataLog.setName(applicantName);
                 taikangTransferDataLog.setBusinessCode(JSONObject.parseObject(response).getInteger("code"));
                 taikangTransferDataLog.setReturnContent(response);
+                taikangTransferDataLogMapper.insertSelective(taikangTransferDataLog);
             } catch (NumberFormatException e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAIKANG_MARKING_SERVICEERROR.getCode(), "泰康大健康线索线索推送客户记录日志异常，拨打明细id:" + id));
             }
