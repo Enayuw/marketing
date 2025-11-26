@@ -13,7 +13,7 @@
     <select id="selectBySyncFileId" resultType="com.br.marketing.entity.MarketingTcyrCpaSuccessData">
         SELECT id,sync_file_id,user_key,start_date,end_date,extend
         FROM b_tcyr_cpa_success_data
-        WHERE 1 = 1
+        WHERE is_del = 1
         <if test="minId != null and minId >0">
             AND id >= #{minId}
         </if>
@@ -22,20 +22,23 @@
         </if>
         order by id asc limit 2000;
     </select>
+
     <select id="selectMinIdBySyncFileId" resultType="java.lang.Long">
         SELECT min(id)
         FROM b_tcyr_cpa_success_data
-        WHERE sync_file_id = #{syncFileId}
+        WHERE sync_file_id = #{syncFileId} and is_del = 1
     </select>
+
     <select id="selectMaxIdBySyncFileId" resultType="java.lang.Long">
         SELECT max(id)
         FROM b_tcyr_cpa_success_data
-        WHERE sync_file_id = #{syncFileId}
+        WHERE sync_file_id = #{syncFileId} and is_del = 1
     </select>
+
     <select id="selectBySyncFileIdAndIdRange" resultType="com.br.marketing.entity.MarketingTcyrCpaSuccessData">
         SELECT id,sync_file_id,user_key,start_date,end_date,extend
         FROM b_tcyr_cpa_success_data
-        WHERE 1 = 1
+        WHERE is_del = 1
         <if test="syncFileId != null">
             AND sync_file_id = #{syncFileId}
         </if>
