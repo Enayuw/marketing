@@ -500,13 +500,50 @@ public class DataCleanServiceImpl implements DataCleanService {
             });
         }
 
-        // 遍历jsonObject中的所有字段
-        for (Map.Entry<String, Object> entry : jsonObject.entrySet()) {
+        // 获取dataItems对象，判断是否存在
+        Object dataItemsObj = jsonObject.get("dataItems");
+        JSONObject targetObject;
+        
+        if (dataItemsObj != null && dataItemsObj instanceof JSONObject) {
+            // 如果有dataItems，则遍历dataItems下的字段
+            targetObject = (JSONObject) dataItemsObj;
+            
+            // 处理顶层的requestId和taskId字段（即使有dataItems，这两个字段也应该从顶层获取）
+            if (!configuredFields.contains("requestId") && jsonObject.containsKey("requestId")) {
+                Object requestIdValue = jsonObject.get("requestId");
+                marketingPreUserDetailDTO.setRequestId(requestIdValue != null ? requestIdValue.toString() : null);
+            }
+            if (!configuredFields.contains("taskId") && jsonObject.containsKey("taskId")) {
+                Object taskIdValue = jsonObject.get("taskId");
+                marketingPreUserDetailDTO.setTaskId(taskIdValue != null ? taskIdValue.toString() : null);
+            }
+        } else {
+            // 如果没有dataItems，则遍历最外层字段
+            targetObject = jsonObject;
+        }
+
+        // 遍历目标对象中的所有字段
+        for (Map.Entry<String, Object> entry : targetObject.entrySet()) {
             String fieldName = entry.getKey();
             Object fieldValue = entry.getValue();
 
             // 如果字段在ruleConfigList中存在，则跳过
             if (configuredFields.contains(fieldName)) {
+                continue;
+            }
+
+            // 处理reserveField1和reserveField2字段，如果是JSONObject则打平
+            if ("reserveField1".equals(fieldName) && fieldValue instanceof JSONObject) {
+                // 将reserveField1中的字段打平，直接放到reserveField1中
+                JSONObject reserveField1Obj = (JSONObject) fieldValue;
+                for (Map.Entry<String, Object> reserveEntry : reserveField1Obj.entrySet()) {
+                    String reserveFieldName = reserveEntry.getKey();
+                    Object reserveFieldValue = reserveEntry.getValue();
+                    // 如果嵌套字段不在配置中，则添加到reserveField1
+                    if (!configuredFields.contains(reserveFieldName)) {
+                        marketingPreUserDetailDTO.setReserveField1(setExtendField(marketingPreUserDetailDTO.getReserveField1(), reserveFieldName, reserveFieldValue));
+                    }
+                }
                 continue;
             }
 
@@ -526,6 +563,12 @@ public class DataCleanServiceImpl implements DataCleanService {
                     break;
                 case "operateType":
                     marketingPreUserDetailDTO.setOperateType(fieldValue != null ? fieldValue.toString() : null);
+                    break;
+                case "requestId":
+                    marketingPreUserDetailDTO.setRequestId(fieldValue != null ? fieldValue.toString() : null);
+                    break;
+                case "taskId":
+                    marketingPreUserDetailDTO.setTaskId(fieldValue != null ? fieldValue.toString() : null);
                     break;
                 default:
                     // 其他字段都放在reserveField1中
