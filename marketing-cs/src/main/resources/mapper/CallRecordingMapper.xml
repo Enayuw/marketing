@@ -23,7 +23,7 @@
         from b_marketing_call_recording
         where api_code = #{apiCode}
         and receive_date = #{date}
-        and status = 0
+        and status in (0,3)
         <if test="indexId != null and indexId != ''">
             and id > #{indexId}
         </if>

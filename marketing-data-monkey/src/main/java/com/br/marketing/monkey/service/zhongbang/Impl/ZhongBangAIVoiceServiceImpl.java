@@ -12,6 +12,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
+import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.dto.zbank.ZbankAIVoiceFileDetailResultDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.entity.zhongbang.ZhongbangAiVoiceFileDetail;
@@ -552,11 +553,9 @@ public class ZhongBangAIVoiceServiceImpl implements ZhongBangAIVoiceService {
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
         }
-        ZonedDateTime zonedDateTime = localDate.minusDays(1).atStartOfDay().atZone(ZoneId.systemDefault());
-        Date startDate = Date.from(zonedDateTime.toInstant());
         CallRecordingExample callRecordingExample = new CallRecordingExample();
         callRecordingExample.createCriteria().andApiCodeEqualTo(apiCode)
-                .andStatusEqualTo(CallRecordStatusEnum.PUSH_ERROR.getCode()).andCreateTimeGreaterThanOrEqualTo(startDate);
+                .andStatusEqualTo(CallRecordStatusEnum.PUSH_ERROR.getCode()).andReceiveDateEqualTo(date);
         int errorNum = callRecordingMapper.countByExample(callRecordingExample);
         if (errorNum > 0) {
             localFile.setPushStatus(String.valueOf(PushFileStatusEnum.PUSH_ERROR.getCode()));
@@ -597,7 +596,7 @@ public class ZhongBangAIVoiceServiceImpl implements ZhongBangAIVoiceService {
             paramJson.put("TskId", marketingSyncUser.getCusBatch());
             paramJson.put("UserTp", marketingSyncUser.getUserType());
             paramJson.put("MblPhnId", marketingSyncUser.getCellOriginal());
-            paramJson.put("CllStrtTm", callRecording.getCallStartTime());
+            paramJson.put("CllStrtTm", DateHelper.timestampToDateTime(callRecording.getCallStartTime()));
             paramJson.put("CsNo", callRecording.getCustNum());
             paramJson.put("TskNm", callRecording.getTaskName());
             paramJson.put("IsCnnct", callRecording.getIsConnect());
@@ -605,7 +604,7 @@ public class ZhongBangAIVoiceServiceImpl implements ZhongBangAIVoiceService {
                 paramJson.put("CalDrtn", jsonObject.get("callTimeS"));
                 paramJson.put("RspRst", jsonObject.get("returnResult"));
             }
-            paramJson.put("EndTm", callRecording.getCallEndTime());
+            paramJson.put("EndTm", DateHelper.timestampToDateTime(callRecording.getCallEndTime()));
             paramJson.put("AskTms", callRecording.getDialogTurn());
             if(StringUtils.isNotEmpty(callRecording.getCallDialog())){
                 String cleanedDialog = callRecording.getCallDialog().replaceAll("<[^>]*>", "");

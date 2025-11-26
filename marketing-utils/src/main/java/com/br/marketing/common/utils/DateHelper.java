@@ -1,6 +1,7 @@
 package com.br.marketing.common.utils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -590,7 +591,16 @@ public class DateHelper {
         return null;
     }
 
-
+    public static String timestampToDateTime(Long timestamp) {
+        if(Objects.isNull(timestamp)){
+            return null;
+        }
+        // 10位转13位
+        if (timestamp < 9999999999L) {
+            timestamp = timestamp * 1000;
+        }
+        return DateFormatUtils.format(timestamp, "yyyy-MM-dd HH:mm:ss");
+    }
 
 
 }

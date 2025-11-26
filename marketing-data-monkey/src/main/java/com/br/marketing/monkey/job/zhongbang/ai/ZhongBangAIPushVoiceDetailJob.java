@@ -12,6 +12,7 @@ import com.br.marketing.monkey.service.zhongbang.ZhongBangAIVoiceService;
 import com.br.marketing.service.Impl.JobManager;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -54,7 +55,8 @@ public class ZhongBangAIPushVoiceDetailJob extends AbstractSimpleElasticJob {
         Date startDate = Date.from(zonedDateTime.toInstant());
         Date endDate = Date.from(zonedDateTime.plusDays(1).toInstant());
         LocalFileExample localFileExample = new LocalFileExample();
-        localFileExample.createCriteria().andPushStatusEqualTo(String.valueOf(PushFileStatusEnum.RUNNING.getCode()))
+        localFileExample.createCriteria().andPushStatusIn(Lists.newArrayList(String.valueOf(PushFileStatusEnum.RUNNING.getCode()),
+                String.valueOf(PushFileStatusEnum.PUSH_ERROR.getCode())))
                 .andApiCodeEqualTo(apiCode).andFileTypeEqualTo(SftpFileTypeEnum.ZHONGBANG_AI_VOICE.getValue())
                 .andCreateTimeGreaterThanOrEqualTo(startDate).andCreateTimeLessThan(endDate);
         //查询推送录音完成的文件
