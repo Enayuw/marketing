@@ -9,8 +9,16 @@
 
     <!-- 插入数据到版本明细表 -->
     <insert id="insertData">
+        <selectKey resultType="java.lang.Long" keyProperty="resultMap.id" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
         ${insertSql}
     </insert>
+
+    <!-- 根据ID查询版本明细表数据 -->
+    <select id="selectById" resultType="java.util.HashMap">
+        select * from ${tableName} where id = #{id}
+    </select>
 
 </mapper>
 

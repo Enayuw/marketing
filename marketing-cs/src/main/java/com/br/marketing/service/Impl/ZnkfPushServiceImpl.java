@@ -8,8 +8,12 @@ import com.br.common.util.DateUtils;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
+import com.br.marketing.common.constants.rocketmq.MarketingCallRecordConstants;
 import com.br.marketing.common.constants.rocketmq.MarketingTransferConstants;
 import com.br.marketing.common.constants.rocketmq.MarketingXieChengConstants;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.SnowflakeIdGenerator;
@@ -18,6 +22,7 @@ import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.dto.customer.CallRecordDTO;
 import com.br.marketing.dto.customer.SmsRecordDTO;
+import com.br.marketing.dto.dataclean.mq.CallRecordVersionInsertDTO;
 import com.br.marketing.dto.shuhe.factory.UserTypeStrategyFactory;
 import com.br.marketing.dto.shuhe.strategy.BaseUserType;
 import com.br.marketing.dto.shuhe.strategy.CuFuJie;
@@ -34,6 +39,8 @@ import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.ZnkfPushService;
+import com.br.marketing.service.strategy.callrecording.CallRecordingInsertStrategy;
+import com.br.marketing.service.strategy.callrecording.CallRecordingInsertStrategyFactory;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import lombok.extern.slf4j.Slf4j;
@@ -582,15 +589,23 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
 
             // 生成insert语句并执行插入
             String insertSql = buildInsertSqlByJson(tableName, jsonObject);
-            marketingCallRecordVersionMapper.insertData(insertSql);
-            log.warn("插入版本明细表成功，tableName={}, sessionId={}", tableName, sessionId);
+            Map<String, Object> resultMap = new HashMap<>();
+            marketingCallRecordVersionMapper.insertData(insertSql, resultMap);
+            Long versionRecordId = resultMap.get("id") != null ? ((Number) resultMap.get("id")).longValue() : null;
+            log.warn("插入版本明细表成功，tableName={}, sessionId={}, versionRecordId={}", tableName, sessionId, versionRecordId);
 
             // 判断version版本是不是 LLMResultV2
             if ("LLMResultV2".equals(version)) {
-                // 构建CallRecording实体对象
-                CallRecording callRecording = buildCallRecordingEntity(jsonObject, sessionId);
-                callRecordingMapper.insertSelective(callRecording);
-                log.warn("插入记录表成功，sessionId={}，插入ID={}", sessionId, callRecording.getId());
+                // 异步发送mq消息去入库，只发送表名和数据id
+                CallRecordVersionInsertDTO mqMessage = new CallRecordVersionInsertDTO();
+                mqMessage.setTableName(tableName);
+                mqMessage.setDataId(versionRecordId);
+                
+                // 发送MQ消息
+                String message = JSON.toJSONString(mqMessage);
+                rocketMqSwitch.syncSend(MarketingCallRecordConstants.TOPIC,
+                        MarketingCallRecordConstants.TAG_MARKETING_CALL_RECORD_VERSION_INSERT, message);
+                log.warn("发送MQ消息成功，tableName={}, dataId={}", tableName, versionRecordId);
             }
             return "success";
         } catch (Exception ex) {
@@ -1007,5 +1022,54 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         return result.toString();
     }
 
+    @Autowired
+    private CallRecordingInsertStrategyFactory callRecordingInsertStrategyFactory;
+
+    /**
+     * 从MQ消息中插入CallRecording记录（异步消费）
+     * @param message MQ消息体（CallRecordVersionInsertDTO的JSON字符串）
+     * @return 处理结果
+     */
+    @Override
+    public Result<Boolean> insertCallRecordingFromMq(String message) {
+        Result<Boolean> result = new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(false);
+        try {
+            // 解析MQ消息
+            CallRecordVersionInsertDTO mqMessage = JSON.parseObject(message, CallRecordVersionInsertDTO.class);
+            
+            if (mqMessage == null || StringUtils.isEmpty(mqMessage.getTableName()) || mqMessage.getDataId() == null) {
+                log.error("MQ消息解析失败或参数不完整，message={}", message);
+                result.setCode(ResultCode.FAIL.getValue()).setMessage("MQ消息解析失败或参数不完整");
+                return result;
+            }
+
+            // 根据表名和数据id查询版本明细表数据
+            Map<String, Object> versionData = marketingCallRecordVersionMapper.selectById(mqMessage.getTableName(), mqMessage.getDataId());
+
+            if (versionData == null || versionData.isEmpty()) {
+                log.error("查询版本明细表数据失败，tableName={}, dataId={}", mqMessage.getTableName(), mqMessage.getDataId());
+                result.setCode(ResultCode.FAIL.getValue()).setMessage("查询版本明细表数据失败");
+                return result;
+            }
+
+            // 将查询结果转换为JSONObject
+            JSONObject jsonObject = new JSONObject(versionData);
+            String apiCode = jsonObject.getString("apiCode");
+
+            // 根据apiCode获取对应的策略
+            CallRecordingInsertStrategy strategy = callRecordingInsertStrategyFactory.getStrategy(apiCode);
+            if(strategy == null){
+                return result;
+            }
+            //todo 实现
+            strategy.buildCallRecording(jsonObject);
+
+            return result;
+        } catch (Exception e) {
+            log.error("MQ消费插入CallRecording记录失败，错误信息：{}", e.getMessage(), e);
+            result.setCode(ResultCode.FAIL.getValue()).setMessage("MQ消费插入CallRecording记录失败：" + e.getMessage());
+            return result;
+        }
+    }
 
 }
