@@ -1,6 +1,7 @@
 package com.br.marketing.service;
 
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.dto.customer.CallRecordDTO;
 import com.br.marketing.dto.customer.SmsRecordDTO;
@@ -58,4 +59,11 @@ public interface ZnkfPushService {
      * @return 处理结果
      */
     String callbackDataInsert(String jsonData);
+
+    /**
+     * 从MQ消息中插入CallRecording记录（异步消费）
+     * @param message MQ消息体（id）
+     * @return 处理结果
+     */
+    Result<Boolean> insertCallRecordingFromMq(Long message);
 }

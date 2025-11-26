@@ -664,7 +664,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             // 5. 查询通话明细记录
             CallRecordingExample example = new CallRecordingExample();
             CallRecordingExample.Criteria criteria = example.createCriteria();
-            criteria.andCustNumIn(taskUidList);
+            criteria.andApiCodeEqualTo(apiCode).andCustNumIn(taskUidList);
             List<CallRecording> callRecordingList = callRecordingMapper.selectByExample(example);
 
             // 6. 构建custNum到CallRecording的映射,taskUid=taskNo=上传custNum
@@ -681,25 +681,16 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             int failCount = 0;
 
             for (String taskUid : taskUidList) {
-                try {
-                    CallRecording recording = taskUidToRecordingMap.get(taskUid);
+                CallRecording recording = taskUidToRecordingMap.get(taskUid);
 
-                    // 7.1 当callStatus>=12或无通话明细，返回操作成功
-                    if (recording == null || recording.getCallStatus() == null || recording.getCallStatus() >= 12) {
-                        successCount++;
-                    } else {
-                        // 7.2 当callStatus<12，返回已拨号完毕无法剔除
-                        TaskStatusResponse.FailInfo failInfo = new TaskStatusResponse.FailInfo();
-                        failInfo.setTaskUid(taskUid);
-                        failInfo.setMessage("已拨号完毕无法剔除");
-                        failList.add(failInfo);
-                        failCount++;
-                    }
-                } catch (NumberFormatException e) {
-                    // taskUid格式错误，加入失败列表
+                // 7.1 当callStatus>=12或无通话明细，返回操作成功
+                if (recording == null || recording.getCallStatus() == null || recording.getCallStatus() >= 12) {
+                    successCount++;
+                } else {
+                    // 7.2 当callStatus<12，返回已拨号完毕无法剔除
                     TaskStatusResponse.FailInfo failInfo = new TaskStatusResponse.FailInfo();
                     failInfo.setTaskUid(taskUid);
-                    failInfo.setMessage("任务UID格式错误");
+                    failInfo.setMessage("已拨号完毕无法剔除");
                     failList.add(failInfo);
                     failCount++;
                 }
