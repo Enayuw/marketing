@@ -67,8 +67,9 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
             minId = drsCustomizeUploadDataList.get(drsCustomizeUploadDataList.size() - 1).getId();
 
             //解析事件推送接口原始数据
-            List<BQifuUploadDataOriginal> resultList = new ArrayList<>();
             for (DrsCustomizeUploadData drsCustomizeUploadData : drsCustomizeUploadDataList) {
+
+                List<BQifuUploadDataOriginal> resultList = new ArrayList<>();
 
                 JSONObject jsonObject = JSONObject.parseObject(drsCustomizeUploadData.getRequestJsonData());
                 List<EventPushData> eventPushDataList = jsonObject.getJSONArray("eventList").toJavaList(EventPushData.class);
@@ -89,14 +90,15 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
                         }
                     }
                 }
+                if (CollectionUtils.isEmpty(resultList)) {
+                    updateSyncStatusById(String.valueOf(drsCustomizeUploadData.getId()), 1);
+                }else {
+                    //先查询外呼信息
+                    qiFuAiEventPushService.queryCallMessage(resultList);
+                    //在事务中处理数据库操作：插入数据 + 更新状态
+                    qiFuAiEventPushService.processBatchData(resultList, drsCustomizeUploadData);
+                }
             }
-            
-            //先查询外呼信息
-            qiFuAiEventPushService.queryCallMessage(resultList);
-
-            //在事务中处理数据库操作：插入数据 + 更新状态
-            qiFuAiEventPushService.processBatchData(resultList, drsCustomizeUploadDataList);
-
         }
     }
 
@@ -118,21 +120,17 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void processBatchData(List<BQifuUploadDataOriginal> resultList,
-                                               List<DrsCustomizeUploadData> drsCustomizeUploadDataList) {
+                                 DrsCustomizeUploadData drsCustomizeUploadData) {
+        Long updateId = drsCustomizeUploadData.getId();
         try {
             //1. 插入数据
             insertRealTimeData(resultList);
 
             //2. 更新同步状态为1，确保数据已成功处理
-            for (DrsCustomizeUploadData drsCustomizeUploadData : drsCustomizeUploadDataList) {
-                updateSyncStatusById(String.valueOf(drsCustomizeUploadData.getId()), 1);
-            }
-            
-            logger.warn("批次数据处理成功，本批次处理记录数：{}，插入数据数：{}",
-                    drsCustomizeUploadDataList.size(), resultList.size());
+            updateSyncStatusById(String.valueOf(updateId), 1);
+            logger.warn("数据处理成功，本批次处理记录id：{}，插入数据数：{}", updateId, resultList.size());
         } catch (Exception e) {
-            logger.error("批次数据处理失败，回滚事务。本批次记录数：{}，错误信息：{}", 
-                    drsCustomizeUploadDataList.size(), e.getMessage(), e);
+            logger.error("批次数据处理失败，回滚事务。本批次记录id：{}，错误信息：{}", updateId, e.getMessage(), e);
             throw e;
         }
     }

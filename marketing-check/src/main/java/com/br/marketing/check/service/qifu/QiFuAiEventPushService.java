@@ -37,8 +37,8 @@ public interface QiFuAiEventPushService {
      * 在事务中处理批次数据：插入数据 + 更新状态
      *
      * @param resultList 待插入的数据列表
-     * @param drsCustomizeUploadDataList 待更新状态的数据列表
+     * @param drsCustomizeUploadData 待更新状态的数据
      */
     void processBatchData(List<BQifuUploadDataOriginal> resultList,
-                                       List<DrsCustomizeUploadData> drsCustomizeUploadDataList);
+                                       DrsCustomizeUploadData drsCustomizeUploadData);
 }
