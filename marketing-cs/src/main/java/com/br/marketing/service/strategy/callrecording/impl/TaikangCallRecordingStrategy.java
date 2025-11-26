@@ -76,10 +76,11 @@ public class TaikangCallRecordingStrategy implements CallRecordingInsertStrategy
     @Override
     public void process(CallRecordLLMResultV2 callRecordLLMResultV2) {
         Map<String, String> taikangConfig = marketingCommonConfig.getTaikangConfig();
-        String firstLevelKey = taikangConfig.getOrDefault("firstLevelKey", "returnResult");
-        String secondLevelKey = taikangConfig.getOrDefault("secondLevelKey", "returnName");
-        String applicantName =
-                Optional.ofNullable(callRecordLLMResultV2.getReserveField1()).map(TaikangCallRecordingStrategy::safeParseToJson).map((JSONObject reserveJson) -> reserveJson.getString(firstLevelKey)).map(TaikangCallRecordingStrategy::safeParseToJson).map((JSONObject rrJson) -> rrJson.getString(secondLevelKey)).orElse(null);
+        String firstLevelKey = taikangConfig.getOrDefault("firstLevelKey", "et_returnName");
+        String applicantName = Optional.ofNullable(callRecordLLMResultV2.getReserveField1())
+                .map(TaikangCallRecordingStrategy::safeParseToJson)
+                .map((JSONObject reserveJson) -> reserveJson.getString(firstLevelKey))
+                .orElse(null);
         MarketingSyncUser syncUser = marketingSyncInfoMapper.getNewestByCusnumAndStatus(callRecordLLMResultV2.getApiCode(),
                 callRecordLLMResultV2.getCustNum());
         String cell = syncUser.getCell();
