@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * CallRecording插入策略工厂
- * 
+ *
  * @author kongbx
  * @date 2025/11/26
  */
@@ -32,18 +32,14 @@ public class CallRecordingInsertStrategyFactory {
         // 初始化策略缓存
         if (strategies != null) {
             for (CallRecordingInsertStrategy strategy : strategies) {
-                String apiCode = strategy.getApiCode();
-                if (apiCode != null && !apiCode.isEmpty()) {
-                    strategyCache.put(apiCode, strategy);
-                    log.info("注册模型回调插入策略，apiCode={}, strategy={}", apiCode, strategy.getClass().getName());
-                }
+                strategy.getApiCodes().forEach((String apiCode) -> strategyCache.put(apiCode, strategy));
             }
         }
     }
 
     /**
      * 根据apiCode获取对应的策略
-     * 
+     *
      * @param apiCode API编码
      * @return 策略实例，如果找不到则返回默认策略
      */

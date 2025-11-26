@@ -7,31 +7,43 @@ import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
 import com.br.marketing.common.constants.rocketmq.MarketingCallRecordConstants;
 import com.br.marketing.common.constants.rocketmq.MarketingTransferConstants;
 import com.br.marketing.common.constants.rocketmq.MarketingXieChengConstants;
-import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.DateHelper;
-import com.br.marketing.common.utils.SnowflakeIdGenerator;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.dto.customer.CallRecordDTO;
 import com.br.marketing.dto.customer.SmsRecordDTO;
-import com.br.marketing.dto.dataclean.mq.CallRecordVersionInsertDTO;
 import com.br.marketing.dto.shuhe.factory.UserTypeStrategyFactory;
 import com.br.marketing.dto.shuhe.strategy.BaseUserType;
 import com.br.marketing.dto.shuhe.strategy.CuFuJie;
 import com.br.marketing.dto.xiecheng.XieChengReportMessageDTO;
-import com.br.marketing.entity.*;
+import com.br.marketing.entity.CallRecord;
+import com.br.marketing.entity.CallRecordLLMResultV2;
+import com.br.marketing.entity.CaseShuheUser;
+import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.entity.MarketingTransferSyncUserExample;
+import com.br.marketing.entity.RoboAIBlackPhoneMark;
+import com.br.marketing.entity.RoboAIBlackPhoneMarkExample;
+import com.br.marketing.entity.SmsCallback;
+import com.br.marketing.entity.SmsCallbackAtOnce;
+import com.br.marketing.entity.SmsCallbackAtOnceExample;
+import com.br.marketing.entity.SmsCallbackExample;
 import com.br.marketing.enums.XcReportTypeEnum;
 import com.br.marketing.enums.XieChengConsumer;
 import com.br.marketing.handle.SnowflakeRedisGeneratorHandle;
-import com.br.marketing.mapper.*;
+import com.br.marketing.mapper.CallRecordLLMResultV2Mapper;
+import com.br.marketing.mapper.CallRecordMapper;
+import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
+import com.br.marketing.mapper.RoboAIBlackPhoneMarkMapperBase;
+import com.br.marketing.mapper.SmsCallbackAtOnceMapper;
+import com.br.marketing.mapper.SmsCallbackMapper;
 import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.MrpMqFact;
@@ -43,24 +55,29 @@ import com.br.marketing.service.strategy.callrecording.CallRecordingInsertStrate
 import com.br.marketing.service.strategy.callrecording.CallRecordingInsertStrategyFactory;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
+import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.TemporalAdjusters;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
-
-import javax.annotation.Resource;
-import java.text.ParseException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAdjusters;
-import java.util.*;
 
 @Service
 @Slf4j
@@ -648,11 +665,11 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         for (String key : jsonObject.keySet()) {
 
             Object value = jsonObject.get(key);
-            
+
             // 如果detail字段是JSONObject，需要展开其内部字段
             if ("detail".equals(key) && value instanceof JSONObject) {
                 JSONObject detailObj = (JSONObject) value;
-                
+
                 // 先添加detail字段本身（json类型）
                 String columnName = camelToSnake(key);
                 if (!addedColumns.contains(columnName)) {
@@ -663,12 +680,12 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                     values.append("'").append(jsonStr).append("',");
                     addedColumns.add(columnName);
                 }
-                
+
                 // 遍历detail里的所有字段，作为独立列插入
                 for (String detailKey : detailObj.keySet()) {
                     Object detailValue = detailObj.get(detailKey);
                     String detailColumnName = camelToSnake(detailKey);
-                    
+
                     // 避免与外层字段冲突，如果冲突则跳过（外层字段优先）
                     if (!addedColumns.contains(detailColumnName) && detailValue != null) {
                         columns.append("`").append(detailColumnName).append("`,");
@@ -761,11 +778,13 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
 
             // 根据apiCode获取对应的策略
             CallRecordingInsertStrategy strategy = callRecordingInsertStrategyFactory.getStrategy(apiCode);
-            if(strategy == null){
+            if (strategy == null) {
                 return result;
             }
             //todo 实现
-            strategy.buildCallRecording();
+            if (strategy.isProcessingRequired(callRecordLLMResultV2)) {
+                strategy.process(callRecordLLMResultV2);
+            }
 
             return result;
         } catch (Exception e) {

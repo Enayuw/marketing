@@ -65,8 +65,6 @@ public class MarketingAssistConstants {
      * 客户原始数据json解析 Tag
      */
     public static final String TAG_MARKETING_CUSTOMER_DATA_JSON_PARSE = "Marketing.Customer.Data.Json.Parse";
-
-    public static final String TAG_MARKETING_TAIKANG_LEAD_TRANSFER = "marketing.taikang.lead.transfer.queue";
 //    Tag 结束
 
 
@@ -130,11 +128,6 @@ public class MarketingAssistConstants {
     * 客户原始数据json解析 consumerGroup
     */
     public static final String MARKETING_CUSTOMER_DATA_JSON_PARSE_QUEUE = "Marketing_Customer_Data_Json_Parse_Queue";
-
-    /**
-     * 泰康大健康线索线索传输消费端的 consumerGroup
-     */
-    public static final String MARKETING_TAIKANG_LEAD_TRANSFER_QUEUE = "marketing_taikang_lead_transfer_queue";
 //    consumerGroup 结束
 
 }

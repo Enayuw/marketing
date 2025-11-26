@@ -1,0 +1,128 @@
+package com.br.marketing.service.strategy.callrecording.impl;
+
+import cn.hutool.core.date.DatePattern;
+import cn.hutool.core.date.DateUtil;
+import com.alibaba.fastjson2.JSONObject;
+import com.br.common.log.AlertLog;
+import com.br.common.util.BrCipherMaker;
+import com.br.common.util.StringUtils;
+import com.br.marketing.client.taikang.TaikangClient;
+import com.br.marketing.client.taikang.TaikangMarketingEvent;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.entity.CallRecordLLMResultV2;
+import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.entity.TaikangTransferDataLog;
+import com.br.marketing.mapper.MarketingSyncInfoMapper;
+import com.br.marketing.mapper.TaikangTransferDataLogMapper;
+import com.br.marketing.service.strategy.callrecording.CallRecordingInsertStrategy;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.google.common.base.Splitter;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import javax.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+
+@Slf4j
+@Component
+public class TaikangCallRecordingStrategy implements CallRecordingInsertStrategy {
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+    @Resource
+    private MarketingSyncInfoMapper marketingSyncInfoMapper;
+    @Resource
+    private TaikangClient taikangClient;
+    @Resource
+    private TaikangTransferDataLogMapper taikangTransferDataLogMapper;
+
+    /**
+     * 获取策略支持的apiCode
+     *
+     * @return apiCode字符串，如果支持所有则返回null
+     */
+    @Override
+    public List<String> getApiCodes() {
+        Map<String, String> taikangConfig = marketingCommonConfig.getTaikangConfig();
+        String apiCodes = taikangConfig.getOrDefault("apiCode", "3750004");
+        return Splitter.on(",").splitToList(apiCodes);
+    }
+
+    /**
+     * 是否需要处理
+     *
+     * @param callRecordLLMResultV2 callRecordLLMResultV2
+     * @return {@link Boolean }
+     * @author senyang.zheng
+     * @date 2025/11/26
+     */
+    @Override
+    public Boolean isProcessingRequired(CallRecordLLMResultV2 callRecordLLMResultV2) {
+        Map<String, String> taikangConfig = marketingCommonConfig.getTaikangConfig();
+        String apiCodes = taikangConfig.getOrDefault("apiCode", "3750004");
+        List<String> apiCodeList = Splitter.on(",").splitToList(apiCodes);
+        return apiCodeList.contains(callRecordLLMResultV2.getApiCode());
+    }
+
+    /**
+     * 通话明细数据处理
+     *
+     * @param callRecordLLMResultV2 callRecordLLMResultV2
+     * @author senyang.zheng
+     * @date 2025/11/26
+     */
+    @Override
+    public void process(CallRecordLLMResultV2 callRecordLLMResultV2) {
+        Map<String, String> taikangConfig = marketingCommonConfig.getTaikangConfig();
+        String firstLevelKey = taikangConfig.getOrDefault("firstLevelKey", "returnResult");
+        String secondLevelKey = taikangConfig.getOrDefault("secondLevelKey", "returnName");
+        String applicantName =
+                Optional.ofNullable(callRecordLLMResultV2.getReserveField1()).map(TaikangCallRecordingStrategy::safeParseToJson).map((JSONObject reserveJson) -> reserveJson.getString(firstLevelKey)).map(TaikangCallRecordingStrategy::safeParseToJson).map((JSONObject rrJson) -> rrJson.getString(secondLevelKey)).orElse(null);
+        MarketingSyncUser syncUser = marketingSyncInfoMapper.getNewestByCusnumAndStatus(callRecordLLMResultV2.getApiCode(),
+                callRecordLLMResultV2.getCustNum());
+        String cell = syncUser.getCell();
+        String applicantPhone = BrCipherMaker.getInstance().decode(cell);
+        if (applicantPhone == null) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAIKANG_MARKING_SERVICEERROR.getCode(), "泰康大健康线索线索推送客户，该cell:" + cell +
+                    "解密失败，请关注！！！"));
+        }
+        String browseDate = DateUtil.format(new Date(callRecordLLMResultV2.getCallStartTime()), DatePattern.NORM_DATETIME_PATTERN);
+        TaikangMarketingEvent taikangMarketingEvent = new TaikangMarketingEvent();
+        taikangMarketingEvent.setApplicantPhone(applicantPhone);
+        taikangMarketingEvent.setBrowseDate(browseDate);
+        taikangMarketingEvent.setApplicantName(applicantName);
+        String response = taikangClient.process(taikangMarketingEvent);
+        try {
+            TaikangTransferDataLog taikangTransferDataLog = new TaikangTransferDataLog();
+            taikangTransferDataLog.setCallRecordId(callRecordLLMResultV2.getId());
+            taikangTransferDataLog.setApiCode(callRecordLLMResultV2.getApiCode());
+            taikangTransferDataLog.setCell(syncUser.getCell());
+            taikangTransferDataLog.setName(applicantName);
+            taikangTransferDataLog.setBusinessCode(JSONObject.parseObject(response).getInteger("code"));
+            taikangTransferDataLog.setReturnContent(response);
+            taikangTransferDataLogMapper.insertSelective(taikangTransferDataLog);
+        } catch (NumberFormatException e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAIKANG_MARKING_SERVICEERROR.getCode(),
+                    "泰康大健康线索线索推送客户记录日志异常，拨打明细id:" + callRecordLLMResultV2.getId()));
+        }
+        log.warn("泰康大健康线索线索推送客户response:{}", response);
+    }
+
+    /**
+     * 安全解析 JSON 字符串为 JSONObject，解析失败返回 null 并记录日志
+     */
+    private static JSONObject safeParseToJson(String jsonStr) {
+        if (StringUtils.isBlank(jsonStr)) {
+            return null;
+        }
+        try {
+            return JSONObject.parseObject(jsonStr);
+        } catch (Exception e) {
+            // 记录解析失败但不抛异常，便于 Optional 链继续工作
+            log.warn("解析 JSON 失败，input: {}", jsonStr, e);
+            return null;
+        }
+    }
+}
