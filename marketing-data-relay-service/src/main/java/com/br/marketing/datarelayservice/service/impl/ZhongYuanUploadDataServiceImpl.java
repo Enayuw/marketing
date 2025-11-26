@@ -664,14 +664,21 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             // 5. 查询通话明细记录
             CallRecordingExample example = new CallRecordingExample();
             CallRecordingExample.Criteria criteria = example.createCriteria();
-            criteria.andApiCodeEqualTo(apiCode).andCustNumIn(taskUidList);
+            criteria.andApiCodeEqualTo(apiCode).andCustNumIn(taskUidList)
+                    .andReceiveDateEqualTo(LocalDate.now().toString());
+            // 按createTime降序排序，确保获取最新的一条
+            example.setOrderByClause("create_time DESC");
             List<CallRecording> callRecordingList = callRecordingMapper.selectByExample(example);
 
             // 6. 构建custNum到CallRecording的映射,taskUid=taskNo=上传custNum
+            // 由于已按createTime降序排序，同一custNum的第一条记录就是最新的
             Map<String, CallRecording> taskUidToRecordingMap = new HashMap<>();
             for (CallRecording recording : callRecordingList) {
                 if (recording.getCustNum() != null) {
-                    taskUidToRecordingMap.put(recording.getCustNum(), recording);
+                    // 如果已存在该custNum的记录，跳过（因为已排序，第一条就是最新的）
+                    if (!taskUidToRecordingMap.containsKey(recording.getCustNum())) {
+                        taskUidToRecordingMap.put(recording.getCustNum(), recording);
+                    }
                 }
             }
 
@@ -728,5 +735,4 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.SYSTEM_ERROR.getCode(), ZhongYuanResponseCodeEnum.SYSTEM_ERROR.getMessage() + "：" + e.getMessage());
         }
     }
-
 }
