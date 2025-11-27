@@ -156,7 +156,8 @@ public class TcCpaCollidingDealServiceImpl implements TcCpaCollidingDealService 
                     TcCpaCollidingDealStatusEnum.DEAL_SUCCESS.getValue(), totalCount);
             TcyrCpaCollectTask tcyrCpaCollectTask = TcyrCpaCollectTask.builder().batchNo(tcyrCpaSuccessFile.getBatchNo())
                     .status(TcCpaSyncDealStatusEnum.DEAL_NO.getValue()).sourceId(tcyrCpaSuccessFile.getId())
-                    .sourceType(TcCpaCollidingSourceTypeEnum.SUCCESS.getValue()).build();
+                    .extend(tcyrCpaSuccessFile.getExtend()).sourceType(TcCpaCollidingSourceTypeEnum.SUCCESS.getValue())
+                    .apiCode(marketingCommonConfig.getTcyrCpaApiCode()).build();
             tcyrCpaCollectTaskMapper.insert(tcyrCpaCollectTask);
         } catch (IOException e) {
             //4.修改quick_deal_status 异常状态
