@@ -7,14 +7,13 @@
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="cell" property="cell" jdbcType="VARCHAR" />
     <result column="name" property="name" jdbcType="VARCHAR" />
-    <result column="business_code" property="businessCode" jdbcType="INTEGER" />
+    <result column="http_code" property="httpCode" jdbcType="VARCHAR" />
+    <result column="business_code" property="businessCode" jdbcType="VARCHAR" />
+    <result column="return_content" property="returnContent" jdbcType="VARCHAR" />
     <result column="extend" property="extend" jdbcType="VARCHAR" />
     <result column="is_delete" property="isDelete" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
-  </resultMap>
-  <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.TaikangTransferDataLog" extends="BaseResultMap" >
-    <result column="return_content" property="returnContent" jdbcType="LONGVARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -75,28 +74,9 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, call_record_id, api_code, cell, `name`, business_code, extend, is_delete, create_time, 
-    update_time
+    id, call_record_id, api_code, cell, `name`, http_code, business_code, return_content, 
+    extend, is_delete, create_time, update_time
   </sql>
-  <sql id="Blob_Column_List" >
-    return_content
-  </sql>
-  <select id="selectByExampleWithBLOBs" resultMap="ResultMapWithBLOBs" parameterType="com.br.marketing.entity.TaikangTransferDataLogExample" >
-    select
-    <if test="distinct" >
-      distinct
-    </if>
-    <include refid="Base_Column_List" />
-    ,
-    <include refid="Blob_Column_List" />
-    from b_taikang_transfer_data_log
-    <if test="_parameter != null" >
-      <include refid="Example_Where_Clause" />
-    </if>
-    <if test="orderByClause != null" >
-      order by ${orderByClause}
-    </if>
-  </select>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.TaikangTransferDataLogExample" >
     select
     <if test="distinct" >
@@ -111,11 +91,9 @@
       order by ${orderByClause}
     </if>
   </select>
-  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
     select 
     <include refid="Base_Column_List" />
-    ,
-    <include refid="Blob_Column_List" />
     from b_taikang_transfer_data_log
     where id = #{id,jdbcType=BIGINT}
   </select>
@@ -134,13 +112,13 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_taikang_transfer_data_log (call_record_id, api_code, cell, 
-      `name`, business_code, extend, 
-      is_delete, create_time, update_time, 
-      return_content)
+      `name`, http_code, business_code, 
+      return_content, extend, is_delete, 
+      create_time, update_time)
     values (#{callRecordId,jdbcType=BIGINT}, #{apiCode,jdbcType=VARCHAR}, #{cell,jdbcType=VARCHAR}, 
-      #{name,jdbcType=VARCHAR}, #{businessCode,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR}, 
-      #{isDelete,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
-      #{returnContent,jdbcType=LONGVARCHAR})
+      #{name,jdbcType=VARCHAR}, #{httpCode,jdbcType=VARCHAR}, #{businessCode,jdbcType=VARCHAR}, 
+      #{returnContent,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}, #{isDelete,jdbcType=INTEGER}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.TaikangTransferDataLog" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -160,8 +138,14 @@
       <if test="name != null" >
         `name`,
       </if>
+      <if test="httpCode != null" >
+        http_code,
+      </if>
       <if test="businessCode != null" >
         business_code,
+      </if>
+      <if test="returnContent != null" >
+        return_content,
       </if>
       <if test="extend != null" >
         extend,
@@ -174,9 +158,6 @@
       </if>
       <if test="updateTime != null" >
         update_time,
-      </if>
-      <if test="returnContent != null" >
-        return_content,
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
@@ -192,8 +173,14 @@
       <if test="name != null" >
         #{name,jdbcType=VARCHAR},
       </if>
+      <if test="httpCode != null" >
+        #{httpCode,jdbcType=VARCHAR},
+      </if>
       <if test="businessCode != null" >
-        #{businessCode,jdbcType=INTEGER},
+        #{businessCode,jdbcType=VARCHAR},
+      </if>
+      <if test="returnContent != null" >
+        #{returnContent,jdbcType=VARCHAR},
       </if>
       <if test="extend != null" >
         #{extend,jdbcType=VARCHAR},
@@ -206,9 +193,6 @@
       </if>
       <if test="updateTime != null" >
         #{updateTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="returnContent != null" >
-        #{returnContent,jdbcType=LONGVARCHAR},
       </if>
     </trim>
   </insert>
@@ -236,8 +220,14 @@
       <if test="record.name != null" >
         `name` = #{record.name,jdbcType=VARCHAR},
       </if>
+      <if test="record.httpCode != null" >
+        http_code = #{record.httpCode,jdbcType=VARCHAR},
+      </if>
       <if test="record.businessCode != null" >
-        business_code = #{record.businessCode,jdbcType=INTEGER},
+        business_code = #{record.businessCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.returnContent != null" >
+        return_content = #{record.returnContent,jdbcType=VARCHAR},
       </if>
       <if test="record.extend != null" >
         extend = #{record.extend,jdbcType=VARCHAR},
@@ -251,27 +241,7 @@
       <if test="record.updateTime != null" >
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.returnContent != null" >
-        return_content = #{record.returnContent,jdbcType=LONGVARCHAR},
-      </if>
     </set>
-    <if test="_parameter != null" >
-      <include refid="Update_By_Example_Where_Clause" />
-    </if>
-  </update>
-  <update id="updateByExampleWithBLOBs" parameterType="map" >
-    update b_taikang_transfer_data_log
-    set id = #{record.id,jdbcType=BIGINT},
-      call_record_id = #{record.callRecordId,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      cell = #{record.cell,jdbcType=VARCHAR},
-      `name` = #{record.name,jdbcType=VARCHAR},
-      business_code = #{record.businessCode,jdbcType=INTEGER},
-      extend = #{record.extend,jdbcType=VARCHAR},
-      is_delete = #{record.isDelete,jdbcType=INTEGER},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      return_content = #{record.returnContent,jdbcType=LONGVARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -283,7 +253,9 @@
       api_code = #{record.apiCode,jdbcType=VARCHAR},
       cell = #{record.cell,jdbcType=VARCHAR},
       `name` = #{record.name,jdbcType=VARCHAR},
-      business_code = #{record.businessCode,jdbcType=INTEGER},
+      http_code = #{record.httpCode,jdbcType=VARCHAR},
+      business_code = #{record.businessCode,jdbcType=VARCHAR},
+      return_content = #{record.returnContent,jdbcType=VARCHAR},
       extend = #{record.extend,jdbcType=VARCHAR},
       is_delete = #{record.isDelete,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
@@ -307,8 +279,14 @@
       <if test="name != null" >
         `name` = #{name,jdbcType=VARCHAR},
       </if>
+      <if test="httpCode != null" >
+        http_code = #{httpCode,jdbcType=VARCHAR},
+      </if>
       <if test="businessCode != null" >
-        business_code = #{businessCode,jdbcType=INTEGER},
+        business_code = #{businessCode,jdbcType=VARCHAR},
+      </if>
+      <if test="returnContent != null" >
+        return_content = #{returnContent,jdbcType=VARCHAR},
       </if>
       <if test="extend != null" >
         extend = #{extend,jdbcType=VARCHAR},
@@ -322,24 +300,7 @@
       <if test="updateTime != null" >
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="returnContent != null" >
-        return_content = #{returnContent,jdbcType=LONGVARCHAR},
-      </if>
     </set>
-    where id = #{id,jdbcType=BIGINT}
-  </update>
-  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.br.marketing.entity.TaikangTransferDataLog" >
-    update b_taikang_transfer_data_log
-    set call_record_id = #{callRecordId,jdbcType=BIGINT},
-      api_code = #{apiCode,jdbcType=VARCHAR},
-      cell = #{cell,jdbcType=VARCHAR},
-      `name` = #{name,jdbcType=VARCHAR},
-      business_code = #{businessCode,jdbcType=INTEGER},
-      extend = #{extend,jdbcType=VARCHAR},
-      is_delete = #{isDelete,jdbcType=INTEGER},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP},
-      return_content = #{returnContent,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.TaikangTransferDataLog" >
@@ -348,7 +309,9 @@
       api_code = #{apiCode,jdbcType=VARCHAR},
       cell = #{cell,jdbcType=VARCHAR},
       `name` = #{name,jdbcType=VARCHAR},
-      business_code = #{businessCode,jdbcType=INTEGER},
+      http_code = #{httpCode,jdbcType=VARCHAR},
+      business_code = #{businessCode,jdbcType=VARCHAR},
+      return_content = #{returnContent,jdbcType=VARCHAR},
       extend = #{extend,jdbcType=VARCHAR},
       is_delete = #{isDelete,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},

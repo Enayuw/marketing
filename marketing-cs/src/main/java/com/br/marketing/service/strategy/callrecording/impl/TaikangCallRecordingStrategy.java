@@ -10,7 +10,6 @@ import com.br.marketing.client.taikang.TaikangClient;
 import com.br.marketing.client.taikang.TaikangMarketingEvent;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.CallRecordLLMResultV2;
-import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.TaikangTransferDataLog;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.TaikangTransferDataLogMapper;
@@ -31,8 +30,6 @@ public class TaikangCallRecordingStrategy implements CallRecordingInsertStrategy
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
-    @Resource
-    private MarketingSyncInfoMapper marketingSyncInfoMapper;
     @Resource
     private TaikangClient taikangClient;
     @Resource
@@ -94,7 +91,18 @@ public class TaikangCallRecordingStrategy implements CallRecordingInsertStrategy
             taikangTransferDataLog.setApiCode(callRecordLLMResultV2.getApiCode());
             taikangTransferDataLog.setCell(cell);
             taikangTransferDataLog.setName(applicantName);
-            taikangTransferDataLog.setBusinessCode(JSONObject.parseObject(response).getInteger("code"));
+            String httpCode = Optional.ofNullable(response)
+                    .map(TaikangCallRecordingStrategy::safeParseToJson)
+                    .map((JSONObject res) -> res.getString("httpcode"))
+                    .orElse(null);
+            taikangTransferDataLog.setHttpCode(httpCode);
+            String businessCode = Optional.ofNullable(response)
+                    .map(TaikangCallRecordingStrategy::safeParseToJson)
+                    .map((JSONObject res) -> res.getString("content"))
+                    .map(TaikangCallRecordingStrategy::safeParseToJson)
+                    .map((JSONObject cnt) -> cnt.getString("code"))
+                    .orElse(null);
+            taikangTransferDataLog.setBusinessCode(businessCode);
             taikangTransferDataLog.setReturnContent(response);
             taikangTransferDataLogMapper.insertSelective(taikangTransferDataLog);
         } catch (NumberFormatException e) {

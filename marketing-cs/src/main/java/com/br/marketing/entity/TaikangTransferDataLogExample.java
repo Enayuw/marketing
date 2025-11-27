@@ -435,6 +435,76 @@ public class TaikangTransferDataLogExample {
             return (Criteria) this;
         }
 
+        public Criteria andHttpCodeIsNull() {
+            addCriterion("http_code is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andHttpCodeIsNotNull() {
+            addCriterion("http_code is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andHttpCodeEqualTo(String value) {
+            addCriterion("http_code =", value, "httpCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andHttpCodeNotEqualTo(String value) {
+            addCriterion("http_code <>", value, "httpCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andHttpCodeGreaterThan(String value) {
+            addCriterion("http_code >", value, "httpCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andHttpCodeGreaterThanOrEqualTo(String value) {
+            addCriterion("http_code >=", value, "httpCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andHttpCodeLessThan(String value) {
+            addCriterion("http_code <", value, "httpCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andHttpCodeLessThanOrEqualTo(String value) {
+            addCriterion("http_code <=", value, "httpCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andHttpCodeLike(String value) {
+            addCriterion("http_code like", value, "httpCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andHttpCodeNotLike(String value) {
+            addCriterion("http_code not like", value, "httpCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andHttpCodeIn(List<String> values) {
+            addCriterion("http_code in", values, "httpCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andHttpCodeNotIn(List<String> values) {
+            addCriterion("http_code not in", values, "httpCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andHttpCodeBetween(String value1, String value2) {
+            addCriterion("http_code between", value1, value2, "httpCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andHttpCodeNotBetween(String value1, String value2) {
+            addCriterion("http_code not between", value1, value2, "httpCode");
+            return (Criteria) this;
+        }
+
         public Criteria andBusinessCodeIsNull() {
             addCriterion("business_code is null");
             return (Criteria) this;
@@ -445,53 +515,133 @@ public class TaikangTransferDataLogExample {
             return (Criteria) this;
         }
 
-        public Criteria andBusinessCodeEqualTo(Integer value) {
+        public Criteria andBusinessCodeEqualTo(String value) {
             addCriterion("business_code =", value, "businessCode");
             return (Criteria) this;
         }
 
-        public Criteria andBusinessCodeNotEqualTo(Integer value) {
+        public Criteria andBusinessCodeNotEqualTo(String value) {
             addCriterion("business_code <>", value, "businessCode");
             return (Criteria) this;
         }
 
-        public Criteria andBusinessCodeGreaterThan(Integer value) {
+        public Criteria andBusinessCodeGreaterThan(String value) {
             addCriterion("business_code >", value, "businessCode");
             return (Criteria) this;
         }
 
-        public Criteria andBusinessCodeGreaterThanOrEqualTo(Integer value) {
+        public Criteria andBusinessCodeGreaterThanOrEqualTo(String value) {
             addCriterion("business_code >=", value, "businessCode");
             return (Criteria) this;
         }
 
-        public Criteria andBusinessCodeLessThan(Integer value) {
+        public Criteria andBusinessCodeLessThan(String value) {
             addCriterion("business_code <", value, "businessCode");
             return (Criteria) this;
         }
 
-        public Criteria andBusinessCodeLessThanOrEqualTo(Integer value) {
+        public Criteria andBusinessCodeLessThanOrEqualTo(String value) {
             addCriterion("business_code <=", value, "businessCode");
             return (Criteria) this;
         }
 
-        public Criteria andBusinessCodeIn(List<Integer> values) {
+        public Criteria andBusinessCodeLike(String value) {
+            addCriterion("business_code like", value, "businessCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andBusinessCodeNotLike(String value) {
+            addCriterion("business_code not like", value, "businessCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andBusinessCodeIn(List<String> values) {
             addCriterion("business_code in", values, "businessCode");
             return (Criteria) this;
         }
 
-        public Criteria andBusinessCodeNotIn(List<Integer> values) {
+        public Criteria andBusinessCodeNotIn(List<String> values) {
             addCriterion("business_code not in", values, "businessCode");
             return (Criteria) this;
         }
 
-        public Criteria andBusinessCodeBetween(Integer value1, Integer value2) {
+        public Criteria andBusinessCodeBetween(String value1, String value2) {
             addCriterion("business_code between", value1, value2, "businessCode");
             return (Criteria) this;
         }
 
-        public Criteria andBusinessCodeNotBetween(Integer value1, Integer value2) {
+        public Criteria andBusinessCodeNotBetween(String value1, String value2) {
             addCriterion("business_code not between", value1, value2, "businessCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnContentIsNull() {
+            addCriterion("return_content is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnContentIsNotNull() {
+            addCriterion("return_content is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnContentEqualTo(String value) {
+            addCriterion("return_content =", value, "returnContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnContentNotEqualTo(String value) {
+            addCriterion("return_content <>", value, "returnContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnContentGreaterThan(String value) {
+            addCriterion("return_content >", value, "returnContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnContentGreaterThanOrEqualTo(String value) {
+            addCriterion("return_content >=", value, "returnContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnContentLessThan(String value) {
+            addCriterion("return_content <", value, "returnContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnContentLessThanOrEqualTo(String value) {
+            addCriterion("return_content <=", value, "returnContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnContentLike(String value) {
+            addCriterion("return_content like", value, "returnContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnContentNotLike(String value) {
+            addCriterion("return_content not like", value, "returnContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnContentIn(List<String> values) {
+            addCriterion("return_content in", values, "returnContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnContentNotIn(List<String> values) {
+            addCriterion("return_content not in", values, "returnContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnContentBetween(String value1, String value2) {
+            addCriterion("return_content between", value1, value2, "returnContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andReturnContentNotBetween(String value1, String value2) {
+            addCriterion("return_content not between", value1, value2, "returnContent");
             return (Criteria) this;
         }
 
