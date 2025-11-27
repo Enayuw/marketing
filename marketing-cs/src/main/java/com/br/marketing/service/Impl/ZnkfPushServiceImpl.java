@@ -24,17 +24,7 @@ import com.br.marketing.dto.shuhe.factory.UserTypeStrategyFactory;
 import com.br.marketing.dto.shuhe.strategy.BaseUserType;
 import com.br.marketing.dto.shuhe.strategy.CuFuJie;
 import com.br.marketing.dto.xiecheng.XieChengReportMessageDTO;
-import com.br.marketing.entity.CallRecord;
-import com.br.marketing.entity.CallRecordLLMResultV2;
-import com.br.marketing.entity.CaseShuheUser;
-import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.entity.MarketingTransferSyncUserExample;
-import com.br.marketing.entity.RoboAIBlackPhoneMark;
-import com.br.marketing.entity.RoboAIBlackPhoneMarkExample;
-import com.br.marketing.entity.SmsCallback;
-import com.br.marketing.entity.SmsCallbackAtOnce;
-import com.br.marketing.entity.SmsCallbackAtOnceExample;
-import com.br.marketing.entity.SmsCallbackExample;
+import com.br.marketing.entity.*;
 import com.br.marketing.enums.XcReportTypeEnum;
 import com.br.marketing.enums.XieChengConsumer;
 import com.br.marketing.handle.SnowflakeRedisGeneratorHandle;
@@ -51,6 +41,7 @@ import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.ZnkfPushService;
+import com.br.marketing.service.strategy.callrecording.CallRecordingHandlerService;
 import com.br.marketing.service.strategy.callrecording.CallRecordingInsertStrategy;
 import com.br.marketing.service.strategy.callrecording.CallRecordingInsertStrategyFactory;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -790,7 +781,6 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             if (strategy == null) {
                 return result;
             }
-            //todo 实现
             if (strategy.isProcessingRequired(callRecordLLMResultV2)) {
                 strategy.process(callRecordLLMResultV2);
             }
