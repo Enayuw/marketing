@@ -1,7 +1,7 @@
-package com.br.marketing.check.job.qifu;
+package com.br.marketing.monkey.job.qifu;
 
 
-import com.br.marketing.check.service.qifu.QiFuAiEventPushService;
+import com.br.marketing.monkey.service.qifu.QiFuAiEventPushService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import org.slf4j.Logger;
