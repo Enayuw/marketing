@@ -134,7 +134,6 @@ public class ZhongBangAIServiceImpl implements ZhongBangAIService {
                 } else {
                     log.warn("众邦AI({})在{}~{}时间段内没有查询到txt文件{}", apiCode, beginDate, endDate, txtFileName);
                 }
-                break;
             }
         } else {
             log.warn("众邦AI({})在{}~{}时间段内没有查询到ok文件{}", apiCode, beginDate, endDate, fileName);
@@ -157,11 +156,10 @@ public class ZhongBangAIServiceImpl implements ZhongBangAIService {
      */
     private boolean mkdirPath(String path, String apiCode, String fileName) {
         File file = new File(path);
-        if (!file.exists()) {
-            if (!file.mkdirs()) {
-                log.error("众邦AI({})拉取文件目录创建失败，path:{},name:{}", apiCode, path, fileName);
-                return true;
-            }
+        if (!file.exists() && !file.mkdirs()) {
+            log.error("众邦AI({})拉取文件目录创建失败，path:{},name:{}", apiCode, path, fileName);
+            return true;
+
         }
         return false;
     }
@@ -200,21 +198,30 @@ public class ZhongBangAIServiceImpl implements ZhongBangAIService {
             , String apiCode, String[] tableHead, int heads, String regex, LocalFile localFile, int rowNum) {
         PullCustomerFileData fileData = new PullCustomerFileData();
         String[] rows;
-        if (StringUtils.isBlank(lineTxt) || (rows = lineTxt.split(regex,-1)).length != heads) {
-            log.warn("文件数据分割长度rowlength={},headlength={}",lineTxt.split(regex).length,heads);
+        if (StringUtils.isBlank(lineTxt)) {
+            log.warn("文件数据为空");
             fileData.setDataStatus(2);
-            localFile.setComplete(StringUtils.isBlank(lineTxt) ? null : "3");
+            localFile.setComplete(null);
             localFile.setErrorActualNumber(localFile.getErrorActualNumber() + 1);
         } else {
-            try {
-                JSONObject jsonObject = new JSONObject();
-                for (int i = 0; i < heads; i++) {
-                    jsonObject.put(tableHead[i], rows[i]);
+            rows = lineTxt.split(regex, -1);
+            if (rows.length != heads) {
+                log.warn("文件数据分割长度rowlength={},headlength={}", rows.length, heads);
+                fileData.setDataStatus(2);
+                localFile.setComplete("3");
+                localFile.setErrorActualNumber(localFile.getErrorActualNumber() + 1);
+            } else {
+                try {
+                    JSONObject jsonObject = new JSONObject();
+                    for (int i = 0; i < heads; i++) {
+                        jsonObject.put(tableHead[i], rows[i]);
+                    }
+                    fileData.setJsonData(jsonObject.toJSONString());}
+                catch (Exception e) {
+                    log.warn("众邦AI({})解析文件数据异常，行号:{}, 错误:{}", apiCode, rowNum, e.getMessage());
                 }
-                fileData.setJsonData(jsonObject.toJSONString());
-            } catch (Exception ignored) {
+                fileData.setDataStatus(1);
             }
-            fileData.setDataStatus(1);
         }
         fileData.setFileData(lineTxt);
         fileData.setApiCode(apiCode);
@@ -274,6 +281,7 @@ public class ZhongBangAIServiceImpl implements ZhongBangAIService {
                 TimeUnit.SECONDS.sleep(10);
             } catch (InterruptedException e) {
                 log.error(e.getMessage(), e);
+                Thread.currentThread().interrupt();
                 break;
             }
         }

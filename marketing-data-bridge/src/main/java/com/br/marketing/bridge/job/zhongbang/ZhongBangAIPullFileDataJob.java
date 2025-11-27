@@ -174,24 +174,32 @@ public class ZhongBangAIPullFileDataJob extends AbstractSimpleElasticJob {
         int lengthIs3 = 3;
         int lengthIs2 = 2;
         String[] dateTimeStr;
-        if (paramJson == null || (dateTimeStr = paramJson.getString(apiCode).split(regex)).length == 0) {
+        if (paramJson == null) {
             dateStr = localDate;
             beginDateTime = LocalDate.now().atStartOfDay().format(DATE_TIME_FORMATTER);
             endDateTime = LocalDate.now().atTime(23, 59, 59)
                     .atZone(ZoneId.systemDefault()).format(DATE_TIME_FORMATTER);
-        } else if (lengthIs3 == dateTimeStr.length) {
-            dateStr = dateTimeStr[0];
-            beginDateTime = dateTimeStr[1];
-            endDateTime = dateTimeStr[2];
-        } else if (lengthIs2 == dateTimeStr.length) {
-            dateStr = localDate;
-            beginDateTime = dateTimeStr[0];
-            endDateTime = dateTimeStr[1];
         } else {
-            dateStr = dateTimeStr[0];
-            beginDateTime = LocalDate.now().atStartOfDay().format(DATE_TIME_FORMATTER);
-            endDateTime = LocalDate.now().atTime(23, 59, 59)
-                    .atZone(ZoneId.systemDefault()).format(DATE_TIME_FORMATTER);
+            dateTimeStr = paramJson.getString(apiCode).split(regex);
+            if (dateTimeStr.length == 0) {
+                dateStr = localDate;
+                beginDateTime = LocalDate.now().atStartOfDay().format(DATE_TIME_FORMATTER);
+                endDateTime = LocalDate.now().atTime(23, 59, 59)
+                        .atZone(ZoneId.systemDefault()).format(DATE_TIME_FORMATTER);
+            } else if (lengthIs3 == dateTimeStr.length) {
+                dateStr = dateTimeStr[0];
+                beginDateTime = dateTimeStr[1];
+                endDateTime = dateTimeStr[2];
+            } else if (lengthIs2 == dateTimeStr.length) {
+                dateStr = localDate;
+                beginDateTime = dateTimeStr[0];
+                endDateTime = dateTimeStr[1];
+            } else {
+                dateStr = dateTimeStr[0];
+                beginDateTime = LocalDate.now().atStartOfDay().format(DATE_TIME_FORMATTER);
+                endDateTime = LocalDate.now().atTime(23, 59, 59)
+                        .atZone(ZoneId.systemDefault()).format(DATE_TIME_FORMATTER);
+            }
         }
         list.add(dateStr);
         list.add(beginDateTime);
