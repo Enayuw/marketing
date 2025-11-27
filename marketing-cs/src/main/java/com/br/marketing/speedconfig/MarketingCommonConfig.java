@@ -3558,10 +3558,5 @@ public class MarketingCommonConfig {
      */
     private Map<String,String> taikangConfig;
 
-    /**
-     * 通用回调apiCode配置映射
-     * {"7410990":"TaikangCallRecordingStrategy"}
-     */
-    private Map<String,String> generalCallbackConfig;
 
 }

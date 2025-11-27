@@ -24,17 +24,7 @@ import com.br.marketing.dto.shuhe.factory.UserTypeStrategyFactory;
 import com.br.marketing.dto.shuhe.strategy.BaseUserType;
 import com.br.marketing.dto.shuhe.strategy.CuFuJie;
 import com.br.marketing.dto.xiecheng.XieChengReportMessageDTO;
-import com.br.marketing.entity.CallRecord;
-import com.br.marketing.entity.CallRecordLLMResultV2;
-import com.br.marketing.entity.CaseShuheUser;
-import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.entity.MarketingTransferSyncUserExample;
-import com.br.marketing.entity.RoboAIBlackPhoneMark;
-import com.br.marketing.entity.RoboAIBlackPhoneMarkExample;
-import com.br.marketing.entity.SmsCallback;
-import com.br.marketing.entity.SmsCallbackAtOnce;
-import com.br.marketing.entity.SmsCallbackAtOnceExample;
-import com.br.marketing.entity.SmsCallbackExample;
+import com.br.marketing.entity.*;
 import com.br.marketing.enums.XcReportTypeEnum;
 import com.br.marketing.enums.XieChengConsumer;
 import com.br.marketing.handle.SnowflakeRedisGeneratorHandle;
@@ -51,6 +41,7 @@ import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.ZnkfPushService;
+import com.br.marketing.service.strategy.callrecording.CallRecordingHandlerService;
 import com.br.marketing.service.strategy.callrecording.CallRecordingInsertStrategy;
 import com.br.marketing.service.strategy.callrecording.CallRecordingInsertStrategyFactory;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -704,6 +695,15 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             }
         }
 
+        // 默认增加 receive_date 字段，值为 LocalDate.now()
+        String receiveDateColumn = "receive_date";
+        if (!addedColumns.contains(receiveDateColumn)) {
+            columns.append("`").append(receiveDateColumn).append("`,");
+            String dateValue = LocalDate.now().toString();
+            values.append("'").append(dateValue).append("',");
+            addedColumns.add(receiveDateColumn);
+        }
+
         // 移除最后的逗号
         if (columns.length() > 0 && columns.charAt(columns.length() - 1) == ',') {
             columns.setLength(columns.length() - 1);
@@ -712,7 +712,9 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             values.setLength(values.length() - 1);
         }
 
-        sql.append("INSERT INTO `").append(tableName).append("` (");
+        sql.append("INSERT INTO `");
+        sql.append(tableName);
+        sql.append("` (");
         sql.append(columns);
         sql.append(") VALUES (");
         sql.append(values);
@@ -734,11 +736,6 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             values.append(value).append(",");
         } else if (value instanceof JSONObject || value instanceof Map) {
             // JSON对象转为JSON字符串
-            String jsonStr = JSON.toJSONString(value);
-            jsonStr = jsonStr.replace("\\", "\\\\").replace("'", "\\'");
-            values.append("'").append(jsonStr).append("',");
-        } else if (value instanceof List) {
-            // List转为JSON字符串
             String jsonStr = JSON.toJSONString(value);
             jsonStr = jsonStr.replace("\\", "\\\\").replace("'", "\\'");
             values.append("'").append(jsonStr).append("',");
@@ -781,7 +778,6 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             if (strategy == null) {
                 return result;
             }
-            //todo 实现
             if (strategy.isProcessingRequired(callRecordLLMResultV2)) {
                 strategy.process(callRecordLLMResultV2);
             }
