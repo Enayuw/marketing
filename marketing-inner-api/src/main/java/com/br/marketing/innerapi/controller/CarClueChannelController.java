@@ -13,10 +13,10 @@ import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.carclue.web.CarClueChannelService;
 import com.br.marketing.vo.CarClueChannelConfigVO;
 import com.br.marketing.vo.CarClueChannelVo;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -36,7 +36,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping(value = "/carChannel")
-@Api(value = "车线索外采渠道管理", tags = "车线索外采渠道管理", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "车线索外采渠道管理", description = "车线索外采渠道管理")
 public class CarClueChannelController {
 
     @Resource
@@ -45,8 +45,8 @@ public class CarClueChannelController {
     private static final Logger log = LoggerFactory.getLogger(CarClueReportController.class);
 
     @PostMapping("/getCarClueChannelList")
-    @ApiOperation(value = "车线索外采渠道管理列表", notes = "车线索外采渠道管理列表")
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = CarClueChannelVo.class)})
+    @Operation(summary = "车线索外采渠道管理列表", description = "车线索外采渠道管理列表")
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR")})
     @AddDataAuthBusiness
     public ApiResult<PageResultReturn> getCarClueChannelList(@RequestBody @Valid CarClueChannelDTO request) {
         PageResultReturn result = carClueChannelService.getCarClueChannelList(request);
@@ -56,7 +56,7 @@ public class CarClueChannelController {
         return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.FAILED);
     }
 
-    @ApiOperation(value = "判断是否存在待清洗的文档记录", notes = "判断是否存在待清洗的文档记录")
+    @Operation(summary = "判断是否存在待清洗的文档记录", description = "判断是否存在待清洗的文档记录")
     @GetMapping("/checkCleanFile")
     public ApiResult<Boolean> checkCleanFile() {
         try {
@@ -68,7 +68,7 @@ public class CarClueChannelController {
         }
     }
 
-    @ApiOperation(value = "更新初始外采信息", notes = "更新初始外采信息")
+    @Operation(summary = "更新初始外采信息", description = "更新初始外采信息")
     @PostMapping(value = "/updateInitMapping", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResult<Boolean> updateInitMapping(@RequestParam(value = "scope", required = false) List<String> scope,
                                                 @RequestPart(value = "multipartFile", required = false) MultipartFile multipartFile) {
@@ -82,7 +82,7 @@ public class CarClueChannelController {
     }
 
     @PostMapping("/getChannelConfig")
-    @ApiOperation(value = "获取渠道商配置", notes = "获取渠道商配置")
+    @Operation(summary = "获取渠道商配置", description = "获取渠道商配置")
     @AddDataAuthBusiness
     public ApiResult<CarClueChannelConfigVO> getChannelConfig() {
         try {
@@ -94,7 +94,7 @@ public class CarClueChannelController {
         }
     }
 
-    @ApiOperation(value = "新增修改渠道商配置", notes = "新增修改渠道商配置")
+    @Operation(summary = "新增修改渠道商配置", description = "新增修改渠道商配置")
     @PostMapping("/updateChannelConfig")
     public ApiResult<Boolean> updateChannelConfig(@RequestBody @Validated CarClueChannelConfigDTO dto) {
         try {

@@ -1,7 +1,5 @@
 package com.br.marketing.entity;
 
-import io.swagger.models.auth.In;
-
 import java.util.Date;
 
 public class CarChannelConfig {

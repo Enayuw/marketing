@@ -8,7 +8,7 @@ import com.br.marketing.service.ScoreDistRuleService;
 import com.br.marketing.vo.ConditionOfScoreVO;
 import com.br.marketing.vo.ScoreDistRuleVo;
 import com.br.marketing.vo.bi.AxisWrapVO;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
@@ -28,37 +28,37 @@ public class ScoreDistRuleController {
     @Resource
     ScoreDistRuleService scoreDistRuleService;
 
-    @ApiOperation(value = "查询评分分布规则模板列表")
+    @Operation(summary = "查询评分分布规则模板列表")
     @PostMapping("/getScoreDistRuleList")
     public ApiResult<PageResultReturn<ScoreDistRuleVo>> getScoreDistRuleList(@RequestBody SearchConditionDTO dto) {
         return new ApiResult<PageResultReturn<ScoreDistRuleVo>>().fromResult(scoreDistRuleService.getScoreDistRuleList(dto), CODE_1);
     }
 
-    @ApiOperation(value = "获取模板")
+    @Operation(summary = "获取模板")
     @GetMapping("/getScoreDistRuleByApiCode")
     public ApiResult<List<ScoreDistRuleVo>> getScoreDistRuleByApiCode(String apiCode) {
         return new ApiResult<List<ScoreDistRuleVo>>().fromResult(scoreDistRuleService.getScoreDistRuleByApiCode(apiCode), CODE_1);
     }
 
-    @ApiOperation(value = "查询评分分布规则模板详情")
+    @Operation(summary = "查询评分分布规则模板详情")
     @GetMapping("/getScoreDistRuleDetail")
     public ApiResult<List<AxisWrapVO>> getScoreDistRuleDetail(@RequestParam Long configId) {
         return new ApiResult<List<AxisWrapVO>>().success(scoreDistRuleService.getScoreDistRuleDetail(configId));
     }
 
-    @ApiOperation(value = "评分分布规则模板禁用")
+    @Operation(summary = "评分分布规则模板禁用")
     @PatchMapping("/forbScoreDistRule")
     public ApiResult forbScoreDistRule(@RequestParam Long configId) {
         return new ApiResult().fromResult(scoreDistRuleService.forbScoreDistRule(configId), CODE_1);
     }
 
-    @ApiOperation(value = "评分分布规则模板启用")
+    @Operation(summary = "评分分布规则模板启用")
     @PatchMapping("/enableScoreDistRule")
     public ApiResult enableScoreDistRule(@RequestParam Long configId) {
         return new ApiResult().fromResult(scoreDistRuleService.enableScoreDistRule(configId), CODE_1);
     }
 
-    @ApiOperation(value = "评分分布规则模板删除")
+    @Operation(summary = "评分分布规则模板删除")
     @PatchMapping("/deleteScoreDistRule")
     public ApiResult deleteScoreDistRule(@RequestParam Long configId) {
         return new ApiResult().fromResult(scoreDistRuleService.deleteScoreDistRule(configId), CODE_1);

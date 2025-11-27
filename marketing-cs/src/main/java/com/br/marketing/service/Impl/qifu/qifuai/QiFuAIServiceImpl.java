@@ -19,6 +19,7 @@ import com.br.marketing.mapper.DrsCustomizeUploadDataMapper;
 import com.br.marketing.service.Impl.qifu.valobj.QiFuSyncStatusEnum;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.stereotype.Service;
@@ -166,8 +167,7 @@ public class QiFuAIServiceImpl implements QiFuAIService {
         if (StringUtils.isNotBlank(qifuAiCleanConfig.getString("queryCallThreadNum"))) {
             Integer threadNum = Integer.valueOf(qifuAiCleanConfig.getString("queryCallThreadNum"));
             if (executor.getCorePoolSize() != threadNum.intValue()) {
-                executor.setCorePoolSize(threadNum);
-                executor.setMaximumPoolSize(threadNum);
+                ThreadPoolAdjustmentUtil.adjustThreadPoolSize(executor, threadNum);
             }
         }
         return Boolean.FALSE;

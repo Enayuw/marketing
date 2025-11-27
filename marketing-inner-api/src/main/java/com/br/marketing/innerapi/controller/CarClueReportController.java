@@ -14,7 +14,12 @@ import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.carclue.web.CarClueReportService;
 import com.br.marketing.vo.CarClueInfoVo;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.validation.annotation.Validated;
@@ -33,7 +38,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping(value = "/car")
-@Api(value = "车线索列表", tags = "车线索列表", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "车线索列表", description = "车线索列表")
 public class CarClueReportController {
 
     @Resource
@@ -44,8 +49,8 @@ public class CarClueReportController {
 
 
     @PostMapping("/getCarClueList")
-    @ApiOperation(value = "车线索数据统计报表列表", notes = "车线索数据统计报表列表")
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = CarClueInfoVo.class)})
+    @Operation(summary = "车线索数据统计报表列表", description = "车线索数据统计报表列表")
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR")})
     @AddDataAuthBusiness
     public ApiResult<PageResultReturn> getReportList(@RequestBody @Valid CarClueReportDTO request) {
         PageResultReturn result = carClueReportService.getReportList(request);
@@ -56,7 +61,7 @@ public class CarClueReportController {
     }
 
 
-    @ApiOperation(value = "批量编辑车线索信息", notes = "批量编辑车线索信息")
+    @Operation(summary = "批量编辑车线索信息", description = "批量编辑车线索信息")
     @PostMapping("/editCarClues")
     public ApiResult<Boolean> editCarClues(@RequestBody @Validated List<CarClueInfo> voList) {
         try {
@@ -68,7 +73,7 @@ public class CarClueReportController {
         }
     }
 
-    @ApiOperation(value = "增加线索执行记录", notes = "增加线索执行记录")
+    @Operation(summary = "增加线索执行记录", description = "增加线索执行记录")
     @PostMapping("/executeClueData")
     public ApiResult<Boolean> executeClueData(@RequestBody @Validated ExecuteCarClueDTO dto) {
         try {

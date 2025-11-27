@@ -35,13 +35,14 @@ import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.br.marketing.util.PeriodOfValidityHelper;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
-import shaded.com.google.common.hash.BloomFilter;
-import shaded.com.google.common.hash.Funnels;
+import com.google.common.hash.BloomFilter;
+import com.google.common.hash.Funnels;
 
 import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
@@ -788,10 +789,8 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
         } else {
             return;
         }
-        pool.setCorePoolSize(poolSize);
-        pool.setMaximumPoolSize(poolSize);
-        pushPool.setCorePoolSize(pushPoolSize);
-        pushPool.setMaximumPoolSize(pushPoolSize);
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(pool, poolSize);
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(pushPool, pushPoolSize);
     }
 
     /**

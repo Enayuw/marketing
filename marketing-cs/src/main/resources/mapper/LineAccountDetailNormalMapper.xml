@@ -4,19 +4,19 @@
 
     <select id="selectLineIfExist" resultType="java.lang.Long">
         select
-            gateway_id
+        gateway_id
         from
-            b_marketing_line_account_detail_normal
+        b_marketing_line_account_detail_normal
         where
         gateway_id in
-            <foreach collection = "gatewayIds" item = "gatewayId" open = "(" separator = "," close = ")">
-                #{gatewayId}
-            </foreach>
-            <if test = "groupId != null and groupId !=''">
-                and group_id not in (
-                #{groupId})
-            </if>
-            and is_delete = 0
+        <foreach collection = "gatewayIds" item = "gatewayId" open = "(" separator = "," close = ")">
+            #{gatewayId}
+        </foreach>
+        <if test = "groupId != null and groupId !=''">
+            and group_id not in (
+            #{groupId})
+        </if>
+        and is_delete = 0
     </select>
 
 
@@ -24,21 +24,21 @@
     <sql id="commonListQuery">
         FROM (
         SELECT
-            group_id,
-            line_supplier_id,
-            GROUP_CONCAT(DISTINCT gateway_id ORDER BY gateway_id SEPARATOR ',') as gateway_ids,
-            price,
-            effect_start_date,
-            effect_end_date,
-            create_time,
-            update_time,
-            enabled,
-            is_delete,
-            MAX(CASE WHEN gateway_id IN(0
-            <foreach collection="gatewayIdList" item="gatewayId" open="," separator="," close=" ">
-                #{gatewayId}
-            </foreach>
-            ) THEN 1 ELSE 0 END) as has_target_gateway
+        group_id,
+        line_supplier_id,
+        GROUP_CONCAT(DISTINCT gateway_id ORDER BY gateway_id SEPARATOR ',') as gateway_ids,
+        price,
+        effect_start_date,
+        effect_end_date,
+        create_time,
+        update_time,
+        enabled,
+        is_delete,
+        MAX(CASE WHEN gateway_id IN(0
+        <foreach collection="gatewayIdList" item="gatewayId" open="," separator="," close=" ">
+            #{gatewayId}
+        </foreach>
+        ) THEN 1 ELSE 0 END) as has_target_gateway
         FROM b_marketing_line_account_detail_normal
         <where>
             is_delete = 0
@@ -60,8 +60,8 @@
 
     <select id="selectList" resultType="com.br.marketing.dto.LineAccountDetailDTO">
         SELECT
-            group_id,line_supplier_id,gateway_ids,price,effect_start_date,effect_end_date,
-            create_time,update_time,enabled,is_delete
+        group_id,line_supplier_id,gateway_ids,price,effect_start_date,effect_end_date,
+        create_time,update_time,enabled,is_delete
         <include refid="commonListQuery"/>
         ORDER BY update_time DESC
         LIMIT #{limitSize} OFFSET #{offset}
@@ -82,8 +82,19 @@
         FROM b_marketing_line_account_detail_normal
         where
             is_delete = 0
-            AND group_id = #{groupId}
+          AND group_id = #{groupId}
         GROUP BY group_id, price, effect_start_date
         ORDER BY update_time desc
+    </select>
+
+    <select id="selectCount" resultType="java.lang.Long">
+        select
+            count(*)
+        from
+            b_marketing_line_account_detail_normal
+        where
+            line_supplier_id = #{lineSupplierId}
+          and gateway_id = #{gatewayId}
+          and is_delete = 0
     </select>
 </mapper>

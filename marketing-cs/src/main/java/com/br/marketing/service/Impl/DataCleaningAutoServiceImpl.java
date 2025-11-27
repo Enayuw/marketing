@@ -21,6 +21,7 @@ import com.br.marketing.mapper.MarketingDataFileConfigMapper;
 import com.br.marketing.service.DataCleaningAutoService;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.br.marketing.util.TimeUtils;
 import com.br.marketing.vo.FileToMarketingFieldVO;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -125,8 +126,7 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
     }
 
     private void modifyThreadPool(ThreadPoolExecutor threadPool) {
-        threadPool.setMaximumPoolSize(marketingCommonConfig.getAutoCleanDataThreadNum());
-        threadPool.setCorePoolSize(marketingCommonConfig.getAutoCleanDataThreadNum());
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(threadPool, marketingCommonConfig.getAutoCleanDataThreadNum());
     }
 
     private void doProcessUploadDataClean(

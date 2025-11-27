@@ -1,12 +1,10 @@
 package com.br.marketing.service.sftp.impl;
 
-import com.br.common.log.AlertLog;
-import com.br.marketing.client.SftpClient;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.utils.DateHelper;
+import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.entity.LoanFile;
 import com.br.marketing.mapper.LoanFileMapper;
 import com.br.marketing.service.SyncConfigService;
+import com.br.marketing.service.ftp.SftpUploadHandlerService;
 import com.br.marketing.service.sftp.PushService;
 import com.br.marketing.service.sftp.ZipFileCheckService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -16,7 +14,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.io.File;
 import java.util.List;
 
 /**
@@ -43,6 +40,9 @@ public class PushServiceImpl implements PushService {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
+    @Resource
+    SftpUploadHandlerService sftpUploadHandlerService;
+
     @Override
     public void push(List<LoanFile> files) throws Exception {
         checkZipFile(files);
@@ -58,7 +58,13 @@ public class PushServiceImpl implements PushService {
     }
 
     private void pushToSftp(List<LoanFile> files) throws Exception {
-        String apiCode=files.get(0).getApiCode();
+        for(LoanFile blf:files){
+            sftpUploadHandlerService.insertSftpUploadTask(blf.getApiCode(), blf.getFilePath().concat("/"), blf.getZipFileName(),
+                    DataTypeEnum.SCORE.getValue(),
+                    "UPDATE stra_his_file SET status=2, update_time=now() where api_code ='" + blf.getApiCode() + "' AND zipFile_name = '"
+                            + blf.getZipFileName() + "'");
+        }
+        /*String apiCode=files.get(0).getApiCode();
         SftpClient sftpClient = new SftpClient(sftpHost,sftpPort,sftpUsername,sftpPwd);
         try {
             sftpClient.connect();
@@ -96,7 +102,7 @@ public class PushServiceImpl implements PushService {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PUSH_TO_SFTP.getCode(),
                         "跑分文件推送SFTP异常，apiCode："+apiCode), e);
             }
-        }
+        }*/
     }
 
     public void checkMockSwitch() throws Exception {

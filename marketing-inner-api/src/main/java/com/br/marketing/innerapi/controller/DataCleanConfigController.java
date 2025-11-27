@@ -8,10 +8,10 @@ import com.br.marketing.entity.MarketingCleanDataTask;
 import com.br.marketing.entity.MarketingDataFileConfig;
 import com.br.marketing.innerapi.service.dataclean.DataCleanHandlerService;
 import com.br.marketing.vo.dataclean.DataCleanConfigVO;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,7 +31,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping(value = "/dataclean/config")
-@Api(value = "数据清洗配置页面", tags = "数据清洗配置页面", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "数据清洗配置页面", description = "数据清洗配置页面")
 public class DataCleanConfigController {
 
     /**
@@ -43,11 +43,11 @@ public class DataCleanConfigController {
 
 
     @GetMapping("/list")
-    @ApiOperation(value = "清洗配置列表", notes = "清洗配置列表")
-    @ApiImplicitParams({@ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
-            , @ApiImplicitParam(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
-            , @ApiImplicitParam(name = "apiCode", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "fileType", value = "文件类型", paramType = "query", dataType = "string")
+    @Operation(summary = "清洗配置列表", description = "清洗配置列表")
+    @Parameters({@Parameter(name = "current", description = "页号")
+            , @Parameter(name = "size", description = "页大小")
+            , @Parameter(name = "apiCode", description = "apiCode")
+            , @Parameter(name = "fileType", description = "文件类型")
     })
     public ApiResult<PageResultReturn> list(@RequestParam(defaultValue = "1") int current
             , @RequestParam(defaultValue = "10") int size
@@ -59,25 +59,25 @@ public class DataCleanConfigController {
     }
 
 
-    @ApiOperation(value = "清洗配置编辑", notes = "清洗配置编辑")
+    @Operation(summary = "清洗配置编辑", description = "清洗配置编辑")
     @PostMapping("/editConfig")
     public Result editConfig(@RequestBody DataCleanConfigDTO dto) {
         return dataCleanHandlerService.updateConfig(dto);
 
     }
 
-    @ApiOperation(value = "保存配置", notes = "保存配置")
+    @Operation(summary = "保存配置", description = "保存配置")
     @PostMapping("/saveConfig")
     public Result saveConfig(@RequestBody DataCleanConfigDTO dto) {
         return dataCleanHandlerService.saveConfig(dto);
     }
 
 
-    @ApiOperation(value = "获取匹配规则", notes = "获取匹配规则")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "fileHeader", value = "文件表头", required = true, dataType = "String"),
-            @ApiImplicitParam(name = "apiCode", value = "apiCode", required = true, dataType = "String"),
-            @ApiImplicitParam(name = "fileType", value = "文件类型", paramType = "query", dataType = "string")
+    @Operation(summary = "获取匹配规则", description = "获取匹配规则")
+    @Parameters({
+            @Parameter(name = "fileHeader", description = "文件表头", required = true),
+            @Parameter(name = "apiCode", description = "apiCode", required = true),
+            @Parameter(name = "fileType", description = "文件类型")
     })
     @GetMapping("/getfileRules")
     public ApiResult<List<DataCleanConfigVO>> getfileRules(String fileHeader, String apiCode, String fileType) {
@@ -85,9 +85,9 @@ public class DataCleanConfigController {
 
     }
 
-    @ApiOperation(value = "获取清洗配置", notes = "获取清洗配置")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "Id", value = "配置ID", paramType = "query", dataType = "Long")
+    @Operation(summary = "获取清洗配置", description = "获取清洗配置")
+    @Parameters({
+            @Parameter(name = "Id", description = "配置ID")
     })
     @GetMapping("/getRuleByID")
     public ApiResult<MarketingDataFileConfig> getRuleByID(Long Id) {

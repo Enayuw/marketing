@@ -2,19 +2,18 @@ package com.br.marketing.check;
 
 import com.br.cloud.boot.EnablePrometheusEndpoint;
 import com.br.cloud.counter.EnableBrCounter;
-import com.br.cloud.hystrix.EnableHystrixPrometheus;
+import com.br.cloud.datasource.EnableDataSourcePrometheus;
 import com.br.cloud.jvm.EnablePrometheusJvm;
 import com.br.cloud.web.EnablePrometheusTiming;
 import com.br.grpc.utils.BrGrpcUtils;
-import com.br.marketing.config.autoinject.druid.EnableDruidPrometheus;
 import com.br.marketing.service.Impl.ConsumerService;
 import io.shardingsphere.shardingjdbc.spring.boot.SpringBootConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.web.MultipartAutoConfiguration;
-import org.springframework.cloud.netflix.feign.EnableFeignClients;
+import org.springframework.boot.autoconfigure.web.servlet.MultipartAutoConfiguration;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.ImportResource;
@@ -29,10 +28,9 @@ import org.springframework.context.annotation.ImportResource;
 @ImportResource(locations = {"classpath:scheduler.xml"})
 @EnablePrometheusEndpoint
 @EnablePrometheusJvm
-@EnableHystrixPrometheus
 @EnablePrometheusTiming
+@EnableDataSourcePrometheus
 @EnableBrCounter(namespace = "marketing_check")
-@EnableDruidPrometheus
 @Slf4j
 public class CkeckApplication {
     public static ConfigurableApplicationContext ac;

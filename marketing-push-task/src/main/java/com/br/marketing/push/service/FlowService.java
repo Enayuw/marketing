@@ -76,8 +76,11 @@ public class FlowService {
                 for (LoanFile loanFile : pushList) {
                     //推送消息到pushQueue，进行下一流程处理
 //                    producter.send(MQConstants.CHECK_ROUTING_KEY,loanFile.getId().toString());
-                    rocketMqSwitch.sendMessage(loanFile.getApiCode(), MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_CHECK_QUEUE,
-                            loanFile.getId().toString(), MQConstants.CHECK_ROUTING_KEY);
+                    rocketMqSwitch.sendMessage(loanFile.getApiCode(),
+                            MarketingAssistConstants.TOPIC,
+                            MarketingAssistConstants.TAG_CHECK_QUEUE,
+                            loanFile.getId().toString(),
+                            MQConstants.CHECK_ROUTING_KEY);
                 }
             }
 

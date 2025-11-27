@@ -10,7 +10,7 @@ import com.br.marketing.enums.DingDingAlarmFunctionEnum;
 import com.br.speed.client.common.annotations.SpeedFile;
 import lombok.Data;
 import org.springframework.context.annotation.Configuration;
-import shaded.com.google.common.collect.Lists;
+import com.google.common.collect.Lists;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -3524,6 +3524,25 @@ public class MarketingCommonConfig {
      * {"apiCode":"7492860","appUser":"zyxfjr_coll","appKey":"87C5FCB80F872B8D67BA3306BB09157C"}
      */
     private Map<String, String> zhongYuanIdentity;
+    /**
+     * 钉钉AI表格数据同步接口配置
+     * {"b_dd_data_line_cost_price":{"appKey":"","appSecret":"","operatorId":"","baseId":"","sheetId":""},
+     * "b_dd_data_sms_cost_price":{"appKey":"","appSecret":"","operatorId":"","baseId":"","sheetId":""}}
+     */
+    private JSONObject dingDingTableConfig;
+
+    /**
+     * 短信线路成本配置--校验表格数据并写入系统配置
+     * {"searchSize":50000,"smsCardTitle":"短信钉钉文档入库通知报警",
+     * "lineCardTitle":"线路钉钉文档入库通知报警","isProxy":false,"aviatorScriptUrl":"",
+     * "scriptCode":"daf28be2440042bdb9aec90605f48bd0"}
+     */
+    private JSONObject linsSmsCostToDbConfig;
+
+    /**
+     * 同程易融cpa撞库成功文件表头
+     */
+    private List<String> tcyrCpaSuccessFileHeads;
 
     /**
      * 携程贷后apicode集合

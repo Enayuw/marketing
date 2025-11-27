@@ -17,6 +17,7 @@ import com.br.marketing.mapper.WubaSubmitConversionDataLogMapper;
 import com.br.marketing.mapper.WubaSubmitConversionDataMapper;
 import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.framework.AopContext;
@@ -196,8 +197,7 @@ public class WuBaSubmitConversionService {
         }).collect(Collectors.toList());
 
         // batAddDataTransferClean
-        dbActionPool.setCorePoolSize(marketingCommonConfig.getWuBaQueryConversionBatDBThreadPool());
-        dbActionPool.setMaximumPoolSize(marketingCommonConfig.getWuBaQueryConversionBatDBThreadPool());
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(dbActionPool, marketingCommonConfig.getWuBaQueryConversionBatDBThreadPool());
         PARTITION_SIZE = marketingCommonConfig.getWuBaQueryConversionBatDBPartitionSize();
 
         List<CompletableFuture<Void>> dataLogFutures = Lists.newArrayList();

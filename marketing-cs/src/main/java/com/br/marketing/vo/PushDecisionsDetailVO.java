@@ -1,9 +1,7 @@
 package com.br.marketing.vo;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-
-import java.util.Date;
 
 /**
  * @ClassName PushDecisionsDetailVO
@@ -14,48 +12,48 @@ import java.util.Date;
 @Data
 public class PushDecisionsDetailVO {
 
-    @ApiModelProperty(value = "规则id")
+    @Schema(description = "规则id")
     private Long id;
 
-    @ApiModelProperty(value = "商户编号")
+    @Schema(description = "商户编号")
     private String apiCode;
 
-    @ApiModelProperty(value = "规则编号")
+    @Schema(description = "规则编号")
     private String ruleNumber;
 
-    @ApiModelProperty(value = "规则名称")
+    @Schema(description = "规则名称")
     private String ruleName;
 
-    @ApiModelProperty(value = "依赖模板id")
+    @Schema(description = "依赖模板id")
     private Long dependencyTemplateId;
 
-    @ApiModelProperty(value = "依赖模板名称")
+    @Schema(description = "依赖模板名称")
     private String dependencyTemplateName;
 
-    @ApiModelProperty(value = "数据源")
+    @Schema(description = "数据源")
     private Integer dependencyTemplateSource;
 
-    @ApiModelProperty(value = "规则状态")
+    @Schema(description = "规则状态")
     private Integer status;
 
-    @ApiModelProperty(value = "每日自动执行时间")
+    @Schema(description = "每日自动执行时间")
     private String autoTime;
 
-    @ApiModelProperty(value = "推送数据集")
+    @Schema(description = "推送数据集")
     private String pushDatasets;
 
-    @ApiModelProperty(value = "触达策略")
+    @Schema(description = "触达策略")
     private String reachStrategy;
 
-    @ApiModelProperty(value = "创建时间")
+    @Schema(description = "创建时间")
     private String createTime;
 
-    @ApiModelProperty(value = "修改时间")
+    @Schema(description = "修改时间")
     private String updateTime;
 
-    @ApiModelProperty(value = "是否自动刷新 0-否，1-是")
+    @Schema(description = "是否自动刷新 0-否，1-是")
     private Integer autoRefresh;
 
-    @ApiModelProperty(value = "推送系统类型")
+    @Schema(description = "推送系统类型")
     private Integer pushTarget;
 }

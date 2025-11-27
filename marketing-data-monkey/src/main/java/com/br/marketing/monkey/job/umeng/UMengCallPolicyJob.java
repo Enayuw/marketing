@@ -14,6 +14,7 @@ import com.br.marketing.service.Impl.umeng.IUMengDataService;
 import com.br.marketing.service.Impl.umeng.IUMengTimingTaskService;
 import com.br.marketing.service.LocalFileService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
@@ -132,8 +133,7 @@ public class UMengCallPolicyJob extends AbstractSimpleElasticJob {
                                   ThreadPoolExecutor actionPool,List<CompletableFuture<Result>> futureList,
                                   List<Long> resultList ) {
         Result result = new Result().failure();
-        actionPool.setCorePoolSize(marketingCommonConfig.getUMengCallPolicyPool());
-        actionPool.setMaximumPoolSize(marketingCommonConfig.getUMengCallPolicyPool());
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(actionPool, marketingCommonConfig.getUMengCallPolicyPool());
         futureList.add(CompletableFuture.supplyAsync(() -> processCallPolicy(timingTask,uMengDataList), actionPool)
                 .whenComplete((processDataResult, throwable) -> {
                     if (processDataResult == null || !processDataResult.isSuccess()) {

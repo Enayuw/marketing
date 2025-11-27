@@ -21,7 +21,7 @@ import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 
 import lombok.extern.slf4j.Slf4j;
-import shaded.com.google.common.collect.Lists;
+import com.google.common.collect.Lists;
 
 /**
  * 携程动态包撞库数据补充作业

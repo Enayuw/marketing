@@ -2,7 +2,7 @@ package com.br.marketing.vo.bi;
 
 import java.util.List;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,8 +18,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class WrapDataVO {
-    @ApiModelProperty(value = "Y轴名称")
+    @Schema(description = "Y轴名称")
     private String name;
-    @ApiModelProperty(value = "Y轴数据")
+    @Schema(description = "Y轴数据")
     private List<String> data;
 }

@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -280,11 +281,9 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
             pushPoolSize = Runtime.getRuntime().availableProcessors() * 10;
         }
 
-        processPool.setCorePoolSize(processPoolSize);
-        processPool.setMaximumPoolSize(processPoolSize);
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(processPool, processPoolSize);
 
-        pushPool.setCorePoolSize(pushPoolSize);
-        pushPool.setMaximumPoolSize(pushPoolSize);
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(pushPool, pushPoolSize);
     }
 
     public Result<Map<String, String>> getBlackList(List<MarketingSyncUser> syncUserList, String apiCode) {

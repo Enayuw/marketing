@@ -1,6 +1,6 @@
 package com.br.marketing.dto;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
@@ -14,10 +14,10 @@ import lombok.Data;
 @Data
 public class ScoreTimeDTO {
 
-    @ApiModelProperty(value = "跑分执行开始时间")
+    @Schema(description = "跑分执行开始时间")
     private String scoreBeginTime;
 
-    @ApiModelProperty(value = "跑分执行结束时间")
+    @Schema(description = "跑分执行结束时间")
     private String scoreEndTime;
 
 

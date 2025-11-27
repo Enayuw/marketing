@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.alibaba.fastjson.JSON;
@@ -35,13 +37,10 @@ import com.br.marketing.entity.MonitorTypeEnum;
 import com.br.marketing.service.IPushShuheDataService;
 import com.br.marketing.service.PushRuleService;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-
 /**
  * 营销数据接入接口
  */
-@Api(value = "MarketingUserPreController")
+@Tag(name = "MarketingUserPreController", description = "营销数据接入接口")
 @RequestMapping("/marketingUserPre")
 @RestController
 public class MarketingUserPreController {
@@ -67,7 +66,7 @@ public class MarketingUserPreController {
      * @param jsonData
      * @return
      */
-    @ApiOperation(value = "批量接入营销人员数据")
+    @Operation(summary = "批量接入营销人员数据")
     @PostMapping("/receiveMarketingPreUser")
     @LogAnnotation
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
@@ -90,7 +89,7 @@ public class MarketingUserPreController {
      * @param jsonData
      * @return
      */
-    @ApiOperation(value = "萨摩耶转化人员接口")
+    @Operation(summary = "萨摩耶转化人员接口")
     @PostMapping("/transferUser")
     @SaveLog
     @LogAnnotation
@@ -110,7 +109,7 @@ public class MarketingUserPreController {
      * @param jsonData
      * @return
      */
-    @ApiOperation(value = "获取营销人员数据状态")
+    @Operation(summary = "获取营销人员数据状态")
     @PostMapping("/getMarketingPreUserStauts")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
     public ApiResult getMarketingPreUserStauts(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
@@ -145,7 +144,7 @@ public class MarketingUserPreController {
      * @param custNum
      * @return
      */
-    @ApiOperation(value = "查询客户信息接口")
+    @Operation(summary = "查询客户信息接口")
     @PostMapping("/queryCustInfo")
     public Result queryCustInfo(@RequestParam(required = false) String cid,
                                 @RequestParam(required = false) String apiCode,
@@ -167,7 +166,7 @@ public class MarketingUserPreController {
      * @author Guo Zeqiang
      * @dateTime 2022/8/28 9:55
      */
-    @ApiOperation(value = "数禾订制版上传数据接口")
+    @Operation(summary = "数禾订制版上传数据接口")
     @PostMapping("/receiveShuHeUploadData")
     @LogAnnotation
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
@@ -187,7 +186,7 @@ public class MarketingUserPreController {
      * @author senyang.zheng
      * @date 2024/08/06
      */
-    @ApiOperation(value = "定制上传数据接入接口")
+    @Operation(summary = "定制上传数据接入接口")
     @PostMapping("/receiveCustomizeUploadData")
     @LogAnnotation
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)

@@ -2,6 +2,7 @@ package com.br.marketing.service.Impl;
 
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.lang.Pair;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -64,13 +65,13 @@ import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.service.ValidityPeriodDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.br.marketing.util.TimeUtils;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.google.common.collect.Lists;
-import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.BeanUtils;
@@ -1220,8 +1221,10 @@ public class PushDataServiceImpl implements PushDataService {
         AtomicInteger failNum = new AtomicInteger(0);
         while (actionMark) {
             if (StringUtils.isNotEmpty(marketingCommonConfig.getXieChengSmsQuitThreadNum())) {
-                pool.setCorePoolSize(Integer.valueOf(marketingCommonConfig.getXieChengSmsQuitThreadNum()));
-                pool.setMaximumPoolSize(Integer.valueOf(marketingCommonConfig.getXieChengSmsQuitThreadNum()));
+                ThreadPoolAdjustmentUtil.adjustThreadPoolSize(
+                    pool,
+                    Integer.parseInt(marketingCommonConfig.getXieChengSmsQuitThreadNum())
+                );
                 log.warn("携程推送短信退订接口线程调整，corePoolSize={},maxPoolSize={}", pool.getCorePoolSize(), pool.getMaximumPoolSize());
             }
             List<XiechengSmsQuitData> dataList = xiechengSmsQuitDataMapper.getSmsQuitData(localFile.getId(), minId);
@@ -1530,12 +1533,12 @@ public class PushDataServiceImpl implements PushDataService {
     }
 
     private void changeTpProperties(ThreadPoolExecutor xieChengSmsCollidingThreadLogSaveVt, ThreadPoolExecutor xieChengSmsCollidingThreadVt, ThreadPoolExecutor xieChengSmsCollidingThreadLogUpdateVt) {
-        xieChengSmsCollidingThreadLogSaveVt.setMaximumPoolSize(marketingCommonConfig.getXieChengSmsCollidingThreadLogSaveVt());
-        xieChengSmsCollidingThreadLogSaveVt.setCorePoolSize(marketingCommonConfig.getXieChengSmsCollidingThreadLogSaveVt());
-        xieChengSmsCollidingThreadVt.setMaximumPoolSize(marketingCommonConfig.getXieChengSmsCollidingThreadVt());
-        xieChengSmsCollidingThreadVt.setCorePoolSize(marketingCommonConfig.getXieChengSmsCollidingThreadVt());
-        xieChengSmsCollidingThreadLogUpdateVt.setMaximumPoolSize(marketingCommonConfig.getXieChengSmsCollidingThreadLogUpdateVt());
-        xieChengSmsCollidingThreadLogUpdateVt.setCorePoolSize(marketingCommonConfig.getXieChengSmsCollidingThreadLogUpdateVt());
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(
+                xieChengSmsCollidingThreadLogSaveVt, marketingCommonConfig.getXieChengSmsCollidingThreadLogSaveVt());
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(
+                xieChengSmsCollidingThreadVt, marketingCommonConfig.getXieChengSmsCollidingThreadVt());
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(
+                xieChengSmsCollidingThreadLogUpdateVt, marketingCommonConfig.getXieChengSmsCollidingThreadLogUpdateVt());
     }
 
     private Integer saveXieChengSmsCollidingDataLogVts(Integer sendDate, List<XieChengSmsCollidingDataVt> xieChengSmsCollidingDataVtList) {
@@ -2110,8 +2113,7 @@ public class PushDataServiceImpl implements PushDataService {
     }
 
     private void modifyThreadPool(ThreadPoolExecutor threadPool, Integer poolSize) {
-        threadPool.setCorePoolSize(poolSize);
-        threadPool.setMaximumPoolSize(poolSize);
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(threadPool, poolSize);
     }
 
     @Override

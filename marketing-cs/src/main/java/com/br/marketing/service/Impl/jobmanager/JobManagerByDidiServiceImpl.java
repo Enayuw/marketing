@@ -17,7 +17,6 @@ import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.TransferActionFrontMapper;
 import com.br.marketing.service.IJobManagerService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

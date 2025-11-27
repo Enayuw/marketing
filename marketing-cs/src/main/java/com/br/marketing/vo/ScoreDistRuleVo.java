@@ -1,29 +1,29 @@
 package com.br.marketing.vo;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
 public class ScoreDistRuleVo {
 
-    @ApiModelProperty(value = "规则id")
+    @Schema(description = "规则id")
     private Long id;
 
-    @ApiModelProperty(value = "apiCode")
+    @Schema(description = "apiCode")
     private String apiCode;
 
-    @ApiModelProperty(value = "规则模板编号")
+    @Schema(description = "规则模板编号")
     private String templateNumber;
 
-    @ApiModelProperty(value = "规则名称")
+    @Schema(description = "规则名称")
     private String templateName;
 
-    @ApiModelProperty(value = "状态 1-启用；2-禁用")
+    @Schema(description = "状态 1-启用；2-禁用")
     private Integer status;
 
-    @ApiModelProperty(value = "创建时间")
+    @Schema(description = "创建时间")
     private String createTime;
 
-    @ApiModelProperty(value = "更新时间")
+    @Schema(description = "更新时间")
     private String updateTime;
 }

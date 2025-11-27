@@ -1,6 +1,6 @@
 package com.br.marketing.vo.zhongan.param;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,13 +19,13 @@ import java.util.List;
 @NoArgsConstructor
 public class ZhongAnControlGroupParam implements Serializable {
 
-    @ApiModelProperty(value = "数据日期")
+    @Schema(description = "数据日期")
     private String reportDate;
-    @ApiModelProperty(value = "场景1")
+    @Schema(description = "场景1")
     private List<ZhongAnCustomInfo> userType1;
-    @ApiModelProperty(value = "场景7")
+    @Schema(description = "场景7")
     private List<ZhongAnCustomInfo> userType7;
-    @ApiModelProperty(value = "场景8")
+    @Schema(description = "场景8")
     private List<ZhongAnCustomInfo> userType8;
 
 }

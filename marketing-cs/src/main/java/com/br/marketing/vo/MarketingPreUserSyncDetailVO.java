@@ -1,6 +1,6 @@
 package com.br.marketing.vo;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
@@ -8,18 +8,18 @@ import java.util.List;
 @Data
 public class MarketingPreUserSyncDetailVO {
 
-    @ApiModelProperty(value = "apicode")
+    @Schema(description = "apicode")
     private String apiCode;
 
-    @ApiModelProperty(value = "任务id")
+    @Schema(description = "任务id")
     private String taskId;
 
-    @ApiModelProperty(value = "请求批次id")
+    @Schema(description = "请求批次id")
     private String requestId;
 
-    @ApiModelProperty(value = "同步状态1-进行中；2-全部成功；3-全部失败；4-部分成功")
+    @Schema(description = "同步状态1-进行中；2-全部成功；3-全部失败；4-部分成功")
     private Integer status;
 
-    @ApiModelProperty(value = "错误信息")
+    @Schema(description = "错误信息")
     private List<MarketingPreUserErrorDetailVO> errorInfo;
 }

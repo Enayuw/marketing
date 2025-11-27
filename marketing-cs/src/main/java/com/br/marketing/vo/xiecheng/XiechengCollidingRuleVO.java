@@ -5,74 +5,73 @@ import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
-@ApiModel(value = "携程撞库规则VO")
+@Schema(description = "携程撞库规则VO")
 public class XiechengCollidingRuleVO implements Serializable {
     private static final long serialVersionUID = 6038761827928494339L;
 
-    @ApiModelProperty("规则主键id")
+    @Schema(description = "规则主键id")
     private Long dprId;
 
-    @ApiModelProperty("客户编号")
+    @Schema(description = "客户编号")
     private String cid;
 
-    @ApiModelProperty("ApiCode")
+    @Schema(description = "ApiCode")
     private String apiCode;
 
-    @ApiModelProperty("客户名称")
+    @Schema(description = "客户名称")
     private String shortName;
 
-    @ApiModelProperty("包主键id")
+    @Schema(description = "包主键id")
     private Long pkgId;
 
-    @ApiModelProperty("数据包名称")
+    @Schema(description = "数据包名称")
     private String packageName;
 
-    @ApiModelProperty("预估量级")
+    @Schema(description = "预估量级")
     private String discreetNumber;
 
-    @ApiModelProperty("实际可用量级")
+    @Schema(description = "实际可用量级")
     private String remainingNumber;
 
-    @ApiModelProperty("任务状态")
+    @Schema(description = "任务状态")
     private Integer collidingSwitch;
 
-    @ApiModelProperty("优先级")
+    @Schema(description = "优先级")
     private Integer priority;
 
-    @ApiModelProperty("轮次")
+    @Schema(description = "轮次")
     private Integer round;
 
-    @ApiModelProperty("设定撞得量级")
+    @Schema(description = "设定撞得量级")
     private Integer collidingBackNumber;
 
-    @ApiModelProperty("每日撞库次数")
+    @Schema(description = "每日撞库次数")
     private Integer collidingTimes;
 
-    @ApiModelProperty("撞库开始时间（多个时间以逗号分割，格式HH:mm）")
+    @Schema(description = "撞库开始时间（多个时间以逗号分割，格式HH:mm）")
     private String startTimes;
 
-    @ApiModelProperty("数据清洗时间 yyyy-MM-dd HH:mm:ss")
+    @Schema(description = "数据清洗时间 yyyy-MM-dd HH:mm:ss")
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private Date taskStartTime;
 
-    @ApiModelProperty("开启撞库时间 yyyy-MM-dd HH:mm:ss")
+    @Schema(description = "开启撞库时间 yyyy-MM-dd HH:mm:ss")
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private Date collidingStartTime;
 
-    @ApiModelProperty("结束撞库时间 yyyy-MM-dd HH:mm:ss")
+    @Schema(description = "结束撞库时间 yyyy-MM-dd HH:mm:ss")
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private Date collidingEndTime;
 
-    @ApiModelProperty("创建时间 yyyy-MM-dd HH:mm:ss")
+    @Schema(description = "创建时间 yyyy-MM-dd HH:mm:ss")
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 
-    @ApiModelProperty("修改时间 yyyy-MM-dd HH:mm:ss")
+    @Schema(description = "修改时间 yyyy-MM-dd HH:mm:ss")
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private Date updateTime;
 }

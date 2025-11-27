@@ -16,6 +16,7 @@ import com.br.marketing.mapper.WubaOldSubmitConversionDataTransferCleanMapper;
 import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
 import com.br.marketing.service.DataCleaningAutoService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -191,8 +192,7 @@ public class WuBaOldQueryConversionZipResultService {
     public Result processList(String apiCode, Long taskId, List<String> lineList, List<String> headers, Map<String, String> headerMapping
             , ThreadPoolExecutor actionPool, List<CompletableFuture<Result>> futureList, List<Long> resultList) {
         Result result = new Result().failure();
-        actionPool.setCorePoolSize(marketingCommonConfig.getWuBaQueryConversionBatDBThreadPool());
-        actionPool.setMaximumPoolSize(marketingCommonConfig.getWuBaQueryConversionBatDBThreadPool());
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(actionPool, marketingCommonConfig.getWuBaQueryConversionBatDBThreadPool());
 
         futureList.add(CompletableFuture.supplyAsync(() -> processData(apiCode, taskId, lineList, headers, headerMapping), actionPool)
                 .whenComplete((processDataResult, throwable) -> {

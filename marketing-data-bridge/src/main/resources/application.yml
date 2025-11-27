@@ -3,9 +3,17 @@ spring:
   application:
     name: marketing-data-bridge
   profiles.include: pre
+  main:
+    allow-circular-references: true  # 允许循环依赖
+  autoconfigure:
+    exclude:
+      - com.br.transfer.config.log.Log4j2DynamicAutoConfiguration
+      - com.br.transfer.config.log.TempLog4j2DynamicAutoConfiguration
   aop:
     proxy-target-class: true
     auto: true
+  lifecycle:
+    timeout-per-shutdown-phase: 30s  # 优雅关闭超时时间
   threadpool:
     queueCapacity: 10000
     # 线程池所使用的缓冲队列
@@ -31,6 +39,7 @@ spring:
 
 server:
   port: 19809
+  shutdown: graceful  # 启用优雅关闭
 
 #生成结果文件目录
 result.file.path: /opt/data/inloan/warning

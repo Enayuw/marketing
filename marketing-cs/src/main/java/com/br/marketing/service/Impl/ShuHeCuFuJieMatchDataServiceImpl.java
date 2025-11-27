@@ -12,6 +12,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 import javax.annotation.Resource;
 
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -101,8 +102,7 @@ public class ShuHeCuFuJieMatchDataServiceImpl implements ShuHeCuFuJieMatchDataSe
             redisChgService.setex(redisKey, String.valueOf(minId), seconds);
             if (updateConfig != null && !threadSize.equals(updateConfig.getInteger("threadSize"))) {
                 threadSize = updateConfig.getInteger("threadSize");
-                threadPool.setCorePoolSize(threadSize);
-                threadPool.setMaximumPoolSize(threadSize);
+                ThreadPoolAdjustmentUtil.adjustThreadPoolSize(threadPool, threadSize);
             }
             threadPool.submit(() -> {
                 try {

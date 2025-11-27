@@ -13,8 +13,6 @@ import com.br.marketing.service.Impl.MarketingCustomertestImpl;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.thirdpartner.ThirdPartnerDataService;
 import com.br.marketing.service.thirdpartner.dto.ThirdPartnerDataDTO;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +20,8 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -31,7 +31,7 @@ import java.util.List;
  * @Author hong.chen
  * @CreateTime 2023/06/28
  */
-@Api(value = "BackendController")
+@Tag(name = "BackendController", description = "BackendController")
 @RequestMapping("/backend")
 @RestController
 public class BackEndController {
@@ -50,7 +50,7 @@ public class BackEndController {
      * @param custNum
      * @return
      */
-    @ApiOperation(value = "查询客户信息接口")
+    @Operation(summary = "查询客户信息接口")
     @PostMapping("/queryCustInfo")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public Result queryCustInfo(@RequestParam(required = false) String cid,
@@ -69,7 +69,7 @@ public class BackEndController {
      * @param data
      * @return
      */
-    @ApiOperation(value = "外呼推送三方上传数据接口")
+    @Operation(summary = "外呼推送三方上传数据接口")
     @PostMapping("/thirdPartner/uploadData")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public Result thirdPartnerUploadData(String data, String accessNumber) {

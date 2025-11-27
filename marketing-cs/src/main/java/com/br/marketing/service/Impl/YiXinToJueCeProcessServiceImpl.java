@@ -27,6 +27,7 @@ import com.br.marketing.service.customertagsprocess.CustomerTagsProcessServiceIm
 import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -500,8 +501,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
 
 
     private void initThreadPoolParam(ThreadPoolExecutor yiXinToJueCeThread) {
-        yiXinToJueCeThread.setCorePoolSize(marketingCommonConfig.getYiXinToJueCeTpNum());
-        yiXinToJueCeThread.setMaximumPoolSize(marketingCommonConfig.getYiXinToJueCeTpNum());
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(yiXinToJueCeThread, marketingCommonConfig.getYiXinToJueCeTpNum());
     }
 
     private ThreadPoolExecutor getYiXinToJueCeThread() {

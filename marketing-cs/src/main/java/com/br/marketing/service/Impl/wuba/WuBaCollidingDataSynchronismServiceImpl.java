@@ -16,6 +16,7 @@ import com.br.marketing.mapper.WubaCollidingDataRobMapper;
 import com.br.marketing.mapper.WubaCollidingDataSecondLoopCycleMapper;
 import com.br.marketing.mapper.WubaCollidingDataDelayLoopCycleMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -142,8 +143,7 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
 
     private void modifyThreadPool(ThreadPoolExecutor pool) {
         Integer threadNum = marketingCommonConfig.getWubaCollidingDataSyncThreadNum();
-        pool.setCorePoolSize(threadNum);
-        pool.setMaximumPoolSize(threadNum);
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(pool, threadNum);
     }
 
     private void threadPoolShutDown(ThreadPoolExecutor threadPool) {

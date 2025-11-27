@@ -1,6 +1,6 @@
 package com.br.marketing.dto.tag;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
@@ -11,10 +11,10 @@ import lombok.Data;
 @Data
 public class TagEffectiveDTO {
 
-    @ApiModelProperty("标签编码")
+    @Schema(description = "标签编码")
     private String tagCode;
 
-    @ApiModelProperty("标签名称")
+    @Schema(description = "标签名称")
     private String tagName;
 
 }

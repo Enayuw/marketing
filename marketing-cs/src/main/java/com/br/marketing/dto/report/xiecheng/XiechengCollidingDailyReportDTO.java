@@ -1,7 +1,6 @@
 package com.br.marketing.dto.report.xiecheng;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -14,17 +13,17 @@ import java.io.Serializable;
  * @date 2024/08/28
  */
 @Data
-@ApiModel(value = "携程单日撞库结果分布报表dto")
+@Schema(description = "携程单日撞库结果分布报表dto")
 public class XiechengCollidingDailyReportDTO implements Serializable {
 
     private static final long serialVersionUID = -6616583716934011016L;
-    @ApiModelProperty(value = "日期")
+    @Schema(description = "日期")
     private String reportDate;
-    @ApiModelProperty(value = "dataPacket")
+    @Schema(description = "dataPacket")
     private String dataPacket;
-    @ApiModelProperty(value = "orgChannel")
+    @Schema(description = "orgChannel")
     private String orgChannel;
-    @ApiModelProperty(value = "锁定量级")
+    @Schema(description = "锁定量级")
     private Long lockNum;
 
 }

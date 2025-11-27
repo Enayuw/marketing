@@ -52,6 +52,8 @@ public class TcCpaCollidingFailDealServiceImpl implements TcCpaCollidingFailDeal
     @Resource
     private TcCpaCustCellMappingService custCellMappingService;
 
+    private static final Set<Integer> excludedLengths = Set.of(19, 10, 8);
+
     @Override
     public void process(String apiCode) {
         String lockKey = RedisKeyConstant.tcyrCpaCollidingFailDeal.concat(apiCode);
@@ -155,7 +157,8 @@ public class TcCpaCollidingFailDealServiceImpl implements TcCpaCollidingFailDeal
                     if (StringUtils.isEmpty(failData.getUserKey())
                             || StringUtils.isEmpty(failData.getCell())
                             || StringUtils.isEmpty(failData.getFailMsg())
-                            || failData.getReleaseTime() == null) {
+                            || failData.getReleaseTime() == null
+                            || !excludedLengths.contains(lineData.get(2).trim().length())) {
                         failData.setStatus(TcFileDataDealStatusEnum.STATUS_FAIL.getValue());
                         failData.setStatusMsg("数据异常");
                         failData.setExtend(line);

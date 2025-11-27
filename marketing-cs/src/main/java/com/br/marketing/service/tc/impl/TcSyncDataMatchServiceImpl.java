@@ -13,6 +13,7 @@ import com.br.marketing.mapper.MarketingTcyrSyncMapper;
 import com.br.marketing.mapper.MarketingTcyrSyncRecordMapper;
 import com.br.marketing.service.tc.TcSyncDataMatchService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -67,8 +68,7 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
         List<CompletableFuture<Result>> futureList = new ArrayList<>();
         List<Long> resultList = Collections.synchronizedList(new ArrayList<>(20));
 
-        actionPool.setCorePoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
-        actionPool.setMaximumPoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(actionPool, marketingCommonConfig.getTcGzBatDBThreadPool());
         futureList.add(CompletableFuture.supplyAsync(() -> processUnMatchData(apiCode,tcyrSyncList,marketingCommonConfig.getTcPartSize()), actionPool)
                 .whenComplete((processDataResult, throwable) -> {
                     if (processDataResult == null || !processDataResult.isSuccess()) {
@@ -183,8 +183,6 @@ public class TcSyncDataMatchServiceImpl implements TcSyncDataMatchService {
 
 
     private void shardMathTcyrSynList(String apiCode, List<MarketingTcyrSync> tcyrSyncList,ThreadPoolExecutor actionPool) {
-        actionPool.setCorePoolSize(marketingCommonConfig.getTcMatchShardConfig().getInteger("threadPool"));
-        actionPool.setMaximumPoolSize(marketingCommonConfig.getTcMatchShardConfig().getInteger("threadPool"));
         if(marketingCommonConfig.getTcMatchShardConfig().getBoolean("batchSwitch")){
             CompletableFuture.supplyAsync(() -> processUnMatchData(apiCode,tcyrSyncList,
                     marketingCommonConfig.getTcMatchShardConfig().getInteger("partSize")), actionPool);

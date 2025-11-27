@@ -1,6 +1,6 @@
 package com.br.marketing.vo;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotBlank;
@@ -16,24 +16,24 @@ import java.util.List;
 @Data
 public class SoleRuleDetailVO {
 
-    @ApiModelProperty(value = "去重规则id")
+    @Schema(description = "去重规则id")
     private String soleId;
 
-    @ApiModelProperty(value = "去重规则名称")
+    @Schema(description = "去重规则名称")
     @NotBlank(message = "名称必填")
     @Length(min = 1, max = 40, message = "规则名称长度不合法")
     private String soleName;
 
-    @ApiModelProperty(value = "去重字段")
+    @Schema(description = "去重字段")
     @NotBlank(message = "字段必选")
     private String soleFields;
 
-    @ApiModelProperty(value = "去重时间周期")
+    @Schema(description = "去重时间周期")
     @Min(value = 0)
     @Max(value = 180)
     private Integer soleCycleTimes;
 
-    @ApiModelProperty(value = "匹配商户列表")
+    @Schema(description = "匹配商户列表")
     @NotEmpty(message = "匹配商户必选")
     private List<CustUserTypeSelectVO> soleCustom;
 }

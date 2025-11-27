@@ -14,6 +14,7 @@ import com.br.marketing.entity.TongChengUndoDataExample;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.TongChengUndoDataMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,8 +59,7 @@ public class TongChengUndoListPushToCustomerServiceImpl implements TongChengUndo
         Boolean isContiue = Boolean.TRUE;
         while (isContiue) {
             if (marketingCommonConfig.getTongChengUndoThreadNum() != null) {
-                pool.setCorePoolSize(marketingCommonConfig.getTongChengUndoThreadNum());
-                pool.setMaximumPoolSize(marketingCommonConfig.getTongChengUndoThreadNum());
+                ThreadPoolAdjustmentUtil.adjustThreadPoolSize(pool, marketingCommonConfig.getTongChengUndoThreadNum());
             }
 
             // local_id = #{localId}  and status =1 正常 and push_status =1 未推送  2000

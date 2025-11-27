@@ -17,6 +17,7 @@ import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.br.marketing.vo.TransferOfCnIdVO;
 import com.br.marketing.vo.TransferOfRdRFVO;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -189,8 +190,7 @@ public class TransferToFileByYouMeDServiceImpl implements ITransferToFileService
                     continue;
                 }
                 if (threadNum.intValue() != threadPoolExecutor.getCorePoolSize()) {
-                    threadPoolExecutor.setCorePoolSize(threadNum);
-                    threadPoolExecutor.setMaximumPoolSize(threadNum);
+                    ThreadPoolAdjustmentUtil.adjustThreadPoolSize(threadPoolExecutor, threadNum);
                     log.warn(String.format("你我贷线程池线程数变更：核心线程数：%d，最大线程数：%d，活动线程数：%d", threadPoolExecutor.getCorePoolSize(), threadPoolExecutor.getMaximumPoolSize(), threadPoolExecutor.getActiveCount()));
                 }
                 //endregion

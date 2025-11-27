@@ -8,6 +8,7 @@ import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.TransFileToMarketingBiService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -156,8 +157,7 @@ public class TransFileToMarketingBiServiceImpl implements TransFileToMarketingBi
 
     private void modifyThreadPool(ThreadPoolExecutor pool) {
         Integer threadNum = marketingCommonConfig.getTransFileExtractionBIThread();
-        pool.setCorePoolSize(threadNum);
-        pool.setMaximumPoolSize(threadNum);
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(pool, threadNum);
     }
 
     private void writeFileDataToTidb(String tableName, List<String> columns, List<String> batchData, String dateItem) {

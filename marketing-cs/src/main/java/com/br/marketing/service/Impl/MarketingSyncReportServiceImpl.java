@@ -38,6 +38,7 @@ import com.br.marketing.service.MarketingSyncReportService;
 import com.br.marketing.service.ValidityPeriodResendRecordService;
 import com.br.marketing.service.eventtrack.EventTrackService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.br.marketing.vo.MarketingSyncReportNumVO;
 import com.br.marketing.vo.MarketingSyncReportVO;
 import com.github.pagehelper.PageHelper;
@@ -182,8 +183,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                     continue;
                 }
             }
-            threadPool.setCorePoolSize(marketingCommonConfig.getSyncReportThreadConfig().getInteger("upload"));
-            threadPool.setMaximumPoolSize(marketingCommonConfig.getSyncReportThreadConfig().getInteger("upload"));
+            ThreadPoolAdjustmentUtil.adjustThreadPoolSize(threadPool, marketingCommonConfig.getSyncReportThreadConfig().getInteger("upload"));
             threadPool.submit(() -> {
                 try {
                     if (AuthShowProductor.NORMAL.getCode().equals(customer.getStatus())) {

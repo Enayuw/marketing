@@ -1,7 +1,7 @@
 package com.br.marketing.vo.bi;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,26 +18,26 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AxisWrapVO {
-    @ApiModelProperty(value = "X轴对应产品")
+    @Schema(description = "X轴对应产品")
     @JsonProperty(value = "xAxisProduct")
     private String xAxisProduct;
-    @ApiModelProperty(value = "Y轴对应产品")
+    @Schema(description = "Y轴对应产品")
     @JsonProperty(value = "yAxisProduct")
     private String yAxisProduct;
-    @ApiModelProperty(value = "X轴数据")
+    @Schema(description = "X轴数据")
     @JsonProperty(value = "xAxis")
     private List<String> xAxis;
-    @ApiModelProperty(value = "Y轴数据")
+    @Schema(description = "Y轴数据")
     @JsonProperty(value = "yAxis")
     private List<WrapDataVO> yAxis;
-    @ApiModelProperty(value = "模型分布类型 1-单模型(field_x可多个,field_y无值)；2-多模型（field_x和field_y各一个值）")
+    @Schema(description = "模型分布类型 1-单模型(field_x可多个,field_y无值)；2-多模型（field_x和field_y各一个值）")
     private Integer reportScoreType;
-    @ApiModelProperty(value = "报表描述")
+    @Schema(description = "报表描述")
     private String statisticsDesc;
-    @ApiModelProperty(value = "跑分分布报表id")
+    @Schema(description = "跑分分布报表id")
     @JsonProperty(value = "statisticsId")
     private Long statisticsId;
-    @ApiModelProperty(value = "顺序")
+    @Schema(description = "顺序")
     @JsonProperty(value = "order")
     private Integer order;
 }

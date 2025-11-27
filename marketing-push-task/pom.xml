@@ -49,12 +49,6 @@
             <version>1.0-SNAPSHOT</version>
             <groupId>com.br.marketing</groupId>
         </dependency>
-        <!-- exporter 监控 http://c.100credit.cn/pages/viewpage.action?pageId=38205220 -->
-        <!--<dependency>
-            <groupId>com.br.cloud</groupId>
-            <artifactId>spring_boot_exporter</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>-->
     </dependencies>
     <build>
         <resources>
@@ -75,7 +69,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <!-- 由于版本问题，采用默认版本打包的时候会依赖2.+的版本，所以这里强制指定版本 -->
-                <version>1.5.3.RELEASE</version>
+                <version>2.7.18</version>
                 <executions>
                     <execution>
                         <goals>
@@ -90,68 +84,4 @@
             </plugin>
         </plugins>
     </build>
-<!--    <build>-->
-<!--        <finalName>loan-push-task</finalName>-->
-<!--        <plugins>-->
-<!--            <plugin>-->
-<!--                <groupId>org.apache.maven.plugins</groupId>-->
-<!--                <artifactId>maven-compiler-plugin</artifactId>-->
-<!--                <version>3.7.0</version>-->
-<!--                <configuration>-->
-<!--                    <source>${java.version}</source>-->
-<!--                    <target>${java.version}</target>-->
-<!--                </configuration>-->
-<!--            </plugin>-->
-<!--            <plugin>-->
-<!--                <groupId>org.apache.maven.plugins</groupId>-->
-<!--                <artifactId>maven-shade-plugin</artifactId>-->
-<!--                <dependencies>-->
-<!--                    <dependency>-->
-<!--                        <groupId>org.springframework.boot</groupId>-->
-<!--                        <artifactId>spring-boot-maven-plugin</artifactId>-->
-<!--                        <version>1.2.7.RELEASE</version>-->
-<!--                    </dependency>-->
-<!--                </dependencies>-->
-<!--                <executions>-->
-<!--                    <execution>-->
-<!--                        <phase>package</phase>-->
-<!--                        <goals>-->
-<!--                            <goal>shade</goal>-->
-<!--                        </goals>-->
-<!--                        <configuration>-->
-<!--                            <filters>-->
-<!--                                <filter>-->
-<!--                                    <artifact>*:*</artifact>-->
-<!--                                    <excludes>-->
-<!--                                        <exclude>META-INF/*.SF</exclude>-->
-<!--                                        <exclude>META-INF/*.DSA</exclude>-->
-<!--                                        <exclude>META-INF/*.RSA</exclude>-->
-<!--                                    </excludes>-->
-<!--                                </filter>-->
-<!--                            </filters>-->
-<!--                            <transformers>-->
-<!--                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">-->
-<!--                                    <resource>META-INF/spring.handlers</resource>-->
-<!--                                </transformer>-->
-<!--                                <transformer implementation="org.springframework.boot.maven.PropertiesMergingResourceTransformer">-->
-<!--                                    <resource>META-INF/spring.factories</resource>-->
-<!--                                </transformer>-->
-<!--                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">-->
-<!--                                    <resource>META-INF/spring.schemas</resource>-->
-<!--                                </transformer>-->
-<!--                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />-->
-<!--                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">-->
-<!--                                    <manifestEntries>-->
-<!--                                        <Main-Class>com.br.loan.warning.push.PushApplication</Main-Class>-->
-<!--                                    </manifestEntries>-->
-<!--                                </transformer>-->
-
-<!--                            </transformers>-->
-<!--                        </configuration>-->
-<!--                    </execution>-->
-<!--                </executions>-->
-<!--            </plugin>-->
-<!--        </plugins>-->
-<!--        <defaultGoal>compile</defaultGoal>-->
-<!--    </build>-->
 </project>

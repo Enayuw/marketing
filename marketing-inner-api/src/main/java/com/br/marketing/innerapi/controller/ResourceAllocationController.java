@@ -3,10 +3,10 @@ package com.br.marketing.innerapi.controller;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.innerapi.service.ResourceAllocationService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,7 +18,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/rule/resource")
-@Api(value = "资源配置", tags = "资源配置", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "资源配置", description = "资源配置")
 public class ResourceAllocationController {
 
     private static final Logger log = LoggerFactory.getLogger(ResourceAllocationController.class);
@@ -26,7 +26,7 @@ public class ResourceAllocationController {
     @Autowired
     ResourceAllocationService resourceAllocationService;
 
-    @ApiOperation(value = "读取线程池信息",notes = "读取线程池信息")
+    @Operation(summary = "读取线程池信息", description = "读取线程池信息")
     @GetMapping("/getPushInfoList")
     public ApiResult<List<Map>> getThreadPoolData(){
         try {
@@ -40,7 +40,7 @@ public class ResourceAllocationController {
     }
 
 
-    @ApiOperation(value = "修改线程数量",notes = "修改线程数量")
+    @Operation(summary = "修改线程数量", description = "修改线程数量")
     @PostMapping("/editThreadPoolNum")
     public ApiResult<Boolean> editThreadPoolNum(@RequestBody List<Map> list){
         try {
@@ -53,7 +53,7 @@ public class ResourceAllocationController {
         return new ApiResult<Boolean>().fail(ServiceResultEnum.UNKNOWN_ERROR);
     }
 
-    @ApiOperation(value = "新增zk节点信息",notes = "新增zk节点")
+    @Operation(summary = "新增zk节点信息", description = "新增zk节点")
     @GetMapping("/createZkData")
     public ApiResult<Boolean> createZkData(String path,String data){
         try {
@@ -66,7 +66,7 @@ public class ResourceAllocationController {
         return new ApiResult<Boolean>().success(Boolean.FALSE);
     }
 
-    @ApiOperation(value = "修改zk节点信息",notes = "修改zk节点信息")
+    @Operation(summary = "修改zk节点信息", description = "修改zk节点信息")
     @GetMapping("/setNodeData")
     public ApiResult<Boolean> setNodeData(String path,String data){
         try {
@@ -79,7 +79,7 @@ public class ResourceAllocationController {
         return new ApiResult<Boolean>().success(Boolean.FALSE);
     }
 
-    @ApiOperation(value = "删除zk节点信息",notes = "删除zk节点信息")
+    @Operation(summary = "删除zk节点信息", description = "删除zk节点信息")
     @GetMapping("/deleteZkData")
     public ApiResult<Boolean> deleteZkData(String path){
         try {

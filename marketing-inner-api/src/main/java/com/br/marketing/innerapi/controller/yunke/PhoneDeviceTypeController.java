@@ -7,10 +7,10 @@ import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.yunke.DeviceTypeService;
 import com.br.marketing.vo.CarClueInfoVo;
 import com.br.marketing.vo.yunke.DeviceTypeVO;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
@@ -26,15 +26,15 @@ import java.util.List;
  */
 @RestController
 @RequestMapping(value = "/cell/deviceType")
-@Api(value = "机型获取服务", tags = "机型获取服务", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "机型获取服务", description = "机型获取服务")
 public class PhoneDeviceTypeController {
     private static final Logger log = LoggerFactory.getLogger(PhoneDeviceTypeController.class);
     @Resource
     private DeviceTypeService deviceTypeService;
 
     @PostMapping("/getEncryptionCells")
-    @ApiOperation(value = "根据log手机号获取机型信息", notes = "根据log手机号获取机型信息")
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = CarClueInfoVo.class)})
+    @Operation(summary = "根据log手机号获取机型信息", description = "根据log手机号获取机型信息")
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR")})
     @AddDataAuthBusiness
     public ApiResult<List<DeviceTypeVO>> getDeviceType(@RequestBody @Valid List<LogEncryptionCellsDto> request) {
         if (request.size() > 2000) {

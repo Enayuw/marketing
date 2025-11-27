@@ -12,6 +12,7 @@ import com.br.marketing.entity.TongChengAgentExample;
 import com.br.marketing.mapper.TongChengAgentMapper;
 import com.br.marketing.service.LocalFileService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,8 +60,7 @@ public class TongChengOperationPushToCustomerServiceImpl implements TongChengOpe
         while (true) {
             try {
                 if (marketingCommonConfig.getTongChengGroupOperationThreadNum() != null) {
-                    pool.setCorePoolSize(marketingCommonConfig.getTongChengGroupOperationThreadNum());
-                    pool.setMaximumPoolSize(marketingCommonConfig.getTongChengGroupOperationThreadNum());
+                    ThreadPoolAdjustmentUtil.adjustThreadPoolSize(pool, marketingCommonConfig.getTongChengGroupOperationThreadNum());
                 }
                 List<TongChengAgent> tongchengAgentList = tongChengAgentMapper.tongChengGroupOperationDataPage(minId, apiCode, num);
                 if (tongchengAgentList.size() <= 0) {

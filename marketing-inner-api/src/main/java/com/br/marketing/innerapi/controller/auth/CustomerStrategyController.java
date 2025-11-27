@@ -7,10 +7,10 @@ import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ClusterEnum;
 import com.br.marketing.common.utils.StringUtils;
-import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
@@ -26,7 +26,7 @@ import java.util.*;
  * ------------------------------
  */
 @RestController
-@Api(value = "策略调用", tags = "strategy")
+@Tag(name = "策略调用", description = "strategy")
 @RequestMapping("strategy-customizer")
 public class CustomerStrategyController {
     @Resource

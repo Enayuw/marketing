@@ -1,6 +1,6 @@
 package com.br.marketing.dto;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import javax.validation.constraints.NotNull;
 
@@ -13,40 +13,40 @@ import javax.validation.constraints.NotNull;
 @Data
 public class PushDecisionsDTO {
 
-    @ApiModelProperty(value = "id")
+    @Schema(description = "id")
     private Long id;
 
-    @ApiModelProperty(value = "商户编号")
+    @Schema(description = "商户编号")
     @NotNull(message = "商户编个号不能为空")
     private String apiCode;
 
-    @ApiModelProperty(value = "规则名称")
+    @Schema(description = "规则名称")
     @NotNull(message = "规则名称不能为空")
     private String ruleName;
 
-    @ApiModelProperty(value = "依赖模板id")
+    @Schema(description = "依赖模板id")
     @NotNull(message = "依赖模板id不能为空")
     private Long dependencyTemplateId;
 
-    @ApiModelProperty(value = "规则状态 1-启用;2-禁用")
+    @Schema(description = "规则状态 1-启用;2-禁用")
     private Integer status;
 
-    @ApiModelProperty(value = "每日自动执行时间")
+    @Schema(description = "每日自动执行时间")
     private String autoTime;
 
-    @ApiModelProperty(value = "推送数据集")
+    @Schema(description = "推送数据集")
     private String pushDatasets;
 
-    @ApiModelProperty(value = "触达策略")
+    @Schema(description = "触达策略")
     private String reachStrategy;
 
-    @ApiModelProperty(value = "跑分任务ids")
+    @Schema(description = "跑分任务ids")
     private String fileIds;
 
-    @ApiModelProperty(value = "是否自动刷新 0-否，1-是")
+    @Schema(description = "是否自动刷新 0-否，1-是")
     private Integer autoRefresh;
 
-    @ApiModelProperty(value = "推送系统类型")
+    @Schema(description = "推送系统类型")
     private Integer pushTarget;
 
 }

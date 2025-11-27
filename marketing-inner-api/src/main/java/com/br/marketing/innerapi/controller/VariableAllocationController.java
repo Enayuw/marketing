@@ -17,10 +17,10 @@ import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.VariableAllocationService;
 import com.br.marketing.vo.VariableAllocationVO;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * 定制化配置
@@ -30,7 +30,7 @@ import io.swagger.annotations.ApiOperation;
  */
 @RestController
 @RequestMapping(value = "/rule/vac")
-@Api(value = "定制化配置", tags = "定制化配置", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "定制化配置", description = "定制化配置")
 public class VariableAllocationController {
 
     private static final Logger log = LoggerFactory.getLogger(CustomerController.class);
@@ -39,22 +39,22 @@ public class VariableAllocationController {
     VariableAllocationService variableAllocationService;
 
     @PostMapping("/getVariableList")
-    @ApiOperation(value = "配置列表", notes = "配置列表")
+    @Operation(summary = "配置列表", description = "配置列表")
     @AddDataAuthBusiness
     public ApiResult<VariableAllocationVO> getVariableList(@RequestBody VariableAllocationDTO dto) {
         return new ApiResult<VariableAllocationVO>().success(variableAllocationService.getVariableList(dto));
     }
 
     @PostMapping("/getAllocationValue")
-    @ApiOperation(value = "配置列表", notes = "配置列表")
+    @Operation(summary = "配置列表", description = "配置列表")
     @AddDataAuthBusiness
     public ApiResult<JSONObject> getAllocationValue(@RequestBody VariableAllocationDTO dto) {
         return new ApiResult<JSONObject>().success(variableAllocationService.getAllocationValue(dto.getApiCode(), dto.getAllocationType()));
     }
 
-    @ApiOperation(value = "变更配置列表", notes = "变更配置列表")
+    @Operation(summary = "变更配置列表", description = "变更配置列表")
     @PostMapping("/updateVariableList")
-    @ApiImplicitParams({@ApiImplicitParam(name = "id", value = "id", required = true, dataType = "Long")})
+    @Parameters({@Parameter(name = "id", description = "id", required = true)})
     public ApiResult<Boolean> updateVariableList(@RequestBody String params) {
         try {
             return variableAllocationService.updateVariableList(params);
@@ -64,7 +64,7 @@ public class VariableAllocationController {
         }
     }
 
-    @ApiOperation(value = "获取配置", notes = "获取配置")
+    @Operation(summary = "获取配置", description = "获取配置")
     @PostMapping("/getVariableAllocation")
     public VariableAllocationVO getVariableAllocation() {
         return variableAllocationService.getVariableAllocation();

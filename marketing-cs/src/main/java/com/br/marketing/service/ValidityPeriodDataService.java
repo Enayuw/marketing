@@ -1,7 +1,7 @@
 package com.br.marketing.service;
 
+import cn.hutool.core.lang.Pair;
 import com.br.marketing.common.commondto.ApiNoDataResult;
-import javafx.util.Pair;
 
 /**
  * 描述：： 根据有效期框定数据范围

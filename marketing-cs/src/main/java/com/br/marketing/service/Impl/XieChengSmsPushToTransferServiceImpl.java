@@ -16,6 +16,7 @@ import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.XieChengSmsPushToTransferService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -134,8 +135,7 @@ public class XieChengSmsPushToTransferServiceImpl implements XieChengSmsPushToTr
 
     private void modifyCorePoolSize() {
         Integer threadNum = marketingCommonConfig.getXieChengSmsMqPushCustomerThreadNum();
-        pool.setCorePoolSize(threadNum);
-        pool.setMaximumPoolSize(threadNum);
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(pool, threadNum);
     }
 
     private void buildConversionDataList(Date nowDayEndTime, String cid, String sha256Code,

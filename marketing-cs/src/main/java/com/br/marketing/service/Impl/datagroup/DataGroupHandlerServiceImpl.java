@@ -20,6 +20,7 @@ import com.br.marketing.service.datagroup.DataGroupHandlerService;
 import com.br.marketing.mapper.datagroup.DataGroupConfigMapper;
 import com.br.marketing.mapper.datagroup.DataGroupTaskMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.br.marketing.vo.BaseHead;
 import com.br.marketing.vo.BaseHeadConfigVO;
 import com.br.marketing.vo.MarketingTaskVO;
@@ -536,8 +537,7 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
         Integer threadNum =
                 marketingCommonConfig.getDataGroupThreadNum();
         if (!Objects.isNull(threadNum)) {
-            pool.setCorePoolSize(threadNum);
-            pool.setMaximumPoolSize(threadNum);
+            ThreadPoolAdjustmentUtil.adjustThreadPoolSize(pool, threadNum);
         }
         log.warn("数据分组处理线程数core={}，max={}", pool.getCorePoolSize(), pool.getMaximumPoolSize());
     }

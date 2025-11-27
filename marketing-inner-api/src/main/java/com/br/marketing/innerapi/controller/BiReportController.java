@@ -15,8 +15,6 @@ import com.br.marketing.vo.bi.param.BiReportConfigDictParam;
 import com.br.marketing.vo.bi.param.BiReportConfigParam;
 import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
 import com.br.marketing.vo.bi.param.BiReportParam;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -26,6 +24,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
@@ -41,7 +41,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping(value = "/bi")
-@Api(value = "BI报表相关接口", tags = "BI报表相关接口")
+@Tag(name = "BI报表相关接口", description = "BI报表相关接口")
 @Slf4j
 public class BiReportController {
 
@@ -50,7 +50,7 @@ public class BiReportController {
     @Resource
     private FastDfsClient fastDfsClient;
 
-    @ApiOperation(value = "查看BI报表")
+    @Operation(summary = "查看BI报表")
     @PostMapping(value = "/report/getBiReport")
     @AuthDataControllerPermission
     public ApiResult<List<BiReportVO>> getBiReport(@RequestBody BiReportParam param) {
@@ -62,7 +62,7 @@ public class BiReportController {
         return new ApiResult<List<BiReportVO>>().fail(ServiceResultEnum.FAILED);
     }
 
-    @ApiOperation(value = "下载BI报表")
+    @Operation(summary = "下载BI报表")
     @PostMapping("/report/downloadReport")
     @LogRecordAnnotation(bizNo = InterfaceOperationsEnum.BI_DOWNLOAD_REPORT, extendInfo = "下载BI报表类型：{#params[0].reportTypeName}，BI报表名称：{#params[0]" +
             ".reportName}")
@@ -71,7 +71,7 @@ public class BiReportController {
     }
 
 
-    @ApiOperation(value = "下载fastdfs文件")
+    @Operation(summary = "下载fastdfs文件")
     @GetMapping("/downloadFile")
     public ResponseEntity<byte[]> downloadFile(@RequestParam String url) {
         try {
@@ -87,7 +87,7 @@ public class BiReportController {
         }
     }
 
-    @ApiOperation(value = "查看BI报表配置字典")
+    @Operation(summary = "查看BI报表配置字典")
     @PostMapping(value = "/report/getBiReportConfigDict")
     public ApiResult<List<BiReportConfigDictVO>> getBiReportConfigDict(@RequestBody BiReportConfigDictParam param) {
         log.warn("查看BI报表配置字典,请求参数{}", param);
@@ -95,14 +95,14 @@ public class BiReportController {
         return new ApiResult<List<BiReportConfigDictVO>>().success(biReportConfigDictVO);
     }
 
-    @ApiOperation(value = "新增修改BI报表配置字典")
+    @Operation(summary = "新增修改BI报表配置字典")
     @PostMapping(value = "/report/saveBiReportConfigDict")
     public ApiResult<Boolean> saveBiReportConfigDict(@RequestBody BiReportConfigDictParam param) {
         log.warn("新增修改BI报表配置字典,请求参数{}", param);
         return biReportService.saveBiReportConfigDict(param);
     }
 
-    @ApiOperation(value = "获取报表分组维度")
+    @Operation(summary = "获取报表分组维度")
     @PostMapping("/config/getReportGroupList")
     public ApiResult<List<String>> getReportGroupList(@RequestBody BiReportConfigParam param) {
         try {
@@ -113,7 +113,7 @@ public class BiReportController {
         }
     }
 
-    @ApiOperation(value = "获取数据时间范围")
+    @Operation(summary = "获取数据时间范围")
     @PostMapping("/config/getReportTimeRange")
     public ApiResult<BiReportTimeRangeVO> getReportTimeRange(@RequestBody BiReportConfigParam param) {
         try {

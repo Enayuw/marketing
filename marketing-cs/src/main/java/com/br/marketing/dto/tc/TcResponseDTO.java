@@ -2,7 +2,7 @@ package com.br.marketing.dto.tc;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.util.tc.RSAUtil;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.Getter;
 import org.hibernate.validator.constraints.NotEmpty;
@@ -11,27 +11,27 @@ import javax.validation.constraints.NotNull;
 @Data
 public class TcResponseDTO {
 
-    @ApiModelProperty(value = "code")
+    @Schema(description = "code")
     @NotNull(message = "code必传")
     @NotEmpty(message = "code必传")
     private String code;
 
-    @ApiModelProperty(value = "msg")
+    @Schema(description = "msg")
     @NotNull(message = "msg必传")
     @NotEmpty(message = "msg必传")
     private String msg;
 
-    @ApiModelProperty(value = "sign")
+    @Schema(description = "sign")
     @NotNull(message = "sign必传")
     @NotEmpty(message = "sign必传")
     private String sign;
 
-    @ApiModelProperty(value = "timestamp")
+    @Schema(description = "timestamp")
     @NotNull(message = "timestamp必传")
     @NotEmpty(message = "timestamp必传")
     private String timestamp;
 
-    @ApiModelProperty(value = "data")
+    @Schema(description = "data")
     @NotNull(message = "data必传")
     @NotEmpty(message = "data必传")
     private String data;

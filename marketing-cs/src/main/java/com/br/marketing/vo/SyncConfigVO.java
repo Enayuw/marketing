@@ -1,27 +1,27 @@
 package com.br.marketing.vo;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
 public class SyncConfigVO {
 
-    @ApiModelProperty(value = "主键id")
+    @Schema(description = "主键id")
     private Long id;
 
-    @ApiModelProperty(value = "apiCode")
+    @Schema(description = "apiCode")
     private String apiCode;
 
-    @ApiModelProperty(value = "源目录")
+    @Schema(description = "源目录")
     private String srcPath;
 
-    @ApiModelProperty(value = "目的目录")
+    @Schema(description = "目的目录")
     private String targetPath;
 
-    @ApiModelProperty(value = "同步文件的类型。1：sftp>>本地磁盘，2：本地磁盘>>sftp")
+    @Schema(description = "同步文件的类型。1：sftp>>本地磁盘，2：本地磁盘>>sftp")
     private Integer type;
 
-    @ApiModelProperty(value = "文件类型。1:跑分上传文件,2:错误文件,3:电销文件,4:七七撞库文件")
+    @Schema(description = "文件类型。1:跑分上传文件,2:错误文件,3:电销文件,4:七七撞库文件")
     private Integer dataType;
 
 }

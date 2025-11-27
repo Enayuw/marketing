@@ -1,7 +1,7 @@
 package com.br.marketing.dto;
 
 import com.br.marketing.common.commondto.PageSearchDTO;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
@@ -12,10 +12,10 @@ import lombok.Data;
 @Data
 public class RunTaskDTO extends PageSearchDTO {
 
-    @ApiModelProperty(value = "apiCode")
+    @Schema(description = "apiCode")
     private String apiCode;
 
-    @ApiModelProperty(value = "依赖模板id")
+    @Schema(description = "依赖模板id")
     private Integer templateId;
 
 }

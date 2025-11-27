@@ -1,6 +1,6 @@
 package com.br.marketing.vo.bi.param;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
@@ -14,12 +14,12 @@ public class IntervalTemplateParam {
     /**
      * apiCode
      */
-    @ApiModelProperty(value = "apiCode")
+    @Schema(description = "apiCode")
     private String apiCode;
     /**
      * 评分分布模板名称
      */
-    @ApiModelProperty(value = "评分分布模板名称")
+    @Schema(description = "评分分布模板名称")
     private String templateName;
 
 }

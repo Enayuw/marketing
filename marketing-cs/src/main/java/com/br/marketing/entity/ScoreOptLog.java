@@ -1,48 +1,47 @@
 package com.br.marketing.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.Date;
 
-@ApiModel(value = "跑分配置变更记录", description = "跑分配置变更记录")
+@Schema(description = "跑分配置变更记录")
 public class ScoreOptLog {
     /**
      *
      */
-    @ApiModelProperty(value = "主键", dataType = "long", position = 0)
+    @Schema(description = "主键")
     private Long id;
 
     /**
      * 跑分规则id
      */
-    @ApiModelProperty(value = "跑分规则id", dataType = "String", position = 1)
+    @Schema(description = "跑分规则id")
     private String scoreRuleId;
 
     /**
      * 操作人id
      */
-    @ApiModelProperty(value = "操作人id", dataType = "String", position = 2)
+    @Schema(description = "操作人id")
     private String optUserId;
 
     /**
      * 操作人姓名
      */
-    @ApiModelProperty(value = "操作人姓名", dataType = "String", position = 3)
+    @Schema(description = "操作人姓名")
     private String optUserName;
 
     /**
      * 删除标志；1-正常；9-删除；
      */
-    @ApiModelProperty(value = "删除标志；1-正常；9-删除；", dataType = "Integer", position = 4, hidden = true)
+    @Schema(description = "删除标志；1-正常；9-删除；", hidden = true)
     private Integer isDel;
 
     /**
      * 入库时间
      */
-    @ApiModelProperty(value = "入库时间", dataType = "Date", position = 5)
+    @Schema(description = "入库时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createTime;
@@ -50,7 +49,7 @@ public class ScoreOptLog {
     /**
      * 修改时间
      */
-    @ApiModelProperty(value = "修改时间", dataType = "Date", position = 6, hidden = true)
+    @Schema(description = "修改时间", hidden = true)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date updateTime;
@@ -58,43 +57,43 @@ public class ScoreOptLog {
     /**
      * 规则名称
      */
-    @ApiModelProperty(value = "规则名称", dataType = "String", position = 7)
+    @Schema(description = "规则名称")
     private String ruleName;
 
     /**
      * 跑分时间 格式HH:mm
      */
-    @ApiModelProperty(value = "跑分时间 格式HH:mm", dataType = "String", position = 8)
+    @Schema(description = "跑分时间 格式HH:mm")
     private String startTime;
 
     /**
      * 规则展示信息
      */
-    @ApiModelProperty(value = "规则展示信息", dataType = "String", position = 9)
+    @Schema(description = "规则展示信息")
     private String conditionShowInfo;
 
     /**
      * 商户编号
      */
-    @ApiModelProperty(value = "商户编号", dataType = "String", position = 10)
+    @Schema(description = "商户编号")
     private String cid;
 
     /**
      * 账户标识
      */
-    @ApiModelProperty(value = "账户标识", dataType = "String", position = 11)
+    @Schema(description = "账户标识")
     private String apicode;
 
     /**
      * 策略产品展示信息
      */
-    @ApiModelProperty(value = "策略产品展示信息", dataType = "String", position = 12)
+    @Schema(description = "策略产品展示信息")
     private String strategyProductShow;
 
     /**
      * 开启状态 1-开启；2-禁用；3-开启中
      */
-    @ApiModelProperty(value = "开启状态 1-开启；2-禁用；3-开启中", dataType = "Integer", position = 13)
+    @Schema(description = "开启状态 1-开启；2-禁用；3-开启中")
     private Integer status;
 
     public Long getId() {

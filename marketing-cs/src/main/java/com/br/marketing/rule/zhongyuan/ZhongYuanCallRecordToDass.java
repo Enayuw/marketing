@@ -25,7 +25,7 @@ import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.ValidityPeriodDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
-import javafx.util.Pair;
+import cn.hutool.core.lang.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

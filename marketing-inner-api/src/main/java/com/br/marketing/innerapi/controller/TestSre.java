@@ -23,9 +23,9 @@ import com.br.marketing.rpcclient.rpcclientImpl.UserCenterGrpcClient;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerService;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
-import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.producer.SendResult;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -148,7 +148,7 @@ public class TestSre {
      * @param jsonData
      * @return
      */
-    @ApiOperation(value = "定制接入营销数据")
+    @Operation(summary = "定制接入营销数据")
     @PostMapping("/receiveMarketingData")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
     public ApiNoDataResult receiveMarketingData(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {

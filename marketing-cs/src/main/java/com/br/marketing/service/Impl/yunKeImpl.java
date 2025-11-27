@@ -18,6 +18,7 @@ import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.service.YunKeService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.SHAUtils;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -148,14 +149,12 @@ public class yunKeImpl implements YunKeService {
 
     private void getCellCollectThreadNum(ThreadPoolExecutor pool) {
         Integer threadNum = marketingCommonConfig.getCellCollectThreadNum();
-        pool.setCorePoolSize(threadNum);
-        pool.setMaximumPoolSize(threadNum);
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(pool, threadNum);
     }
 
     private void modifyDeviceTypeThreadPool(ThreadPoolExecutor pool) {
         Integer threadNum = marketingCommonConfig.getDeviceTypeThreadNum();
-        pool.setCorePoolSize(threadNum);
-        pool.setMaximumPoolSize(threadNum);
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(pool, threadNum);
     }
 
     private void cellDataHandle(List<MarketingSyncCell> marketingSyncCells, String apiCode) {

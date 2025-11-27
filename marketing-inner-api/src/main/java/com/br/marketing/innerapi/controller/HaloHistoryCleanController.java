@@ -5,9 +5,9 @@ import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.service.HaloHistoryCleanService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @Configuration
 @RequestMapping("/rule/cleanHistory")
-@Api(value = "哈啰历史数据洗数", tags = "哈啰历史数据洗数", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "哈啰历史数据洗数", description = "哈啰历史数据洗数")
 public class HaloHistoryCleanController {
 
 
@@ -38,14 +38,14 @@ public class HaloHistoryCleanController {
 
 
     @GetMapping("getHaloButton")
-    @ApiOperation(value = "判断哈啰按钮是否显示", notes = "判断哈啰按钮是否显示")
+    @Operation(summary = "判断哈啰按钮是否显示", description = "判断哈啰按钮是否显示")
     public ApiResult<Boolean> getHaloButton(String cid) {
 
         return new ApiResult<Boolean>().success(redisChgService.exists("cid-halo-button" + cid));
     }
 
     @PostMapping("haluoCleanHistory")
-    @ApiOperation(value = "哈啰历史数据清洗", notes = "哈啰历史数据清洗")
+    @Operation(summary = "哈啰历史数据清洗", description = "哈啰历史数据清洗")
     public ApiResult<Boolean> cleanHistory(@RequestBody String jsonData ) {
         return  haloHistoryCleanService.cleanHistory(jsonData);
     }

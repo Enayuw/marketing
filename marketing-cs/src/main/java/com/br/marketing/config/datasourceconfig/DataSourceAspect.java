@@ -16,11 +16,11 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(prefix = "datasource.database",name = "defaultSource",havingValue = "shardingmarketing",matchIfMissing = false)
 public class DataSourceAspect {
     Logger logger = LoggerFactory.getLogger(DataSourceAspect.class);
-    public static final String marketingTikiv = "marketingTikiv";
-    public static final String marketingTiFlash = "marketingTiFlash";
-    public static final String MARKETING_DORIS = "marketingDoris";
-    public static final String MARKETING_BI = "marketingBI";
-    public static final String MARKETING_LOG = "marketingLog";
+    public static final String marketingTikiv = "marketing-tikiv";
+    public static final String marketingTiFlash = "marketing-tiflash";
+    public static final String MARKETING_DORIS = "marketing-doris";
+    public static final String MARKETING_BI = "marketing-bi";
+    public static final String MARKETING_LOG = "marketing-log";
 
 
     /**

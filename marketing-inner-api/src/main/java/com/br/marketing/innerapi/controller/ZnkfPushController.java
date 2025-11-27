@@ -13,10 +13,10 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.dto.customer.CallRecordDTO;
 import com.br.marketing.dto.customer.SmsRecordDTO;
 import com.br.marketing.service.ZnkfPushService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,7 +29,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/znkePush")
-@Api(value = "客服推送营销数据")
+@Tag(name = "客服推送营销数据", description = "客服推送营销数据")
 public class ZnkfPushController {
 
     private static final Logger log = LoggerFactory.getLogger(ZnkfPushController.class);
@@ -40,7 +40,7 @@ public class ZnkfPushController {
     @Resource
     private DassServiceClient dassServiceClient;
 
-    @ApiOperation(value = "客服推送营销数据 回调接口")
+    @Operation(summary = "客服推送营销数据 回调接口")
     @PostMapping("/znkfPushCallBack")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public String znkfPushCallBack(@RequestBody CallRecordDTO dto) {
@@ -52,7 +52,7 @@ public class ZnkfPushController {
         }
     }
 
-    @ApiOperation(value = "短信回调接口")
+    @Operation(summary = "短信回调接口")
     @PostMapping("/smsCallBack")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public String smsCallBack(@RequestBody SmsRecordDTO dto) {
@@ -64,7 +64,7 @@ public class ZnkfPushController {
         }
     }
 
-    @ApiOperation(value = "短信发送即回调接口")
+    @Operation(summary = "短信发送即回调接口")
     @PostMapping("/smsCallBackAtOnce")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public String smsCallBackAtOnce(@RequestBody SmsRecordDTO dto) {
@@ -76,7 +76,7 @@ public class ZnkfPushController {
         }
     }
 
-    @ApiOperation(value = "客服推送营销黑名单结束标识接口")
+    @Operation(summary = "客服推送营销黑名单结束标识接口")
     @PostMapping("/znkfPushBlackPhoneMark")
     public ApiResult znkfPushBlackPhoneMark(String apiCode, String pushDate) {
         try {
@@ -87,7 +87,7 @@ public class ZnkfPushController {
         }
     }
 
-    @ApiOperation(value = "测试电销转化接口")
+    @Operation(summary = "测试电销转化接口")
     @PostMapping("/testDassTransferData")
     public ApiResult testDassTransferData() {
         try {

@@ -14,6 +14,7 @@ import com.br.marketing.mapper.DataMarkConfigMapper;
 import com.br.marketing.mapper.FlagDataMapper;
 import com.br.marketing.service.mark.PpRonShuMarkService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.google.common.collect.Lists;
@@ -98,8 +99,7 @@ public class DataRiskGroupMarkJob extends AbstractSimpleElasticJob {
                 .andApiCodeEqualTo(apiCode);
         List<DataMarkConfig> dataMarkConfigs = dataMarkConfigMapper.selectByExample(markConfigExample);
 
-        pool.setCorePoolSize(marketingCommonConfig.getDataGroupThreadNum());
-        pool.setMaximumPoolSize(marketingCommonConfig.getDataGroupThreadNum());
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(pool, marketingCommonConfig.getDataGroupThreadNum());
         Lists.partition(flagData, 2000).forEach(partition -> {
             pool.submit(() -> {
                 List<FlagData> list = new ArrayList<>(partition);

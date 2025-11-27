@@ -18,6 +18,7 @@ import com.br.marketing.mapper.QueryUserRealMessageMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.service.Impl.DynamicParameterServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -167,8 +168,7 @@ public class QiFuDataCleanServiceImpl implements QiFuDataCleanService {
 
     private void modifyCorePoolSize(ThreadPoolExecutor pool, Integer threadNum) {
         if (!Objects.isNull(threadNum)) {
-            pool.setCorePoolSize(threadNum);
-            pool.setMaximumPoolSize(threadNum);
+            ThreadPoolAdjustmentUtil.adjustThreadPoolSize(pool, threadNum);
         }
         log.warn("奇富促动支清洗线程数core={}，max={}", pool.getCorePoolSize(), pool.getMaximumPoolSize());
     }

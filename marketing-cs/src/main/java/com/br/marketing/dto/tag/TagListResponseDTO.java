@@ -1,7 +1,6 @@
 package com.br.marketing.dto.tag;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.Date;
@@ -10,54 +9,54 @@ import java.util.Date;
  * 标签列表响应DTO
  */
 @Data
-@ApiModel("标签列表响应DTO")
+@Schema(description = "标签列表响应DTO")
 public class TagListResponseDTO {
 
-    @ApiModelProperty("ID")
+    @Schema(description = "ID")
     private Long id;
 
-    @ApiModelProperty("标签编码")
+    @Schema(description = "标签编码")
     private String tagCode;
 
-    @ApiModelProperty("标签名称")
+    @Schema(description = "标签名称")
     private String tagName;
 
-    @ApiModelProperty("标签规则总结")
+    @Schema(description = "标签规则总结")
     private String summary;
 
-    @ApiModelProperty("标签规则内容")
+    @Schema(description = "标签规则内容")
     private String content;
 
-    @ApiModelProperty("预估人数")
+    @Schema(description = "预估人数")
     private Integer tagNumber;
 
-    @ApiModelProperty("数据源编码")
+    @Schema(description = "数据源编码")
     private String sourceCode;
 
-    @ApiModelProperty("API范围，分号分隔")
+    @Schema(description = "API范围，分号分隔")
     private String apiCodeScope;
 
-    @ApiModelProperty("API授权，分号分隔")
+    @Schema(description = "API授权，分号分隔")
     private String apiCodeLicense;
 
-    @ApiModelProperty("状态：1-启用 0-禁用")
+    @Schema(description = "状态：1-启用 0-禁用")
     private Integer status;
 
-    @ApiModelProperty("创建人")
+    @Schema(description = "创建人")
     private String creator;
 
-    @ApiModelProperty("创建人ID")
+    @Schema(description = "创建人ID")
     private Long creatorId;
 
-    @ApiModelProperty("创建时间")
+    @Schema(description = "创建时间")
     private Date createTime;
 
-    @ApiModelProperty("更新时间")
+    @Schema(description = "更新时间")
     private Date updateTime;
 
-    @ApiModelProperty("是否可编辑")
+    @Schema(description = "是否可编辑")
     private Boolean canEdit;
 
-    @ApiModelProperty("是否可删除")
+    @Schema(description = "是否可删除")
     private Boolean canDelete;
 }

@@ -35,7 +35,7 @@ import com.br.marketing.service.bi.AnalysisReportService;
 import com.br.marketing.vo.bi.AxisWrapVO;
 import com.br.marketing.vo.bi.param.ReportTaskParam;
 import com.br.marketing.dto.report.RefreshReportRequestDTO;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -63,7 +63,7 @@ public class ReportScoreRuleController {
         return new ApiResult<Map>().success(reportScoreRuleService.getProducts(ids, fieldType));
     }
 
-    @ApiOperation(value = "获取报告任务列表")
+    @Operation(summary = "获取报告任务列表")
     @GetMapping("/getReportTaskList")
     @AuthDataControllerPermission
     public ApiResult<PageResultReturn> getReportTaskList(@RequestParam(defaultValue = "1") int current, @RequestParam(defaultValue = "10") int size,
@@ -88,7 +88,7 @@ public class ReportScoreRuleController {
         }
     }
 
-    @ApiOperation(value = "生成报告文件并上传至fastdfs")
+    @Operation(summary = "生成报告文件并上传至fastdfs")
     @GetMapping("/uploadReportToFastDfs")
     public ApiResult<String> uploadReportToFastDfs(@RequestParam Long taskId) {
         try {
@@ -99,7 +99,7 @@ public class ReportScoreRuleController {
         }
     }
 
-    @ApiOperation(value = "获取报告详情")
+    @Operation(summary = "获取报告详情")
     @GetMapping("/getReportDetails")
     public ApiResult<List<AxisWrapVO>> getReportDetails(@RequestParam Long taskId) {
         try {
@@ -110,7 +110,7 @@ public class ReportScoreRuleController {
         }
     }
 
-    @ApiOperation(value = "下载fastdfs文件")
+    @Operation(summary = "下载fastdfs文件")
     @GetMapping("/downloadFile")
     @LogRecordAnnotation(bizNo = InterfaceOperationsEnum.BI_DOWNLOAD_DISTRIBUTED_REPORT, extendInfo = "下载跑分分布报表：{#fileName}，下载文件路径：{#url}")
     public ResponseEntity<byte[]> downloadFile(@RequestParam String fileName, @RequestParam String url) {
@@ -126,7 +126,7 @@ public class ReportScoreRuleController {
         }
     }
 
-    @ApiOperation(value = "获取Bi报表列表")
+    @Operation(summary = "获取Bi报表列表")
     @PostMapping("/getBiReportTaskList")
     @AuthDataControllerPermission
     public ApiResult<PageResultReturn> getBiReportTaskList(@RequestBody(required=false) BiReportTaskParam reportTaskParam) {
@@ -137,7 +137,7 @@ public class ReportScoreRuleController {
         return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.FAILED);
     }
 
-    @ApiOperation(value = "获取跑分文件对应评分分布列表")
+    @Operation(summary = "获取跑分文件对应评分分布列表")
     @GetMapping("/getReportTaskListForScore")
     @AuthDataControllerPermission
     public ApiResult<List<ReportTaskVO>> getReportTaskListForScore(@RequestParam(required = false) String name, @RequestParam String ids) {
@@ -145,7 +145,7 @@ public class ReportScoreRuleController {
         return new ApiResult<List<ReportTaskVO>>().success(list);
     }
 
-    @ApiOperation(value = "更新报表统计记录")
+    @Operation(summary = "更新报表统计记录")
     @PostMapping("/updateReportStatisticsRecords")
     public ApiResult<Boolean> updateReportStatisticsRecords(@RequestBody(required = false) BiReportStatisticTransferParam param) {
         try {
@@ -156,28 +156,28 @@ public class ReportScoreRuleController {
         }
     }
 
-    @ApiOperation(value = "重命名报表名称")
+    @Operation(summary = "重命名报表名称")
     @GetMapping("/updateReportName")
     @AuthDataControllerPermission
     public ApiResult<Boolean> updateReportName(@RequestParam Long id, @RequestParam String reportName) {
         return reportScoreRuleService.updateReportName(id, reportName);
     }
 
-    @ApiOperation(value = "报表删除")
+    @Operation(summary = "报表删除")
     @GetMapping("/deleteReport")
     @AuthDataControllerPermission
     public ApiResult<Boolean> deleteReport(@RequestParam Long id) {
         return reportScoreRuleService.deleteReport(id);
     }
 
-    @ApiOperation("刷新报表数据")
+    @Operation(summary = "刷新报表数据")
     @PostMapping("/refreshCustomIntervalReport")
     @AuthDataControllerPermission
     public ApiResult<Boolean> refreshCustomIntervalReport(@RequestBody RefreshReportRequestDTO requestDTO) {
         return new ApiResult().fromResult(reportScoreRuleService.refreshCustomIntervalReport(requestDTO), CODE_1);
     }
 
-    @ApiOperation("保存评分分布模板")
+    @Operation(summary = "保存评分分布模板")
     @PostMapping("/saveIntervalTemplate")
     @AuthDataControllerPermission
     public ApiResult<Boolean> saveIntervalTemplate(@RequestBody RefreshReportRequestDTO requestDTO) {
@@ -185,14 +185,14 @@ public class ReportScoreRuleController {
         return new ApiResult().fromResult(reportScoreRuleService.saveIntervalTemplate(requestDTO,user), CODE_1);
     }
 
-    @ApiOperation("评分分布查询规则模板")
+    @Operation(summary = "评分分布查询规则模板")
     @GetMapping("/getIntervalTemplate")
     @AuthDataControllerPermission
     public ApiResult<List<IntervalTemplateVO>> getIntervalTemplate(@RequestParam String apiCode) {
         return new ApiResult().fromResult(reportScoreRuleService.getIntervalTemplate(apiCode), CODE_1);
     }
 
-    @ApiOperation("查询画像分布模型")
+    @Operation(summary = "查询画像分布模型")
     @GetMapping("/getImageDistribution")
     public ApiResult<String> getImageDistribution() {
         return new ApiResult().fromResult(reportScoreRuleService.getImageDistribution(), CODE_1);

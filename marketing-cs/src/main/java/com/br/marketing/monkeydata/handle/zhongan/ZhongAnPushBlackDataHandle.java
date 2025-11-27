@@ -30,6 +30,7 @@ import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
 import com.br.marketing.service.IPeriodOfValidityService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.CustomerBlackListHandler;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -147,8 +148,10 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
             inputData.setUserType(usertype);
             for (; ; ) {
                 if (StringUtils.isNotEmpty(marketingCommonConfig.getZhongAnPushBlackThreadNum().get(usertype))) {
-                    pool.setCorePoolSize(Integer.valueOf(marketingCommonConfig.getZhongAnPushBlackThreadNum().get(usertype)));
-                    pool.setMaximumPoolSize(Integer.valueOf(marketingCommonConfig.getZhongAnPushBlackThreadNum().get(usertype)));
+                    ThreadPoolAdjustmentUtil.adjustThreadPoolSize(
+                        pool,
+                        Integer.parseInt(marketingCommonConfig.getZhongAnPushBlackThreadNum().get(usertype))
+                    );
                     log.warn("众安推送黑名单线程调整，userType={},corePoolSize={},maxPoolSize={}", usertype, pool.getCorePoolSize(), pool.getMaximumPoolSize());
                 }
                 Result<IterationResult<MarketingSyncUser, MarketingSyncCondition>> inputRes = getInputData(inputData);

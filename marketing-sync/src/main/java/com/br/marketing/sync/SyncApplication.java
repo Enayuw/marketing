@@ -2,15 +2,14 @@ package com.br.marketing.sync;
 
 import com.br.cloud.boot.EnablePrometheusEndpoint;
 import com.br.cloud.counter.EnableBrCounter;
-import com.br.cloud.hystrix.EnableHystrixPrometheus;
+import com.br.cloud.datasource.EnableDataSourcePrometheus;
 import com.br.cloud.jvm.EnablePrometheusJvm;
 import com.br.cloud.web.EnablePrometheusTiming;
 import com.br.grpc.utils.BrGrpcUtils;
-import com.br.marketing.config.autoinject.druid.EnableDruidPrometheus;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.web.MultipartAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.servlet.MultipartAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
@@ -22,9 +21,8 @@ import org.springframework.context.annotation.ImportResource;
 @ImportResource(locations = {"classpath:scheduler.xml"})
 @EnablePrometheusEndpoint
 @EnablePrometheusJvm
-@EnableHystrixPrometheus
 @EnablePrometheusTiming
-@EnableDruidPrometheus
+@EnableDataSourcePrometheus
 @EnableBrCounter(namespace = "marketing_sync")
 @Slf4j
 public class SyncApplication {

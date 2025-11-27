@@ -27,4 +27,7 @@ public interface LineAccountDetailNormalMapper extends  LineAccountDetailNormalM
     );
 
     List<LineAccountDetailDTO> selectListByGroupId(@Param("groupId") Long groupId);
+
+
+    Long selectCount(@Param("lineSupplierId") Long lineSupplierId,@Param("gatewayId") Long gatewayId);
 }

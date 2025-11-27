@@ -7,4 +7,5 @@ public interface MarketingLineAccountDetailMapper extends MarketingLineAccountDe
 
     List<Long> selectLineIfExist(@Param("gatewayIds") List<Long> gatewayIds, @Param("configId") Long configId);
 
+    Long selectCount(@Param("gateWayId") Long gatewayId);
 }

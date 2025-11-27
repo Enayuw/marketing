@@ -1,6 +1,6 @@
 package com.br.marketing.dto.customer;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;
@@ -15,28 +15,28 @@ import javax.validation.constraints.NotNull;
 @Data
 public class SmsRecordDTO {
 
-    @ApiModelProperty(value = "商户编号")
+    @Schema(description = "商户编号")
     private String apiCode;
 
-    @ApiModelProperty(value = "公司标识")
+    @Schema(description = "公司标识")
     private String cid;
 
-    @ApiModelProperty(value = "场景")
+    @Schema(description = "场景")
     private String userType;
 
-    @ApiModelProperty(value = "短信流水号")
+    @Schema(description = "短信流水号")
     private String thirdCallNo;
 
-    @ApiModelProperty(value = "短信发送状态")
+    @Schema(description = "短信发送状态")
     private Integer smsSendStatus;
 
-    @ApiModelProperty(value = "案件编号")
+    @Schema(description = "案件编号")
     private String caseNum;
 
-    @ApiModelProperty(value = "预留字段1")
+    @Schema(description = "预留字段1")
     private String reserveField1;
 
-    @ApiModelProperty(value = "回调类型")
+    @Schema(description = "回调类型")
     private Integer callBackType;
 
 }

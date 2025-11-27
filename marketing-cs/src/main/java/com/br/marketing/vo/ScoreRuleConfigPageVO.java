@@ -1,7 +1,6 @@
 package com.br.marketing.vo;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -15,88 +14,88 @@ import lombok.Setter;
 @Setter
 @Getter
 @NoArgsConstructor
-@ApiModel(value = "跑分配置", description = "展示跑分配置VO")
+@Schema(description = "跑分配置")
 public class ScoreRuleConfigPageVO {
 
     /**
      * 2021/8/31 16:11 规则主键
      */
-    @ApiModelProperty(value = "规则主键", dataType = "long", position = 0)
+    @Schema(description = "规则主键")
     private Long id;
 
     /**
      * 2021/8/31 16:11 规则与客户关系主键
      */
-    @ApiModelProperty(value = "规则与客户关系主键", dataType = "long", position = 1)
+    @Schema(description = "规则与客户关系主键")
     private Long crId;
 
     /**
      * 2021/8/31 16:11 规则名称
      */
-    @ApiModelProperty(value = "规则名称", dataType = "string", position = 2)
+    @Schema(description = "规则名称")
     private String ruleName;
 
     /**
      * 2021/8/31 16:11 合作客户ID
      */
-    @ApiModelProperty(value = "合作客户ID", dataType = "string", position = 3)
+    @Schema(description = "合作客户ID")
     private String cid;
 
     /**
      * 2021/8/31 16:11 接口编码
      */
-    @ApiModelProperty(value = "接口编码", dataType = "string", position = 4)
+    @Schema(description = "接口编码")
     private String apiCode;
 
     /**
      * 2021/8/31 16:11 状态
      */
-    @ApiModelProperty(value = "状态", dataType = "string", position = 5)
+    @Schema(description = "状态")
     private String status;
 
     /**
      * 2021/8/31 16:11 创建时间
      */
-    @ApiModelProperty(value = "创建时间", dataType = "string", position = 6)
+    @Schema(description = "创建时间")
     private String createTime;
 
     /**
      * 2021/8/31 16:11 更新时间
      */
-    @ApiModelProperty(value = "更新时间", dataType = "string", position = 7)
+    @Schema(description = "更新时间")
     private String updateTime;
 
     /**
      * 规则简拼
      */
-    @ApiModelProperty(value = "规则简拼", dataType = "string", position = 8)
+    @Schema(description = "规则简拼")
     private String ruleNameShort;
 
-    @ApiModelProperty(value = "策略产品配置信息", dataType = "string", position = 9)
+    @Schema(description = "策略产品配置信息")
     private String strategyProductJson;
 
-    @ApiModelProperty(value = "返回用户基本字段表头", dataType = "string", position = 10)
+    @Schema(description = "返回用户基本字段表头")
     private String baseInfo;
 
-    @ApiModelProperty(value = "任务执行策略 1-一次性全量；3-每个任务的周期;4-apicode级别统一周期", dataType = "integer", position = 11)
+    @Schema(description = "任务执行策略 1-一次性全量；3-每个任务的周期;4-apicode级别统一周期")
     private Integer execType;
 
-    @ApiModelProperty(value = "周期天数", dataType = "integer", position = 12)
+    @Schema(description = "周期天数")
     private Integer cycleDay;
 
-    @ApiModelProperty(value = "周期结束天数", dataType = "string", position = 13)
+    @Schema(description = "周期结束天数")
     private String cycleEndDay;
 
-    @ApiModelProperty(value = "跑分类型", dataType = "integer", position = 14)
+    @Schema(description = "跑分类型")
     private String taskType;
 
-    @ApiModelProperty(value = "跑分类型", dataType = "string", position = 15)
+    @Schema(description = "产品信息")
     private String productInfo;
 
-    @ApiModelProperty(value = "是否是在线跑分 1-在线；2-离线", dataType = "string", position = 16)
+    @Schema(description = "是否是在线跑分 1-在线；2-离线")
     private Integer isOnline;
 
-    @ApiModelProperty(value = "跑分优先级 0最高，9最低", dataType = "integer", position = 17)
+    @Schema(description = "跑分优先级 0最高，9最低")
     private Integer priority;
 
     @Override

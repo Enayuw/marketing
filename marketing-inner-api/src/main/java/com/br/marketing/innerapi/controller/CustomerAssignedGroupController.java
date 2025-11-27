@@ -14,7 +14,10 @@ import com.br.marketing.vo.CustomerSelectVO;
 import com.br.marketing.vo.MarketingCustomerListVO;
 import com.br.marketing.vo.MarketingCustomerVO;
 import com.google.common.collect.Sets;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.validation.annotation.Validated;
@@ -32,7 +35,7 @@ import java.util.Set;
  */
 @RestController
 @RequestMapping(value = "/rule/customerAssignedGroup")
-@Api(value = "客户开发分组信息", tags = "客户开发分组信息", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "客户开发分组信息", description = "客户开发分组信息")
 public class CustomerAssignedGroupController {
 
     private static final Logger log = LoggerFactory.getLogger(CustomerAssignedGroupController.class);
@@ -41,7 +44,7 @@ public class CustomerAssignedGroupController {
     private IMarketingCustomerAssignedGroupService marketingCustomerAssignedGroupService;
 
 
-    @ApiOperation(value = "获取客户分组列表",notes = "获取客户分组列表")
+    @Operation(summary = "获取客户分组列表", description = "获取客户分组列表")
     @GetMapping("/getAssignedGroup")
     public ApiResult<Set<String>> saveOrUpdateCustomer(){
         try {
@@ -52,7 +55,7 @@ public class CustomerAssignedGroupController {
         }
     }
 
-    @ApiOperation(value = "获取客户分组列表",notes = "获取客户分组列表")
+    @Operation(summary = "获取客户分组列表", description = "获取客户分组列表")
     @GetMapping("/getAssignedGroupByApiCode")
     public ApiResult<String> getAssignedGroupByApiCode(@RequestParam("apiCode") String apiCode){
         try {

@@ -69,7 +69,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="DidiCallingRecordJob"
+    <job:simple id="【monkey】-DidiCallingRecordJob"
                 class="com.br.marketing.monkey.job.didi.DidiCallingRecordJob"
                 cron="0 5/5 9-23 * * ?"
                 description="滴滴通话明细推送定时任务"
@@ -83,7 +83,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="DidiAllowJob"
+    <job:simple id="【monkey】-DidiAllowJob"
                 class="com.br.marketing.monkey.job.didi.DidiAllowJob"
                 cron="0 0/2 0-2 * * ?"
                 description="滴滴流量准入"
@@ -98,7 +98,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="DiDiModelingJob"
+    <job:simple id="【monkey】-DiDiModelingJob"
                 class="com.br.marketing.monkey.job.didi.DiDiModelingJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="滴滴建模定时任务"
@@ -113,7 +113,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="DiDiNewModelingJob"
+    <job:simple id="【monkey】-DiDiNewModelingJob"
                 class="com.br.marketing.monkey.job.didi.DiDiNewModelingJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="滴滴建模新接口定时任务"
@@ -128,7 +128,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="DidiaInvalidityJob"
+    <job:simple id="【monkey】-DidiaInvalidityJob"
                 class="com.br.marketing.monkey.job.didi.DidiaInvalidityJob"
                 cron="0 0/10 21-23 * * ?"
                 description="滴滴营销失败"
@@ -143,7 +143,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="dataMonkey-QiFuSaveReachDeleteRecordPushJob"
+    <job:simple id="【monkey】-QiFuSaveReachDeleteRecordPushJob"
                 class="com.br.marketing.monkey.job.qifu.QiFuSaveReachDeleteRecordPushJob"
                 cron="0 1/30 0,7,8,9 * * ?"
                 description="奇富保存触达记录删除;parameter格式:apiCode:yyyy-MM-dd或apiCode"
@@ -173,7 +173,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="TongChengOperationPushToCustomerJob"
+    <job:simple id="【monkey】-TongChengOperationPushToCustomerJob"
                 class="com.br.marketing.monkey.job.tongcheng.TongChengOperationPushToCustomerJob"
                 cron="0 */10 * ? * *"
                 description="同程集团运营名单推送客户JOB，每10分钟执行一次"
@@ -187,7 +187,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="DewuCollidingDataToSendJob"
+    <job:simple id="【monkey】-DewuCollidingDataToSendJob"
                 class="com.br.marketing.monkey.job.dewu.DewuCollidingDataToSendJob"
                 cron="0 */2 * ? * *"
                 description="得物撞库数据执行JOB"
@@ -201,7 +201,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="DewuCollidingDataUploadSyncJob"
+    <job:simple id="【monkey】-DewuCollidingDataUploadSyncJob"
                 class="com.br.marketing.monkey.job.dewu.DewuCollidingDataUploadSyncJob"
                 cron="0 */10 * ? * *"
                 description="得物撞库数据推送上传接口执行JOB"
@@ -215,7 +215,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="ZhongBangPushVoiceJob"
+    <job:simple id="【monkey】-ZhongBangPushVoiceJob"
                 class="com.br.marketing.monkey.job.zhongbang.ZhongBangPushVoiceJob"
                 cron="0 0/5 * * * ? "
                 description="众邦录音文件自动推送"

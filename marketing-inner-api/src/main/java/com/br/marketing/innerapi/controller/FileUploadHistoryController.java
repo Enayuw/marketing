@@ -4,10 +4,10 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.LocalFileService;
-import io.swagger.annotations.Api;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
@@ -27,7 +27,7 @@ import javax.annotation.Resource;
  */
 @RestController
 @RequestMapping(value = "/rule/fileUploadHistory")
-@Api(value = "文件上传历史", tags = "文件上传历史", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "文件上传历史", description = "文件上传历史")
 public class FileUploadHistoryController {
 
     @Resource

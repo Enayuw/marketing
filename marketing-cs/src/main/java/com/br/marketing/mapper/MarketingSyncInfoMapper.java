@@ -1,7 +1,6 @@
 package com.br.marketing.mapper;
 
 
-import com.br.marketing.dto.SyncOperateTypeDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.vo.TodayIdTimeBySoleVo;
 import com.br.marketing.vo.TransferUserVO;
@@ -294,14 +293,6 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
 
     List<MarketingSyncUser> getMarketingSyncInfoByRequestBatch(@Param("apiCode") String apiCode, @Param("requestBatch") String requestBatch);
 
-    List<MarketingSyncUser> getMarketingSyncByCondition(@Param("apiCode") String apiCode, @Param("operateType") String operateType,
-                                                        @Param("appletDate") String appletDate, @Param("userType") String userType,
-                                                        @Param("createTime") Date createTime, @Param("filterCondition") String filterCondition,
-                                                        @Param("minId") Long minId);
-
-
-    List<String> getBatchNameByUsertikv_(@Param("apiCode") String apiCode,@Param("syncReportList") List<MarketingSyncReport> syncReportList,
-                                                              @Param("filterCondition") String filterCondition);
     /**
      * 根据apiCode和requestBatch查询MarketingSyncInfo
      * @param apiCode
@@ -310,4 +301,12 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
      */
     MarketingSyncInfo getByApiCodeAndRequestBatch(@Param("apiCode") String apiCode, @Param("requestBatch") String requestBatch);
 
+    List<MarketingSyncUser> getMarketingSyncByCondition(@Param("apiCode") String apiCode, @Param("operateType") String operateType,
+                                                        @Param("appletDate") String appletDate, @Param("userType") String userType,
+                                                        @Param("createTime") Date createTime, @Param("filterCondition") String filterCondition,
+                                                        @Param("minId") Long minId);
+
+
+    List<String> getBatchNameByUsertikv_(@Param("apiCode") String apiCode,@Param("syncReportList") List<MarketingSyncReport> syncReportList,
+                                                              @Param("filterCondition") String filterCondition);
 }

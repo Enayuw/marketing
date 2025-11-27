@@ -1,8 +1,7 @@
 package com.br.marketing.dto.report;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
@@ -12,26 +11,26 @@ import lombok.Data;
  * @date 2025-01-07
  */
 @Data
-@ApiModel("区间范围配置DTO")
+@Schema(description = "区间范围配置DTO")
 public class IntervalRangeDTO {
 
-    @ApiModelProperty("最小值")
+    @Schema(description = "最小值")
     @JsonProperty("min")
     private Double min;
 
-    @ApiModelProperty("最大值")
+    @Schema(description = "最大值")
     @JsonProperty("max")
     private Double max;
 
-    @ApiModelProperty("是否包含最小值")
+    @Schema(description = "是否包含最小值")
     @JsonProperty("minInclusive")
     private Boolean minInclusive;
 
-    @ApiModelProperty("是否包含最大值")
+    @Schema(description = "是否包含最大值")
     @JsonProperty("maxInclusive")
     private Boolean maxInclusive;
 
-    @ApiModelProperty("区间显示文本")
+    @Schema(description = "区间显示文本")
     @JsonProperty("text")
     private String text;
 

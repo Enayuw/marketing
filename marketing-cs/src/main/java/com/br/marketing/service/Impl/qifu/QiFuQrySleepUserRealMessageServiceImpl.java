@@ -12,6 +12,7 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,8 +79,7 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
             while (true) {
                if (ObjectUtil.isNotEmpty(marketingCommonConfig.getQiFuQryUserMessageThreadNum())
                        && threadPool.getCorePoolSize() != marketingCommonConfig.getQiFuQryUserMessageThreadNum()) {
-                   threadPool.setCorePoolSize(marketingCommonConfig.getQiFuQryUserMessageThreadNum());
-                   threadPool.setMaximumPoolSize(marketingCommonConfig.getQiFuQryUserMessageThreadNum());
+                   ThreadPoolAdjustmentUtil.adjustThreadPoolSize(threadPool, marketingCommonConfig.getQiFuQryUserMessageThreadNum());
                }
                 // 循环获取条件数据，每次2000条
                 // 根据手机号 筛选 未推送过的数据

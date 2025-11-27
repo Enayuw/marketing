@@ -5,7 +5,12 @@ import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.ScoreOptLog;
 import com.br.marketing.service.ScoreOptLogService;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -21,7 +26,7 @@ import javax.annotation.Resource;
  */
 @RestController
 @RequestMapping(value = "/rule/score/optlog")
-@Api(value = "跑分配置变更记录", tags = "跑分配置变更记录", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "跑分配置变更记录", description = "跑分配置变更记录")
 public class ScoreOptLogController {
 
     @Resource
@@ -38,16 +43,14 @@ public class ScoreOptLogController {
      * @dateTime 2021/8/30 15:52
      */
     @GetMapping("/page")
-    @ApiOperation(value = "列表数据", notes = "跑分配置变更记录列表数据", httpMethod = "GET")
-    @ApiImplicitParams({@ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer"
-            , defaultValue = "1")
-            , @ApiImplicitParam(name = "size", value = "页大小", paramType = "query", dataType = "integer"
-            , defaultValue = "10")
-            , @ApiImplicitParam(name = "rid", value = "配置主键", paramType = "query", dataType = "long")
-            , @ApiImplicitParam(name = "cid", value = "客户id", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "apiCode", value = "接口编号", paramType = "query", dataType = "string")
+    @Operation(summary = "列表数据", description = "跑分配置变更记录列表数据")
+    @Parameters({@Parameter(name = "current", description = "页号")
+            , @Parameter(name = "size", description = "页大小")
+            , @Parameter(name = "rid", description = "配置主键")
+            , @Parameter(name = "cid", description = "客户id")
+            , @Parameter(name = "apiCode", description = "接口编号")
     })
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = ScoreOptLog.class)})
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR")})
     public ApiResult<PageResultReturn> findListPage(@RequestParam(name = "current", defaultValue = "1") int page
             , @RequestParam(name = "size", defaultValue = "10") int pageSize
             , @RequestParam Long rid

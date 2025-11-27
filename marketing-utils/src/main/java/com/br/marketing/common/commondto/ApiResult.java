@@ -2,16 +2,15 @@ package com.br.marketing.common.commondto;
 
 
 import com.br.marketing.common.enums.ServiceResultEnum;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
-@ApiModel(value = "接口返回结果")
+@Schema(description = "接口返回结果")
 public class ApiResult<T> {
-    @ApiModelProperty(value = "状态码")
+    @Schema(description = "状态码")
     private String code;
-    @ApiModelProperty(value = "结果数据")
+    @Schema(description = "结果数据")
     private T data;
-    @ApiModelProperty(value = "消息")
+    @Schema(description = "消息")
     private String message;
 
     public String getCode() {

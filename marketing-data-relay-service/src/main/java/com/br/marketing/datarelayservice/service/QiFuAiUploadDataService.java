@@ -19,7 +19,7 @@ import com.br.marketing.mapper.DrsCustomizeUploadDataMapper;
 import com.br.marketing.datarelayservice.client.QiFuAiBizDataDTO;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import javafx.util.Pair;
+import cn.hutool.core.lang.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.stereotype.Service;
@@ -97,6 +97,8 @@ public class QiFuAiUploadDataService {
             // 返回异常
             return new Pair<>(CodeEnum.GWS208, FlagEnum.F);
         }
+
+        // 
 
         // 服务端解密后，会进行相应的业务处理
         return bizHandle(decryptData, bizType, apiCode);

@@ -1,6 +1,6 @@
 package com.br.marketing.vo.zhongan.param;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;
@@ -15,14 +15,14 @@ import javax.validation.constraints.NotNull;
 @Data
 public class ControlGroupDTO {
 
-    @ApiModelProperty(value = "数据日期")
+    @Schema(description = "数据日期")
     private String reportDate;
 
-    @ApiModelProperty(value = "当前页码")
+    @Schema(description = "当前页码")
     @NotNull(message = "页码不能为空")
     private Integer current;
 
-    @ApiModelProperty(value = "页容量")
+    @Schema(description = "页容量")
     private Integer size;
 
 }

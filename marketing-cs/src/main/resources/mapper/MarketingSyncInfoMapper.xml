@@ -581,6 +581,14 @@
         where request_batch = #{requestBatch}
     </select>
 
+    <select id="getByApiCodeAndRequestBatch" resultType="com.br.marketing.entity.MarketingSyncInfo">
+        select
+            *
+        from b_marketing_sync_info
+        where api_code = #{apiCode}
+        and request_batch = #{requestBatch}
+        limit 1
+    </select>
 
     <select id="getMarketingSyncByCondition" resultType="com.br.marketing.entity.MarketingSyncUser">
         select * from b_marketing_sync_${apiCode}
@@ -622,15 +630,6 @@
             AND ${filterCondition}
         </if>
         AND status = 1 AND is_repeat in (1, 2)
-    </select>
-
-    <select id="getByApiCodeAndRequestBatch" resultType="com.br.marketing.entity.MarketingSyncInfo">
-        select
-            *
-        from b_marketing_sync_info
-        where api_code = #{apiCode}
-        and request_batch = #{requestBatch}
-        limit 1
     </select>
 
 </mapper>

@@ -1,48 +1,48 @@
 package com.br.marketing.vo;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.Date;
 
 public class PushInfoDetailVO {
 
-    @ApiModelProperty(value = "任务流水号")
+    @Schema(description = "任务流水号")
     private Long id;
 
-    @ApiModelProperty(value = "推送时间")
+    @Schema(description = "推送时间")
     private Date createTime;
 
-    @ApiModelProperty(value = "内部批次号")
+    @Schema(description = "内部批次号")
     private String mBatchNumber;
 
-    @ApiModelProperty(value = "客户批次号")
+    @Schema(description = "客户批次号")
     private String mCusBatchNumber;
 
-    @ApiModelProperty(value = "模型名称")
+    @Schema(description = "模型名称")
     private String mModel;
 
-    @ApiModelProperty(value = "模型版本")
+    @Schema(description = "模型版本")
     private String mModelVersion;
 
-    @ApiModelProperty(value = "top最小值")
+    @Schema(description = "top最小值")
     private Integer mNumMin;
 
-    @ApiModelProperty(value = "top最大值")
+    @Schema(description = "top最大值")
     private Integer mNumMax;
 
-    @ApiModelProperty(value = "最小分值")
+    @Schema(description = "最小分值")
     private Integer mScoreMin;
 
-    @ApiModelProperty(value = "最大分值")
+    @Schema(description = "最大分值")
     private Integer mScoreMax;
 
-    @ApiModelProperty(value = "推送数量")
+    @Schema(description = "推送数量")
     private Integer mRealyNum;
 
-    @ApiModelProperty(value = "执行状态 1-执行中；2-执行成功；3-执行失败")
+    @Schema(description = "执行状态 1-执行中；2-执行成功；3-执行失败")
     private Integer mStatus;
 
-    @ApiModelProperty(value = "执行状态文本描述")
+    @Schema(description = "执行状态文本描述")
     private String mStatusDesc;
 
     public String getmStatusDesc() {

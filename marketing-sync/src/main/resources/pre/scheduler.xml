@@ -25,9 +25,9 @@
                    nested-data-dir="${NESTED_DATA_DIR}"/>
 
 
-    <job:simple id="GetFromSftpJob"
+    <job:simple id="【sync】-GetFromSftpJob"
                 class="com.br.marketing.sync.job.GetFromSftpJob"
-                cron="0 0/1 * * * ? "
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="从客户sftp同步文件到内部sftp"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -39,9 +39,9 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="PutToSftpJob"
+    <job:simple id="【sync】-PutToSftpJob"
                 class="com.br.marketing.sync.job.PutToSftpJob"
-                cron="0 0/1 * * * ? "
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="回传结果文件"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -53,7 +53,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="TcCpaPushFileSyncJob"
+    <job:simple id="【sync】-TcCpaPushFileSyncJob"
                 class="com.br.marketing.sync.job.TcCpaPushFileSyncJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="同程易融cpa推送文件同步任务"
@@ -67,7 +67,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="DxmPullFileSyncJob"
+    <job:simple id="【sync】-DxmPullFileSyncJob"
                 class="com.br.marketing.sync.job.DxmPullFileSyncJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="拉取度小满文件"
@@ -82,7 +82,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="DxmPushFileSyncJob"
+    <job:simple id="【sync】-DxmPushFileSyncJob"
                 class="com.br.marketing.sync.job.DxmPushFileSyncJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="推送度小满文件到客户SFTP"
@@ -96,4 +96,20 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
+
+    <job:simple id="【sync】-FileUploadTaskJob"
+                class="com.br.marketing.sync.job.FileUploadTaskJob"
+                cron="0 0/5 * * * ? "
+                description="文件上传任务"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
 </beans>

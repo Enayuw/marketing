@@ -17,6 +17,7 @@ import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.mapper.guomei.GuoMeiCallbackDataMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -172,10 +173,10 @@ public class GuoMeiDataCallbackServiceImpl implements IGuoMeiDataCallbackService
         if (poolSize != null) {
             int size = Integer.parseInt(poolSize.toString());
             if (poolExecutor.getCorePoolSize() != size) {
-                poolExecutor.setCorePoolSize(size);
+                ThreadPoolAdjustmentUtil.adjustThreadPoolSize(poolExecutor, size);
             }
             if (poolExecutor.getMaximumPoolSize() != size) {
-                poolExecutor.setMaximumPoolSize(size);
+                ThreadPoolAdjustmentUtil.adjustThreadPoolSize(poolExecutor, size);
             }
         }
     }

@@ -1,10 +1,8 @@
 package com.br.marketing.client.rulecleaning;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
 
@@ -14,24 +12,24 @@ import java.util.List;
  * @date 2025/5/10
  */
 @Data
-@ApiModel(value = "规则清洗配置DTO", description = "规则与清洗规则配置传输对象")
+@Schema(description = "规则清洗配置DTO")
 public class RuleCleaningConfigDTO implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @ApiModelProperty(value = "API编码")
+    @Schema(description = "API编码")
     private String apiCode;
 
-    @ApiModelProperty(value = "数据类型：0上传，1转化")
+    @Schema(description = "数据类型：0上传，1转化")
     private Integer dataType;
 
-    @ApiModelProperty(value = "接口类型：0通用,1定制,2FTP")
+    @Schema(description = "接口类型：0通用,1定制,2FTP")
     private Integer acceptType;
 
-    @ApiModelProperty(value = "清洗配置")
+    @Schema(description = "清洗配置")
     private List<FieldCleaningConfigDTO> cleaningConfig;
 
-    @ApiModelProperty(value = "配置ID")
+    @Schema(description = "配置ID")
     private Long configId;
 
 } 

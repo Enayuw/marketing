@@ -1,7 +1,7 @@
 package com.br.marketing.dto;
 
 import com.br.marketing.entity.auth.MarketingUserDetail;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.constraints.NotNull;
@@ -12,90 +12,90 @@ import java.util.List;
 
 public class PushCustomerDTO {
 
-    @ApiModelProperty(value = "商户编号")
-    @NotNull(message = "商户编号不能为空")
+    @Schema(description = "商户编号")
+    @NotNull(message = "商户编个号不能为空")
     private String apiCode;
 
-    @ApiModelProperty(value = "上传开始时间")
+    @Schema(description = "上传开始时间")
 //    @NotNull(message = "上传开始时间不能为空")
     private String uploadBeginTime;
 
-    @ApiModelProperty(value = "上传结束时间")
+    @Schema(description = "上传结束时间")
 //    @NotNull(message = "上传结束时间不能为空")
     private String uploadEndTime;
 
-    @ApiModelProperty(value = "跑分执行开始时间")
+    @Schema(description = "跑分执行开始时间")
 //    @NotNull(message = "跑分执行开始时间不能为空")
     private String scoreBeginTime;
 
-    @ApiModelProperty(value = "跑分执行结束时间")
+    @Schema(description = "跑分执行结束时间")
 //    @NotNull(message = "跑分执行结束时间不能为空")
     private String scoreEndTime;
 
-    @ApiModelProperty(value = "批次号")
+    @Schema(description = "批次号")
     //@NotNull(message = "批次号不能为空")
     //@NotEmpty(message = "批次号不能为空")
     //@Size(min = 1,message = "批次号不能为空")
     private List<String> batchNumberList;
 
-    @ApiModelProperty(value = "跑分记录id")
+    @Schema(description = "跑分记录id")
     //@NotNull(message = "fileIdList不能为空")
     //@NotEmpty(message = "fileIdList不能为空")
     //@Size(min = 1,message = "fileIdList不能为空")
     private List<Long> fileIdList;
 
-    @ApiModelProperty(value = "查询规则")
+    @Schema(description = "查询规则")
     private String mRuleCondition;
 
-    @ApiModelProperty(value = "评分分布规则")
+    @Schema(description = "评分分布规则")
     private String mScoreCondition;
 
-    @ApiModelProperty(value = "标签规则")
+    @Schema(description = "标签规则")
     private String mTagCondition;
 
-    @ApiModelProperty(value = "查询规则用于前端展示文本")
+    @Schema(description = "查询规则用于前端展示文本")
     private String mRuleConditionShow;
 
-    @ApiModelProperty(value = "推送数量")
+    @Schema(description = "推送数量")
     private Integer mPlanNum;
 
-    @ApiModelProperty(value = "预览推送数量")
+    @Schema(description = "预览推送数量")
     private Integer mPrePlanNum;
 
-    @ApiModelProperty(value = "百分比")
+    @Schema(description = "百分比")
     private BigDecimal mPercentage;
 
-    @ApiModelProperty(value = "用户信息",hidden = true)
+    @Schema(description = "用户信息",hidden = true)
     private MarketingUserDetail userDetail;
 
-    @ApiModelProperty(value = "生成数据包名称")
+    @Schema(description = "生成数据包名称")
     private String dataPackageName;
 
-    @ApiModelProperty(value = "数据集名称")
+    @Schema(description = "数据集名称")
     private String batchName;
 
-    @ApiModelProperty(value = "规则模版名称")
+    @Schema(description = "规则模版名称")
     private String ruleModelName;
 
-    @ApiModelProperty(value = "标签字段名称")
+    @Schema(description = "标签字段名称")
     private String labelName;
 
-    @ApiModelProperty(value = "跑分是否合并")
+    @Schema(description = "跑分是否合并")
     private Boolean isScoreMerge;
 
-    @ApiModelProperty(value = "合并跑分字段:custNum或cell")
+    @Schema(description = "合并跑分字段:custNum或cell")
     private String scoreMergeField;
 
-    @ApiModelProperty(value = "推送系统类型")
+    @Schema(description = "推送系统类型")
     private Integer pushTarget;
 
-    @ApiModelProperty(value = "任务类型 0：跑分任务，1：上传任务")
+    @Schema(description = "任务类型 0：跑分任务，1：上传任务")
     private Integer taskType;
 
-    @ApiModelProperty(value = "上传记录id，多个用，分割")
+    @Schema(description = "上传记录id，多个用，分割")
     private String uploadReportId;
 
-    @ApiModelProperty("重推框定数据时间")
+    @Schema(description = "重推框定数据时间")
     private String repushTime;
 
     public Integer getmPrePlanNum() {

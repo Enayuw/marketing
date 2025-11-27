@@ -5,7 +5,7 @@ import java.util.Set;
 
 import com.br.marketing.dto.ScoreTimeDTO;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -13,10 +13,10 @@ import lombok.EqualsAndHashCode;
 @Data
 public class CustomerBatchNumVO extends BaseAuthPermissionData {
 
-    @ApiModelProperty(value = "跑分时间区间，多段")
+    @Schema(description = "跑分时间区间，多段")
     private List<ScoreTimeDTO> scoreTimeList;
 
-    @ApiModelProperty(value = "场景集合")
+    @Schema(description = "场景集合")
     private Set<String> userTypeSet;
 
     private Integer current;

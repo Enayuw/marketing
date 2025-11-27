@@ -19,6 +19,7 @@ import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.mapper.XieChengRuleScoreRecordMapper;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import lombok.extern.slf4j.Slf4j;
@@ -67,7 +68,7 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
     @Autowired
     SyncConfigService syncConfigService;
 
-    @Value("${datasource.database.marketingDoris.replicationAllocation:1}")
+    @Value("${datasource.database.marketing-doris.replicationAllocation:1}")
     String replicationAllocation;
 
     @Autowired
@@ -87,8 +88,9 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
             List<StraHisFile> straHisFiles = getStraHisFiles(apiCode);
 
             // 获取分片后的跑分记录
-            List<StraHisFile> shardStraHisFiles = straHisFiles.stream().filter((StraHisFile t) -> Longitems.contains(Math.floorMod(t.getId(),
-                    shardingTotalCount))).collect(Collectors.toList());
+            List<StraHisFile> shardStraHisFiles = straHisFiles.stream()
+                    .filter((StraHisFile t) -> Longitems.contains((long)Math.floorMod(t.getId(), shardingTotalCount)))
+                    .collect(Collectors.toList());
 
             if (CollectionUtils.isEmpty(shardStraHisFiles)) {
                 return;
@@ -491,7 +493,6 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
      */
     private void modifyThreadPool(ThreadPoolExecutor pool) {
         Integer threadNum = marketingCommonConfig.getXieChengCollidingRuleScoreToDBThread();
-        pool.setCorePoolSize(threadNum);
-        pool.setMaximumPoolSize(threadNum);
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(pool, threadNum);
     }
 }

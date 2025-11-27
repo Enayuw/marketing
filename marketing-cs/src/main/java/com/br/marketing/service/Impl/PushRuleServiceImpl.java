@@ -103,6 +103,7 @@ import com.br.marketing.service.strategy.pushcustomer.PushCustomerStrategyFactor
 import com.br.marketing.service.tag.calculate.TagHandleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.TimeUtils;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.br.marketing.utils.PulsarConsumerSkipUtil;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.br.marketing.util.EsConditionTransferSqlUtil;
@@ -5868,8 +5869,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         Boolean isContiue = Boolean.TRUE;
         while (isContiue) {
             if (marketingCommonConfig.getZhongBangCaifuLabelThreadNum() != null) {
-                pool.setCorePoolSize(marketingCommonConfig.getZhongBangCaifuLabelThreadNum());
-                pool.setMaximumPoolSize(marketingCommonConfig.getZhongBangCaifuLabelThreadNum());
+                ThreadPoolAdjustmentUtil.adjustThreadPoolSize(pool, marketingCommonConfig.getZhongBangCaifuLabelThreadNum());
                 log.warn("众邦财富定制标签线程调整，corePoolSize={},maxPoolSize={}", pool.getCorePoolSize(), pool.getMaximumPoolSize());
             }
             List<ZhongbangCaifuData> zhongbangCaifuDataList = zhongbangCaifuDataMapper.zhongBangLabelDataPage(id, minId);

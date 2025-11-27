@@ -1,6 +1,6 @@
 package com.br.marketing.dto.smy.response;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import lombok.Data;
 import lombok.Getter;
@@ -9,9 +9,9 @@ import lombok.Getter;
 public class SmyResponseDTO implements Serializable {
     private static final long serialVersionUID = 8376361895732046747L;
 
-    @ApiModelProperty("响应码")
+    @Schema(description = "响应码")
     private Integer code;
-    @ApiModelProperty("响应消息")
+    @Schema(description = "响应消息")
     private String message;
 
     public SmyResponseDTO success() {

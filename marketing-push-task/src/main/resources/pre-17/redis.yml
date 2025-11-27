@@ -1,0 +1,15 @@
+spring:
+  redis:
+    maxConnection: 3
+    # redis代理灰度发布使用
+    etcdEndpoint: http://10.100.123.157:23790,http://10.100.123.158:23790,http://10.100.123.159:23790
+    multiple:
+      name: marketing_redis
+      password: pd1-marketing-19tgr
+      timeout: 10000
+      max-attempts: 5
+      # codec如果配置jdk.serializer/json.serializer，则需要引入spring-data-redis
+      codec: string.utf8
+      proxy-uri: redis://pd1-2-marketing-pre.brapp.com:6400
+      gray-proxy-uri: redis://pd1-2-marketing-pre.brapp.com:7400
+      proxy-id: camellia-ba

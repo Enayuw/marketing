@@ -1,7 +1,7 @@
 package com.br.marketing.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.Date;
@@ -10,38 +10,38 @@ import java.util.Map;
 @Data
 public class VariableAllocationVO {
 
-    @ApiModelProperty(value = "任务流水号")
+    @Schema(description = "任务流水号")
     private Long id;
 
-    @ApiModelProperty(value = "apicode")
+    @Schema(description = "apicode")
     private String apiCode;
 
-    @ApiModelProperty(value = "配置类型")
+    @Schema(description = "配置类型")
     private String allocationType;
 
-    @ApiModelProperty(value = "配置值")
+    @Schema(description = "配置值")
     private String allocationValue;
 
-    @ApiModelProperty(value = "配置值Map")
+    @Schema(description = "配置值Map")
     private Map<String, Object> allocationValueMap;
 
-    @ApiModelProperty(value = "撞得总量级")
+    @Schema(description = "撞得总量级")
     private Integer normalQuantity;
 
-    @ApiModelProperty(value = "异常总量级")
+    @Schema(description = "异常总量级")
     private Integer abnormalQuantity;
 
-    @ApiModelProperty(value = "即将撞库量级")
+    @Schema(description = "即将撞库量级")
     private Integer releaseTimeNum;
 
-    @ApiModelProperty(value = "可补充的量级")
+    @Schema(description = "可补充的量级")
     private Integer falseNum;
 
-    @ApiModelProperty(value = "请求时间")
+    @Schema(description = "请求时间")
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private Date requestTime;
 
-    @ApiModelProperty(value = "请求结束时间")
+    @Schema(description = "请求结束时间")
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private Date requestEndTime;
 

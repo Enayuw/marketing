@@ -17,6 +17,7 @@ import com.br.marketing.entity.QueryUserRealMessageExample;
 import com.br.marketing.mapper.QueryUserRealMessageMapper;
 import com.br.marketing.service.DataCleanQiFu360Service;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -61,8 +62,7 @@ public class DataCleanQiFu360ServiceImpl implements DataCleanQiFu360Service {
             Integer pageSize = dynamicParameterServiceImpl.getPageSize("DataCleanQiFu360");
             Integer coreNum = marketingCommonConfig.getDataCleanQiFu360CoreAndMaxNum();
             if(null != coreNum){
-                pushPool.setCorePoolSize(coreNum);
-                pushPool.setMaximumPoolSize(coreNum);
+                ThreadPoolAdjustmentUtil.adjustThreadPoolSize(pushPool, coreNum);
             }
             // 从数据库读取满足条件的数据
             QueryUserRealMessageExample example = new QueryUserRealMessageExample();

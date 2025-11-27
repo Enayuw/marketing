@@ -1,7 +1,5 @@
 package com.br.marketing.common.annoation;
 
-import com.br.marketing.common.enums.DistributeTypeEnum;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

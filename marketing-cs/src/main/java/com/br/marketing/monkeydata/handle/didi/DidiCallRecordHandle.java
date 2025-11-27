@@ -6,6 +6,7 @@ import com.br.marketing.entity.DidiCallRecordExample;
 import com.br.marketing.mapper.DidiCallRecordMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +45,7 @@ public class DidiCallRecordHandle {
             pushDate.forEach(date -> {
                 Long minId = null;
                 while ( marketingCommonConfig.isDidiCallRecordSwitch()){
-                    didiCallRecordThread.setMaximumPoolSize(marketingCommonConfig.getDidiCallRecordThread());
+                    ThreadPoolAdjustmentUtil.adjustThreadPoolSize(didiCallRecordThread, marketingCommonConfig.getDidiCallRecordThread());
                     DidiCallRecordExample didiCallRecordExample = new DidiCallRecordExample();
                     didiCallRecordExample.setOrderByClause("id asc limit 2000");
                     DidiCallRecordExample.Criteria criteria = didiCallRecordExample.createCriteria();

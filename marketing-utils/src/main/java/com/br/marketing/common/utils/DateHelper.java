@@ -42,9 +42,9 @@ public class DateHelper {
     public static final String LINE_DATE_COLON_TIME_FORMAT_SSS = "yyyy-MM-dd HH:mm:ss[:SSS]";
 
     private static final List<DateTimeFormatter> DATE_FORMATS = Arrays.asList(
+            DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss"),
             DateTimeFormat.forPattern("yyyy-MM-dd"),
-            DateTimeFormat.forPattern("yyyyMMdd"),
-            DateTimeFormat.forPattern("yyyy/MM/dd")
+            DateTimeFormat.forPattern("yy-MM-dd")
     );
 
     //key为正则 value为日期格式
@@ -581,12 +581,17 @@ public class DateHelper {
             return null;
         }
         String trimmedDate = dateString.trim();
-        for (DateTimeFormatter sdf : DATE_FORMATS) {
-            try {
-                return DateTime.parse(trimmedDate, sdf).toDate();
-            } catch (Exception e) {
-                // 继续尝试下一个格式
+        int length = trimmedDate.length();
+        try {
+            if (length == 19) { // yyyy-MM-dd HH:mm:ss
+                return DateTime.parse(trimmedDate, DATE_FORMATS.get(0)).toDate();
+            } else if (length == 10) { // yyyy-MM-dd
+                return DateTime.parse(trimmedDate, DATE_FORMATS.get(1)).toDate();
+            } else if (length == 8) { // yy-MM-dd
+                return DateTime.parse(trimmedDate, DATE_FORMATS.get(2)).toDate();
             }
+        } catch (Exception e) {
+            log.error(dateString + "日期转化异常：" + e.getMessage());
         }
         return null;
     }
@@ -606,6 +611,8 @@ public class DateHelper {
             return String.valueOf(timestamp);
         }
     }
+
+
 
 
 }

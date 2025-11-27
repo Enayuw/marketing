@@ -17,6 +17,7 @@ import com.br.marketing.service.PushInfoService;
 import com.br.marketing.service.clean.common.GeneralDataCleanService;
 import com.br.marketing.service.tc.TcSyncDataCleanService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
@@ -123,8 +124,7 @@ public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
         if (CollectionUtils.isEmpty(tcyrSyncList)) {
             return result.success();
         }
-        actionPool.setCorePoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
-        actionPool.setMaximumPoolSize(marketingCommonConfig.getTcGzBatDBThreadPool());
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(actionPool, marketingCommonConfig.getTcGzBatDBThreadPool());
         futureList.add(CompletableFuture.supplyAsync(() -> processData(apiCode, batchNo, tcyrSyncList), actionPool)
                 .whenComplete((processDataResult, throwable) -> {
                     if (processDataResult == null || !processDataResult.isSuccess()) {

@@ -15,6 +15,7 @@ import com.br.marketing.mapper.smy.SmyBlacklistDataMapper;
 import com.br.marketing.service.smy.ISmyPushBlackListService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -185,11 +186,11 @@ public class SmyPushBlackListServiceImpl implements ISmyPushBlackListService {
     private void updatePoolSize(ThreadPoolExecutor poolExecutor) {
            int poolCoreSize = Integer.parseInt(marketingCommonConfig.getSmyBlacklistConfig().getOrDefault("poolCoreSize",1).toString());
             if (poolExecutor.getCorePoolSize() != poolCoreSize) {
-                poolExecutor.setCorePoolSize(poolCoreSize);
+                ThreadPoolAdjustmentUtil.adjustThreadPoolSize(poolExecutor, poolCoreSize);
             }
             int poolMaxSize = Integer.parseInt(marketingCommonConfig.getSmyBlacklistConfig().getOrDefault("poolMaxSize",1).toString());
             if (poolExecutor.getMaximumPoolSize() != poolMaxSize) {
-                poolExecutor.setMaximumPoolSize(poolMaxSize);
+                ThreadPoolAdjustmentUtil.adjustThreadPoolSize(poolExecutor, poolMaxSize);
             }
     }
 }

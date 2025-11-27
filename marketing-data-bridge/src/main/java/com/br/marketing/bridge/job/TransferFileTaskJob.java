@@ -1,13 +1,13 @@
 package com.br.marketing.bridge.job;
 
 import cn.hutool.core.util.ObjectUtil;
-import com.alibaba.fastjson.JSON;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.RetryMainLogMapper;
@@ -17,6 +17,7 @@ import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.service.Impl.SftpInnerServiceImpl;
 import com.br.marketing.service.Impl.transfertofile.*;
 import com.br.marketing.service.TransferToFileByTongChengServiceImpl;
+import com.br.marketing.service.ftp.Impl.SftpUploadHandlerServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -256,6 +257,9 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     @Resource
     ICompatibleService iCompatibleService;
 
+    @Resource
+    SftpUploadHandlerServiceImpl sftpUploadHandlerService;
+
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         String jobParameter = context.getJobParameter();
@@ -298,24 +302,13 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                         for (TransferFileTask datum : data) {
                             Result result = serviceImpl.actionTransferToFile(datum, myParam);
                             if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                                Result res = sftpInnerService.pushInnerSftp(datum);
-                                if (!ResultCode.SUCCESS.getValue().equals(res.getCode())) {
-                                    RetryMainLog retryMainLog = new RetryMainLog();
-                                    retryMainLog.setRetryType(1);
-                                    retryMainLog.setRetryParam(JSON.toJSONString(datum));
-                                    retryMainLog.setRetryParamType(datum.getClass().getName());
-                                    retryMainLog.setRetryService("sftpInnerServiceImpl");
-                                    retryMainLog.setRetryMethod("pushInnerSftp");
-                                    retryMainLog.setRetryNum(0);
-                                    retryMainLog.setRetryMaxNum(3);
-                                    retryMainLog.setRetryStatus(1);
-                                    retryMainLog.setCreateTime(new Date());
-                                    retryMainLog.setIncrId(redisChgService.incr(RedisKeyConstant.retryid));
-                                    retryMainLogMapper.insertSelective(retryMainLog);
-                                } else {
+                                String localPath = datum.getFilePath();
+                                sftpUploadHandlerService.insertSftpUploadTask(datum.getApiCode(),localPath,datum.getFileName(),
+                                        DataTypeEnum.TRANSFER.getValue(),
+                                        "update b_transfer_file_task set status = 4 where id ="+datum.getId());
                                     //第一次执行，查询为空，不会进行删除，直接返回
                                     //第二次执行，删除b_sync_log的记录
-                                    String fileChildDir = "";
+                                    /*String fileChildDir = "";
                                     if (StringUtils.isNotEmpty(datum.getFileChildDir())) {
                                         fileChildDir =  datum.getFileChildDir().concat("/");
                                     }
@@ -344,11 +337,11 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                                                 .andFileNameIn(Lists.newArrayList(datum.getFileName(), datum.getFileName() + ".success"))
                                                 .andSrcPathEqualTo(srcPath);
                                         loanSyncLogMapper.deleteByExample(syncLogExample);
-                                    }
+                                    }*/
                                 }
                             }
                         }
-                    }
+
                 } catch (Exception ex) {
                     log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode()
                             , String.format("客户转化文件提取报错：%s,报错信息：%s", marketingCustomer.getApiCode(), ex.getMessage())), ex);

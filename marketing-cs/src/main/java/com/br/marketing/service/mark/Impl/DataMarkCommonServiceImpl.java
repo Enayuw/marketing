@@ -16,6 +16,7 @@ import com.br.marketing.mapper.DataMarkConfigMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.service.mark.DataMarkCommonService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -119,8 +120,7 @@ public class DataMarkCommonServiceImpl implements DataMarkCommonService {
         } else {
             threadPoolSize = marketingCommonConfig.getDataMarkThreadNum();
         }
-        poolExecutor.setCorePoolSize(threadPoolSize);
-        poolExecutor.setMaximumPoolSize(threadPoolSize);
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(poolExecutor, threadPoolSize);
     }
 
     @Override

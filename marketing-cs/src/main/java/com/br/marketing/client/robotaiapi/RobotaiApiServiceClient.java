@@ -272,6 +272,7 @@ public class RobotaiApiServiceClient {
      * @return RepQueryBlackPhoneVO
      */
     public TransferRobotOutboundVO getSmsBaseInfo(TransferRobotOutboundDTO dto){
+        log.warn("getSmsBaseInfo robotOutboundUrl:{}",robotOutboundUrl);
         dto.getJsonData().setPlatApiCode(customerServiceApiCode);
         try{
             ThirdApiResultTransfer transfer = new ApiCallerUtil(restTemplate,interfaceLogMapper,logDbpool).setUrl(robotOutboundUrl)

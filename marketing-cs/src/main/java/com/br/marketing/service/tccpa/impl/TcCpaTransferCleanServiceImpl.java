@@ -71,8 +71,14 @@ public class TcCpaTransferCleanServiceImpl implements TcCpaTransferCleanService 
     private void processList(String tcyrCpaApiCode, List<MarketingTcyrCpaTransferRecord> tcyrCpaTransferRecordList) {
         List<Long> idList = tcyrCpaTransferRecordList.stream().map(MarketingTcyrCpaTransferRecord::getId).collect(Collectors.toList());
         try {
-            List<JSONObject> jsonObjectList = tcyrCpaTransferRecordList.stream().map(
-                    m->JSONObject.parseObject(m.getData())).collect(Collectors.toList());
+            List<JSONObject> jsonObjectList = tcyrCpaTransferRecordList.stream()
+                    .map(record -> {
+                        JSONObject jsonObject = JSONObject.parseObject(record.getData());
+                        // 可以选择使用不同的字段名来存储id
+                        jsonObject.put("recordId", record.getId().toString());
+                        return jsonObject;
+                    })
+                    .collect(Collectors.toList());
             Result transferResult = generalDataCleanService.transferClean(jsonObjectList,tcyrCpaApiCode);
             log.warn("{},调用transfer方法 code:{},isSuccess:{},msg:{}",TITLE,transferResult.getCode(),transferResult.isSuccess(),transferResult.getMessage());
             if (transferResult !=null && transferResult.isSuccess()) {

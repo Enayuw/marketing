@@ -11,6 +11,7 @@ import com.br.marketing.entity.*;
 import com.br.marketing.enums.XcProcessTaskEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.br.marketing.vo.XiechengCollidingTaskBatchVo;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -550,8 +551,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
      */
     private void modifyThreadPool(ThreadPoolExecutor pool) {
         Integer threadNum = marketingCommonConfig.getXieChengCollidingDataProcessThread();
-        pool.setCorePoolSize(threadNum);
-        pool.setMaximumPoolSize(threadNum);
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(pool, threadNum);
     }
 
     /**

@@ -2,7 +2,7 @@ package com.br.marketing.innerapi.controller;
 
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.service.mock.MockService;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,7 +34,7 @@ public class MockRedisController {
      * @param cacheKey
      * @return
      */
-    @ApiOperation(value = "查询Mock挡板配置信息")
+    @Operation(summary = "查询Mock挡板配置信息")
     @PostMapping("/queryMockConfig")
     public ApiResult<String> queryMockConfig(@RequestParam("cacheKey") String cacheKey) {
         return new ApiResult<String>().fromResult(mockService.queryMockConfig(cacheKey), CODE_1);

@@ -10,7 +10,7 @@ import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.TransferSource;
 import com.google.common.collect.Sets;
 
-import shaded.com.google.common.base.Splitter;
+import com.google.common.base.Splitter;
 
 public class ValidityPeriodResendCommonService {
 

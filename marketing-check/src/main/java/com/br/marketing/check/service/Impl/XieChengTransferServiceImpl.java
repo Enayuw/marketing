@@ -1,5 +1,6 @@
 package com.br.marketing.check.service.Impl;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.check.service.XieChengTransferService;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailByRuleDTO;
@@ -15,8 +16,6 @@ import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.PolicySoleHandler;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -175,7 +174,7 @@ public class XieChengTransferServiceImpl implements XieChengTransferService {
             varDto.put("status", status);
             varDto.put("coveType", convtype);
             varDto.put("requestTime", marketingTransferSyncUser.getRequestData());
-            if (ObjectUtils.isNotEmpty(xieChengSmsCollidingDataLog)) {
+            if (ObjectUtil.isNotEmpty(xieChengSmsCollidingDataLog)) {
                 varDto.put("result", Objects.isNull(xieChengSmsCollidingDataLog.getResult())?"":xieChengSmsCollidingDataLog.getResult());
                 varDto.put("orgChannel", Objects.isNull(xieChengSmsCollidingDataLog.getOrgChannel())?"":xieChengSmsCollidingDataLog.getOrgChannel());
             } else {

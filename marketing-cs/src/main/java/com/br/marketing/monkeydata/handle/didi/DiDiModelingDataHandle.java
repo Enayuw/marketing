@@ -26,6 +26,7 @@ import com.br.marketing.monkeydata.entity.commonobj.MarketingSyncCondition;
 import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -113,8 +114,10 @@ public class DiDiModelingDataHandle extends IMonkeyDataHandle<MarketingSyncUser,
         Set<String> CellSets = new HashSet<>();
         for (; ; ) {
             if (StringUtils.isNotEmpty(marketingCommonConfig.getDidiModelingThreadNum())) {
-                pool.setCorePoolSize(Integer.valueOf(marketingCommonConfig.getDidiModelingThreadNum()));
-                pool.setMaximumPoolSize(Integer.valueOf(marketingCommonConfig.getDidiModelingThreadNum()));
+                ThreadPoolAdjustmentUtil.adjustThreadPoolSize(
+                    pool,
+                    Integer.parseInt(marketingCommonConfig.getDidiModelingThreadNum())
+                );
                 log.warn("滴滴联合建模接口线程调整，corePoolSize={},maxPoolSize={}", pool.getCorePoolSize(), pool.getMaximumPoolSize());
             }
             Result<IterationResult<MarketingSyncUser, MarketingSyncCondition>> inputRes = getInputData(inputData);

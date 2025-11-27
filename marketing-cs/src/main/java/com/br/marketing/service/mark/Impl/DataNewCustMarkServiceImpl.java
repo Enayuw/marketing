@@ -10,6 +10,7 @@ import com.br.marketing.entity.FlagData;
 import com.br.marketing.mapper.FlagDataMapper;
 import com.br.marketing.service.mark.DataNewCustMarkService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -52,8 +53,7 @@ public class DataNewCustMarkServiceImpl implements DataNewCustMarkService {
                     continue;
                 }
                 try {
-                    threadPool.setCorePoolSize(marketingCommonConfig.getDataMarkThreadNum());
-                    threadPool.setMaximumPoolSize(marketingCommonConfig.getDataMarkThreadNum());
+                    ThreadPoolAdjustmentUtil.adjustThreadPoolSize(threadPool, marketingCommonConfig.getDataMarkThreadNum());
                     Integer pageSize = marketingCommonConfig.getDataMarkPageSize();
                     //打标表数据查询
                     List<FlagData> list = flagDataMapper.queryFlagNewCustComputation(pageSize, apiCode);

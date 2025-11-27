@@ -1,20 +1,19 @@
 package com.br.marketing.vo.xiecheng;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
-@ApiModel(value = "规则中心-预览数据接口")
+@Schema(description = "规则中心-预览数据接口")
 public class PushViewVO {
 
-    @ApiModelProperty("筛选结果")
+    @Schema(description = "筛选结果")
     private String result;
 
-    @ApiModelProperty("筛选数量")
+    @Schema(description = "筛选数量")
     private Integer total;
 
-    @ApiModelProperty("重推框定数据时间")
+    @Schema(description = "重推框定数据时间")
     private String repushTime;
 
 }

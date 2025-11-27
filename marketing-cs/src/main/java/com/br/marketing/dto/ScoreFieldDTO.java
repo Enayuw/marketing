@@ -1,6 +1,6 @@
 package com.br.marketing.dto;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 
@@ -13,10 +13,10 @@ import lombok.Data;
 @Data
 public class ScoreFieldDTO {
 
-    @ApiModelProperty(value = "模型名称")
+    @Schema(description = "模型名称")
     private String field;
 
-    @ApiModelProperty(value = "步长")
+    @Schema(description = "步长")
     private Integer step;
 
 }

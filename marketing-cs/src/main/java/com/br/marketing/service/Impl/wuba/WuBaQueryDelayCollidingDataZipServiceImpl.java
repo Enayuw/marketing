@@ -17,6 +17,7 @@ import com.br.marketing.mapper.WubaCollidingDataDelayLoopCycleMapper;
 import com.br.marketing.mapper.WubaCollidingDataLoopCycleMapper;
 import com.br.marketing.service.DataCleaningAutoService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -115,8 +116,7 @@ public class WuBaQueryDelayCollidingDataZipServiceImpl implements WuBaQueryDelay
                     while ((dataLine = reader.readLine()) != null) {
                         batchData.add(dataLine);
                         if (batchData.size() == BATCH_SIZE) {
-                            threadPool.setCorePoolSize(marketingCommonConfig.getWuBaQueryDelayZipThreadNum());
-                            threadPool.setMaximumPoolSize(marketingCommonConfig.getWuBaQueryDelayZipThreadNum());
+                            ThreadPoolAdjustmentUtil.adjustThreadPoolSize(threadPool, marketingCommonConfig.getWuBaQueryDelayZipThreadNum());
 
                             ArrayList<String> subList = new ArrayList<>(batchData);
                             futures.add(CompletableFuture.runAsync(() -> deleteLoopCycleAndSaveDelay(subList, apiCode, headerConfig, taskId)

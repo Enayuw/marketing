@@ -23,6 +23,7 @@ import com.br.marketing.monkeydata.handle.yixin.sole.YiXinTransferPushRedisSoleP
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -299,13 +300,11 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
         int curPushPoolSize = pushPool.getCorePoolSize();
 
         if(processPoolSize != curProcessPoolSize){
-            processPool.setCorePoolSize(processPoolSize);
-            processPool.setMaximumPoolSize(processPoolSize);
+            ThreadPoolAdjustmentUtil.adjustThreadPoolSize(processPool, processPoolSize);
         }
 
         if(pushPoolSize != curPushPoolSize) {
-            pushPool.setCorePoolSize(pushPoolSize);
-            pushPool.setMaximumPoolSize(pushPoolSize);
+            ThreadPoolAdjustmentUtil.adjustThreadPoolSize(pushPool, pushPoolSize);
         }
     }
 

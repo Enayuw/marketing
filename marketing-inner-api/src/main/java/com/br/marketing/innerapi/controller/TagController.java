@@ -11,7 +11,12 @@ import com.br.marketing.dto.tag.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.tag.web.TagService;
-import io.swagger.annotations.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.validation.annotation.Validated;
@@ -29,7 +34,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping(value = "/tag")
-@Api(value = "标签配置管理", tags = "标签配置管理", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "标签配置管理", description = "标签配置管理")
 public class TagController {
 
     @Resource
@@ -38,10 +43,7 @@ public class TagController {
     private static final Logger log = LoggerFactory.getLogger(TagController.class);
 
     @PostMapping("/getTagList")
-    @ApiOperation(value = "获取标签列表", notes = "分页获取标签列表信息")
-    @ApiImplicitParams({
-        @ApiImplicitParam(name = "request", value = "查询参数", required = true, dataType = "TagQueryDTO")
-    })
+    @Operation(summary = "获取标签列表", description = "分页获取标签列表信息")
     @AddDataAuthBusiness
     public ApiResult<PageResultReturn> getTagList(@RequestBody @Valid TagQueryDTO request) {
         try {
@@ -57,8 +59,8 @@ public class TagController {
     }
 
     @PostMapping("/createTag")
-    @ApiOperation(value = "创建标签", notes = "创建标签")
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = Boolean.class)})
+    @Operation(summary = "创建标签", description = "创建标签")
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR")})
     public ApiResult<Boolean> createTag(@RequestBody @Validated TagCreateDTO request) {
         try {
             Boolean result = tagService.createTag(request);
@@ -74,8 +76,8 @@ public class TagController {
     }
 
     @PostMapping("/updateTag")
-    @ApiOperation(value = "更新标签", notes = "更新标签")
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = Boolean.class)})
+    @Operation(summary = "更新标签", description = "更新标签")
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR")})
     @AddDataAuthBusiness
     public ApiResult<Boolean> updateTag(@RequestBody @Validated TagUpdateDTO request) {
         try {
@@ -94,7 +96,7 @@ public class TagController {
     }
 
     @PostMapping("/updateTagStatus")
-    @ApiOperation(value = "更新标签状态", notes = "更新标签启用/禁用状态")
+    @Operation(summary = "更新标签状态", description = "更新标签启用/禁用状态")
     public ApiResult<Boolean> updateTagStatus(@RequestBody UpdateTagStatusDTO dto) {
         try {
             Boolean result = tagService.updateTagStatus(dto.getTagCode(), dto.getStatus());
@@ -110,7 +112,7 @@ public class TagController {
 
 
     @PostMapping("/getFieldConfigs")
-    @ApiOperation(value = "获取字段配置", notes = "根据数据源编码获取对应的字段配置信息")
+    @Operation(summary = "获取字段配置", description = "根据数据源编码获取对应的字段配置信息")
     public ApiResult<List<TagFieldConfigDTO>> getFieldConfigs(@RequestParam String sourceCode) {
         try {
             List<TagFieldConfigDTO> configs = tagService.getFieldConfigs(sourceCode);
@@ -126,13 +128,13 @@ public class TagController {
     }
 
     @PostMapping("/getValueOptions")
-    @ApiOperation(value = "获取字段值列表", notes = "根据数据源编码获取对应的字段配置信息")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "fieldCode", value = "字段编码", required = true, dataType = "String", example = "SOURCE_001")
+    @Operation(summary = "获取字段值列表", description = "根据数据源编码获取对应的字段配置信息")
+    @Parameters({
+            @Parameter(name = "fieldCode", description = "字段编码", required = true, example = "SOURCE_001")
     })
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = String.class)})
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR")})
     public ApiResult<List<String>> getValueOptions(
-            @ApiParam(value = "字段编码", required = true) @RequestParam String fieldCode) {
+            @Parameter(description = "字段编码", required = true) @RequestParam String fieldCode) {
         try {
             List<String> configs = tagService.getValueOptions(fieldCode);
             if (configs != null) {
@@ -148,9 +150,9 @@ public class TagController {
 
 
     @PostMapping("/getEffectiveTag")
-    @ApiOperation(value = "获取apiCode授权标签", notes = "获取apiCode授权标签")
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = TagListResponseDTO.class)})
-    public ApiResult<List<TagEffectiveDTO>> getEffectiveTag(@ApiParam("apiCode") @RequestParam String apiCode) {
+    @Operation(summary = "获取apiCode授权标签", description = "获取apiCode授权标签")
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR")})
+    public ApiResult<List<TagEffectiveDTO>> getEffectiveTag(@Parameter(name = "apiCode") @RequestParam String apiCode) {
         try {
             List<TagEffectiveDTO> tagList = tagService.getEffectiveTag(apiCode);
             if (tagList != null) {
@@ -165,7 +167,7 @@ public class TagController {
     }
 
     @PostMapping("/batchDelete")
-    @ApiOperation(value = "批量删除标签", notes = "批量删除标签")
+    @Operation(summary = "批量删除标签", description = "批量删除标签")
     @AddDataAuthBusiness
     public ApiResult<Boolean> batchDelete(@RequestBody @Valid TagBatchDeleteDTO request) {
         try {
@@ -183,7 +185,7 @@ public class TagController {
     }
 
     @GetMapping("/getCreators")
-    @ApiOperation(value = "获取创建人列表", notes = "获取标签创建人列表")
+    @Operation(summary = "获取创建人列表", description = "获取标签创建人列表")
     public ApiResult<List<TagCreatorDTO>> getCreators() {
         try {
             List<TagCreatorDTO> creators = tagService.getCreators();
@@ -196,7 +198,7 @@ public class TagController {
     }
 
     @GetMapping("/getTagName")
-    @ApiOperation(value = "获取标签名称列表", notes = "获取标签名称列表")
+    @Operation(summary = "获取标签名称列表", description = "获取标签名称列表")
     public ApiResult<List<TagListResponseDTO>> getTagName() {
         try {
             List<TagListResponseDTO> creators = tagService.getTagName();
@@ -209,7 +211,7 @@ public class TagController {
     }
 
     @GetMapping("/getTagDetail")
-    @ApiOperation(value = "获取标签详情", notes = "根据标签编码获取标签详细信息，用于编辑前的数据反显")
+    @Operation(summary = "获取标签详情", description = "根据标签编码获取标签详细信息，用于编辑前的数据反显")
     public ApiResult<TagDetailDTO> getTagDetail(@RequestParam Long id) {
         try {
             TagDetailDTO detail = tagService.getTagDetail(id);

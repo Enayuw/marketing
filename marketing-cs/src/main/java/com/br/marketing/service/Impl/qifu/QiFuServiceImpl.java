@@ -24,6 +24,7 @@ import com.br.marketing.service.Impl.qifu.valobj.QiFuSyncStatusEnum;
 import com.br.marketing.service.Impl.qifu.enums.CouponType;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -711,8 +712,7 @@ public class QiFuServiceImpl implements IQiFuService {
         if (StringUtils.isNotBlank(qifuAiCleanConfig.getString("threadNum"))) {
             Integer threadNum = Integer.valueOf(qifuAiCleanConfig.getString("threadNum"));
             if (executor.getCorePoolSize() != threadNum.intValue()) {
-                executor.setCorePoolSize(threadNum);
-                executor.setMaximumPoolSize(threadNum);
+                ThreadPoolAdjustmentUtil.adjustThreadPoolSize(executor, threadNum);
             }
         }
         return Boolean.FALSE;

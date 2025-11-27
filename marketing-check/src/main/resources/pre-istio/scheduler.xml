@@ -25,7 +25,7 @@
                    nested-data-dir="${NESTED_DATA_DIR}"/>
 
 
-    <job:simple id="closeDateAlarmJob"
+    <job:simple id="【check】-closeDateAlarmJob"
                 class="com.br.marketing.check.job.CloseDateAlarmJob"
                 cron="00 00 10 * * ?"
                 description="监控今日到期"
@@ -54,7 +54,7 @@
     <!--                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"-->
     <!--    />-->
 
-    <job:simple id="monitoringExpirationAlarmJob"
+    <job:simple id="【check】-monitoringExpirationAlarmJob"
                 class="com.br.marketing.check.job.MonitoringExpirationAlarmJob"
                 cron="00 00 10 * * ?"
                 description="监控即将到期"
@@ -68,7 +68,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="progressReportJob"
+    <job:simple id="【check】-progressReportJob"
                 class="com.br.marketing.check.job.ProgressReportJob"
                 cron="00 00 09 * * ?"
                 description="早上9点任务进度统计"
@@ -110,7 +110,7 @@
     <!--                overwrite="true"-->
     <!--                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"-->
     <!--    />-->
-    <job:simple id="PushHaierJob"
+    <job:simple id="【check】-PushHaierJob"
                 class="com.br.marketing.check.job.PushHaierJob"
                 cron="0 0/20 * * * ? "
                 description="推送海尔电销"
@@ -124,7 +124,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="QueryHaierJob"
+    <job:simple id="【check】-QueryHaierJob"
                 class="com.br.marketing.check.job.QueryHaierJob"
                 cron="0 0/30 * * * ? "
                 description="查询推送海尔电销"
@@ -140,7 +140,7 @@
     />
 
 
-    <job:simple id="ZhongYouTransferToFileTaskJob"
+    <job:simple id="【check】-ZhongYouTransferToFileTaskJob"
                 class="com.br.marketing.check.job.zhongyou.ZhongYouTransferToFileTaskJob"
                 cron="0 1/10 * * * ? "
                 description="中邮转化数据作业"
@@ -154,7 +154,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="BackendTransferFileTaskJob"
+    <job:simple id="【check】-BackendTransferFileTaskJob"
                 class="com.br.marketing.check.job.BackendTransferFileTaskJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="转化数据作业"
@@ -168,7 +168,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="RetryCommonServiceJob"
+    <job:simple id="【check】-RetryCommonServiceJob"
                 class="com.br.marketing.check.job.RetryCommonServiceJob"
                 cron="0 1/10 * * * ? "
                 description="重试作业"
@@ -182,7 +182,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="RetryCommonByHandleServiceJob"
+    <job:simple id="【check】-RetryCommonByHandleServiceJob"
                 class="com.br.marketing.check.job.RetryCommonByHandleServiceJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="重试作业"
@@ -196,7 +196,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="StopTaskBuildJob"
+    <job:simple id="【check】-StopTaskBuildJob"
                 class="com.br.marketing.check.job.TaskBuildStopJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="停止任务生成(手动)"
@@ -210,7 +210,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="SftpToDbByCallingJbo"
+    <job:simple id="【check】-SftpToDbByCallingJbo"
                 class="com.br.marketing.check.job.SftpToDbByCallingJbo"
                 cron="0 0 0 1/1 * ?"
                 description="客服拨打明细落库"
@@ -224,7 +224,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="CallingToSendJob"
+    <job:simple id="【check】-CallingToSendJob"
                 class="com.br.marketing.check.job.CallingToSendJob"
                 cron="0 0 0 1/1 * ?"
                 description="客服拨打明细发送给第三方"
@@ -238,7 +238,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="YiXinTransferToDxJob"
+    <job:simple id="【check】-YiXinTransferToDxJob"
                 class="com.br.marketing.check.job.YiXinTransferToDxJob"
                 cron="0 0/10 7-12 * * ? *"
                 description="宜信转化数据非实时数据推送决策"
@@ -254,7 +254,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.RotateServerByOffsetJobShardingStrategy"
     />
 
-    <job:simple id="YiXinTransferToRobotAIJob"
+    <job:simple id="【check】-YiXinTransferToRobotAIJob"
                 class="com.br.marketing.check.job.YiXinTransferToRobotAIJob"
                 cron="0 0/10 * * * ?"
                 description="宜信转化数据非实时数据推送客服"
@@ -271,7 +271,7 @@
     />
 
 
-    <job:simple id="haierToDxJob"
+    <job:simple id="【check】-haierToDxJob"
                 class="com.br.marketing.check.job.HaierToDxJob"
                 cron="0 0 0/1 * * ?"
                 description="海尔转化数据推送电销"
@@ -287,7 +287,7 @@
     />
 
 
-    <job:simple id="PPDTransferToDxJob"
+    <job:simple id="【check】-PPDTransferToDxJob"
                 class="com.br.marketing.check.job.PPDTransferToDxJob"
                 cron="0 0/10 * * * ?"
                 description="拍拍贷转化数据推电销"
@@ -302,7 +302,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="ShuHeBlackPhonePushDaasJob"
+    <job:simple id="【check】-ShuHeBlackPhonePushDaasJob"
                 class="com.br.marketing.check.job.ShuHeBlackPhonePushDaasJob"
                 cron="0 0 20 * * ?"
                 description="数禾黑名单推电销转化接口"
@@ -316,7 +316,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="HaluoDassJob"
+    <job:simple id="【check】-HaluoDassJob"
                 class="com.br.marketing.check.job.HaluoDassJob"
                 cron="0 0 10 * * ? "
                 description="哈罗推送电销"
@@ -331,7 +331,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="TaskTransferSyncReportJob"
+    <job:simple id="【check】-TaskTransferSyncReportJob"
                 class="com.br.marketing.check.job.report.TaskTransferSyncReportJob"
                 cron="0 1 * * * ? "
                 description="转化数据统计调度任务"
@@ -346,7 +346,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="ShuHeInvalidDataFilterToDaasTransferJob"
+    <job:simple id="【check】-ShuHeInvalidDataFilterToDaasTransferJob"
                 class="com.br.marketing.check.job.ShuHeInvalidDataFilterToDaasTransferJob"
                 cron="0 0 20 * * ? "
                 description="数禾失效数据过虑到Dass转化接口调度任务"
@@ -361,7 +361,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="taskUploadSyncReportJob"
+    <job:simple id="【check】-taskUploadSyncReportJob"
                 class="com.br.marketing.check.job.TaskUploadSyncReportJob"
                 cron="0 1 * * * ? "
                 description="上传数据统计报表任务"
@@ -376,7 +376,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="SmyUploadDataToDaasJob"
+    <job:simple id="【check】-SmyUploadDataToDaasJob"
                 class="com.br.marketing.check.job.SmyUploadDataToDaasJob"
                 cron="0 0 9 * * ?"
                 description="萨摩耶上传数据推送daas"
@@ -390,7 +390,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="SmyTransferDataToDaasJob"
+    <job:simple id="【check】-SmyTransferDataToDaasJob"
                 class="com.br.marketing.check.job.SmyTransferDataToDaasJob"
                 cron="0 30 21 * * ?"
                 description="萨摩耶转化数据剔除"
@@ -404,7 +404,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="fileToMarketingDataJob"
+    <job:simple id="【check】-fileToMarketingDataJob"
                 class="com.br.marketing.check.job.FileToMarketingDataJob"
                 cron="0 9/10 * * * ? "
                 description="营销文件上传入库"
@@ -418,7 +418,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="XieChengCallingRecordJob"
+    <job:simple id="【check】-XieChengCallingRecordJob"
                 class="com.br.marketing.check.job.XieChengCallingRecordJob"
                 cron="* * * 29 2 ?"
                 description="携程通话明细暂停后启动推送定时任务"
@@ -433,7 +433,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="PPDaiOldPeriodicityPushDxJob"
+    <job:simple id="【check】-PPDaiOldPeriodicityPushDxJob"
                 class="com.br.marketing.check.job.ppdai.PPDaiOldPeriodicityPushDxJob"
                 cron="0 30 10 * * ?"
                 description="拍拍贷老客周期性推送电销"
@@ -449,7 +449,7 @@
     />
 
 
-    <job:simple id="RongShuCyclePushDaasJob"
+    <job:simple id="【check】-RongShuCyclePushDaasJob"
                 class="com.br.marketing.check.job.RongShuCyclePushDaasJob"
                 cron="0 0 10 * * ? "
                 description="榕树周期性推送人工IBU任务"
@@ -464,7 +464,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="OrangeTransferDataPeriodToDassJob"
+    <job:simple id="【check】-OrangeTransferDataPeriodToDassJob"
                 class="com.br.marketing.check.job.juzi.OrangeTransferDataPeriodToDassJob"
                 cron="0 0/30 9-23 * * ? "
                 description="桔子周期推送电销Daas"
@@ -479,7 +479,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="fenqilePeriodPushDecisionJob"
+    <job:simple id="【check】-fenqilePeriodPushDecisionJob"
                 class="com.br.marketing.check.job.fenqile.FenqilePeriodPushDecisionJob"
                 cron="0 30/29 9-23 * * ? *"
                 description="分期乐自动化周期转决策"
@@ -495,7 +495,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="XieChengPushPolicyJob"
+    <job:simple id="【check】-XieChengPushPolicyJob"
                 class="com.br.marketing.check.job.XieChengPushPolicyJob"
                 cron="0 0 8 * * ?"
                 description="携程转化数据推送决策"
@@ -510,7 +510,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="RsToPolicyJob"
+    <job:simple id="【check】-RsToPolicyJob"
                 class="com.br.marketing.check.job.RsToPolicyJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="榕树推送决策作业"
@@ -525,7 +525,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="AutomatedPushDecisionJob"
+    <job:simple id="【check】-AutomatedPushDecisionJob"
                 class="com.br.marketing.check.job.decision.AutomatedPushDecisionJob"
                 cron="0 1/10 * * * ? "
                 description="自动化推送决策作业"
@@ -539,7 +539,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="YiXinTransferToJueCeJob"
+    <job:simple id="【check】-YiXinTransferToJueCeJob"
                 class="com.br.marketing.check.job.yixin.YiXinTransferToJueCeJob"
                 cron="0 0/10 8-23 * * ? *"
                 description="宜信推决策定时任务"
@@ -554,7 +554,7 @@
                 sharding-offset="3"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.RotateServerByOffsetJobShardingStrategy"
     />
-    <job:simple id="YiXinTransferToJueCeMakeUpJob"
+    <job:simple id="【check】-YiXinTransferToJueCeMakeUpJob"
                 class="com.br.marketing.check.job.yixin.YiXinTransferToJueCeMakeUpJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="宜信推决策补推数据定时任务"
@@ -568,7 +568,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="ZhongBangTransferToDassFilterFirstJob"
+    <job:simple id="【check】-ZhongBangTransferToDassFilterFirstJob"
                 class="com.br.marketing.check.job.zhongbang.ZhongBangTransferToDassFilterFirstJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="众邦转化数据推人工转化过滤接口(首次)"
@@ -582,7 +582,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="ZhongBangTransferToDassFilterNoFirstJob"
+    <job:simple id="【check】-ZhongBangTransferToDassFilterNoFirstJob"
                 class="com.br.marketing.check.job.zhongbang.ZhongBangTransferToDassFilterNoFirstJob"
                 cron="0 0 10,20 * * ? *"
                 description="众邦转化数据推人工转化过滤接口(非首次)"
@@ -597,7 +597,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="ZhongBangTransferToDassRealTimeUserOneJob"
+    <job:simple id="【check】-ZhongBangTransferToDassRealTimeUserOneJob"
                 class="com.br.marketing.check.job.zhongbang.ZhongBangTransferToDassRealTimeUserOneJob"
                 cron="0 0 9 * * ?"
                 description="众邦转化数据定时推送人工实时推送用户名单(单条);param格式：apiCode或{apiCode:yyyy-MM-dd或yyyy-MM-ddTHH:mm:ss,yyyy-MM-ddTHH:mm:ss}"
@@ -612,7 +612,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="BigKeyCleanJob"
+    <job:simple id="【check】-BigKeyCleanJob"
                 class="com.br.marketing.check.job.clean.BigKeyCleanJob"
                 cron="0 0 1 * * ? *"
                 description="删除大keyjob"
@@ -626,7 +626,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="ZhongYuanTransferDataToCustomerFirstTimeJob"
+    <job:simple id="【check】-ZhongYuanTransferDataToCustomerFirstTimeJob"
                 class="com.br.marketing.check.job.zhongyuan.ZhongYuanTransferDataToCustomerFirstTimeJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="中原转化数据推客服转化过滤定时任务"
@@ -640,7 +640,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="ZhongYuanTransferDataToCustomerNotFirstTimeJob"
+    <job:simple id="【check】-ZhongYuanTransferDataToCustomerNotFirstTimeJob"
                 class="com.br.marketing.check.job.zhongyuan.ZhongYuanTransferDataToCustomerNotFirstTimeJob"
                 cron="0 10/15 8-11 * * ?"
                 description="中原转化数据推客服非首次转化过滤定时任务"
@@ -654,7 +654,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="ZhongYuanTransferDataToDaasJob"
+    <job:simple id="【check】-ZhongYuanTransferDataToDaasJob"
                 class="com.br.marketing.check.job.zhongyuan.ZhongYuanTransferDataToDaasJob"
                 cron="0 10/15 8-11 * * ?"
                 description="中原转化数据推Daas"
@@ -669,7 +669,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="ZhongYuanTransferDataToDaasFilterJob"
+    <job:simple id="【check】-ZhongYuanTransferDataToDaasFilterJob"
                 class="com.br.marketing.check.job.zhongyuan.ZhongYuanTransferDataToDaasFilterJob"
                 cron="0 0 10,20 * * ? *"
                 description="中原转化数据推Daas转化"
@@ -684,7 +684,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="ValidPeriodResendJob"
+    <job:simple id="【check】-ValidPeriodResendJob"
                 class="com.br.marketing.check.job.ValidPeriodResendJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="有效期任务变更重推任务"
@@ -698,7 +698,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="QiFuBreakPointDataToJueCeJob"
+    <job:simple id="【check】-QiFuBreakPointDataToJueCeJob"
                 class="com.br.marketing.check.job.qifu.QiFuBreakPointDataToJueCeJob"
                 cron="0 0 8 * * ?"
                 description="奇富断点自动化数据推决策，每天8点执行一次"
@@ -712,7 +712,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="XiechengUpdateDataJob"
+    <job:simple id="【check】-XiechengUpdateDataJob"
                 class="com.br.marketing.check.job.XiechengUpdateDataJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="携程补推数据"
@@ -726,7 +726,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="DataProcessingCommonJob"
+    <job:simple id="【check】-DataProcessingCommonJob"
                 class="com.br.marketing.check.job.DataProcessingCommonJob"
                 cron="0 */10 * ? * *"
                 description="文件数据处理通用流程，每10分钟执行一次"
@@ -742,7 +742,7 @@
     />
 
 
-    <job:simple id="HaierCollidingDataJob"
+    <job:simple id="【check】-HaierCollidingDataJob"
                 class="com.br.marketing.check.job.HaierCollidingDataJob"
                 cron="0 */3 * ? * *"
                 description="海尔撞库定时任务"
@@ -756,7 +756,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="HaierCollidingDataSyncJob"
+    <job:simple id="【check】-HaierCollidingDataSyncJob"
                 class="com.br.marketing.check.job.HaierCollidingDataSyncJob"
                 cron="0 */10 * ? * *"
                 description="海尔撞库上传清洗定时任务"
@@ -835,7 +835,7 @@
 
     />
 
-    <job:simple id="PrometheusGetApiCode"
+    <job:simple id="【check】-PrometheusGetApiCode"
                 class="com.br.marketing.check.job.monitor.PrometheusGetApiCode"
                 cron="0 0/10 * * * ? "
                 description="Prometheus监控实时获取ApiCode"
@@ -850,7 +850,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="SyncUserCellUpdateJob"
+    <job:simple id="【check】-SyncUserCellUpdateJob"
                 class="com.br.marketing.check.job.tmpjob.SyncUserCellUpdateJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="上传数据清洗任务"
@@ -865,7 +865,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="XieChengCollidingRuleScoreToDbJob"
+    <job:simple id="【check】-XieChengCollidingRuleScoreToDbJob"
                 class="com.br.marketing.check.job.xiecheng.XieChengCollidingRuleScoreToDbJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="携程跑分数据同步作业"
@@ -879,7 +879,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="ZhongBangPushVoiceFileJob"
+    <job:simple id="【check】-ZhongBangPushVoiceFileJob"
                 class="com.br.marketing.check.job.zhongbang.ZhongBangPushVoiceFileJob"
                 cron="0 0/11 * * * ?"
                 description="众邦财富fileSDK录音文件上传"
@@ -893,7 +893,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="PeriodPushJob"
+    <job:simple id="【check】-PeriodPushJob"
                 class="com.br.marketing.check.job.PeriodPushJob"
                 cron="0 0/1 * * * ?"
                 description="数据积攒后周期推送决策"
@@ -907,7 +907,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="DataCleaningGeneralJob"
+    <job:simple id="【check】-DataCleaningGeneralJob"
                 class="com.br.marketing.check.job.DataCleaningGeneralJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="通用的数据清洗job"
@@ -922,7 +922,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="DataCleanFileSyncJob"
+    <job:simple id="【check】-DataCleanFileSyncJob"
                 class="com.br.marketing.check.job.dataclean.DataCleanFileSyncJob"
                 cron="0 0/5 * * * ? "
                 description="数据清洗文件同步"
@@ -936,7 +936,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="DataCleanQiFu360Job"
+    <job:simple id="【check】-DataCleanQiFu360Job"
                 class="com.br.marketing.check.job.qifu.DataCleanQiFu360Job"
                 cron="0 0/1 * * * ?"
                 description="奇富360促动支用户信息清洗"
@@ -952,7 +952,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.RotateServerByOffsetJobShardingStrategy"
     />
 
-    <job:simple id="SuShangPushCallRecordJob"
+    <job:simple id="【check】-SuShangPushCallRecordJob"
                 class="com.br.marketing.check.job.sushang.SuShangPushCallRecordJob"
                 cron="0 0/10 * * * ?"
                 description="苏商推送通话明细任务"
@@ -966,7 +966,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="DataCleaningAutoJob"
+    <job:simple id="【check】-DataCleaningAutoJob"
                 class="com.br.marketing.check.job.DataCleaningAutoJob"
                 cron="0 1/10 * * * ?"
                 description="通用的自动数据清洗job"
@@ -981,7 +981,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="ScoreReportTaskJob"
+    <job:simple id="【check】-ScoreReportTaskJob"
                 class="com.br.marketing.check.job.report.ScoreReportTaskJob"
                 cron="0 1/5 * * * ?"
                 description="跑分报表任务统计job"
@@ -995,7 +995,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="ShuHeCuFuJieMatchDataJob"
+    <job:simple id="【check】-ShuHeCuFuJieMatchDataJob"
                 class="com.br.marketing.check.job.ShuHeCuFuJieMatchDataJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="数禾促复借每日自动化匹配数据作业"
@@ -1010,7 +1010,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="DataGroupHandlerJob"
+    <job:simple id="【check】-DataGroupHandlerJob"
                 class="com.br.marketing.check.job.datagroup.DataGroupHandlerJob"
                 cron="0 0/10 * * * ?"
                 description="数据分组流程处理"
@@ -1042,7 +1042,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="ShunFengCompanyInfoJob"
+    <job:simple id="【check】-ShunFengCompanyInfoJob"
                 class="com.br.marketing.check.job.shunfeng.ShunFengCompanyInfoJob"
                 cron="0 0/10 * * * ?"
                 description="顺丰获取公司信息"
@@ -1057,7 +1057,7 @@
                 job-parameter=""
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="ThirdPartnerDataValidPassBackJob"
+    <job:simple id="【check】-ThirdPartnerDataValidPassBackJob"
                 class="com.br.marketing.check.job.ThirdPartnerDataValidPassBackJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="三方数据有效期变更回传任务"
@@ -1072,7 +1072,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="ZhongAnReportStatisticJob"
+    <job:simple id="【check】-ZhongAnReportStatisticJob"
                 class="com.br.marketing.check.job.zhongan.ZhongAnReportStatisticJob"
                 cron="0 0 12 * * ?"
                 description="众安经营分析报表每日定时生成任务"
@@ -1305,7 +1305,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.RotateServerByOffsetJobShardingStrategy"
     />
 
-    <job:simple id="CustomUploadDataCleanJob"
+    <job:simple id="【check】-CustomUploadDataCleanJob"
                 class="com.br.marketing.check.job.dataclean.CustomUploadDataCleanJob"
                 cron="0 0/2 * * * ? "
                 description="定制上传数据清洗"
@@ -1320,7 +1320,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="FileUploadDataCleanTaskJob"
+    <job:simple id="【check】-FileUploadDataCleanTaskJob"
                 class="com.br.marketing.check.job.dataclean.FileUploadDataCleanTaskJob"
                 cron="0 0/5 * * * ? "
                 description="文件数据清洗上传Job"
@@ -1335,7 +1335,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="HaloCallbackJob"
+    <job:simple id="【check】-HaloCallbackJob"
                 class="com.br.marketing.check.job.halo.HaloCallbackJob"
                 cron="0 0 18 29 9 ? 2099-2099"
                 description="哈啰硅基人数据回传"

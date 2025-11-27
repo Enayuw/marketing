@@ -353,6 +353,10 @@ public enum AlarmSendCodeEnum {
 
     POLLING_GROUP_EXCEPTION("8001003", "轮询开发组异常"),
 
+    MARKETING_AVIATORSCRIPT_LINESMS_ERROR("8001004", "短信/线路钉钉文档配置入库异常"),
+
+    MARKETING_AVIATORSCRIPT_LINE_CHANGE_ERROR("8001005", "线路三方字段同步异常"),
+
     ;
 
     /**
