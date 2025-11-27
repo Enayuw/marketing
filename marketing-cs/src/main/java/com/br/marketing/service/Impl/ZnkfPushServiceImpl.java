@@ -704,6 +704,15 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             }
         }
 
+        // 默认增加 receive_date 字段，值为 LocalDate.now()
+        String receiveDateColumn = "receive_date";
+        if (!addedColumns.contains(receiveDateColumn)) {
+            columns.append("`").append(receiveDateColumn).append("`,");
+            String dateValue = LocalDate.now().toString();
+            values.append("'").append(dateValue).append("',");
+            addedColumns.add(receiveDateColumn);
+        }
+
         // 移除最后的逗号
         if (columns.length() > 0 && columns.charAt(columns.length() - 1) == ',') {
             columns.setLength(columns.length() - 1);
