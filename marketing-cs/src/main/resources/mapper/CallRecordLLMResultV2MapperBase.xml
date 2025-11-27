@@ -1,0 +1,511 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.CallRecordLLMResultV2Mapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.CallRecordLLMResultV2" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="cid" property="cid" jdbcType="VARCHAR" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="call_back_type" property="callBackType" jdbcType="INTEGER" />
+    <result column="task_name" property="taskName" jdbcType="VARCHAR" />
+    <result column="task_id" property="taskId" jdbcType="INTEGER" />
+    <result column="cust_num" property="custNum" jdbcType="VARCHAR" />
+    <result column="detail" property="detail" jdbcType="OTHER" />
+    <result column="session_id" property="sessionId" jdbcType="VARCHAR" />
+    <result column="call_start_time" property="callStartTime" jdbcType="BIGINT" />
+    <result column="call_connect_time" property="callConnectTime" jdbcType="BIGINT" />
+    <result column="call_end_time" property="callEndTime" jdbcType="BIGINT" />
+    <result column="dialog_turn" property="dialogTurn" jdbcType="INTEGER" />
+    <result column="call_status" property="callStatus" jdbcType="INTEGER" />
+    <result column="is_connect" property="isConnect" jdbcType="INTEGER" />
+    <result column="call_dialog" property="callDialog" jdbcType="VARCHAR" />
+    <result column="recording_path" property="recordingPath" jdbcType="VARCHAR" />
+    <result column="intention_grade" property="intentionGrade" jdbcType="VARCHAR" />
+    <result column="tag_list" property="tagList" jdbcType="VARCHAR" />
+    <result column="reserve_field1" property="reserveField1" jdbcType="VARCHAR" />
+    <result column="version" property="version" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="receive_date" property="receiveDate" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, cid, api_code, call_back_type, task_name, task_id, cust_num, detail, session_id, 
+    call_start_time, call_connect_time, call_end_time, dialog_turn, call_status, is_connect, 
+    call_dialog, recording_path, intention_grade, tag_list, reserve_field1, version, 
+    create_time, update_time, receive_date
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.CallRecordLLMResultV2Example" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_marketing_call_record_LLMResultV2
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from b_marketing_call_record_LLMResultV2
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_marketing_call_record_LLMResultV2
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.CallRecordLLMResultV2Example" >
+    delete from b_marketing_call_record_LLMResultV2
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.CallRecordLLMResultV2" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_marketing_call_record_LLMResultV2 (cid, api_code, call_back_type, 
+      task_name, task_id, cust_num, 
+      detail, session_id, call_start_time, 
+      call_connect_time, call_end_time, dialog_turn, 
+      call_status, is_connect, call_dialog, 
+      recording_path, intention_grade, tag_list, 
+      reserve_field1, version, create_time, 
+      update_time, receive_date)
+    values (#{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{callBackType,jdbcType=INTEGER}, 
+      #{taskName,jdbcType=VARCHAR}, #{taskId,jdbcType=INTEGER}, #{custNum,jdbcType=VARCHAR}, 
+      #{detail,jdbcType=OTHER}, #{sessionId,jdbcType=VARCHAR}, #{callStartTime,jdbcType=BIGINT}, 
+      #{callConnectTime,jdbcType=BIGINT}, #{callEndTime,jdbcType=BIGINT}, #{dialogTurn,jdbcType=INTEGER}, 
+      #{callStatus,jdbcType=INTEGER}, #{isConnect,jdbcType=INTEGER}, #{callDialog,jdbcType=VARCHAR}, 
+      #{recordingPath,jdbcType=VARCHAR}, #{intentionGrade,jdbcType=VARCHAR}, #{tagList,jdbcType=VARCHAR}, 
+      #{reserveField1,jdbcType=VARCHAR}, #{version,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP}, #{receiveDate,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.CallRecordLLMResultV2" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_marketing_call_record_LLMResultV2
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="cid != null" >
+        cid,
+      </if>
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="callBackType != null" >
+        call_back_type,
+      </if>
+      <if test="taskName != null" >
+        task_name,
+      </if>
+      <if test="taskId != null" >
+        task_id,
+      </if>
+      <if test="custNum != null" >
+        cust_num,
+      </if>
+      <if test="detail != null" >
+        detail,
+      </if>
+      <if test="sessionId != null" >
+        session_id,
+      </if>
+      <if test="callStartTime != null" >
+        call_start_time,
+      </if>
+      <if test="callConnectTime != null" >
+        call_connect_time,
+      </if>
+      <if test="callEndTime != null" >
+        call_end_time,
+      </if>
+      <if test="dialogTurn != null" >
+        dialog_turn,
+      </if>
+      <if test="callStatus != null" >
+        call_status,
+      </if>
+      <if test="isConnect != null" >
+        is_connect,
+      </if>
+      <if test="callDialog != null" >
+        call_dialog,
+      </if>
+      <if test="recordingPath != null" >
+        recording_path,
+      </if>
+      <if test="intentionGrade != null" >
+        intention_grade,
+      </if>
+      <if test="tagList != null" >
+        tag_list,
+      </if>
+      <if test="reserveField1 != null" >
+        reserve_field1,
+      </if>
+      <if test="version != null" >
+        version,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+      <if test="receiveDate != null" >
+        receive_date,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="cid != null" >
+        #{cid,jdbcType=VARCHAR},
+      </if>
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="callBackType != null" >
+        #{callBackType,jdbcType=INTEGER},
+      </if>
+      <if test="taskName != null" >
+        #{taskName,jdbcType=VARCHAR},
+      </if>
+      <if test="taskId != null" >
+        #{taskId,jdbcType=INTEGER},
+      </if>
+      <if test="custNum != null" >
+        #{custNum,jdbcType=VARCHAR},
+      </if>
+      <if test="detail != null" >
+        #{detail,jdbcType=OTHER},
+      </if>
+      <if test="sessionId != null" >
+        #{sessionId,jdbcType=VARCHAR},
+      </if>
+      <if test="callStartTime != null" >
+        #{callStartTime,jdbcType=BIGINT},
+      </if>
+      <if test="callConnectTime != null" >
+        #{callConnectTime,jdbcType=BIGINT},
+      </if>
+      <if test="callEndTime != null" >
+        #{callEndTime,jdbcType=BIGINT},
+      </if>
+      <if test="dialogTurn != null" >
+        #{dialogTurn,jdbcType=INTEGER},
+      </if>
+      <if test="callStatus != null" >
+        #{callStatus,jdbcType=INTEGER},
+      </if>
+      <if test="isConnect != null" >
+        #{isConnect,jdbcType=INTEGER},
+      </if>
+      <if test="callDialog != null" >
+        #{callDialog,jdbcType=VARCHAR},
+      </if>
+      <if test="recordingPath != null" >
+        #{recordingPath,jdbcType=VARCHAR},
+      </if>
+      <if test="intentionGrade != null" >
+        #{intentionGrade,jdbcType=VARCHAR},
+      </if>
+      <if test="tagList != null" >
+        #{tagList,jdbcType=VARCHAR},
+      </if>
+      <if test="reserveField1 != null" >
+        #{reserveField1,jdbcType=VARCHAR},
+      </if>
+      <if test="version != null" >
+        #{version,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="receiveDate != null" >
+        #{receiveDate,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.CallRecordLLMResultV2Example" resultType="java.lang.Integer" >
+    select count(*) from b_marketing_call_record_LLMResultV2
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_marketing_call_record_LLMResultV2
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.cid != null" >
+        cid = #{record.cid,jdbcType=VARCHAR},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.callBackType != null" >
+        call_back_type = #{record.callBackType,jdbcType=INTEGER},
+      </if>
+      <if test="record.taskName != null" >
+        task_name = #{record.taskName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.taskId != null" >
+        task_id = #{record.taskId,jdbcType=INTEGER},
+      </if>
+      <if test="record.custNum != null" >
+        cust_num = #{record.custNum,jdbcType=VARCHAR},
+      </if>
+      <if test="record.detail != null" >
+        detail = #{record.detail,jdbcType=OTHER},
+      </if>
+      <if test="record.sessionId != null" >
+        session_id = #{record.sessionId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.callStartTime != null" >
+        call_start_time = #{record.callStartTime,jdbcType=BIGINT},
+      </if>
+      <if test="record.callConnectTime != null" >
+        call_connect_time = #{record.callConnectTime,jdbcType=BIGINT},
+      </if>
+      <if test="record.callEndTime != null" >
+        call_end_time = #{record.callEndTime,jdbcType=BIGINT},
+      </if>
+      <if test="record.dialogTurn != null" >
+        dialog_turn = #{record.dialogTurn,jdbcType=INTEGER},
+      </if>
+      <if test="record.callStatus != null" >
+        call_status = #{record.callStatus,jdbcType=INTEGER},
+      </if>
+      <if test="record.isConnect != null" >
+        is_connect = #{record.isConnect,jdbcType=INTEGER},
+      </if>
+      <if test="record.callDialog != null" >
+        call_dialog = #{record.callDialog,jdbcType=VARCHAR},
+      </if>
+      <if test="record.recordingPath != null" >
+        recording_path = #{record.recordingPath,jdbcType=VARCHAR},
+      </if>
+      <if test="record.intentionGrade != null" >
+        intention_grade = #{record.intentionGrade,jdbcType=VARCHAR},
+      </if>
+      <if test="record.tagList != null" >
+        tag_list = #{record.tagList,jdbcType=VARCHAR},
+      </if>
+      <if test="record.reserveField1 != null" >
+        reserve_field1 = #{record.reserveField1,jdbcType=VARCHAR},
+      </if>
+      <if test="record.version != null" >
+        version = #{record.version,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.receiveDate != null" >
+        receive_date = #{record.receiveDate,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_marketing_call_record_LLMResultV2
+    set id = #{record.id,jdbcType=BIGINT},
+      cid = #{record.cid,jdbcType=VARCHAR},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      call_back_type = #{record.callBackType,jdbcType=INTEGER},
+      task_name = #{record.taskName,jdbcType=VARCHAR},
+      task_id = #{record.taskId,jdbcType=INTEGER},
+      cust_num = #{record.custNum,jdbcType=VARCHAR},
+      detail = #{record.detail,jdbcType=OTHER},
+      session_id = #{record.sessionId,jdbcType=VARCHAR},
+      call_start_time = #{record.callStartTime,jdbcType=BIGINT},
+      call_connect_time = #{record.callConnectTime,jdbcType=BIGINT},
+      call_end_time = #{record.callEndTime,jdbcType=BIGINT},
+      dialog_turn = #{record.dialogTurn,jdbcType=INTEGER},
+      call_status = #{record.callStatus,jdbcType=INTEGER},
+      is_connect = #{record.isConnect,jdbcType=INTEGER},
+      call_dialog = #{record.callDialog,jdbcType=VARCHAR},
+      recording_path = #{record.recordingPath,jdbcType=VARCHAR},
+      intention_grade = #{record.intentionGrade,jdbcType=VARCHAR},
+      tag_list = #{record.tagList,jdbcType=VARCHAR},
+      reserve_field1 = #{record.reserveField1,jdbcType=VARCHAR},
+      version = #{record.version,jdbcType=VARCHAR},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      receive_date = #{record.receiveDate,jdbcType=VARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.CallRecordLLMResultV2" >
+    update b_marketing_call_record_LLMResultV2
+    <set >
+      <if test="cid != null" >
+        cid = #{cid,jdbcType=VARCHAR},
+      </if>
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="callBackType != null" >
+        call_back_type = #{callBackType,jdbcType=INTEGER},
+      </if>
+      <if test="taskName != null" >
+        task_name = #{taskName,jdbcType=VARCHAR},
+      </if>
+      <if test="taskId != null" >
+        task_id = #{taskId,jdbcType=INTEGER},
+      </if>
+      <if test="custNum != null" >
+        cust_num = #{custNum,jdbcType=VARCHAR},
+      </if>
+      <if test="detail != null" >
+        detail = #{detail,jdbcType=OTHER},
+      </if>
+      <if test="sessionId != null" >
+        session_id = #{sessionId,jdbcType=VARCHAR},
+      </if>
+      <if test="callStartTime != null" >
+        call_start_time = #{callStartTime,jdbcType=BIGINT},
+      </if>
+      <if test="callConnectTime != null" >
+        call_connect_time = #{callConnectTime,jdbcType=BIGINT},
+      </if>
+      <if test="callEndTime != null" >
+        call_end_time = #{callEndTime,jdbcType=BIGINT},
+      </if>
+      <if test="dialogTurn != null" >
+        dialog_turn = #{dialogTurn,jdbcType=INTEGER},
+      </if>
+      <if test="callStatus != null" >
+        call_status = #{callStatus,jdbcType=INTEGER},
+      </if>
+      <if test="isConnect != null" >
+        is_connect = #{isConnect,jdbcType=INTEGER},
+      </if>
+      <if test="callDialog != null" >
+        call_dialog = #{callDialog,jdbcType=VARCHAR},
+      </if>
+      <if test="recordingPath != null" >
+        recording_path = #{recordingPath,jdbcType=VARCHAR},
+      </if>
+      <if test="intentionGrade != null" >
+        intention_grade = #{intentionGrade,jdbcType=VARCHAR},
+      </if>
+      <if test="tagList != null" >
+        tag_list = #{tagList,jdbcType=VARCHAR},
+      </if>
+      <if test="reserveField1 != null" >
+        reserve_field1 = #{reserveField1,jdbcType=VARCHAR},
+      </if>
+      <if test="version != null" >
+        version = #{version,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="receiveDate != null" >
+        receive_date = #{receiveDate,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.CallRecordLLMResultV2" >
+    update b_marketing_call_record_LLMResultV2
+    set cid = #{cid,jdbcType=VARCHAR},
+      api_code = #{apiCode,jdbcType=VARCHAR},
+      call_back_type = #{callBackType,jdbcType=INTEGER},
+      task_name = #{taskName,jdbcType=VARCHAR},
+      task_id = #{taskId,jdbcType=INTEGER},
+      cust_num = #{custNum,jdbcType=VARCHAR},
+      detail = #{detail,jdbcType=OTHER},
+      session_id = #{sessionId,jdbcType=VARCHAR},
+      call_start_time = #{callStartTime,jdbcType=BIGINT},
+      call_connect_time = #{callConnectTime,jdbcType=BIGINT},
+      call_end_time = #{callEndTime,jdbcType=BIGINT},
+      dialog_turn = #{dialogTurn,jdbcType=INTEGER},
+      call_status = #{callStatus,jdbcType=INTEGER},
+      is_connect = #{isConnect,jdbcType=INTEGER},
+      call_dialog = #{callDialog,jdbcType=VARCHAR},
+      recording_path = #{recordingPath,jdbcType=VARCHAR},
+      intention_grade = #{intentionGrade,jdbcType=VARCHAR},
+      tag_list = #{tagList,jdbcType=VARCHAR},
+      reserve_field1 = #{reserveField1,jdbcType=VARCHAR},
+      version = #{version,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      receive_date = #{receiveDate,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

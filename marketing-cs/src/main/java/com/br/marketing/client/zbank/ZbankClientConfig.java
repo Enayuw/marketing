@@ -110,6 +110,12 @@ public class ZbankClientConfig {
     @Value("${api.zbank.api.serviceId.recodFile:CMBrRecodFileRe}")
     private String serviceIdRecodFile;
 
+    /**
+     * 众邦AI回传接口
+     */
+    @Value("${api.zbank.api.serviceId.AICallBack:CMBrAIOCCallBack}")
+    private String serviceIdAICallBack;
+
     // 文件sdk参数
 
     /**
@@ -151,6 +157,7 @@ public class ZbankClientConfig {
             sdk.getConfig().getInterfaceLogServiceIdList().add(serviceIdLabelRating);
             sdk.getConfig().getInterfaceLogServiceIdList().add(CMBrScoDaFeBack);
             sdk.getConfig().getInterfaceLogServiceIdList().add(serviceIdRecodFile);
+            sdk.getConfig().getInterfaceLogServiceIdList().add(serviceIdAICallBack);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }

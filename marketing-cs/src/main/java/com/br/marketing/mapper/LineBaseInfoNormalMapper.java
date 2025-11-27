@@ -9,6 +9,7 @@ import java.util.List;
 
 public interface LineBaseInfoNormalMapper extends LineBaseInfoNormalMapperBase{
 
+
     //页面查询->查询所有的数据->查询历史数据
     List<LineBaseFullInfoDTO> selectLineBaeFullInfoList();
 

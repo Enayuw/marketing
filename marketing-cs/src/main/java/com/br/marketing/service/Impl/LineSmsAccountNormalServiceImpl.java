@@ -3,6 +3,7 @@ package com.br.marketing.service.Impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
@@ -62,7 +63,8 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
         List<LineBaseShowInfoDto> lineBaseShowInfoDtoList = lineBaseFullInfoDtoList.stream()
                 .collect(Collectors.groupingBy(
                         LineBaseFullInfoDTO::getLineSupplier,
-                        Collectors.mapping(this::convertToLineBaseInfo, Collectors.toList())))
+                        Collectors.mapping(this::convertToLineBaseInfo, Collectors.toList())
+                ))
                 .entrySet().stream()
                 .map(entry -> {
                     LineBaseShowInfoDto dto = new LineBaseShowInfoDto();
@@ -164,19 +166,7 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
     @Override
     public PageResultReturn getLineAccounts(Integer current, Integer size, String lineSupplier, String callerFullName, Double price) {
         Date nowDate = new Date(System.currentTimeMillis());
-        Long lineSupplierId = lineSupplierInfoNormalMapper.selectIdByLineSupplier(lineSupplier);
-
-        //TODO 相同的lineSupplier 是否存在projectName +  caller 相同的多条gatewayId记录 (场景不会，但理论绝对值会)
-//        Long gatewayId = 0L;
-//        if (StringUtils.isNotEmpty(callerFullName)) {
-//            int lastDash = callerFullName.lastIndexOf('-');
-//            Long result = lineBaseInfoNormalMapper.selectGatewayIdByFiled(
-//                    lineSupplierId,
-//                    callerFullName.substring(0, lastDash),
-//                    callerFullName.substring(lastDash + 1)
-//            );
-//            gatewayId = result != null ? result : 0L;
-//        }
+        Long lineSupplierId = lineSupplierInfoNormalMapper.selectIdByLineSupplierNoOpeStatus(lineSupplier);
         List<Long> gatewayIdList = new ArrayList<>();
         if (StringUtils.isNotEmpty(callerFullName)) {
             int lastDash = callerFullName.lastIndexOf('-');
@@ -186,8 +176,7 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
                     callerFullName.substring(lastDash + 1)
             );
         }
-
-        Long totalCount = lineAccountDetailNormalMapper.selectTotalCount(nowDate);
+        Long totalCount = lineAccountDetailNormalMapper.selectTotalCount(lineSupplierId,gatewayIdList,price,nowDate);
         List<LineAccountDetailDTO> detailDbDtoList = lineAccountDetailNormalMapper.selectList(lineSupplierId,
                 gatewayIdList,price,nowDate,size,Math.max((current - 1) * size, 0));
         return PageResultReturn.setPageResult(converToShowVOList(detailDbDtoList), current, size, totalCount);
@@ -220,17 +209,42 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue());
     }
 
+    @Override
+    public Result deleteLineAccount(Long groupId) {
+        lineSmsAccountDataNormalService.deleteLineAccount(groupId);
+        return new Result<String>().setCode(ResultCode.SUCCESS.getValue());
+    }
+
 
     /**
      * //detailDbDtoList -> showDtoList
      * @param detailDbDtoList
+     *
+     * LineAccountDetailVO
+     *    private String groupId;
+     *    private String lineSupplier;
+     *    private String linesInfo;
+     *    private BigDecimal price;
+     *    private Date effectStartDate;
+     *    private Date effectEndDate;
+     *    private Integer enabled;
+     *    private Date createTime;
+     *    private Date updateTime;
+     *    private Integer isDelete;
      * @return
      */
     private List<LineAccountDetailVO> converToShowVOList(List<LineAccountDetailDTO> detailDbDtoList) {
         List<LineAccountDetailVO> detailShowDTOList = new ArrayList<>();
         detailDbDtoList.forEach(dto -> {
             LineAccountDetailVO showDTOItem = new LineAccountDetailVO();
-            BeanUtils.copyProperties(dto, showDTOItem);
+            showDTOItem.setGroupId(String.valueOf(dto.getGroupId()));
+            showDTOItem.setPrice(dto.getPrice());
+            showDTOItem.setEffectStartDate(dto.getEffectStartDate());
+            showDTOItem.setEffectEndDate(dto.getEffectEndDate());
+            showDTOItem.setEnabled(dto.getEnabled());
+            showDTOItem.setCreateTime(dto.getCreateTime());
+            showDTOItem.setUpdateTime(dto.getUpdateTime());
+            showDTOItem.setIsDelete(dto.getIsDelete());
             LineSupplierInfoNormal lineSupplierItem = lineSupplierInfoNormalMapper.selectByPrimaryKey(dto.getLineSupplierId());
             showDTOItem.setLineSupplier(lineSupplierItem.getLineSupplier());
 
