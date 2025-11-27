@@ -120,7 +120,7 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
             tcyrCpaCollectTaskMapper.updateByPrimaryKey(tcyrCpaCollectTask);
 
         } catch (Exception e) {
-            log.error("处理成功数据时发生异常", e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(), e.getMessage(), TITLE), e);
             tcyrCpaCollectTask.setStatus(TcCpaSyncDealStatusEnum.DEAL_FAIL.getValue());
             tcyrCpaCollectTaskMapper.updateByPrimaryKey(tcyrCpaCollectTask);
         } finally {
@@ -150,7 +150,7 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
                 currentStartId = currentEndId + 1;
             }
         } catch (Exception e) {
-            log.warn("处理成功数据ID范围[{}-{}]时发生异常: {}", startId, endId, e.getMessage(), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(), e.getMessage(), TITLE), e);
             throw new RuntimeException(e);
         }
     }
@@ -214,7 +214,7 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
             tcyrCpaCollectTaskMapper.updateByPrimaryKey(tcyrCpaCollectTask);
 
         } catch (Exception e) {
-            log.error("处理失败数据时发生异常", e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(), e.getMessage(), TITLE), e);
             tcyrCpaCollectTask.setStatus(TcCpaSyncDealStatusEnum.DEAL_FAIL.getValue());
             tcyrCpaCollectTaskMapper.updateByPrimaryKey(tcyrCpaCollectTask);
         } finally {
@@ -241,7 +241,7 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
                 currentStartId = currentEndId + 1;
             }
         } catch (Exception e) {
-            log.warn("处理ID范围[{}-{}]时发生异常: {}", startId, endId, e.getMessage(), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(), e.getMessage(), TITLE), e);
             throw new RuntimeException(e);
         }
     }
