@@ -139,6 +139,8 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
         for (BQifuUploadDataOriginal qiFuUploadDataOriginal : qifuUploadDataOriginalList) {
             qiFuUploadDataOriginal.setCreateTime(new Date());
             qiFuUploadDataOriginal.setUpdateTime(new Date());
+            qiFuUploadDataOriginal.setStatus(0);
+            qiFuUploadDataOriginal.setSelectStatus(2);
             qiFuUploadDataOriginal.setIsReal(1);
             qiFuUploadDataOriginalMapper.insertSelective(qiFuUploadDataOriginal);
         }
