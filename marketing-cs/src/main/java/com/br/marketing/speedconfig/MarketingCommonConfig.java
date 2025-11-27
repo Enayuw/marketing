@@ -3553,7 +3553,7 @@ public class MarketingCommonConfig {
      * 众邦AI推送明细线程数
      */
     private Integer zhongBangAIPushFileDetailNum = 5;
-    /**     
+    /**
      * * 泰康请求参数
      */
     private Map<String,String> taikangConfig;
