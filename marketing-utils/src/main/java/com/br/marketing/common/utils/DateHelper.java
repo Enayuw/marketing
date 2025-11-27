@@ -592,14 +592,19 @@ public class DateHelper {
     }
 
     public static String timestampToDateTime(Long timestamp) {
-        if(Objects.isNull(timestamp)){
-            return null;
+        try {
+            if (Objects.isNull(timestamp)) {
+                return null;
+            }
+            // 10位转13位
+            if (timestamp < 9999999999L) {
+                timestamp = timestamp * 1000;
+            }
+            return DateFormatUtils.format(timestamp, "yyyy-MM-dd HH:mm:ss");
+        } catch (Exception e) {
+            log.error("时间戳转化为日期错误，timestamp={}", timestamp);
+            return String.valueOf(timestamp);
         }
-        // 10位转13位
-        if (timestamp < 9999999999L) {
-            timestamp = timestamp * 1000;
-        }
-        return DateFormatUtils.format(timestamp, "yyyy-MM-dd HH:mm:ss");
     }
 
 
