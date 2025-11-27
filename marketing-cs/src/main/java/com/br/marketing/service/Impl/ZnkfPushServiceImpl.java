@@ -712,7 +712,9 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             values.setLength(values.length() - 1);
         }
 
-        sql.append("INSERT INTO `").append(tableName).append("` (");
+        sql.append("INSERT INTO `");
+        sql.append(tableName);
+        sql.append("` (");
         sql.append(columns);
         sql.append(") VALUES (");
         sql.append(values);
@@ -734,11 +736,6 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             values.append(value).append(",");
         } else if (value instanceof JSONObject || value instanceof Map) {
             // JSON对象转为JSON字符串
-            String jsonStr = JSON.toJSONString(value);
-            jsonStr = jsonStr.replace("\\", "\\\\").replace("'", "\\'");
-            values.append("'").append(jsonStr).append("',");
-        } else if (value instanceof List) {
-            // List转为JSON字符串
             String jsonStr = JSON.toJSONString(value);
             jsonStr = jsonStr.replace("\\", "\\\\").replace("'", "\\'");
             values.append("'").append(jsonStr).append("',");
