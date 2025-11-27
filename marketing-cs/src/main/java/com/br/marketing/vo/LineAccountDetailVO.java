@@ -12,7 +12,7 @@ import java.util.Date;
 
 @Data
 public class LineAccountDetailVO {
-   private Long groupId;
+   private String groupId;
    private String lineSupplier;
    private String linesInfo;
    private BigDecimal price;

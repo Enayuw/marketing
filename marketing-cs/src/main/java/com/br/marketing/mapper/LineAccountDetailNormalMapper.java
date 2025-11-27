@@ -11,7 +11,11 @@ public interface LineAccountDetailNormalMapper extends  LineAccountDetailNormalM
 
     List<Long> selectLineIfExist(@Param("gatewayIds")List<Long> gatewayIds,@Param("groupId")  Long groupId);
 
-    Long selectTotalCount(@Param("nowDate") Date nowDate);
+    Long selectTotalCount(
+            @Param("lineSupplierId") Long lineSupplierId,
+            @Param("gatewayIdList") List<Long> gatewayIdList,
+            @Param("price") Double price,
+            @Param("nowDate") Date nowDate);
 
     List<LineAccountDetailDTO> selectList(
             @Param("lineSupplierId") Long lineSupplierId,
@@ -23,6 +27,7 @@ public interface LineAccountDetailNormalMapper extends  LineAccountDetailNormalM
     );
 
     List<LineAccountDetailDTO> selectListByGroupId(@Param("groupId") Long groupId);
+
 
     Long selectCount(@Param("lineSupplierId") Long lineSupplierId,@Param("gatewayId") Long gatewayId);
 }
