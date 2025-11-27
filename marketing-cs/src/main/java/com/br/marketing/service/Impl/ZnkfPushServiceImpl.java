@@ -7,12 +7,14 @@ import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.constants.rocketmq.MarketingCallRecordConstants;
 import com.br.marketing.common.constants.rocketmq.MarketingTransferConstants;
 import com.br.marketing.common.constants.rocketmq.MarketingXieChengConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.DateHelper;
-import com.br.marketing.common.utils.SnowflakeIdGenerator;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.dto.customer.CallRecordBO;
@@ -22,11 +24,26 @@ import com.br.marketing.dto.shuhe.factory.UserTypeStrategyFactory;
 import com.br.marketing.dto.shuhe.strategy.BaseUserType;
 import com.br.marketing.dto.shuhe.strategy.CuFuJie;
 import com.br.marketing.dto.xiecheng.XieChengReportMessageDTO;
-import com.br.marketing.entity.*;
+import com.br.marketing.entity.CallRecord;
+import com.br.marketing.entity.CallRecordLLMResultV2;
+import com.br.marketing.entity.CaseShuheUser;
+import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.entity.MarketingTransferSyncUserExample;
+import com.br.marketing.entity.RoboAIBlackPhoneMark;
+import com.br.marketing.entity.RoboAIBlackPhoneMarkExample;
+import com.br.marketing.entity.SmsCallback;
+import com.br.marketing.entity.SmsCallbackAtOnce;
+import com.br.marketing.entity.SmsCallbackAtOnceExample;
+import com.br.marketing.entity.SmsCallbackExample;
 import com.br.marketing.enums.XcReportTypeEnum;
 import com.br.marketing.enums.XieChengConsumer;
 import com.br.marketing.handle.SnowflakeRedisGeneratorHandle;
-import com.br.marketing.mapper.*;
+import com.br.marketing.mapper.CallRecordLLMResultV2Mapper;
+import com.br.marketing.mapper.CallRecordMapper;
+import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
+import com.br.marketing.mapper.RoboAIBlackPhoneMarkMapperBase;
+import com.br.marketing.mapper.SmsCallbackAtOnceMapper;
+import com.br.marketing.mapper.SmsCallbackMapper;
 import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.MrpMqFact;
@@ -34,25 +51,33 @@ import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.ZnkfPushService;
+import com.br.marketing.service.strategy.callrecording.CallRecordingInsertStrategy;
+import com.br.marketing.service.strategy.callrecording.CallRecordingInsertStrategyFactory;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DuplicateKeyException;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.ObjectUtils;
-
-import javax.annotation.Resource;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import javax.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
 @Service
 @Slf4j
@@ -101,17 +126,11 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
     private SnowflakeRedisGeneratorHandle snowflakeRedisGeneratorHandle;;
 
     @Autowired
-    private MarketingCallRecordVersionMapper marketingCallRecordVersionMapper;
+    private CallRecordingInsertStrategyFactory callRecordingInsertStrategyFactory;
 
     @Autowired
-    private CallRecordingMapper callRecordingMapper;
+    private CallRecordLLMResultV2Mapper callRecordLLMResultV2Mapper;
 
-    @Value("${otherConfig.alarm.secretKey:00}")
-    private String secretKey;
-    @Value("${otherConfig.alarm.appName:00}")
-    private String appName;
-
-    private final String title = "客服->推送电销";
 
     @Override
     public String znkfPushCallBack(CallRecordDTO dto) {
@@ -551,74 +570,46 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
     }
 
     @Override
-    public ApiResult callbackDataInsert(String jsonData) {
+    @Transactional(rollbackFor = Exception.class)
+    public String callbackDataInsert(String jsonData) {
         try {
-            if (StringUtils.isEmpty(jsonData)) {
-                log.warn("回调数据为空");
-                return new ApiResult().fail("回调数据为空");
-            }
-
             // 解析JSON获取vision版本字段
             JSONObject jsonObject = JSONObject.parseObject(jsonData);
             String version = jsonObject.getString("version");
             if (StringUtils.isEmpty(version)) {
                 log.warn("JSON数据中缺少version字段");
-                return new ApiResult().fail("JSON数据中缺少version字段");
+                return "lack version";
             }
 
             // 生成版本明细表名
             String tableName = "b_marketing_call_record_" + version;
 
-            // 判断表是否存在
-            boolean tableExists = false;
-            try {
-                List<Map<String, Object>> tableInfo = marketingCallRecordVersionMapper.checkTableExist(tableName);
-                if (tableInfo != null && !tableInfo.isEmpty()) {
-                    tableExists = true;
-                }
-            } catch (Exception e) {
-                log.error("表{}不存在，需要创建", tableName);
-                tableExists = false;
-            }
-
-            // 如果表不存在，解析数据结构生成CREATE语句并执行
-            if (!tableExists) {
-                String createSql = buildCreateTableSqlByJson(tableName, jsonObject);
-                marketingCallRecordVersionMapper.createTable(createSql);
-                log.warn("创建版本明细表成功：{}", tableName);
-            }
-
             // 解析数据结构，获取sessionId
             String sessionId = getSessionIdFromJson(jsonObject);
             if (StringUtils.isEmpty(sessionId)) {
                 log.error("JSON数据中缺少sessionId字段");
-                return new ApiResult().fail("JSON数据中缺少sessionId字段");
-            }
-
-            // 判断数据是否存在
-            Integer count = marketingCallRecordVersionMapper.countBySessionId(tableName, sessionId);
-            if (count != null && count > 0) {
-                log.warn("数据已存在，sessionId={}", sessionId);
-                return new ApiResult().success("数据已存在");
+                return "lack sessionId";
             }
 
             // 生成insert语句并执行插入
             String insertSql = buildInsertSqlByJson(tableName, jsonObject);
-            marketingCallRecordVersionMapper.insertData(insertSql);
-            log.warn("插入版本明细表成功，tableName={}, sessionId={}", tableName, sessionId);
+            Map<String, Object> resultMap = new HashMap<>();
+            callRecordLLMResultV2Mapper.insertData(insertSql, resultMap);
+            Long versionRecordId = resultMap.get("id") != null ? ((Number) resultMap.get("id")).longValue() : null;
+            log.warn("插入版本明细表成功，tableName={}, sessionId={}, versionRecordId={}", tableName, sessionId, versionRecordId);
 
             // 判断version版本是不是 LLMResultV2
             if ("LLMResultV2".equals(version)) {
-                // 构建插入到b_marketing_call_recording表的SQL（插入所有字段）
-                String recordingInsertSql = buildRecordingInsertSql(jsonObject, sessionId);
-                callRecordingMapper.insertAllFields(recordingInsertSql);
-                log.warn("插入记录表成功，sessionId={}", sessionId);
+                // 异步发送mq消息去入库，只发送数据id
+                rocketMqSwitch.syncSend(MarketingCallRecordConstants.TOPIC,
+                        MarketingCallRecordConstants.TAG_MARKETING_CALL_RECORD_VERSION_INSERT, versionRecordId);
+                log.warn("发送MQ消息成功，tableName={}, dataId={}", tableName, versionRecordId);
             }
-
-            return new ApiResult().success("处理成功");
+            return "success";
         } catch (Exception ex) {
             log.error("回调数据入库失败，错误信息：{}", ex.getMessage(), ex);
-            return new ApiResult().fail("回调数据入库失败：" + ex.getMessage());
+            // 重新抛出异常，确保事务回滚所有DML操作
+            throw ex;
         }
     }
 
@@ -635,120 +626,6 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             }
         }
         return sessionId;
-    }
-
-    /**
-     * 根据JSON动态构建建表SQL（不能写死字段，只能解析接口入参去生成表结构）
-     */
-    private String buildCreateTableSqlByJson(String tableName, JSONObject jsonObject) {
-        StringBuilder sql = new StringBuilder();
-        sql.append("CREATE TABLE IF NOT EXISTS `").append(tableName).append("` (");
-        sql.append("`id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',");
-
-        // 用于记录已添加的列名，避免重复
-        Set<String> addedColumns = new HashSet<>();
-        addedColumns.add("id");
-
-        // 遍历JSON中的所有字段，动态生成表结构
-        for (String key : jsonObject.keySet()) {
-
-            Object value = jsonObject.get(key);
-            String columnName = camelToSnake(key);
-            
-            // 如果detail字段是JSONObject，需要展开其内部字段
-            if ("detail".equals(key) && value instanceof JSONObject) {
-                JSONObject detailObj = (JSONObject) value;
-                
-                // 先添加detail字段本身（json类型）
-                if (!addedColumns.contains(columnName)) {
-                    sql.append("`").append(columnName).append("` json DEFAULT NULL COMMENT '拨打明细详情',");
-                    addedColumns.add(columnName);
-                }
-                
-                // 遍历detail里的所有字段，作为独立列添加
-                for (String detailKey : detailObj.keySet()) {
-                    Object detailValue = detailObj.get(detailKey);
-                    String detailColumnName = camelToSnake(detailKey);
-                    
-                    // 避免与外层字段冲突，如果冲突则跳过（外层字段优先）
-                    if (!addedColumns.contains(detailColumnName)) {
-                        String columnDefinition = getColumnDefinition(detailKey, detailValue);
-                        sql.append("`").append(detailColumnName).append("` ").append(columnDefinition).append(",");
-                        addedColumns.add(detailColumnName);
-                    }
-                }
-            } else {
-                // 普通字段处理
-                if (!addedColumns.contains(columnName)) {
-                    String columnDefinition = getColumnDefinition(key, value);
-                    sql.append("`").append(columnName).append("` ").append(columnDefinition).append(",");
-                    addedColumns.add(columnName);
-                }
-            }
-        }
-        // 添加固定字段
-        if (!addedColumns.contains("create_time")) {
-            sql.append("`create_time` timestamp DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',");
-        }
-        if (!addedColumns.contains("update_time")) {
-            sql.append("`update_time` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',");
-        }
-        sql.append("PRIMARY KEY (`id`)");
-        sql.append(") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='通话回调记录表'");
-
-        return sql.toString();
-    }
-
-    /**
-     * 根据字段名和值推断数据库字段类型定义
-     */
-    private String getColumnDefinition(String fieldName, Object value) {
-        if (value == null) {
-            // 如果值为null，默认使用varchar(255)
-            return "varchar(255) DEFAULT NULL";
-        }
-
-        // 根据字段名特殊处理
-        if ("detail".equals(fieldName) || fieldName.toLowerCase().contains("detail")) {
-            return "json DEFAULT NULL COMMENT '拨打明细详情'";
-        }
-
-        // 根据值的类型推断
-        if (value instanceof String) {
-            String strValue = (String) value;
-            int length = strValue.length();
-            if (length > 1000) {
-                return "text DEFAULT NULL";
-            } else if (length > 255) {
-                return "varchar(1000) DEFAULT NULL";
-            } else {
-                return "varchar(255) DEFAULT NULL";
-            }
-        } else if (value instanceof Number) {
-            Number numValue = (Number) value;
-            // 判断是整数还是小数
-            if (numValue.doubleValue() == numValue.longValue()) {
-                // 整数
-                long longValue = numValue.longValue();
-                if (longValue > Integer.MAX_VALUE || longValue < Integer.MIN_VALUE) {
-                    return "bigint(20) DEFAULT NULL";
-                } else {
-                    return "int(11) DEFAULT NULL";
-                }
-            } else {
-                // 小数
-                return "decimal(18,2) DEFAULT NULL";
-            }
-        } else if (value instanceof Boolean) {
-            return "int(1) DEFAULT NULL";
-        } else if (value instanceof JSONObject || value instanceof Map) {
-            return "json DEFAULT NULL";
-        } else if (value instanceof List) {
-            return "text DEFAULT NULL";
-        } else {
-            // 默认使用text
-            return "text DEFAULT NULL";
-        }
     }
 
     /**
@@ -788,11 +665,11 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         for (String key : jsonObject.keySet()) {
 
             Object value = jsonObject.get(key);
-            
+
             // 如果detail字段是JSONObject，需要展开其内部字段
             if ("detail".equals(key) && value instanceof JSONObject) {
                 JSONObject detailObj = (JSONObject) value;
-                
+
                 // 先添加detail字段本身（json类型）
                 String columnName = camelToSnake(key);
                 if (!addedColumns.contains(columnName)) {
@@ -803,12 +680,12 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                     values.append("'").append(jsonStr).append("',");
                     addedColumns.add(columnName);
                 }
-                
+
                 // 遍历detail里的所有字段，作为独立列插入
                 for (String detailKey : detailObj.keySet()) {
                     Object detailValue = detailObj.get(detailKey);
                     String detailColumnName = camelToSnake(detailKey);
-                    
+
                     // 避免与外层字段冲突，如果冲突则跳过（外层字段优先）
                     if (!addedColumns.contains(detailColumnName) && detailValue != null) {
                         columns.append("`").append(detailColumnName).append("`,");
@@ -874,97 +751,47 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
     }
 
     /**
-     * 构建插入到b_marketing_call_recording表的SQL（插入所有字段）
+     * 从MQ消息中插入CallRecording记录（异步消费）
+     * @param message MQ消息体（CallRecordVersionInsertDTO的JSON字符串）
+     * @return 处理结果
      */
-    private String buildRecordingInsertSql(JSONObject jsonObject, String sessionId) {
-        StringBuilder sql = new StringBuilder();
-        StringBuilder columns = new StringBuilder();
-        StringBuilder values = new StringBuilder();
-
-        // 用于记录已添加的列名，避免重复
-        Set<String> addedColumns = new HashSet<>();
-
-        // 遍历JSON中的所有字段，生成INSERT语句
-        for (String key : jsonObject.keySet()) {
-
-            Object value = jsonObject.get(key);
-            
-            // 如果detail字段是JSONObject，需要展开其内部字段
-            if ("detail".equals(key) && value instanceof JSONObject) {
-                JSONObject detailObj = (JSONObject) value;
-                
-                // 先添加detail字段本身（json类型）
-                String columnName = camelToSnake(key);
-                if (!addedColumns.contains(columnName)) {
-                    columns.append("`").append(columnName).append("`,");
-                    // JSON对象转为JSON字符串
-                    String jsonStr = JSON.toJSONString(value);
-                    jsonStr = jsonStr.replace("\\", "\\\\").replace("'", "\\'");
-                    values.append("'").append(jsonStr).append("',");
-                    addedColumns.add(columnName);
-                }
-                
-                // 遍历detail里的所有字段，作为独立列插入
-                for (String detailKey : detailObj.keySet()) {
-                    Object detailValue = detailObj.get(detailKey);
-                    String detailColumnName = camelToSnake(detailKey);
-                    
-                    // 避免与外层字段冲突，如果冲突则跳过（外层字段优先）
-                    if (!addedColumns.contains(detailColumnName) && detailValue != null) {
-                        columns.append("`").append(detailColumnName).append("`,");
-                        appendValue(values, detailValue);
-                        addedColumns.add(detailColumnName);
-                    }
-                }
-            } else if (value != null) {
-                // 普通字段处理
-                String columnName = camelToSnake(key);
-                if (!addedColumns.contains(columnName)) {
-                    columns.append("`").append(columnName).append("`,");
-                    appendValue(values, value);
-                    addedColumns.add(columnName);
-                }
+    @Override
+    public Result<Boolean> insertCallRecordingFromMq(Long message) {
+        Result<Boolean> result = new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(false);
+        try {
+            // 解析MQ消息
+            if (message == null) {
+                log.error("MQ消息解析失败或参数不完整，message={}", message);
+                result.setCode(ResultCode.FAIL.getValue()).setMessage("MQ消息解析失败或参数不完整");
+                return result;
             }
-        }
 
-        // 确保sessionId字段存在（如果JSON中没有，使用传入的参数）
-        String sessionIdColumn = "session_id";
-        if (!addedColumns.contains(sessionIdColumn) && StringUtils.isNotEmpty(sessionId)) {
-            columns.append("`").append(sessionIdColumn).append("`,");
-            String escapedSessionId = sessionId.replace("\\", "\\\\").replace("'", "\\'");
-            values.append("'").append(escapedSessionId).append("',");
-            addedColumns.add(sessionIdColumn);
-        }
+            // 根据表名和数据id查询版本明细表数据
+            CallRecordLLMResultV2 callRecordLLMResultV2 = callRecordLLMResultV2Mapper.selectByPrimaryKey(message);
+            if (callRecordLLMResultV2 == null) {
+                log.error("查询版本明细表数据失败，id={}", message);
+                result.setCode(ResultCode.FAIL.getValue()).setMessage("查询版本明细表数据失败");
+                return result;
+            }
 
-        // 添加status字段（默认0）
-        if (!addedColumns.contains("status")) {
-            columns.append("`status`,");
-            values.append("0,");
-        }
+            String apiCode = callRecordLLMResultV2.getApiCode();
 
-        // receive_date（当日）
-        if (!addedColumns.contains("receive_date")) {
-            columns.append("`receive_date`,");
-            String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            values.append("'").append(currentDate).append("',");
-        }
+            // 根据apiCode获取对应的策略
+            CallRecordingInsertStrategy strategy = callRecordingInsertStrategyFactory.getStrategy(apiCode);
+            if (strategy == null) {
+                return result;
+            }
+            //todo 实现
+            if (strategy.isProcessingRequired(callRecordLLMResultV2)) {
+                strategy.process(callRecordLLMResultV2);
+            }
 
-        // 移除最后的逗号
-        if (columns.length() > 0 && columns.charAt(columns.length() - 1) == ',') {
-            columns.setLength(columns.length() - 1);
+            return result;
+        } catch (Exception e) {
+            log.error("MQ消费插入CallRecording记录失败，错误信息：{}", e.getMessage(), e);
+            result.setCode(ResultCode.FAIL.getValue()).setMessage("MQ消费插入CallRecording记录失败：" + e.getMessage());
+            return result;
         }
-        if (values.length() > 0 && values.charAt(values.length() - 1) == ',') {
-            values.setLength(values.length() - 1);
-        }
-
-        sql.append("INSERT INTO `b_marketing_call_recording` (");
-        sql.append(columns);
-        sql.append(") VALUES (");
-        sql.append(values);
-        sql.append(")");
-
-        return sql.toString();
     }
-
 
 }

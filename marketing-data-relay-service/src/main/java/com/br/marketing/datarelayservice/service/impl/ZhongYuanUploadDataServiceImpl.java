@@ -6,12 +6,9 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.datarelayservice.enums.ZhongYuanResponseCodeEnum;
 import com.br.marketing.datarelayservice.service.ZhongYuanUploadDataService;
 import com.br.marketing.dto.zhongyuan.*;
-import com.br.marketing.entity.CallRecording;
-import com.br.marketing.entity.CallRecordingExample;
-import com.br.marketing.entity.MarketingCustomerOriginalData;
-import com.br.marketing.entity.ZhongYuanTransfer;
-import com.br.marketing.entity.ZhongYuanUpload;
+import com.br.marketing.entity.*;
 import com.br.marketing.enums.clean.DataProcessEnum;
+import com.br.marketing.mapper.CallRecordLLMResultV2Mapper;
 import com.br.marketing.mapper.CallRecordingMapper;
 import com.br.marketing.mapper.ZhongYuanTransferMapper;
 import com.br.marketing.mapper.ZhongYuanUploadMapper;
@@ -49,7 +46,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
-    private CallRecordingMapper callRecordingMapper;
+    private CallRecordLLMResultV2Mapper callRecordLLMResultV2Mapper;
     private static final String TOKEN_PREFIX = "zyxj:token:";
     private static final long TOKEN_EXPIRE_TIME = 7200; // 2小时
 
@@ -279,8 +276,8 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
                 dataItem.put("custNum", taskData.getTaskNo());
             }
             
-            // 3. operateType: 固定值"6"
-            dataItem.put("operateType", "6");
+            // 3. operateType: 固定值"5"
+            dataItem.put("operateType", "5");
             
             // 4. 构建reserveField1
             Map<String, Object> reserveFieldResult = buildReserveField1(taskData, batchData, baseRequest);
@@ -662,16 +659,22 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             }
 
             // 5. 查询通话明细记录
-            CallRecordingExample example = new CallRecordingExample();
-            CallRecordingExample.Criteria criteria = example.createCriteria();
-            criteria.andCustNumIn(taskUidList);
-            List<CallRecording> callRecordingList = callRecordingMapper.selectByExample(example);
+            CallRecordLLMResultV2Example example = new CallRecordLLMResultV2Example();
+            example.createCriteria().andApiCodeEqualTo(apiCode).andCustNumIn(taskUidList)
+                    .andReceiveDateEqualTo(LocalDate.now().toString());
+            // 按createTime降序排序，确保获取最新的一条
+            example.setOrderByClause("create_time DESC");
+            List<CallRecordLLMResultV2> callRecordLLMResultV2s = callRecordLLMResultV2Mapper.selectByExample(example);
 
             // 6. 构建custNum到CallRecording的映射,taskUid=taskNo=上传custNum
-            Map<String, CallRecording> taskUidToRecordingMap = new HashMap<>();
-            for (CallRecording recording : callRecordingList) {
+            // 由于已按createTime降序排序，同一custNum的第一条记录就是最新的
+            Map<String, CallRecordLLMResultV2> taskUidToRecordingMap = new HashMap<>();
+            for (CallRecordLLMResultV2 recording : callRecordLLMResultV2s) {
                 if (recording.getCustNum() != null) {
-                    taskUidToRecordingMap.put(recording.getCustNum(), recording);
+                    // 如果已存在该custNum的记录，跳过（因为已排序，第一条就是最新的）
+                    if (!taskUidToRecordingMap.containsKey(recording.getCustNum())) {
+                        taskUidToRecordingMap.put(recording.getCustNum(), recording);
+                    }
                 }
             }
 
@@ -681,25 +684,16 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             int failCount = 0;
 
             for (String taskUid : taskUidList) {
-                try {
-                    CallRecording recording = taskUidToRecordingMap.get(taskUid);
+                CallRecordLLMResultV2 recording = taskUidToRecordingMap.get(taskUid);
 
-                    // 7.1 当callStatus>=12或无通话明细，返回操作成功
-                    if (recording == null || recording.getCallStatus() == null || recording.getCallStatus() >= 12) {
-                        successCount++;
-                    } else {
-                        // 7.2 当callStatus<12，返回已拨号完毕无法剔除
-                        TaskStatusResponse.FailInfo failInfo = new TaskStatusResponse.FailInfo();
-                        failInfo.setTaskUid(taskUid);
-                        failInfo.setMessage("已拨号完毕无法剔除");
-                        failList.add(failInfo);
-                        failCount++;
-                    }
-                } catch (NumberFormatException e) {
-                    // taskUid格式错误，加入失败列表
+                // 7.1 当callStatus>=12或无通话明细，返回操作成功
+                if (recording == null || recording.getCallStatus() == null || recording.getCallStatus() >= 12) {
+                    successCount++;
+                } else {
+                    // 7.2 当callStatus<12，返回已拨号完毕无法剔除
                     TaskStatusResponse.FailInfo failInfo = new TaskStatusResponse.FailInfo();
                     failInfo.setTaskUid(taskUid);
-                    failInfo.setMessage("任务UID格式错误");
+                    failInfo.setMessage("已拨号完毕无法剔除");
                     failList.add(failInfo);
                     failCount++;
                 }
@@ -711,15 +705,16 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
 
             // 9. 根据成功和失败情况返回不同的响应码
             ZhongYuanResponseCodeEnum responseCodeEnum;
-            if (failCount == 0) {
+            int size = taskUidList.size();
+            if (size == successCount) {
                 // 全部成功
                 responseCodeEnum = ZhongYuanResponseCodeEnum.SUCCESS;
-            } else if (successCount > 0) {
-                // 部分成功
-                responseCodeEnum = ZhongYuanResponseCodeEnum.PARTIAL_SUCCESS;
-            } else {
+            } else if (size == failCount) {
                 // 全部失败
                 responseCodeEnum = ZhongYuanResponseCodeEnum.ALL_FAILED;
+            } else {
+                // 部分成功
+                responseCodeEnum = ZhongYuanResponseCodeEnum.PARTIAL_SUCCESS;
             }
 
             ZhongYuanBaseResponse<TaskStatusResponse> response = new ZhongYuanBaseResponse<>();
@@ -737,5 +732,4 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.SYSTEM_ERROR.getCode(), ZhongYuanResponseCodeEnum.SYSTEM_ERROR.getMessage() + "：" + e.getMessage());
         }
     }
-
 }
