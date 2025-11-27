@@ -267,6 +267,7 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
 
                 finalStrategyCode = strategyCode;
                 finalStrategyName = strategyName;
+
             } else {
                 // 非实时推送逻辑
                 batch = firstRecord.getReceiveDate().replaceAll("-", "")
@@ -346,6 +347,9 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
                 detailJson.put("surname", record.getSurname());
                 detailJson.put("gender", record.getGender());
                 detailJson.put("operateType", operateType);
+                if (!record.getEventType().isEmpty()){
+                    detailJson.put("eventType", record.getEventType());
+                }
 
                 MarketingPreUserDetailDTO marketingPreUserDetailDTO = buildListDto(detailJson, reserField1, warnMsg, extendJsonObject);
                 list.add(marketingPreUserDetailDTO);
