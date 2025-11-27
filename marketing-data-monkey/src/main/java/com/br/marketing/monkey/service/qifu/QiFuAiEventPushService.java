@@ -1,4 +1,4 @@
-package com.br.marketing.check.service.qifu;
+package com.br.marketing.monkey.service.qifu;
 
 import com.br.marketing.entity.BQifuUploadDataOriginal;
 import com.br.marketing.entity.DrsCustomizeUploadData;
