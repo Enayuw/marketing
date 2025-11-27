@@ -208,6 +208,8 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
         Result<MarketingPreUserDTO> res = new Result<>();
         StringBuilder warnMsg = new StringBuilder();
 
+        JSONObject qifuAiCleanConfig = marketingCommonConfig.getQifuAiCleanConfig();
+
         if (CollectionUtils.isEmpty(dataList)) {
             return res.setCode(ResultCode.FAIL.getValue()).setMessage("数据列表为空");
         }
@@ -252,8 +254,8 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
                 String currentDate = today.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
                 batch = currentDate + "_" + firstRecord.getApiCode() + "_实时推送";
-                strategyCode = "CASTR0322614";
-                strategyName = "CASTR0322614";
+                strategyCode = qifuAiCleanConfig.getString("strategyCode");
+                strategyName = qifuAiCleanConfig.getString("strategyName");
 
                 // 处理templateNo，提取userType
                 String templateStr = firstRecord.getTemplateNo();
@@ -265,6 +267,7 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
 
                 finalStrategyCode = strategyCode;
                 finalStrategyName = strategyName;
+
             } else {
                 // 非实时推送逻辑
                 batch = firstRecord.getReceiveDate().replaceAll("-", "")
@@ -344,6 +347,9 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
                 detailJson.put("surname", record.getSurname());
                 detailJson.put("gender", record.getGender());
                 detailJson.put("operateType", operateType);
+                if (!record.getEventType().isEmpty()){
+                    detailJson.put("eventType", record.getEventType());
+                }
 
                 MarketingPreUserDetailDTO marketingPreUserDetailDTO = buildListDto(detailJson, reserField1, warnMsg, extendJsonObject);
                 list.add(marketingPreUserDetailDTO);
