@@ -130,7 +130,8 @@ public class TcCpaCollidingFailDealServiceImpl implements TcCpaCollidingFailDeal
             updateFile.setCollidingDataDealStatus(TcCpaCollidingDealStatusEnum.DEAL_SUCCESS.getValue());
             TcyrCpaCollectTask tcyrCpaCollectTask = TcyrCpaCollectTask.builder().batchNo(tcyrCpaFailFile.getBatchNo())
                     .status(TcCpaSyncDealStatusEnum.DEAL_NO.getValue()).sourceId(tcyrCpaFailFile.getId())
-                    .sourceType(TcCpaCollidingSourceTypeEnum.FAIL.getValue()).build();
+                    .extend(tcyrCpaFailFile.getExtend()).sourceType(TcCpaCollidingSourceTypeEnum.FAIL.getValue())
+                    .apiCode(marketingCommonConfig.getTcyrCpaApiCode()).build();
             tcyrCpaCollectTaskMapper.insert(tcyrCpaCollectTask);
             tcyrCpaFailFileMapper.updateByPrimaryKeySelective(updateFile);
         } catch (Exception e) {

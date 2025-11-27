@@ -28,4 +28,17 @@
     where clean_status = 2 and is_del = 1
   </select>
 
+  <select id="selectByCondition" resultType="com.br.marketing.entity.TcyrCpaCollidingDataPackage">
+    select <include refid="Base_Column_List"/>
+    from b_tcyr_cpa_colliding_data_package
+    where is_del = 1
+    <if test="packageName != null and packageName != ''">
+      and package_name like concat('%',#{packageName},'%')
+    </if>
+    <if test="enabled != null">
+      and enabled = #{enabled}
+    </if>
+    order by update_time desc
+  </select>
+
 </mapper>
