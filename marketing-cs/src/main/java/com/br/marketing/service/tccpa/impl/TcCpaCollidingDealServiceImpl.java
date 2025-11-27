@@ -157,6 +157,7 @@ public class TcCpaCollidingDealServiceImpl implements TcCpaCollidingDealService 
             TcyrCpaCollectTask tcyrCpaCollectTask = TcyrCpaCollectTask.builder().batchNo(tcyrCpaSuccessFile.getBatchNo())
                     .status(TcCpaSyncDealStatusEnum.DEAL_NO.getValue()).sourceId(tcyrCpaSuccessFile.getId()).isDel(1)
                     .extend(tcyrCpaSuccessFile.getExtend()).sourceType(TcCpaCollidingSourceTypeEnum.SUCCESS.getValue())
+                    .createTime(new Date()).updateTime(new Date())
                     .apiCode(marketingCommonConfig.getTcyrCpaApiCode()).build();
             tcyrCpaCollectTaskMapper.insert(tcyrCpaCollectTask);
         } catch (IOException e) {
