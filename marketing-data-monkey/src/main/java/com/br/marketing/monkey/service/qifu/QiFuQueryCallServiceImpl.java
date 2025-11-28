@@ -344,13 +344,14 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
                 record.setSelectStatus(QiFuSelectStatusEnum.RETRY_INTERFACE_ERROR.getCode());
             } else {
                 // 该记录所在批次成功，查找对应的返回数据
-                List<CallRealTimeDTO> matchedDetails = allDetailList.stream()
+                CallRealTimeDTO callRealTimeDTO = allDetailList.stream()
                         .filter(detail -> serialNo.equals(detail.getSerialNo()))
-                        .collect(Collectors.toList());
+                        .findFirst()
+                        .orElse(null);
 
-                if (!matchedDetails.isEmpty()) {
+                if (callRealTimeDTO != null) {
                     // 将返回信息存在extend里
-                    record.setExtend(JSON.toJSONString(matchedDetails));
+                    record.setExtend(JSON.toJSONString(callRealTimeDTO));
                     record.setStatus(QiFuProcessStatusEnum.UNPROCESSED.getCode());
                     record.setSelectStatus(QiFuSelectStatusEnum.QUERY_SUCCESS.getCode());
                 } else {
