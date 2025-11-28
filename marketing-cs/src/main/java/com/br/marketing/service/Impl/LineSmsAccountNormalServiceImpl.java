@@ -14,6 +14,7 @@ import com.br.marketing.dto.LineBaseShowInfoDto;
 import com.br.marketing.dto.account.LineAccountDto;
 import com.br.marketing.dto.account.LineCallerDto;
 import com.br.marketing.dto.account.PriceDateDTO;
+import com.br.marketing.dto.account.SmsAccountDto;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.LineSmsAccountDataNormalService;
@@ -213,6 +214,11 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
     public Result deleteLineAccount(Long groupId) {
         lineSmsAccountDataNormalService.deleteLineAccount(groupId);
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    @Override
+    public Result addSmsAccount(SmsAccountDto smsAccountDto) {
+        return null;
     }
 
 
