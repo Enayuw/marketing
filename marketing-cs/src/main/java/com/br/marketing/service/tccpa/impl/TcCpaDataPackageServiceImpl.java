@@ -94,7 +94,7 @@ public class TcCpaDataPackageServiceImpl implements TcCpaDataPackageService {
             }
             return vo;
         }).collect(Collectors.toList());
-        PageInfo<TcyrCpaCollidingDataPackageVO> marketingCustomerPageInfo = new PageInfo<>(packageVOS);
+        PageInfo<TcyrCpaCollidingDataPackage> marketingCustomerPageInfo = new PageInfo<>(packages);
         return PageResultReturn.setPageResult(packageVOS, page, pageSize, marketingCustomerPageInfo.getTotal());
     }
 
