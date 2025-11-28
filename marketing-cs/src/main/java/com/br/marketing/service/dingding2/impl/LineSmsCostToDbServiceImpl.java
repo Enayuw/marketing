@@ -4,8 +4,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.MiddleHeavenAviatorScriptApiClient;
-import com.br.marketing.client.ibmpapi.IbmpApiServiceClient;
-import com.br.marketing.client.ibmpapi.outpu.TransferIbmpOutboundVO;
 import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
 import com.br.marketing.client.robotaiapi.input.TransferJsonDataDTO;
 import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
@@ -35,7 +33,6 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
@@ -66,9 +63,6 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
     private RobotaiApiServiceClient robotaiApiServiceClient;
 
     @Resource
-    private IbmpApiServiceClient ibmpApiServiceClient;
-
-    @Resource
     private MiddleHeavenAviatorScriptApiClient aviatorScriptApiClient;
 
     @Resource
@@ -79,10 +73,6 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
 
     @Resource
     private MarketingSmsAccountDetailMapper smsAccountDetailMapper;
-
-
-    @Resource
-    private MarketingLineAccountDetailMapper lineAccountDetailMapper;
 
 
     @Resource
@@ -97,6 +87,12 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
     @Resource
     private LineAccountDetailNormalMapper lineAccountDetailNormalMapper;
 
+
+    @Resource
+    private SmsBaseInfoNormalMapper smsBaseInfoNormalMapper;
+
+    @Resource
+    private SmsAccountDetailNormalMapper smsAccountDetailNormalMapper;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -127,8 +123,9 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
         //1、报警信息统计
         DdLinsSmsCostAlarmDto smsCostAlarmDto = new DdLinsSmsCostAlarmDto();
         smsCostAlarmDto.setCardTitle(marketingCommonConfig.getLinsSmsCostToDbConfig().getString("smsCardTitle"));
-        //2、获取基础信息
-        List<DdSmsBaseInfoDto>  smsBaseInfoList = getSmsBaseInfo();
+        //2、获取基础信息 TODO 比较下 smsBaseInfoList0 和 smsBaseInfoList是否相同
+        List<DdSmsBaseInfoDto>  smsBaseInfoList0 = getSmsBaseInfo();
+        List<DdSmsBaseInfoDto>  smsBaseInfoList = getSmsBaseInfoByDb();
         //3、查询原始数据
         Long searchId = 0L;
         while(true) {
@@ -260,59 +257,19 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
     }
 
 
-    /**
-     * 获取线路配置基础信息
-     * baseInfo 对象数组
-     * [
-     *     {
-     *         "lineSupplier": "西南证券自备线",
-     *         "channelDTOList": [
-     *             {
-     *                 "caller": "9527281",
-     *                 "lineSupplier": "西南证券自备线",
-     *                 "projectName": "西南证券自备线",
-     *                 "outboundNumber": "9527281-自备",
-     *                 "callerFullName": "西南证券自备线-9527281",
-     *                 "gatewayId": 125017102
-     *             }
-     *         ]
-     *     }
-     * ]
-     *    private Long gatewayId;
-     *    private String caller;
-     *    private String outboundNumber;
-     *    private String lineSupplier;
-     *    private String projectName;
-     *
-     * @return
-     */
-    private List<DdLineBaseInfoDto> getLineBaseInfo() {
-        List<DdLineBaseInfoDto> ddLineBaseInfoDtoList = new ArrayList<>();
-        JSONArray baseInfo = new JSONArray();
-        TransferIbmpOutboundVO transferIbmpOutboundVO = ibmpApiServiceClient.getLineBaseInfo();
-        log.warn("TITLE:{},getLineBaseInfo:{}",TITLE,JSONObject.toJSONString(transferIbmpOutboundVO));
-        if ("000000".equals(transferIbmpOutboundVO.getCode())) {
-            baseInfo =  JSONArray.parseArray(transferIbmpOutboundVO.getData().toString());;
-        }
-        for (Object obj: baseInfo) {
-            JSONObject jsonObject = (JSONObject) obj;
-            String lineSupplier = jsonObject.getString("lineSupplier");
-            if (jsonObject.containsKey("channelDTOList")) {
-                JSONArray channelList = jsonObject.getJSONArray("channelDTOList");
-                for (Object channelObj : channelList) {
-                    JSONObject channel = (JSONObject) channelObj;
-                    DdLineBaseInfoDto dto = new DdLineBaseInfoDto();
-                    dto.setGatewayId(channel.getLong("gatewayId"));
-                    dto.setCaller(channel.getString("caller"));
-                    dto.setOutboundNumber(channel.getString("outboundNumber"));
-                    dto.setLineSupplier(lineSupplier);
-                    dto.setProjectName(channel.getString("projectName"));
-                    ddLineBaseInfoDtoList.add(dto);
-                }
-            }
-        }
+    private List<DdSmsBaseInfoDto> getSmsBaseInfoByDb() {
+        List<DdSmsBaseInfoDto>  smsBaseInfoList = new ArrayList<>();
 
-        return ddLineBaseInfoDtoList;
+        List<SmsBaseFullInfoDTO> lineBaseFullInfoDtoList = smsBaseInfoNormalMapper.selectSmsBaeUseInfoList();
+        lineBaseFullInfoDtoList.forEach(smsBaseFullInfoDTO -> {
+            DdSmsBaseInfoDto dto = new DdSmsBaseInfoDto();
+            dto.setVendorId(smsBaseFullInfoDTO.getVendorId());
+            dto.setVendorName(smsBaseFullInfoDTO.getVendorName());
+            dto.setChannelId(smsBaseFullInfoDTO.getChannelId());
+            dto.setChannelName(smsBaseFullInfoDTO.getChannelName());
+            smsBaseInfoList.add(dto);
+        });
+        return smsBaseInfoList;
     }
 
     /**
@@ -373,12 +330,12 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                 }
                 filterList.forEach(smsDto -> {
                     // 4.判断数据库配置 是否存在(存在跳过，不存在插入)
-                    Long count = smsAccountDetailMapper.selectCount(smsDto.getVendorId(),smsDto.getChannelId());
+                    Long count = smsAccountDetailNormalMapper.selectCount(smsDto.getVendorId(),smsDto.getChannelId());
                     if (count == 0) {
                         fillThreadLocalUserInfo(0,smsCost.getLastModifiedUserName(),smsCost.getLastModifiedUserId());
                         SmsAccountDto smsAccountDto = fillSmsAccountInfo(smsCost,smsDto);
                         try {
-                            Result result = lineSmsAccountService.addSmsAccount(smsAccountDto);
+                            Result result = lineSmsAccountNormalService.addSmsAccount(smsAccountDto);
                             if (result.isSuccess()) {
                                 smsCostAlarmDto.setSuccessCost(smsCostAlarmDto.getSuccessCost() + 1);
                             }else {
