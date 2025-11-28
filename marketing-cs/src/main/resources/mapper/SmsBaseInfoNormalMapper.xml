@@ -2,4 +2,33 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.SmsBaseInfoNormalMapper" >
 
+    <select id="selectSmsBaeUseInfoList" resultType="com.br.marketing.dto.SmsBaseFullInfoDTO">
+        SELECT
+            bb.id,bb.channel_id,bb.vendor_id,bb.channel_name,ss.vendor_name,ss.id as vendor_primary_id
+        FROM
+            b_marketing_sms_base_info_normal bb
+                inner join b_marketing_sms_vendor_info_normal ss on bb.vendor_id = ss.vendor_id
+        WHRE
+            bb.ope_status in (0,2) and bb.is_delete = 0 and ss.ope_status in (0,2) and ss.is_delete = 0
+    </select>
+
+
+    <update id="updateOnlyDbOpStatus">
+        UPDATE
+            b_marketing_line_base_info_normal  set ope_status = #{opeStatus},ope_time = now()
+        WHERE gateway_id in (
+            <foreach collection="onlyInDbIdList" item="gateway_id" index="index" separator=",">
+                #{gateway_id}
+            </foreach>
+            ) and ope_status in (0,2)
+    </update>
+
+    <update id="updateBaseInfoById">
+        UPDATE
+            b_marketing_line_base_info_normal
+        SET vendor_id = #{vendorId},channel_name = #{channelName},ope_status = #{opeStatus},ope_time = now()
+        WHERE id = #{id}
+    </update>
+
+
 </mapper>
