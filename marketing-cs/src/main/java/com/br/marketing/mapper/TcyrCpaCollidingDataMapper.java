@@ -1,9 +1,7 @@
 package com.br.marketing.mapper;
 
 import com.br.marketing.entity.TcyrCpaCollidingData;
-import com.br.marketing.entity.TcyrCpaScoreData;
 import org.apache.ibatis.annotations.Param;
-
 import java.util.List;
 import java.util.Map;
 

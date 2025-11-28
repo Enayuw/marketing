@@ -8,7 +8,8 @@ public enum TcCpaCleanStatusEnum {
     CLEAN_VOID(0,"待清洗"),
     CLEANING(1,"清洗中"),
     CLEAN_SUCCESS(2,"清洗成功"),
-    CLEAN_FAIL(3,"清洗失败")
+    CLEAN_FAIL(3,"清洗失败"),
+    CLEAN_RETRY(4,"清洗重试")
     ;
 
     TcCpaCleanStatusEnum(Integer value, String desc){

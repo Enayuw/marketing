@@ -44,9 +44,14 @@ public class TcyrCpaCollidingDataPackage {
     private Integer enabled;
 
     /**
-     * 清洗状态 0-待清洗；1-清洗中；2-清洗完成
+     * 清洗状态 0-待清洗；1-清洗中；2-清洗完成；3-清洗失败
      */
     private Integer cleanStatus;
+
+    /**
+     * 执行信息
+     */
+    private String executeInfo;
 
     /**
      * 删除状态 1-可用；2-删除中；9-删除
@@ -138,6 +143,14 @@ public class TcyrCpaCollidingDataPackage {
 
     public void setCleanStatus(Integer cleanStatus) {
         this.cleanStatus = cleanStatus;
+    }
+
+    public String getExecuteInfo() {
+        return executeInfo;
+    }
+
+    public void setExecuteInfo(String executeInfo) {
+        this.executeInfo = executeInfo == null ? null : executeInfo.trim();
     }
 
     public Integer getIsDel() {
