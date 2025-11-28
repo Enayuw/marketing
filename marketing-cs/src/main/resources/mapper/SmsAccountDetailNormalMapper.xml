@@ -2,4 +2,12 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.SmsAccountDetailNormalMapper" >
 
+    <select id="selectCount" resultType="java.lang.Long">
+        SELECT
+            count(*)
+        FROM
+            b_marketing_sms_account_detail_normal
+        WHERE
+            vendor_id = #{vendorId} and channel_id = #{channelId} and is_delete = 0
+    </select>
 </mapper>
