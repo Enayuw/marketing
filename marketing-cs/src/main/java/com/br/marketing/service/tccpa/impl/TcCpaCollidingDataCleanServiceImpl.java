@@ -12,6 +12,10 @@ import com.br.marketing.mapper.TcyrCpaCollidingDataMapper;
 import com.br.marketing.mapper.TcyrCpaCollidingDataPackageMapper;
 import com.br.marketing.service.tccpa.TcCpaCollidingDataCleanService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +25,6 @@ import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,12 +45,20 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
 
     private final static String TITLE = "【同程易融CPA-数据包清洗Job】";
 
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    static {
+        // 支持Java 8日期时间API
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    }
+
     @Override
     public void process() {
         //1.查询清洗任务
         TcyrCpaCollidingDataCleanTaskExample cleanTaskExample = new TcyrCpaCollidingDataCleanTaskExample();
         cleanTaskExample.createCriteria()
-                .andCleanStatusEqualTo(TcCpaCleanStatusEnum.CLEAN_VOID.getValue())
+                .andCleanStatusIn(Arrays.asList(TcCpaCleanStatusEnum.CLEAN_VOID.getValue(), TcCpaCleanStatusEnum.CLEAN_RETRY.getValue()))
                 .andIsDelEqualTo(Constants.DATA_VALID);
         cleanTaskExample.setOrderByClause("create_time desc limit 1");
         List<TcyrCpaCollidingDataCleanTask> cleanTasks = tcyrCpaCollidingDataCleanTaskMapper.selectByExample(cleanTaskExample);
@@ -55,6 +66,8 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
             return;
         }
         TcyrCpaCollidingDataCleanTask cleanTask = cleanTasks.get(0);
+        boolean ifRetry = TcCpaCleanStatusEnum.CLEAN_RETRY.getValue().equals(cleanTask.getCleanStatus());
+        String extend = cleanTask.getExtend() != null ? cleanTask.getExtend() : "";
         TpDynamicExecutor threadPool = null;
         try {
             //2.查询待删除的数据包
@@ -68,15 +81,25 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
                 String deletePackageIdString = deletePackageIds.stream()
                         .map(String::valueOf)
                         .collect(Collectors.joining(","));
-                cleanTask.setDeletePackageIds(deletePackageIdString);
+                if (!ifRetry) {
+                    cleanTask.setDeletePackageIds(deletePackageIdString);
+                }
             }
             //3.查询待清洗的数据包
             TcyrCpaCollidingDataPackageExample cleanPackageExample = new TcyrCpaCollidingDataPackageExample();
-            cleanPackageExample.createCriteria()
-                    .andIsDelEqualTo(Constants.DATA_VALID)
-                    .andCleanStatusEqualTo(TcCpaCleanStatusEnum.CLEAN_VOID.getValue())
-                    .andEnabledEqualTo(Constants.ENABLED_ACT);
-            cleanPackageExample.setOrderByClause("priority asc");
+            if (ifRetry) {
+                cleanPackageExample.createCriteria()
+                        .andIsDelEqualTo(Constants.DATA_VALID)
+                        .andCleanStatusEqualTo(TcCpaCleanStatusEnum.CLEAN_RETRY.getValue())
+                        .andEnabledEqualTo(Constants.ENABLED_ACT);
+                cleanPackageExample.setOrderByClause("priority asc");
+            } else {
+                cleanPackageExample.createCriteria()
+                        .andIsDelEqualTo(Constants.DATA_VALID)
+                        .andCleanStatusEqualTo(TcCpaCleanStatusEnum.CLEAN_VOID.getValue())
+                        .andEnabledEqualTo(Constants.ENABLED_ACT);
+                cleanPackageExample.setOrderByClause("priority asc");
+            }
             List<TcyrCpaCollidingDataPackage> cleanPackages = tcyrCpaCollidingDataPackageMapper.selectByExample(cleanPackageExample);
             List<Long> cleanPackageIds;
             if (CollectionUtils.isNotEmpty(cleanPackages)) {
@@ -84,7 +107,9 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
                 String cleanPackageIdString = cleanPackageIds.stream()
                         .map(String::valueOf)
                         .collect(Collectors.joining(","));
-                cleanTask.setCleanPackageIds(cleanPackageIdString);
+                if (!ifRetry) {
+                    cleanTask.setCleanPackageIds(cleanPackageIdString);
+                }
             }
             //4.更新任务状态
             cleanTask.setCleanStatus(TcCpaCleanStatusEnum.CLEANING.getValue());
@@ -97,39 +122,43 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
             if (CollectionUtils.isNotEmpty(deletePackages)) {
                 //删除流程
                 boolean hasErrorForDelete = deletePackageData(deletePackages, threadPool, futures, marketingCommonConfig);
-                if(hasErrorForDelete) {
+                if (hasErrorForDelete) {
                     cleanTask.setCleanStatus(TcCpaCleanStatusEnum.CLEAN_FAIL.getValue());
-                    cleanTask.setExtend("剔除流程异常，未执行后续清洗，需要人工介入");
-                    tcyrCpaCollidingDataCleanTaskMapper.updateByPrimaryKeySelective(cleanTask);
-                    return;
+                    cleanTask.setExtend(extend.concat("剔除流程异常，未执行后续清洗，需要人工介入;"));
+                } else {
+                    cleanTask.setCleanStatus(TcCpaCleanStatusEnum.CLEAN_SUCCESS.getValue());
                 }
             }
-            //7.清洗新包
-            String beforePackageInfo = null;
-            String afterPackageInfo = null;
+            //7.清洗新包/重试包
             if(CollectionUtils.isNotEmpty(cleanPackages)) {
-                beforePackageInfo = packageInfoAssemble(cleanPackages);
+                Map<String, String> executeInfo = new HashMap<>();
+                String beforePackageInfo = null;
+                if (!ifRetry) {
+                    beforePackageInfo = packageInfoAssemble(cleanPackages);
+                    executeInfo.put("beforePackageInfo", beforePackageInfo);
+                } else {
+                    executeInfo = objectMapper.readValue(cleanTask.getExecuteInfo(), new TypeReference<Map<String, String>>() {
+                    });
+                }
                 //清洗流程
-                boolean hasErrorForClean = cleanPackageData(cleanPackages, threadPool, futures, marketingCommonConfig);
+                boolean hasErrorForClean = cleanPackageData(cleanPackages, threadPool, futures, ifRetry, marketingCommonConfig);
                 if (hasErrorForClean) {
                     cleanTask.setCleanStatus(TcCpaCleanStatusEnum.CLEAN_FAIL.getValue());
-                    cleanTask.setExtend("清洗流程异常，未执行后续清洗，需要人工介入");
-                    tcyrCpaCollidingDataCleanTaskMapper.updateByPrimaryKeySelective(cleanTask);
-                    return;
+                    cleanTask.setExtend(extend.concat("清洗流程异常，需要人工介入;"));
+                } else {
+                    //全量数据包量级更新
+                    packageMagnitudeUpd();
+                    cleanTask.setCleanStatus(TcCpaCleanStatusEnum.CLEAN_SUCCESS.getValue());
+                    cleanTask.setExtend(extend.concat("success"));
+                    String afterPackageInfo = packageInfoAssemble(null);
+                    executeInfo.put("afterPackageInfo", afterPackageInfo);
                 }
-                //全量数据包量级更新
-                packageMagnitudeUpd();
-                afterPackageInfo = packageInfoAssemble(null);
+                cleanTask.setExecuteInfo(JsonParseUtils.toJson(executeInfo));
             }
-            Map<String, String> executeInfo = new HashMap<>();
-            executeInfo.put("beforePackageInfo", beforePackageInfo);
-            executeInfo.put("afterPackageInfo", afterPackageInfo);
-            cleanTask.setExecuteInfo(JsonParseUtils.toJson(executeInfo));
-            cleanTask.setCleanStatus(TcCpaCleanStatusEnum.CLEAN_SUCCESS.getValue());
-            cleanTask.setExtend(null);
             tcyrCpaCollidingDataCleanTaskMapper.updateByPrimaryKeySelective(cleanTask);
         } catch (Exception e) {
             cleanTask.setCleanStatus(TcCpaCleanStatusEnum.CLEAN_FAIL.getValue());
+            cleanTask.setExtend(extend.concat(e.getMessage()).concat(";"));
             tcyrCpaCollidingDataCleanTaskMapper.updateByPrimaryKeySelective(cleanTask);
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
                     "数据包清洗异常，cleanTaskId:" + cleanTask.getId(), TITLE), e);
@@ -194,41 +223,63 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
      * @param cleanPackages
      * @param threadPool
      * @param futures
+     * @param ifRetry
      * @param marketingCommonConfig
      * @return
      */
     private boolean cleanPackageData(List<TcyrCpaCollidingDataPackage> cleanPackages,
                                      TpDynamicExecutor threadPool,
                                      List<CompletableFuture<Void>> futures,
+                                     boolean ifRetry,
                                      MarketingCommonConfig marketingCommonConfig) {
-        //创建原子标志，用于停止整个流程
-        AtomicBoolean hasError = new AtomicBoolean(false);
-        AtomicReference<Exception> firstException = new AtomicReference<>();
+        boolean hasError = false;
         for (TcyrCpaCollidingDataPackage cleanPackage : cleanPackages) {
-            if (hasError.get()) {
-                break;
-            }
-            //更新数据包状态为1-清洗中
-            cleanPackage.setCleanStatus(TcCpaCleanStatusEnum.CLEANING.getValue());
-            tcyrCpaCollidingDataPackageMapper.updateByPrimaryKeySelective(cleanPackage);
             try {
-                String[] batchNumbers = cleanPackage.getBatchNumbers().split(",");
+                //更新数据包状态为1-清洗中
+                cleanPackage.setCleanStatus(TcCpaCleanStatusEnum.CLEANING.getValue());
+                tcyrCpaCollidingDataPackageMapper.updateByPrimaryKeySelective(cleanPackage);
+                String[] batchNumbers;
+                List<TcyrCpaPackageCleanInfo> cleanInfos = new ArrayList<>();
+                if (ifRetry) {
+                    cleanInfos = objectMapper.readValue(cleanPackage.getExecuteInfo(),
+                            new TypeReference<List<TcyrCpaPackageCleanInfo>>() {
+                            });
+                    TcyrCpaPackageCleanInfo tcyrCpaPackageCleanInfo = cleanInfos.stream()
+                            .max(Comparator.comparing(TcyrCpaPackageCleanInfo::getExecuteTime))
+                            .orElse(null);
+                    List<String> failBatchNumbers = tcyrCpaPackageCleanInfo.getBatchCleanInfos().stream()
+                            .map(TcyrCpaBatchCleanInfo::getBatchNumber)
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toList());
+                    batchNumbers = failBatchNumbers.toArray(new String[0]);
+                } else {
+                    batchNumbers = cleanPackage.getBatchNumbers().split(",");
+                }
                 String conditions = cleanPackage.getConditions();
+                List<TcyrCpaBatchCleanInfo> tcyrCpaBatchCleanInfos = new ArrayList<>();
                 List<String> cusNums;
+                batchNumberLoop:
                 for (String batchNumber : batchNumbers) {
-                    if (hasError.get()) {
-                        break;
-                    }
+                    AtomicBoolean isInner = new AtomicBoolean(false);
                     //1.从跑分文件中查询数据
                     String querySql = "select cus_num from b_score_" + batchNumber + " where " + conditions;
                     log.warn("同程CPA撞库数据清洗，新包新增数据查询条件:{}", querySql);
                     String minCusNum = null;
                     for (; ; ) {
-                        if (hasError.get()) {
-                            break;
+                        try {
+                            if (marketingCommonConfig.getTcCpaMockConfig().get("query")) {
+                                throw new NullPointerException();
+                            }
+                            cusNums = tcyrCpaCollidingDataMapper.queryScoreDataWithPagedoris_(querySql, minCusNum);
+                        } catch (Exception e) {
+                            log.warn("同程CPA撞库数据清洗，跑分数据查询异常，packageId：{}，batchNumber：{}", cleanPackage.getId(), batchNumber);
+                            tcyrCpaBatchCleanInfos.add(new TcyrCpaBatchCleanInfo(batchNumber, true, isInner.get(), e.getMessage()));
+                            continue batchNumberLoop;
                         }
-                        cusNums = tcyrCpaCollidingDataMapper.queryScoreDataWithPagedoris_(querySql, minCusNum);
                         if (CollectionUtils.isEmpty(cusNums)) {
+                            if (isInner.get()) {
+                                tcyrCpaBatchCleanInfos.add(new TcyrCpaBatchCleanInfo(batchNumber, false, true, "子线程发生异常，请查看日志"));
+                            }
                             break;
                         }
                         minCusNum = cusNums.get(cusNums.size() - 1);
@@ -241,10 +292,8 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
                                 }
                                 insertData(finalCusNums, cleanPackage.getId(), cleanPackage.getPriority());
                             } catch (Exception e) {
-                                hasError.set(true);
-                                firstException.compareAndSet(null, e);
-                                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
-                                        "数据插入-线程内异常，packageId:" + cleanPackage.getId(), TITLE), e);
+                                log.warn("同程CPA撞库数据清洗，子线程跑分数据插入异常，packageId：{}，batchNumber：{}", cleanPackage.getId(), batchNumber);
+                                isInner.set(true);
                             }
                         }, threadPool);
                         futures.add(future);
@@ -255,16 +304,18 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
                     }
                 }
                 CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-                if (hasError.get()) {
+                if (tcyrCpaBatchCleanInfos.size() > 0) {
+                    hasError = true;
+                    cleanInfos.add(new TcyrCpaPackageCleanInfo(new Date(), tcyrCpaBatchCleanInfos));
                     cleanPackage.setCleanStatus(TcCpaCleanStatusEnum.CLEAN_FAIL.getValue());
-                    cleanPackage.setExtend(firstException.get().getMessage());
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
+                            "数据清洗异常，packageId:" + cleanPackage.getId() + "请查看执行信息", TITLE));
                 } else {
                     cleanPackage.setCleanStatus(TcCpaCleanStatusEnum.CLEAN_SUCCESS.getValue());
-                    cleanPackage.setExtend(null);
                 }
                 tcyrCpaCollidingDataPackageMapper.updateByPrimaryKeySelective(cleanPackage);
             } catch (Exception e) {
-                hasError.set(true);
+                hasError = true;
                 cleanPackage.setCleanStatus(TcCpaCleanStatusEnum.CLEAN_FAIL.getValue());
                 cleanPackage.setExtend(e.getMessage());
                 tcyrCpaCollidingDataPackageMapper.updateByPrimaryKeySelective(cleanPackage);
@@ -272,7 +323,7 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
                         "数据清洗异常，packageId:" + cleanPackage.getId(), TITLE), e);
             }
         }
-        return hasError.get();
+        return hasError;
     }
 
     private void insertData(List<String> cusNums, Long packageId, Integer priority) {
