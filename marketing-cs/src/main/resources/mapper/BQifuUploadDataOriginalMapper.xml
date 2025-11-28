@@ -32,6 +32,12 @@
         </foreach>
         ELSE select_status
         END,
+        status = CASE id
+        <foreach collection="records" item="record">
+            WHEN #{record.id} THEN #{record.status}
+        </foreach>
+        ELSE status
+        END,
         update_time = now()
         where id in
         <foreach collection="records" item="record" open="(" separator="," close=")">
