@@ -1,19 +1,27 @@
 package com.br.marketing.service.tccpa.impl;
 
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.Constants;
-import com.br.marketing.entity.TcyrCpaDeleteRule;
-import com.br.marketing.entity.TcyrCpaDeleteRuleExample;
+import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.tccpa.TcyrCpaCollidingDataPackageVO;
+import com.br.marketing.entity.*;
+import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.TcyrCpaDeleteRuleMapper;
 import com.br.marketing.service.tccpa.TcCpaDataDeleteRuleService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.vo.tccpa.TcyrCpaDeleteRuleVO;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -22,19 +30,23 @@ import java.util.stream.Collectors;
 public class TcCpaDeleteRuleServiceImpl implements TcCpaDataDeleteRuleService {
 
     @Resource
+    private MarketingCustomerMapper marketingCustomerMapper;
+
+    @Resource
     private TcyrCpaDeleteRuleMapper tcyrCpaDeleteRuleMapper;
 
-
     @Override
-    public Result tcDataPackageGen(TcyrCpaDeleteRule rule) {
+    public Result rule(TcyrCpaDeleteRuleVO ruleVO) {
+        TcyrCpaDeleteRule rule = new TcyrCpaDeleteRule();
+        BeanUtils.copyProperties(ruleVO, rule);
         rule.setEnabled(Constants.ENABLED_ACT);
         if(rule.getRuleType().equals(1) || rule.getRuleType().equals(2)) {
             validateRuleTypeUnique(rule.getRuleType());
         }
         processRuleByType(rule);
         calculateDeleteNum(rule);
-        int result = tcyrCpaDeleteRuleMapper.insert(rule);
-        return null;
+        tcyrCpaDeleteRuleMapper.insert(rule);
+        return new Result().success();
     }
 
     private void validateRuleTypeUnique(Integer ruleType) {
@@ -132,5 +144,61 @@ public class TcCpaDeleteRuleServiceImpl implements TcCpaDataDeleteRuleService {
         } catch (Exception e) {
             rule.setDeleteNum(0);
         }
+    }
+
+    @Override
+    public PageResultReturn<TcyrCpaDeleteRuleVO> page(int page, int pageSize, String deleteRuleName, Integer enabled) {
+        TcyrCpaDeleteRuleExample example = new TcyrCpaDeleteRuleExample();
+        TcyrCpaDeleteRuleExample.Criteria criteria = example.createCriteria();
+        criteria.andIsDelEqualTo(Constants.DATA_VALID);
+        if (StringUtils.isNotBlank(deleteRuleName)) {
+            criteria.andRuleNameLike("%" + deleteRuleName + "%");
+        }
+        if (enabled != null) {
+            criteria.andEnabledEqualTo(enabled);
+        }
+        example.setOrderByClause("update_time desc");
+        List<TcyrCpaDeleteRule> packages = tcyrCpaDeleteRuleMapper.selectByExample(example);
+        if(CollectionUtils.isEmpty(packages)) {
+            return PageResultReturn.setPageResult(Lists.newArrayList(), page, pageSize);
+        }
+        List<String> apiCodes = packages.stream().map(TcyrCpaDeleteRule::getApiCode).collect(Collectors.toList());
+        MarketingCustomerExample customerExample = new MarketingCustomerExample();
+        customerExample.createCriteria().andApiCodeIn(apiCodes);
+        Map<String, MarketingCustomer> customers = marketingCustomerMapper.selectByExample(customerExample)
+                .stream().collect(Collectors.toMap(MarketingCustomer::getApiCode, customer -> customer));
+
+        List<TcyrCpaDeleteRuleVO> packageVOS = packages.stream().map(dataPackage -> {
+            TcyrCpaDeleteRuleVO vo = new TcyrCpaDeleteRuleVO();
+            BeanUtils.copyProperties(dataPackage, vo);
+
+            MarketingCustomer customer = customers.get(dataPackage.getApiCode());
+            if (customer != null) {
+                vo.setCid(customer.getCid());
+                vo.setCustomerName(customer.getShortName());
+            }
+            return vo;
+        }).collect(Collectors.toList());
+        return PageResultReturn.setPageResult(packageVOS, page, pageSize);
+    }
+
+    @Override
+    public Result enable(Long id, Integer enabled) {
+        TcyrCpaDeleteRuleExample example = new TcyrCpaDeleteRuleExample();
+        example.createCriteria().andIdEqualTo(id);
+
+        TcyrCpaDeleteRule rule = new TcyrCpaDeleteRule();
+        rule.setEnabled(enabled);
+        return new Result().success().setDate(tcyrCpaDeleteRuleMapper.updateByExampleSelective(rule, example));
+    }
+
+    @Override
+    public Result delete(Long id) {
+        TcyrCpaDeleteRuleExample example = new TcyrCpaDeleteRuleExample();
+        example.createCriteria().andIdEqualTo(id);
+
+        TcyrCpaDeleteRule rule = new TcyrCpaDeleteRule();
+        rule.setIsDel(Constants.DATA_DEL);
+        return new Result().success().setDate(tcyrCpaDeleteRuleMapper.updateByExampleSelective(rule, example));
     }
 }
