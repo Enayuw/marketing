@@ -347,7 +347,7 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
                 detailJson.put("surname", record.getSurname());
                 detailJson.put("gender", record.getGender());
                 detailJson.put("operateType", operateType);
-                if (!record.getEventType().isEmpty()){
+                if (!StringUtils.isEmpty(record.getEventType())){
                     detailJson.put("eventType", record.getEventType());
                 }
 
