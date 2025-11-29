@@ -10,6 +10,7 @@ import com.br.marketing.dto.tccpa.TcCpDataCleanTaskDTO;
 import com.br.marketing.dto.tccpa.TcCpDataPackageGenDTO;
 import com.br.marketing.dto.tccpa.TcyrCpaCollidingDataPackageVO;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.TcCpaCleanStatusEnum;
 import com.br.marketing.enums.clean.DataCleanStatusEnum;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.TcyrCpaCollidingDataCleanTaskMapper;
@@ -101,10 +102,9 @@ public class TcCpaDataPackageServiceImpl implements TcCpaDataPackageService {
     @Override
     public Result update(TcyrCpaCollidingDataPackageVO packageVO) {
         TcyrCpaCollidingDataCleanTaskExample taskExample = new TcyrCpaCollidingDataCleanTaskExample();
-        taskExample.createCriteria().andCleanStatusIn(Lists.newArrayList(DataCleanStatusEnum.READY.getCode(),
-                DataCleanStatusEnum.RUNNING.getCode()));
+        taskExample.createCriteria().andCleanStatusNotEqualTo(TcCpaCleanStatusEnum.CLEAN_SUCCESS.getValue());
         if (tcyrCpaCollidingDataCleanTaskMapper.countByExample(taskExample) > 0) {
-            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("存在清洗中或待清洗的任务，不能修改数据包");
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("存在待清洗、清洗中、清洗失败或重试的清洗任务，不能修改数据包");
         }
         TcyrCpaCollidingDataPackage dataPackage = new TcyrCpaCollidingDataPackage();
         BeanUtils.copyProperties(packageVO, dataPackage);
@@ -119,10 +119,9 @@ public class TcCpaDataPackageServiceImpl implements TcCpaDataPackageService {
     @Override
     public Result delete(Long id) {
         TcyrCpaCollidingDataCleanTaskExample taskExample = new TcyrCpaCollidingDataCleanTaskExample();
-        taskExample.createCriteria().andCleanStatusIn(Lists.newArrayList(DataCleanStatusEnum.READY.getCode(),
-                DataCleanStatusEnum.RUNNING.getCode()));
+        taskExample.createCriteria().andCleanStatusNotEqualTo(TcCpaCleanStatusEnum.CLEAN_SUCCESS.getValue());
         if (tcyrCpaCollidingDataCleanTaskMapper.countByExample(taskExample) > 0) {
-            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("存在清洗中或待清洗的任务，禁止删除数据包");
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("存在待清洗、清洗中、清洗失败或重试的清洗任务，禁止删除数据包");
         }
         TcyrCpaCollidingDataPackageExample dataPackageExample = new TcyrCpaCollidingDataPackageExample();
         dataPackageExample.createCriteria().andIdEqualTo(id);
@@ -135,10 +134,9 @@ public class TcCpaDataPackageServiceImpl implements TcCpaDataPackageService {
     @Override
     public Result genCleanTask() {
         TcyrCpaCollidingDataCleanTaskExample taskExample = new TcyrCpaCollidingDataCleanTaskExample();
-        taskExample.createCriteria().andCleanStatusIn(Lists.newArrayList(DataCleanStatusEnum.READY.getCode(),
-                DataCleanStatusEnum.RUNNING.getCode())).andIsDelNotEqualTo(Constants.DATA_DEL);
+        taskExample.createCriteria().andCleanStatusNotEqualTo(TcCpaCleanStatusEnum.CLEAN_SUCCESS.getValue());
         if (tcyrCpaCollidingDataCleanTaskMapper.countByExample(taskExample) > 0) {
-            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("存在清洗中或待清洗的任务，禁止新增清洗任务");
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("存在待清洗、清洗中、清洗失败或重试的清洗任务，禁止新增清洗任务");
         }
         TcyrCpaCollidingDataPackageExample dataPackageExample = new TcyrCpaCollidingDataPackageExample();
         dataPackageExample.createCriteria().andIsDelEqualTo(Constants.STATUS_START).andPriorityIsNull();
