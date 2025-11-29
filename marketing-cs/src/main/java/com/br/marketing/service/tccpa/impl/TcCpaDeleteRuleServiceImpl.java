@@ -4,13 +4,15 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.tccpa.TcyrCpaCollidingDataPackageVO;
-import com.br.marketing.entity.*;
+import com.br.marketing.entity.MarketingCustomer;
+import com.br.marketing.entity.MarketingCustomerExample;
+import com.br.marketing.entity.TcyrCpaDeleteRule;
+import com.br.marketing.entity.TcyrCpaDeleteRuleExample;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.TcyrCpaDeleteRuleMapper;
 import com.br.marketing.service.tccpa.TcCpaDataDeleteRuleService;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.tccpa.TcyrCpaDeleteRuleVO;
+import com.github.pagehelper.PageInfo;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -40,22 +43,22 @@ public class TcCpaDeleteRuleServiceImpl implements TcCpaDataDeleteRuleService {
         TcyrCpaDeleteRule rule = new TcyrCpaDeleteRule();
         BeanUtils.copyProperties(ruleVO, rule);
         rule.setEnabled(Constants.ENABLED_ACT);
+        rule.setIsDel(Constants.DATA_VALID);
+        rule.setCreateTime(new Date());
+        rule.setUpdateTime(new Date());
         if(rule.getRuleType().equals(1) || rule.getRuleType().equals(2)) {
-            validateRuleTypeUnique(rule.getRuleType());
+            TcyrCpaDeleteRuleExample example = new TcyrCpaDeleteRuleExample();
+            example.createCriteria().andIsDelEqualTo(Constants.DATA_VALID).andRuleTypeEqualTo(rule.getRuleType());
+
+            if (tcyrCpaDeleteRuleMapper.countByExample(example) > 0) {
+                return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("规则类型 " + rule.getRuleType() +
+                        " 已存在有效数据，同一规则类型只能存在一条有效数据");
+            }
         }
         processRuleByType(rule);
         calculateDeleteNum(rule);
         tcyrCpaDeleteRuleMapper.insert(rule);
         return new Result().success();
-    }
-
-    private void validateRuleTypeUnique(Integer ruleType) {
-        TcyrCpaDeleteRuleExample example = new TcyrCpaDeleteRuleExample();
-        example.createCriteria().andIsDelEqualTo(Constants.DATA_VALID).andRuleTypeEqualTo(ruleType);
-
-        if (tcyrCpaDeleteRuleMapper.countByExample(example) > 0) {
-            throw new IllegalStateException("规则类型 " + ruleType + " 已存在有效数据，同一规则类型只能存在一条有效数据");
-        }
     }
 
     private void processRuleByType(TcyrCpaDeleteRule rule) {
@@ -147,12 +150,12 @@ public class TcCpaDeleteRuleServiceImpl implements TcCpaDataDeleteRuleService {
     }
 
     @Override
-    public PageResultReturn<TcyrCpaDeleteRuleVO> page(int page, int pageSize, String deleteRuleName, Integer enabled) {
+    public PageResultReturn<TcyrCpaDeleteRuleVO> page(int page, int pageSize, String ruleName, Integer enabled) {
         TcyrCpaDeleteRuleExample example = new TcyrCpaDeleteRuleExample();
         TcyrCpaDeleteRuleExample.Criteria criteria = example.createCriteria();
         criteria.andIsDelEqualTo(Constants.DATA_VALID);
-        if (StringUtils.isNotBlank(deleteRuleName)) {
-            criteria.andRuleNameLike("%" + deleteRuleName + "%");
+        if (StringUtils.isNotBlank(ruleName)) {
+            criteria.andRuleNameLike("%" + ruleName + "%");
         }
         if (enabled != null) {
             criteria.andEnabledEqualTo(enabled);
@@ -179,7 +182,8 @@ public class TcCpaDeleteRuleServiceImpl implements TcCpaDataDeleteRuleService {
             }
             return vo;
         }).collect(Collectors.toList());
-        return PageResultReturn.setPageResult(packageVOS, page, pageSize);
+        PageInfo<TcyrCpaDeleteRuleVO> pageInfo = new PageInfo<>(packageVOS);
+        return PageResultReturn.setPageResult(packageVOS, page, pageSize, pageInfo.getTotal());
     }
 
     @Override

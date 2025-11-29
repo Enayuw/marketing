@@ -2,9 +2,7 @@ package com.br.marketing.innerapi.controller;
 
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.tccpa.TcyrCpaCollidingDataPackageVO;
 import com.br.marketing.service.tccpa.TcCpaDataDeleteRuleService;
-import com.br.marketing.service.tccpa.TcCpaDataPackageService;
 import com.br.marketing.vo.tccpa.TcyrCpaDeleteRuleVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -41,9 +39,9 @@ public class TcCpaDeleteRuleController {
     })
     public ApiResult<PageResultReturn> page(@RequestParam(defaultValue = "1") int current
             , @RequestParam(defaultValue = "10") int size
-            , @RequestParam(required = false) String packageName
-            , @RequestParam(required = false) Integer status) {
-        return new ApiResult<PageResultReturn>().success(tcCpaDataDeleteRuleService.page(current, size, packageName, status));
+            , @RequestParam(required = false) String ruleName
+            , @RequestParam(required = false) Integer enabled) {
+        return new ApiResult<PageResultReturn>().success(tcCpaDataDeleteRuleService.page(current, size, ruleName, enabled));
     }
 
 
