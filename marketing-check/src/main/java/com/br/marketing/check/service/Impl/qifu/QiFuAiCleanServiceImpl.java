@@ -5,18 +5,15 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.check.service.qifu.QiFuAiCleanService;
-import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.dto.qifu.UpLoadCleanDTO;
 import com.br.marketing.entity.BQifuUploadDataOriginal;
 import com.br.marketing.mapper.BQifuUploadDataOriginalMapper;
-import com.br.marketing.mapper.Log360aiMapper;
 import com.br.marketing.service.Impl.qifu.enums.QiFuProcessStatusEnum;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -32,7 +29,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -50,13 +46,7 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
     private static final int PAGE_SIZE = 2000;
 
     @Resource
-    private RedisChgService redisChgService;
-
-    @Resource
     private BQifuUploadDataOriginalMapper bQifuUploadDataOriginalMapper;
-
-    @Resource
-    private Log360aiMapper log360aiMapper;
 
     @Resource
     private PushInfoService pushInfoService;
@@ -71,47 +61,23 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
         // 获取今天的日期
         String todayDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        // 查询今天所有不同的user_type
-        List<String> userTypeList = bQifuUploadDataOriginalMapper.selectDistinctUserTypeByDate(todayDate);
-        if (userTypeList == null || userTypeList.isEmpty()) {
-            log.warn("今天 {} 没有查询到user_type数据，无需处理", todayDate);
-            return;
-        }
-
-        JSONObject qifuAiCleanConfig = marketingCommonConfig.getQifuAiCleanConfig();
-        Integer threadNum = Integer.valueOf(getValueOfJson(qifuAiCleanConfig, "threadNum", "10"));
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum, "qiAiCleanOriginal", 200);
-
-        // 按user_type维度处理，每个user_type单独处理
-        for (String userType : userTypeList) {
-            final String finalUserType = userType;
-            final String finalTodayDate = todayDate;
-            threadPool.submit(() -> {
-                try {
-                    processUserTypeDataForClean(finalUserType, finalTodayDate);
-                } catch (Exception e) {
-                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode()
-                            , "奇富360ai清洗数据异常[userType: " + finalUserType + "]" + e.getMessage()), e);
-                }
-            });
-        }
-
-        // 关闭线程池
-        shutdownThreadPool(threadPool);
+        // 直接处理今天所有未处理的数据
+        processDataForClean(todayDate);
     }
 
     /**
-     * 处理某个userType的清洗数据（按场景维度处理，基于今天的数据）
+     * 处理清洗数据（基于今天的数据，分页查询并处理）
      */
-    private void processUserTypeDataForClean(String userType, String todayDate) {
+    private void processDataForClean(String todayDate) {
         Long indexId = null;
         boolean hasMore = true;
 
         while (hasMore) {
-            // 查询当前场景今天需要清洗的数据
-            List<BQifuUploadDataOriginal> dataList = bQifuUploadDataOriginalMapper.selectDataForCleanByUserTypeAndDate(
-                    userType, todayDate, PAGE_SIZE, indexId);
+            // 查询今天需要清洗的数据（status=0 未处理）
+            List<BQifuUploadDataOriginal> dataList = bQifuUploadDataOriginalMapper.selectDataForCleanByDate(
+                    todayDate, PAGE_SIZE, indexId);
             if (dataList == null || dataList.isEmpty()) {
+                log.warn("今天 {} 没有待处理的数据", todayDate);
                 hasMore = false;
                 break;
             }
@@ -243,117 +209,92 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
         if (CollectionUtils.isEmpty(dataList)) {
             return res.setCode(ResultCode.FAIL.getValue()).setMessage("数据列表为空");
         }
-
+        MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
+        List<MarketingPreUserDetailDTO> list = new ArrayList<>();
         try {
-            // 获取第一条记录作为批次信息的代表
-            BQifuUploadDataOriginal firstRecord = dataList.get(0);
+            // 遍历每条记录，构建 MarketingPreUserDetailDTO
+            for (BQifuUploadDataOriginal record : dataList) {
+                String batch;
+                String strategyCode = "";
+                String strategyName = "";
+                String userType;
+                String finalStrategyCode;
+                String finalStrategyName;
 
-            // 验证必要字段
-            StringBuilder errorMsg = new StringBuilder();
-            if (StringUtils.isBlank(firstRecord.getBatchNo())) {
-                errorMsg.append("batchNo为空");
-            }
-            if (StringUtils.isBlank(firstRecord.getFlowNo())) {
-                errorMsg.append("flowNo为空");
-            }
-            if (StringUtils.isBlank(firstRecord.getTemplateNo())) {
-                errorMsg.append("templateNo为空");
-            }
+                boolean isRealTime = (record.getIsReal() == 1);
+                if (isRealTime) {
+                    // 实时推送逻辑
+                    LocalDate today = LocalDate.now();
+                    String currentDate = today.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
-            if (StringUtils.isNotBlank(errorMsg.toString())) {
-            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode()
-                        , "奇富360ai批量清洗数据异常: " + errorMsg.toString()));
-                return res.setCode(ResultCode.FAIL.getValue()).setMessage(errorMsg.toString());
-            }
+                    batch = currentDate + "_" + record.getApiCode() + "_实时推送";
+                    strategyCode = qifuAiCleanConfig.getString("strategyCode");
+                    strategyName = qifuAiCleanConfig.getString("strategyName");
 
-            MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
-            List<MarketingPreUserDetailDTO> list = new ArrayList<>();
+                    // 处理templateNo，提取userType
+                    String templateStr = record.getTemplateNo();
+                    if (templateStr != null && templateStr.length() > 12) {
+                        userType = templateStr.substring(templateStr.length() - 12);
+                    } else {
+                        userType = templateStr;
+                    }
 
-            // 设置批次信息（使用第一条记录）
-            String batch;
-            String strategyCode = "";
-            String strategyName = "";
-            String userType;
-            String finalStrategyCode;
-            String finalStrategyName;
-
-            boolean isRealTime = (firstRecord.getIsReal() == 1);
-            if (isRealTime) {
-                // 实时推送逻辑
-                LocalDate today = LocalDate.now();
-                String currentDate = today.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-
-                batch = currentDate + "_" + firstRecord.getApiCode() + "_实时推送";
-                strategyCode = qifuAiCleanConfig.getString("strategyCode");
-                strategyName = qifuAiCleanConfig.getString("strategyName");
-
-                // 处理templateNo，提取userType
-                String templateStr = firstRecord.getTemplateNo();
-                if (templateStr != null && templateStr.length() > 12) {
-                    userType = templateStr.substring(templateStr.length() - 12);
-                } else {
-                    userType = templateStr;
-                }
-
-                finalStrategyCode = strategyCode;
-                finalStrategyName = strategyName;
-
-            } else {
-                // 非实时推送逻辑
-                batch = firstRecord.getReceiveDate().replaceAll("-", "")
-                        .concat("_")
-                        .concat(firstRecord.getApiCode());
-                userType = firstRecord.getUserType();
-
-                // 处理templateNo
-                String templateStr = firstRecord.getTemplateNo();
-                if (templateStr != null && templateStr.length() > 12) {
-                    strategyCode = templateStr.substring(templateStr.length() - 12);
-                    strategyName = strategyCode;
-                } else {
-                    strategyCode = "";
-                    strategyName = "";
-                }
-
-                // 非实时推送根据配置决定是否使用strategyCode
-                boolean flag = marketingCommonConfig.getQifuAiCleanStrategyCodeFlag();
-                if (flag) {
-                    finalStrategyCode = "";
-                    finalStrategyName = "";
-                } else {
                     finalStrategyCode = strategyCode;
                     finalStrategyName = strategyName;
+
+                } else {
+                    // 非实时推送逻辑
+                    batch = record.getReceiveDate().replaceAll("-", "")
+                            .concat("_")
+                            .concat(record.getApiCode());
+                    userType = record.getUserType();
+
+                    // 处理templateNo
+                    String templateStr = record.getTemplateNo();
+                    if (templateStr != null && templateStr.length() > 12) {
+                        strategyCode = templateStr.substring(templateStr.length() - 12);
+                        strategyName = strategyCode;
+                    } else {
+                        strategyCode = "";
+                        strategyName = "";
+                    }
+
+                    // 非实时推送根据配置决定是否使用strategyCode
+                    boolean flag = marketingCommonConfig.getQifuAiCleanStrategyCodeFlag();
+                    if (flag) {
+                        finalStrategyCode = "";
+                        finalStrategyName = "";
+                    } else {
+                        finalStrategyCode = strategyCode;
+                        finalStrategyName = strategyName;
+                    }
                 }
-            }
 
-            // 设置公共的extendKey
-            JSONObject extendKey = new JSONObject();
-            extendKey.put("batchName", batch);
-            extendKey.put("batchNumber", batch);
-            extendKey.put("strategyCode", finalStrategyCode);
-            extendKey.put("strategyName", finalStrategyName);
-            extendKey.put("userType", userType);
-            extendKey.put("flowNo", firstRecord.getFlowNo());
+                // 设置公共的extendKey
+                JSONObject extendKey = new JSONObject();
+                extendKey.put("batchName", batch);
+                extendKey.put("batchNumber", batch);
+                extendKey.put("strategyCode", finalStrategyCode);
+                extendKey.put("strategyName", finalStrategyName);
+                extendKey.put("userType", userType);
+                extendKey.put("flowNo", record.getFlowNo());
 
-            if (StringUtils.isNotBlank(firstRecord.getOperateScene())) {
-                extendKey.put("customName", firstRecord.getOperateScene());
-                extendKey.put("customNameType", firstRecord.getOperateScene());
-            }
-            if (StringUtils.isNotBlank(firstRecord.getCallTimeRange())) {
-                extendKey.put("callTimeRange", firstRecord.getCallTimeRange());
-            }
-            if (StringUtils.isNotBlank(firstRecord.getCallType())) {
-                extendKey.put("callType", firstRecord.getCallType());
-            }
+                if (StringUtils.isNotBlank(record.getOperateScene())) {
+                    extendKey.put("customName", record.getOperateScene());
+                    extendKey.put("customNameType", record.getOperateScene());
+                }
+                if (StringUtils.isNotBlank(record.getCallTimeRange())) {
+                    extendKey.put("callTimeRange", record.getCallTimeRange());
+                }
+                if (StringUtils.isNotBlank(record.getCallType())) {
+                    extendKey.put("callType", record.getCallType());
+                }
 
-            // 设置taskId和requestId（使用第一条记录的批次信息）
-            String taskId = firstRecord.getBatchNo();
-            String requestId = String.format("%s_%s_%s", firstRecord.getBatchNo(), firstRecord.getFlowNo(), System.currentTimeMillis());
-            marketingPreUserDTO.setTaskId(taskId);
-            marketingPreUserDTO.setRequestId(requestId);
-
-            // 遍历每条记录，构建 MarketingPreUserDetailDTO
-        for (BQifuUploadDataOriginal record : dataList) {
+                // 设置taskId和requestId
+                String taskId = record.getBatchNo();
+                String requestId = String.format("%s_%s_%s", record.getBatchNo(), record.getFlowNo(), System.currentTimeMillis());
+                marketingPreUserDTO.setTaskId(taskId);
+                marketingPreUserDTO.setRequestId(requestId);
                 String extend = record.getExtend();
 
                 // 解析extend字段
@@ -377,7 +318,7 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
                 detailJson.put("surname", record.getSurname());
                 detailJson.put("gender", record.getGender());
                 detailJson.put("operateType", operateType);
-                if (!StringUtils.isEmpty(record.getEventType())){
+                if (!StringUtils.isEmpty(record.getEventType())) {
                     detailJson.put("eventType", record.getEventType());
                 }
 
@@ -710,27 +651,6 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
                     "奇富AI提额幅度计算发生错误！错误信息：" + e.getMessage()), e);
             return "";
-        }
-    }
-
-    /**
-     * 关闭线程池
-     */
-    private void shutdownThreadPool(ThreadPoolExecutor executor) {
-        executor.shutdown();
-        Boolean b = true;
-        while (b) {
-            if (executor.isTerminated()) {
-                b = false;
-            } else {
-                try {
-                    Thread.sleep(3000L);
-                } catch (InterruptedException e) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
-                            e.getMessage()), e);
-                    Thread.currentThread().interrupt();
-                }
-            }
         }
     }
 
