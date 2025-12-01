@@ -741,7 +741,7 @@
 
     <job:simple id="【monkey】-QiFuAiEventPushQueryJob"
                 class="com.br.marketing.monkey.job.qifu.QiFuAiEventPushQueryJob"
-                cron="0 0 18 29 9 ? 2099-2099"
+                cron="0 0/5 * * * ? "
                 description="奇富事件推送查询job"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
