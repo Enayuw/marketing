@@ -8,10 +8,7 @@ import com.br.marketing.datarelayservice.service.ZhongYuanUploadDataService;
 import com.br.marketing.dto.zhongyuan.*;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.clean.DataProcessEnum;
-import com.br.marketing.mapper.CallRecordLLMResultV2Mapper;
-import com.br.marketing.mapper.MarketingSyncUserMapper;
-import com.br.marketing.mapper.ZhongYuanTransferMapper;
-import com.br.marketing.mapper.ZhongYuanUploadMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.mapper.rulecleaning.MarketingCustomerOriginalDataMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -48,7 +45,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
     @Resource
     private CallRecordLLMResultV2Mapper callRecordLLMResultV2Mapper;
     @Resource
-    private MarketingSyncUserMapper marketingSyncUserMapper;
+    private MarketingSceneVariableMapper marketingSceneVariableMapper;
     private static final String TOKEN_PREFIX = "zyxj:token:";
     private static final long TOKEN_EXPIRE_TIME = 7200; // 2小时
 
@@ -779,71 +776,39 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             String testApiCode = request.getHeader("Test-ApiCode");
             String apiCode = testApiCode != null ? testApiCode : zhongYuanIdentity.get("apiCode");
 
-            // 5. 根据taskUid(即custNum)查询上传明细表 b_marketing_sync_{apiCode}
-            // taskUid = custNum，查询最新的一条记录
-            MarketingSyncUser syncUser = marketingSyncUserMapper.selectSynsUserByCustNumLastWithStatus(apiCode, changeData.getTaskUid());
+            // 5. 记录变更数据到数据库
+            MarketingSceneVariable marketingSceneVariable = new MarketingSceneVariable();
+            marketingSceneVariable.setApiCode(apiCode);
+            marketingSceneVariable.setFlowId(baseRequest.getFlowId());
+            marketingSceneVariable.setSysId(baseRequest.getSysId());
+            marketingSceneVariable.setTimestamp(baseRequest.getTimestamp());
+            marketingSceneVariable.setChannelNo(baseRequest.getChannelNo());
+            marketingSceneVariable.setVersion(baseRequest.getVersion());
+            marketingSceneVariable.setToken(baseRequest.getToken());
+            marketingSceneVariable.setSceneCode(changeData.getSceneCode());
+            marketingSceneVariable.setTaskUid(changeData.getTaskUid());
+            // 将变量列表转换为JSON字符串存储
+            marketingSceneVariable.setVariablelist(JSON.toJSONString(changeData.getVariableList()));
+            marketingSceneVariable.setExecuteStatus(0); // 0-待执行
+            marketingSceneVariable.setCreateTime(new Date());
+            marketingSceneVariable.setUpdateTime(new Date());
 
-            if (syncUser == null) {
-                log.warn("中原消金外呼任务场景变量修改，未找到对应记录，taskUid: {}, apiCode: {}", 
-                        changeData.getTaskUid(), apiCode);
-                return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.PARAM_ERROR.getCode(), 
-                        "未找到对应的上传记录");
-            }
-
-            // 6. 从variableList中提取overAmt字段
-            String overAmtValue = null;
-            for (ChangeSceneVariableRequest.Variable variable : changeData.getVariableList()) {
-                if ("overAmt".equals(variable.getCode()) && StringUtils.hasText(variable.getValue())) {
-                    overAmtValue = variable.getValue();
-                    break;
-                }
-            }
-            
-            if (overAmtValue == null) {
-                return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.PARAM_ERROR.getCode(), 
-                        "参数错误：variableList中未找到overAmt字段");
-            }
-            
-            // 7. 更新reserve_field1中的overAmt字段，其他字段保持不变
-            String reserveField1 = syncUser.getReserveField1();
-            JSONObject reserveField1Json;
-            
-            if (StringUtils.hasText(reserveField1)) {
-                try {
-                    reserveField1Json = JSON.parseObject(reserveField1);
-                } catch (Exception e) {
-                    log.error("解析reserve_field1失败，taskUid: {}, reserveField1: {}", 
-                            changeData.getTaskUid(), reserveField1, e);
-                    reserveField1Json = new JSONObject();
-                }
-            } else {
-                reserveField1Json = new JSONObject();
-            }
-            
-            // 只更新overAmt字段，若不存在则新增
-            reserveField1Json.put("overAmt", overAmtValue);
-            
-            syncUser.setReserveField1(reserveField1Json.toJSONString());
-            syncUser.setUpdateTime(new Date());
-            syncUser.setApiCode(apiCode);
-
-            // 8. 更新数据库
-            int updateResult = marketingSyncUserMapper.updateReserveFieldByPrimaryKey(syncUser);
-            
-            if (updateResult <= 0) {
-                log.error("中原消金外呼任务场景变量修改失败，taskUid: {}, id: {}", 
-                        changeData.getTaskUid(), syncUser.getId());
+            // 执行插入操作
+            int insertResult = marketingSceneVariableMapper.insertSelective(marketingSceneVariable);
+            if (insertResult <= 0) {
+                log.error("中原消金外呼任务场景变量修改失败，插入数据库失败，taskUid: {}, sceneCode: {}", 
+                        changeData.getTaskUid(), changeData.getSceneCode());
                 return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.SYSTEM_ERROR.getCode(), 
-                        "更新失败");
+                        "数据更新失败");
             }
 
-            // 9. 构建响应
+            // 6. 构建响应
             ChangeSceneVariableResponse responseData = new ChangeSceneVariableResponse();
             responseData.setTaskUid(changeData.getTaskUid());
             responseData.setEw("更新成功");
 
-            log.warn("中原消金外呼任务场景变量修改成功，taskUid: {}, sceneCode: {}, overAmt: {}", 
-                    changeData.getTaskUid(), changeData.getSceneCode(), overAmtValue);
+            log.warn("中原消金外呼任务场景变量修改成功，taskUid: {}, sceneCode: {}, variableList: {}", 
+                    changeData.getTaskUid(), changeData.getSceneCode(), JSON.toJSONString(changeData.getVariableList()));
 
             return ZhongYuanBaseResponse.success(responseData);
 
