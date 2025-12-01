@@ -197,11 +197,11 @@ public class LineSmsAccountController {
     @Operation(summary = "线路对账配置列表查询")
     @GetMapping("/getLineAccounts")
     public ApiResult getLineAccounts(@RequestParam(defaultValue = "1") Integer current,
-                                    @RequestParam(defaultValue = "10") Integer size,
-                                    @RequestParam(required = false) String lineSupplier,
-                                    @RequestParam(required = false) String callerFullName,
-                                    @RequestParam(required = false) Double price,
-                                    @RequestParam(required = false) String groupIdStr) {
+                                     @RequestParam(defaultValue = "10") Integer size,
+                                     @RequestParam(required = false) String lineSupplier,
+                                     @RequestParam(required = false) String callerFullName,
+                                     @RequestParam(required = false) Double price,
+                                     @RequestParam(required = false) String groupIdStr) {
         try {
             ApiResult apiResult = new ApiResult();
             if (StringUtils.isNotEmpty(groupIdStr)) {
@@ -238,8 +238,8 @@ public class LineSmsAccountController {
     @Operation(summary = "线路对账配置变更查询")
     @GetMapping("/getLineAccountLogs")
     public ApiResult getLineAccountLogs(@RequestParam(defaultValue = "1") Integer current,
-                                       @RequestParam(defaultValue = "10") Integer size,
-                                       @RequestParam(name = "groupIdStr") String groupIdStr) {
+                                        @RequestParam(defaultValue = "10") Integer size,
+                                        @RequestParam(name = "groupIdStr") String groupIdStr) {
         try {
             if (StringUtils.isEmpty(groupIdStr)) {
                 return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);

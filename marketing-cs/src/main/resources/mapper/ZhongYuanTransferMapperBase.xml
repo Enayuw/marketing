@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.ZhongYuanTransferMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.ZhongYuanTransfer" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="flow_id" property="flowId" jdbcType="VARCHAR" />
+    <result column="sys_id" property="sysId" jdbcType="VARCHAR" />
+    <result column="timestamp" property="timestamp" jdbcType="VARCHAR" />
+    <result column="channel_no" property="channelNo" jdbcType="VARCHAR" />
+    <result column="version" property="version" jdbcType="VARCHAR" />
+    <result column="token" property="token" jdbcType="VARCHAR" />
+    <result column="batch_uid" property="batchUid" jdbcType="VARCHAR" />
+    <result column="taskUid_list" property="taskuidList" jdbcType="VARCHAR" />
+    <result column="operation" property="operation" jdbcType="VARCHAR" />
+    <result column="clean_status" property="cleanStatus" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, api_code, flow_id, sys_id, `timestamp`, channel_no, version, token, batch_uid, 
+    taskUid_list, `operation`, clean_status, create_time, update_time
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.ZhongYuanTransferExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_marketing_zhongyuan_transfer
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from b_marketing_zhongyuan_transfer
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_marketing_zhongyuan_transfer
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.ZhongYuanTransferExample" >
+    delete from b_marketing_zhongyuan_transfer
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.ZhongYuanTransfer" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_marketing_zhongyuan_transfer (api_code, flow_id, sys_id, 
+      `timestamp`, channel_no, version, 
+      token, batch_uid, taskUid_list, 
+      `operation`, clean_status, create_time, 
+      update_time)
+    values (#{apiCode,jdbcType=VARCHAR}, #{flowId,jdbcType=VARCHAR}, #{sysId,jdbcType=VARCHAR}, 
+      #{timestamp,jdbcType=VARCHAR}, #{channelNo,jdbcType=VARCHAR}, #{version,jdbcType=VARCHAR}, 
+      #{token,jdbcType=VARCHAR}, #{batchUid,jdbcType=VARCHAR}, #{taskuidList,jdbcType=VARCHAR}, 
+      #{operation,jdbcType=VARCHAR}, #{cleanStatus,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.ZhongYuanTransfer" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_marketing_zhongyuan_transfer
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="flowId != null" >
+        flow_id,
+      </if>
+      <if test="sysId != null" >
+        sys_id,
+      </if>
+      <if test="timestamp != null" >
+        `timestamp`,
+      </if>
+      <if test="channelNo != null" >
+        channel_no,
+      </if>
+      <if test="version != null" >
+        version,
+      </if>
+      <if test="token != null" >
+        token,
+      </if>
+      <if test="batchUid != null" >
+        batch_uid,
+      </if>
+      <if test="taskuidList != null" >
+        taskUid_list,
+      </if>
+      <if test="operation != null" >
+        `operation`,
+      </if>
+      <if test="cleanStatus != null" >
+        clean_status,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="flowId != null" >
+        #{flowId,jdbcType=VARCHAR},
+      </if>
+      <if test="sysId != null" >
+        #{sysId,jdbcType=VARCHAR},
+      </if>
+      <if test="timestamp != null" >
+        #{timestamp,jdbcType=VARCHAR},
+      </if>
+      <if test="channelNo != null" >
+        #{channelNo,jdbcType=VARCHAR},
+      </if>
+      <if test="version != null" >
+        #{version,jdbcType=VARCHAR},
+      </if>
+      <if test="token != null" >
+        #{token,jdbcType=VARCHAR},
+      </if>
+      <if test="batchUid != null" >
+        #{batchUid,jdbcType=VARCHAR},
+      </if>
+      <if test="taskuidList != null" >
+        #{taskuidList,jdbcType=VARCHAR},
+      </if>
+      <if test="operation != null" >
+        #{operation,jdbcType=VARCHAR},
+      </if>
+      <if test="cleanStatus != null" >
+        #{cleanStatus,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.ZhongYuanTransferExample" resultType="java.lang.Integer" >
+    select count(*) from b_marketing_zhongyuan_transfer
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_marketing_zhongyuan_transfer
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.flowId != null" >
+        flow_id = #{record.flowId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.sysId != null" >
+        sys_id = #{record.sysId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.timestamp != null" >
+        `timestamp` = #{record.timestamp,jdbcType=VARCHAR},
+      </if>
+      <if test="record.channelNo != null" >
+        channel_no = #{record.channelNo,jdbcType=VARCHAR},
+      </if>
+      <if test="record.version != null" >
+        version = #{record.version,jdbcType=VARCHAR},
+      </if>
+      <if test="record.token != null" >
+        token = #{record.token,jdbcType=VARCHAR},
+      </if>
+      <if test="record.batchUid != null" >
+        batch_uid = #{record.batchUid,jdbcType=VARCHAR},
+      </if>
+      <if test="record.taskuidList != null" >
+        taskUid_list = #{record.taskuidList,jdbcType=VARCHAR},
+      </if>
+      <if test="record.operation != null" >
+        `operation` = #{record.operation,jdbcType=VARCHAR},
+      </if>
+      <if test="record.cleanStatus != null" >
+        clean_status = #{record.cleanStatus,jdbcType=INTEGER},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_marketing_zhongyuan_transfer
+    set id = #{record.id,jdbcType=BIGINT},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      flow_id = #{record.flowId,jdbcType=VARCHAR},
+      sys_id = #{record.sysId,jdbcType=VARCHAR},
+      `timestamp` = #{record.timestamp,jdbcType=VARCHAR},
+      channel_no = #{record.channelNo,jdbcType=VARCHAR},
+      version = #{record.version,jdbcType=VARCHAR},
+      token = #{record.token,jdbcType=VARCHAR},
+      batch_uid = #{record.batchUid,jdbcType=VARCHAR},
+      taskUid_list = #{record.taskuidList,jdbcType=VARCHAR},
+      `operation` = #{record.operation,jdbcType=VARCHAR},
+      clean_status = #{record.cleanStatus,jdbcType=INTEGER},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.ZhongYuanTransfer" >
+    update b_marketing_zhongyuan_transfer
+    <set >
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="flowId != null" >
+        flow_id = #{flowId,jdbcType=VARCHAR},
+      </if>
+      <if test="sysId != null" >
+        sys_id = #{sysId,jdbcType=VARCHAR},
+      </if>
+      <if test="timestamp != null" >
+        `timestamp` = #{timestamp,jdbcType=VARCHAR},
+      </if>
+      <if test="channelNo != null" >
+        channel_no = #{channelNo,jdbcType=VARCHAR},
+      </if>
+      <if test="version != null" >
+        version = #{version,jdbcType=VARCHAR},
+      </if>
+      <if test="token != null" >
+        token = #{token,jdbcType=VARCHAR},
+      </if>
+      <if test="batchUid != null" >
+        batch_uid = #{batchUid,jdbcType=VARCHAR},
+      </if>
+      <if test="taskuidList != null" >
+        taskUid_list = #{taskuidList,jdbcType=VARCHAR},
+      </if>
+      <if test="operation != null" >
+        `operation` = #{operation,jdbcType=VARCHAR},
+      </if>
+      <if test="cleanStatus != null" >
+        clean_status = #{cleanStatus,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.ZhongYuanTransfer" >
+    update b_marketing_zhongyuan_transfer
+    set api_code = #{apiCode,jdbcType=VARCHAR},
+      flow_id = #{flowId,jdbcType=VARCHAR},
+      sys_id = #{sysId,jdbcType=VARCHAR},
+      `timestamp` = #{timestamp,jdbcType=VARCHAR},
+      channel_no = #{channelNo,jdbcType=VARCHAR},
+      version = #{version,jdbcType=VARCHAR},
+      token = #{token,jdbcType=VARCHAR},
+      batch_uid = #{batchUid,jdbcType=VARCHAR},
+      taskUid_list = #{taskuidList,jdbcType=VARCHAR},
+      `operation` = #{operation,jdbcType=VARCHAR},
+      clean_status = #{cleanStatus,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>
