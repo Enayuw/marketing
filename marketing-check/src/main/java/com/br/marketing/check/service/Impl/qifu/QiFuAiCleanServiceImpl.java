@@ -290,7 +290,7 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
                 // 处理templateNo，提取userType
                 String templateStr = firstRecord.getTemplateNo();
                 if (templateStr != null && templateStr.length() > 12) {
-                    userType = templateStr.substring(0, templateStr.length() - 12);
+                    userType = templateStr.substring(templateStr.length() - 12);
                 } else {
                     userType = templateStr;
                 }
