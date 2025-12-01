@@ -1,6 +1,8 @@
 package com.br.marketing.monkey.service.qifu;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -16,6 +18,7 @@ import com.br.marketing.entity.BQifuUploadDataOriginal;
 import com.br.marketing.mapper.BQifuUploadDataOriginalMapper;
 import com.br.marketing.service.Impl.qifu.enums.QiFuProcessStatusEnum;
 import com.br.marketing.service.Impl.qifu.enums.QiFuSelectStatusEnum;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
@@ -82,10 +85,17 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
     @Resource
     private MethodRetryHandlerService methodRetryHandlerService;
 
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
     @Override
     public void queryCallMessage() {
         // 获取今天的日期
         String todayDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        JSONObject qifuAiCleanConfig = marketingCommonConfig.getQifuAiCleanConfig();
+        LocalTime timeThreshold = LocalTime.parse(qifuAiCleanConfig.getString("timeThreshold"));
+
         
         // 查询今天所有不同的user_type
         List<String> userTypeList = bQifuUploadDataOriginalMapper.selectDistinctUserTypeByDate(todayDate);
@@ -102,7 +112,7 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
             final String finalTodayDate = todayDate;
             threadPool.submit(() -> {
                 try {
-                    processUserTypeData(finalUserType, finalTodayDate);
+                    processUserTypeData(finalUserType, finalTodayDate, timeThreshold);
                 } catch (Exception e) {
                     log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode()
                             , "奇富360ai查询外呼信息异常[userType: " + finalUserType + "]" + e.getMessage()), e);
@@ -123,12 +133,12 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
      * @param todayDate 今天的日期 yyyy-MM-dd
      * @return true表示开关打开，false表示开关关闭
      */
-    private boolean checkRedisSwitch(String userType, String todayDate) {
+    private boolean checkRedisSwitch(String userType, String todayDate, LocalTime timeThreshold) {
         try {
             // 检查当前时间是否>12:00
             LocalTime currentTime = LocalTime.now();
-            if (currentTime.isAfter(TIME_THRESHOLD) || currentTime.equals(TIME_THRESHOLD)) {
-                log.warn("userType={} 当前时间 {} >= {}，Redis开关打开", userType, currentTime, TIME_THRESHOLD);
+            if (currentTime.isAfter(timeThreshold) || currentTime.equals(timeThreshold)) {
+                log.warn("userType={} 当前时间 {} >= {}，Redis开关打开", userType, currentTime, timeThreshold);
                 return true;
             }
 
@@ -237,9 +247,9 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
     /**
      * 处理某个userType的数据（按场景维度处理，基于今天的数据）
      */
-    private void processUserTypeData(String userType, String todayDate) {
+    private void processUserTypeData(String userType, String todayDate, LocalTime timeThreshold) {
         // 检查当前场景的Redis开关
-        boolean switchOpen = checkRedisSwitch(userType, todayDate);
+        boolean switchOpen = checkRedisSwitch(userType, todayDate, timeThreshold);
 
         // 根据开关状态确定查询的select_status列表
         List<Integer> selectStatusList;
@@ -349,7 +359,7 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
                         .findFirst()
                         .orElse(null);
 
-                if (callRealTimeDTO != null) {
+                if (callRealTimeDTO != null && hasValidCouponName(callRealTimeDTO)) {
                     // 将返回信息存在extend里
                     record.setExtend(JSON.toJSONString(callRealTimeDTO));
                     record.setStatus(QiFuProcessStatusEnum.UNPROCESSED.getCode());
@@ -386,6 +396,47 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
         List<List<BQifuUploadDataOriginal>> batches = ListUtils.partition(records, batchSize);
         for (List<BQifuUploadDataOriginal> batch : batches) {
             bQifuUploadDataOriginalMapper.batchUpdateExtendAndSelectStatus(batch);
+        }
+    }
+
+    /**
+     * 检查callRealTimeDTO的rCouponInfo字段中是否有有效的couponName
+     *
+     * @param callRealTimeDTO 实时外呼信息DTO
+     * @return true表示存在有效的couponName，false表示不存在
+     */
+    private boolean hasValidCouponName(CallRealTimeDTO callRealTimeDTO) {
+        if (callRealTimeDTO == null) {
+            return false;
+        }
+
+        String rCouponInfo = callRealTimeDTO.getRCouponInfo();
+        if (StringUtils.isBlank(rCouponInfo)) {
+            return false;
+        }
+
+        try {
+            JSONArray coupons = JSON.parseArray(rCouponInfo);
+            if (coupons == null || coupons.isEmpty()) {
+                return false;
+            }
+
+            // 遍历数组，检查是否有任何一个对象的couponName字段有值
+            for (int i = 0; i < coupons.size(); i++) {
+                JSONObject coupon = coupons.getJSONObject(i);
+                if (coupon != null) {
+                    String couponName = coupon.getString("couponName");
+                    if (StringUtils.isNotBlank(couponName)) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
+                    "解析rCouponInfo时发生错误，错误信息：" + e.getMessage()), e);
+            return false;
         }
     }
 
