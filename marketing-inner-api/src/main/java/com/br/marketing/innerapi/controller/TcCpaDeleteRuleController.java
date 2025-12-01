@@ -2,6 +2,7 @@ package com.br.marketing.innerapi.controller;
 
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.enums.TcFailMsgEnum;
 import com.br.marketing.service.tccpa.TcCpaDataDeleteRuleService;
 import com.br.marketing.vo.tccpa.TcyrCpaDeleteRuleVO;
 import io.swagger.annotations.Api;
@@ -11,6 +12,9 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 /**
@@ -30,7 +34,7 @@ public class TcCpaDeleteRuleController {
      * 同程CPA跑分文件数据包删除
      * @return
      */
-    @ApiOperation(value = "同程剔除规则列表 ", notes = "同程剔除规则列表 ", httpMethod = "POST")
+    @ApiOperation(value = "同程剔除规则列表 ", notes = "同程剔除规则列表 ", httpMethod = "GET")
     @GetMapping("/page")
     @ApiImplicitParams({@ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
             , @ApiImplicitParam(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
@@ -62,10 +66,21 @@ public class TcCpaDeleteRuleController {
      * 同程CPA跑分文件数据包删除
      * @return
      */
-    @ApiOperation(value = "同程CPA跑分文件数据包删除", notes = "同程CPA跑分文件数据包删除", httpMethod = "POST")
+    @ApiOperation(value = "同程CPA剔除规则删除", notes = "同程CPA剔除规则删除", httpMethod = "GET")
     @GetMapping("/delete")
     public ApiResult delete(@RequestParam("id") Long id) {
         return new ApiResult().fromResult(tcCpaDataDeleteRuleService.delete(id), CODE_1);
+    }
+
+    /**
+     * 同程CPA跑分文件数据包删除
+     * @return
+     */
+    @ApiOperation(value = "获取FailMsg列表", notes = "获取FailMsg列表", httpMethod = "GET")
+    @GetMapping("/getFailMsgs")
+    public ApiResult getFailMsgs() {
+        List<String> failMsgs = Arrays.stream(TcFailMsgEnum.values()).map(TcFailMsgEnum::getValue).collect(Collectors.toList());
+        return new ApiResult().success().setData(failMsgs);
     }
 
     /**
