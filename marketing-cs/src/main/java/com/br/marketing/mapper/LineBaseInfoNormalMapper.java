@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface LineBaseInfoNormalMapper extends LineBaseInfoNormalMapperBase{
 
-    List<LineBaseFullInfoDTO> selectLineBaeFullInfoList();
+    List<LineBaseFullInfoDTO> selectLineBaseFullInfoList();
 
     void updateOnlyDbOpStatus(@Param("onlyInDbIdList") List<Long> onlyInDbIdList,
                               @Param("opeStatus") Integer opStatus);
@@ -24,5 +24,5 @@ public interface LineBaseInfoNormalMapper extends LineBaseInfoNormalMapperBase{
                                       @Param("projectName") String projectName,
                                       @Param("caller") String caller);
 
-    List<LineBaseInfoNormal> selectByIdList(@Param("gatewayIdList") List<Long> gatewayIdList);
+    List<LineBaseInfoNormal> selectByGatewayIdList(@Param("gatewayIdList") List<Long> gatewayIdList);
 }

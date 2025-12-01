@@ -12,6 +12,9 @@ public class SmsAccountDto {
     @ApiModelProperty(value = "configId")
     private Long configId;
 
+    @ApiModelProperty(value = "groupId")
+    private Long groupId;
+
     @ApiModelProperty(value = "供应商id")
     @NotNull(message = "供应商id不能为空")
     private Long vendorId;
