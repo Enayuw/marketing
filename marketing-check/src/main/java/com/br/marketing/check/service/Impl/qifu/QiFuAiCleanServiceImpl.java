@@ -217,6 +217,7 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
                 String batch;
                 String strategyCode = "";
                 String strategyName = "";
+                String userType;
                 String finalStrategyCode;
                 String finalStrategyName;
 
@@ -230,6 +231,14 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
                     strategyCode = qifuAiCleanConfig.getString("strategyCode");
                     strategyName = qifuAiCleanConfig.getString("strategyName");
 
+                    // 处理templateNo，提取userType
+                    String templateStr = record.getTemplateNo();
+                    if (templateStr != null && templateStr.length() > 12) {
+                        userType = templateStr.substring(0,templateStr.length() - 12);
+                    } else {
+                        userType = templateStr;
+                    }
+
                     finalStrategyCode = strategyCode;
                     finalStrategyName = strategyName;
 
@@ -238,6 +247,7 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
                     batch = record.getReceiveDate().replaceAll("-", "")
                             .concat("_")
                             .concat(record.getApiCode());
+                    userType = record.getUserType();
 
                     // 处理templateNo
                     String templateStr = record.getTemplateNo();
@@ -266,7 +276,7 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
                 extendKey.put("batchNumber", batch);
                 extendKey.put("strategyCode", finalStrategyCode);
                 extendKey.put("strategyName", finalStrategyName);
-                extendKey.put("userType", record.getUserType());
+                extendKey.put("userType", userType);
                 extendKey.put("flowNo", record.getFlowNo());
 
                 if (StringUtils.isNotBlank(record.getOperateScene())) {
