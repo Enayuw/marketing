@@ -4,8 +4,8 @@ import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.datarelayservice.service.ZhongYuanUploadDataService;
 import com.br.marketing.dto.zhongyuan.ZhongYuanBaseResponse;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,7 +21,7 @@ import javax.servlet.http.HttpServletRequest;
  * @Author kongbx
  * @Date 2025/11/14 11:12
  */
-@Api(value = "中原消金")
+@Tag(name = "中原消金")
 @RequestMapping("/api/znwh/poc")
 @RestController
 @Slf4j
@@ -30,28 +30,28 @@ public class ZhongYuanCustomizeController {
     @Resource
     private ZhongYuanUploadDataService zhongYuanUploadDataService;
 
-    @ApiOperation(value = "用户登录接口")
+    @Operation(summary = "用户登录接口")
     @PostMapping("/task/login")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ZhongYuanBaseResponse<?> login(@RequestBody String jsonData, HttpServletRequest request) {
         return zhongYuanUploadDataService.login(jsonData, request);
     }
 
-    @ApiOperation(value = "外呼上报接口")
+    @Operation(summary = "外呼上报接口")
     @PostMapping("/batchTask")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ZhongYuanBaseResponse<?> batchTask(@RequestBody String jsonData, HttpServletRequest request) {
         return zhongYuanUploadDataService.batchTask(jsonData, request);
     }
 
-    @ApiOperation(value = "场景变量信息接口")
+    @Operation(summary = "场景变量信息接口")
     @PostMapping("/sceneVariable")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ZhongYuanBaseResponse<?> sceneVariable(@RequestBody String jsonData, HttpServletRequest request) {
         return zhongYuanUploadDataService.sceneVariable(jsonData, request);
     }
 
-    @ApiOperation(value = "批量外呼任务状态修改接口")
+    @Operation(summary = "批量外呼任务状态修改接口")
     @PostMapping("/task/status")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ZhongYuanBaseResponse<?> status(@RequestBody String jsonData, HttpServletRequest request) {
