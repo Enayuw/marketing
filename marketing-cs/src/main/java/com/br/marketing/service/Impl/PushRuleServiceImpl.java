@@ -176,6 +176,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         errorCodeHm.put("1005", "入库异常");
         errorCodeHm.put("1006", "参数过长");
         errorCodeHm.put("1007", "清洗异常");
+        errorCodeHm.put("1008", "存在4个字节字符");
 
     }
 
@@ -3363,6 +3364,13 @@ public class PushRuleServiceImpl implements PushRuleService {
                 } catch (DuplicateKeyException e) {
                     log.warn("insertMarketingSyncUser数据重复,{},{}", e.getMessage(), JSON.toJSON(marketingSyncUser), e);
                 } catch (Exception ex) {
+                    if (ex.getMessage() != null && ex.getMessage().contains("Incorrect string value")) {
+                        MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
+                        errorDetailVO.setCustNum(marketingPreUserDetailDTO.getCustNum());
+                        errorDetailVO.setErrorCode("1008");
+                        errorDetailVO.setErrorMsg(errorCodeHm.get("1008"));
+                        return new Result().setCode(ResultCode.FAIL.getValue()).setDate(errorDetailVO);
+                    }
                     if (ex.getMessage().contains("IDX_taskId_custNum")) {
                         MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
                         errorDetailVO.setCustNum(marketingPreUserDetailDTO.getCustNum());
