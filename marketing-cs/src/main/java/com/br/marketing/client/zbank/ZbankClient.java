@@ -67,6 +67,12 @@ public class ZbankClient {
     private String serviceIdRecodFile;
 
     /**
+     * 众邦AI回传接口
+     */
+    @Value("${api.zbank.api.serviceId.AICallBack:CMBrAIOCCallBack}")
+    private String serviceIdAICallBack;
+
+    /**
      * 渠道唯一标识（由众邦银行提供）
      */
     @Value("${api.zbank.file.channelId:2023042701}")
@@ -130,6 +136,19 @@ public class ZbankClient {
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public String recodFileRe(Object obj, String requestId) throws Exception {
         return apiCall(obj, serviceIdRecodFile, requestId);
+    }
+
+    /**
+     * 众邦AI定制化回调
+     *
+     * @param obj
+     * @param requestId
+     * @return
+     * @throws Exception
+     */
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
+    public String recodAIFileRe(Object obj, String requestId) throws Exception {
+        return apiCall(obj, serviceIdAICallBack, requestId);
     }
 
     /**

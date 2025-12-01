@@ -2,6 +2,7 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.entity.PushCustomerFileInfo;
 import com.br.marketing.entity.ZhongbangVoiceFileDetail;
+import com.br.marketing.entity.zhongbang.ZhongbangAiVoiceFileDetail;
 import org.apache.ibatis.annotations.Param;
 
 public interface PushCustomerFileInfoMapper extends PushCustomerFileInfoMapperBase {
@@ -10,4 +11,6 @@ public interface PushCustomerFileInfoMapper extends PushCustomerFileInfoMapperBa
             , @Param("fileDetail") ZhongbangVoiceFileDetail fileDetail
     );
 
+    int updateAIFileInfoAndFileDetailtikv_(@Param("fileInfo") PushCustomerFileInfo fileInfo,
+                                           @Param("fileDetail")ZhongbangAiVoiceFileDetail voiceFileDetail);
 }

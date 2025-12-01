@@ -583,6 +583,35 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
+    <job:simple id="【bridge】-ZhongYuanCleanTransferDataJob"
+                class="com.br.marketing.bridge.job.ZhongYuanCleanTransferDataJob"
+                cron="0 0 18 29 9 ? 2050-2050"
+                description="中原消金转化数据清洗Job"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
+    <job:simple id="【bridge】-ZhongYuanUploadDataJob"
+                class="com.br.marketing.bridge.job.ZhongYuanUploadDataJob"
+                cron="0 0 18 29 9 ? 2050-2050"
+                description="中原消金数据上传Job"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
 
     <job:simple id="【bridge】-LineBaseInfoSyncJob"
                 class="com.br.marketing.bridge.job.LineBaseInfoSyncJob"

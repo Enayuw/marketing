@@ -3508,6 +3508,23 @@ public class MarketingCommonConfig {
     private Map<String, Boolean> pushDataSwitch;
 
     /**
+     * 众邦AI拉取文件
+     * 格式：{apiCode:{文件名称:表头}}
+     * eg:{"3710027":[{"original_ai_":"custNum,id,cell"}]}
+     */
+    private Map<String, List<Map<String, String>>> zhongBangAIPullFileDataConfigMap;
+
+
+    /**
+     * 众邦AI上传录音文件明细配置,{"b_zhongbang_voice_file_detail":{"fileType":"zhongbang_ai_voice","uploadPoolSize":5,"getFilePoolSize":5}}
+     */
+    private Map<String, JSONObject> zhongBangAIVoiceFileConfig = new HashMap<>();
+    /**
+     * 中原消金权限验证
+     * {"apiCode":"7492860","appUser":"zyxfjr_coll","appKey":"87C5FCB80F872B8D67BA3306BB09157C"}
+     */
+    private Map<String, String> zhongYuanIdentity;
+    /**
      * 钉钉AI表格数据同步接口配置
      * {"b_dd_data_line_cost_price":{"appKey":"","appSecret":"","operatorId":"","baseId":"","sheetId":""},
      * "b_dd_data_sms_cost_price":{"appKey":"","appSecret":"","operatorId":"","baseId":"","sheetId":""}}
@@ -3531,5 +3548,15 @@ public class MarketingCommonConfig {
      * 携程贷后apicode集合
      */
     private List<String> xieChengPostLoanApiCodeLists;
+
+    /**
+     * 众邦AI推送明细线程数
+     */
+    private Integer zhongBangAIPushFileDetailNum = 5;
+    /**
+     * * 泰康请求参数
+     */
+    private Map<String,String> taikangConfig;
+
 
 }
