@@ -195,10 +195,40 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
             UpLoadCleanDTO upLoadCleanDTO = new UpLoadCleanDTO();
             upLoadCleanDTO.setApiCode(apiCode);
             upLoadCleanDTO.setJsonData(JSON.toJSONString(result.getData()));
-            pushInfoService.pushUploadOfCleanRetry(upLoadCleanDTO, null);
+            Result<Boolean> pushResult = pushInfoService.pushUploadOfCleanRetry(upLoadCleanDTO, null);
 
-            log.info("奇富360ai批量推送完成，apiCode: {}，数据条数: {}", apiCode, groupDataList.size());
+            // 推送成功后，更新状态为"处理完成"
+            if (pushResult != null && ResultCode.SUCCESS.getValue().equals(pushResult.getCode())) {
+                List<Long> idList = groupDataList.stream().map(BQifuUploadDataOriginal::getId).collect(Collectors.toList());
+                updateStatusToCompleted(idList);
+                log.info("奇富360ai批量推送成功，apiCode: {}，数据条数: {}", apiCode, groupDataList.size());
+            } else {
+                String errorMsg = pushResult != null ? pushResult.getMessage() : "推送失败";
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
+                        "奇富360ai批量推送失败，apiCode: " + apiCode + "，错误信息: " + errorMsg));
+            }
         }
+    }
+
+    /**
+     * 批量更新状态为"处理完成"
+     */
+    private void updateStatusToCompleted(List<Long> idList) {
+        if (CollectionUtils.isEmpty(idList)) {
+            return;
+        }
+
+        List<BQifuUploadDataOriginal> updateRecords = idList.stream()
+                .map(id -> {
+                    BQifuUploadDataOriginal updateRecord = new BQifuUploadDataOriginal();
+                    updateRecord.setId(id);
+                    updateRecord.setStatus(QiFuProcessStatusEnum.COMPLETED.getCode());
+                    return updateRecord;
+                })
+                .collect(Collectors.toList());
+
+        // 批量更新status
+        batchUpdateStatus(updateRecords);
     }
 
     /**
