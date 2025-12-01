@@ -109,7 +109,7 @@ public class ZnkfPushController {
         }
     }
 
-    @ApiOperation(value = "接收回调数据并入库（通用接口，支持不同版本）")
+    @Operation(summary = "接收回调数据并入库（通用接口，支持不同版本）")
     @PostMapping("/callbackDataInsert")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public String callbackDataInsert(@RequestBody String jsonData) {

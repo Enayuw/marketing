@@ -220,7 +220,7 @@ public class LineSmsAccountController {
     }
 
 
-    @ApiOperation(value = "线路对账配置删除")
+    @Operation(summary = "线路对账配置删除")
     @PatchMapping("/deleteLineAccount")
     public ApiResult deleteLineAccount(@RequestParam String groupIdStr) {
         try {
