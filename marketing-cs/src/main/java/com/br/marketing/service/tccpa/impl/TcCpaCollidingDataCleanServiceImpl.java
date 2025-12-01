@@ -1,10 +1,12 @@
 package com.br.marketing.service.tccpa.impl;
 
 import com.br.common.log.AlertLog;
+import com.br.marketing.client.qifu.util.StringUtil;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.JsonParseUtils;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.TcCpaCleanStatusEnum;
 import com.br.marketing.mapper.TcyrCpaCollidingDataCleanTaskMapper;
@@ -67,7 +69,6 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
         }
         TcyrCpaCollidingDataCleanTask cleanTask = cleanTasks.get(0);
         boolean ifRetry = TcCpaCleanStatusEnum.CLEAN_RETRY.getValue().equals(cleanTask.getCleanStatus());
-        String extend = cleanTask.getExtend() != null ? cleanTask.getExtend() : "";
         TpDynamicExecutor threadPool = null;
         try {
             //2.查询待删除的数据包
@@ -87,20 +88,30 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
             }
             //3.查询待清洗的数据包
             TcyrCpaCollidingDataPackageExample cleanPackageExample = new TcyrCpaCollidingDataPackageExample();
+            List<TcyrCpaCollidingDataPackage> cleanPackages = null;
             if (ifRetry) {
-                cleanPackageExample.createCriteria()
-                        .andIsDelEqualTo(Constants.DATA_VALID)
-                        .andCleanStatusEqualTo(TcCpaCleanStatusEnum.CLEAN_RETRY.getValue())
-                        .andEnabledEqualTo(Constants.ENABLED_ACT);
-                cleanPackageExample.setOrderByClause("priority asc");
+                if (StringUtils.isNotEmpty(cleanTask.getCleanPackageIds())) {
+                    List<Long> cleanPackageIds = Arrays.stream(cleanTask.getCleanPackageIds().split(","))
+                            .map(String::trim)
+                            .filter(s -> !s.isEmpty())
+                            .map(Long::valueOf)
+                            .collect(Collectors.toList());
+                    cleanPackageExample.createCriteria()
+                            .andIsDelEqualTo(Constants.DATA_VALID)
+                            .andCleanStatusIn(Arrays.asList(TcCpaCleanStatusEnum.CLEAN_VOID.getValue(), TcCpaCleanStatusEnum.CLEAN_RETRY.getValue()))
+                            .andIdIn(cleanPackageIds)
+                            .andEnabledEqualTo(Constants.ENABLED_ACT);
+                    cleanPackageExample.setOrderByClause("priority asc");
+                    cleanPackages = tcyrCpaCollidingDataPackageMapper.selectByExample(cleanPackageExample);
+                }
             } else {
                 cleanPackageExample.createCriteria()
                         .andIsDelEqualTo(Constants.DATA_VALID)
                         .andCleanStatusEqualTo(TcCpaCleanStatusEnum.CLEAN_VOID.getValue())
                         .andEnabledEqualTo(Constants.ENABLED_ACT);
                 cleanPackageExample.setOrderByClause("priority asc");
+                cleanPackages = tcyrCpaCollidingDataPackageMapper.selectByExample(cleanPackageExample);
             }
-            List<TcyrCpaCollidingDataPackage> cleanPackages = tcyrCpaCollidingDataPackageMapper.selectByExample(cleanPackageExample);
             List<Long> cleanPackageIds;
             if (CollectionUtils.isNotEmpty(cleanPackages)) {
                 cleanPackageIds = cleanPackages.stream().map(TcyrCpaCollidingDataPackage::getId).collect(Collectors.toList());
@@ -113,6 +124,7 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
             }
             //4.更新任务状态
             cleanTask.setCleanStatus(TcCpaCleanStatusEnum.CLEANING.getValue());
+            cleanTask.setUpdateTime(new Date());
             tcyrCpaCollidingDataCleanTaskMapper.updateByPrimaryKeySelective(cleanTask);
             //5.开启线程池
             threadPool = TpDynamicExecutorFactory
@@ -124,41 +136,47 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
                 boolean hasErrorForDelete = deletePackageData(deletePackages, threadPool, futures, marketingCommonConfig);
                 if (hasErrorForDelete) {
                     cleanTask.setCleanStatus(TcCpaCleanStatusEnum.CLEAN_FAIL.getValue());
-                    cleanTask.setExtend(extend.concat("剔除流程异常，未执行后续清洗，需要人工介入;"));
+                    cleanTask.setExtend("delete-fail");
+                    cleanTask.setUpdateTime(new Date());
+                    tcyrCpaCollidingDataCleanTaskMapper.updateByPrimaryKeySelective(cleanTask);
+                    return;
                 } else {
                     cleanTask.setCleanStatus(TcCpaCleanStatusEnum.CLEAN_SUCCESS.getValue());
+                    cleanTask.setExtend("delete-success");
                 }
             }
             //7.清洗新包/重试包
             if(CollectionUtils.isNotEmpty(cleanPackages)) {
                 Map<String, String> executeInfo = new HashMap<>();
-                String beforePackageInfo = null;
                 if (!ifRetry) {
-                    beforePackageInfo = packageInfoAssemble(cleanPackages);
+                    String beforePackageInfo = packageInfoAssemble(cleanPackages);
                     executeInfo.put("beforePackageInfo", beforePackageInfo);
                 } else {
-                    executeInfo = objectMapper.readValue(cleanTask.getExecuteInfo(), new TypeReference<Map<String, String>>() {
-                    });
+                    if (StringUtils.isNotEmpty(cleanTask.getExecuteInfo())) {
+                        executeInfo = objectMapper.readValue(cleanTask.getExecuteInfo(), new TypeReference<Map<String, String>>() {});
+                    }
                 }
                 //清洗流程
                 boolean hasErrorForClean = cleanPackageData(cleanPackages, threadPool, futures, ifRetry, marketingCommonConfig);
                 if (hasErrorForClean) {
                     cleanTask.setCleanStatus(TcCpaCleanStatusEnum.CLEAN_FAIL.getValue());
-                    cleanTask.setExtend(extend.concat("清洗流程异常，需要人工介入;"));
+                    cleanTask.setExtend("clean-fail");
                 } else {
                     //全量数据包量级更新
                     packageMagnitudeUpd();
                     cleanTask.setCleanStatus(TcCpaCleanStatusEnum.CLEAN_SUCCESS.getValue());
-                    cleanTask.setExtend(extend.concat("success"));
+                    cleanTask.setExtend("clean-success");
                     String afterPackageInfo = packageInfoAssemble(null);
                     executeInfo.put("afterPackageInfo", afterPackageInfo);
                 }
                 cleanTask.setExecuteInfo(JsonParseUtils.toJson(executeInfo));
             }
+            cleanTask.setUpdateTime(new Date());
             tcyrCpaCollidingDataCleanTaskMapper.updateByPrimaryKeySelective(cleanTask);
         } catch (Exception e) {
+            cleanTask.setUpdateTime(new Date());
             cleanTask.setCleanStatus(TcCpaCleanStatusEnum.CLEAN_FAIL.getValue());
-            cleanTask.setExtend(extend.concat(e.getMessage()).concat(";"));
+            cleanTask.setExtend(e.getMessage());
             tcyrCpaCollidingDataCleanTaskMapper.updateByPrimaryKeySelective(cleanTask);
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
                     "数据包清洗异常，cleanTaskId:" + cleanTask.getId(), TITLE), e);
@@ -240,7 +258,7 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
                 tcyrCpaCollidingDataPackageMapper.updateByPrimaryKeySelective(cleanPackage);
                 String[] batchNumbers;
                 List<TcyrCpaPackageCleanInfo> cleanInfos = new ArrayList<>();
-                if (ifRetry) {
+                if (ifRetry && StringUtils.isNotEmpty(cleanPackage.getExecuteInfo())) {
                     cleanInfos = objectMapper.readValue(cleanPackage.getExecuteInfo(),
                             new TypeReference<List<TcyrCpaPackageCleanInfo>>() {
                             });
@@ -307,17 +325,22 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
                 if (tcyrCpaBatchCleanInfos.size() > 0) {
                     hasError = true;
                     cleanInfos.add(new TcyrCpaPackageCleanInfo(new Date(), tcyrCpaBatchCleanInfos));
+                    cleanPackage.setExecuteInfo(JsonParseUtils.toJson(cleanInfos));
                     cleanPackage.setCleanStatus(TcCpaCleanStatusEnum.CLEAN_FAIL.getValue());
+                    cleanPackage.setExtend("clean-fail");
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
                             "数据清洗异常，packageId:" + cleanPackage.getId() + "请查看执行信息", TITLE));
                 } else {
                     cleanPackage.setCleanStatus(TcCpaCleanStatusEnum.CLEAN_SUCCESS.getValue());
+                    cleanPackage.setExtend("clean-success");
                 }
+                cleanPackage.setUpdateTime(new Date());
                 tcyrCpaCollidingDataPackageMapper.updateByPrimaryKeySelective(cleanPackage);
             } catch (Exception e) {
                 hasError = true;
                 cleanPackage.setCleanStatus(TcCpaCleanStatusEnum.CLEAN_FAIL.getValue());
                 cleanPackage.setExtend(e.getMessage());
+                cleanPackage.setUpdateTime(new Date());
                 tcyrCpaCollidingDataPackageMapper.updateByPrimaryKeySelective(cleanPackage);
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
                         "数据清洗异常，packageId:" + cleanPackage.getId(), TITLE), e);
@@ -374,19 +397,21 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
                 CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
                 Long unDeleteCount = tcyrCpaCollidingDataMapper.queryUnDeleteCounttiflash_(deletePackage.getId());
                 if (unDeleteCount == 0) {
-                    deletePackage.setExtend(null);
+                    deletePackage.setExtend("delete-success");
                     deletePackage.setIsDel(Constants.DATA_DEL);
                 } else {
                     //若还有未剔除的数据，说明子线程中出现问题
                     hasError = true;
-                    deletePackage.setExtend("数据未删除完全，请人工介入！");
+                    deletePackage.setExtend("delete-fail");
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
                             "数据未删除完全，packageId:" + deletePackage.getId(), TITLE));
                 }
+                deletePackage.setUpdateTime(new Date());
                 tcyrCpaCollidingDataPackageMapper.updateByPrimaryKeySelective(deletePackage);
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
                         "数据删除异常，packageId:" + deletePackage.getId(), TITLE), e);
+                deletePackage.setUpdateTime(new Date());
                 deletePackage.setExtend("数据删除异常，请人工介入！");
                 tcyrCpaCollidingDataPackageMapper.updateByPrimaryKeySelective(deletePackage);
             }
