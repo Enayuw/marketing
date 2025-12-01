@@ -71,7 +71,7 @@
         and select_status = 2
     </select>
 
-    <select id="selectDataForCleanByUserTypeAndDate" resultType="com.br.marketing.entity.BQifuUploadDataOriginal">
+    <select id="selectDataForCleanByDate" resultType="com.br.marketing.entity.BQifuUploadDataOriginal">
         select *
         from b_qifu_upload_data_original
         where receive_date = #{todayDate}
@@ -80,20 +80,6 @@
             and id > #{indexId}
         </if>
         order by id asc
-        limit #{pageSize}
-    </select>
-
-    <select id="selectRealTimeDataForClean" resultType="com.br.marketing.entity.BQifuUploadDataOriginal">
-        select *
-        from
-            b_qifu_upload_data_original
-        where is_real = 1
-        and status = 0
-        and select_status = 2
-        <if test="minId != null and minId > 0">
-            and id > #{minId}
-        </if>
-        order by id
         limit #{pageSize}
     </select>
 
