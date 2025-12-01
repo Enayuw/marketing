@@ -133,15 +133,8 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
      * @param todayDate 今天的日期 yyyy-MM-dd
      * @return true表示开关打开，false表示开关关闭
      */
-    private boolean checkRedisSwitch(String userType, String todayDate, LocalTime timeThreshold) {
+    private boolean checkRedisSwitch(String userType, String todayDate) {
         try {
-            // 检查当前时间是否>12:00
-            LocalTime currentTime = LocalTime.now();
-            if (currentTime.isAfter(timeThreshold) || currentTime.equals(timeThreshold)) {
-                log.warn("userType={} 当前时间 {} >= {}，Redis开关打开", userType, currentTime, timeThreshold);
-                return true;
-            }
-
             // 检查Redis中是否存在该user_type的开关
             String redisKey = REDIS_SWITCH_KEY_PREFIX + userType;
             Boolean exists = redisChgService.exists(redisKey);
@@ -249,11 +242,11 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
      */
     private void processUserTypeData(String userType, String todayDate, LocalTime timeThreshold) {
         // 检查当前场景的Redis开关
-        boolean switchOpen = checkRedisSwitch(userType, todayDate, timeThreshold);
+        boolean switchOpen = checkRedisSwitch(userType, todayDate);
 
         // 根据开关状态确定查询的select_status列表
         List<Integer> selectStatusList;
-        if (switchOpen) {
+        if (switchOpen && LocalTime.now().isBefore(timeThreshold)) {
             // 开关打开：查询 select_status in (待查询, 重试-接口异常)
             selectStatusList = Arrays.asList(
                 QiFuSelectStatusEnum.WAIT_QUERY.getCode(), 
@@ -283,7 +276,7 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
             indexId = dataList.get(dataList.size() - 1).getId();
 
             // 处理当前场景的数据（单场景调用接口）
-            processUserTypeDataList(userType, dataList, todayDate, switchOpen);
+            processUserTypeDataList(userType, dataList, todayDate, timeThreshold);
 
             if (dataList.size() < PAGE_SIZE) {
                 hasMore = false;
@@ -294,7 +287,7 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
     /**
      * 处理某个userType的数据列表（单场景调用接口）
      */
-    private void processUserTypeDataList(String userType, List<BQifuUploadDataOriginal> dataList, String todayDate, boolean switchOpen) {
+    private void processUserTypeDataList(String userType, List<BQifuUploadDataOriginal> dataList, String todayDate, LocalTime timeThreshold) {
         // 按serialNo分组，每50个一批调用接口
         List<String> serialNoList = dataList.stream()
                 .map(BQifuUploadDataOriginal::getSerialNo)
@@ -369,7 +362,7 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
                     record.setSelectStatus(QiFuSelectStatusEnum.RETRY_NO_COUPON.getCode());
                 }
             }
-            if (switchOpen) {
+            if (LocalTime.now().isAfter(timeThreshold) || LocalTime.now().equals(timeThreshold)) {
                 record.setStatus(QiFuProcessStatusEnum.UNPROCESSED.getCode());
             }
             updateRecords.add(record);
