@@ -1,7 +1,9 @@
 package com.br.marketing.service.tccpa.impl;
 
+import com.br.common.log.AlertLog;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.MarketingCustomer;
@@ -94,7 +96,8 @@ public class TcCpaDeleteRuleServiceImpl implements TcCpaDataDeleteRuleService {
      */
     private void processFailMsgRule(TcyrCpaDeleteRule rule) {
         if (rule.getFailMsgs() == null || rule.getFailMsgs().trim().isEmpty()) {
-            throw new IllegalArgumentException("规则类型为3时，失败类型不能为空");
+            log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(), "规则类型为3时，失败类型不能为空"));
+            return;
         }
 
         String script = generateFailMsgScript(rule.getFailMsgs());
@@ -137,7 +140,7 @@ public class TcCpaDeleteRuleServiceImpl implements TcCpaDataDeleteRuleService {
      */
     private void processCustomRule(TcyrCpaDeleteRule rule) {
         if (StringUtils.isBlank(rule.getExecuteScript())) {
-            throw new IllegalArgumentException("规则类型为4时，执行脚本不能为空");
+            log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(), "规则类型为4时，执行脚本不能为空"));
         }
         rule.setFailMsgs(null);
     }
