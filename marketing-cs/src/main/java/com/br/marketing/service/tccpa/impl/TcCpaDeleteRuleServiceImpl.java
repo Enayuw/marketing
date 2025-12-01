@@ -11,6 +11,7 @@ import com.br.marketing.entity.TcyrCpaDeleteRuleExample;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.TcyrCpaDeleteRuleMapper;
 import com.br.marketing.service.tccpa.TcCpaDataDeleteRuleService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.tccpa.TcyrCpaDeleteRuleVO;
 import com.github.pagehelper.PageInfo;
 import com.google.common.collect.Lists;
@@ -33,6 +34,9 @@ import java.util.stream.Collectors;
 public class TcCpaDeleteRuleServiceImpl implements TcCpaDataDeleteRuleService {
 
     @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
     private MarketingCustomerMapper marketingCustomerMapper;
 
     @Resource
@@ -42,8 +46,9 @@ public class TcCpaDeleteRuleServiceImpl implements TcCpaDataDeleteRuleService {
     public Result rule(TcyrCpaDeleteRuleVO ruleVO) {
         TcyrCpaDeleteRule rule = new TcyrCpaDeleteRule();
         BeanUtils.copyProperties(ruleVO, rule);
-        rule.setEnabled(Constants.ENABLED_ACT);
+        rule.setEnabled(Constants.ENABLED_FORB);
         rule.setIsDel(Constants.DATA_VALID);
+        rule.setApiCode(marketingCommonConfig.getTcyrCpaApiCode());
         rule.setCreateTime(new Date());
         rule.setUpdateTime(new Date());
         if(rule.getRuleType().equals(1) || rule.getRuleType().equals(2)) {
