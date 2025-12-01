@@ -1,10 +1,14 @@
 package com.br.marketing.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class TcyrCpaBatchCleanInfo {
 
     private String batchNumber;
@@ -14,11 +18,4 @@ public class TcyrCpaBatchCleanInfo {
     private boolean isInner;
 
     private String errorMsg;
-
-    public TcyrCpaBatchCleanInfo(String batchNumber, boolean isOut, boolean isInner, String errorMsg) {
-        this.batchNumber = batchNumber;
-        this.isOut = isOut;
-        this.isInner = isInner;
-        this.errorMsg = errorMsg;
-    }
 }

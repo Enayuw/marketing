@@ -101,7 +101,7 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
                             .andCleanStatusIn(Arrays.asList(TcCpaCleanStatusEnum.CLEAN_VOID.getValue(), TcCpaCleanStatusEnum.CLEAN_RETRY.getValue()))
                             .andIdIn(cleanPackageIds)
                             .andEnabledEqualTo(Constants.ENABLED_ACT);
-                    cleanPackageExample.setOrderByClause("priority asc");
+                    cleanPackageExample.setOrderByClause("priority asc, create_time asc");
                     cleanPackages = tcyrCpaCollidingDataPackageMapper.selectByExample(cleanPackageExample);
                 }
             } else {
@@ -109,7 +109,7 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
                         .andIsDelEqualTo(Constants.DATA_VALID)
                         .andCleanStatusEqualTo(TcCpaCleanStatusEnum.CLEAN_VOID.getValue())
                         .andEnabledEqualTo(Constants.ENABLED_ACT);
-                cleanPackageExample.setOrderByClause("priority asc");
+                cleanPackageExample.setOrderByClause("priority asc, create_time asc");
                 cleanPackages = tcyrCpaCollidingDataPackageMapper.selectByExample(cleanPackageExample);
             }
             List<Long> cleanPackageIds;
@@ -149,7 +149,7 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
             if(CollectionUtils.isNotEmpty(cleanPackages)) {
                 Map<String, String> executeInfo = new HashMap<>();
                 if (!ifRetry) {
-                    String beforePackageInfo = packageInfoAssemble(cleanPackages);
+                    String beforePackageInfo = packageInfoAssemble();
                     executeInfo.put("beforePackageInfo", beforePackageInfo);
                 } else {
                     if (StringUtils.isNotEmpty(cleanTask.getExecuteInfo())) {
@@ -166,7 +166,7 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
                     packageMagnitudeUpd();
                     cleanTask.setCleanStatus(TcCpaCleanStatusEnum.CLEAN_SUCCESS.getValue());
                     cleanTask.setExtend("clean-success");
-                    String afterPackageInfo = packageInfoAssemble(null);
+                    String afterPackageInfo = packageInfoAssemble();
                     executeInfo.put("afterPackageInfo", afterPackageInfo);
                 }
                 cleanTask.setExecuteInfo(JsonParseUtils.toJson(executeInfo));
@@ -214,21 +214,8 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
         tcyrCpaCollidingDataPackageMapper.batchUpdatePackageMagnitude(updPkgs);
     }
 
-    private String packageInfoAssemble(List<TcyrCpaCollidingDataPackage> dataPackages) {
-        if (CollectionUtils.isEmpty(dataPackages)) {
-            dataPackages = tcyrCpaCollidingDataPackageMapper.queryPackageInfo();
-        } else {
-            dataPackages = dataPackages.stream()
-                    .map(pkg -> {
-                        TcyrCpaCollidingDataPackage filtered = new TcyrCpaCollidingDataPackage();
-                        filtered.setId(pkg.getId());
-                        filtered.setPackageName(pkg.getPackageName());
-                        filtered.setMagnitude(pkg.getMagnitude());
-                        // 其他字段默认就是null
-                        return filtered;
-                    })
-                    .collect(Collectors.toList());
-        }
+    private String packageInfoAssemble() {
+        List<TcyrCpaCollidingDataPackage> dataPackages = tcyrCpaCollidingDataPackageMapper.queryPackageInfo();
         if (CollectionUtils.isEmpty(dataPackages)) {
             return null;
         }
