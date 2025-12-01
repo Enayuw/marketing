@@ -126,7 +126,7 @@ public class TcCpaDataPackageServiceImpl implements TcCpaDataPackageService {
         TcyrCpaCollidingDataPackageExample dataPackageExample = new TcyrCpaCollidingDataPackageExample();
         dataPackageExample.createCriteria().andIdEqualTo(id);
         TcyrCpaCollidingDataPackage dataPackage = new TcyrCpaCollidingDataPackage();
-        dataPackage.setIsDel(Constants.DATA_DEL);
+        dataPackage.setIsDel(Constants.DATA_DELING);
         tcyrCpaCollidingDataPackageMapper.updateByExampleSelective(dataPackage, dataPackageExample);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
