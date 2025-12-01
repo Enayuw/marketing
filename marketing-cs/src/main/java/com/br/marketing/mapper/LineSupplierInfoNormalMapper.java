@@ -11,4 +11,5 @@ public interface LineSupplierInfoNormalMapper extends LineSupplierInfoNormalMapp
     void updateOpeStatusById(@Param("lineSupplierId") Long lineSupplierId, @Param("opeStatus") Integer opeStatus);
 
     Long selectIdByLineSupplierNoOpeStatus(@Param("lineSupplier") String lineSupplier);
+
 }

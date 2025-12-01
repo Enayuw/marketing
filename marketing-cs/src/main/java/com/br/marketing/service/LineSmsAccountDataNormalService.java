@@ -15,4 +15,5 @@ public interface LineSmsAccountDataNormalService {
     void allowLineAccount(Long groupId);
 
     void deleteLineAccount(Long groupId);
+
 }

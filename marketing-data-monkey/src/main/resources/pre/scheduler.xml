@@ -738,6 +738,36 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
+    <job:simple id="【monkey】-ZhongBangAIPushVoiceDetailJob"
+                class="com.br.marketing.monkey.job.zhongbang.ai.ZhongBangAIPushVoiceDetailJob"
+                cron="0 1/10 * * * ? "
+                description="众邦AI录音文件明细推送"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
+    <job:simple id="【monkey】-ZhongBangAIPushVoiceFileJob"
+                class="com.br.marketing.monkey.job.zhongbang.ai.ZhongBangAIPushVoiceFileJob"
+                cron="0 1/10 * * * ? "
+                description="众邦AI录音文件推送"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
     <job:simple id="【monkey】-QiFuQueryCallRealTimeJob"
                 class="com.br.marketing.monkey.job.qifu.QiFuQueryCallRealTimeJob"
                 cron="0 0 18 29 9 ? 2099-2099"

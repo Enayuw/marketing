@@ -11,6 +11,7 @@ public class LineAccountDto {
     @Schema(description = "configId")
     private Long configId;
 
+
     @Schema(description = "groupId")
     private Long groupId;
 
