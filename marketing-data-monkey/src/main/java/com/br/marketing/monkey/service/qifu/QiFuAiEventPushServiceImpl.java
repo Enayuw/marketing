@@ -128,9 +128,6 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
         Long updateId = drsCustomizeUploadData.getId();
         try {
             //1. 插入数据
-            resultList.forEach(result ->{
-                result.setReceiveDate(DateUtils.format(new Date(),"yyyy-MM-dd"));
-            });
             insertRealTimeData(resultList);
 
             //2. 更新同步状态为1，确保数据已成功处理
@@ -145,6 +142,7 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
     @Override
     public void insertRealTimeData(List<BQifuUploadDataOriginal> qifuUploadDataOriginalList) {
         for (BQifuUploadDataOriginal qiFuUploadDataOriginal : qifuUploadDataOriginalList) {
+            qiFuUploadDataOriginal.setReceiveDate(DateUtils.format(new Date(), "yyyy-MM-dd"));
             qiFuUploadDataOriginal.setCreateTime(new Date());
             qiFuUploadDataOriginal.setUpdateTime(new Date());
             qiFuUploadDataOriginal.setIsReal(QiFuDataTypeEnum.REALTIME.getCode());
