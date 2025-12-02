@@ -30,7 +30,8 @@ import java.nio.charset.StandardCharsets;
         consumerGroup = MarketingCallRecordConstants.MARKETING_CALL_RECORD_VERSION_INSERT_QUEUE,
         selectorExpression = MarketingCallRecordConstants.TAG_MARKETING_CALL_RECORD_VERSION_INSERT,
         consumeThreadNumber = 1, consumeThreadMax = 1)
-public class MarketingCallRecordVersionConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt>, RocketMQPushConsumerLifecycleListener {
+public class MarketingCallRecordVersionConsumer extends BaseMqMessageListener
+        implements RocketMQListener<MessageExt>, RocketMQPushConsumerLifecycleListener {
 
     @Autowired
     RocketMqConsumerService consumerService;
