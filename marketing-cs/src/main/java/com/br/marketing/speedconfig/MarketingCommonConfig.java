@@ -3527,4 +3527,9 @@ public class MarketingCommonConfig {
     private List<String> tcyrCpaSuccessFileHeads;
 
     private Map<String, Boolean> tcCpaMockConfig;
+
+    /**
+     * TC CPA文件推送配置
+     */
+    private JSONObject tcCpaFilePushConfig;
 }
