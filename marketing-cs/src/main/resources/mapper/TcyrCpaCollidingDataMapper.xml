@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.TcyrCpaCollidingDataMapper" >
+    <insert id="insertBatchWithPriority">
+        insert into b_tcyr_cpa_colliding_data (package_id, priority, user_key)
+        values
+        <foreach collection="dataList" item="item" separator=",">
+            (#{item.packageId}, #{item.priority}, #{item.userKey})
+        </foreach>
+        on duplicate key update
+            <![CDATA[ last_package_id = if(VALUES(priority) <= priority, package_id, last_package_id),
+            package_id = if(VALUES(priority) <= priority, VALUES(package_id), package_id),
+            priority = if(VALUES(priority) <= priority, VALUES(priority), priority) ]]>
+    </insert>
+
+    <update id="updateDeleteWithPage">
+        update b_tcyr_cpa_colliding_data set is_del = 9
+        where package_id = #{packageId} and is_del = 1
+        order by id limit #{pageSize} offset #{offset}
+    </update>
+
+    <update id="updateIsDelByIds">
+        update b_tcyr_cpa_colliding_data
+        set is_del = 9
+        where is_del = 1
+        and id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="queryCountByPackageIdtiflash_" resultType="java.lang.Integer">
+        select count(1) from b_tcyr_cpa_colliding_data
+        where package_id = #{packageId}
+        and is_del = 1
+  </select>
+
+    <select id="queryScoreDataWithPagedoris_" resultType="java.lang.String">
+        ${querySql}
+        <if test="minCusNum != null">
+            and cus_num > #{minCusNum}
+        </if>
+        order by cus_num limit 2000
+    </select>
+
+    <select id="queryPackageMagnitudetiflash_" resultType="java.util.Map">
+        select package_id as packageId, count(1) as magnitude
+        from b_tcyr_cpa_colliding_data
+        where is_del = 1
+        group by package_id
+    </select>
+
+    <select id="queryIdsWithPagetikv_" resultType="java.lang.Long">
+        select id from b_tcyr_cpa_colliding_data
+        where package_id = #{packageId}
+        and is_del = 1
+        <if test="minId != null and minId > 0">
+            and id > #{minId}
+        </if>
+        order by id limit 2000
+    </select>
+
+    <select id="queryUnDeleteCounttiflash_" resultType="java.lang.Long">
+        select count(0) from b_tcyr_cpa_colliding_data
+        where package_id = #{packageId}
+        and is_del = 1
+    </select>
+
+</mapper>
