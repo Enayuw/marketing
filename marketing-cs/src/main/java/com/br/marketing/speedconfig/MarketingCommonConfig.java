@@ -3519,11 +3519,6 @@ public class MarketingCommonConfig {
      */
     private Map<String, JSONObject> zhongBangAIVoiceFileConfig = new HashMap<>();
     /**
-     * 中原消金权限验证
-     * {"apiCode":"7492860","appUser":"zyxfjr_coll","appKey":"87C5FCB80F872B8D67BA3306BB09157C"}
-     */
-    private Map<String, String> zhongYuanIdentity;
-    /**
      * 钉钉AI表格数据同步接口配置
      * {"b_dd_data_line_cost_price":{"appKey":"","appSecret":"","operatorId":"","baseId":"","sheetId":""},
      * "b_dd_data_sms_cost_price":{"appKey":"","appSecret":"","operatorId":"","baseId":"","sheetId":""}}
@@ -3542,6 +3537,12 @@ public class MarketingCommonConfig {
      * 同程易融cpa撞库成功文件表头
      */
     private List<String> tcyrCpaSuccessFileHeads;
+
+    /**
+     * 中原消金权限验证
+     * {"apiCode":"7492860","appUser":"zyxfjr_coll","appKey":"87C5FCB80F872B8D67BA3306BB09157C"}
+     */
+    private Map<String, String> zhongYuanIdentity;
 
     /**
      * 携程贷后apicode集合
