@@ -8,10 +8,9 @@ import com.br.marketing.entity.rocketmq.RocketMqSwitchEntity;
 import com.br.marketing.enums.CustomerPushDecisionActionEnum;
 import com.br.marketing.enums.DingDingAlarmFunctionEnum;
 import com.br.speed.client.common.annotations.SpeedFile;
+import com.google.common.collect.Lists;
 import lombok.Data;
 import org.springframework.context.annotation.Configuration;
-import com.google.common.collect.Lists;
-
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -3560,4 +3559,5 @@ public class MarketingCommonConfig {
     private Map<String,String> taikangConfig;
 
 
+    private Map<String, Boolean> tcCpaMockConfig;
 }
