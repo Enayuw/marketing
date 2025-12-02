@@ -712,13 +712,13 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             values.setLength(values.length() - 1);
         }
 
-        sql.append("INSERT INTO `");
-        sql.append(tableName);
-        sql.append("` (");
-        sql.append(columns);
-        sql.append(") VALUES (");
-        sql.append(values);
-        sql.append(")");
+        sql.append("INSERT INTO `")
+                .append(tableName)
+                .append("` (")
+                .append(columns)
+                .append(") VALUES (")
+                .append(values)
+                .append(")");
 
         return sql.toString();
     }

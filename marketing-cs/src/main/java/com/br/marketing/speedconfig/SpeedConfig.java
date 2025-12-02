@@ -66,7 +66,10 @@ public class SpeedConfig implements ISpeedAppendPipeline {
                     DataLoadingHandlerService.invalidateAll();
                 }
                 if ("call_record_config".equals(callRecordConfig)) {
-                    CallRecordingHandlerService.invalidateAll();
+                    CallRecordingHandlerService callRecordingHandlerService = context.getBean(CallRecordingHandlerService.class);
+                    if (callRecordingHandlerService != null) {
+                        callRecordingHandlerService.invalidateAll();
+                    }
                 }
                 if(!new Integer(0).equals(redisTest)){
                     RedisTestServiceImpl redisTestServiceImpl = context.getBean("redisTestServiceImpl", RedisTestServiceImpl.class);
