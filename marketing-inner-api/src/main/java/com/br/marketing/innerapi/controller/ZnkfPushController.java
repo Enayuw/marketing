@@ -15,6 +15,8 @@ import com.br.marketing.dto.customer.SmsRecordDTO;
 import com.br.marketing.service.ZnkfPushService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,7 +29,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/znkePush")
-@Tag(value = "客服推送营销数据")
+@Tag(name = "客服推送营销数据", description = "客服推送营销数据")
 public class ZnkfPushController {
 
     private static final Logger log = LoggerFactory.getLogger(ZnkfPushController.class);
@@ -104,6 +106,18 @@ public class ZnkfPushController {
         } catch (Exception ex) {
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(), ex.getMessage()), ex);
             throw ex;
+        }
+    }
+
+    @ApiOperation(value = "接收回调数据并入库（通用接口，支持不同版本）")
+    @PostMapping("/callbackDataInsert")
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
+    public String callbackDataInsert(@RequestBody String jsonData) {
+        try {
+            return znkfPushService.callbackDataInsert(jsonData);
+        } catch (Exception ex) {
+            log.error("接收回调数据并入库失败，错误信息：{}", ex.getMessage(), ex);
+            return "fail";
         }
     }
 }

@@ -1,6 +1,5 @@
 package com.br.marketing.dto;
 
-import com.br.marketing.entity.CostPriceExRecord;
 import lombok.Data;
 
 import java.util.ArrayList;

@@ -66,6 +66,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.dto.DataJoinLogDTO;
+import com.br.marketing.dto.zbank.ZbankAIVoiceFileDetailResultDTO;
 import com.br.marketing.dto.zbank.ZbankLabelRatingReResultDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.DiDiAllowMarketingEnum;
@@ -1467,6 +1468,62 @@ public class MethodRetryHandlerService {
     @RetryMethod(retryNowNum = 3)
     public Result<ResponseData<QryCallRealTimeResp>> qryCallRealTime(QryCallRealTimeReq qryCallRealTimeReq, Integer retry) {
         return qiFuClients.qryCallRealTimeUrl(qryCallRealTimeReq);
+    }
+
+    /**
+     * 众邦AI定制化回调
+     * @param json  封装的数据
+     * @param retry 重试切面使用的标记，正常业务调用时赋值null
+     * @return 接口响应业务字段
+     */
+    @RetryMethod(retryNowNum = 2, isOrNoDbRetry = false)
+    public Result<ZbankResponse<ZbankAIVoiceFileDetailResultDTO>> pushZbankRecodAIFileRe(JSONObject json
+            , Integer retry) {
+        Result<ZbankResponse<ZbankAIVoiceFileDetailResultDTO>> result = new Result<>();
+        JSONObject jsonData = new JSONObject();
+        JSONObject object = new JSONObject();
+        String requestId = channelId + System.nanoTime() + RandomStringUtils.randomNumeric(8);
+        jsonData.put("TxnSrlNo", requestId);
+        jsonData.put("TxnDt", LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE));
+        jsonData.put("TxnTs", LocalTime.now().format(DateTimeFormatter.ofPattern("HHmmss[SSS]")));
+        jsonData.putAll(json);
+        object.put("request", jsonData);
+        String jsonStr;
+        try {
+            jsonStr = zBankClient.recodAIFileRe(object, requestId);
+        } catch (Exception e) {
+            result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+            log.error("众邦AI录音明细回调接口异常"+e.getMessage(), e);
+            return result;
+        }
+        ZbankResponse<ZbankAIVoiceFileDetailResultDTO> dto;
+        try {
+            dto = JSONObject.parseObject(jsonStr
+                    , new TypeReference<ZbankResponse<ZbankAIVoiceFileDetailResultDTO>>() {
+                    });
+        } catch (Exception e) {
+            log.error(e.getMessage() + "响应：" + jsonStr, e);
+            result.setCode(ResultCode.FAIL.getValue());
+            return result;
+        }
+        if ("000000".equals(dto.getCode())) {
+            ZbankAIVoiceFileDetailResultDTO result1 = dto.getResult();
+            if ("000000".equals(result1.getRetCd())) {
+                result.setCode(ResultCode.SUCCESS.getValue());
+            } else {
+                result.setCode(ResultCode.FAIL.getValue());
+                log.error("众邦AI录音明细回调接口未知错误,不会重试,响应：{}", jsonStr);
+            }
+        } else if ("OPENAPI-I-00019".equals(dto.getCode())) {
+            // 流控 需要重试
+            log.warn("众邦AI录音明细回调接口出现流控,进入重试,响应：{}", jsonStr);
+            result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        } else {
+            log.error("众邦AI录音明细回调接口异常,不重试,响应：{},请求：{}", jsonStr, jsonData.toJSONString());
+            result.setCode(ResultCode.FAIL.getValue());
+        }
+        result.setDate(dto);
+        return result;
     }
 
 }

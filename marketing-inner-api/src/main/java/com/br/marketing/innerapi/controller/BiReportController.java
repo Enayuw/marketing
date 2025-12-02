@@ -24,6 +24,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
@@ -39,7 +41,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping(value = "/bi")
-@Tag(value = "BI报表相关接口", tags = "BI报表相关接口")
+@Tag(name = "BI报表相关接口", description = "BI报表相关接口")
 @Slf4j
 public class BiReportController {
 

@@ -46,13 +46,9 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.stream.Collectors;
 
 
 /**
@@ -412,7 +408,79 @@ public class HttpProxyClient {
         }
         return res;
     }
+    public HashMap<String, String> sendByCodePoolTaikang(Object param, String url, Boolean isPorxy, String extendInfo,Header[] headers) {
+        InterfaceLog interfaceLog = new InterfaceLog();
+        interfaceLog.setExtendInfo(extendInfo);
+        interfaceLog.setRequestId(UUID.randomUUID().toString());
+        interfaceLog.setUrl(url);
+        interfaceLog.setCreateTime(new Date());
+        HttpClient httpClient = getHttpClientInner(isPorxy);
+        HashMap<String, String> res = new HashMap<>();
+        Long start = System.currentTimeMillis();
 
+        try {
+            HttpPost post = new HttpPost(url);
+            String s = JSON.toJSONString(param);
+            interfaceLog.setRequestParam(s);
+            HttpEntity requestEntity = new StringEntity(s,"application/json;charset=UTF-8", CHARSET_UTF8);
+            post.setEntity(requestEntity);
+
+            // ========== 修正Header设置 ==========
+            // 正确设置Content-Type（推荐方式）
+            post.setHeaders(headers);
+
+            // 记录header日志（修正后的）
+            String headerString = Arrays.stream(post.getAllHeaders())
+                    .map(header -> header.getName() + "=" + header.getValue())
+                    .collect(Collectors.joining(", "));
+            interfaceLog.setHeader(headerString);
+            // ========== Header设置结束 ==========
+
+            RequestConfig requestConfig = getRequestConfig(isPorxy, 20000, null);
+            post.setConfig(requestConfig);
+
+            HttpResponse response = null;
+            start = System.currentTimeMillis();
+
+            if (isPorxy) {
+                AuthCache authCache = new BasicAuthCache();
+                AuthScheme authScheme = new BasicScheme(ChallengeState.PROXY);
+                authCache.put(new HttpHost(proxyHost, proxyPort), authScheme);
+                HttpContext httpContext = new BasicHttpContext();
+                httpContext.setAttribute(ClientContext.AUTH_CACHE, authCache);
+                response = httpClient.execute(post, httpContext);
+            } else {
+                response = httpClient.execute(post);
+            }
+
+            Long end = System.currentTimeMillis();
+            interfaceLog.setExpire(String.valueOf(end - start));
+            int statusCode = response.getStatusLine().getStatusCode();
+            res.put("httpcode", String.valueOf(statusCode));
+            String result = EntityUtils.toString(response.getEntity(), CHARSET_UTF8);
+            res.put("content", result);
+            interfaceLog.setResult(result);
+            interfaceLog.setHttpCode(statusCode);
+            post.releaseConnection();
+
+        } catch (Exception e) {
+            log.error("url={} param={}", url, param, e);
+            Long end = System.currentTimeMillis();
+            interfaceLog.setExpire(String.valueOf(end - start));
+            interfaceLog.setResult(e.getMessage());
+            res.put("content", e.getMessage());
+        }
+
+        interfaceLogDbpool.submit(() -> {
+            try {
+                interfaceLogMapper.insertSelective(interfaceLog);
+            } catch (Exception ex) {
+                log.error(String.format("插入接口日志报错:%s", ex.getMessage()), ex);
+            }
+        });
+
+        return res;
+    }
 
     private HashMap<String, String> sendByCodePoolWithHeader(Object param, String url, Boolean isPorxy, String mediaType, String extendInfo, Boolean isDbLog, Boolean isFileLog, Header[] headers) {
         InterfaceLog interfaceLog = new InterfaceLog();

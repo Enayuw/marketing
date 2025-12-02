@@ -59,9 +59,6 @@ public enum ThreadPoolNameEnum {
 
     HALO_CALLBACK_DATA_3710217(40,"halo_callback_data_3710217","哈啰营销数据回传"),
     XIECHENG_CYCLE_DELETE_EST(41,"xiecheng_cycle_delete_est", "携程周期剔除量级预估"),
-
-
-
     ;
 
     private final Integer order;

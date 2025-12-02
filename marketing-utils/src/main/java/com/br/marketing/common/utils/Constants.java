@@ -150,6 +150,11 @@ public class Constants {
 
 
     public static final String LOAN_BUSINESSTYPECODE = "A202";
+
+    public static final Integer DATA_ISDELETE_NO = 0;
+
+    public static final Integer DATA_ISDELETE_YES = 1;
+
     public static final Integer DATA_VALID = 1;
 
     public static final Integer DATA_DELING = 2;

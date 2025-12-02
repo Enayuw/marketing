@@ -35,7 +35,7 @@ import java.util.Set;
  */
 @RestController
 @RequestMapping(value = "/rule/customerAssignedGroup")
-@Tag(value = "客户开发分组信息", tags = "客户开发分组信息", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "客户开发分组信息", description = "客户开发分组信息")
 public class CustomerAssignedGroupController {
 
     private static final Logger log = LoggerFactory.getLogger(CustomerAssignedGroupController.class);

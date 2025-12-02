@@ -10,6 +10,8 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -33,7 +35,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping(value = "/rule/tsr")
-@Tag(value = "客户转化数据统计报表", tags = "客户转化数据统计报表", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "客户转化数据统计报表", description = "客户转化数据统计报表")
 @Slf4j
 public class TransferSyncReportController {
 
@@ -45,15 +47,15 @@ public class TransferSyncReportController {
 
     @GetMapping("getReportList")
     @Operation(summary = "客户转化数据统计报表列表", description = "客户转化数据统计报表列表")
-    @Parameters({@Parameter(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
-            , @Parameter(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
-            , @Parameter(name = "cidOrName", value = "客户名称/客户编号", paramType = "query", dataType = "string")
-            , @Parameter(name = "appletTimeStart", value = "上传日期开始", paramType = "query", dataType = "string")
-            , @Parameter(name = "appletTimeEnd", value = "上传日期截至", paramType = "query", dataType = "string")
-            , @Parameter(name = "apiCodes", value = "apiCode筛选,支持多选,逗号分隔", paramType = "query", dataType = "string")
-            , @Parameter(name = "userTypes", value = "场景筛选,支持多选,逗号分隔(例：S01,S02,促首登)", paramType = "query", dataType = "string")
+    @Parameters({@Parameter(name = "current", description = "页号")
+            , @Parameter(name = "size", description = "页大小")
+            , @Parameter(name = "cidOrName", description = "客户名称/客户编号")
+            , @Parameter(name = "appletTimeStart", description = "上传日期开始")
+            , @Parameter(name = "appletTimeEnd", description = "上传日期截至")
+            , @Parameter(name = "apiCodes", description = "apiCode筛选,支持多选,逗号分隔")
+            , @Parameter(name = "userTypes", description = "场景筛选,支持多选,逗号分隔(例：S01,S02,促首登)")
     })
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = MarketingSyncReport.class)})
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR")})
     @AddDataAuthBusiness
     public ApiResult<PageResultReturn> getReportList(@RequestParam(defaultValue = "1") int current
             , @RequestParam(defaultValue = "10") int size
@@ -71,13 +73,13 @@ public class TransferSyncReportController {
 
     @GetMapping("getReportListTotal")
     @Operation(summary = "客户转化数据统计报表总计", description = "客户转化数据统计报表列表总计")
-    @Parameters({@Parameter(name = "cidOrName", value = "客户名称/客户编号", paramType = "query", dataType = "string")
-            , @Parameter(name = "appletTimeStart", value = "上传日期开始", paramType = "query", dataType = "string")
-            , @Parameter(name = "appletTimeEnd", value = "上传日期截至", paramType = "query", dataType = "string")
-            , @Parameter(name = "apiCodes", value = "apiCode筛选,支持多选,逗号分隔", paramType = "query", dataType = "string")
-            , @Parameter(name = "userTypes", value = "场景筛选,支持多选,逗号分隔(例：S01,S02,促首登)", paramType = "query", dataType = "string")
+    @Parameters({@Parameter(name = "cidOrName", description = "客户名称/客户编号")
+            , @Parameter(name = "appletTimeStart", description = "上传日期开始")
+            , @Parameter(name = "appletTimeEnd", description = "上传日期截至")
+            , @Parameter(name = "apiCodes", description = "apiCode筛选,支持多选,逗号分隔")
+            , @Parameter(name = "userTypes", description = "场景筛选,支持多选,逗号分隔(例：S01,S02,促首登)")
     })
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = MarketingSyncReport.class)})
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR")})
     @AddDataAuthBusiness
     public ApiResult<Map<String, String>> getReportListTotal(@RequestParam(required = false) String cidOrName
             , @RequestParam(required = false) String appletTimeStart
@@ -90,8 +92,8 @@ public class TransferSyncReportController {
 
     @GetMapping("triggerTaskReportJob")
     @Operation(summary = "手动执行转化数据统计报表任务", description = "手动执行转化数据统计报表任务")
-    @Parameter(name = "uploadDate", value = "当日日期(yyyy-MM-dd)", paramType = "query", dataType = "string")
-    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = MarketingSyncReport.class)})
+    @Parameter(name = "uploadDate", description = "当日日期(yyyy-MM-dd)")
+    @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_ERROR")})
     public ApiResult<Boolean> triggerTaskUploadSyncReportJob(@RequestParam(required = false) String dateStr) {
         try {
             boolean statisSwitch = !marketingCommonConfig.getUploadAndTransferDataRealtimeStatisSwitch();

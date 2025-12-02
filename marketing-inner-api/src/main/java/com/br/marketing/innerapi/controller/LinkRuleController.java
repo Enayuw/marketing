@@ -3,6 +3,7 @@ package com.br.marketing.innerapi.controller;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.dto.linkgo.CreateTaskDataDTO;
 import com.br.marketing.service.LinkRuleService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,7 +19,7 @@ public class LinkRuleController {
     private LinkRuleService linkRuleService;
 
     @PostMapping("/createTask")
-    @Operation(value = "Create export tasks in batch", notes = "Receive task data list from marketingkit_cn project", httpMethod = "POST")
+    @Operation(summary = "Create export tasks in batch", description = "Receive task data list from marketingkit_cn project")
     public ApiResult<Boolean> createTask(@RequestBody List<CreateTaskDataDTO> taskDataList) {
         try {
             log.info("Received create export tasks request: taskCount={}", taskDataList != null ? taskDataList.size() : 0);

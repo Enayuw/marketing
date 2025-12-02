@@ -434,4 +434,9 @@ public class RedisKeyConstant {
      * sftp上传文件任务锁
      */
     public static final String FILE_UPLOAD_TASK_LOCK = prefix.concat("fileUpload:task:lock");
+    /**
+     * 上传数据重推决策每日次数key
+     */
+    public static final String UPLOAD_REPUSH_POLICY_NUM = prefix.concat("upload:toPolicy:repush:num:");
+
 }

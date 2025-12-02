@@ -29,6 +29,8 @@ public class DataProcessingContext implements ApplicationContextAware {
         DATA_PROXY.put("ZhongBangSyncXinDaiProxy", ZhongBangSyncXinDaiProxy.class);
         DATA_PROXY.put("ZhongBangTransferProxy", ZhongBangTransferProxy.class);
         DATA_PROXY.put("YiLianTransferCleanProxy", YiLianTransferCleanProxy.class);
+        DATA_PROXY.put("ZhongBangAISyncCleanProxy", ZhongBangAISyncCleanProxy.class);
+
     }
 
     @Override

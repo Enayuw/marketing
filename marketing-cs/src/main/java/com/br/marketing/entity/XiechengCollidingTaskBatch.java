@@ -24,7 +24,7 @@ public class XiechengCollidingTaskBatch {
     private String batchNumber;
 
     /**
-     * 0-一般剔除、1-动态补充包剔除、2-黑名单剔除
+     * 剔除类型，1-周期数据剔除、3-动态补充包剔除
      */
     private Integer type;
 
@@ -34,9 +34,14 @@ public class XiechengCollidingTaskBatch {
     private Integer status;
 
     /**
-     * 数据数量
+     * 数据量级
      */
     private Integer actualNumber;
+
+    /**
+     * 0-正常；1-删除
+     */
+    private Integer isDelete;
 
     /**
      * 
@@ -47,7 +52,6 @@ public class XiechengCollidingTaskBatch {
      * 
      */
     private Date updateTime;
-
 
     public Long getId() {
         return id;
@@ -97,9 +101,21 @@ public class XiechengCollidingTaskBatch {
         this.status = status;
     }
 
-    public Integer getActualNumber() { return actualNumber; }
+    public Integer getActualNumber() {
+        return actualNumber;
+    }
 
-    public void setActualNumber(Integer actualNumber) { this.actualNumber = actualNumber; }
+    public void setActualNumber(Integer actualNumber) {
+        this.actualNumber = actualNumber;
+    }
+
+    public Integer getIsDelete() {
+        return isDelete;
+    }
+
+    public void setIsDelete(Integer isDelete) {
+        this.isDelete = isDelete;
+    }
 
     public Date getCreateTime() {
         return createTime;
@@ -116,5 +132,4 @@ public class XiechengCollidingTaskBatch {
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
     }
-
 }

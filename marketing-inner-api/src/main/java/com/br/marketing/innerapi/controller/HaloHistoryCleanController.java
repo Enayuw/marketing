@@ -6,6 +6,8 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.service.HaloHistoryCleanService;
 import org.springframework.beans.factory.annotation.Autowired;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @Configuration
 @RequestMapping("/rule/cleanHistory")
-@Tag(value = "哈啰历史数据洗数", tags = "哈啰历史数据洗数", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "哈啰历史数据洗数", description = "哈啰历史数据洗数")
 public class HaloHistoryCleanController {
 
 
