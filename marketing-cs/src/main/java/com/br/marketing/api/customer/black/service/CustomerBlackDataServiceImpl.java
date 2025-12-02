@@ -25,6 +25,10 @@ import java.time.LocalDate;
 import java.util.Date;
 import java.util.Objects;
 import javax.annotation.Resource;
+
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pulsar.client.api.PulsarClientException;
@@ -51,6 +55,9 @@ public class CustomerBlackDataServiceImpl implements CustomerBlackDataService {
 
     @Resource
     private TableCreateServiceImpl tableCreateService;
+
+    @Resource
+    private TrackingService trackingService;
 
     @Override
     public ResponseCustomDTO receiveCustomizeBlackData(String apiCode, String jsonData) {
@@ -130,6 +137,24 @@ public class CustomerBlackDataServiceImpl implements CustomerBlackDataService {
                         e);
                 // 6.1 数据库容灾
                 respCustomer = sendMq(customerBlackDataHandler, apiCode, jsonData);
+            }
+            try{
+                JSONObject condition = new JSONObject();
+                condition.put("request_id",blackData.getRequestId());
+                trackingService.trackBusinessLog(DataFlowDirection.IN
+                        , apiCode
+                        , "定制黑名单接口"
+                        , String.format("b_customize_black_data_%s", tCid)
+                        , JSON.toJSONString(condition)
+                        , Long.valueOf(blackData.getBizDataNumber())
+                        , TrackingContext.generateBatchId());
+            }catch (Exception ex){
+                log.warn(
+                        AlertLog.buildWarnMessage(
+                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                , ex.getMessage()
+                                , "埋点异常")
+                        , ex);
             }
             // 8. 返回响应
             return respCustomer.getResponseCustomDTO();

@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.adapter.transfer.TransferSyncAdapter;
 import com.br.marketing.adapter.transfer.adaptee.CaseShuheUserAdaptee;
@@ -291,14 +292,22 @@ public class ShuHeUserServiceImpl {
         // 埋点
         JSONObject condition = new JSONObject();
         condition.put("request_id", transferSyncUser.getRequestId());
-
-        trackingService.trackBusinessLog(DataFlowDirection.IN
-                , apiCode
-                , "数禾定制转化接口上传数据"
-                , "b_case_shuhe_user"
-                , JSON.toJSONString(condition)
-                , 1L
-                , TrackingContext.generateBatchId());
+        try {
+            trackingService.trackBusinessLog(DataFlowDirection.IN
+                    , apiCode
+                    , "数禾定制转化接口上传数据"
+                    , "b_case_shuhe_user"
+                    , JSON.toJSONString(condition)
+                    , 1L
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
     }
 
     private void saveShuheTransferInfo(String apiCode, CaseShuheUser caseShuheUser, MarketingTransferSyncUser transferSyncUser) {

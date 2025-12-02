@@ -6,6 +6,7 @@ import com.alibaba.fastjson.TypeReference;
 import com.br.arch.geo.pulsar.ProductPulsarClientManager;
 import com.br.arch.geo.pulsar.ProductPulsarProducer;
 import com.br.common.encryption.Md5Utils;
+import com.br.common.log.AlertLog;
 import com.br.marketing.api.customer.transfer.adapter.CustomerDataAdapter;
 import com.br.marketing.api.customer.transfer.adapter.TransferDataAdaptee;
 import com.br.marketing.api.customer.transfer.handler.CustomerDataHandleSingleton;
@@ -17,6 +18,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.PulsarSubscription;
 import com.br.marketing.common.constants.PulsarTopic;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.utils.PulsarConsumerSkipUtil;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.CustomerResponseDTO;
@@ -155,18 +157,25 @@ public class CustomerTransferDataServiceImpl implements CustomerTransferDataServ
                 respCustomer = sendMq(customDataHandleImpl, receive, respCustomer);
             }
 
-            // 埋点
-            JSONObject condition = new JSONObject();
-            condition.put("request_id", receive.getRequestId());
-
-            trackingService.trackBusinessLog(DataFlowDirection.IN
-                    , apiCode
-                    , "定制通用转化接口"
-                    ,"b_customer_transfer_data_receive"
-                    , JSON.toJSONString(condition)
-                    , Long.valueOf(receive.getBizDataNumber())
-                    , TrackingContext.generateBatchId());
-
+            try {
+                // 埋点
+                JSONObject condition = new JSONObject();
+                condition.put("request_id", receive.getRequestId());
+                trackingService.trackBusinessLog(DataFlowDirection.IN
+                        , apiCode
+                        , "定制通用转化接口"
+                        , "b_customer_transfer_data_receive"
+                        , JSON.toJSONString(condition)
+                        , Long.valueOf(receive.getBizDataNumber())
+                        , TrackingContext.generateBatchId());
+            } catch (Exception ex) {
+                log.warn(
+                        AlertLog.buildWarnMessage(
+                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                , ex.getMessage()
+                                , "埋点异常")
+                        , ex);
+            }
             // 8. 返回响应
             return respCustomer.getResponseCustomDTO();
         } catch (Exception e) {

@@ -144,17 +144,25 @@ public class CustomerUploadDataServiceImpl implements CustomerUploadDataService 
                 respCustomer = sendMq(customerUploadDataHandler, apiCode, jsonData);
             }
 
-            // 埋点
-            JSONObject condition = new JSONObject();
-            condition.put("request_id", uploadData.getRequestId());
-            trackingService.trackBusinessLog(DataFlowDirection.IN
-                    , apiCode
-                    , "通用定制上传接口"
-                    , String.format("b_customize_upload_data_%s", tCid)
-                    , JSON.toJSONString(condition)
-                    , Long.valueOf(uploadData.getBizDataNumber())
-                    , TrackingContext.generateBatchId());
-
+            try {
+                // 埋点
+                JSONObject condition = new JSONObject();
+                condition.put("request_id", uploadData.getRequestId());
+                trackingService.trackBusinessLog(DataFlowDirection.IN
+                        , apiCode
+                        , "通用定制上传接口"
+                        , String.format("b_customize_upload_data_%s", tCid)
+                        , JSON.toJSONString(condition)
+                        , Long.valueOf(uploadData.getBizDataNumber())
+                        , TrackingContext.generateBatchId());
+            }catch (Exception ex){
+                log.warn(
+                        AlertLog.buildWarnMessage(
+                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                , ex.getMessage()
+                                , "埋点异常")
+                        , ex);
+            }
             // 8. 返回响应
             return respCustomer.getResponseCustomDTO();
         } catch (Exception e) {

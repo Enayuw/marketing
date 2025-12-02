@@ -15,8 +15,10 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.annotation.Resource;
 
+import com.br.common.log.AlertLog;
 import com.br.marketing.common.constants.PulsarSubscription;
 import com.br.marketing.common.constants.rocketmq.MarketingUploadConstants;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.enums.clean.DataSourceTypeEnum;
 import com.br.marketing.service.PushRuleService;
@@ -286,14 +288,22 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
         // 埋点
         JSONObject condition = new JSONObject();
         condition.put("request_id", shuheUploadData.getRequestId());
-
-        trackingService.trackBusinessLog(DataFlowDirection.IN
-                , apiCode
-                , "数禾定制上传接口"
-                ,"b_case_shuhe_upload_data"
-                , JSON.toJSONString(condition)
-                , 1L
-                , TrackingContext.generateBatchId());
+        try {
+            trackingService.trackBusinessLog(DataFlowDirection.IN
+                    , apiCode
+                    , "数禾定制上传接口"
+                    , "b_case_shuhe_upload_data"
+                    , JSON.toJSONString(condition)
+                    , 1L
+                    , TrackingContext.generateBatchId());
+        }catch (Exception ex){
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
         return response2ShuheDTO.success();
     }
 
