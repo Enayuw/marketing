@@ -795,73 +795,73 @@ public class MarketingSceneVariableExample {
             return (Criteria) this;
         }
 
-        public Criteria andVariablelistIsNull() {
-            addCriterion("variableList is null");
+        public Criteria andVariableListIsNull() {
+            addCriterion("variable_list is null");
             return (Criteria) this;
         }
 
-        public Criteria andVariablelistIsNotNull() {
-            addCriterion("variableList is not null");
+        public Criteria andVariableListIsNotNull() {
+            addCriterion("variable_list is not null");
             return (Criteria) this;
         }
 
-        public Criteria andVariablelistEqualTo(String value) {
-            addCriterion("variableList =", value, "variablelist");
+        public Criteria andVariableListEqualTo(String value) {
+            addCriterion("variable_list =", value, "variableList");
             return (Criteria) this;
         }
 
-        public Criteria andVariablelistNotEqualTo(String value) {
-            addCriterion("variableList <>", value, "variablelist");
+        public Criteria andVariableListNotEqualTo(String value) {
+            addCriterion("variable_list <>", value, "variableList");
             return (Criteria) this;
         }
 
-        public Criteria andVariablelistGreaterThan(String value) {
-            addCriterion("variableList >", value, "variablelist");
+        public Criteria andVariableListGreaterThan(String value) {
+            addCriterion("variable_list >", value, "variableList");
             return (Criteria) this;
         }
 
-        public Criteria andVariablelistGreaterThanOrEqualTo(String value) {
-            addCriterion("variableList >=", value, "variablelist");
+        public Criteria andVariableListGreaterThanOrEqualTo(String value) {
+            addCriterion("variable_list >=", value, "variableList");
             return (Criteria) this;
         }
 
-        public Criteria andVariablelistLessThan(String value) {
-            addCriterion("variableList <", value, "variablelist");
+        public Criteria andVariableListLessThan(String value) {
+            addCriterion("variable_list <", value, "variableList");
             return (Criteria) this;
         }
 
-        public Criteria andVariablelistLessThanOrEqualTo(String value) {
-            addCriterion("variableList <=", value, "variablelist");
+        public Criteria andVariableListLessThanOrEqualTo(String value) {
+            addCriterion("variable_list <=", value, "variableList");
             return (Criteria) this;
         }
 
-        public Criteria andVariablelistLike(String value) {
-            addCriterion("variableList like", value, "variablelist");
+        public Criteria andVariableListLike(String value) {
+            addCriterion("variable_list like", value, "variableList");
             return (Criteria) this;
         }
 
-        public Criteria andVariablelistNotLike(String value) {
-            addCriterion("variableList not like", value, "variablelist");
+        public Criteria andVariableListNotLike(String value) {
+            addCriterion("variable_list not like", value, "variableList");
             return (Criteria) this;
         }
 
-        public Criteria andVariablelistIn(List<String> values) {
-            addCriterion("variableList in", values, "variablelist");
+        public Criteria andVariableListIn(List<String> values) {
+            addCriterion("variable_list in", values, "variableList");
             return (Criteria) this;
         }
 
-        public Criteria andVariablelistNotIn(List<String> values) {
-            addCriterion("variableList not in", values, "variablelist");
+        public Criteria andVariableListNotIn(List<String> values) {
+            addCriterion("variable_list not in", values, "variableList");
             return (Criteria) this;
         }
 
-        public Criteria andVariablelistBetween(String value1, String value2) {
-            addCriterion("variableList between", value1, value2, "variablelist");
+        public Criteria andVariableListBetween(String value1, String value2) {
+            addCriterion("variable_list between", value1, value2, "variableList");
             return (Criteria) this;
         }
 
-        public Criteria andVariablelistNotBetween(String value1, String value2) {
-            addCriterion("variableList not between", value1, value2, "variablelist");
+        public Criteria andVariableListNotBetween(String value1, String value2) {
+            addCriterion("variable_list not between", value1, value2, "variableList");
             return (Criteria) this;
         }
 
@@ -922,6 +922,76 @@ public class MarketingSceneVariableExample {
 
         public Criteria andExecuteStatusNotBetween(Integer value1, Integer value2) {
             addCriterion("execute_status not between", value1, value2, "executeStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteResultIsNull() {
+            addCriterion("execute_result is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteResultIsNotNull() {
+            addCriterion("execute_result is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteResultEqualTo(String value) {
+            addCriterion("execute_result =", value, "executeResult");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteResultNotEqualTo(String value) {
+            addCriterion("execute_result <>", value, "executeResult");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteResultGreaterThan(String value) {
+            addCriterion("execute_result >", value, "executeResult");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteResultGreaterThanOrEqualTo(String value) {
+            addCriterion("execute_result >=", value, "executeResult");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteResultLessThan(String value) {
+            addCriterion("execute_result <", value, "executeResult");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteResultLessThanOrEqualTo(String value) {
+            addCriterion("execute_result <=", value, "executeResult");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteResultLike(String value) {
+            addCriterion("execute_result like", value, "executeResult");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteResultNotLike(String value) {
+            addCriterion("execute_result not like", value, "executeResult");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteResultIn(List<String> values) {
+            addCriterion("execute_result in", values, "executeResult");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteResultNotIn(List<String> values) {
+            addCriterion("execute_result not in", values, "executeResult");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteResultBetween(String value1, String value2) {
+            addCriterion("execute_result between", value1, value2, "executeResult");
+            return (Criteria) this;
+        }
+
+        public Criteria andExecuteResultNotBetween(String value1, String value2) {
+            addCriterion("execute_result not between", value1, value2, "executeResult");
             return (Criteria) this;
         }
 
