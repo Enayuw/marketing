@@ -174,6 +174,7 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
             // 有异常，更新select_status为3（重试-接口异常）
             qifuUploadDataOriginalList.forEach(qiFuUploadDataOriginal -> {
                 qiFuUploadDataOriginal.setId(null);
+                qiFuUploadDataOriginal.setStatus(null);
                 qiFuUploadDataOriginal.setSelectStatus(QiFuSelectStatusEnum.RETRY_INTERFACE_ERROR.getCode());
                 qiFuUploadDataOriginal.setCreateTime(new Date());
                 qiFuUploadDataOriginal.setUpdateTime(new Date());
