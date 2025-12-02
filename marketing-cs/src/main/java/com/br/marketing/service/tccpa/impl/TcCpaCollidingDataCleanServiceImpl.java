@@ -293,7 +293,7 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
                         CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                             try {
                                 if (marketingCommonConfig.getTcCpaMockConfig().get("insert")) {
-                                    throw new NullPointerException();
+                                    throw new IllegalArgumentException();
                                 }
                                 insertData(finalCusNums, cleanPackage.getId(), cleanPackage.getPriority());
                             } catch (Exception e) {
@@ -367,7 +367,7 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
                     CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                         try {
                             if (marketingCommonConfig.getTcCpaMockConfig().get("delete")) {
-                                throw new NullPointerException();
+                                throw new IllegalArgumentException();
                             }
                             tcyrCpaCollidingDataMapper.updateIsDelByIds(ids);
                         } catch (Exception e) {
