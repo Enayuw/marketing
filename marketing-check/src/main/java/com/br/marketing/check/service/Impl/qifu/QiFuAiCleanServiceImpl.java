@@ -376,7 +376,7 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
                     break;
             }
         }
-        buildNewListDto(extendJsonObject, reserField1, warnMsg);
+        buildNewListDto(extendJsonObject, reserField1);
         marketingPreUserDetailDTO.setReserveField1(JSONArray.toJSONString(reserField1));
         return marketingPreUserDetailDTO;
     }
@@ -384,10 +384,8 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
     /**
      * 构建新的列表DTO（处理extend字段）
      */
-    private void buildNewListDto(JSONObject extendJsonObject, JSONObject reserField1,
-                                 StringBuilder warnMsg) {
+    private void buildNewListDto(JSONObject extendJsonObject, JSONObject reserField1) {
         if (extendJsonObject == null || extendJsonObject.isEmpty()) {
-            warnMsg.append("extendJsonObject 为空，请检查！\n");
             return;
         }
 
