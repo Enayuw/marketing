@@ -506,7 +506,7 @@ public class DataCleanServiceImpl implements DataCleanService {
         Object dataItemsObj = jsonObject.get("dataItems");
         JSONObject targetObject;
         
-        if (dataItemsObj != null && dataItemsObj instanceof JSONObject) {
+        if (dataItemsObj instanceof JSONObject) {
             // 如果有dataItems，则遍历dataItems下的字段
             targetObject = (JSONObject) dataItemsObj;
             
