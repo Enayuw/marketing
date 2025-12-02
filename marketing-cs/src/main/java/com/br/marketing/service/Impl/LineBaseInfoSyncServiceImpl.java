@@ -60,7 +60,7 @@ public class LineBaseInfoSyncServiceImpl implements LineBaseInfoSyncService {
 
         // db-库表数据组合查询: b_marketing_line_supplier_info_normal 里面 ope_status = 0
         // ---> b_marketing_line_supplier_info_normal 里面 ope_status in(0,2) ,的配置进行比较
-        List<LineBaseFullInfoDTO> lineBaseFullInfoDtoList = lineBaseInfoNormalMapper.selectLineBaeUseInfoList();
+        List<LineBaseFullInfoDTO> lineBaseFullInfoDtoList = lineBaseInfoNormalMapper.selectLineBaseUseInfoList();
 
         // 场景1-差集剔除(库表有,三方接口没有)
         dealSceneOne(ddLineBaseInfoDtoList,lineBaseFullInfoDtoList);

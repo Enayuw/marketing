@@ -259,8 +259,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
 
     private List<DdSmsBaseInfoDto> getSmsBaseInfoByDb() {
         List<DdSmsBaseInfoDto>  smsBaseInfoList = new ArrayList<>();
-
-        List<SmsBaseFullInfoDTO> lineBaseFullInfoDtoList = smsBaseInfoNormalMapper.selectSmsBaeUseInfoList();
+        List<SmsBaseFullInfoDTO> lineBaseFullInfoDtoList = smsBaseInfoNormalMapper.selectSmsBaseUseInfoList();
         lineBaseFullInfoDtoList.forEach(smsBaseFullInfoDTO -> {
             DdSmsBaseInfoDto dto = new DdSmsBaseInfoDto();
             dto.setVendorId(smsBaseFullInfoDTO.getVendorId());
@@ -284,7 +283,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
      */
     private List<DdLineBaseInfoDto> getLineBaseInfoByDb() {
         List<DdLineBaseInfoDto> ddLineBaseInfoDtoList = new ArrayList<>();
-        List<LineBaseFullInfoDTO> lineBaseFullInfoDtoList = lineBaseInfoNormalMapper.selectLineBaeUseInfoList();
+        List<LineBaseFullInfoDTO> lineBaseFullInfoDtoList = lineBaseInfoNormalMapper.selectLineBaseUseInfoList();
         lineBaseFullInfoDtoList.forEach(lineBaseFullInfoDto -> {
             DdLineBaseInfoDto dto = new DdLineBaseInfoDto();
             dto.setGatewayId(lineBaseFullInfoDto.getGatewayId());
