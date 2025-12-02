@@ -10,7 +10,7 @@ import com.br.marketing.enums.DingDingAlarmFunctionEnum;
 import com.br.speed.client.common.annotations.SpeedFile;
 import lombok.Data;
 import org.springframework.context.annotation.Configuration;
-import com.google.common.collect.Lists;
+import shaded.com.google.common.collect.Lists;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -3506,6 +3506,23 @@ public class MarketingCommonConfig {
      * 配置示例: {"marketing_upload_base":true,"marketing_transfer_base":false}
      */
     private Map<String, Boolean> pushDataSwitch;
+
+    /**
+     * 中原消金权限验证
+     * {"apiCode":"7492860","appUser":"zyxfjr_coll","appKey":"87C5FCB80F872B8D67BA3306BB09157C"}
+     */
+    private Map<String, String> zhongYuanIdentity;
+
+    /**
+     * 携程贷后apicode集合
+     */
+    private List<String> xieChengPostLoanApiCodeLists;
+
+    /**
+     * 泰康请求参数
+     */
+    private Map<String,String> taikangConfig;
+
 
     private Map<String, Boolean> tcCpaMockConfig;
 }

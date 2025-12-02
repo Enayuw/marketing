@@ -474,4 +474,20 @@ public interface MarketingSyncUserMapper {
 
     List<MarketingSyncUser>getUserByCustNumAndAppletData(@Param("apiCode") String apiCode, @Param("list") List<Map<String,String>> dataCondition,@Param("custNums") List<String> custNums);
 
+
+    /**
+     * 根据条件查询单个报告的数据量级（支持 filterCondition）
+     * @param apiCode API编码
+     * @param appletDate 上传日期
+     * @param userType 用户类型
+     * @param repushTime 更新时间
+     * @param filterCondition 过滤条件
+     * @return 数据量级
+     */
+    Integer countByCondition(@Param("apiCode") String apiCode, 
+                            @Param("appletDate") String appletDate,
+                            @Param("userType") String userType,
+                            @Param("repushTime") String repushTime,
+                            @Param("filterCondition") String filterCondition);
+
 }

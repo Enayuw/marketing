@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.LineSupplierInfoNormalMapper" >
+
+  <select id="selectIdByLineSupplier" resultType="java.lang.Long">
+    select id from b_marketing_line_supplier_info_normal where line_supplier =#{lineSupplier} and is_delete= 0 and ope_status = 0
+  </select>
+
+  <select id="selectIdByLineSupplierNoOpeStatus" resultType="java.lang.Long">
+    select id from b_marketing_line_supplier_info_normal where line_supplier =#{lineSupplier} and is_delete= 0 order by create_time desc limit 1
+  </select>
+
+  <update id="updateOpeStatusById">
+    update b_marketing_line_supplier_info_normal set ope_status = #{opeStatus},ope_time = now() where id = #{lineSupplierId} and ope_status = 0
+  </update>
+
+</mapper>
