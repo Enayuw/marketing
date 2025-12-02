@@ -14,7 +14,7 @@ public interface LineBaseInfoNormalMapper extends LineBaseInfoNormalMapperBase{
     List<LineBaseFullInfoDTO> selectLineBaseFullInfoList();
 
     //三方数据同步->有效的数据和三方比较
-    List<LineBaseFullInfoDTO> selectLineBaeUseInfoList();
+    List<LineBaseFullInfoDTO> selectLineBaseUseInfoList();
 
     void updateOnlyDbOpStatus(@Param("onlyInDbIdList") List<Long> onlyInDbIdList,
                               @Param("opeStatus") Integer opStatus);

@@ -12,7 +12,7 @@
             bb.is_delete = 0 and ss.is_delete = 0
     </select>
 
-    <select id="selectLineBaeUseInfoList" resultType="com.br.marketing.dto.LineBaseFullInfoDTO">
+    <select id="selectLineBaseUseInfoList" resultType="com.br.marketing.dto.LineBaseFullInfoDTO">
         select
             bb.id,bb.gateway_id,bb.caller,bb.project_name,bb.outbound_number,bb.line_supplier_id,ss.line_supplier
         from
