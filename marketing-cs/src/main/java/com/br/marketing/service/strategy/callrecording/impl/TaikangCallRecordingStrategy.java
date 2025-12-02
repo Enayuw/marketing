@@ -74,17 +74,17 @@ public class TaikangCallRecordingStrategy implements CallRecordingInsertStrategy
             cell = callRecordLLMResultV2.getCustNum();
         }
         String applicantPhone = RpcClientProxy.decode(cell, "cell", "md5", "");
-        if (applicantPhone == null) {
+        if (StringUtils.isEmpty(applicantPhone)) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAIKANG_MARKING_SERVICEERROR.getCode(), "泰康大健康线索线索推送客户，该cell:" + cell +
                     "解密失败，请关注！！！"));
         }
-        String browseDate = DateUtil.format(new Date(callRecordLLMResultV2.getCallStartTime()), DatePattern.NORM_DATETIME_PATTERN);
-        TaikangMarketingEvent taikangMarketingEvent = new TaikangMarketingEvent();
-        taikangMarketingEvent.setApplicantPhone(applicantPhone);
-        taikangMarketingEvent.setBrowseDate(browseDate);
-        taikangMarketingEvent.setApplicantName(applicantName);
-        String response = taikangClient.process(taikangMarketingEvent);
         try {
+            String browseDate = DateUtil.format(new Date(callRecordLLMResultV2.getCallStartTime()), DatePattern.NORM_DATETIME_PATTERN);
+            TaikangMarketingEvent taikangMarketingEvent = new TaikangMarketingEvent();
+            taikangMarketingEvent.setApplicantPhone(applicantPhone);
+            taikangMarketingEvent.setBrowseDate(browseDate);
+            taikangMarketingEvent.setApplicantName(applicantName);
+            String response = taikangClient.process(taikangMarketingEvent);
             TaikangTransferDataLog taikangTransferDataLog = new TaikangTransferDataLog();
             taikangTransferDataLog.setCallRecordId(callRecordLLMResultV2.getId());
             taikangTransferDataLog.setApiCode(callRecordLLMResultV2.getApiCode());
@@ -104,11 +104,10 @@ public class TaikangCallRecordingStrategy implements CallRecordingInsertStrategy
             taikangTransferDataLog.setBusinessCode(businessCode);
             taikangTransferDataLog.setReturnContent(response);
             taikangTransferDataLogMapper.insertSelective(taikangTransferDataLog);
-        } catch (NumberFormatException e) {
+        } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAIKANG_MARKING_SERVICEERROR.getCode(),
                     "泰康大健康线索线索推送客户记录日志异常，拨打明细id:" + callRecordLLMResultV2.getId()));
         }
-        log.warn("泰康大健康线索线索推送客户response:{}", response);
     }
 
     /**
