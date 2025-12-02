@@ -74,7 +74,7 @@ public class QiFuDataFlattenServiceImpl implements QiFuDataFlattenService {
         } else {
             // 当前日期大于上线日，执行实时打平
             log.warn("当前日期 {} 大于上线日 {}，执行实时数据打平", currentDate, onlineDate);
-            flattenRealtimeData(tcId, apiCodes, onlineDate.toString());
+            flattenRealtimeData(tcId, apiCodes);
         }
     }
 
@@ -99,7 +99,7 @@ public class QiFuDataFlattenServiceImpl implements QiFuDataFlattenService {
     /**
      * 实时数据打平逻辑
      */
-    private void flattenRealtimeData(String tcId, List<String> apiCodes, String onlineDate) {
+    private void flattenRealtimeData(String tcId, List<String> apiCodes) {
         String todayDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         
         Map<String, Long> idRange = drsCustomizeUploadDataMapper.getDataIdRange(tcId, apiCodes,"today", todayDate);
