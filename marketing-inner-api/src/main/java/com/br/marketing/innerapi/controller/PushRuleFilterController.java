@@ -11,6 +11,7 @@ import com.br.marketing.dto.*;
 import com.br.marketing.dto.rulecenter.XcCycleDeleteDTO;
 import com.br.marketing.dto.rulecenter.XcCycleDeleteNumDTO;
 import com.br.marketing.dto.rulecenter.XcDeleteMagnitudeDistDTO;
+import com.br.marketing.dto.tccpa.TcCpDataPackageGenDTO;
 import com.br.marketing.enums.InterfaceOperationsEnum;
 import com.br.marketing.innerapi.service.RuleCenterCollidingService;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
@@ -19,6 +20,7 @@ import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.ReportScoreRuleService;
 import com.br.marketing.service.datagroup.rulecenter.RuleCenterLabelService;
 import com.br.marketing.service.halo.HaloRuleCenterCallbackService;
+import com.br.marketing.service.tccpa.TcCpaDataPackageService;
 import com.br.marketing.vo.*;
 import com.br.marketing.vo.xiecheng.PushViewVO;
 import com.br.marketing.vo.xiecheng.XiechengCollidingDataVO;
@@ -30,7 +32,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.util.List;
@@ -74,6 +75,9 @@ public class PushRuleFilterController {
 
     @Autowired
     HaloRuleCenterCallbackService haloRuleCenterCallbackService;
+
+    @Resource
+    TcCpaDataPackageService tcCpaDataPackageService;
 
 
     /**
@@ -368,6 +372,17 @@ public class PushRuleFilterController {
     @PostMapping("/canPushCallback")
     public ApiResult canPushCallback(@RequestParam("apiCode") String apiCode){
         return new ApiResult().fromResult(haloRuleCenterCallbackService.canPushCallback(apiCode),CODE_1);
+    }
+
+    /**
+     * 同程CPA跑分待清洗数据包生成
+     * @param dto
+     * @return
+     */
+    @ApiOperation(value = "同程CPA跑分待清洗数据包生成", notes = "同程CPA跑分待清洗数据包生成", httpMethod = "POST")
+    @PostMapping("/tcCpaDataPackageGen")
+    public ApiResult tcDataPackageGen(@RequestBody @Valid TcCpDataPackageGenDTO dto) {
+        return new ApiResult().fromResult(tcCpaDataPackageService.tcDataPackageGen(dto), CODE_1);
     }
 
 }

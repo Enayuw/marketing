@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.TcyrCpaLockDataMapper" >
+  <insert id="batchSave"  useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO b_tcyr_cpa_lock_data (task_id, user_key, release_time, lock_belong, is_del, extend)
+    VALUES
+    <foreach collection="list" item="item" separator=",">
+      (#{item.taskId}, #{item.userKey}, #{item.releaseTime}, #{item.lockBelong}, #{item.isDel}, #{item.extend})
+    </foreach>
+  </insert>
+
+</mapper>
