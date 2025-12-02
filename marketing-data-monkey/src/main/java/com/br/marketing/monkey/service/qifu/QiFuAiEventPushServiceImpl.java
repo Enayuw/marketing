@@ -13,7 +13,10 @@ import com.br.marketing.entity.DrsCustomizeUploadData;
 import com.br.marketing.entity.EventPushData;
 import com.br.marketing.mapper.BQifuUploadDataOriginalMapper;
 import com.br.marketing.mapper.DrsCustomizeUploadDataMapper;
+import com.br.marketing.service.Impl.qifu.enums.QiFuDataTypeEnum;
+import com.br.marketing.service.Impl.qifu.enums.QiFuProcessStatusEnum;
 import com.br.marketing.service.Impl.qifu.enums.QiFuSelectStatusEnum;
+import com.br.marketing.service.Impl.qifu.enums.QiFuSyncStatusEnum;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import org.apache.commons.collections4.ListUtils;
 import org.slf4j.Logger;
@@ -59,7 +62,7 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
         Long minId = null;
         while (true) {
             List<DrsCustomizeUploadData> drsCustomizeUploadDataList =
-                    qiFuAiEventPushService.getDrsCustomizeUploadDataBySyncStatus(0, minId, PAGE_SIZE);
+                    qiFuAiEventPushService.getDrsCustomizeUploadDataBySyncStatus(QiFuSyncStatusEnum.UN_SYNC.getCode(), minId, PAGE_SIZE);
             if (CollectionUtils.isEmpty(drsCustomizeUploadDataList)) {
                 break;
             }
@@ -91,7 +94,7 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
                     }
                 }
                 if (CollectionUtils.isEmpty(resultList)) {
-                    updateSyncStatusById(String.valueOf(drsCustomizeUploadData.getId()), 1);
+                    updateSyncStatusById(String.valueOf(drsCustomizeUploadData.getId()), QiFuSyncStatusEnum.SYNC.getCode());
                 } else {
                     //先查询外呼信息
                     List<BQifuUploadDataOriginal> queryedtList = qiFuAiEventPushService.queryCallMessage(resultList);
@@ -127,7 +130,7 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
             insertRealTimeData(resultList);
 
             //2. 更新同步状态为1，确保数据已成功处理
-            updateSyncStatusById(String.valueOf(updateId), 1);
+            updateSyncStatusById(String.valueOf(updateId), QiFuSyncStatusEnum.SYNC.getCode());
             logger.warn("数据处理成功，本批次处理记录id：{}，插入数据数：{}", updateId, resultList.size());
         } catch (Exception e) {
             logger.error("批次数据处理失败，回滚事务。本批次记录id：{}，错误信息：{}", updateId, e.getMessage(), e);
@@ -140,7 +143,7 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
         for (BQifuUploadDataOriginal qiFuUploadDataOriginal : qifuUploadDataOriginalList) {
             qiFuUploadDataOriginal.setCreateTime(new Date());
             qiFuUploadDataOriginal.setUpdateTime(new Date());
-            qiFuUploadDataOriginal.setIsReal(1);
+            qiFuUploadDataOriginal.setIsReal(QiFuDataTypeEnum.REALTIME.getCode());
             qiFuUploadDataOriginalMapper.insertSelective(qiFuUploadDataOriginal);
         }
     }
@@ -149,34 +152,25 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
     public List<BQifuUploadDataOriginal> queryCallMessage(List<BQifuUploadDataOriginal> qifuUploadDataOriginalList) {
         List<BQifuUploadDataOriginal> resultList = new ArrayList<>();
 
-        List<String> serialNoList = qifuUploadDataOriginalList.stream()
-                .map(BQifuUploadDataOriginal::getSerialNo)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-
-        List<List<String>> partitions = ListUtils.partition(serialNoList, 50);
+        List<List<BQifuUploadDataOriginal>> partitions = ListUtils.partition(qifuUploadDataOriginalList, 50);
         int totalProcessed = 0;
         int totalSuccess = 0;
 
         //调用奇富查询外呼信息接口，在每个partition循环内更新状态
-        for (List<String> partition : partitions) {
+        for (List<BQifuUploadDataOriginal> partition : partitions) {
+            List<String> serialNoList = partition.stream()
+                    .map(BQifuUploadDataOriginal::getSerialNo)
+                    .collect(Collectors.toList());
             QryCallRealTimeReq qryCallRealTimeReq = new QryCallRealTimeReq();
             qryCallRealTimeReq.setRequestNo(UUID.randomUUID().toString());
             qryCallRealTimeReq.setCallType("AI");
-            qryCallRealTimeReq.setSerialNoList(partition);
+            qryCallRealTimeReq.setSerialNoList(serialNoList);
 
             Result<ResponseData<QryCallRealTimeResp>> responseDataResult = methodRetryHandlerService.qryCallRealTime(qryCallRealTimeReq, null);
 
-            //创建partition的Set，方便快速判断serialNo是否属于当前partition
-            Set<String> partitionSet = new HashSet<>(partition);
-
             //遍历原始数据，处理属于当前partition的数据
-            for (BQifuUploadDataOriginal originalData : qifuUploadDataOriginalList) {
+            for (BQifuUploadDataOriginal originalData : partition) {
                 String serialNo = originalData.getSerialNo();
-                if (serialNo == null || !partitionSet.contains(serialNo)) {
-                    continue;
-                }
-
                 totalProcessed++;
 
                 if (!ResultCode.SUCCESS.getValue().equals(responseDataResult.getCode())) {
@@ -209,7 +203,7 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
                     }else {
                         originalData.setExtend(null);
                     }
-                    originalData.setStatus(0);
+                    originalData.setStatus(QiFuProcessStatusEnum.UNPROCESSED.getCode());
                     originalData.setSelectStatus(QiFuSelectStatusEnum.QUERY_SUCCESS.getCode());
                     originalData.setUpdateTime(new Date());
                     resultList.add(originalData);
