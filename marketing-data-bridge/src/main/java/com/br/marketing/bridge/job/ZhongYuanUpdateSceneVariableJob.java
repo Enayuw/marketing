@@ -3,6 +3,8 @@ package com.br.marketing.bridge.job;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.bridge.common.enums.SceneVariableExecuteStatusEnum;
+import com.br.marketing.bridge.model.dto.VariableItem;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingSceneVariable;
 import com.br.marketing.entity.MarketingSceneVariableExample;
@@ -81,8 +83,9 @@ public class ZhongYuanUpdateSceneVariableJob extends AbstractSimpleElasticJob {
                     log.error("{}处理场景变量记录失败，id: {}, taskUid: {}", TITLE, 
                             sceneVariable.getId(), sceneVariable.getTaskUid(), e);
                     failCount++;
-                    // 更新状态为失败（2-执行完成，可以使用其他状态标识失败）
-                    updateSceneVariableStatus(sceneVariable.getId(), 2);
+                    // 更新状态为失败
+                    String errorMsg = "处理异常: " + e.getMessage();
+                    updateSceneVariableStatus(sceneVariable.getId(), SceneVariableExecuteStatusEnum.FAILED, errorMsg);
                 }
             }
 
@@ -101,7 +104,7 @@ public class ZhongYuanUpdateSceneVariableJob extends AbstractSimpleElasticJob {
             MarketingSceneVariableExample example = new MarketingSceneVariableExample();
             example.createCriteria()
                     .andApiCodeEqualTo(apiCode)
-                    .andExecuteStatusEqualTo(0); // 0-待执行
+                    .andExecuteStatusEqualTo(SceneVariableExecuteStatusEnum.PENDING.getCode());
             return marketingSceneVariableMapper.selectByExample(example);
         } catch (Exception e) {
             log.error("{}查询待执行场景变量记录异常", TITLE, e);
@@ -114,15 +117,16 @@ public class ZhongYuanUpdateSceneVariableJob extends AbstractSimpleElasticJob {
      */
     private boolean processSceneVariable(String apiCode, MarketingSceneVariable sceneVariable) {
         String taskUid = sceneVariable.getTaskUid();
-        String variableListJson = sceneVariable.getVariablelist();
+        String variableListJson = sceneVariable.getVariableList();
 
         log.warn("{}开始处理场景变量，id: {}, taskUid: {}, sceneCode: {}", 
                 TITLE, sceneVariable.getId(), taskUid, sceneVariable.getSceneCode());
 
         // 1. 解析variableList
         if (StringUtils.isEmpty(variableListJson)) {
-            log.warn("{}variableList为空，id: {}, taskUid: {}", TITLE, sceneVariable.getId(), taskUid);
-            updateSceneVariableStatus(sceneVariable.getId(), 2);
+            String errorMsg = "variableList为空";
+            log.warn("{}{}，id: {}, taskUid: {}", TITLE, errorMsg, sceneVariable.getId(), taskUid);
+            updateSceneVariableStatus(sceneVariable.getId(), SceneVariableExecuteStatusEnum.FAILED, errorMsg);
             return false;
         }
 
@@ -130,9 +134,10 @@ public class ZhongYuanUpdateSceneVariableJob extends AbstractSimpleElasticJob {
         try {
             variableList = JSON.parseArray(variableListJson, VariableItem.class);
         } catch (Exception e) {
+            String errorMsg = "解析variableList失败: " + e.getMessage();
             log.error("{}解析variableList失败，id: {}, variableList: {}", 
                     TITLE, sceneVariable.getId(), variableListJson, e);
-            updateSceneVariableStatus(sceneVariable.getId(), 2);
+            updateSceneVariableStatus(sceneVariable.getId(), SceneVariableExecuteStatusEnum.FAILED, errorMsg);
             return false;
         }
 
@@ -146,8 +151,9 @@ public class ZhongYuanUpdateSceneVariableJob extends AbstractSimpleElasticJob {
         }
 
         if (overAmtValue == null) {
-            log.warn("{}未找到overAmt字段，id: {}, taskUid: {}", TITLE, sceneVariable.getId(), taskUid);
-            updateSceneVariableStatus(sceneVariable.getId(), 2);
+            String errorMsg = "未找到overAmt字段";
+            log.warn("{}{}，id: {}, taskUid: {}", TITLE, errorMsg, sceneVariable.getId(), taskUid);
+            updateSceneVariableStatus(sceneVariable.getId(), SceneVariableExecuteStatusEnum.FAILED, errorMsg);
             return false;
         }
 
@@ -155,9 +161,9 @@ public class ZhongYuanUpdateSceneVariableJob extends AbstractSimpleElasticJob {
         MarketingSyncUser syncUser = marketingSyncUserMapper.selectSynsUserByCustNumLastWithStatus(apiCode, taskUid);
 
         if (syncUser == null) {
-            log.warn("{}未找到对应的上传记录，id: {}, taskUid: {}, apiCode: {}", 
-                    TITLE, sceneVariable.getId(), taskUid, apiCode);
-            updateSceneVariableStatus(sceneVariable.getId(), 2);
+            String errorMsg = "未找到对应的上传记录";
+            log.warn("{}{}，id: {}, taskUid: {}, apiCode: {}", 
+                    TITLE, errorMsg, sceneVariable.getId(), taskUid, apiCode);
             return false;
         }
 
@@ -188,14 +194,16 @@ public class ZhongYuanUpdateSceneVariableJob extends AbstractSimpleElasticJob {
         int updateResult = marketingSyncUserMapper.updateReserveFieldByPrimaryKey(syncUser);
 
         if (updateResult <= 0) {
-            log.error("{}更新上传记录失败，id: {}, taskUid: {}, syncUserId: {}", 
-                    TITLE, sceneVariable.getId(), taskUid, syncUser.getId());
-            updateSceneVariableStatus(sceneVariable.getId(), 2);
+            String errorMsg = "更新上传记录失败";
+            log.error("{}{}，id: {}, taskUid: {}, syncUserId: {}", 
+                    TITLE, errorMsg, sceneVariable.getId(), taskUid, syncUser.getId());
+            updateSceneVariableStatus(sceneVariable.getId(), SceneVariableExecuteStatusEnum.FAILED, errorMsg);
             return false;
         }
 
         // 6. 更新场景变量记录状态为已完成
-        updateSceneVariableStatus(sceneVariable.getId(), 2);
+        String successMsg = "执行成功，overAmt: " + overAmtValue;
+        updateSceneVariableStatus(sceneVariable.getId(), SceneVariableExecuteStatusEnum.COMPLETED, successMsg);
 
         log.warn("{}处理场景变量成功，id: {}, taskUid: {}, overAmt: {}", 
                 TITLE, sceneVariable.getId(), taskUid, overAmtValue);
@@ -205,16 +213,25 @@ public class ZhongYuanUpdateSceneVariableJob extends AbstractSimpleElasticJob {
 
     /**
      * 更新场景变量记录状态
+     * 
+     * @param id 记录ID
+     * @param statusEnum 执行状态枚举
+     * @param executeResult 执行结果描述
      */
-    private void updateSceneVariableStatus(Long id, Integer status) {
+    private void updateSceneVariableStatus(Long id, SceneVariableExecuteStatusEnum statusEnum, String executeResult) {
         try {
             MarketingSceneVariable record = new MarketingSceneVariable();
             record.setId(id);
-            record.setExecuteStatus(status);
+            record.setExecuteStatus(statusEnum.getCode());
+            record.setExecuteResult(executeResult);
             record.setUpdateTime(new Date());
             marketingSceneVariableMapper.updateByPrimaryKeySelective(record);
+            
+            log.info("{}更新场景变量状态成功，id: {}, status: {}({}), executeResult: {}", 
+                    TITLE, id, statusEnum.getCode(), statusEnum.getDesc(), executeResult);
         } catch (Exception e) {
-            log.error("{}更新场景变量状态失败，id: {}, status: {}", TITLE, id, status, e);
+            log.error("{}更新场景变量状态失败，id: {}, status: {}({}), executeResult: {}", 
+                    TITLE, id, statusEnum.getCode(), statusEnum.getDesc(), executeResult, e);
         }
     }
 
@@ -228,30 +245,6 @@ public class ZhongYuanUpdateSceneVariableJob extends AbstractSimpleElasticJob {
         } catch (Exception e) {
             log.error("{}获取apiCode异常", TITLE, e);
             return null;
-        }
-    }
-
-    /**
-     * 变量项内部类
-     */
-    private static class VariableItem {
-        private String code;
-        private String value;
-
-        public String getCode() {
-            return code;
-        }
-
-        public void setCode(String code) {
-            this.code = code;
-        }
-
-        public String getValue() {
-            return value;
-        }
-
-        public void setValue(String value) {
-            this.value = value;
         }
     }
 
