@@ -139,7 +139,6 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
         for (BQifuUploadDataOriginal qiFuUploadDataOriginal : qifuUploadDataOriginalList) {
             qiFuUploadDataOriginal.setCreateTime(new Date());
             qiFuUploadDataOriginal.setUpdateTime(new Date());
-            qiFuUploadDataOriginal.setStatus(0);
             qiFuUploadDataOriginal.setIsReal(1);
             qiFuUploadDataOriginalMapper.insertSelective(qiFuUploadDataOriginal);
         }
@@ -205,6 +204,7 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
                 CallRealTimeDTO callRealTimeDTO = callRealTimeMap.get(serialNo);
                 //将查询结果转换为JSON字符串存入extend字段
                 originalData.setExtend(JSON.toJSONString(callRealTimeDTO));
+                originalData.setStatus(0);
                 originalData.setSelectStatus(QiFuSelectStatusEnum.QUERY_SUCCESS.getCode());
                 originalData.setUpdateTime(new Date());
             }
