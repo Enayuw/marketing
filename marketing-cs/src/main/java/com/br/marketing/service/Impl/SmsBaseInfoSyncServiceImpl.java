@@ -64,7 +64,7 @@ public class SmsBaseInfoSyncServiceImpl implements SmsBaseInfoSyncService {
 
         // db-库表数据组合查询: b_marketing_sms_supplier_info_normal 里面 ope_status (0,1)
         // ---> b_marketing_sms_base_info_normal 里面 ope_status in(0,2) ,的配置进行比较
-        List<SmsBaseFullInfoDTO> smsBaseFullInfoDtoList = smsBaseInfoNormalMapper.selectSmsBaeUseInfoList();
+        List<SmsBaseFullInfoDTO> smsBaseFullInfoDtoList = smsBaseInfoNormalMapper.selectSmsBaseUseInfoList();
 
         // 场景1-差集剔除(库表有,三方接口没有)
         dealSceneOne(ddSmsBaseInfoDtoList,smsBaseFullInfoDtoList);
@@ -139,18 +139,12 @@ public class SmsBaseInfoSyncServiceImpl implements SmsBaseInfoSyncService {
                         smsBaseInfoNormalMapper.insertSelective(fillSmsBaseInfo(ddSmsInfoItem));
                     }else {
                         //3.2 vendorName修改
-                        if (Objects.equals(ddSmsInfoItem.getVendorId(), dbFullInfoItem.getVendorId()) &&
-                                !ddSmsInfoItem.getVendorName().equals(dbFullInfoItem.getVendorName())) {
+                        if (!ddSmsInfoItem.getVendorName().equals(dbFullInfoItem.getVendorName())) {
                             smsVendorInfoNormalMapper.updateInfoById(dbFullInfoItem.getVendorPrimaryId(),ddSmsInfoItem.getVendorName(),2);
-                            if (!ddSmsInfoItem.getChannelName().equals(dbFullInfoItem.getChannelName())) {
-                                smsBaseInfoNormalMapper.updateBaseInfoById(dbFullInfoItem.getId(),ddSmsInfoItem.getChannelName(),dbFullInfoItem.getVendorId(),2);
-                            }
                         }
                         // 3.3 场景 channelName发生了改变
-                        else  {
-                            if (!ddSmsInfoItem.getChannelName().equals(dbFullInfoItem.getChannelName())) {
-                                smsBaseInfoNormalMapper.updateBaseInfoById(dbFullInfoItem.getId(),ddSmsInfoItem.getChannelName(),dbFullInfoItem.getVendorId(),2);
-                            }
+                        if (!ddSmsInfoItem.getChannelName().equals(dbFullInfoItem.getChannelName())) {
+                            smsBaseInfoNormalMapper.updateBaseInfoById(dbFullInfoItem.getId(),ddSmsInfoItem.getChannelName(),dbFullInfoItem.getVendorId(),2);
                         }
                     }
                 }
