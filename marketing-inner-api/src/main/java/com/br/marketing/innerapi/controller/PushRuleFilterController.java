@@ -12,6 +12,7 @@ import com.br.marketing.dto.tccpa.TcCpDataPackageGenDTO;
 import com.br.marketing.dto.rulecenter.XcCycleDeleteDTO;
 import com.br.marketing.dto.rulecenter.XcCycleDeleteNumDTO;
 import com.br.marketing.dto.rulecenter.XcDeleteMagnitudeDistDTO;
+import com.br.marketing.dto.tccpa.TcCpDataPackageGenDTO;
 import com.br.marketing.enums.InterfaceOperationsEnum;
 import com.br.marketing.innerapi.service.RuleCenterCollidingService;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
@@ -32,7 +33,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.util.List;
@@ -79,6 +79,7 @@ public class PushRuleFilterController {
 
     @Resource
     TcCpaDataPackageService tcCpaDataPackageService;
+
 
     /**
      * 根据apiCode 查询信息
@@ -379,8 +380,8 @@ public class PushRuleFilterController {
      * @param dto
      * @return
      */
-    @Operation(value = "同程CPA跑分待清洗数据包生成", notes = "同程CPA跑分待清洗数据包生成", httpMethod = "POST")
-    @PostMapping("/tcDataPackageGen")
+    @Operation(summary = "同程CPA跑分待清洗数据包生成")
+    @PostMapping("/tcCpaDataPackageGen")
     public ApiResult tcDataPackageGen(@RequestBody @Valid TcCpDataPackageGenDTO dto) {
         return new ApiResult().fromResult(tcCpaDataPackageService.tcDataPackageGen(dto), CODE_1);
     }

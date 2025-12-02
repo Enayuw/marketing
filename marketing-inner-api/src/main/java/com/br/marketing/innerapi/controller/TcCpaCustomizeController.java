@@ -26,7 +26,7 @@ import javax.annotation.Resource;
  */
 @RestController
 @RequestMapping("/tcCpa/customize/dataPackage")
-@Tag(value = "TcCpaCustomizeController")
+@Api(value = "TcCpaCustomizeController")
 public class TcCpaCustomizeController {
 
     private static final Integer CODE_1 = 1;
@@ -38,7 +38,7 @@ public class TcCpaCustomizeController {
      * 同程CPA跑分文件数据包删除
      * @return
      */
-    @Operation(value = "同程CPA跑分文件数据包列表查询", notes = "同程CPA跑分文件数据包列表查询", httpMethod = "POST")
+    @ApiOperation(value = "同程CPA跑分文件数据包列表查询", notes = "同程CPA跑分文件数据包列表查询", httpMethod = "POST")
     @GetMapping("/page")
     @ApiImplicitParams({@ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
             , @ApiImplicitParam(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
@@ -58,7 +58,7 @@ public class TcCpaCustomizeController {
      * @param dataPackage
      * @return
      */
-    @Operation(value = "同程CPA跑分文件数据包新增修改", notes = "同程CPA跑分文件数据包新增修改", httpMethod = "POST")
+    @ApiOperation(value = "同程CPA跑分文件数据包新增修改", notes = "同程CPA跑分文件数据包新增修改", httpMethod = "POST")
     @PostMapping("/update")
     public ApiResult update(@RequestBody TcyrCpaCollidingDataPackageVO dataPackage) {
         return new ApiResult().fromResult(tcCpaDataPackageService.update(dataPackage), CODE_1);
@@ -70,8 +70,8 @@ public class TcCpaCustomizeController {
      * 同程CPA跑分文件数据包删除
      * @return
      */
-    @Operation(value = "同程CPA跑分文件数据包删除", notes = "同程CPA跑分文件数据包删除", httpMethod = "POST")
-    @PostMapping("/delete")
+    @ApiOperation(value = "同程CPA跑分文件数据包删除", notes = "同程CPA跑分文件数据包删除", httpMethod = "POST")
+    @GetMapping("/delete")
     public ApiResult delete(@RequestParam("id") Long id) {
         return new ApiResult().fromResult(tcCpaDataPackageService.delete(id), CODE_1);
     }
@@ -80,7 +80,7 @@ public class TcCpaCustomizeController {
      * 同程CPA跑分文件数据包删除
      * @return
      */
-    @Operation(value = "同程CPA跑分文件清洗分层任务生成", notes = "同程CPA跑分文件清洗分层任务生成", httpMethod = "POST")
+    @ApiOperation(value = "同程CPA跑分文件清洗分层任务生成", notes = "同程CPA跑分文件清洗分层任务生成", httpMethod = "POST")
     @PostMapping("/genCleanTask")
     public ApiResult genCleanTask() {
         return new ApiResult().fromResult(tcCpaDataPackageService.genCleanTask(), CODE_1);
