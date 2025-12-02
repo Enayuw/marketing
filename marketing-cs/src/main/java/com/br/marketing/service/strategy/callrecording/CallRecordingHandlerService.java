@@ -4,14 +4,12 @@ import com.br.marketing.mapper.CallRecordConfigMapper;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
@@ -23,7 +21,7 @@ public class CallRecordingHandlerService {
     /**
      * 客户规则缓存
      */
-    private LoadingCache<String, String> ruleCache = null;
+    private static LoadingCache<String, String> ruleCache = null;
 
     @PostConstruct
     private void init() {
@@ -33,16 +31,16 @@ public class CallRecordingHandlerService {
                 .recordStats()
                 .build(new CacheLoader<String, String>() {
                     @Override
-                    public String load(@Nonnull String key) {
+                    public String load(String key) {
                         return callRecordConfigMapper.customerRuleLabels(key);
                     }
                 });
     }
 
     /**
-     * 清理客户规则缓存
+     * 获取客户规则
      */
-    public void invalidateAll() {
+    public static void invalidateAll() {
         if (ruleCache != null) {
             log.warn("客户规则清理...");
             ruleCache.invalidateAll();

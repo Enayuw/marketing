@@ -10,18 +10,17 @@ import com.br.marketing.service.Impl.RedisTestServiceImpl;
 import com.br.marketing.service.strategy.callrecording.CallRecordingHandlerService;
 import com.br.speed.client.SpeedMgrBean;
 import com.br.speed.client.common.append.ISpeedAppendPipeline;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.curator.shaded.com.google.common.base.Splitter;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.regex.Pattern;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.curator.shaded.com.google.common.base.Splitter;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
@@ -66,10 +65,7 @@ public class SpeedConfig implements ISpeedAppendPipeline {
                     DataLoadingHandlerService.invalidateAll();
                 }
                 if ("call_record_config".equals(callRecordConfig)) {
-                    CallRecordingHandlerService callRecordingHandlerService = context.getBean(CallRecordingHandlerService.class);
-                    if (callRecordingHandlerService != null) {
-                        callRecordingHandlerService.invalidateAll();
-                    }
+                    CallRecordingHandlerService.invalidateAll();
                 }
                 if(!new Integer(0).equals(redisTest)){
                     RedisTestServiceImpl redisTestServiceImpl = context.getBean("redisTestServiceImpl", RedisTestServiceImpl.class);
