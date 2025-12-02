@@ -273,7 +273,7 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
                     for (; ; ) {
                         try {
                             if (marketingCommonConfig.getTcCpaMockConfig().get("query")) {
-                                throw new NullPointerException();
+                                throw new IllegalArgumentException();
                             }
                             cusNums = tcyrCpaCollidingDataMapper.queryScoreDataWithPagedoris_(querySql, minCusNum);
                         } catch (Exception e) {
