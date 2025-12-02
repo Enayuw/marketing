@@ -44,7 +44,7 @@ public class TaikangClient {
                     channelRequest,
                     taikangConfig.get("url"),
                     true,
-                    JSON.toJSONString(taikangConfig),
+                    JSON.toJSONString(taikangMarketingEvent),
                     headers);
             return JSONObject.toJSONString(result);
         } catch (Exception e) {

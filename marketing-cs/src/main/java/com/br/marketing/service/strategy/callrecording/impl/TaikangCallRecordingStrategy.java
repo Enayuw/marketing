@@ -4,15 +4,14 @@ import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson2.JSONObject;
 import com.br.common.log.AlertLog;
-import com.br.common.util.BrCipherMaker;
 import com.br.common.util.StringUtils;
 import com.br.marketing.client.taikang.TaikangClient;
 import com.br.marketing.client.taikang.TaikangMarketingEvent;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.CallRecordLLMResultV2;
 import com.br.marketing.entity.TaikangTransferDataLog;
-import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.TaikangTransferDataLogMapper;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.strategy.callrecording.CallRecordingInsertStrategy;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.base.Splitter;
@@ -74,7 +73,7 @@ public class TaikangCallRecordingStrategy implements CallRecordingInsertStrategy
         if (cell == null) {
             cell = callRecordLLMResultV2.getCustNum();
         }
-        String applicantPhone = BrCipherMaker.getInstance().decode(cell);
+        String applicantPhone = RpcClientProxy.decode(cell, "cell", "md5", "");
         if (applicantPhone == null) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAIKANG_MARKING_SERVICEERROR.getCode(), "泰康大健康线索线索推送客户，该cell:" + cell +
                     "解密失败，请关注！！！"));
