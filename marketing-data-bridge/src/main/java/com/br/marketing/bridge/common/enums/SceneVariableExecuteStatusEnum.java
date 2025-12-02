@@ -21,7 +21,12 @@ public enum SceneVariableExecuteStatusEnum {
     /**
      * 执行失败
      */
-    FAILED(2, "执行失败");
+    FAILED(2, "执行失败"),
+
+    /**
+     * 未找到上传数据
+     */
+    NOT_FOUND_UPLOAD(3, "未找到上传数据");
 
     private final Integer code;
     private final String desc;

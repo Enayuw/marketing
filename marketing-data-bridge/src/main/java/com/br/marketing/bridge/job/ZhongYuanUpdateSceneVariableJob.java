@@ -3,8 +3,10 @@ package com.br.marketing.bridge.job;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.bridge.common.enums.SceneVariableExecuteStatusEnum;
 import com.br.marketing.bridge.model.dto.VariableItem;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingSceneVariable;
 import com.br.marketing.entity.MarketingSceneVariableExample;
@@ -18,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -70,12 +73,17 @@ public class ZhongYuanUpdateSceneVariableJob extends AbstractSimpleElasticJob {
             // 3. 处理每条记录
             int successCount = 0;
             int failCount = 0;
+            // 收集未找到上传记录的数据，用于统一告警
+            List<String> notFoundUploadTaskUids = new ArrayList<>();
 
             for (MarketingSceneVariable sceneVariable : pendingList) {
                 try {
-                    boolean result = processSceneVariable(apiCode, sceneVariable);
-                    if (result) {
+                    int result = processSceneVariable(apiCode, sceneVariable);
+                    if (result == 1) {
                         successCount++;
+                    } else if (result == -1) {
+                        // 未找到上传记录
+                        notFoundUploadTaskUids.add(sceneVariable.getTaskUid());
                     } else {
                         failCount++;
                     }
@@ -89,7 +97,15 @@ public class ZhongYuanUpdateSceneVariableJob extends AbstractSimpleElasticJob {
                 }
             }
 
-            log.warn("{}Job执行完成，成功: {}条，失败: {}条", TITLE, successCount, failCount);
+            log.warn("{}Job执行完成，成功: {}条，失败: {}条，未找到上传记录: {}条", 
+                    TITLE, successCount, failCount, notFoundUploadTaskUids.size());
+
+            // 4. 统一告警未找到上传记录的数据
+            if (!notFoundUploadTaskUids.isEmpty()) {
+                String errMsg = String.format("%s存在%d条未找到上传记录的数据，taskUids: %s", 
+                        TITLE, notFoundUploadTaskUids.size(), notFoundUploadTaskUids);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHONGYUAN_XIAOJIN_SERVICEERROR.getCode(), errMsg));
+            }
 
         } catch (Exception e) {
             log.error("{}Job执行异常", TITLE, e);
@@ -98,13 +114,20 @@ public class ZhongYuanUpdateSceneVariableJob extends AbstractSimpleElasticJob {
 
     /**
      * 查询待执行的场景变量记录
+     * 查询状态为0-待执行和3-未找到上传数据的记录，按createTime升序排序
      */
     private List<MarketingSceneVariable> getPendingSceneVariables(String apiCode) {
         try {
             MarketingSceneVariableExample example = new MarketingSceneVariableExample();
+            // 按创建时间升序排序，先执行时间早的
+            example.setOrderByClause("create_time ASC");
+            // 查询状态为0-待执行和3-未找到上传数据的记录
+            List<Integer> statusList = new ArrayList<>();
+            statusList.add(SceneVariableExecuteStatusEnum.PENDING.getCode());
+            statusList.add(SceneVariableExecuteStatusEnum.NOT_FOUND_UPLOAD.getCode());
             example.createCriteria()
                     .andApiCodeEqualTo(apiCode)
-                    .andExecuteStatusEqualTo(SceneVariableExecuteStatusEnum.PENDING.getCode());
+                    .andExecuteStatusIn(statusList);
             return marketingSceneVariableMapper.selectByExample(example);
         } catch (Exception e) {
             log.error("{}查询待执行场景变量记录异常", TITLE, e);
@@ -114,8 +137,10 @@ public class ZhongYuanUpdateSceneVariableJob extends AbstractSimpleElasticJob {
 
     /**
      * 处理单条场景变量记录
+     * 
+     * @return 1-成功, 0-失败, -1-未找到上传记录
      */
-    private boolean processSceneVariable(String apiCode, MarketingSceneVariable sceneVariable) {
+    private int processSceneVariable(String apiCode, MarketingSceneVariable sceneVariable) {
         String taskUid = sceneVariable.getTaskUid();
         String variableListJson = sceneVariable.getVariableList();
 
@@ -127,7 +152,7 @@ public class ZhongYuanUpdateSceneVariableJob extends AbstractSimpleElasticJob {
             String errorMsg = "variableList为空";
             log.warn("{}{}，id: {}, taskUid: {}", TITLE, errorMsg, sceneVariable.getId(), taskUid);
             updateSceneVariableStatus(sceneVariable.getId(), SceneVariableExecuteStatusEnum.FAILED, errorMsg);
-            return false;
+            return 0;
         }
 
         List<VariableItem> variableList;
@@ -138,7 +163,7 @@ public class ZhongYuanUpdateSceneVariableJob extends AbstractSimpleElasticJob {
             log.error("{}解析variableList失败，id: {}, variableList: {}", 
                     TITLE, sceneVariable.getId(), variableListJson, e);
             updateSceneVariableStatus(sceneVariable.getId(), SceneVariableExecuteStatusEnum.FAILED, errorMsg);
-            return false;
+            return 0;
         }
 
         // 2. 提取overAmt字段
@@ -154,7 +179,7 @@ public class ZhongYuanUpdateSceneVariableJob extends AbstractSimpleElasticJob {
             String errorMsg = "未找到overAmt字段";
             log.warn("{}{}，id: {}, taskUid: {}", TITLE, errorMsg, sceneVariable.getId(), taskUid);
             updateSceneVariableStatus(sceneVariable.getId(), SceneVariableExecuteStatusEnum.FAILED, errorMsg);
-            return false;
+            return 0;
         }
 
         // 3. 根据taskUid查询上传明细表
@@ -164,7 +189,9 @@ public class ZhongYuanUpdateSceneVariableJob extends AbstractSimpleElasticJob {
             String errorMsg = "未找到对应的上传记录";
             log.warn("{}{}，id: {}, taskUid: {}, apiCode: {}", 
                     TITLE, errorMsg, sceneVariable.getId(), taskUid, apiCode);
-            return false;
+            // 更新状态为未找到上传数据，下次轮询会继续查询
+            updateSceneVariableStatus(sceneVariable.getId(), SceneVariableExecuteStatusEnum.NOT_FOUND_UPLOAD, errorMsg);
+            return -1;
         }
 
         // 4. 更新reserve_field1中的overAmt字段
@@ -198,7 +225,7 @@ public class ZhongYuanUpdateSceneVariableJob extends AbstractSimpleElasticJob {
             log.error("{}{}，id: {}, taskUid: {}, syncUserId: {}", 
                     TITLE, errorMsg, sceneVariable.getId(), taskUid, syncUser.getId());
             updateSceneVariableStatus(sceneVariable.getId(), SceneVariableExecuteStatusEnum.FAILED, errorMsg);
-            return false;
+            return 0;
         }
 
         // 6. 更新场景变量记录状态为已完成
@@ -208,7 +235,7 @@ public class ZhongYuanUpdateSceneVariableJob extends AbstractSimpleElasticJob {
         log.warn("{}处理场景变量成功，id: {}, taskUid: {}, overAmt: {}", 
                 TITLE, sceneVariable.getId(), taskUid, overAmtValue);
 
-        return true;
+        return 1;
     }
 
     /**

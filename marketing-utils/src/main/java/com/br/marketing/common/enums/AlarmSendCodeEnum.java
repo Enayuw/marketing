@@ -357,6 +357,8 @@ public enum AlarmSendCodeEnum {
 
     MARKETING_AVIATORSCRIPT_LINE_CHANGE_ERROR("8001005", "线路三方字段同步异常"),
 
+    ZHONGYUAN_XIAOJIN_SERVICEERROR("8001006", "中原消金业务异常"),
+
     ;
 
     /**
