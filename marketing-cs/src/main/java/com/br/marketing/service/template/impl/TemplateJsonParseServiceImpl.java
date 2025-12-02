@@ -61,7 +61,7 @@ public class TemplateJsonParseServiceImpl implements TemplateJsonParseService {
                 //若不存在行业模板，返回内置模板
                 List<MarketingBuildInTemplateJsonParse> marketingBuildInTemplateJsonParseList = queryBuildInTemplateJsonParses(systemType, dataType);
                 if (!marketingBuildInTemplateJsonParseList.isEmpty()) {
-                    return new Result<>().success().setDate(marketingBuildInTemplateJsonParseList);
+                    return new Result<>().success().setDate(JSON.parseArray(JSON.toJSONString(marketingBuildInTemplateJsonParseList)));
                 }
             }
         } catch (Exception e) {
