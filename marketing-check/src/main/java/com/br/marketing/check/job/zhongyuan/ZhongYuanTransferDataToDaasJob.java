@@ -6,6 +6,7 @@ import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.ZhongYuanService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
@@ -59,7 +60,8 @@ public class ZhongYuanTransferDataToDaasJob extends AbstractSimpleElasticJob {
                 ThreadPoolExecutor zhongYuanTransferToDaasAndCustomerFilterThreadPool = createThreadPoolExecutor();
                 while (true) {
                     // 基础数据获取
-                    List<MarketingTransferSyncUser> marketingTransferSyncUserList = getMarketingTransferSyncUsers(apiCode, parameter, tcId, indexId);
+                    List<MarketingTransferSyncUser> marketingTransferSyncUserList =
+                            getMarketingTransferSyncUsers(apiCode, parameter, tcId, indexId);
                     if (marketingTransferSyncUserList == null) break;
                     indexId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
                     // 数据处理逻辑
@@ -80,7 +82,8 @@ public class ZhongYuanTransferDataToDaasJob extends AbstractSimpleElasticJob {
      * @param indexId 起始id
      * @return
      */
-    private List<MarketingTransferSyncUser> getMarketingTransferSyncUsers(String apiCode, String parameter, String tcId, Long indexId) {
+    private List<MarketingTransferSyncUser> getMarketingTransferSyncUsers(
+            String apiCode, String parameter, String tcId, Long indexId) {
         String startDate = LocalDate.now().toString();
         String endDate = LocalDate.now().toString();
         if (StringUtils.isNotBlank(parameter)) {
@@ -89,7 +92,8 @@ public class ZhongYuanTransferDataToDaasJob extends AbstractSimpleElasticJob {
             endDate = LocalDate.parse(split[1], DateTimeFormatter.ofPattern("yyyy-MM-dd")).toString();
         }
         List<MarketingTransferSyncUser> marketingTransferSyncUserList =
-                zhongYuanService.getMarketingTransferSyncUserListWithValidityPeriodNoRegisterTime(tcId, apiCode, indexId, startDate, endDate);
+                zhongYuanService.getMarketingTransferSyncUserListWithValidityPeriodNoRegisterTime(
+                        tcId, apiCode, indexId, startDate, endDate);
         if (marketingTransferSyncUserList.isEmpty()) {
             return null;
         }
@@ -111,12 +115,10 @@ public class ZhongYuanTransferDataToDaasJob extends AbstractSimpleElasticJob {
         }
     }
 
-    private void dealTransferDataWithThread(ThreadPoolExecutor zhongYuanTransferToDaasAndCustomerFilterThreadPool, List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
-        zhongYuanTransferToDaasAndCustomerFilterThreadPool
-                .setCorePoolSize(marketingCommonConfig.getZhongYuanTransferDataToDaasAndCustomerFilterThreadNum());
-        zhongYuanTransferToDaasAndCustomerFilterThreadPool
-                .setMaximumPoolSize(marketingCommonConfig.getZhongYuanTransferDataToDaasAndCustomerFilterThreadNum());
-
+    private void dealTransferDataWithThread(ThreadPoolExecutor zhongYuanTransferToDaasAndCustomerFilterThreadPool
+            , List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(zhongYuanTransferToDaasAndCustomerFilterThreadPool
+                , marketingCommonConfig.getZhongYuanTransferDataToDaasAndCustomerFilterThreadNum());
         zhongYuanTransferToDaasAndCustomerFilterThreadPool.execute(() -> threadDoProcess(marketingTransferSyncUserList));
     }
 

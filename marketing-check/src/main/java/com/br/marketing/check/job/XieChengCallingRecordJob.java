@@ -1,7 +1,8 @@
 package com.br.marketing.check.job;
 
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.mapper.LocalFileMapper;
+import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.mapper.XieChengDataMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -33,6 +34,9 @@ public class XieChengCallingRecordJob extends AbstractSimpleElasticJob {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
+    @Resource
+    private RocketMqSwitch rocketMqSwitch;
+
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         while (Boolean.FALSE.equals(marketingCommonConfig.getXieChengCallingRecordSwitch())) {
@@ -44,8 +48,11 @@ public class XieChengCallingRecordJob extends AbstractSimpleElasticJob {
                 JSONObject msg = new JSONObject();
                 msg.put("localId", localId);
                 msg.put("type", 2);
-                producter.send(ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE
-                        , msg.toJSONString());
+//                producter.send(ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE
+//                        , msg.toJSONString());
+                rocketMqSwitch.sendMessage("", MarketingAssistConstants.TOPIC,
+                        MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE, ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE,
+                        msg.toJSONString());
             });
             try {
                 Thread.sleep(marketingCommonConfig.getXieChengCallingRecordSleep());

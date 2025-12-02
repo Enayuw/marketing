@@ -36,4 +36,7 @@ public class SmsRecordDTO {
     @ApiModelProperty(value = "预留字段1")
     private String reserveField1;
 
+    @ApiModelProperty(value = "回调类型")
+    private Integer callBackType;
+
 }

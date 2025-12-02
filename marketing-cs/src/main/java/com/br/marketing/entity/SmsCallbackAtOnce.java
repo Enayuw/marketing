@@ -4,7 +4,7 @@ import java.util.Date;
 
 public class SmsCallbackAtOnce {
     /**
-     * 
+     *
      */
     private Long id;
 
@@ -17,6 +17,11 @@ public class SmsCallbackAtOnce {
      * api接入唯一标识
      */
     private String apiCode;
+
+    /**
+     * 回调类型 2-挂机短信；5-短信
+     */
+    private Integer callBackType;
 
     /**
      * 场景
@@ -80,6 +85,14 @@ public class SmsCallbackAtOnce {
 
     public void setApiCode(String apiCode) {
         this.apiCode = apiCode == null ? null : apiCode.trim();
+    }
+
+    public Integer getCallBackType() {
+        return callBackType;
+    }
+
+    public void setCallBackType(Integer callBackType) {
+        this.callBackType = callBackType;
     }
 
     public String getUserType() {

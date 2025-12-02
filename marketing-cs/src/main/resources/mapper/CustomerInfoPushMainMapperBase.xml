@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.br.marketing.mapper.CustomerInfoPushMainMapper">
+<mapper namespace="com.br.marketing.mapper.CustomerInfoPushMainMapperBase">
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.CustomerInfoPushMain">
     <id column="id" jdbcType="BIGINT" property="id" />
     <result column="m_api_code" jdbcType="VARCHAR" property="mApiCode" />
@@ -33,6 +33,7 @@
     <result column="tag_content" jdbcType="VARCHAR" property="tagContent" />
     <result column="push_target" jdbcType="INTEGER" property="pushTarget" />
     <result column="label_name" jdbcType="VARCHAR" property="labelName" />
+    <result column="upload_report_ids" jdbcType="VARCHAR" property="uploadReportIds" />
   </resultMap>
   <sql id="Example_Where_Clause">
     <where>
@@ -97,7 +98,7 @@
     m_plan_num, m_realy_num, m_cus_batch_number_list, m_status, is_del, create_time, 
     update_time, finish_time, m_rule_condition, m_rule_condition_show, m_score_condition, 
     m_percentage, opt_user_id, opt_user_name, filter_type, batch_name, extend, source_type, 
-    build_type, strategy_code, tag_content, push_target, label_name
+    build_type, strategy_code, tag_content, push_target, label_name, upload_report_ids
   </sql>
   <select id="selectByExample" parameterType="com.br.marketing.entity.CustomerInfoPushMainExample" resultMap="BaseResultMap">
     select
@@ -139,8 +140,8 @@
       m_percentage, opt_user_id, opt_user_name, 
       filter_type, batch_name, extend, 
       source_type, build_type, strategy_code, 
-      tag_content, push_target, label_name
-      )
+      tag_content, push_target, label_name, 
+      upload_report_ids)
     values (#{mApiCode,jdbcType=VARCHAR}, #{mModel,jdbcType=VARCHAR}, #{mModelVersion,jdbcType=VARCHAR}, 
       #{mNumMin,jdbcType=INTEGER}, #{mNumMax,jdbcType=INTEGER}, #{mScoreMin,jdbcType=INTEGER}, 
       #{mScoreMax,jdbcType=INTEGER}, #{mPlanNum,jdbcType=INTEGER}, #{mRealyNum,jdbcType=INTEGER}, 
@@ -150,8 +151,8 @@
       #{mPercentage,jdbcType=DECIMAL}, #{optUserId,jdbcType=VARCHAR}, #{optUserName,jdbcType=VARCHAR}, 
       #{filterType,jdbcType=INTEGER}, #{batchName,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}, 
       #{sourceType,jdbcType=INTEGER}, #{buildType,jdbcType=INTEGER}, #{strategyCode,jdbcType=VARCHAR}, 
-      #{tagContent,jdbcType=VARCHAR}, #{pushTarget,jdbcType=INTEGER}, #{labelName,jdbcType=VARCHAR}
-      )
+      #{tagContent,jdbcType=VARCHAR}, #{pushTarget,jdbcType=INTEGER}, #{labelName,jdbcType=VARCHAR}, 
+      #{uploadReportIds,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.CustomerInfoPushMain" useGeneratedKeys="true">
     insert into b_customer_info_push_main
@@ -246,6 +247,9 @@
       <if test="labelName != null">
         label_name,
       </if>
+      <if test="uploadReportIds != null">
+        upload_report_ids,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="mApiCode != null">
@@ -337,6 +341,9 @@
       </if>
       <if test="labelName != null">
         #{labelName,jdbcType=VARCHAR},
+      </if>
+      <if test="uploadReportIds != null">
+        #{uploadReportIds,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -442,6 +449,9 @@
       <if test="record.labelName != null">
         label_name = #{record.labelName,jdbcType=VARCHAR},
       </if>
+      <if test="record.uploadReportIds != null">
+        upload_report_ids = #{record.uploadReportIds,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
@@ -479,7 +489,8 @@
       strategy_code = #{record.strategyCode,jdbcType=VARCHAR},
       tag_content = #{record.tagContent,jdbcType=VARCHAR},
       push_target = #{record.pushTarget,jdbcType=INTEGER},
-      label_name = #{record.labelName,jdbcType=VARCHAR}
+      label_name = #{record.labelName,jdbcType=VARCHAR},
+      upload_report_ids = #{record.uploadReportIds,jdbcType=VARCHAR}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -577,6 +588,9 @@
       <if test="labelName != null">
         label_name = #{labelName,jdbcType=VARCHAR},
       </if>
+      <if test="uploadReportIds != null">
+        upload_report_ids = #{uploadReportIds,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -611,7 +625,8 @@
       strategy_code = #{strategyCode,jdbcType=VARCHAR},
       tag_content = #{tagContent,jdbcType=VARCHAR},
       push_target = #{pushTarget,jdbcType=INTEGER},
-      label_name = #{labelName,jdbcType=VARCHAR}
+      label_name = #{labelName,jdbcType=VARCHAR},
+      upload_report_ids = #{uploadReportIds,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

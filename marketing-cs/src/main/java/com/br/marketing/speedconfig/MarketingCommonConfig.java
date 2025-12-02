@@ -3459,9 +3459,70 @@ public class MarketingCommonConfig {
      * marketing_transfer_sh: 数禾转化数据消费端
      * marketing_upload_custom: 定制客户上传数据消费端
      * marketing_transfer_custom: 定制客户转化数据消费端
-     * 配置示例: {"marketing_upload_base":true,"marketing_transfer_base":false,"marketing_upload_sh":false,"marketing_transfer_sh":false,"marketing_upload_custom":true,"marketing_transfer_custom":false}
+     * 配置示例: {"marketing_upload_base":true,"marketing_transfer_base":false,
+     * "marketing_upload_sh":false,"marketing_transfer_sh":false,
+     * "marketing_upload_custom":true,"marketing_transfer_custom":false}
      */
     private Map<String, Boolean> pulsarConsumerSkipSwitch;
 
-}
+    /**
+     * 自定义ES索引,{"7410770":"202508_01_test"}
+     * 如果指定了此字段，将优先使用这些索引，否则使用批次号生成索引
+     */
+    private JSONObject policyCustomIndexes;
 
+    /**
+     * 轮询线程轮询频率
+     */
+    private Integer mockPollingInterval;
+
+    /**
+     * 定义不需要Mock初始化的项目列表
+     */
+    private Set<String> disableMockProjects;
+
+
+    /**
+     * Ai客户数据推送决策操作类型集合
+     */
+    private List<String> aiToPolicyOperateTypeList;
+
+    /**
+     * 哈罗-三方营销数据回传 配置
+     */
+    private JSONObject haloCallBackDataConfig;
+
+    /**
+     * 分配组和下一轮询组的键值对
+     * ["组1", "组2"]
+     * 组1对应下一轮询组为组2，组2对应下一轮询组为组1
+     */
+    private List<String> assignedGroups;
+
+    /**
+     * 模拟数据入库成功，但返回异常入Pulsar的场景
+     * marketing_upload_base: 标准上传数据消费端
+     * marketing_transfer_base: 标准转化数据消费端
+     * 配置示例: {"marketing_upload_base":true,"marketing_transfer_base":false}
+     */
+    private Map<String, Boolean> pushDataSwitch;
+
+    /**
+     * 中原消金权限验证
+     * {"apiCode":"7492860","appUser":"zyxfjr_coll","appKey":"87C5FCB80F872B8D67BA3306BB09157C"}
+     */
+    private Map<String, String> zhongYuanIdentity;
+
+    /**
+     * 携程贷后apicode集合
+     */
+    private List<String> xieChengPostLoanApiCodeLists;
+
+    /**
+     * 泰康请求参数
+     */
+    private Map<String,String> taikangConfig;
+
+
+    private Map<String, Boolean> tcCpaMockConfig;
+}

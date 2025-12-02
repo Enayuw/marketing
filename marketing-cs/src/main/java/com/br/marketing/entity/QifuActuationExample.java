@@ -515,6 +515,76 @@ public class QifuActuationExample {
             return (Criteria) this;
         }
 
+        public Criteria andGroupTypeNameIsNull() {
+            addCriterion("group_type_name is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeNameIsNotNull() {
+            addCriterion("group_type_name is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeNameEqualTo(String value) {
+            addCriterion("group_type_name =", value, "groupTypeName");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeNameNotEqualTo(String value) {
+            addCriterion("group_type_name <>", value, "groupTypeName");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeNameGreaterThan(String value) {
+            addCriterion("group_type_name >", value, "groupTypeName");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeNameGreaterThanOrEqualTo(String value) {
+            addCriterion("group_type_name >=", value, "groupTypeName");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeNameLessThan(String value) {
+            addCriterion("group_type_name <", value, "groupTypeName");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeNameLessThanOrEqualTo(String value) {
+            addCriterion("group_type_name <=", value, "groupTypeName");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeNameLike(String value) {
+            addCriterion("group_type_name like", value, "groupTypeName");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeNameNotLike(String value) {
+            addCriterion("group_type_name not like", value, "groupTypeName");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeNameIn(List<String> values) {
+            addCriterion("group_type_name in", values, "groupTypeName");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeNameNotIn(List<String> values) {
+            addCriterion("group_type_name not in", values, "groupTypeName");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeNameBetween(String value1, String value2) {
+            addCriterion("group_type_name between", value1, value2, "groupTypeName");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupTypeNameNotBetween(String value1, String value2) {
+            addCriterion("group_type_name not between", value1, value2, "groupTypeName");
+            return (Criteria) this;
+        }
+
         public Criteria andValidDateIsNull() {
             addCriterion("valid_date is null");
             return (Criteria) this;

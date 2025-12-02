@@ -55,4 +55,12 @@ public interface MarketingTransferInfoMapper extends MarketingTransferInfoMapper
 //    @Select("SELECT request_id FROM b_marketing_transfer_info WHERE `status` in(2,4) and api_code=#{apiCode} and date_format(create_time,'%Y-%m-%d') = #{bizDate} and last=#{last} limit 1")
     String queryByApiCodAndLasttikv_(@Param("apiCode") String apiCode, @Param("bizDate") String bizDate, @Param("last") String last);
 
+    /**
+     * 根据apiCode和requestId查询转化数据
+     * @param apiCode
+     * @param requestId
+     * @return
+     */
+    MarketingTransferInfo getByApiCodeAndRequestId(@Param("apiCode") String apiCode, @Param("requestId") String requestId);
+
 }

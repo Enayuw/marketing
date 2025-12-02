@@ -31,6 +31,9 @@ public class PushInfoFilterDTO {
     @ApiModelProperty(value = "页大小")
     private Integer size;
 
+    @ApiModelProperty(value = "任务类型 0：跑分任务，1：上传任务")
+    private Integer taskType;
+
     public List<String> getmStatusList() {
         if(mStatusList == null || mStatusList.size()<1){
             if(StringUtils.isNotBlank(mStatus)){
@@ -106,4 +109,13 @@ public class PushInfoFilterDTO {
     public void setSize(Integer size) {
         this.size = size;
     }
+
+    public Integer getTaskType() {
+        return taskType;
+    }
+
+    public void setTaskType(Integer taskType) {
+        this.taskType = taskType;
+    }
+
 }

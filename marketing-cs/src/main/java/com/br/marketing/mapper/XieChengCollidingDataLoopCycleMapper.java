@@ -2,14 +2,12 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.dto.xiecheng.XieChengActivateDTO;
 import com.br.marketing.entity.CustomizeUploadData;
-import com.br.marketing.entity.XieChengBlackList;
-import com.br.marketing.entity.XieChengCollidingBlackListCount;
 import com.br.marketing.entity.XieChengCollidingDataLoopCycle;
 import com.br.marketing.vo.xiecheng.XiechengCollidingRuleVO;
 import com.br.marketing.vo.xiecheng.param.CollidingRuleListParam;
-import io.swagger.models.auth.In;
 import org.apache.ibatis.annotations.Param;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -81,8 +79,17 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
      * @param queryRuleScoreDataSql
      * @return
      */
-    List<Long> selectIdsOfTrueDataProcessTasktikv_(@Param("minId") Long minId, @Param("queryRuleScoreDataSql") String queryRuleScoreDataSql,
-                                                   @Param("tableName") String tableName, @Param("pageSize") Integer pageSize);
+    List<Long> selectIdsOfTrueDataProcessTasktikv_(@Param("minId") Long minId,
+                                                   @Param("queryRuleScoreDataSql") String queryRuleScoreDataSql,
+                                                   @Param("tableName") String tableName,
+                                                   @Param("pageSize") Integer pageSize);
+
+    List<Long> selectIdsOfTrueDataProcessTaskWithRangetikv_(@Param("minId") Long minId,
+                                                            @Param("queryRuleScoreDataSql") String queryRuleScoreDataSql,
+                                                            @Param("tableName") String tableName,
+                                                            @Param("releaseTimeBegin") LocalDateTime releaseTimeBegin,
+                                                            @Param("releaseTimeEnd") LocalDateTime releaseTimeEnd,
+                                                            @Param("pageSize") Integer pageSize);
 
     /**
     * @Description: 周期表公共黑名单剔除
@@ -114,5 +121,13 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
     CustomizeUploadData selectActivateData(XieChengActivateDTO xieChengActivateDTO);
 
     int searchCycDeleteCountByExtend(@Param("extend") String extend);
+
+    int selectTimeRangeOutMagnitudeForTodaytiflash_(@Param("begin") LocalDateTime begin, @Param("end") LocalDateTime end);
+
+    int selectTimeRangeOutMagnitudeForNotTodaytiflash_(@Param("begin") LocalDateTime begin, @Param("end") LocalDateTime end);
+
+    int selectTimeRangeBetweenWithScoreMagnitudetiflash_(@Param("begin") LocalDateTime begin,
+                                                         @Param("end") LocalDateTime end,
+                                                         @Param("scoreSql") String scoreSql);
 
 }

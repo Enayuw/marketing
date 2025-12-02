@@ -791,7 +791,7 @@
 
     <job:simple id="【check】-QiFuAiRobotRankingReportEmailJob"
                 class="com.br.marketing.check.job.qifu.report.job.QiFuAiRobotRankingReportEmailJob"
-                cron="0 0 12 * * ?"
+                cron="0 0 13 * * ?"
                 description="360AI语音机器人排名数据发送Email任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -1225,22 +1225,6 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="【check】-QiFuQueryCallRealTimeJob"
-                class="com.br.marketing.check.job.qifu.QiFuQueryCallRealTimeJob"
-                cron="0 1/2 * * * ?"
-                description="奇富AI查询外呼信息"
-                registry-center-ref="regCenter"
-                sharding-total-count="1"
-                sharding-item-parameters="0=A"
-                monitor-execution="true"
-                failover="false"
-                misfire="false"
-                disabled="true"
-                overwrite="true"
-                job-parameter=""
-                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
-    />
-
     <job:simple id="【check】-CalculateTagDataJob"
                 class="com.br.marketing.check.job.tag.CalculateTagDataJob"
                 cron="0 30 0 * * ?"
@@ -1336,4 +1320,21 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
+
+    <job:simple id="【check】-QiFuDataFlattenJob"
+                class="com.br.marketing.check.job.qifu.QiFuDataFlattenJob"
+                cron="0 1/10 * * * ?"
+                description="奇富定制前置表数据打平Job"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                job-parameter="{}"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
 </beans>

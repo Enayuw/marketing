@@ -15,6 +15,7 @@ import com.br.marketing.service.ToPolicyByRuleService;
 import com.br.marketing.service.rulecenter.IEsActionService;
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -187,6 +188,10 @@ public class EsQueryExecutor {
 
         if (!params.getIsPerOrTop()) {
             queryBaseBean.setPart(params.getPart());
+        }
+
+        if (!StringUtils.isEmpty(params.getCustomIndexes())){
+            queryBaseBean.setCustomIndexes(params.getCustomIndexes());
         }
 
         // 设置分页参数

@@ -32,13 +32,13 @@ public class CheckCellServiceImpl implements IUploadCheckService {
         Boolean isMw = Boolean.TRUE;
         switch (type) {
             case "cell":
-                content = StringUtils.isBlank(user.getCell()) ? "" : user.getCell();
+                content = StringUtils.isEmpty(user.getCell()) ? "" : user.getCell();
                 break;
             case "id":
-                content = StringUtils.isBlank(user.getId()) ? "" : user.getId();
+                content = StringUtils.isEmpty(user.getId()) ? "" : user.getId();
                 break;
             case "name":
-                content = StringUtils.isBlank(user.getName()) ? "" : user.getName();
+                content = StringUtils.isEmpty(user.getName()) ? "" : user.getName();
                 break;
             default:
                 return;
@@ -62,7 +62,7 @@ public class CheckCellServiceImpl implements IUploadCheckService {
         }
         //明文规则校验 md5和sha256解密失败content为空
         UserValidator userValidator = new UserValidator(isCheck);
-        if (StringUtils.isNotBlank(content) && "cell".equals(type)) {
+        if (StringUtils.isNotEmpty(content) && "cell".equals(type)) {
             if (!userValidator.validatePhone(content)) {
                 user.setFailType(MonitorTypeEnum.FAIL_TYPE_3.getType());
                 user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
@@ -75,17 +75,16 @@ public class CheckCellServiceImpl implements IUploadCheckService {
             }
             user.setCell(BrCipherMaker.getInstance().encode(content));
         }
-        if (StringUtils.isNotBlank(content) && "id".equals(type)) {
+        if (StringUtils.isNotEmpty(content) && "id".equals(type)) {
             if (!userValidator.validateId(content)) {
                 user.setId(content);
-                //user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
             }
             if(isMw){
                 user.setIdOriginal(BrCipherMaker.getInstance().encode(content));
             }
             user.setId(BrCipherMaker.getInstance().encode(content));
         }
-        if (StringUtils.isNotBlank(content) && "name".equals(type)) {
+        if (StringUtils.isNotEmpty(content) && "name".equals(type)) {
             if (!userValidator.validateName(content)) {
                 user.setName(content);
                 /** 2022/8/11 17:14 业务需求变更，name字段是否成功解密不影响数据状态 */

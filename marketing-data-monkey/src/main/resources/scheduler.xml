@@ -603,7 +603,7 @@
 
     <job:simple id="【monkey】-UMengTimingTaskCreateJob"
                 class="com.br.marketing.monkey.job.umeng.UMengTimingTaskCreateJob"
-                cron="0 0/5 * * * ?"
+                cron="0 0 18 29 9 ? 2099-2099"
                 description="友盟智能时机任务创建"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -619,7 +619,7 @@
 
     <job:simple id="【monkey】-UMengDeviceAddJob"
                 class="com.br.marketing.monkey.job.umeng.UMengDeviceAddJob"
-                cron="0 0/10 * * * ?"
+                cron="0 0 18 29 9 ? 2099-2099"
                 description="友盟智能时机设备注册"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -632,10 +632,10 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-
+    <!--                cron="0 0/5 10-17 * * ?"-->
     <job:simple id="【monkey】-UMengCallPolicyJob"
                 class="com.br.marketing.monkey.job.umeng.UMengCallPolicyJob"
-                cron="0 0/5 10-17 * * ?"
+                cron="0 0 18 29 9 ? 2099-2099"
                 description="友盟-推决策"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -692,4 +692,52 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
+
+
+    <job:simple id="【monkey】-MarketingHaloCallBackDataJob"
+                class="com.br.marketing.monkey.job.halo.MarketingHaloCallBackDataJob"
+                cron="0 0 18 29 9 ? 2099-2099"
+                description="哈啰-三方营销数据回传"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
+    <job:simple id="【monkey】-QiFuQueryCallRealTimeJob"
+                class="com.br.marketing.monkey.job.qifu.QiFuQueryCallRealTimeJob"
+                cron="0 0 18 29 9 ? 2099-2099"
+                description="奇富AI查询外呼信息"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
+    <job:simple id="【monkey】-QiFuAiEventPushQueryJob"
+                class="com.br.marketing.monkey.job.qifu.QiFuAiEventPushQueryJob"
+                cron="0 0 18 29 9 ? 2099-2099"
+                description="奇富事件推送查询job"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                job-parameter="{}"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
 </beans>

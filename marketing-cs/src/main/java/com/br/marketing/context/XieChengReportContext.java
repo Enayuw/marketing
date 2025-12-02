@@ -8,7 +8,9 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.entity.CallRecord;
+import com.br.marketing.entity.SmsCallbackAtOnce;
 import com.br.marketing.entity.XieChengData;
+import com.br.marketing.enums.XcReportTypeEnum;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
@@ -19,8 +21,11 @@ import java.util.UUID;
 @Data
 @Builder
 public class XieChengReportContext {
+    private Integer type;
     // 基础数据
     private CallRecord callRecord;
+    private SmsCallbackAtOnce smsCallbackAtOnce;
+    private String apiCode;
     private AdReqDTO adReqDTO;
     private XieChengData resultData;
     private PushConfig pushConfig;
@@ -72,11 +77,30 @@ public class XieChengReportContext {
     }
 
     /**
-     * 创建上下文对象
+     * 创建上下文对象，type = 1-通话明细
      */
     public static XieChengReportContext create(CallRecord callRecord, XieChengData xieChengData, String tcId) {
         return XieChengReportContext.builder()
+                .type(XcReportTypeEnum.CALL.getValue())
                 .callRecord(callRecord)
+                .apiCode(xieChengData.getApiCode())
+                .adReqDTO(convertToAdReqDTO(xieChengData))
+                .resultData(createResultData(xieChengData.getId()))
+                .sha256Tel(xieChengData.getSha256Tel())
+                .tcId(tcId)
+                .continueFlag(true)
+                .exceptionFlag(false)
+                .build();
+    }
+
+    /**
+     * 创建上下文对象，type = 2-短信
+     */
+    public static XieChengReportContext create(SmsCallbackAtOnce smsCallbackAtOnce, XieChengData xieChengData, String tcId) {
+        return XieChengReportContext.builder()
+                .type(XcReportTypeEnum.SMS.getValue())
+                .smsCallbackAtOnce(smsCallbackAtOnce)
+                .apiCode(xieChengData.getApiCode())
                 .adReqDTO(convertToAdReqDTO(xieChengData))
                 .resultData(createResultData(xieChengData.getId()))
                 .sha256Tel(xieChengData.getSha256Tel())

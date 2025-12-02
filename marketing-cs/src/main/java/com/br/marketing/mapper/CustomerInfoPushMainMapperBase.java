@@ -2,12 +2,11 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.entity.CustomerInfoPushMain;
 import com.br.marketing.entity.CustomerInfoPushMainExample;
+import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
-import java.util.List;
-
 public interface CustomerInfoPushMainMapperBase {
-    int countByExample(CustomerInfoPushMainExample example);
+    long countByExample(CustomerInfoPushMainExample example);
 
     int deleteByExample(CustomerInfoPushMainExample example);
 

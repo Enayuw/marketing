@@ -29,4 +29,13 @@
     <select id="selectIdByRuleLabel" resultType="long">
         select id from b_marketing_customer_rule where rule_label = #{ruleLabel} limit 1;
     </select>
+
+    <select id="countByApiCodeAndRuleLabel" resultType="java.lang.Integer">
+        select count(1)
+        from b_marketing_customer_rule_mapping a
+                 join b_marketing_customer_rule b on a.rule_id = b.id
+        where a.api_code = #{apiCode}
+          and b.rule_label = #{ruleLabel}
+          and a.is_delete = 0
+    </select>
 </mapper>

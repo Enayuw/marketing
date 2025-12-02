@@ -191,7 +191,10 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         if (existingRules == null || existingRules.isEmpty()) {
             return true;
         }
-        
+
+        boolean anyRuleDeleted = false;
+        boolean allSuccess = true;
+
         // 标记不在当前配置中的规则为删除状态
         for (MarketingDataCleanGeneralRuleConfig rule : existingRules) {
             String mappingField = rule.getMappingField();
@@ -203,13 +206,16 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
                 int rows = cleanGeneralRuleConfigMapper.updateByPrimaryKeySelective(updateRule);
                 if (rows > 0) {
+                    anyRuleDeleted = true;
                     log.info("标记规则为删除状态: ruleId={}, cleanField={}", rule.getId(), mappingField);
                 } else {
+                    allSuccess = false;
                     log.warn("标记规则为删除状态失败: ruleId={}, cleanField={}", rule.getId(), mappingField);
                 }
             }
         }
-        return true;
+
+        return anyRuleDeleted && allSuccess;
     }
 
     /**
@@ -729,10 +735,10 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         Object fieldValue = null;
         if (ObjectUtil.isNotEmpty(parentPath) || ObjectUtil.isNotEmpty(level)) {
             fieldValue = JsonParseUtils.findFirstValueByKey(nodeParse, cleanFields, parentPath);
-            log.warn("取值操作逻辑（新）从nodeParse获取字段 {} 的值: {}", cleanFields, fieldValue);
+            //log.warn("取值操作逻辑（新）从nodeParse获取字段 {} 的值: {}", cleanFields, fieldValue);
         } else {
             fieldValue = JsonParseUtils.findFirstValueByKey(nodeParse, cleanFields);
-            log.warn("取值操作逻辑（老）从nodeParse获取字段 {} 的值: {}", cleanFields, fieldValue);
+            //log.warn("取值操作逻辑（老）从nodeParse获取字段 {} 的值: {}", cleanFields, fieldValue);
         }
         if (fieldValue == null) {
             log.warn("未找到字段值: cleanFields={}", cleanFields);
@@ -1804,11 +1810,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             if (level == 0) {
                 continue;
             }
-            if (acceptType.equals(DataProcessEnum.AcceptTypeEnum.GENERAL.getCode())) {
-                if ("requestId".equals(nodeName)) {
-                    continue;
-                }
-            }
             String nodeValue = node.getNodeValue();
             Date createTime = node.getCreateTime();
             if (StringUtil.isBlank(nodeName)) {
@@ -2114,9 +2115,9 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             for (Map.Entry<String,String> entry : cleaningToMappingFieldMap.entrySet()) {
                 RuleCleaningResult ruleCleaningResult = new RuleCleaningResult();
                 ruleCleaningResult.setCleanFields(entry.getValue());
-                ruleCleaningResult.setCleanValue(ObjectUtil.isNotEmpty(JsonParseUtils.findFirstValueByKey(item, entry.getValue())) ? Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(item, entry.getValue())).toString() : "");
+                ruleCleaningResult.setCleanValue(ObjectUtil.isNotEmpty(JsonParseUtils.findFirstValueByKey(item, entry.getValue())) ? (String)JsonParseUtils.findFirstValueByKey(item, entry.getValue()) : "");
                 ruleCleaningResult.setMappingField(entry.getKey());
-                ruleCleaningResult.setMappingValue(ObjectUtil.isNotEmpty(JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getKey())) ? Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getKey())).toString() : "");
+                ruleCleaningResult.setMappingValue(ObjectUtil.isNotEmpty(JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getKey())) ? (String)JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getKey()) : "");
                 cleaningResultItems.add(ruleCleaningResult);
             }
             cleaningResults.add(cleaningResultItems);
@@ -2252,25 +2253,25 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             int size = actualNum > dataItems.size() ? dataItems.size() : actualNum;
             for (int i = 0; i < size; i++) {
                 JSONObject item = dataItems.getJSONObject(i);
-                MarketingPreUserDetailDTO result = preUserDetailDTOS.stream().filter(detail -> detail.getCustNum().equals(Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(item, "custNum")).toString())).findFirst().orElse(null);
+                MarketingPreUserDetailDTO result = preUserDetailDTOS.stream().filter(detail -> detail.getCustNum().equals(JsonParseUtils.findFirstValueByKey(item, "custNum").toString())).findFirst().orElse(null);
                 for (Map.Entry<String,String> entry : cleaningToMappingFieldMap.entrySet()) {
                     RuleCleaningResult ruleCleaningResult = new RuleCleaningResult();
                     ruleCleaningResult.setCleanFields(entry.getValue());
-                    ruleCleaningResult.setCleanValue(Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(item, entry.getKey())).toString());
+                    ruleCleaningResult.setCleanValue((String)JsonParseUtils.findFirstValueByKey(item, entry.getKey()));
                     ruleCleaningResult.setMappingField(entry.getKey());
-                    ruleCleaningResult.setMappingValue(Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getValue())).toString());
+                    ruleCleaningResult.setMappingValue((String)JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getValue()));
                     cleaningResultItems.add(ruleCleaningResult);
                 }
                 cleaningResults.add(cleaningResultItems);
             }
         }else {
-            MarketingPreUserDetailDTO result = preUserDetailDTOS.stream().filter(detail -> detail.getCustNum().equals(Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(jsonObject, "custNum")).toString())).findFirst().orElse(null);
+            MarketingPreUserDetailDTO result = preUserDetailDTOS.stream().filter(detail -> detail.getCustNum().equals(JsonParseUtils.findFirstValueByKey(jsonObject, "custNum"))).findFirst().orElse(null);
             for (Map.Entry<String,String> entry : cleaningToMappingFieldMap.entrySet()) {
                 RuleCleaningResult ruleCleaningResult = new RuleCleaningResult();
                 ruleCleaningResult.setCleanFields(entry.getValue());
-                ruleCleaningResult.setCleanValue(Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(jsonObject, entry.getKey())).toString());
+                ruleCleaningResult.setCleanValue((String)JsonParseUtils.findFirstValueByKey(jsonObject, entry.getKey()));
                 ruleCleaningResult.setMappingField(entry.getKey());
-                ruleCleaningResult.setMappingValue(Objects.requireNonNull(JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getValue())).toString());
+                ruleCleaningResult.setMappingValue((String)JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getValue()));
                 cleaningResultItems.add(ruleCleaningResult);
             }
             cleaningResults.add(cleaningResultItems);
