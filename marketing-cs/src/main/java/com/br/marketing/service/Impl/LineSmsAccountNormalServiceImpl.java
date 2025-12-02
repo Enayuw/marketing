@@ -228,33 +228,27 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
 
     @Override
     public List<SmsBaseShowInfoDTO>  getSmsAccountBaseInfo() {
-        List<SmsBaseFullInfoDTO> smsBaseFullInfoDTOList = smsBaseInfoNormalMapper.selectSmsBaseFullInfoList();
-        // 创建一个vendorId到vendorName的映射，避免重复查找
-        Map<Long, String> vendorIdToNameMap = smsBaseFullInfoDTOList.stream()
-                .collect(Collectors.toMap(
-                        SmsBaseFullInfoDTO::getVendorId,
-                        SmsBaseFullInfoDTO::getVendorName,
-                        (name1, name2) -> name1
-                ));
-
-        List<SmsBaseShowInfoDTO> smsBaseShowInfoDTOList = smsBaseFullInfoDTOList.stream()
-                .collect(Collectors.groupingBy(
-                        SmsBaseFullInfoDTO::getVendorId,
-                        Collectors.mapping(dto -> {
-                            SmsBaseShowInfoDTO.SmsBaseInfo smsBaseInfo = new SmsBaseShowInfoDTO.SmsBaseInfo();
-                            smsBaseInfo.setChannelId(dto.getChannelId());
-                            smsBaseInfo.setChannelName(dto.getChannelName());
-                            return smsBaseInfo;
-                        }, Collectors.toList())
-                ))
-                .entrySet().stream()
-                .map(entry -> {
-                    SmsBaseShowInfoDTO dto = new SmsBaseShowInfoDTO();
-                    dto.setVendorId(entry.getKey());
-                    dto.setVendorName(vendorIdToNameMap.get(entry.getKey()));
-                    dto.setChannelDTOList(entry.getValue());
-                    return dto;
-                }).collect(Collectors.toList());
+        List<SmsBaseShowInfoDTO> smsBaseShowInfoDTOList = new ArrayList<>();
+        List<SmsVendorInfoNormal> smsVendorInfoNormalList = smsVendorInfoNormalMapper.selectList();
+        List<SmsBaseInfoNormal> smsBaseInfoNormalList = smsBaseInfoNormalMapper.selectList();
+        smsVendorInfoNormalList.forEach(vendorInfo -> {
+            SmsBaseShowInfoDTO showInfoItem = new SmsBaseShowInfoDTO();
+            showInfoItem.setVendorId(vendorInfo.getId());
+            showInfoItem.setVendorName(vendorInfo.getVendorName());
+            List<SmsBaseShowInfoDTO.SmsBaseInfo> channelDTOList = new ArrayList<>();
+            List<SmsBaseInfoNormal> filterList = smsBaseInfoNormalList.stream().filter(
+                    baseInfo -> Objects.equals(baseInfo.getVendorId(), vendorInfo.getVendorId())).collect(Collectors.toList());
+            if (!filterList.isEmpty()) {
+                filterList.forEach(smsBaseItem -> {
+                    SmsBaseShowInfoDTO.SmsBaseInfo smsBaseInfo = new SmsBaseShowInfoDTO.SmsBaseInfo();
+                    smsBaseInfo.setChannelId(smsBaseItem.getId());
+                    smsBaseInfo.setChannelName(smsBaseItem.getChannelName());
+                    channelDTOList.add(smsBaseInfo);
+                });
+            }
+            showInfoItem.setChannelDTOList(channelDTOList);
+            smsBaseShowInfoDTOList.add(showInfoItem);
+        });
         return smsBaseShowInfoDTOList;
     }
 
@@ -262,8 +256,8 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
     public Result addSmsAccount(SmsAccountDto dto) throws JsonProcessingException{
         //1.校验渠道有无存在的配置
         List<Long> channelIds = dto.getChannels().stream().map(SmsChannelDto::getChannelId).collect(Collectors.toList());
-        List<Long> existChannelIds = smsAccountDetailNormalMapper.selectChannelIfExist(channelIds, dto.getConfigId());
-        if (existChannelIds.size() > 0) {
+        List<Long> existChannelIds = smsAccountDetailNormalMapper.selectChannelIfExist(channelIds, dto.getGroupId());
+        if (!existChannelIds.isEmpty()) {
             List<String> existChannelNames = dto.getChannels().stream()
                     .filter(channel -> existChannelIds.contains(channel.getChannelId()))
                     .map(SmsChannelDto::getChannelName).collect(Collectors.toList());
@@ -296,8 +290,8 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
     public Result updSmsAccount(SmsAccountDto dto) throws JsonProcessingException{
         //1.校验渠道有无存在的配置
         List<Long> channelIds = dto.getChannels().stream().map(SmsChannelDto::getChannelId).collect(Collectors.toList());
-        List<Long> existChannelIds = smsAccountDetailNormalMapper.selectChannelIfExist(channelIds, dto.getConfigId());
-        if (existChannelIds.size() > 0) {
+        List<Long> existChannelIds = smsAccountDetailNormalMapper.selectChannelIfExist(channelIds, dto.getGroupId());
+        if (!existChannelIds.isEmpty()) {
             List<String> existChannelNames = dto.getChannels().stream()
                     .filter(channel -> existChannelIds.contains(channel.getChannelId()))
                     .map(SmsChannelDto::getChannelName).collect(Collectors.toList());
@@ -339,29 +333,12 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue());
     }
 
-
-
     @Override
-    public PageResultReturn getSmsAccounts(Integer current, Integer size, String vendorName, String channelsName, Double price) {
-
+    public PageResultReturn getSmsAccounts(Integer current, Integer size, Long vendorId, Long channelId, Double price) {
         Date nowDate = new Date(System.currentTimeMillis());
-
-        //vendorId 会有相同的vendorId么
-        SmsVendorInfoNormalExample smsVendorInfoNormalExample = new SmsVendorInfoNormalExample();
-        smsVendorInfoNormalExample.createCriteria().andVendorNameEqualTo(vendorName).andIsDeleteEqualTo(0);
-        smsVendorInfoNormalExample.setOrderByClause("create_time desc limit 1");
-        SmsVendorInfoNormal smsVendorInfoNormal = smsVendorInfoNormalMapper.selectByExample(smsVendorInfoNormalExample).get(0);
-        Long vendorId = smsVendorInfoNormal.getVendorId();
-
-        //channelId
-        List<Long> channelIdList = new ArrayList<>();
-        if (StringUtils.isNotEmpty(channelsName)) {
-            channelIdList = smsBaseInfoNormalMapper.selectChannelIdListByFiled(vendorId,channelsName);
-        }
-
-        Long totalCount = smsAccountDetailNormalMapper.selectTotalCount(vendorId,channelIdList,price,nowDate);
+        Long totalCount = smsAccountDetailNormalMapper.selectTotalCount(vendorId, channelId,price,nowDate);
         List<SmsAccountDetailDTO> detailDbDtoList = smsAccountDetailNormalMapper.selectList(vendorId,
-                channelIdList,price,nowDate,size,Math.max((current - 1) * size, 0));
+                channelId,price,nowDate,size,Math.max((current - 1) * size, 0));
         return PageResultReturn.setPageResult(converToSmsShowVOList(detailDbDtoList), current, size, totalCount);
     }
 
@@ -426,8 +403,7 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
                     .map(String::trim)
                     .map(Long::valueOf)
                     .collect(Collectors.toList());
-            List<SmsBaseInfoNormal> baseInfoNormalList = smsBaseInfoNormalMapper.selectByChannelIdList(channelIdList);
-
+            List<SmsBaseInfoNormal> baseInfoNormalList = smsBaseInfoNormalMapper.selectByChannelIdListtikv_(channelIdList);
 
             baseInfoNormalList.forEach(baseItem -> {
                 JSONObject lineObj = new JSONObject();
@@ -477,7 +453,7 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
             JSONObject dbLogDetailObj = JSONObject.parseObject(smsDbLog.getDetail());
             String channelIdsStr = dbLogDetailObj.getString("channelIds");
             List<Long> channelIdList = JSON.parseArray(channelIdsStr, Long.class);
-            List<SmsBaseInfoNormal> baseInfoNormalList = smsBaseInfoNormalMapper.selectByChannelIdList(channelIdList);
+            List<SmsBaseInfoNormal> baseInfoNormalList = smsBaseInfoNormalMapper.selectByChannelIdListtikv_(channelIdList);
             List<String> channelNames = baseInfoNormalList.stream()
                     .map(SmsBaseInfoNormal::getChannelName)
                     .collect(Collectors.toList());
@@ -487,6 +463,7 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
                 log.error("JSON序列化失败", e);
                 throw new RuntimeException(e);
             }
+            smsAccountLogNormalVO.setDetail(dbLogDetailObj.toJSONString());
             smsAccountLogNormalVO.setUserId(smsDbLog.getUserId());
             smsAccountLogNormalVO.setUserName(smsDbLog.getUserName());
             smsAccountLogNormalVO.setOpeType(smsDbLog.getOpeType());
@@ -537,7 +514,7 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
                     .map(String::trim)
                     .map(Long::valueOf)
                     .collect(Collectors.toList());
-            List<LineBaseInfoNormal> baseInfoNormalList = lineBaseInfoNormalMapper.selectByGatewayIdList(gatewayIdList);
+            List<LineBaseInfoNormal> baseInfoNormalList = lineBaseInfoNormalMapper.selectByGatewayIdListtikv_(gatewayIdList);
             baseInfoNormalList.forEach(baseItem -> {
                 JSONObject lineObj = new JSONObject();
                 lineObj.put("gatewayId", baseItem.getGatewayId());
@@ -568,7 +545,7 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
             JSONObject dbLogDetailObj = JSONObject.parseObject(dbDto.getDetail());
             String gatewayIdsStr = dbLogDetailObj.getString("gatewayIds");
             List<Long> gatewayIdList = JSON.parseArray(gatewayIdsStr, Long.class);
-            List<LineBaseInfoNormal> baseInfoNormalList = lineBaseInfoNormalMapper.selectByGatewayIdList(gatewayIdList);
+            List<LineBaseInfoNormal> baseInfoNormalList = lineBaseInfoNormalMapper.selectByGatewayIdListtikv_(gatewayIdList);
             List<String> callerFullnames = baseInfoNormalList.stream()
                     .map(baseInfo -> baseInfo.getProjectName() + "-" + baseInfo.getCaller())
                     .collect(Collectors.toList());

@@ -9,6 +9,8 @@ import java.util.List;
 
 public interface SmsBaseInfoNormalMapper extends SmsBaseInfoNormalMapperBase{
 
+    List<SmsBaseInfoNormal> selectList();
+
     List<SmsBaseFullInfoDTO> selectSmsBaseFullInfoList();
 
     List<SmsBaseFullInfoDTO> selectSmsBaseUseInfoList();
@@ -23,10 +25,11 @@ public interface SmsBaseInfoNormalMapper extends SmsBaseInfoNormalMapperBase{
             @Param("vendorId") Long vendorId,
             @Param("opeStatus") Integer opeStatus);
 
-    List<SmsBaseInfoNormal> selectByChannelIdList(
+    List<SmsBaseInfoNormal> selectByChannelIdListtikv_(
             @Param("channelIdList") List<Long> channelIdList);
 
     List<Long> selectChannelIdListByFiled(
             @Param("vendorId") Long vendorId,
             @Param("channelsName") String channelsName);
+
 }

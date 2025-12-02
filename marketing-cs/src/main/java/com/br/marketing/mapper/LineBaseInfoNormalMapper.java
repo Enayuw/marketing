@@ -29,5 +29,5 @@ public interface LineBaseInfoNormalMapper extends LineBaseInfoNormalMapperBase{
                                       @Param("projectName") String projectName,
                                       @Param("caller") String caller);
 
-    List<LineBaseInfoNormal> selectByGatewayIdList(@Param("gatewayIdList") List<Long> gatewayIdList);
+    List<LineBaseInfoNormal> selectByGatewayIdListtikv_(@Param("gatewayIdList") List<Long> gatewayIdList);
 }

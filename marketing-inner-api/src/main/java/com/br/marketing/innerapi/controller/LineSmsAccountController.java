@@ -125,8 +125,8 @@ public class LineSmsAccountController {
     @GetMapping("/getSmsAccounts")
     public ApiResult getSmsAccounts(@RequestParam(defaultValue = "1") Integer current,
                                     @RequestParam(defaultValue = "10") Integer size,
-                                    @RequestParam(required = false) String vendorName,
-                                    @RequestParam(required = false) String channelsName,
+                                    @RequestParam(required = false) Long vendorId,
+                                    @RequestParam(required = false) Long channelId,
                                     @RequestParam(required = false) Double price,
                                     @RequestParam(required = false) String groupIdStr) {
         try {
@@ -136,7 +136,7 @@ public class LineSmsAccountController {
                 List<SmsAccountDetailVO> smsAccountRecordList= lineSmsAccountNormalService.getSmsAccountsByGroupId(groupId);
                 apiResult = new ApiResult<List<SmsAccountDetailVO>>().success(smsAccountRecordList);
             }else{
-                PageResultReturn page = lineSmsAccountNormalService.getSmsAccounts(current,size,vendorName,channelsName,price);
+                PageResultReturn page = lineSmsAccountNormalService.getSmsAccounts(current,size,vendorId,channelId,price);
                 apiResult=  new ApiResult<PageResultReturn>().success(page);
             }
             return apiResult;
