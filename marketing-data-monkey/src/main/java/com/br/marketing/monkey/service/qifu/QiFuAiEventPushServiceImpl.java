@@ -2,6 +2,7 @@ package com.br.marketing.monkey.service.qifu;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson2.JSONObject;
+import com.br.common.util.DateUtils;
 import com.br.marketing.client.qifu.ResponseData;
 import com.br.marketing.client.qifu.callrealtime.CallRealTimeDTO;
 import com.br.marketing.client.qifu.callrealtime.QryCallRealTimeReq;
@@ -127,6 +128,9 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
         Long updateId = drsCustomizeUploadData.getId();
         try {
             //1. 插入数据
+            resultList.forEach(result ->{
+                result.setReceiveDate(DateUtils.format(new Date(),"yyyy-MM-dd"));
+            });
             insertRealTimeData(resultList);
 
             //2. 更新同步状态为1，确保数据已成功处理
