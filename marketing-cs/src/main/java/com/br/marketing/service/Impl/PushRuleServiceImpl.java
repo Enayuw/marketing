@@ -2856,8 +2856,10 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public Result<String> queryUploadOverAmt(String custNum, HttpServletRequest request) {
+
+        Map<String, String> zhongYuanIdentity = marketingCommonConfig.getZhongYuanIdentity();
         String testApiCode = request.getHeader("Test-ApiCode");
-        String apiCode = testApiCode != null ? testApiCode : "3760019";
+        String apiCode = testApiCode != null ? testApiCode : zhongYuanIdentity.get("apiCode");
 
         MarketingSyncUser marketingSyncUser = marketingUserMapper.selectSyncUserByCustNum(apiCode, custNum, null);
         if(marketingSyncUser == null){
