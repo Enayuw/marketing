@@ -654,14 +654,5 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
         }
     }
 
-    /**
-     * 获取JSON值
-     */
-    private String getValueOfJson(JSONObject jo, String key, String defaultValue) {
-        if (jo == null || ObjectUtils.isEmpty(jo.getString(key))) {
-            return defaultValue;
-        }
-        return jo.getString(key);
-    }
 }
 
