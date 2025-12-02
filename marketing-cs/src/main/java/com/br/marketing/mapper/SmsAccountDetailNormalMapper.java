@@ -11,19 +11,19 @@ public interface SmsAccountDetailNormalMapper extends SmsAccountDetailNormalMapp
     Long selectCount(@Param("vendorId") Long vendorId, @Param("channelId") Long channelId);
 
     List<Long> selectChannelIfExist(@Param("channelIds") List<Long> channelIds,
-                                    @Param("configId") Long configId);
+                                    @Param("groupId") Long groupId);
 
     List<SmsAccountDetailDTO> selectListByGroupId(@Param("groupId") Long groupId);
 
     Long selectTotalCount(
             @Param("vendorId") Long vendorId,
-            @Param("channelIdList") List<Long> channelIdList,
+            @Param("channelId") Long channelId,
             @Param("price") Double price,
             @Param("nowDate") Date nowDate);
 
     List<SmsAccountDetailDTO> selectList(
-            @Param("lineSupplierId") Long lineSupplierId,
-            @Param("gatewayIdList") List<Long> gatewayIdList,
+            @Param("vendorId") Long vendorId,
+            @Param("channelId") Long channelId,
             @Param("price") Double price,
             @Param("nowDate") Date nowDate,
             @Param("limitSize") Integer limitSize,

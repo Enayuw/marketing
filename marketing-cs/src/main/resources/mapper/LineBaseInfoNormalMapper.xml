@@ -53,7 +53,7 @@
     </update>
 
 
-    <select id="selectByGatewayIdList" resultType="com.br.marketing.entity.LineBaseInfoNormal">
+    <select id="selectByGatewayIdListtikv_" resultType="com.br.marketing.entity.LineBaseInfoNormal">
         SELECT * FROM (
             SELECT
                 id, gateway_id, caller, line_supplier_id, project_name, outbound_number,

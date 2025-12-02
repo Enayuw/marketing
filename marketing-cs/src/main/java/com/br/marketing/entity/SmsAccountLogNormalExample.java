@@ -226,62 +226,62 @@ public class SmsAccountLogNormalExample {
         }
 
         public Criteria andVendorIdIsNull() {
-            addCriterion("` vendor_id` is null");
+            addCriterion("vendor_id is null");
             return (Criteria) this;
         }
 
         public Criteria andVendorIdIsNotNull() {
-            addCriterion("` vendor_id` is not null");
+            addCriterion("vendor_id is not null");
             return (Criteria) this;
         }
 
         public Criteria andVendorIdEqualTo(Long value) {
-            addCriterion("` vendor_id` =", value, "vendorId");
+            addCriterion("vendor_id =", value, "vendorId");
             return (Criteria) this;
         }
 
         public Criteria andVendorIdNotEqualTo(Long value) {
-            addCriterion("` vendor_id` <>", value, "vendorId");
+            addCriterion("vendor_id <>", value, "vendorId");
             return (Criteria) this;
         }
 
         public Criteria andVendorIdGreaterThan(Long value) {
-            addCriterion("` vendor_id` >", value, "vendorId");
+            addCriterion("vendor_id >", value, "vendorId");
             return (Criteria) this;
         }
 
         public Criteria andVendorIdGreaterThanOrEqualTo(Long value) {
-            addCriterion("` vendor_id` >=", value, "vendorId");
+            addCriterion("vendor_id >=", value, "vendorId");
             return (Criteria) this;
         }
 
         public Criteria andVendorIdLessThan(Long value) {
-            addCriterion("` vendor_id` <", value, "vendorId");
+            addCriterion("vendor_id <", value, "vendorId");
             return (Criteria) this;
         }
 
         public Criteria andVendorIdLessThanOrEqualTo(Long value) {
-            addCriterion("` vendor_id` <=", value, "vendorId");
+            addCriterion("vendor_id <=", value, "vendorId");
             return (Criteria) this;
         }
 
         public Criteria andVendorIdIn(List<Long> values) {
-            addCriterion("` vendor_id` in", values, "vendorId");
+            addCriterion("vendor_id in", values, "vendorId");
             return (Criteria) this;
         }
 
         public Criteria andVendorIdNotIn(List<Long> values) {
-            addCriterion("` vendor_id` not in", values, "vendorId");
+            addCriterion("vendor_id not in", values, "vendorId");
             return (Criteria) this;
         }
 
         public Criteria andVendorIdBetween(Long value1, Long value2) {
-            addCriterion("` vendor_id` between", value1, value2, "vendorId");
+            addCriterion("vendor_id between", value1, value2, "vendorId");
             return (Criteria) this;
         }
 
         public Criteria andVendorIdNotBetween(Long value1, Long value2) {
-            addCriterion("` vendor_id` not between", value1, value2, "vendorId");
+            addCriterion("vendor_id not between", value1, value2, "vendorId");
             return (Criteria) this;
         }
 

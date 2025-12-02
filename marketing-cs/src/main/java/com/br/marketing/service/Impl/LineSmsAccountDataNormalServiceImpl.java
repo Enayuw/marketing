@@ -234,6 +234,7 @@ public class LineSmsAccountDataNormalServiceImpl implements LineSmsAccountDataNo
                 itemObj.setGroupId(groupId);
                 itemObj.setVendorId(dto.getVendorId());
                 itemObj.setChannelId(channelId);
+                itemObj.setPrice(priceDate.getPrice());
                 itemObj.setEffectStartDate(effectStartDate);
                 itemObj.setEffectStartDate(effectStartDate);
                 itemObj.setEffectEndDate(effectEndDate);
@@ -276,6 +277,7 @@ public class LineSmsAccountDataNormalServiceImpl implements LineSmsAccountDataNo
                 itemObj.setGroupId(dto.getGroupId());
                 itemObj.setVendorId(dto.getVendorId());
                 itemObj.setChannelId(channelId);
+                itemObj.setPrice(priceDate.getPrice());
                 itemObj.setEffectStartDate(effectStartDate);
                 itemObj.setEffectStartDate(effectStartDate);
                 itemObj.setEffectEndDate(effectEndDate);

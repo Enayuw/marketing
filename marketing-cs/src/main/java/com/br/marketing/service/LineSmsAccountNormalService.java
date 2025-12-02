@@ -47,7 +47,7 @@ public interface LineSmsAccountNormalService {
 
     PageResultReturn getSmsAccountLogs(Integer current, Integer size, Long groupId);
 
-    PageResultReturn getSmsAccounts(Integer current, Integer size, String vendorName, String channelsName, Double price);
+    PageResultReturn getSmsAccounts(Integer current, Integer size, Long vendorId, Long channelId, Double price);
 
     List<SmsAccountDetailVO> getSmsAccountsByGroupId(Long groupId);
 

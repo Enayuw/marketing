@@ -73,7 +73,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, group_id, ` vendor_id`, detail, user_id, user_name, real_name, ope_type, create_time, 
+    id, group_id, vendor_id, detail, user_id, user_name, real_name, ope_type, create_time,
     update_time, is_delete
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.SmsAccountLogNormalExample" >
@@ -110,7 +110,7 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_sms_account_log_normal (group_id, ` vendor_id`, detail, 
+    insert into b_marketing_sms_account_log_normal (group_id, vendor_id, detail,
       user_id, user_name, real_name, 
       ope_type, create_time, update_time, 
       is_delete)
@@ -129,7 +129,7 @@
         group_id,
       </if>
       <if test="vendorId != null" >
-        ` vendor_id`,
+        vendor_id,
       </if>
       <if test="detail != null" >
         detail,
@@ -205,7 +205,7 @@
         group_id = #{record.groupId,jdbcType=BIGINT},
       </if>
       <if test="record.vendorId != null" >
-        ` vendor_id` = #{record.vendorId,jdbcType=BIGINT},
+        vendor_id = #{record.vendorId,jdbcType=BIGINT},
       </if>
       <if test="record.detail != null" >
         detail = #{record.detail,jdbcType=VARCHAR},
@@ -240,7 +240,7 @@
     update b_marketing_sms_account_log_normal
     set id = #{record.id,jdbcType=BIGINT},
       group_id = #{record.groupId,jdbcType=BIGINT},
-      ` vendor_id` = #{record.vendorId,jdbcType=BIGINT},
+      vendor_id = #{record.vendorId,jdbcType=BIGINT},
       detail = #{record.detail,jdbcType=VARCHAR},
       user_id = #{record.userId,jdbcType=VARCHAR},
       user_name = #{record.userName,jdbcType=VARCHAR},
@@ -260,7 +260,7 @@
         group_id = #{groupId,jdbcType=BIGINT},
       </if>
       <if test="vendorId != null" >
-        ` vendor_id` = #{vendorId,jdbcType=BIGINT},
+        vendor_id = #{vendorId,jdbcType=BIGINT},
       </if>
       <if test="detail != null" >
         detail = #{detail,jdbcType=VARCHAR},
@@ -292,7 +292,7 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.SmsAccountLogNormal" >
     update b_marketing_sms_account_log_normal
     set group_id = #{groupId,jdbcType=BIGINT},
-      ` vendor_id` = #{vendorId,jdbcType=BIGINT},
+      vendor_id = #{vendorId,jdbcType=BIGINT},
       detail = #{detail,jdbcType=VARCHAR},
       user_id = #{userId,jdbcType=VARCHAR},
       user_name = #{userName,jdbcType=VARCHAR},

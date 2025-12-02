@@ -4,7 +4,7 @@
 
     <select id="getLineAccountLogs" resultType="com.br.marketing.entity.SmsAccountLogNormal">
         SELECT
-            id, group_id, ` vendor_id`, detail, user_id, user_name, real_name, ope_type, create_time,
+            id, group_id, vendor_id, detail, user_id, user_name, real_name, ope_type, create_time,
             update_time, is_delete
         FROM b_marketing_sms_account_log_normal
         WHERE
