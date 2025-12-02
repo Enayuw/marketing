@@ -56,12 +56,17 @@ public class MarketingSceneVariable {
     /**
      * 数据列表（JSON格式）
      */
-    private String variablelist;
+    private String variableList;
 
     /**
      * 执行状态：0待执行、1执行中、2执行完成
      */
     private Integer executeStatus;
+
+    /**
+     * 执行结果
+     */
+    private String executeResult;
 
     /**
      * 创建时间
@@ -153,12 +158,12 @@ public class MarketingSceneVariable {
         this.taskUid = taskUid == null ? null : taskUid.trim();
     }
 
-    public String getVariablelist() {
-        return variablelist;
+    public String getVariableList() {
+        return variableList;
     }
 
-    public void setVariablelist(String variablelist) {
-        this.variablelist = variablelist == null ? null : variablelist.trim();
+    public void setVariableList(String variableList) {
+        this.variableList = variableList == null ? null : variableList.trim();
     }
 
     public Integer getExecuteStatus() {
@@ -167,6 +172,14 @@ public class MarketingSceneVariable {
 
     public void setExecuteStatus(Integer executeStatus) {
         this.executeStatus = executeStatus;
+    }
+
+    public String getExecuteResult() {
+        return executeResult;
+    }
+
+    public void setExecuteResult(String executeResult) {
+        this.executeResult = executeResult == null ? null : executeResult.trim();
     }
 
     public Date getCreateTime() {

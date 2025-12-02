@@ -788,7 +788,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             marketingSceneVariable.setSceneCode(changeData.getSceneCode());
             marketingSceneVariable.setTaskUid(changeData.getTaskUid());
             // 将变量列表转换为JSON字符串存储
-            marketingSceneVariable.setVariablelist(JSON.toJSONString(changeData.getVariableList()));
+            marketingSceneVariable.setVariableList(JSON.toJSONString(changeData.getVariableList()));
             marketingSceneVariable.setExecuteStatus(0); // 0-待执行
             marketingSceneVariable.setCreateTime(new Date());
             marketingSceneVariable.setUpdateTime(new Date());
