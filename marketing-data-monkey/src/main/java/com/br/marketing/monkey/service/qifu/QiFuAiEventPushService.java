@@ -31,7 +31,7 @@ public interface QiFuAiEventPushService {
 
     void insertRealTimeData(List<BQifuUploadDataOriginal> qifuUploadDataOriginalList);
 
-    void queryCallMessage(List<BQifuUploadDataOriginal> qifuUploadDataOriginalList);
+    List<BQifuUploadDataOriginal> queryCallMessage(List<BQifuUploadDataOriginal> qifuUploadDataOriginalList);
 
     /**
      * 在事务中处理批次数据：插入数据 + 更新状态

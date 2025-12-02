@@ -13,7 +13,10 @@ import com.br.marketing.entity.DrsCustomizeUploadData;
 import com.br.marketing.entity.EventPushData;
 import com.br.marketing.mapper.BQifuUploadDataOriginalMapper;
 import com.br.marketing.mapper.DrsCustomizeUploadDataMapper;
+import com.br.marketing.service.Impl.qifu.enums.QiFuDataTypeEnum;
+import com.br.marketing.service.Impl.qifu.enums.QiFuProcessStatusEnum;
 import com.br.marketing.service.Impl.qifu.enums.QiFuSelectStatusEnum;
+import com.br.marketing.service.Impl.qifu.enums.QiFuSyncStatusEnum;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import org.apache.commons.collections4.ListUtils;
 import org.slf4j.Logger;
@@ -58,7 +61,8 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
         //分页查找未同步的事件推送数据sync_status = 0
         Long minId = null;
         while (true) {
-            List<DrsCustomizeUploadData> drsCustomizeUploadDataList = qiFuAiEventPushService.getDrsCustomizeUploadDataBySyncStatus(0, minId, PAGE_SIZE);
+            List<DrsCustomizeUploadData> drsCustomizeUploadDataList =
+                    qiFuAiEventPushService.getDrsCustomizeUploadDataBySyncStatus(QiFuSyncStatusEnum.UN_SYNC.getCode(), minId, PAGE_SIZE);
             if (CollectionUtils.isEmpty(drsCustomizeUploadDataList)) {
                 break;
             }
@@ -90,12 +94,12 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
                     }
                 }
                 if (CollectionUtils.isEmpty(resultList)) {
-                    updateSyncStatusById(String.valueOf(drsCustomizeUploadData.getId()), 1);
-                }else {
+                    updateSyncStatusById(String.valueOf(drsCustomizeUploadData.getId()), QiFuSyncStatusEnum.SYNC.getCode());
+                } else {
                     //先查询外呼信息
-                    qiFuAiEventPushService.queryCallMessage(resultList);
+                    List<BQifuUploadDataOriginal> queryedtList = qiFuAiEventPushService.queryCallMessage(resultList);
                     //在事务中处理数据库操作：插入数据 + 更新状态
-                    qiFuAiEventPushService.processBatchData(resultList, drsCustomizeUploadData);
+                    qiFuAiEventPushService.processBatchData(queryedtList, drsCustomizeUploadData);
                 }
             }
         }
@@ -126,7 +130,7 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
             insertRealTimeData(resultList);
 
             //2. 更新同步状态为1，确保数据已成功处理
-            updateSyncStatusById(String.valueOf(updateId), 1);
+            updateSyncStatusById(String.valueOf(updateId), QiFuSyncStatusEnum.SYNC.getCode());
             logger.warn("数据处理成功，本批次处理记录id：{}，插入数据数：{}", updateId, resultList.size());
         } catch (Exception e) {
             logger.error("批次数据处理失败，回滚事务。本批次记录id：{}，错误信息：{}", updateId, e.getMessage(), e);
@@ -139,78 +143,78 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
         for (BQifuUploadDataOriginal qiFuUploadDataOriginal : qifuUploadDataOriginalList) {
             qiFuUploadDataOriginal.setCreateTime(new Date());
             qiFuUploadDataOriginal.setUpdateTime(new Date());
-            qiFuUploadDataOriginal.setStatus(0);
-            qiFuUploadDataOriginal.setIsReal(1);
+            qiFuUploadDataOriginal.setIsReal(QiFuDataTypeEnum.REALTIME.getCode());
             qiFuUploadDataOriginalMapper.insertSelective(qiFuUploadDataOriginal);
         }
     }
 
     @Override
-    public void queryCallMessage(List<BQifuUploadDataOriginal> qifuUploadDataOriginalList) {
-        List<String> serialNoList = qifuUploadDataOriginalList.stream()
-                .map(BQifuUploadDataOriginal::getSerialNo).collect(Collectors.toList());
+    public List<BQifuUploadDataOriginal> queryCallMessage(List<BQifuUploadDataOriginal> qifuUploadDataOriginalList) {
+        List<BQifuUploadDataOriginal> resultList = new ArrayList<>();
 
-        List<List<String>> partitions = ListUtils.partition(serialNoList, 50);
-        List<Result<ResponseData<QryCallRealTimeResp>>> resultList = new ArrayList<>();
+        List<List<BQifuUploadDataOriginal>> partitions = ListUtils.partition(qifuUploadDataOriginalList, 50);
+        int totalProcessed = 0;
+        int totalSuccess = 0;
 
-        //调用奇富查询外呼信息接口
-        for (List<String> partition : partitions) {
+        //调用奇富查询外呼信息接口，在每个partition循环内更新状态
+        for (List<BQifuUploadDataOriginal> partition : partitions) {
+            List<String> serialNoList = partition.stream()
+                    .map(BQifuUploadDataOriginal::getSerialNo)
+                    .collect(Collectors.toList());
             QryCallRealTimeReq qryCallRealTimeReq = new QryCallRealTimeReq();
             qryCallRealTimeReq.setRequestNo(UUID.randomUUID().toString());
             qryCallRealTimeReq.setCallType("AI");
-            qryCallRealTimeReq.setSerialNoList(partition);
+            qryCallRealTimeReq.setSerialNoList(serialNoList);
 
             Result<ResponseData<QryCallRealTimeResp>> responseDataResult = methodRetryHandlerService.qryCallRealTime(qryCallRealTimeReq, null);
-            resultList.add(responseDataResult);
-        }
 
-        //处理外呼接口响应
-        List<Result<ResponseData<QryCallRealTimeResp>>> failureList = resultList.stream()
-                .filter(responseDataResult -> !ResultCode.SUCCESS.getValue().equals(responseDataResult.getCode()))
-                .collect(Collectors.toList());
+            //遍历原始数据，处理属于当前partition的数据
+            for (BQifuUploadDataOriginal originalData : partition) {
+                String serialNo = originalData.getSerialNo();
+                totalProcessed++;
 
-        //存在失败请求，直接返回
-        if (!failureList.isEmpty()) {
-            logger.warn("事件推送实时查询外呼接口异常，失败数量：{}", failureList.size());
-            // 有异常，更新select_status为3（重试-接口异常）
-            qifuUploadDataOriginalList.forEach(qiFuUploadDataOriginal -> {
-                qiFuUploadDataOriginal.setId(null);
-                qiFuUploadDataOriginal.setSelectStatus(QiFuSelectStatusEnum.RETRY_INTERFACE_ERROR.getCode());
-                qiFuUploadDataOriginal.setCreateTime(new Date());
-                qiFuUploadDataOriginal.setUpdateTime(new Date());
-            });
-            return;
-        }
+                if (!ResultCode.SUCCESS.getValue().equals(responseDataResult.getCode())) {
+                    //接口调用失败，更新错误状态
+                    originalData.setId(null);
+                    originalData.setStatus(null);
+                    originalData.setSelectStatus(QiFuSelectStatusEnum.RETRY_INTERFACE_ERROR.getCode());
+                    originalData.setCreateTime(new Date());
+                    originalData.setUpdateTime(new Date());
+                    resultList.add(originalData);
+                } else {
+                    //接口调用成功，查找响应结果中是否有匹配的数据
+                    List<CallRealTimeDTO> callRealTimeList = new ArrayList<>();
+                    if (responseDataResult.getData() != null
+                            && responseDataResult.getData().getData() != null
+                            && responseDataResult.getData().getData().getT() != null
+                            && !CollectionUtils.isEmpty(responseDataResult.getData().getData().getT().getDataDetails())) {
+                        callRealTimeList.addAll(responseDataResult.getData().getData().getT().getDataDetails());
+                    }
 
-        //收集所有查询结果的CallRealTimeDTO列表
-        List<CallRealTimeDTO> allCallRealTimeList = new ArrayList<>();
-        for (Result<ResponseData<QryCallRealTimeResp>> result : resultList) {
-            if (result.getData() != null
-                    && result.getData().getData() != null
-                    && result.getData().getData().getT() != null
-                    && !CollectionUtils.isEmpty(result.getData().getData().getT().getDataDetails())) {
-                allCallRealTimeList.addAll(result.getData().getData().getT().getDataDetails());
+                    //查找匹配的响应数据
+                    CallRealTimeDTO matchedData = callRealTimeList.stream()
+                            .filter(dto -> serialNo.equals(dto.getSerialNo()))
+                            .findFirst()
+                            .orElse(null);
+
+                    if (matchedData != null) {
+                        //匹配到数据，更新字段
+                        originalData.setExtend(JSON.toJSONString(matchedData));
+                    }else {
+                        originalData.setExtend(null);
+                    }
+                    originalData.setStatus(QiFuProcessStatusEnum.UNPROCESSED.getCode());
+                    originalData.setSelectStatus(QiFuSelectStatusEnum.QUERY_SUCCESS.getCode());
+                    originalData.setUpdateTime(new Date());
+                    resultList.add(originalData);
+                    totalSuccess++;
+                }
             }
         }
 
-        //根据serialNo创建Map
-        Map<String, CallRealTimeDTO> callRealTimeMap = allCallRealTimeList.stream()
-                .filter(dto -> dto.getSerialNo() != null)
-                .collect(Collectors.toMap(CallRealTimeDTO::getSerialNo, dto -> dto, (v1, v2) -> v1));
+        logger.warn("事件推送实时查询外呼信息完成，原始数据数量：{}，处理数量：{}，成功数量：{}",
+                qifuUploadDataOriginalList.size(), totalProcessed, totalSuccess);
 
-        //遍历原始数据，匹配查询结果并存入extend字段
-        for (BQifuUploadDataOriginal originalData : qifuUploadDataOriginalList) {
-            String serialNo = originalData.getSerialNo();
-            if (serialNo != null && callRealTimeMap.containsKey(serialNo)) {
-                CallRealTimeDTO callRealTimeDTO = callRealTimeMap.get(serialNo);
-                //将查询结果转换为JSON字符串存入extend字段
-                originalData.setExtend(JSON.toJSONString(callRealTimeDTO));
-                originalData.setSelectStatus(QiFuSelectStatusEnum.QUERY_SUCCESS.getCode());
-                originalData.setUpdateTime(new Date());
-            }
-        }
-
-        logger.warn("事件推送实时查询外呼信息完成，原始数据数量：{}，查询结果数量：{}",
-                qifuUploadDataOriginalList.size(), allCallRealTimeList.size());
+        return resultList;
     }
 }
