@@ -358,6 +358,8 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
                     record.setStatus(QiFuProcessStatusEnum.UNPROCESSED.getCode());
                     record.setSelectStatus(QiFuSelectStatusEnum.QUERY_SUCCESS.getCode());
                 } else {
+                    // 将返回信息存在extend里
+                    record.setExtend(JSON.toJSONString(callRealTimeDTO));
                     // 没有匹配到数据，可能是无卷信息，更新select_status为重试-无卷信息
                     record.setSelectStatus(QiFuSelectStatusEnum.RETRY_NO_COUPON.getCode());
                 }
