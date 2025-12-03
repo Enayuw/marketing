@@ -3524,4 +3524,5 @@ public class MarketingCommonConfig {
     private Map<String,String> taikangConfig;
 
 
+    private Map<String, Boolean> tcCpaMockConfig;
 }

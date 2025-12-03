@@ -36,6 +36,10 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+/**
+ * 已废弃
+ */
+
 @Service
 @Slf4j
 public class QiFuAIServiceImpl implements QiFuAIService {
