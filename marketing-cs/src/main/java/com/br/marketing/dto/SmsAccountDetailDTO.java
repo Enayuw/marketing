@@ -7,7 +7,7 @@ import java.util.Date;
 
 @Data
 public class SmsAccountDetailDTO {
-   private  Long groupId;
+   private Long groupId;
    private Long vendorId;
    private String channelIds;
    private BigDecimal price;

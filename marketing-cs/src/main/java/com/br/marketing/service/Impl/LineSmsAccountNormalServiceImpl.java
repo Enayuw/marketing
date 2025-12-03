@@ -382,6 +382,7 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
         detailDbDtoList.forEach(dto -> {
             SmsAccountDetailVO showDTOItem = new SmsAccountDetailVO();
             showDTOItem.setGroupId(String.valueOf(dto.getGroupId()));
+            showDTOItem.setVendorId(dto.getVendorId());
             showDTOItem.setPrice(dto.getPrice());
             showDTOItem.setEffectStartDate(dto.getEffectStartDate());
             showDTOItem.setEffectEndDate(dto.getEffectEndDate());
