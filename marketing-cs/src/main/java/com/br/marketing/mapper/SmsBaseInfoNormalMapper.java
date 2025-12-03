@@ -28,10 +28,6 @@ public interface SmsBaseInfoNormalMapper extends SmsBaseInfoNormalMapperBase{
     List<SmsBaseInfoNormal> selectByChannelIdListtikv_(
             @Param("channelIdList") List<Long> channelIdList);
 
-    List<Long> selectChannelIdListByFiled(
-            @Param("vendorId") Long vendorId,
-            @Param("channelsName") String channelsName);
-
     SmsBaseInfoNormal selectByChannelId(
             @Param("vendorId") Long vendorId,
             @Param("channelId") Long channelId);
