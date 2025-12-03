@@ -121,6 +121,7 @@ public class SmsBaseInfoSyncServiceImpl implements SmsBaseInfoSyncService {
     /**
      * 场景3-历史集处理
      * (库表有,三方接口有)
+     *  TODO 12-03-> 空vendorInfo 信息处理 (filter "channelDTOList": [] 做venderInfo 的处理)
      */
     private void dealSceneThree(List<DdSmsBaseInfoDto> ddSmsBaseInfoDtoList, List<SmsBaseFullInfoDTO> smsBaseFullInfoDtoList) {
         Map<Long, DdSmsBaseInfoDto> ddSmsMap = ddSmsBaseInfoDtoList.stream()
@@ -160,12 +161,14 @@ public class SmsBaseInfoSyncServiceImpl implements SmsBaseInfoSyncService {
      * @return
      */
     private void checkSmsVendorExist(Long vendorId,String vendorName) {
-        Long count  = smsVendorInfoNormalMapper.selectCount(vendorId,vendorName);
-        if (count == 0) {
+        SmsVendorInfoNormal smsVendorInfoNormal = smsVendorInfoNormalMapper.selectByVendorId(vendorId);
+        if (smsVendorInfoNormal == null) {
             SmsVendorInfoNormal itemObj = new SmsVendorInfoNormal();
             itemObj.setVendorId(vendorId);
             itemObj.setVendorName(vendorName);
             smsVendorInfoNormalMapper.insertSelective(itemObj);
+        }else if (!smsVendorInfoNormal.getVendorName().equals(vendorName)) {
+            smsVendorInfoNormalMapper.updateInfoById(smsVendorInfoNormal.getId(),smsVendorInfoNormal.getVendorName(),2);
         }
     }
 
@@ -226,15 +229,21 @@ public class SmsBaseInfoSyncServiceImpl implements SmsBaseInfoSyncService {
             String vendorName = jsonObject.getString("vendorName");
             if (jsonObject.containsKey("channelDTOList")) {
                 JSONArray channelArr = jsonObject.getJSONArray("channelDTOList");
-                for (Object channelObj : channelArr) {
-                    JSONObject channelJson = (JSONObject) channelObj;
-                    DdSmsBaseInfoDto dto = new DdSmsBaseInfoDto();
-                    dto.setVendorId(vendorId);
-                    dto.setVendorName(vendorName);
-                    dto.setChannelId(channelJson.getLong("channelId"));
-                    dto.setChannelName(channelJson.getString("channelName"));
-                    smsBaseInfoList.add(dto);
+                if (!channelArr.isEmpty()) {
+                    for (Object channelObj : channelArr) {
+                        JSONObject channelJson = (JSONObject) channelObj;
+                        DdSmsBaseInfoDto dto = new DdSmsBaseInfoDto();
+                        dto.setVendorId(vendorId);
+                        dto.setVendorName(vendorName);
+                        dto.setChannelId(channelJson.getLong("channelId"));
+                        dto.setChannelName(channelJson.getString("channelName"));
+                        smsBaseInfoList.add(dto);
+                    }
+                }else {
+                    //处理"channelDTOList": []  vendorInfo的新增及修改
+                    checkSmsVendorExist(vendorId,vendorName);
                 }
+
             }
         }
         return smsBaseInfoList;
