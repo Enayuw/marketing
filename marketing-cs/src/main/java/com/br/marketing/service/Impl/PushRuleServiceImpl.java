@@ -3238,6 +3238,13 @@ public class PushRuleServiceImpl implements PushRuleService {
             Integer finalIsCheck = isCheck;
             Map<String, MarketingDataCleanGeneralRuleConfig> finalConfigRule = configRule;
             list.add(() -> {
+                if (contains4ByteChar(marketingPreUserDetailDTO.getName())) {
+                    MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
+                    errorDetailVO.setCustNum(marketingPreUserDetailDTO.getCustNum());
+                    errorDetailVO.setErrorCode("1008");
+                    errorDetailVO.setErrorMsg(errorCodeHm.get("1008"));
+                    return new Result().setCode(ResultCode.FAIL.getValue()).setDate(errorDetailVO);
+                }
                 //数据清洗处理
                 if (!CollectionUtils.isEmpty(finalConfigRule)) {
                     Boolean cleanResult = handlerDataClean(marketingPreUserDetailDTO, finalConfigRule);
@@ -3522,6 +3529,28 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
     }
+
+    /**
+     * 判断字符串是否包含4字节字符（生僻字、emoji等）
+     */
+    public boolean contains4ByteChar(String str) {
+        try {
+            if (StringUtils.isEmpty(str)) {
+                return false;
+            }
+            for (int i = 0; i < str.length(); i++) {
+                char c = str.charAt(i);
+                // 判断是否是高代理项（4字节字符的第一部分）
+                if (Character.isHighSurrogate(c)) {
+                    return true;
+                }
+            }
+        } catch (Exception ex) {
+            log.error("name字段判断4字节异常，name={}", str, ex);
+        }
+        return false;
+    }
+
 
     private void addCellReserveFileld1(JSONObject reserveFileld1Json, String cell, Integer isCheck, 
                                        IUploadCheckService iUploadCheckService, CustomerTagsVO tags) {
