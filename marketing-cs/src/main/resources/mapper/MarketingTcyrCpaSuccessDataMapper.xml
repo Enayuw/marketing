@@ -9,4 +9,45 @@
             (#{item.apiCode}, #{item.batchNo}, #{item.syncFileId}, #{item.userKey},#{item.cell},#{item.isMatch},#{item.startDate},#{item.endDate},#{item.createTime},#{item.updateTime},#{item.status},#{item.statusMsg},#{item.isDel},#{item.extend},#{item.originText})
         </foreach>
     </insert>
+
+    <select id="selectBySyncFileId" resultType="com.br.marketing.entity.MarketingTcyrCpaSuccessData">
+        SELECT id,sync_file_id,user_key,start_date,end_date,extend
+        FROM b_tcyr_cpa_success_data
+        WHERE is_del = 1
+        <if test="minId != null and minId >0">
+            AND id >= #{minId}
+        </if>
+        <if test="syncFileId != null">
+            AND sync_file_id = #{syncFileId}
+        </if>
+        order by id asc limit 2000;
+    </select>
+
+    <select id="selectMinIdBySyncFileId" resultType="java.lang.Long">
+        SELECT min(id)
+        FROM b_tcyr_cpa_success_data
+        WHERE sync_file_id = #{syncFileId} and is_del = 1
+    </select>
+
+    <select id="selectMaxIdBySyncFileId" resultType="java.lang.Long">
+        SELECT max(id)
+        FROM b_tcyr_cpa_success_data
+        WHERE sync_file_id = #{syncFileId} and is_del = 1
+    </select>
+
+    <select id="selectBySyncFileIdAndIdRange" resultType="com.br.marketing.entity.MarketingTcyrCpaSuccessData">
+        SELECT id,sync_file_id,user_key,start_date,end_date,extend
+        FROM b_tcyr_cpa_success_data
+        WHERE is_del = 1
+        <if test="syncFileId != null">
+            AND sync_file_id = #{syncFileId}
+        </if>
+        <if test="startId != null">
+            AND id >= #{startId}
+        </if>
+        <if test="endId != null">
+            AND id &lt;= #{endId}
+        </if>
+        order by id asc limit #{batchSize};
+    </select>
 </mapper>

@@ -57,16 +57,9 @@ public class PushInfoServiceImpl implements PushInfoService {
     @RetryMethod(retryNowNum = 2,isOrNoDbRetry = true)
     public Result<Boolean> pushUploadOfCleanRetry(UpLoadCleanDTO dto, Integer retry) {
         Result<Boolean> booleanResult = marketingApiService.pushUpload(dto);
-        Log360aiExample example = new Log360aiExample();
-        example.createCriteria().andDataIdEqualTo(dto.getDataId());
-        Log360ai log360ai = new Log360ai();
         if(!ResultCode.SUCCESS.getValue().equals(booleanResult.getCode())){
-            log360ai.setStatus(QiFuCleanStatusEnum.FAILPUSH.getValue());
-            log360aiMapper.updateByExampleSelective(log360ai,example);
             return booleanResult;
         }
-        log360ai.setStatus(QiFuCleanStatusEnum.SUCCESS.getValue());
-        log360aiMapper.updateByExampleSelective(log360ai,example);
         return booleanResult;
     }
 

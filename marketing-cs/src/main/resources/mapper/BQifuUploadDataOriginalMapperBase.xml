@@ -1,0 +1,574 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.BQifuUploadDataOriginalMapperBase" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.BQifuUploadDataOriginal" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="drs_id" property="drsId" jdbcType="BIGINT" />
+    <result column="batch_no" property="batchNo" jdbcType="VARCHAR" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="user_type" property="userType" jdbcType="VARCHAR" />
+    <result column="call_time_range" property="callTimeRange" jdbcType="VARCHAR" />
+    <result column="call_type" property="callType" jdbcType="VARCHAR" />
+    <result column="gender" property="gender" jdbcType="VARCHAR" />
+    <result column="phone_no_md5" property="phoneNoMd5" jdbcType="VARCHAR" />
+    <result column="serial_no" property="serialNo" jdbcType="VARCHAR" />
+    <result column="surname" property="surname" jdbcType="VARCHAR" />
+    <result column="select_status" property="selectStatus" jdbcType="TINYINT" />
+    <result column="status" property="status" jdbcType="TINYINT" />
+    <result column="flow_no" property="flowNo" jdbcType="VARCHAR" />
+    <result column="operate_scene" property="operateScene" jdbcType="VARCHAR" />
+    <result column="template_no" property="templateNo" jdbcType="VARCHAR" />
+    <result column="event_type" property="eventType" jdbcType="VARCHAR" />
+    <result column="is_real" property="isReal" jdbcType="TINYINT" />
+    <result column="send_msg" property="sendMsg" jdbcType="VARCHAR" />
+    <result column="retry_call" property="retryCall" jdbcType="VARCHAR" />
+    <result column="retry_range" property="retryRange" jdbcType="VARCHAR" />
+    <result column="retry_nums" property="retryNums" jdbcType="VARCHAR" />
+    <result column="retry_interval" property="retryInterval" jdbcType="VARCHAR" />
+    <result column="retry_call_strategy" property="retryCallStrategy" jdbcType="VARCHAR" />
+    <result column="extend" property="extend" jdbcType="VARCHAR" />
+    <result column="receive_date" property="receiveDate" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, drs_id, batch_no, api_code, user_type, call_time_range, call_type, gender,
+    phone_no_md5, serial_no, surname, select_status, status, flow_no, operate_scene,
+    template_no, event_type, is_real, send_msg, retry_call, retry_range, retry_nums, retry_interval,
+    retry_call_strategy, extend, receive_date, create_time, update_time
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.BQifuUploadDataOriginalExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_qifu_upload_data_original
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select
+    <include refid="Base_Column_List" />
+    from b_qifu_upload_data_original
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_qifu_upload_data_original
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.BQifuUploadDataOriginalExample" >
+    delete from b_qifu_upload_data_original
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.BQifuUploadDataOriginal" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_qifu_upload_data_original (drs_id, batch_no, api_code,
+    user_type, call_time_range, call_type,
+    gender, phone_no_md5, serial_no,
+    surname, select_status, status,
+    flow_no, operate_scene, template_no,
+    event_type, is_real, send_msg, retry_call,
+    retry_range, retry_nums, retry_interval,
+    retry_call_strategy, extend, receive_date,
+    create_time, update_time)
+    values (#{drsId,jdbcType=BIGINT}, #{batchNo,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR},
+    #{userType,jdbcType=VARCHAR}, #{callTimeRange,jdbcType=VARCHAR}, #{callType,jdbcType=VARCHAR},
+    #{gender,jdbcType=VARCHAR}, #{phoneNoMd5,jdbcType=VARCHAR}, #{serialNo,jdbcType=VARCHAR},
+    #{surname,jdbcType=VARCHAR}, #{selectStatus,jdbcType=TINYINT}, #{status,jdbcType=TINYINT},
+    #{flowNo,jdbcType=VARCHAR}, #{operateScene,jdbcType=VARCHAR}, #{templateNo,jdbcType=VARCHAR},
+    #{eventType,jdbcType=VARCHAR}, #{isReal,jdbcType=TINYINT}, #{sendMsg,jdbcType=VARCHAR}, #{retryCall,jdbcType=VARCHAR},
+    #{retryRange,jdbcType=VARCHAR}, #{retryNums,jdbcType=VARCHAR}, #{retryInterval,jdbcType=VARCHAR},
+    #{retryCallStrategy,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}, #{receiveDate,jdbcType=VARCHAR},
+    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.BQifuUploadDataOriginal" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_qifu_upload_data_original
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="drsId != null" >
+        drs_id,
+      </if>
+      <if test="batchNo != null" >
+        batch_no,
+      </if>
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="userType != null" >
+        user_type,
+      </if>
+      <if test="callTimeRange != null" >
+        call_time_range,
+      </if>
+      <if test="callType != null" >
+        call_type,
+      </if>
+      <if test="gender != null" >
+        gender,
+      </if>
+      <if test="phoneNoMd5 != null" >
+        phone_no_md5,
+      </if>
+      <if test="serialNo != null" >
+        serial_no,
+      </if>
+      <if test="surname != null" >
+        surname,
+      </if>
+      <if test="selectStatus != null" >
+        select_status,
+      </if>
+      <if test="status != null" >
+        status,
+      </if>
+      <if test="flowNo != null" >
+        flow_no,
+      </if>
+      <if test="operateScene != null" >
+        operate_scene,
+      </if>
+      <if test="templateNo != null" >
+        template_no,
+      </if>
+      <if test="eventType != null" >
+        event_type,
+      </if>
+      <if test="isReal != null" >
+        is_real,
+      </if>
+      <if test="sendMsg != null" >
+        send_msg,
+      </if>
+      <if test="retryCall != null" >
+        retry_call,
+      </if>
+      <if test="retryRange != null" >
+        retry_range,
+      </if>
+      <if test="retryNums != null" >
+        retry_nums,
+      </if>
+      <if test="retryInterval != null" >
+        retry_interval,
+      </if>
+      <if test="retryCallStrategy != null" >
+        retry_call_strategy,
+      </if>
+      <if test="extend != null" >
+        extend,
+      </if>
+      <if test="receiveDate != null" >
+        receive_date,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="drsId != null" >
+        #{drsId,jdbcType=BIGINT},
+      </if>
+      <if test="batchNo != null" >
+        #{batchNo,jdbcType=VARCHAR},
+      </if>
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="userType != null" >
+        #{userType,jdbcType=VARCHAR},
+      </if>
+      <if test="callTimeRange != null" >
+        #{callTimeRange,jdbcType=VARCHAR},
+      </if>
+      <if test="callType != null" >
+        #{callType,jdbcType=VARCHAR},
+      </if>
+      <if test="gender != null" >
+        #{gender,jdbcType=VARCHAR},
+      </if>
+      <if test="phoneNoMd5 != null" >
+        #{phoneNoMd5,jdbcType=VARCHAR},
+      </if>
+      <if test="serialNo != null" >
+        #{serialNo,jdbcType=VARCHAR},
+      </if>
+      <if test="surname != null" >
+        #{surname,jdbcType=VARCHAR},
+      </if>
+      <if test="selectStatus != null" >
+        #{selectStatus,jdbcType=TINYINT},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=TINYINT},
+      </if>
+      <if test="flowNo != null" >
+        #{flowNo,jdbcType=VARCHAR},
+      </if>
+      <if test="operateScene != null" >
+        #{operateScene,jdbcType=VARCHAR},
+      </if>
+      <if test="templateNo != null" >
+        #{templateNo,jdbcType=VARCHAR},
+      </if>
+      <if test="eventType != null" >
+        #{eventType,jdbcType=VARCHAR},
+      </if>
+      <if test="isReal != null" >
+        #{isReal,jdbcType=TINYINT},
+      </if>
+      <if test="sendMsg != null" >
+        #{sendMsg,jdbcType=VARCHAR},
+      </if>
+      <if test="retryCall != null" >
+        #{retryCall,jdbcType=VARCHAR},
+      </if>
+      <if test="retryRange != null" >
+        #{retryRange,jdbcType=VARCHAR},
+      </if>
+      <if test="retryNums != null" >
+        #{retryNums,jdbcType=VARCHAR},
+      </if>
+      <if test="retryInterval != null" >
+        #{retryInterval,jdbcType=VARCHAR},
+      </if>
+      <if test="retryCallStrategy != null" >
+        #{retryCallStrategy,jdbcType=VARCHAR},
+      </if>
+      <if test="extend != null" >
+        #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="receiveDate != null" >
+        #{receiveDate,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.BQifuUploadDataOriginalExample" resultType="java.lang.Integer" >
+    select count(*) from b_qifu_upload_data_original
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_qifu_upload_data_original
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.drsId != null" >
+        drs_id = #{record.drsId,jdbcType=BIGINT},
+      </if>
+      <if test="record.batchNo != null" >
+        batch_no = #{record.batchNo,jdbcType=VARCHAR},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.userType != null" >
+        user_type = #{record.userType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.callTimeRange != null" >
+        call_time_range = #{record.callTimeRange,jdbcType=VARCHAR},
+      </if>
+      <if test="record.callType != null" >
+        call_type = #{record.callType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.gender != null" >
+        gender = #{record.gender,jdbcType=VARCHAR},
+      </if>
+      <if test="record.phoneNoMd5 != null" >
+        phone_no_md5 = #{record.phoneNoMd5,jdbcType=VARCHAR},
+      </if>
+      <if test="record.serialNo != null" >
+        serial_no = #{record.serialNo,jdbcType=VARCHAR},
+      </if>
+      <if test="record.surname != null" >
+        surname = #{record.surname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.selectStatus != null" >
+        select_status = #{record.selectStatus,jdbcType=TINYINT},
+      </if>
+      <if test="record.status != null" >
+        status = #{record.status,jdbcType=TINYINT},
+      </if>
+      <if test="record.flowNo != null" >
+        flow_no = #{record.flowNo,jdbcType=VARCHAR},
+      </if>
+      <if test="record.operateScene != null" >
+        operate_scene = #{record.operateScene,jdbcType=VARCHAR},
+      </if>
+      <if test="record.templateNo != null" >
+        template_no = #{record.templateNo,jdbcType=VARCHAR},
+      </if>
+      <if test="record.eventType != null" >
+        event_type = #{record.eventType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isReal != null" >
+        is_real = #{record.isReal,jdbcType=TINYINT},
+      </if>
+      <if test="record.sendMsg != null" >
+        send_msg = #{record.sendMsg,jdbcType=VARCHAR},
+      </if>
+      <if test="record.retryCall != null" >
+        retry_call = #{record.retryCall,jdbcType=VARCHAR},
+      </if>
+      <if test="record.retryRange != null" >
+        retry_range = #{record.retryRange,jdbcType=VARCHAR},
+      </if>
+      <if test="record.retryNums != null" >
+        retry_nums = #{record.retryNums,jdbcType=VARCHAR},
+      </if>
+      <if test="record.retryInterval != null" >
+        retry_interval = #{record.retryInterval,jdbcType=VARCHAR},
+      </if>
+      <if test="record.retryCallStrategy != null" >
+        retry_call_strategy = #{record.retryCallStrategy,jdbcType=VARCHAR},
+      </if>
+      <if test="record.extend != null" >
+        extend = #{record.extend,jdbcType=VARCHAR},
+      </if>
+      <if test="record.receiveDate != null" >
+        receive_date = #{record.receiveDate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_qifu_upload_data_original
+    set id = #{record.id,jdbcType=BIGINT},
+    drs_id = #{record.drsId,jdbcType=BIGINT},
+    batch_no = #{record.batchNo,jdbcType=VARCHAR},
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    user_type = #{record.userType,jdbcType=VARCHAR},
+    call_time_range = #{record.callTimeRange,jdbcType=VARCHAR},
+    call_type = #{record.callType,jdbcType=VARCHAR},
+    gender = #{record.gender,jdbcType=VARCHAR},
+    phone_no_md5 = #{record.phoneNoMd5,jdbcType=VARCHAR},
+    serial_no = #{record.serialNo,jdbcType=VARCHAR},
+    surname = #{record.surname,jdbcType=VARCHAR},
+    select_status = #{record.selectStatus,jdbcType=TINYINT},
+    status = #{record.status,jdbcType=TINYINT},
+    flow_no = #{record.flowNo,jdbcType=VARCHAR},
+    operate_scene = #{record.operateScene,jdbcType=VARCHAR},
+    template_no = #{record.templateNo,jdbcType=VARCHAR},
+    event_type = #{record.eventType,jdbcType=VARCHAR},
+    is_real = #{record.isReal,jdbcType=TINYINT},
+    send_msg = #{record.sendMsg,jdbcType=VARCHAR},
+    retry_call = #{record.retryCall,jdbcType=VARCHAR},
+    retry_range = #{record.retryRange,jdbcType=VARCHAR},
+    retry_nums = #{record.retryNums,jdbcType=VARCHAR},
+    retry_interval = #{record.retryInterval,jdbcType=VARCHAR},
+    retry_call_strategy = #{record.retryCallStrategy,jdbcType=VARCHAR},
+    extend = #{record.extend,jdbcType=VARCHAR},
+    receive_date = #{record.receiveDate,jdbcType=VARCHAR},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.BQifuUploadDataOriginal" >
+    update b_qifu_upload_data_original
+    <set >
+      <if test="drsId != null" >
+        drs_id = #{drsId,jdbcType=BIGINT},
+      </if>
+      <if test="batchNo != null" >
+        batch_no = #{batchNo,jdbcType=VARCHAR},
+      </if>
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="userType != null" >
+        user_type = #{userType,jdbcType=VARCHAR},
+      </if>
+      <if test="callTimeRange != null" >
+        call_time_range = #{callTimeRange,jdbcType=VARCHAR},
+      </if>
+      <if test="callType != null" >
+        call_type = #{callType,jdbcType=VARCHAR},
+      </if>
+      <if test="gender != null" >
+        gender = #{gender,jdbcType=VARCHAR},
+      </if>
+      <if test="phoneNoMd5 != null" >
+        phone_no_md5 = #{phoneNoMd5,jdbcType=VARCHAR},
+      </if>
+      <if test="serialNo != null" >
+        serial_no = #{serialNo,jdbcType=VARCHAR},
+      </if>
+      <if test="surname != null" >
+        surname = #{surname,jdbcType=VARCHAR},
+      </if>
+      <if test="selectStatus != null" >
+        select_status = #{selectStatus,jdbcType=TINYINT},
+      </if>
+      <if test="status != null" >
+        status = #{status,jdbcType=TINYINT},
+      </if>
+      <if test="flowNo != null" >
+        flow_no = #{flowNo,jdbcType=VARCHAR},
+      </if>
+      <if test="operateScene != null" >
+        operate_scene = #{operateScene,jdbcType=VARCHAR},
+      </if>
+      <if test="templateNo != null" >
+        template_no = #{templateNo,jdbcType=VARCHAR},
+      </if>
+      <if test="eventType != null" >
+        event_type = #{eventType,jdbcType=VARCHAR},
+      </if>
+      <if test="isReal != null" >
+        is_real = #{isReal,jdbcType=TINYINT},
+      </if>
+      <if test="sendMsg != null" >
+        send_msg = #{sendMsg,jdbcType=VARCHAR},
+      </if>
+      <if test="retryCall != null" >
+        retry_call = #{retryCall,jdbcType=VARCHAR},
+      </if>
+      <if test="retryRange != null" >
+        retry_range = #{retryRange,jdbcType=VARCHAR},
+      </if>
+      <if test="retryNums != null" >
+        retry_nums = #{retryNums,jdbcType=VARCHAR},
+      </if>
+      <if test="retryInterval != null" >
+        retry_interval = #{retryInterval,jdbcType=VARCHAR},
+      </if>
+      <if test="retryCallStrategy != null" >
+        retry_call_strategy = #{retryCallStrategy,jdbcType=VARCHAR},
+      </if>
+      <if test="extend != null" >
+        extend = #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="receiveDate != null" >
+        receive_date = #{receiveDate,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.BQifuUploadDataOriginal" >
+    update b_qifu_upload_data_original
+    set drs_id = #{drsId,jdbcType=BIGINT},
+        batch_no = #{batchNo,jdbcType=VARCHAR},
+        api_code = #{apiCode,jdbcType=VARCHAR},
+        user_type = #{userType,jdbcType=VARCHAR},
+        call_time_range = #{callTimeRange,jdbcType=VARCHAR},
+        call_type = #{callType,jdbcType=VARCHAR},
+        gender = #{gender,jdbcType=VARCHAR},
+        phone_no_md5 = #{phoneNoMd5,jdbcType=VARCHAR},
+        serial_no = #{serialNo,jdbcType=VARCHAR},
+        surname = #{surname,jdbcType=VARCHAR},
+        select_status = #{selectStatus,jdbcType=TINYINT},
+        status = #{status,jdbcType=TINYINT},
+        flow_no = #{flowNo,jdbcType=VARCHAR},
+        operate_scene = #{operateScene,jdbcType=VARCHAR},
+        template_no = #{templateNo,jdbcType=VARCHAR},
+        event_type = #{eventType,jdbcType=VARCHAR},
+        is_real = #{isReal,jdbcType=TINYINT},
+        send_msg = #{sendMsg,jdbcType=VARCHAR},
+        retry_call = #{retryCall,jdbcType=VARCHAR},
+        retry_range = #{retryRange,jdbcType=VARCHAR},
+        retry_nums = #{retryNums,jdbcType=VARCHAR},
+        retry_interval = #{retryInterval,jdbcType=VARCHAR},
+        retry_call_strategy = #{retryCallStrategy,jdbcType=VARCHAR},
+        extend = #{extend,jdbcType=VARCHAR},
+        receive_date = #{receiveDate,jdbcType=VARCHAR},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>
+
