@@ -349,7 +349,8 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
             }
 
             if (StringUtils.isNotBlank(warnMsg.toString())) {
-                log.warn("奇富360ai批量清洗数据字段告警: " + warnMsg.toString());
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
+                        "奇富360ai批量清洗数据字段告警: " + warnMsg.toString()));
             }
 
             marketingPreUserDTO.setDataItems(list);
