@@ -123,8 +123,7 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
         //1、报警信息统计
         DdLinsSmsCostAlarmDto smsCostAlarmDto = new DdLinsSmsCostAlarmDto();
         smsCostAlarmDto.setCardTitle(marketingCommonConfig.getLinsSmsCostToDbConfig().getString("smsCardTitle"));
-        //2、获取基础信息 TODO 比较下 smsBaseInfoList0 和 smsBaseInfoList是否相同
-        List<DdSmsBaseInfoDto>  smsBaseInfoList0 = getSmsBaseInfo();
+        //2、获取基础信息
         List<DdSmsBaseInfoDto>  smsBaseInfoList = getSmsBaseInfoByDb();
         //3、查询原始数据
         Long searchId = 0L;
@@ -197,65 +196,6 @@ public class LineSmsCostToDbServiceImpl implements LineSmsCostToDbService {
                     e.getMessage(), TITLE), e);
         }
     }
-
-
-    /**
-     * 获取短信配置基础信息
-     * baseInfo对象list
-     * [
-     *     {
-     *         "channelDTOList": [
-     *             {
-     *                 "channelName": "微网-三网-批量",
-     *                 "channelId": 401
-     *             }
-     *         ],
-     *         "vendorId": 4,
-     *         "vendorName": "百分"
-     *     }
-     * ]
-     *
-     * DdSmsBaseInfoDto
-     *     private Long vendorId;
-     *     private String vendorName;
-     *     private Long channelId;
-     *     private String channelName;
-     * @return
-     */
-    private List<DdSmsBaseInfoDto> getSmsBaseInfo() {
-        List<DdSmsBaseInfoDto>  smsBaseInfoList = new ArrayList<>();
-        JSONArray baseInfo = new JSONArray();
-        TransferRobotOutboundDTO robotOutboundDTO = new TransferRobotOutboundDTO();
-        TransferJsonDataDTO jsonDataDTO = new TransferJsonDataDTO();
-        jsonDataDTO.setMethod(smsMethod);
-        jsonDataDTO.setAccessNumber(UUID.randomUUID().toString());
-        robotOutboundDTO.setApiCode(smsApiCode);
-        robotOutboundDTO.setJsonData(jsonDataDTO);
-        TransferRobotOutboundVO transferRobotOutboundVO = robotaiApiServiceClient.getSmsBaseInfo(robotOutboundDTO);
-        log.warn("TITLE:{},getSmsBaseInfo:{}",TITLE,JSONObject.toJSONString(robotOutboundDTO));
-        if ("00".equals(transferRobotOutboundVO.getCode())) {
-            baseInfo =  JSONArray.parseArray(transferRobotOutboundVO.getData().toString());
-        }
-        for (Object obj: baseInfo) {
-            JSONObject jsonObject = (JSONObject) obj;
-            Long vendorId = jsonObject.getLong("vendorId");
-            String vendorName = jsonObject.getString("vendorName");
-            if (jsonObject.containsKey("channelDTOList")) {
-                JSONArray channelArr = jsonObject.getJSONArray("channelDTOList");
-                for (Object channelObj : channelArr) {
-                    JSONObject channelJson = (JSONObject) channelObj;
-                    DdSmsBaseInfoDto dto = new DdSmsBaseInfoDto();
-                    dto.setVendorId(vendorId);
-                    dto.setVendorName(vendorName);
-                    dto.setChannelId(channelJson.getLong("channelId"));
-                    dto.setChannelName(channelJson.getString("channelName"));
-                    smsBaseInfoList.add(dto);
-                }
-            }
-        }
-        return smsBaseInfoList;
-    }
-
 
     private List<DdSmsBaseInfoDto> getSmsBaseInfoByDb() {
         List<DdSmsBaseInfoDto>  smsBaseInfoList = new ArrayList<>();
