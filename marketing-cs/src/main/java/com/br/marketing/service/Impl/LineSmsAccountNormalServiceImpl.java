@@ -233,7 +233,7 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
         List<SmsBaseInfoNormal> smsBaseInfoNormalList = smsBaseInfoNormalMapper.selectList();
         smsVendorInfoNormalList.forEach(vendorInfo -> {
             SmsBaseShowInfoDTO showInfoItem = new SmsBaseShowInfoDTO();
-            showInfoItem.setVendorId(vendorInfo.getId());
+            showInfoItem.setVendorId(vendorInfo.getVendorId());
             showInfoItem.setVendorName(vendorInfo.getVendorName());
             List<SmsBaseShowInfoDTO.SmsBaseInfo> channelDTOList = new ArrayList<>();
             List<SmsBaseInfoNormal> filterList = smsBaseInfoNormalList.stream().filter(
