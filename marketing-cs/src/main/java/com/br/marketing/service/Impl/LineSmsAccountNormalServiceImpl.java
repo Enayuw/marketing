@@ -239,7 +239,7 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
             if (!filterList.isEmpty()) {
                 filterList.forEach(smsBaseItem -> {
                     SmsBaseShowInfoDTO.SmsBaseInfo smsBaseInfo = new SmsBaseShowInfoDTO.SmsBaseInfo();
-                    smsBaseInfo.setChannelId(smsBaseItem.getId());
+                    smsBaseInfo.setChannelId(smsBaseItem.getChannelId());
                     smsBaseInfo.setChannelName(smsBaseItem.getChannelName());
                     channelDTOList.add(smsBaseInfo);
                 });
@@ -396,7 +396,7 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
             SmsVendorInfoNormal smsVendorInfoNormal = smsVendorInfoNormalMapper.selectByExample(smsVendorInfoNormalExample).get(0);
             showDTOItem.setVendorName(smsVendorInfoNormal.getVendorName());
 
-            //linesInfo
+            //channelsInfo
             JSONArray channelsInfo = new JSONArray();
             List<Long> channelIdList = Arrays.stream(dto.getChannelIds().split(","))
                     .map(String::trim)
