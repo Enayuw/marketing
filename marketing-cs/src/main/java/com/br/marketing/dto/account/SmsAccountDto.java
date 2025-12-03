@@ -12,7 +12,7 @@ public class SmsAccountDto {
     @Schema(description = "configId")
     private Long configId;
 
-    @Schema(description = "configId")
+    @Schema(description = "groupId")
     private Long groupId;
 
     @Schema(description = "供应商id")
