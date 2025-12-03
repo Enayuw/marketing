@@ -32,4 +32,7 @@ public interface SmsBaseInfoNormalMapper extends SmsBaseInfoNormalMapperBase{
             @Param("vendorId") Long vendorId,
             @Param("channelsName") String channelsName);
 
+    SmsBaseInfoNormal selectByChannelId(
+            @Param("vendorId") Long vendorId,
+            @Param("channelId") Long channelId);
 }

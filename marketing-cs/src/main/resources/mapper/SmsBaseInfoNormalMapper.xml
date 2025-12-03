@@ -3,7 +3,7 @@
 <mapper namespace="com.br.marketing.mapper.SmsBaseInfoNormalMapper" >
 
     <select id="selectList" resultType="com.br.marketing.entity.SmsBaseInfoNormal">
-        SELECt
+        SELECT
             id, channel_id, vendor_id, channel_name, create_time, update_time, ope_status, ope_time, is_delete
         FROM b_marketing_sms_base_info_normal
         WHERE is_delete = 0
@@ -53,17 +53,13 @@
         ) t
         WHERE rn = 1
     </select>
-    <select id="selectChannelIdListByFiled" resultType="java.lang.Long">
-        select
-            channel_id
-        from  b_marketing_sms_base_info_normal
-        where
-            vendor_id = #{vendorId}
-          and channel_name =#{channelsName}
-          and ope_status in (0,2)
-          and is_delete = 0
-    </select>
 
+    <select id="selectByChannelId" resultType="com.br.marketing.entity.SmsBaseInfoNormal">
+        SELECT
+            id, channel_id, vendor_id, channel_name, create_time, update_time, ope_status, ope_time, is_delete
+        FROM b_marketing_sms_base_info_normal
+        WHERE vendor_id = #{vendorId} and channel_id= #{channelId} and ope_status in (0,2) and is_delete = 0
+    </select>
 
     <update id="updateOnlyDbOpStatus">
         UPDATE
