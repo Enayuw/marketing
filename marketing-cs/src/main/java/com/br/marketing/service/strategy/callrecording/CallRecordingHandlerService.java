@@ -1,12 +1,13 @@
 package com.br.marketing.service.strategy.callrecording;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.br.marketing.mapper.CallRecordConfigMapper;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.concurrent.ExecutionException;
@@ -22,7 +23,7 @@ public class CallRecordingHandlerService {
     /**
      * 客户规则缓存
      */
-    private static LoadingCache<String, String> ruleCache = null;
+    private LoadingCache<String, String> ruleCache = null;
 
     @PostConstruct
     private void init() {
@@ -32,16 +33,16 @@ public class CallRecordingHandlerService {
                 .recordStats()
                 .build(new CacheLoader<String, String>() {
                     @Override
-                    public String load(String key) {
+                    public String load(@Nonnull String key) {
                         return callRecordConfigMapper.customerRuleLabels(key);
                     }
                 });
     }
 
     /**
-     * 获取客户规则
+     * 清理客户规则缓存
      */
-    public static void invalidateAll() {
+    public void invalidateAll() {
         if (ruleCache != null) {
             log.warn("客户规则清理...");
             ruleCache.invalidateAll();

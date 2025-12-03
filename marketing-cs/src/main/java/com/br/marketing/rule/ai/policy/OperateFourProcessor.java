@@ -4,11 +4,8 @@ import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.mapper.AiToPolicyRecordMapperBase;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -21,13 +18,6 @@ import java.util.HashMap;
 @Component
 @Slf4j
 public class OperateFourProcessor extends AbstractBaseAiToPolicy {
-
-    @Autowired
-    MarketingCommonConfig marketingCommonConfig;
-
-    @Autowired
-    AiToPolicyRecordMapperBase aiToPolicyRecordMapperBase;
-
     @Override
     public String getOperationType() {
         return "4";

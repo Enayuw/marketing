@@ -66,6 +66,11 @@ public class DrsCustomizeUploadData implements Serializable {
     private Integer syncStatus;
 
     /**
+     * 打平状态 0-未打平、1-已打平
+     */
+    private Integer flattenStatus;
+
+    /**
      * 接入日期yyyy-MM-dd
      */
     private String receiveDate;
