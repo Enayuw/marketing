@@ -8,9 +8,7 @@ import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.entity.AiToPolicyRecord;
 import com.br.marketing.entity.AiToPolicyRecordExample;
 import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.mapper.AiToPolicyRecordMapperBase;
 import com.br.marketing.rule.common.CommonRuleLabelEnum;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
@@ -28,12 +26,6 @@ import java.util.UUID;
 @Component
 @Slf4j
 public class OperateFiveProcessor extends AbstractBaseAiToPolicy {
-
-    @Autowired
-    MarketingCommonConfig marketingCommonConfig;
-
-    @Autowired
-    AiToPolicyRecordMapperBase aiToPolicyRecordMapperBase;
 
     @Autowired
     RedisChgService redisChgService;
