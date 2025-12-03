@@ -9,9 +9,7 @@ public interface SmsVendorInfoNormalMapper  extends SmsVendorInfoNormalMapperBas
 
     List<SmsVendorInfoNormal> selectList();
 
-
-    Long selectCount(@Param("vendorId") Long vendorId,
-                     @Param("vendorName") String vendorName);
+    SmsVendorInfoNormal selectByVendorId(@Param("vendorId") Long vendorId);
 
     void updateInfoById(@Param("vendorPrimaryId") Long vendorPrimaryId,
                         @Param("vendorName") String vendorName,
