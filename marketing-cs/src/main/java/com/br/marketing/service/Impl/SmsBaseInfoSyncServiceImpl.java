@@ -62,7 +62,7 @@ public class SmsBaseInfoSyncServiceImpl implements SmsBaseInfoSyncService {
         // 获取三方接口返回 基础信息
         List<DdSmsBaseInfoDto> ddSmsBaseInfoDtoList  = getSmsBaseInfo();
 
-        // db-库表数据组合查询: b_marketing_sms_supplier_info_normal 里面 ope_status (0,1)
+        // db-库表数据组合查询: b_marketing_sms_supplier_info_normal 里面 ope_status (0,2)
         // ---> b_marketing_sms_base_info_normal 里面 ope_status in(0,2) ,的配置进行比较
         List<SmsBaseFullInfoDTO> smsBaseFullInfoDtoList = smsBaseInfoNormalMapper.selectSmsBaseUseInfoList();
 
@@ -243,7 +243,6 @@ public class SmsBaseInfoSyncServiceImpl implements SmsBaseInfoSyncService {
                     //处理"channelDTOList": []  vendorInfo的新增及修改
                     checkSmsVendorExist(vendorId,vendorName);
                 }
-
             }
         }
         return smsBaseInfoList;
