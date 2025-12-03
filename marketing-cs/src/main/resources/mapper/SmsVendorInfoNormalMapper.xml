@@ -10,16 +10,14 @@
         WHERE is_delete = 0
     </select>
 
-
-    <select id="selectCount" resultType="java.lang.Long">
+    <select id="selectByVendorId" resultType="com.br.marketing.entity.SmsVendorInfoNormal">
         SELECT
-            count(*)
+            id, vendor_id, vendor_name, create_time, update_time, ope_status, ope_time, is_delete
         FROM
             b_marketing_sms_vendor_info_normal
         WHERE
-            vendor_id =#{vendorId} and vendor_name=#{vendorName} and ope_status in (0,2) and is_delete =0
+            vendor_id =#{vendorId} and ope_status in (0,2) and is_delete =0
     </select>
-
 
     <update id="updateInfoById">
         UPDATE
