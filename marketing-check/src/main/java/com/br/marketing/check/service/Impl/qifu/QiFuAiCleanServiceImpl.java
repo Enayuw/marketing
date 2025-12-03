@@ -149,29 +149,51 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
                 continue;
             }
 
-            // 构建批量推送对象
-            Result<MarketingPreUserDTO> result = buildBatchPushDtoFromOriginal(groupDataList, operateType);
-            if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
-                        "奇富360ai批量构建推送对象失败，apiCode: " + apiCode + "，错误信息: " + result.getMessage()));
-                continue;
-            }
+            // 按 batchNo 和 flowNo 分组
+            Map<String, List<BQifuUploadDataOriginal>> batchFlowGroupMap = groupDataList.stream()
+                    .collect(Collectors.groupingBy(record -> {
+                        String batchNo = record.getBatchNo() != null ? record.getBatchNo() : "";
+                        String flowNo = record.getFlowNo() != null ? record.getFlowNo() : "";
+                        return batchNo + "|" + flowNo;
+                    }));
 
-            // 推送
-            UpLoadCleanDTO upLoadCleanDTO = new UpLoadCleanDTO();
-            upLoadCleanDTO.setApiCode(apiCode);
-            upLoadCleanDTO.setJsonData(JSON.toJSONString(result.getData()));
-            Result<Boolean> pushResult = pushInfoService.pushUploadOfCleanRetry(upLoadCleanDTO, null);
+            // 对每个 batchNo 和 flowNo 分组进行处理
+            for (Map.Entry<String, List<BQifuUploadDataOriginal>> batchFlowEntry : batchFlowGroupMap.entrySet()) {
+                List<BQifuUploadDataOriginal> batchFlowDataList = batchFlowEntry.getValue();
+                
+                if (CollectionUtils.isEmpty(batchFlowDataList)) {
+                    continue;
+                }
 
-            // 推送成功后，更新状态为"处理完成"
-            if (pushResult != null && ResultCode.SUCCESS.getValue().equals(pushResult.getCode())) {
-                List<Long> idList = groupDataList.stream().map(BQifuUploadDataOriginal::getId).collect(Collectors.toList());
-                updateStatusToCompleted(idList);
-                log.info("奇富360ai批量推送成功，apiCode: {}，数据条数: {}", apiCode, groupDataList.size());
-            } else {
-                String errorMsg = pushResult != null ? pushResult.getMessage() : "推送失败";
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
-                        "奇富360ai批量推送失败，apiCode: " + apiCode + "，错误信息: " + errorMsg));
+                // 获取 batchNo 和 flowNo
+                BQifuUploadDataOriginal firstRecord = batchFlowDataList.get(0);
+                String batchNo = firstRecord.getBatchNo();
+                String flowNo = firstRecord.getFlowNo();
+
+                // 构建批量推送对象
+                Result<MarketingPreUserDTO> result = buildBatchPushDtoFromOriginal(batchFlowDataList, operateType, batchNo, flowNo);
+                if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
+                            "奇富360ai批量构建推送对象失败，apiCode: " + apiCode + ", batchNo: " + batchNo + ", flowNo: " + flowNo + "，错误信息: " + result.getMessage()));
+                    continue;
+                }
+
+                // 推送
+                UpLoadCleanDTO upLoadCleanDTO = new UpLoadCleanDTO();
+                upLoadCleanDTO.setApiCode(apiCode);
+                upLoadCleanDTO.setJsonData(JSON.toJSONString(result.getData()));
+                Result<Boolean> pushResult = pushInfoService.pushUploadOfCleanRetry(upLoadCleanDTO, null);
+
+                // 推送成功后，更新状态为"处理完成"
+                if (pushResult != null && ResultCode.SUCCESS.getValue().equals(pushResult.getCode())) {
+                    List<Long> idList = batchFlowDataList.stream().map(BQifuUploadDataOriginal::getId).collect(Collectors.toList());
+                    updateStatusToCompleted(idList);
+                    log.info("奇富360ai批量推送成功，apiCode: {}，batchNo: {}，flowNo: {}，数据条数: {}", apiCode, batchNo, flowNo, batchFlowDataList.size());
+                } else {
+                    String errorMsg = pushResult != null ? pushResult.getMessage() : "推送失败";
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
+                            "奇富360ai批量推送失败，apiCode: " + apiCode + ", batchNo: " + batchNo + ", flowNo: " + flowNo + "，错误信息: " + errorMsg));
+                }
             }
         }
     }
@@ -200,7 +222,8 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
     /**
      * 批量构建推送对象（从原始表）- 将同一apiCode的多条数据组装到一个MarketingPreUserDTO中
      */
-    private Result<MarketingPreUserDTO> buildBatchPushDtoFromOriginal(List<BQifuUploadDataOriginal> dataList, String operateType) {
+    private Result<MarketingPreUserDTO> buildBatchPushDtoFromOriginal(List<BQifuUploadDataOriginal> dataList,
+                                                                      String operateType, String batchNo, String flowNo) {
         Result<MarketingPreUserDTO> res = new Result<>();
         StringBuilder warnMsg = new StringBuilder();
 
@@ -277,7 +300,7 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
                 extendKey.put("strategyCode", finalStrategyCode);
                 extendKey.put("strategyName", finalStrategyName);
                 extendKey.put("userType", userType);
-                extendKey.put("flowNo", record.getFlowNo());
+                extendKey.put("flowNo", flowNo);
 
                 if (StringUtils.isNotBlank(record.getOperateScene())) {
                     extendKey.put("customName", record.getOperateScene());
@@ -291,9 +314,8 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
                 }
 
                 // 设置taskId和requestId
-                String taskId = record.getBatchNo();
-                String requestId = String.format("%s_%s_%s", record.getBatchNo(), record.getFlowNo(), System.currentTimeMillis());
-                marketingPreUserDTO.setTaskId(taskId);
+                String requestId = String.format("%s_%s_%s", batch, flowNo, System.currentTimeMillis());
+                marketingPreUserDTO.setTaskId(batchNo);
                 marketingPreUserDTO.setRequestId(requestId);
                 String extend = record.getExtend();
 
