@@ -4,6 +4,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.dto.tccpa.TcCpaCollidingRuleDTO;
 import com.br.marketing.dto.tccpa.TcCpaCollidingRuleInfoDTO;
 import com.br.marketing.dto.tc.TcCpaMagnitudeDistDTO;
+import com.br.marketing.dto.tccpa.TcyrFailMsgSupplyGroupDTO;
 
 import java.util.List;
 
@@ -17,7 +18,7 @@ public interface TcCpaCollidingRuleService {
      **/
     Result<TcCpaCollidingRuleInfoDTO> info();
 
-    Result<List<TcCpaMagnitudeDistDTO>> magnitudeDist(String releaseTimes);
+    Result<List<TcyrFailMsgSupplyGroupDTO>> magnitudeDist(String releaseTimes);
 
     Result rule(TcCpaCollidingRuleDTO ruleDTO);
 }

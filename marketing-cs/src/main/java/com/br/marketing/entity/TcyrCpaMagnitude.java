@@ -7,5 +7,9 @@ public class TcyrCpaMagnitude {
 
     private String releaseTime;
 
-    private Long count;
+    private Integer lockBelong;
+
+    private Integer failMsg;
+
+    private Long magnitude;
 }

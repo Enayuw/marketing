@@ -4,6 +4,7 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.dto.tccpa.TcCpaCollidingRuleDTO;
 import com.br.marketing.dto.tccpa.TcCpaCollidingRuleInfoDTO;
 import com.br.marketing.dto.tc.TcCpaMagnitudeDistDTO;
+import com.br.marketing.dto.tccpa.TcyrFailMsgSupplyGroupDTO;
 import com.br.marketing.service.tccpa.TcCpaCollidingRuleService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -35,7 +36,7 @@ public class TcCpaCollidingRuleController {
     @Operation(summary = "同程撞库规则基础信息", description = "同程撞库规则基础信息")
     @PostMapping("/magnitudeDist")
     public ApiResult magnitudeDist(@RequestParam("releaseTimes") String releaseTimes) {
-        return new ApiResult<List<TcCpaMagnitudeDistDTO>>().fromResult(tcCpaCollidingRuleService.magnitudeDist(releaseTimes), CODE_1);
+        return new ApiResult<List<TcyrFailMsgSupplyGroupDTO>>().fromResult(tcCpaCollidingRuleService.magnitudeDist(releaseTimes), CODE_1);
     }
 
     @Operation(summary = "同程CPA撞库规则新增", description = "同程CPA撞库规则新增")
