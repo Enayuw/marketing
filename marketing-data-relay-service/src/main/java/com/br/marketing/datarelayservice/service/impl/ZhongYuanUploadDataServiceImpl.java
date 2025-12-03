@@ -11,6 +11,9 @@ import com.br.marketing.enums.clean.DataProcessEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.mapper.rulecleaning.MarketingCustomerOriginalDataMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.stereotype.Service;
@@ -46,6 +49,9 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
     private CallRecordLLMResultV2Mapper callRecordLLMResultV2Mapper;
     @Resource
     private MarketingSceneVariableMapper marketingSceneVariableMapper;
+    @Resource
+    private TrackingService trackingService;
+
     private static final String TOKEN_PREFIX = "zyxj:token:";
     private static final long TOKEN_EXPIRE_TIME = 7200; // 2小时
 
@@ -182,6 +188,18 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             batchTaskResponse.setTaskInfoList(taskInfoList);
 
             ZhongYuanBaseResponse<BatchTaskResponse> response = ZhongYuanBaseResponse.success(batchTaskResponse);
+
+            // 埋点
+            JSONObject condition = new JSONObject();
+            condition.put("flowId", baseRequest.getFlowId());
+
+            trackingService.trackBusinessLog(DataFlowDirection.IN
+                    , apiCode
+                    , "中原消金-外呼上报接口"
+                    ,"b_marketing_zhongyuan_upload"
+                    , JSON.toJSONString(condition)
+                    , 1L
+                    , TrackingContext.generateBatchId());
 
             log.warn("中原消金批量任务上报成功，batchNo: {}, taskCount: {}",
                     batchData.getBatchNo(), taskInfoList.size());
@@ -721,6 +739,18 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             response.setMessage(responseCodeEnum.getMessage());
             response.setData(responseData);
 
+            // 埋点
+            JSONObject condition = new JSONObject();
+            condition.put("flowId", baseRequest.getFlowId());
+
+            trackingService.trackBusinessLog(DataFlowDirection.IN
+                    , apiCode
+                    , "中原消金-批量外呼任务状态修改接口"
+                    ,"b_marketing_zhongyuan_transfer"
+                    , JSON.toJSONString(condition)
+                    , (long) statusData.getTaskUidList().size()
+                    , TrackingContext.generateBatchId());
+
             log.warn("中原消金批量外呼任务状态修改完成，成功数: {}, 失败数: {}, 响应码: {}",
                     successCount, failCount, responseCodeEnum.getCode());
 
@@ -806,6 +836,18 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             ChangeSceneVariableResponse responseData = new ChangeSceneVariableResponse();
             responseData.setTaskUid(changeData.getTaskUid());
             responseData.setEw("更新成功");
+
+            // 埋点
+            JSONObject condition = new JSONObject();
+            condition.put("flowId", baseRequest.getFlowId());
+
+            trackingService.trackBusinessLog(DataFlowDirection.IN
+                    , apiCode
+                    , "中原消金-外呼任务场景变量修改接口"
+                    ,"b_marketing_scene_variable"
+                    , JSON.toJSONString(condition)
+                    , 1L
+                    , TrackingContext.generateBatchId());
 
             log.warn("中原消金外呼任务场景变量修改成功，taskUid: {}, sceneCode: {}, variableList: {}", 
                     changeData.getTaskUid(), changeData.getSceneCode(), JSON.toJSONString(changeData.getVariableList()));
