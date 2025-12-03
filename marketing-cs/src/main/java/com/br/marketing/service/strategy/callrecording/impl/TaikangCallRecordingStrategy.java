@@ -4,15 +4,14 @@ import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson2.JSONObject;
 import com.br.common.log.AlertLog;
-import com.br.common.util.BrCipherMaker;
 import com.br.common.util.StringUtils;
 import com.br.marketing.client.taikang.TaikangClient;
 import com.br.marketing.client.taikang.TaikangMarketingEvent;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.CallRecordLLMResultV2;
 import com.br.marketing.entity.TaikangTransferDataLog;
-import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.TaikangTransferDataLogMapper;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.strategy.callrecording.CallRecordingInsertStrategy;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.base.Splitter;
@@ -74,18 +73,18 @@ public class TaikangCallRecordingStrategy implements CallRecordingInsertStrategy
         if (cell == null) {
             cell = callRecordLLMResultV2.getCustNum();
         }
-        String applicantPhone = BrCipherMaker.getInstance().decode(cell);
-        if (applicantPhone == null) {
+        String applicantPhone = RpcClientProxy.decode(cell, "cell", "md5", "");
+        if (StringUtils.isEmpty(applicantPhone)) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAIKANG_MARKING_SERVICEERROR.getCode(), "泰康大健康线索线索推送客户，该cell:" + cell +
                     "解密失败，请关注！！！"));
         }
-        String browseDate = DateUtil.format(new Date(callRecordLLMResultV2.getCallStartTime()), DatePattern.NORM_DATETIME_PATTERN);
-        TaikangMarketingEvent taikangMarketingEvent = new TaikangMarketingEvent();
-        taikangMarketingEvent.setApplicantPhone(applicantPhone);
-        taikangMarketingEvent.setBrowseDate(browseDate);
-        taikangMarketingEvent.setApplicantName(applicantName);
-        String response = taikangClient.process(taikangMarketingEvent);
         try {
+            String browseDate = DateUtil.format(new Date(callRecordLLMResultV2.getCallStartTime()), DatePattern.NORM_DATETIME_PATTERN);
+            TaikangMarketingEvent taikangMarketingEvent = new TaikangMarketingEvent();
+            taikangMarketingEvent.setApplicantPhone(applicantPhone);
+            taikangMarketingEvent.setBrowseDate(browseDate);
+            taikangMarketingEvent.setApplicantName(applicantName);
+            String response = taikangClient.process(taikangMarketingEvent);
             TaikangTransferDataLog taikangTransferDataLog = new TaikangTransferDataLog();
             taikangTransferDataLog.setCallRecordId(callRecordLLMResultV2.getId());
             taikangTransferDataLog.setApiCode(callRecordLLMResultV2.getApiCode());
@@ -105,11 +104,10 @@ public class TaikangCallRecordingStrategy implements CallRecordingInsertStrategy
             taikangTransferDataLog.setBusinessCode(businessCode);
             taikangTransferDataLog.setReturnContent(response);
             taikangTransferDataLogMapper.insertSelective(taikangTransferDataLog);
-        } catch (NumberFormatException e) {
+        } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAIKANG_MARKING_SERVICEERROR.getCode(),
                     "泰康大健康线索线索推送客户记录日志异常，拨打明细id:" + callRecordLLMResultV2.getId()));
         }
-        log.warn("泰康大健康线索线索推送客户response:{}", response);
     }
 
     /**
