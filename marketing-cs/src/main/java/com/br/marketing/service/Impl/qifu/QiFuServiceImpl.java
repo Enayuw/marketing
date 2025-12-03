@@ -40,6 +40,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * 已废弃
+ */
 @Service
 @Slf4j
 public class QiFuServiceImpl implements IQiFuService {
@@ -58,7 +61,7 @@ public class QiFuServiceImpl implements IQiFuService {
 
     @Override
     public void aiCleanProcess() {
-
+        // 原有流程：从DrsCustomizeUploadData表查询数据
         JSONObject qifuAiCleanConfig = marketingCommonConfig.getQifuAiCleanConfig();
         String tcId = getValueOfJson(qifuAiCleanConfig, "tCid", "");
         List<String> apiCodes = Arrays.asList(getValueOfJson(qifuAiCleanConfig, "cleanApiCode", "3700226").split(","));
