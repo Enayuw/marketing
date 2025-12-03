@@ -1,10 +1,10 @@
 package com.br.marketing.service.tccpa;
 
 import com.br.marketing.common.commondto.Result;
-import com.br.marketing.dto.tc.TcCpaCollidingRuleInfoDTO;
+import com.br.marketing.dto.tccpa.TcCpaCollidingRuleDTO;
+import com.br.marketing.dto.tccpa.TcCpaCollidingRuleInfoDTO;
 import com.br.marketing.dto.tc.TcCpaMagnitudeDistDTO;
 
-import java.time.LocalDate;
 import java.util.List;
 
 public interface TcCpaCollidingRuleService {
@@ -17,5 +17,7 @@ public interface TcCpaCollidingRuleService {
      **/
     Result<TcCpaCollidingRuleInfoDTO> info();
 
-    Result<List<TcCpaMagnitudeDistDTO>> magnitudeDist(List<String> releaseTimes);
+    Result<List<TcCpaMagnitudeDistDTO>> magnitudeDist(String releaseTimes);
+
+    Result rule(TcCpaCollidingRuleDTO ruleDTO);
 }

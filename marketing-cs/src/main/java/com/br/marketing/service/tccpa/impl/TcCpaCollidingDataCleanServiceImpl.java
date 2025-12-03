@@ -275,7 +275,7 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
                             if (marketingCommonConfig.getTcCpaMockConfig().get("query")) {
                                 throw new IllegalArgumentException();
                             }
-                            cusNums = tcyrCpaCollidingDataMapper.queryScoreDataWithPagedoris_(querySql, minCusNum);
+                            cusNums = tcyrCpaCollidingDataMapper.queryScoreDataWithPagebI_(querySql, minCusNum);
                         } catch (Exception e) {
                             log.warn("同程CPA撞库数据清洗，跑分数据查询异常，packageId：{}，batchNumber：{}", cleanPackage.getId(), batchNumber);
                             tcyrCpaBatchCleanInfos.add(new TcyrCpaBatchCleanInfo(batchNumber, true, isInner.get(), e.getMessage()));

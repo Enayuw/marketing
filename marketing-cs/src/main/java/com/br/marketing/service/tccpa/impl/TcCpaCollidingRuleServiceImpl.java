@@ -3,7 +3,9 @@ package com.br.marketing.service.tccpa.impl;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.Constants;
-import com.br.marketing.dto.tc.TcCpaCollidingRuleInfoDTO;
+import com.br.marketing.common.utils.DateHelper;
+import com.br.marketing.dto.tccpa.TcCpaCollidingRuleDTO;
+import com.br.marketing.dto.tccpa.TcCpaCollidingRuleInfoDTO;
 import com.br.marketing.dto.tc.TcCpaMagnitudeDistDTO;
 import com.br.marketing.dto.tc.TcyrCpaCollidingDataPackageInfo;
 import com.br.marketing.dto.tc.TcyrCpaDeleteRuleInfo;
@@ -20,8 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -83,16 +83,20 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
     }
 
     @Override
-    public Result<List<TcCpaMagnitudeDistDTO>> magnitudeDist(List<String> releaseTimes) {
-        if(CollectionUtils.isEmpty(releaseTimes)){
+    public Result<List<TcCpaMagnitudeDistDTO>> magnitudeDist(String releaseTimes) {
+        List<String> releaseTimeList = Arrays.asList(releaseTimes.split(","));
+        if(CollectionUtils.isEmpty(releaseTimeList)){
             return null;
         }
+        String supplyFailMsgs = marketingCommonConfig.getTcyrCpaPushFileVTConfig().getString("supplyFailMsgs");
+
+
         //fail_msg = 2-被友商锁定
         List<TcyrCpaMagnitude> magnitudeOtrList = tcyrCpaLockDataMapper
-                .queryMagnitudeWithBelong(releaseTimes, TcCpaLockBelongEnum.BELONG_OTR.getValue());
+                .queryMagnitudeWithBelong(releaseTimeList, TcCpaLockBelongEnum.BELONG_OTR.getValue());
         //fail_msg = 6-空白组
         List<TcyrCpaMagnitude> magnitudeBlankList = tcyrCpaLockDataMapper
-                .queryMagnitudeWithBelong(releaseTimes, TcCpaLockBelongEnum.BELON_BLANK.getValue());
+                .queryMagnitudeWithBelong(releaseTimeList, TcCpaLockBelongEnum.BELON_BLANK.getValue());
         Map<String, Long> magnitudeOtrMap = magnitudeOtrList.stream()
                 .filter(Objects::nonNull)
                 .collect(Collectors.toMap(
@@ -108,7 +112,7 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
                         TcyrCpaMagnitude::getCount,
                         (v1, v2) -> v1
                 ));
-        List<TcCpaMagnitudeDistDTO> magnitudes = releaseTimes.stream()
+        List<TcCpaMagnitudeDistDTO> magnitudes = releaseTimeList.stream()
                 .map(releaseTime -> {
                     Long lockByOtrNum = magnitudeOtrMap.getOrDefault(releaseTime, 0l);
                     Long blankNum = magnitudeBlankMap.getOrDefault(releaseTime, 0l);
@@ -119,5 +123,17 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
         return new Result<List<TcCpaMagnitudeDistDTO>>()
                 .setCode(ResultCode.SUCCESS.getValue())
                 .setDate(magnitudes);
+    }
+
+    @Override
+    public Result rule(TcCpaCollidingRuleDTO ruleDTO) {
+        TcyrCpaCollidingTask basicTask = new TcyrCpaCollidingTask();
+        basicTask.setApiCode(marketingCommonConfig.getTcyrApiCode());
+        basicTask.setPackageIds(String.join(",", ruleDTO.getPackageIds()));
+        basicTask.setLimitNum(ruleDTO.getLimitNum());
+        basicTask.setDeleteRuleIds(String.join(",", ruleDTO.getDeleteRuleIds()));
+//        if(ruleDTO.getSupplyReleaseTimes())
+
+        return null;
     }
 }

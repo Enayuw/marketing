@@ -14,7 +14,7 @@ public interface TcyrCpaCollidingDataMapper extends TcyrCpaCollidingDataMapperBa
             @Param("pageSize")Integer pageSize,
             @Param("offset")Integer offset);
 
-    List<String> queryScoreDataWithPagedoris_(@Param("querySql") String querySql, @Param("minCusNum") String minCusNum);
+    List<String> queryScoreDataWithPagebI_(@Param("querySql") String querySql, @Param("minCusNum") String minCusNum);
 
     void insertBatchWithPriority(@Param("dataList") List<TcyrCpaCollidingData> dataList);
 

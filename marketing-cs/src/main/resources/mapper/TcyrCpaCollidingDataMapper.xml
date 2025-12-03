@@ -35,7 +35,7 @@
         and is_del = 1
   </select>
 
-    <select id="queryScoreDataWithPagedoris_" resultType="java.lang.String">
+    <select id="queryScoreDataWithPagebI_" resultType="java.lang.String">
         ${querySql}
         <if test="minCusNum != null">
             and cus_num > #{minCusNum}

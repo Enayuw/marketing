@@ -6,5 +6,6 @@ import lombok.Data;
 public class TcyrCpaMagnitude {
 
     private String releaseTime;
+
     private Long count;
 }
