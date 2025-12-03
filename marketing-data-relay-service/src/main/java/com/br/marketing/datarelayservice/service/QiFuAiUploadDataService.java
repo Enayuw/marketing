@@ -19,6 +19,9 @@ import com.br.marketing.mapper.DrsCustomizeUploadDataMapper;
 import com.br.marketing.datarelayservice.client.QiFuAiBizDataDTO;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
@@ -44,7 +47,8 @@ public class QiFuAiUploadDataService {
     DrsCustomizeUploadDataMapper drsCustomizeUploadDataMapper;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
-
+    @Resource
+    private TrackingService trackingService;
     public Pair<CodeEnum, FlagEnum> handle(QiFuAiReqDTO requestBody, String bizType, String testApiCode) {
         String decryptData;
         String apiCode;
@@ -185,6 +189,19 @@ public class QiFuAiUploadDataService {
                     "jsonData:" + decryptData + ",bizType:" + bizType, "奇富AI上传数据入库失败！！！"));
             return new Pair<>(CodeEnum.GWS208, FlagEnum.F);
         }
+
+        // 埋点
+        JSONObject condition = new JSONObject();
+        condition.put("requestId", requestId);
+
+        trackingService.trackBusinessLog(DataFlowDirection.IN
+                , uploadData.getApiCode()
+                , "奇富AI语音机器人当月报表数据接入接口"
+                ,"b_drs_customize_upload_data${tCid}"
+                , JSON.toJSONString(condition)
+                , (long) (dataList == null ? 0 : dataList.size())
+                , TrackingContext.generateBatchId());
+
         return null;
     }
 
@@ -232,6 +249,19 @@ public class QiFuAiUploadDataService {
                     "jsonData:" + decryptData + ",bizType:" + bizType, "奇富AI语音排名数据入库失败！！！"));
             return new Pair<>(CodeEnum.GWS208, FlagEnum.F);
         }
+
+        // 埋点
+        JSONObject condition = new JSONObject();
+        condition.put("requestId", requestId);
+
+        trackingService.trackBusinessLog(DataFlowDirection.IN
+                , uploadData.getApiCode()
+                , "奇富AI语音机器人排名报表推送接口"
+                ,"b_drs_customize_upload_data${tCid}"
+                , JSON.toJSONString(condition)
+                , (long) (dataList == null ? 0 : dataList.size())
+                , TrackingContext.generateBatchId());
+
         return null;
 
     }
@@ -282,6 +312,19 @@ public class QiFuAiUploadDataService {
                     "jsonData:" + decryptData + ",bizType:" + bizType, "奇富AI上传数据入库失败！！！"));
             return new Pair<>(CodeEnum.GWS208, FlagEnum.F);
         }
+
+        // 埋点
+        JSONObject condition = new JSONObject();
+        condition.put("requestId", requestId);
+
+        trackingService.trackBusinessLog(DataFlowDirection.IN
+                , uploadData.getApiCode()
+                , "奇富AI上传数据接入接口"
+                ,"b_drs_customize_upload_data${tCid}"
+                , JSON.toJSONString(condition)
+                , (long) (dataList == null ? 0 : dataList.size())
+                , TrackingContext.generateBatchId());
+
         return null;
     }
 }
