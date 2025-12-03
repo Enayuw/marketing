@@ -109,7 +109,10 @@ public class SmsBaseInfoSyncServiceImpl implements SmsBaseInfoSyncService {
             // 添加记录
             onlyInGatewayDtoList.forEach(dto -> {
                 checkSmsVendorExist(dto.getVendorId(),dto.getVendorName());
-                smsBaseInfoNormalMapper.insertSelective(fillSmsBaseInfo(dto));
+                SmsBaseInfoNormal smsBaseInfoNormal = smsBaseInfoNormalMapper.selectByChannelId(dto.getVendorId(),dto.getChannelId());
+                if (smsBaseInfoNormal == null) {
+                    smsBaseInfoNormalMapper.insertSelective(fillSmsBaseInfo(dto));
+                }
             });
         }catch (Exception e){
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MARKETING_AVIATORSCRIPT_SMS_CHANGE_ERROR.getCode(),
@@ -168,7 +171,7 @@ public class SmsBaseInfoSyncServiceImpl implements SmsBaseInfoSyncService {
             itemObj.setVendorName(vendorName);
             smsVendorInfoNormalMapper.insertSelective(itemObj);
         }else if (!smsVendorInfoNormal.getVendorName().equals(vendorName)) {
-            smsVendorInfoNormalMapper.updateInfoById(smsVendorInfoNormal.getId(),smsVendorInfoNormal.getVendorName(),2);
+            smsVendorInfoNormalMapper.updateInfoById(smsVendorInfoNormal.getId(),vendorName,2);
         }
     }
 
