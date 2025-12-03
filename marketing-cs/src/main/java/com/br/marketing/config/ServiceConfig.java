@@ -72,15 +72,4 @@ public class ServiceConfig {
                 , new ArrayBlockingQueue(5000),new ThreadFactoryBuilder().setNameFormat("zhongyou_clean_thread_pool-%d").build()
                 ,new ThreadPoolExecutor.CallerRunsPolicy());
     }
-
-    @Bean(name = "xieChengReportThreadPool")
-    public ThreadPoolExecutor xieChengReportThreadPool() {
-        Integer XieChengReportThreadPoolNum = marketingCommonConfig.getXieChengReportThreadPoolNum();
-        return new ThreadPoolExecutor(
-                XieChengReportThreadPoolNum,
-                XieChengReportThreadPoolNum + 50,
-                10L, TimeUnit.SECONDS
-                , new SynchronousQueue<>(), new ThreadFactoryBuilder().setNameFormat("xieCheng-report-pool-%d").build()
-                ,new ThreadPoolExecutor.CallerRunsPolicy());
-    }
 }

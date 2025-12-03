@@ -1,0 +1,434 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.DxmSftpConfigMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.DxmSftpConfig" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="client_sftp_host" property="clientSftpHost" jdbcType="VARCHAR" />
+    <result column="client_sftp_port" property="clientSftpPort" jdbcType="INTEGER" />
+    <result column="client_sftp_user" property="clientSftpUser" jdbcType="VARCHAR" />
+    <result column="client_sftp_pwd" property="clientSftpPwd" jdbcType="VARCHAR" />
+    <result column="client_sftp_path" property="clientSftpPath" jdbcType="VARCHAR" />
+    <result column="rsa_private_key" property="rsaPrivateKey" jdbcType="VARCHAR" />
+    <result column="rsa_public_key" property="rsaPublicKey" jdbcType="VARCHAR" />
+    <result column="aes_key" property="aesKey" jdbcType="VARCHAR" />
+    <result column="internal_sftp_host" property="internalSftpHost" jdbcType="VARCHAR" />
+    <result column="internal_sftp_port" property="internalSftpPort" jdbcType="INTEGER" />
+    <result column="internal_sftp_user" property="internalSftpUser" jdbcType="VARCHAR" />
+    <result column="internal_sftp_pwd" property="internalSftpPwd" jdbcType="VARCHAR" />
+    <result column="internal_sftp_path" property="internalSftpPath" jdbcType="VARCHAR" />
+    <result column="status" property="status" jdbcType="TINYINT" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="type" property="type" jdbcType="TINYINT" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, api_code, client_sftp_host, client_sftp_port, client_sftp_user, client_sftp_pwd, 
+    client_sftp_path, rsa_private_key, rsa_public_key, aes_key, internal_sftp_host, internal_sftp_port, 
+    internal_sftp_user, internal_sftp_pwd, internal_sftp_path, `status`, create_time, 
+    update_time, `type`
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.DxmSftpConfigExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_dxm_sftp_config
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from b_dxm_sftp_config
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_dxm_sftp_config
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.DxmSftpConfigExample" >
+    delete from b_dxm_sftp_config
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.DxmSftpConfig" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_dxm_sftp_config (api_code, client_sftp_host, client_sftp_port, 
+      client_sftp_user, client_sftp_pwd, client_sftp_path, 
+      rsa_private_key, rsa_public_key, aes_key, 
+      internal_sftp_host, internal_sftp_port, internal_sftp_user, 
+      internal_sftp_pwd, internal_sftp_path, `status`, 
+      create_time, update_time, `type`
+      )
+    values (#{apiCode,jdbcType=VARCHAR}, #{clientSftpHost,jdbcType=VARCHAR}, #{clientSftpPort,jdbcType=INTEGER}, 
+      #{clientSftpUser,jdbcType=VARCHAR}, #{clientSftpPwd,jdbcType=VARCHAR}, #{clientSftpPath,jdbcType=VARCHAR}, 
+      #{rsaPrivateKey,jdbcType=VARCHAR}, #{rsaPublicKey,jdbcType=VARCHAR}, #{aesKey,jdbcType=VARCHAR}, 
+      #{internalSftpHost,jdbcType=VARCHAR}, #{internalSftpPort,jdbcType=INTEGER}, #{internalSftpUser,jdbcType=VARCHAR}, 
+      #{internalSftpPwd,jdbcType=VARCHAR}, #{internalSftpPath,jdbcType=VARCHAR}, #{status,jdbcType=TINYINT}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{type,jdbcType=TINYINT}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.DxmSftpConfig" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_dxm_sftp_config
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="clientSftpHost != null" >
+        client_sftp_host,
+      </if>
+      <if test="clientSftpPort != null" >
+        client_sftp_port,
+      </if>
+      <if test="clientSftpUser != null" >
+        client_sftp_user,
+      </if>
+      <if test="clientSftpPwd != null" >
+        client_sftp_pwd,
+      </if>
+      <if test="clientSftpPath != null" >
+        client_sftp_path,
+      </if>
+      <if test="rsaPrivateKey != null" >
+        rsa_private_key,
+      </if>
+      <if test="rsaPublicKey != null" >
+        rsa_public_key,
+      </if>
+      <if test="aesKey != null" >
+        aes_key,
+      </if>
+      <if test="internalSftpHost != null" >
+        internal_sftp_host,
+      </if>
+      <if test="internalSftpPort != null" >
+        internal_sftp_port,
+      </if>
+      <if test="internalSftpUser != null" >
+        internal_sftp_user,
+      </if>
+      <if test="internalSftpPwd != null" >
+        internal_sftp_pwd,
+      </if>
+      <if test="internalSftpPath != null" >
+        internal_sftp_path,
+      </if>
+      <if test="status != null" >
+        `status`,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+      <if test="type != null" >
+        `type`,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="clientSftpHost != null" >
+        #{clientSftpHost,jdbcType=VARCHAR},
+      </if>
+      <if test="clientSftpPort != null" >
+        #{clientSftpPort,jdbcType=INTEGER},
+      </if>
+      <if test="clientSftpUser != null" >
+        #{clientSftpUser,jdbcType=VARCHAR},
+      </if>
+      <if test="clientSftpPwd != null" >
+        #{clientSftpPwd,jdbcType=VARCHAR},
+      </if>
+      <if test="clientSftpPath != null" >
+        #{clientSftpPath,jdbcType=VARCHAR},
+      </if>
+      <if test="rsaPrivateKey != null" >
+        #{rsaPrivateKey,jdbcType=VARCHAR},
+      </if>
+      <if test="rsaPublicKey != null" >
+        #{rsaPublicKey,jdbcType=VARCHAR},
+      </if>
+      <if test="aesKey != null" >
+        #{aesKey,jdbcType=VARCHAR},
+      </if>
+      <if test="internalSftpHost != null" >
+        #{internalSftpHost,jdbcType=VARCHAR},
+      </if>
+      <if test="internalSftpPort != null" >
+        #{internalSftpPort,jdbcType=INTEGER},
+      </if>
+      <if test="internalSftpUser != null" >
+        #{internalSftpUser,jdbcType=VARCHAR},
+      </if>
+      <if test="internalSftpPwd != null" >
+        #{internalSftpPwd,jdbcType=VARCHAR},
+      </if>
+      <if test="internalSftpPath != null" >
+        #{internalSftpPath,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=TINYINT},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="type != null" >
+        #{type,jdbcType=TINYINT},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.DxmSftpConfigExample" resultType="java.lang.Integer" >
+    select count(*) from b_dxm_sftp_config
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_dxm_sftp_config
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.clientSftpHost != null" >
+        client_sftp_host = #{record.clientSftpHost,jdbcType=VARCHAR},
+      </if>
+      <if test="record.clientSftpPort != null" >
+        client_sftp_port = #{record.clientSftpPort,jdbcType=INTEGER},
+      </if>
+      <if test="record.clientSftpUser != null" >
+        client_sftp_user = #{record.clientSftpUser,jdbcType=VARCHAR},
+      </if>
+      <if test="record.clientSftpPwd != null" >
+        client_sftp_pwd = #{record.clientSftpPwd,jdbcType=VARCHAR},
+      </if>
+      <if test="record.clientSftpPath != null" >
+        client_sftp_path = #{record.clientSftpPath,jdbcType=VARCHAR},
+      </if>
+      <if test="record.rsaPrivateKey != null" >
+        rsa_private_key = #{record.rsaPrivateKey,jdbcType=VARCHAR},
+      </if>
+      <if test="record.rsaPublicKey != null" >
+        rsa_public_key = #{record.rsaPublicKey,jdbcType=VARCHAR},
+      </if>
+      <if test="record.aesKey != null" >
+        aes_key = #{record.aesKey,jdbcType=VARCHAR},
+      </if>
+      <if test="record.internalSftpHost != null" >
+        internal_sftp_host = #{record.internalSftpHost,jdbcType=VARCHAR},
+      </if>
+      <if test="record.internalSftpPort != null" >
+        internal_sftp_port = #{record.internalSftpPort,jdbcType=INTEGER},
+      </if>
+      <if test="record.internalSftpUser != null" >
+        internal_sftp_user = #{record.internalSftpUser,jdbcType=VARCHAR},
+      </if>
+      <if test="record.internalSftpPwd != null" >
+        internal_sftp_pwd = #{record.internalSftpPwd,jdbcType=VARCHAR},
+      </if>
+      <if test="record.internalSftpPath != null" >
+        internal_sftp_path = #{record.internalSftpPath,jdbcType=VARCHAR},
+      </if>
+      <if test="record.status != null" >
+        `status` = #{record.status,jdbcType=TINYINT},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.type != null" >
+        `type` = #{record.type,jdbcType=TINYINT},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_dxm_sftp_config
+    set id = #{record.id,jdbcType=BIGINT},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      client_sftp_host = #{record.clientSftpHost,jdbcType=VARCHAR},
+      client_sftp_port = #{record.clientSftpPort,jdbcType=INTEGER},
+      client_sftp_user = #{record.clientSftpUser,jdbcType=VARCHAR},
+      client_sftp_pwd = #{record.clientSftpPwd,jdbcType=VARCHAR},
+      client_sftp_path = #{record.clientSftpPath,jdbcType=VARCHAR},
+      rsa_private_key = #{record.rsaPrivateKey,jdbcType=VARCHAR},
+      rsa_public_key = #{record.rsaPublicKey,jdbcType=VARCHAR},
+      aes_key = #{record.aesKey,jdbcType=VARCHAR},
+      internal_sftp_host = #{record.internalSftpHost,jdbcType=VARCHAR},
+      internal_sftp_port = #{record.internalSftpPort,jdbcType=INTEGER},
+      internal_sftp_user = #{record.internalSftpUser,jdbcType=VARCHAR},
+      internal_sftp_pwd = #{record.internalSftpPwd,jdbcType=VARCHAR},
+      internal_sftp_path = #{record.internalSftpPath,jdbcType=VARCHAR},
+      `status` = #{record.status,jdbcType=TINYINT},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      `type` = #{record.type,jdbcType=TINYINT}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.DxmSftpConfig" >
+    update b_dxm_sftp_config
+    <set >
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="clientSftpHost != null" >
+        client_sftp_host = #{clientSftpHost,jdbcType=VARCHAR},
+      </if>
+      <if test="clientSftpPort != null" >
+        client_sftp_port = #{clientSftpPort,jdbcType=INTEGER},
+      </if>
+      <if test="clientSftpUser != null" >
+        client_sftp_user = #{clientSftpUser,jdbcType=VARCHAR},
+      </if>
+      <if test="clientSftpPwd != null" >
+        client_sftp_pwd = #{clientSftpPwd,jdbcType=VARCHAR},
+      </if>
+      <if test="clientSftpPath != null" >
+        client_sftp_path = #{clientSftpPath,jdbcType=VARCHAR},
+      </if>
+      <if test="rsaPrivateKey != null" >
+        rsa_private_key = #{rsaPrivateKey,jdbcType=VARCHAR},
+      </if>
+      <if test="rsaPublicKey != null" >
+        rsa_public_key = #{rsaPublicKey,jdbcType=VARCHAR},
+      </if>
+      <if test="aesKey != null" >
+        aes_key = #{aesKey,jdbcType=VARCHAR},
+      </if>
+      <if test="internalSftpHost != null" >
+        internal_sftp_host = #{internalSftpHost,jdbcType=VARCHAR},
+      </if>
+      <if test="internalSftpPort != null" >
+        internal_sftp_port = #{internalSftpPort,jdbcType=INTEGER},
+      </if>
+      <if test="internalSftpUser != null" >
+        internal_sftp_user = #{internalSftpUser,jdbcType=VARCHAR},
+      </if>
+      <if test="internalSftpPwd != null" >
+        internal_sftp_pwd = #{internalSftpPwd,jdbcType=VARCHAR},
+      </if>
+      <if test="internalSftpPath != null" >
+        internal_sftp_path = #{internalSftpPath,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        `status` = #{status,jdbcType=TINYINT},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="type != null" >
+        `type` = #{type,jdbcType=TINYINT},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.DxmSftpConfig" >
+    update b_dxm_sftp_config
+    set api_code = #{apiCode,jdbcType=VARCHAR},
+      client_sftp_host = #{clientSftpHost,jdbcType=VARCHAR},
+      client_sftp_port = #{clientSftpPort,jdbcType=INTEGER},
+      client_sftp_user = #{clientSftpUser,jdbcType=VARCHAR},
+      client_sftp_pwd = #{clientSftpPwd,jdbcType=VARCHAR},
+      client_sftp_path = #{clientSftpPath,jdbcType=VARCHAR},
+      rsa_private_key = #{rsaPrivateKey,jdbcType=VARCHAR},
+      rsa_public_key = #{rsaPublicKey,jdbcType=VARCHAR},
+      aes_key = #{aesKey,jdbcType=VARCHAR},
+      internal_sftp_host = #{internalSftpHost,jdbcType=VARCHAR},
+      internal_sftp_port = #{internalSftpPort,jdbcType=INTEGER},
+      internal_sftp_user = #{internalSftpUser,jdbcType=VARCHAR},
+      internal_sftp_pwd = #{internalSftpPwd,jdbcType=VARCHAR},
+      internal_sftp_path = #{internalSftpPath,jdbcType=VARCHAR},
+      `status` = #{status,jdbcType=TINYINT},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      `type` = #{type,jdbcType=TINYINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

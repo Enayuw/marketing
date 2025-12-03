@@ -34,4 +34,13 @@
           and last =#{last}
             limit 1
     </select>
+
+    <select id="getByApiCodeAndRequestId" resultType="com.br.marketing.entity.MarketingTransferInfo">
+        select
+            *
+        from b_marketing_transfer_info
+        where api_code = #{apiCode}
+          and request_id = #{requestId}
+        limit 1
+    </select>
 </mapper>

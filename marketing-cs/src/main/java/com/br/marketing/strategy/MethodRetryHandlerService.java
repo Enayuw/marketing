@@ -5,9 +5,11 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.common.log.AlertLog;
+import com.br.marketing.aspect.Mockable;
 import com.br.marketing.bo.SaveReachDeleteRecordReqBO;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.bo.ZaMarketDataBO;
+import com.br.marketing.client.HaloCallBackDataApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.DassServiceClient;
 import com.br.marketing.client.dassservice.PushBlackListResponse;
@@ -64,6 +66,7 @@ import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.common.enums.DistributeTypeEnum;
+import com.br.marketing.constants.MockConstants;
 import com.br.marketing.dto.DataJoinLogDTO;
 import com.br.marketing.dto.zbank.ZbankLabelRatingReResultDTO;
 import com.br.marketing.entity.*;
@@ -1464,6 +1467,7 @@ public class MethodRetryHandlerService {
     }
 
     @RetryMethod(retryNowNum = 3)
+    @Mockable(mockName = MockConstants.TEST_QIFIUQUERY_RETURN)
     public Result<ResponseData<QryCallRealTimeResp>> qryCallRealTime(QryCallRealTimeReq qryCallRealTimeReq, Integer retry) {
         return qiFuClients.qryCallRealTimeUrl(qryCallRealTimeReq);
     }

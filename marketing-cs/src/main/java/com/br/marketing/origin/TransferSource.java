@@ -36,6 +36,7 @@ public enum TransferSource {
     TRANSFER_DATA_SET_PROCESS(5, "转化数据集合流程"),
     INIT_DATA_SET_PROCESS(6, "初始数据集合流程"),
     CUSTOMER_SMS_CALLBACK(7, "客服短信数据"),
+    CUSTOMER_SMS_CALLBACK_AT_ONCE(8, "短信发送即回调数据"),
     ;
 
 

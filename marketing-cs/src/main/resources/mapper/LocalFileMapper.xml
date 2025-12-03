@@ -45,7 +45,7 @@
 
         order by bf.create_time desc
     </select>
-    <select id="allCount" resultType="java.lang.Integer">
+    <select id="allCount" resultType="java.lang.Long">
         select sum(bf.actual_number),bf.api_code from b_local_file bf left join b_marketing_customer bc on bc.api_code =
         bf.api_code
         where bf.file_type in

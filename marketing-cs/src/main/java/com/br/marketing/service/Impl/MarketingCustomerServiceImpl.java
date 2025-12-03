@@ -13,9 +13,11 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mapper.EntityOptLogMapper;
+import com.br.marketing.mapper.MarketingCustomerAssignedGroupMapper;
 import com.br.marketing.mapper.MarketingCustomerConfigMapper;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.service.ICustomerConfigService;
+import com.br.marketing.service.IMarketingCustomerAssignedGroupService;
 import com.br.marketing.service.MarketingCustomerService;
 import com.br.marketing.service.customertagsprocess.CustomerTagsProcessServiceImpl;
 import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
@@ -25,6 +27,7 @@ import com.br.marketing.vo.MarketingCustomerListVO;
 import com.br.marketing.vo.MarketingCustomerVO;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
 import org.springframework.beans.BeanUtils;
@@ -65,6 +68,9 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
 
     @Autowired
     ICustomerConfigService iCustomerConfigService;
+
+    @Resource
+    private IMarketingCustomerAssignedGroupService marketingCustomerAssignedGroupService;
 
 
     @Override
@@ -109,6 +115,18 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
                 }
             }
 
+            List<String> cidList = marketingCustomersList.stream().map(MarketingCustomer::getCid).collect(Collectors.toList());
+            Map<String, String> cidGroupMap = Maps.newHashMap();
+            if(!CollectionUtils.isEmpty(cidList)) {
+                MarketingCustomerAssignedGroupExample assignedGroupExample = new MarketingCustomerAssignedGroupExample();
+                assignedGroupExample.createCriteria().andCidIn(cidList);
+                List<MarketingCustomerAssignedGroup> marketingCustomerAssignedGroups =
+                        marketingCustomerAssignedGroupService.selectByExample(assignedGroupExample);
+                cidGroupMap = marketingCustomerAssignedGroups.stream()
+                        .collect(Collectors.toMap(MarketingCustomerAssignedGroup::getCid,
+                                MarketingCustomerAssignedGroup::getAssignedGroup, (x1, x2) -> x1));
+            }
+
             ArrayList<CustomerListVo> customerListVos = new ArrayList<>();
             for (MarketingCustomer marketingCustomer : marketingCustomersList) {
                 CustomerListVo customerListVo = new CustomerListVo();
@@ -126,6 +144,7 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
                 customerListVo.setCharset(marketingCustomerConfig == null ? null: marketingCustomerConfig.getCharset());
                 customerListVo.setIv(marketingCustomerConfig == null ? null: marketingCustomerConfig.getIv());
                 customerListVo.setDynamicKeys(marketingCustomerConfig == null ? null: marketingCustomerConfig.getDynamicKeys());
+                customerListVo.setAssignedGroup(cidGroupMap.get(marketingCustomer.getCid()));
                 customerListVos.add(customerListVo);
             }
             PageInfo<MarketingCustomer> marketingCustomerPageInfo = new PageInfo<>(marketingCustomersList);
@@ -161,7 +180,7 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
         marketingCustomer.setSmsCategory(vo.getSmsCategory());
         marketingCustomer.setFirstDepartment(vo.getFirstDepartment());
         marketingCustomer.setSecondDepartment(vo.getSecondDepartment());
-
+        marketingCustomer.setApiType(vo.getApiType());
         if (StringUtils.isEmpty(vo.getId())) {
             //新增
             marketingCustomer.setCid(vo.getCid());
@@ -257,6 +276,7 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
             marketingCustomer.setId(vo.getId());
             marketingCustomerMapper.updateByPrimaryKeySelective(marketingCustomer);
         }
+        marketingCustomerAssignedGroupService.assignGroup(vo.getCid(), vo.getAssignedGroup(), vo.getApiCode());
         customerTagsProcessService.delTagsOfRedis(vo.getApiCode());
         return new ApiResult<Boolean>().success(true);
     }
