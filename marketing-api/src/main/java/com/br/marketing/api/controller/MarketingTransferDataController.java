@@ -23,6 +23,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
@@ -31,7 +33,7 @@ import javax.annotation.Resource;
 /**
  * 营销数据接入接口
  */
-@Tag(value = "MarketingUserPreController")
+@Tag(name = "MarketingTransferDataController", description = "营销数据接入接口")
 @RequestMapping("/marketingTransferData")
 @RestController
 public class MarketingTransferDataController {
@@ -58,7 +60,7 @@ public class MarketingTransferDataController {
      * @param jsonData
      * @return
      */
-    @Operation(value = "接收转化数据")
+    @Operation(summary = "接收转化数据")
     @PostMapping("/receiveTransferDataSync")
     @LogAnnotation
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
@@ -77,7 +79,7 @@ public class MarketingTransferDataController {
      * @param jsonData
      * @return
      */
-    @Operation(value = "获取转化数据上传详情")
+    @Operation(summary = "获取转化数据上传详情")
     @PostMapping("/getTransferDataStauts")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
     public ApiResult getTransferDataStauts(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
@@ -101,7 +103,7 @@ public class MarketingTransferDataController {
      * @param jsonData 业务数据json结构
      * @return ApiNoDataResult 业务响应
      */
-    @Operation(value = "接收数禾订制转化数据")
+    @Operation(summary = "接收数禾订制转化数据")
     @PostMapping("receiveShuheTransferDataSync")
     @LogAnnotation
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
@@ -120,7 +122,7 @@ public class MarketingTransferDataController {
      * @param jsonData 业务数据json结构
      * @return ResponseCustomDTO 业务响应
      */
-    @Operation(value = "订制转化数据上传接口")
+    @Operation(summary = "订制转化数据上传接口")
     @PostMapping("receiveTransferData")
     @LogAnnotation
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
@@ -142,7 +144,7 @@ public class MarketingTransferDataController {
      * @author senyang.zheng
      * @date 2024/08/06
      */
-    @Operation(value = "定制黑名单数据接入接口")
+    @Operation(summary = "定制黑名单数据接入接口")
     @PostMapping("/receiveCustomizeBlackData")
     @LogAnnotation
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)

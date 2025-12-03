@@ -11,6 +11,10 @@ public class LineAccountDto {
     @Schema(description = "configId")
     private Long configId;
 
+
+    @Schema(description = "groupId")
+    private Long groupId;
+
     @Schema(description = "供应商名称")
     @NotEmpty(message = "供应商名称不能为空")
     private String lineSupplier;

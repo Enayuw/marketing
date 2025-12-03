@@ -10,6 +10,7 @@ import com.br.marketing.dto.tccpa.TcCpDataCleanTaskDTO;
 import com.br.marketing.dto.tccpa.TcCpDataPackageGenDTO;
 import com.br.marketing.dto.tccpa.TcyrCpaCollidingDataPackageVO;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.TcCpaCleanStatusEnum;
 import com.br.marketing.enums.clean.DataCleanStatusEnum;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.TcyrCpaCollidingDataCleanTaskMapper;
@@ -17,6 +18,8 @@ import com.br.marketing.mapper.TcyrCpaCollidingDataPackageMapper;
 import com.br.marketing.service.tccpa.TcCpaDataPackageService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.EsConditionTransferSqlUtil;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -71,14 +74,8 @@ public class TcCpaDataPackageServiceImpl implements TcCpaDataPackageService {
 
     @Override
     public PageResultReturn<TcyrCpaCollidingDataPackageVO> page(int page, int pageSize, String packageName, Integer status) {
-        TcyrCpaCollidingDataPackageExample example = new TcyrCpaCollidingDataPackageExample();
-        if(StringUtils.isNotEmpty(packageName)) {
-            example.createCriteria().andPackageNameLike("%" + packageName + "%");
-        }
-        if(Objects.nonNull(status)) {
-            example.createCriteria().andEnabledEqualTo(status);
-        }
-        List<TcyrCpaCollidingDataPackage> packages = tcyrCpaCollidingDataPackageMapper.selectByExample(example);
+        PageHelper.startPage(page, pageSize);
+        List<TcyrCpaCollidingDataPackage> packages = tcyrCpaCollidingDataPackageMapper.selectByCondition(packageName, status);
         if(CollectionUtils.isEmpty(packages)) {
             return PageResultReturn.setPageResult(Lists.newArrayList(), page, pageSize);
         }
@@ -98,11 +95,17 @@ public class TcCpaDataPackageServiceImpl implements TcCpaDataPackageService {
             }
             return vo;
         }).collect(Collectors.toList());
-        return PageResultReturn.setPageResult(packageVOS, page, pageSize);
+        PageInfo<TcyrCpaCollidingDataPackage> marketingCustomerPageInfo = new PageInfo<>(packages);
+        return PageResultReturn.setPageResult(packageVOS, page, pageSize, marketingCustomerPageInfo.getTotal());
     }
 
     @Override
     public Result update(TcyrCpaCollidingDataPackageVO packageVO) {
+        TcyrCpaCollidingDataCleanTaskExample taskExample = new TcyrCpaCollidingDataCleanTaskExample();
+        taskExample.createCriteria().andCleanStatusNotEqualTo(TcCpaCleanStatusEnum.CLEAN_SUCCESS.getValue());
+        if (tcyrCpaCollidingDataCleanTaskMapper.countByExample(taskExample) > 0) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("存在待清洗、清洗中、清洗失败或重试的清洗任务，不能修改数据包");
+        }
         TcyrCpaCollidingDataPackage dataPackage = new TcyrCpaCollidingDataPackage();
         BeanUtils.copyProperties(packageVO, dataPackage);
 
@@ -116,15 +119,14 @@ public class TcCpaDataPackageServiceImpl implements TcCpaDataPackageService {
     @Override
     public Result delete(Long id) {
         TcyrCpaCollidingDataCleanTaskExample taskExample = new TcyrCpaCollidingDataCleanTaskExample();
-        taskExample.createCriteria().andCleanStatusIn(Lists.newArrayList(DataCleanStatusEnum.READY.getCode(),
-                DataCleanStatusEnum.RUNNING.getCode()));
+        taskExample.createCriteria().andCleanStatusNotEqualTo(TcCpaCleanStatusEnum.CLEAN_SUCCESS.getValue());
         if (tcyrCpaCollidingDataCleanTaskMapper.countByExample(taskExample) > 0) {
-            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("存在清洗中或待清洗的任务，禁止删除数据包");
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("存在待清洗、清洗中、清洗失败或重试的清洗任务，禁止删除数据包");
         }
         TcyrCpaCollidingDataPackageExample dataPackageExample = new TcyrCpaCollidingDataPackageExample();
         dataPackageExample.createCriteria().andIdEqualTo(id);
         TcyrCpaCollidingDataPackage dataPackage = new TcyrCpaCollidingDataPackage();
-        dataPackage.setIsDel(Constants.STATUS_DELETE);
+        dataPackage.setIsDel(Constants.DATA_DEL);
         tcyrCpaCollidingDataPackageMapper.updateByExampleSelective(dataPackage, dataPackageExample);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
@@ -132,10 +134,9 @@ public class TcCpaDataPackageServiceImpl implements TcCpaDataPackageService {
     @Override
     public Result genCleanTask() {
         TcyrCpaCollidingDataCleanTaskExample taskExample = new TcyrCpaCollidingDataCleanTaskExample();
-        taskExample.createCriteria().andCleanStatusIn(Lists.newArrayList(DataCleanStatusEnum.READY.getCode(),
-                DataCleanStatusEnum.RUNNING.getCode())).andIsDelNotEqualTo(Constants.STATUS_DELETE);
+        taskExample.createCriteria().andCleanStatusNotEqualTo(TcCpaCleanStatusEnum.CLEAN_SUCCESS.getValue());
         if (tcyrCpaCollidingDataCleanTaskMapper.countByExample(taskExample) > 0) {
-            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("存在清洗中或待清洗的任务，禁止新增清洗任务");
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("存在待清洗、清洗中、清洗失败或重试的清洗任务，禁止新增清洗任务");
         }
         TcyrCpaCollidingDataPackageExample dataPackageExample = new TcyrCpaCollidingDataPackageExample();
         dataPackageExample.createCriteria().andIsDelEqualTo(Constants.STATUS_START).andPriorityIsNull();

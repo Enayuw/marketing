@@ -11,6 +11,7 @@
     <result column="magnitude" property="magnitude" jdbcType="INTEGER" />
     <result column="enabled" property="enabled" jdbcType="INTEGER" />
     <result column="clean_status" property="cleanStatus" jdbcType="INTEGER" />
+    <result column="execute_info" property="executeInfo" jdbcType="VARCHAR" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
     <result column="extend" property="extend" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
@@ -76,7 +77,7 @@
   </sql>
   <sql id="Base_Column_List" >
     id, api_code, package_name, batch_numbers, conditions, priority, magnitude, enabled,
-    clean_status, is_del, extend, create_time, update_time
+    clean_status, execute_info, is_del, extend, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.TcyrCpaCollidingDataPackageExample" >
     select
@@ -114,14 +115,14 @@
     </selectKey>
     insert into b_tcyr_cpa_colliding_data_package (api_code, package_name, batch_numbers,
     conditions, priority, magnitude,
-    enabled, clean_status, is_del,
-    extend, create_time, update_time
-    )
+    enabled, clean_status, execute_info,
+    is_del, extend, create_time,
+    update_time)
     values (#{apiCode,jdbcType=VARCHAR}, #{packageName,jdbcType=VARCHAR}, #{batchNumbers,jdbcType=VARCHAR},
     #{conditions,jdbcType=VARCHAR}, #{priority,jdbcType=INTEGER}, #{magnitude,jdbcType=INTEGER},
-    #{enabled,jdbcType=INTEGER}, #{cleanStatus,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER},
-    #{extend,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
-    )
+    #{enabled,jdbcType=INTEGER}, #{cleanStatus,jdbcType=INTEGER}, #{executeInfo,jdbcType=VARCHAR},
+    #{isDel,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP},
+    #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.TcyrCpaCollidingDataPackage" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -152,6 +153,9 @@
       </if>
       <if test="cleanStatus != null" >
         clean_status,
+      </if>
+      <if test="executeInfo != null" >
+        execute_info,
       </if>
       <if test="isDel != null" >
         is_del,
@@ -190,6 +194,9 @@
       </if>
       <if test="cleanStatus != null" >
         #{cleanStatus,jdbcType=INTEGER},
+      </if>
+      <if test="executeInfo != null" >
+        #{executeInfo,jdbcType=VARCHAR},
       </if>
       <if test="isDel != null" >
         #{isDel,jdbcType=INTEGER},
@@ -241,6 +248,9 @@
       <if test="record.cleanStatus != null" >
         clean_status = #{record.cleanStatus,jdbcType=INTEGER},
       </if>
+      <if test="record.executeInfo != null" >
+        execute_info = #{record.executeInfo,jdbcType=VARCHAR},
+      </if>
       <if test="record.isDel != null" >
         is_del = #{record.isDel,jdbcType=INTEGER},
       </if>
@@ -269,6 +279,7 @@
     magnitude = #{record.magnitude,jdbcType=INTEGER},
     enabled = #{record.enabled,jdbcType=INTEGER},
     clean_status = #{record.cleanStatus,jdbcType=INTEGER},
+    execute_info = #{record.executeInfo,jdbcType=VARCHAR},
     is_del = #{record.isDel,jdbcType=INTEGER},
     extend = #{record.extend,jdbcType=VARCHAR},
     create_time = #{record.createTime,jdbcType=TIMESTAMP},
@@ -304,6 +315,9 @@
       <if test="cleanStatus != null" >
         clean_status = #{cleanStatus,jdbcType=INTEGER},
       </if>
+      <if test="executeInfo != null" >
+        execute_info = #{executeInfo,jdbcType=VARCHAR},
+      </if>
       <if test="isDel != null" >
         is_del = #{isDel,jdbcType=INTEGER},
       </if>
@@ -329,6 +343,7 @@
         magnitude = #{magnitude,jdbcType=INTEGER},
         enabled = #{enabled,jdbcType=INTEGER},
         clean_status = #{cleanStatus,jdbcType=INTEGER},
+        execute_info = #{executeInfo,jdbcType=VARCHAR},
         is_del = #{isDel,jdbcType=INTEGER},
         extend = #{extend,jdbcType=VARCHAR},
         create_time = #{createTime,jdbcType=TIMESTAMP},

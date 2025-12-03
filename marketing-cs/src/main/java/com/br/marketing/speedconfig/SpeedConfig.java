@@ -2,23 +2,21 @@ package com.br.marketing.speedconfig;
 
 import com.alibaba.fastjson.JSON;
 import com.br.common.log.AlertLog;
-import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.service.Impl.RedisTestServiceImpl;
+import com.br.marketing.service.strategy.callrecording.CallRecordingHandlerService;
 import com.br.speed.client.SpeedMgrBean;
 import com.br.speed.client.common.append.ISpeedAppendPipeline;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.shaded.com.google.common.base.Splitter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -58,6 +56,7 @@ public class SpeedConfig implements ISpeedAppendPipeline {
         log.warn("配置中心item -- {} --{} 变动通知",key,value);
         AgentItem item = JSON.parseObject(value, AgentItem.class);
         String message = item.getMessage();
+        String callRecordConfig = item.getCallRecordConfig();
         Integer redisTest = item.getRedisTest();
         Integer speedTest = item.getSpeedTest();
         switch (key) {
@@ -65,6 +64,12 @@ public class SpeedConfig implements ISpeedAppendPipeline {
                 // {"message":"customer_rule_mapping","update_time":"2022-04-01 14:53:01"}
                 if ("customer_rule_mapping".equals(message)) {
                     DataLoadingHandlerService.invalidateAll();
+                }
+                if ("call_record_config".equals(callRecordConfig)) {
+                    CallRecordingHandlerService callRecordingHandlerService = context.getBean(CallRecordingHandlerService.class);
+                    if (callRecordingHandlerService != null) {
+                        callRecordingHandlerService.invalidateAll();
+                    }
                 }
                 if(!new Integer(0).equals(redisTest)){
                     RedisTestServiceImpl redisTestServiceImpl = context.getBean("redisTestServiceImpl", RedisTestServiceImpl.class);

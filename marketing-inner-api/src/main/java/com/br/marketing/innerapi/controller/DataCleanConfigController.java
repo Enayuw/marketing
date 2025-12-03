@@ -75,9 +75,9 @@ public class DataCleanConfigController {
 
     @Operation(summary = "获取匹配规则", description = "获取匹配规则")
     @Parameters({
-            @Parameter(name = "fileHeader", value = "文件表头", required = true, dataType = "String"),
-            @Parameter(name = "apiCode", value = "apiCode", required = true, dataType = "String"),
-            @Parameter(name = "fileType", value = "文件类型", paramType = "query", dataType = "string")
+            @Parameter(name = "fileHeader", description = "文件表头", required = true),
+            @Parameter(name = "apiCode", description = "apiCode", required = true),
+            @Parameter(name = "fileType", description = "文件类型")
     })
     @GetMapping("/getfileRules")
     public ApiResult<List<DataCleanConfigVO>> getfileRules(String fileHeader, String apiCode, String fileType) {
@@ -87,7 +87,7 @@ public class DataCleanConfigController {
 
     @Operation(summary = "获取清洗配置", description = "获取清洗配置")
     @Parameters({
-            @Parameter(name = "Id", value = "配置ID", paramType = "query", dataType = "Long")
+            @Parameter(name = "Id", description = "配置ID")
     })
     @GetMapping("/getRuleByID")
     public ApiResult<MarketingDataFileConfig> getRuleByID(Long Id) {

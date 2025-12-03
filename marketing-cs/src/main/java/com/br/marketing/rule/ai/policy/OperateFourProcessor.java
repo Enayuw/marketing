@@ -4,11 +4,8 @@ import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.mapper.AiToPolicyRecordMapperBase;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -21,13 +18,6 @@ import java.util.HashMap;
 @Component
 @Slf4j
 public class OperateFourProcessor extends AbstractBaseAiToPolicy {
-
-    @Autowired
-    MarketingCommonConfig marketingCommonConfig;
-
-    @Autowired
-    AiToPolicyRecordMapperBase aiToPolicyRecordMapperBase;
-
     @Override
     public String getOperationType() {
         return "4";
@@ -35,6 +25,15 @@ public class OperateFourProcessor extends AbstractBaseAiToPolicy {
 
     @Override
     public String generateBatchNumber(MarketingSyncUser syncUser) {
+        return generateBaseBatchNumber(syncUser);
+    }
+
+    /**
+     * 生成基础批次号（供子类复用）
+     * @param syncUser 同步用户信息
+     * @return batchNumber
+     */
+    protected String generateBaseBatchNumber(MarketingSyncUser syncUser) {
         String apiCode = syncUser.getApiCode();
         String appletDate = syncUser.getAppletDate().replace("-", "");
         String reserveField1 = syncUser.getReserveField1();

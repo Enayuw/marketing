@@ -66,6 +66,7 @@ datasource:
       max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
       keepalive-time: 30000 # 连接保活时间，单位毫秒
       connection-test-query: select 1 # 连接测试查询
+      replicationAllocation: tag.location.default:3
     marketing-bi:
       name: marketing_bi
       type: com.zaxxer.hikari.HikariDataSource
@@ -80,6 +81,7 @@ datasource:
       max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
       keepalive-time: 30000 # 连接保活时间，单位毫秒
       connection-test-query: select 1 # 连接测试查询
+      replicationAllocation: tag.location.default:3
     marketing-log:
       name: marketing_log
       type: com.zaxxer.hikari.HikariDataSource
@@ -389,7 +391,6 @@ rocketmq:
     enableMsgTrace: false
     # 消息跟踪主题的名称值。如果不进行配置，可以使用默认的跟踪主题名称
     customizedTraceTopic: RMQ_SYS_TRACE_TOPIC
-    namespace: ${ROCKETMQ_NAMESPACE:sim}
   consumer:
     #    # 配置指定group是否启动监听器 group1.topic1 = false
     #    listeners:
@@ -404,4 +405,3 @@ rocketmq:
     # 一次拉取消息最大值，注意是拉取消息的最大值而非消费最大值
     pull-batch-size: 5
     # 其他配置参考属性类
-    namespace: ${ROCKETMQ_NAMESPACE:sim}

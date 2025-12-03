@@ -35,6 +35,7 @@ import com.br.marketing.service.bi.AnalysisReportService;
 import com.br.marketing.vo.bi.AxisWrapVO;
 import com.br.marketing.vo.bi.param.ReportTaskParam;
 import com.br.marketing.dto.report.RefreshReportRequestDTO;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -169,14 +170,14 @@ public class ReportScoreRuleController {
         return reportScoreRuleService.deleteReport(id);
     }
 
-    @Operation("刷新报表数据")
+    @Operation(summary = "刷新报表数据")
     @PostMapping("/refreshCustomIntervalReport")
     @AuthDataControllerPermission
     public ApiResult<Boolean> refreshCustomIntervalReport(@RequestBody RefreshReportRequestDTO requestDTO) {
         return new ApiResult().fromResult(reportScoreRuleService.refreshCustomIntervalReport(requestDTO), CODE_1);
     }
 
-    @Operation("保存评分分布模板")
+    @Operation(summary = "保存评分分布模板")
     @PostMapping("/saveIntervalTemplate")
     @AuthDataControllerPermission
     public ApiResult<Boolean> saveIntervalTemplate(@RequestBody RefreshReportRequestDTO requestDTO) {
@@ -184,14 +185,14 @@ public class ReportScoreRuleController {
         return new ApiResult().fromResult(reportScoreRuleService.saveIntervalTemplate(requestDTO,user), CODE_1);
     }
 
-    @Operation("评分分布查询规则模板")
+    @Operation(summary = "评分分布查询规则模板")
     @GetMapping("/getIntervalTemplate")
     @AuthDataControllerPermission
     public ApiResult<List<IntervalTemplateVO>> getIntervalTemplate(@RequestParam String apiCode) {
         return new ApiResult().fromResult(reportScoreRuleService.getIntervalTemplate(apiCode), CODE_1);
     }
 
-    @Operation("查询画像分布模型")
+    @Operation(summary = "查询画像分布模型")
     @GetMapping("/getImageDistribution")
     public ApiResult<String> getImageDistribution() {
         return new ApiResult().fromResult(reportScoreRuleService.getImageDistribution(), CODE_1);

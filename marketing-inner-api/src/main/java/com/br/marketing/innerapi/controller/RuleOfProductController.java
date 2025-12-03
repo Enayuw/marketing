@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping(value = "/rule/product")
-@Tag(value = "产品配置", tags = "产品配置", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "产品配置", description = "产品配置")
 public class RuleOfProductController {
 
     @Autowired

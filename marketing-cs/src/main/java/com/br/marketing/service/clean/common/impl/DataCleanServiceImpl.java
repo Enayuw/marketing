@@ -480,6 +480,7 @@ public class DataCleanServiceImpl implements DataCleanService {
             MarketingPreUserDetailDTO marketingPreUserDetailDTO = new MarketingPreUserDetailDTO();
             //数据清洗
             dataCleanHandler(jsonObject, ruleConfigListTmp, marketingPreUserDetailDTO);
+            dataCleanNotConfigHandler(jsonObject, ruleConfigListTmp, marketingPreUserDetailDTO);
             marketingPreUserDetailDTO.setFingerprint(ids.get(index.getAndIncrement()));
             syncUsers.add(marketingPreUserDetailDTO);
         });
@@ -488,7 +489,99 @@ public class DataCleanServiceImpl implements DataCleanService {
         return marketingPreUserDTO;
     }
 
-        /**
+    public void dataCleanNotConfigHandler(JSONObject jsonObject,
+                                          Collection<MarketingDataCleanGeneralRuleConfig> ruleConfigList,
+                                          MarketingPreUserDetailDTO marketingPreUserDetailDTO) {
+        // 收集ruleConfigList中所有的mappingField，用于快速判断字段是否已配置
+        Set<String> configuredFields = new HashSet<>();
+        if (!CollectionUtils.isEmpty(ruleConfigList)) {
+            ruleConfigList.forEach(ruleConfig -> {
+                if (ruleConfig.getMappingField() != null) {
+                    configuredFields.add(ruleConfig.getMappingField());
+                }
+            });
+        }
+
+        // 获取dataItems对象，判断是否存在
+        Object dataItemsObj = jsonObject.get("dataItems");
+        JSONObject targetObject;
+        
+        if (dataItemsObj instanceof JSONObject) {
+            // 如果有dataItems，则遍历dataItems下的字段
+            targetObject = (JSONObject) dataItemsObj;
+            
+            // 处理顶层的requestId和taskId字段（即使有dataItems，这两个字段也应该从顶层获取）
+            if (!configuredFields.contains("requestId") && jsonObject.containsKey("requestId")) {
+                Object requestIdValue = jsonObject.get("requestId");
+                marketingPreUserDetailDTO.setRequestId(requestIdValue != null ? requestIdValue.toString() : null);
+            }
+            if (!configuredFields.contains("taskId") && jsonObject.containsKey("taskId")) {
+                Object taskIdValue = jsonObject.get("taskId");
+                marketingPreUserDetailDTO.setTaskId(taskIdValue != null ? taskIdValue.toString() : null);
+            }
+        } else {
+            // 如果没有dataItems，则遍历最外层字段
+            targetObject = jsonObject;
+        }
+
+        // 遍历目标对象中的所有字段
+        for (Map.Entry<String, Object> entry : targetObject.entrySet()) {
+            String fieldName = entry.getKey();
+            Object fieldValue = entry.getValue();
+
+            // 如果字段在ruleConfigList中存在，则跳过
+            if (configuredFields.contains(fieldName)) {
+                continue;
+            }
+
+            // 处理reserveField1和reserveField2字段，如果是JSONObject则打平
+            if ("reserveField1".equals(fieldName) && fieldValue instanceof JSONObject) {
+                // 将reserveField1中的字段打平，直接放到reserveField1中
+                JSONObject reserveField1Obj = (JSONObject) fieldValue;
+                for (Map.Entry<String, Object> reserveEntry : reserveField1Obj.entrySet()) {
+                    String reserveFieldName = reserveEntry.getKey();
+                    Object reserveFieldValue = reserveEntry.getValue();
+                    // 如果嵌套字段不在配置中，则添加到reserveField1
+                    if (!configuredFields.contains(reserveFieldName)) {
+                        marketingPreUserDetailDTO.setReserveField1(
+                                setExtendField(marketingPreUserDetailDTO.getReserveField1(), reserveFieldName, reserveFieldValue));
+                    }
+                }
+                continue;
+            }
+
+            // 如果字段不在配置中，判断是否是固定字段
+            switch (fieldName) {
+                case "name":
+                    marketingPreUserDetailDTO.setName(fieldValue != null ? fieldValue.toString() : null);
+                    break;
+                case "cell":
+                    marketingPreUserDetailDTO.setCell(fieldValue != null ? fieldValue.toString() : null);
+                    break;
+                case "id":
+                    marketingPreUserDetailDTO.setId(fieldValue != null ? fieldValue.toString() : null);
+                    break;
+                case "custNum":
+                    marketingPreUserDetailDTO.setCustNum(fieldValue != null ? fieldValue.toString() : null);
+                    break;
+                case "operateType":
+                    marketingPreUserDetailDTO.setOperateType(fieldValue != null ? fieldValue.toString() : null);
+                    break;
+                case "requestId":
+                    marketingPreUserDetailDTO.setRequestId(fieldValue != null ? fieldValue.toString() : null);
+                    break;
+                case "taskId":
+                    marketingPreUserDetailDTO.setTaskId(fieldValue != null ? fieldValue.toString() : null);
+                    break;
+                default:
+                    // 其他字段都放在reserveField1中
+                    marketingPreUserDetailDTO.setReserveField1(setExtendField(marketingPreUserDetailDTO.getReserveField1(), fieldName, fieldValue));
+                    break;
+            }
+        }
+    }
+
+    /**
      * 插入清洗后的数据信息
      * 
      * @param apiCode API编码，用于标识数据来源
@@ -840,6 +933,39 @@ public class DataCleanServiceImpl implements DataCleanService {
         }
         log.warn( "文件清洗处理线程数core={}，max={}", pool.getCorePoolSize(), pool.getMaximumPoolSize());
     }
+
+    @Override
+    public void uploadDetailCleanHandler(JSONObject jsonObject, Collection<MarketingDataCleanGeneralRuleConfig> ruleConfigList,
+                                         MarketingSyncUser marketingSyncUser) {
+        ruleConfigList.forEach(ruleConfig -> {
+            //数据清洗
+            Object result = ruleCleaningService.executeCleaningRule(jsonObject, ruleConfig);
+            switch (ruleConfig.getMappingField()) {
+                case "name":
+                    marketingSyncUser.setName((String) result);
+                    break;
+                case "cell":
+                    marketingSyncUser.setCell((String) result);
+                    break;
+                case "id":
+                    marketingSyncUser.setIdCard((String) result);
+                    break;
+                case "custNum":
+                    marketingSyncUser.setCustNum((String) result);
+                    break;
+                case "operateType":
+                    marketingSyncUser.setOperateType((String) result);
+                    break;
+                default:
+                    marketingSyncUser.setReserveField1(setExtendField(marketingSyncUser.getReserveField1(), ruleConfig.getMappingField(), result));
+
+            }
+        });
+
+    }
+
+
+
 }
 
 

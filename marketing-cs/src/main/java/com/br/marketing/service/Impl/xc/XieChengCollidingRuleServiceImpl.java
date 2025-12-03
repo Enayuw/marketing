@@ -1,5 +1,7 @@
 package com.br.marketing.service.Impl.xc;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -7,31 +9,21 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
-
 import javax.annotation.Resource;
-
 import com.br.marketing.common.exception.KnowException;
 import com.br.marketing.common.utils.Constants;
+import com.br.marketing.dto.rulecenter.XcDeleteTaskQueryDTO;
+import com.br.marketing.dto.rulecenter.XcDeleteTaskVO;
+import com.br.marketing.entity.*;
+import com.br.marketing.mapper.*;
 import com.br.marketing.vo.xiecheng.param.UpdateRoundParam;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.entity.XieChengCollidingDataPackage;
-import com.br.marketing.entity.XieChengCollidingDataRobExample;
-import com.br.marketing.entity.XiechengCollidingDataPackageRule;
-import com.br.marketing.entity.XiechengCollidingDataPackageRuleExample;
-import com.br.marketing.entity.XiechengCollidingDataPackageRuleStaging;
-import com.br.marketing.entity.XiechengCollidingDataPackageRuleStagingExample;
-import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
-import com.br.marketing.mapper.XieChengCollidingDataPackageMapper;
-import com.br.marketing.mapper.XieChengCollidingDataRobMapper;
-import com.br.marketing.mapper.XiechengCollidingDataPackageRuleMapper;
-import com.br.marketing.mapper.XiechengCollidingDataPackageRuleStagingMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.xiecheng.XiechengCollidingRuleVO;
 import com.br.marketing.vo.xiecheng.XiechengCollidingStagingRuleVO;
@@ -43,7 +35,6 @@ import com.br.marketing.vo.xiecheng.param.UpdateCollidingSwitchParam;
 import com.br.marketing.vo.xiecheng.param.UpdatePriorityParam;
 import com.github.pagehelper.PageHelper;
 import com.google.common.base.Splitter;
-
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
@@ -72,6 +63,14 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
 
     @Resource
     private XieChengCollidingDataRobMapper robMapper;
+
+    @Resource
+    private XiechengCollidingDataProcessTaskMapper xiechengCollidingDataProcessTaskMapper;
+
+    @Resource
+    private XiechengCollidingTaskBatchMapper xiechengCollidingTaskBatchMapper;
+
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     /**
      * 获取调度任务列表-False-分页
@@ -387,6 +386,38 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
         update.setRound(param.getRound());
         update.setId(param.getPkgId());
         return packageMapper.updateByPrimaryKeySelective(update) == 1;
+    }
+
+    @Override
+    public PageResultReturn<XcDeleteTaskVO> getCollidingDataDeleteTaskList(XcDeleteTaskQueryDTO queryDTO) {
+        PageHelper.startPage(queryDTO.getCurrent(), queryDTO.getSize());
+        LocalDateTime releaseTimeBegin = null;
+        LocalDateTime releaseTimeEnd = null;
+        if(StringUtils.isNotBlank(queryDTO.getReleaseTimeBegin()) && StringUtils.isNotBlank(queryDTO.getReleaseTimeEnd())){
+            releaseTimeBegin = LocalDateTime.parse(queryDTO.getReleaseTimeBegin(), formatter);
+            releaseTimeEnd = LocalDateTime.parse(queryDTO.getReleaseTimeEnd(), formatter);
+        }
+        List<XcDeleteTaskVO> taskList = xiechengCollidingDataProcessTaskMapper
+                .getCollidingDataDeleteTaskList(releaseTimeBegin, releaseTimeEnd, queryDTO.getTaskType(), queryDTO.getTaskStatus());
+        return PageResultReturn.setPageResult(taskList, queryDTO.getCurrent(), queryDTO.getSize());
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean deleteCollidingDataDeleteTask(Long taskId) {
+        //1.逻辑删除【b_xiecheng_colliding_data_process_task】
+        XiechengCollidingDataProcessTaskExample taskExample = new XiechengCollidingDataProcessTaskExample();
+        taskExample.createCriteria().andIdEqualTo(taskId);
+        XiechengCollidingDataProcessTask task = new XiechengCollidingDataProcessTask();
+        task.setIsDelete(Constants.DATA_VALID);
+        xiechengCollidingDataProcessTaskMapper.updateByExampleSelective(task, taskExample);
+        //2.逻辑删除【b_xiecheng_colliding_task_batch】
+        XiechengCollidingTaskBatchExample batchExample = new XiechengCollidingTaskBatchExample();
+        batchExample.createCriteria().andCollidingDataTaskIdEqualTo(taskId);
+        XiechengCollidingTaskBatch batch = new XiechengCollidingTaskBatch();
+        batch.setIsDelete(Constants.DATA_VALID);
+        xiechengCollidingTaskBatchMapper.updateByExampleSelective(batch, batchExample);
+        return true;
     }
 
 }

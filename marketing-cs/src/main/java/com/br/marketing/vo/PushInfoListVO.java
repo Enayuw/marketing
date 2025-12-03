@@ -61,6 +61,9 @@ public class PushInfoListVO {
     @Schema(description = "推送类型")
     private Integer pushTarget;
 
+    @Schema(description = "上传数据记录id:多个,分割")
+    private String uploadReportIds;
+
     public String getmStatusDesc() {
         if (mStatus.equals(PushRuleStatusEnum.RUNNING.getValue())
                 || mStatus.equals(PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue())
@@ -219,5 +222,13 @@ public class PushInfoListVO {
 
     public void setPushTarget(Integer pushTarget) {
         this.pushTarget = pushTarget;
+    }
+
+    public String getUploadReportIds() {
+        return uploadReportIds;
+    }
+
+    public void setUploadReportIds(String uploadReportIds) {
+        this.uploadReportIds = uploadReportIds;
     }
 }

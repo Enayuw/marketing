@@ -1,6 +1,7 @@
 package com.br.marketing.service.rulecenter;
 
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.entity.CustomerInfoPushBatch;
 import com.br.marketing.entity.CustomerInfoPushMain;
 import com.br.marketing.entity.StraHisFile;
@@ -85,5 +86,10 @@ public class RuleCenterPushContext {
      * 上传数据条件集合
      */
     private List<Map<String,String>> DataConditionList;
+
+    /**
+     * 扩展字段存储
+     */
+    private JSONObject extendDataJson;
 
 }

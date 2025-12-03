@@ -7,6 +7,7 @@ import com.br.marketing.service.LocalFileService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
@@ -26,7 +27,7 @@ import javax.annotation.Resource;
  */
 @RestController
 @RequestMapping(value = "/rule/fileUploadHistory")
-@Tag(value = "文件上传历史", tags = "文件上传历史", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "文件上传历史", description = "文件上传历史")
 public class FileUploadHistoryController {
 
     @Resource

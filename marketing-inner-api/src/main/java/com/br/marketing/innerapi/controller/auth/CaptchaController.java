@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisAuthService;
 import com.br.marketing.common.commondto.ApiResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
@@ -20,7 +21,7 @@ import javax.servlet.http.HttpSession;
  * ------------------------------
  */
 @RestController
-@Tag(value = "验证码", tags = "captcha")
+@Tag(name = "验证码", description = "captcha")
 public class CaptchaController {
     @Resource
     RedisAuthService redisAuthService;

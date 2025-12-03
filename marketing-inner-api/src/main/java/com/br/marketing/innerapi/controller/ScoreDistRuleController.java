@@ -8,6 +8,7 @@ import com.br.marketing.service.ScoreDistRuleService;
 import com.br.marketing.vo.ConditionOfScoreVO;
 import com.br.marketing.vo.ScoreDistRuleVo;
 import com.br.marketing.vo.bi.AxisWrapVO;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;

@@ -9,6 +9,7 @@
     <result column="type" property="type" jdbcType="INTEGER" />
     <result column="status" property="status" jdbcType="INTEGER" />
     <result column="actual_number" property="actualNumber" jdbcType="INTEGER" />
+    <result column="is_delete" property="isDelete" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
   </resultMap>
@@ -71,7 +72,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, colliding_data_task_id, batch_number, `type`, `status`, actual_number, create_time, update_time
+    id, api_code, colliding_data_task_id, batch_number, `type`, `status`, actual_number,
+    is_delete, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.XiechengCollidingTaskBatchExample" >
     select
@@ -88,7 +90,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     from b_xiecheng_colliding_task_batch
     where id = #{id,jdbcType=BIGINT}
@@ -108,12 +110,13 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_xiecheng_colliding_task_batch (api_code, colliding_data_task_id, batch_number,
-      `type`,`status`,actual_number, create_time, update_time
-      )
+    `type`, `status`, actual_number,
+    is_delete, create_time, update_time
+    )
     values (#{apiCode,jdbcType=VARCHAR}, #{collidingDataTaskId,jdbcType=BIGINT}, #{batchNumber,jdbcType=VARCHAR},
-      #{type,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, #{actualNumber,jdbcType=INTEGER},
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
-      )
+    #{type,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, #{actualNumber,jdbcType=INTEGER},
+    #{isDelete,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+    )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.XiechengCollidingTaskBatch" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -138,6 +141,9 @@
       </if>
       <if test="actualNumber != null" >
         actual_number,
+      </if>
+      <if test="isDelete != null" >
+        is_delete,
       </if>
       <if test="createTime != null" >
         create_time,
@@ -164,6 +170,9 @@
       </if>
       <if test="actualNumber != null" >
         #{actualNumber,jdbcType=INTEGER},
+      </if>
+      <if test="isDelete != null" >
+        #{isDelete,jdbcType=INTEGER},
       </if>
       <if test="createTime != null" >
         #{createTime,jdbcType=TIMESTAMP},
@@ -195,13 +204,16 @@
         batch_number = #{record.batchNumber,jdbcType=VARCHAR},
       </if>
       <if test="record.type != null" >
-        `status` = #{record.type,jdbcType=INTEGER},
+        `type` = #{record.type,jdbcType=INTEGER},
       </if>
       <if test="record.status != null" >
         `status` = #{record.status,jdbcType=INTEGER},
       </if>
       <if test="record.actualNumber != null" >
         actual_number = #{record.actualNumber,jdbcType=INTEGER},
+      </if>
+      <if test="record.isDelete != null" >
+        is_delete = #{record.isDelete,jdbcType=INTEGER},
       </if>
       <if test="record.createTime != null" >
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
@@ -217,14 +229,15 @@
   <update id="updateByExample" parameterType="map" >
     update b_xiecheng_colliding_task_batch
     set id = #{record.id,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      colliding_data_task_id = #{record.collidingDataTaskId,jdbcType=BIGINT},
-      batch_number = #{record.batchNumber,jdbcType=VARCHAR},
-      `type` = #{record.type,jdbcType=INTEGER},
-      `status` = #{record.status,jdbcType=INTEGER},
-      actual_number = #{record.actualNumber,jdbcType=INTEGER},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    colliding_data_task_id = #{record.collidingDataTaskId,jdbcType=BIGINT},
+    batch_number = #{record.batchNumber,jdbcType=VARCHAR},
+    `type` = #{record.type,jdbcType=INTEGER},
+    `status` = #{record.status,jdbcType=INTEGER},
+    actual_number = #{record.actualNumber,jdbcType=INTEGER},
+    is_delete = #{record.isDelete,jdbcType=INTEGER},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -250,6 +263,9 @@
       <if test="actualNumber != null" >
         actual_number = #{actualNumber,jdbcType=INTEGER},
       </if>
+      <if test="isDelete != null" >
+        is_delete = #{isDelete,jdbcType=INTEGER},
+      </if>
       <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
@@ -262,16 +278,28 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.XiechengCollidingTaskBatch" >
     update b_xiecheng_colliding_task_batch
     set api_code = #{apiCode,jdbcType=VARCHAR},
-      colliding_data_task_id = #{collidingDataTaskId,jdbcType=BIGINT},
-      batch_number = #{batchNumber,jdbcType=VARCHAR},
-      `type` = #{type,jdbcType=INTEGER},
-      `status` = #{status,jdbcType=INTEGER},
-      actual_number = #{actualNumber,jdbcType=INTEGER},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+        colliding_data_task_id = #{collidingDataTaskId,jdbcType=BIGINT},
+        batch_number = #{batchNumber,jdbcType=VARCHAR},
+        `type` = #{type,jdbcType=INTEGER},
+        `status` = #{status,jdbcType=INTEGER},
+        actual_number = #{actualNumber,jdbcType=INTEGER},
+        is_delete = #{isDelete,jdbcType=INTEGER},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <select id="selectEarliestBatch" resultType="com.br.marketing.vo.XiechengCollidingTaskBatchVo" >
+
+  <resultMap id="xiechengCollidingTaskBatchVOMap" type="com.br.marketing.vo.XiechengCollidingTaskBatchVo">
+    <result column="releaseTimeBegin" property="releaseTimeBegin"
+            jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"
+            typeHandler="com.br.marketing.config.LocalDateTimeHandler"/>
+    <result column="releaseTimeEnd" property="releaseTimeEnd"
+            jdbcType="TIMESTAMP" javaType="java.time.LocalDateTime"
+            typeHandler="com.br.marketing.config.LocalDateTimeHandler"/>
+
+  </resultMap>
+
+  <select id="selectEarliestBatch" resultMap="xiechengCollidingTaskBatchVOMap" >
     select batch.id as id,
            batch.api_code as apiCode,
            batch.batch_number as batchNumber,
@@ -279,14 +307,19 @@
            batch.colliding_data_task_id as collidingDataTaskId,
            task.task_execution_conditions as taskExecutionConditions,
            task.task_status as taskStatus,
+           task.release_time_begin as releaseTimeBegin,
+           task.release_time_end as releaseTimeEnd,
            batch.create_time as createTime
     from b_xiecheng_colliding_task_batch batch
-           inner join b_xiecheng_colliding_data_process_task task
-                      on batch.colliding_data_task_id = task.id
+    inner join b_xiecheng_colliding_data_process_task task
+        on batch.colliding_data_task_id = task.id
     where batch.api_code = #{apiCode}
       and batch.status = 0
       and batch.type = #{type}
       and task.task_start_time = #{nowDate}
-    order by createTime asc limit 1
+      and task.is_delete = 0
+      and batch.is_delete = 0
+      <![CDATA[ and batch.create_time < DATE_SUB(NOW(), INTERVAL 30 MINUTE) ]]>
+    order by createTime asc, releaseTimeBegin asc limit 1
   </select>
 </mapper>
