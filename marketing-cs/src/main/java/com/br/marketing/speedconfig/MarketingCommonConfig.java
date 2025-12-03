@@ -3565,4 +3565,9 @@ public class MarketingCommonConfig {
      * TC CPA文件推送配置
      */
     private JSONObject tcCpaFilePushConfig;
+
+    /**
+     * 同程易融cpa推送文件配置VT
+     */
+    private JSONObject tcyrCpaPushFileVTConfig;
 }

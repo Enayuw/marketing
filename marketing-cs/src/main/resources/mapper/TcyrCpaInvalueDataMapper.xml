@@ -10,4 +10,19 @@
         </foreach>
     </insert>
 
+    <select id="queryMagnitudeWithFailMsg" resultType="java.util.Map">
+        SELECT DATE(release_time) AS releaseTime, count(0) AS count
+        FROM b_tcyr_cpa_invalue_data
+        WHERE is_del = 1
+        <if test="failMsg != null" >
+            AND fail_msg = #{failMsg,jdbcType=VARCHAR}
+        </if>
+        AND DATE(release_time) IN
+        <foreach collection="releaseTimes" item="releaseTime" open="(" separator="," close=")">
+            #{releaseTime}
+        </foreach>
+        GROUP BY DATE(release_time)
+        ORDER BY releaseTime
+    </select>
+
 </mapper>

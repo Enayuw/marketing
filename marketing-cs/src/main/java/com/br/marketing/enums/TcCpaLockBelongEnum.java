@@ -3,16 +3,14 @@ package com.br.marketing.enums;
 /**
  * clean_status枚举
  */
-public enum TcCpaCleanStatusEnum {
+public enum TcCpaLockBelongEnum {
 
-    CLEAN_VOID(0,"待清洗"),
-    CLEANING(1,"清洗中"),
-    CLEAN_SUCCESS(2,"清洗成功"),
-    CLEAN_FAIL(3,"清洗失败"),
-    CLEAN_RETRY(4,"清洗重试")
+    BELONG_BR(1,"我司"),
+    BELONG_OTR(2,"友商"),
+    BELON_BLANK(3,"空白组"),
     ;
 
-    TcCpaCleanStatusEnum(Integer value, String desc){
+    TcCpaLockBelongEnum(Integer value, String desc){
           this.value = value;
             this.desc=desc;
     }
