@@ -98,14 +98,22 @@ public class SmyUploadDataService {
             // 埋点
             JSONObject condition = new JSONObject();
             condition.put("request_no", dto.getRequestNo());
-
-            trackingService.trackBusinessLog(DataFlowDirection.IN
-                    , apiCode
-                    , "萨摩耶定制上传接口"
-                    ,"b_customize_upload_data_${tCid}"
-                    , JSON.toJSONString(condition)
-                    , Long.valueOf(dto.getTotal())
-                    , TrackingContext.generateBatchId());
+            try {
+                trackingService.trackBusinessLog(DataFlowDirection.IN
+                        , apiCode
+                        , "萨摩耶定制上传接口"
+                        ,"b_customize_upload_data_${tCid}"
+                        , JSON.toJSONString(condition)
+                        , Long.valueOf(dto.getTotal())
+                        , TrackingContext.generateBatchId());
+            } catch (Exception ex) {
+                log.warn(
+                        AlertLog.buildWarnMessage(
+                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                , ex.getMessage()
+                                , "埋点异常")
+                        , ex);
+            }
 
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SAMOYE_CUSTOMIZE_UPLOAD_SERVICEERROR.getCode(), "jsonData:" + jsonData,

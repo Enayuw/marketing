@@ -90,14 +90,22 @@ public class SmyTransferDataService {
             // 埋点
             JSONObject condition = new JSONObject();
             condition.put("requestId", requestId);
-
-            trackingService.trackBusinessLog(DataFlowDirection.IN
-                    , apiCode
-                    , "萨摩耶定制转化接口"
-                    ,"b_customize_transfer_data_${tCid}"
-                    , JSON.toJSONString(condition)
-                    , 1L
-                    , TrackingContext.generateBatchId());
+            try {
+                trackingService.trackBusinessLog(DataFlowDirection.IN
+                        , apiCode
+                        , "萨摩耶定制转化接口"
+                        ,"b_customize_transfer_data_${tCid}"
+                        , JSON.toJSONString(condition)
+                        , 1L
+                        , TrackingContext.generateBatchId());
+            } catch (Exception ex) {
+                log.warn(
+                        AlertLog.buildWarnMessage(
+                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                , ex.getMessage()
+                                , "埋点异常")
+                        , ex);
+            }
 
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SAMOYE_CUSTOMIZE_TRANSFER_SERVICEERROR.getCode(), "jsonData:" + jsonData,

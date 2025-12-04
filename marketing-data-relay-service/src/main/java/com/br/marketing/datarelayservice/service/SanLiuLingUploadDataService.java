@@ -128,14 +128,22 @@ public class SanLiuLingUploadDataService {
             // 埋点
             JSONObject condition = new JSONObject();
             condition.put("taskId", taskId);
-
-            trackingService.trackBusinessLog(DataFlowDirection.IN
-                    , apiCode
-                    , "360催收定制上传接口"
-                    ,"b_sanliuling_collection_details"
-                    , JSON.toJSONString(condition)
-                    , (long) successList.size()
-                    , TrackingContext.generateBatchId());
+            try {
+                trackingService.trackBusinessLog(DataFlowDirection.IN
+                        , apiCode
+                        , "360催收定制上传接口"
+                        ,"b_sanliuling_collection_details"
+                        , JSON.toJSONString(condition)
+                        , (long) successList.size()
+                        , TrackingContext.generateBatchId());
+            } catch (Exception ex) {
+                log.warn(
+                        AlertLog.buildWarnMessage(
+                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                , ex.getMessage()
+                                , "埋点异常")
+                        , ex);
+            }
 
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SANLIULINGCOLLECTION_SERVICEERROR.getCode(), "jsonData:" + jsonData,
