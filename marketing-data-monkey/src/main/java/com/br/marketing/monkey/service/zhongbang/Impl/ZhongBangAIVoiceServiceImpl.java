@@ -27,6 +27,9 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.jcraft.jsch.SftpException;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import com.zbank.file.bean.UploadInfo;
 import com.zbank.file.common.utils.Md5EncodeUtil;
 import com.zbank.file.exception.SDKException;
@@ -90,6 +93,8 @@ public class ZhongBangAIVoiceServiceImpl implements ZhongBangAIVoiceService {
 
     @Resource
     private MethodRetryHandlerService methodRetryHandlerService;
+    @Resource
+    private TrackingService trackingService;
 
 
     @Override
@@ -563,6 +568,26 @@ public class ZhongBangAIVoiceServiceImpl implements ZhongBangAIVoiceService {
             localFile.setPushStatus(String.valueOf(PushFileStatusEnum.SUCCESS.getCode()));
         }
         localFileMapper.updateByPrimaryKeySelective(localFile);
+
+        try {
+            String remark = String.format("众邦AI-录音文件明细推送，localFileId：%s，推送是否成功：%s"
+                    , localFile.getId()
+                    , errorNum > 0 ? "推送异常" : "推送成功");
+            trackingService.trackPointLog(DataFlowDirection.OUT
+                    , apiCode
+                    , "众邦AI-录音文件明细推送"
+                    , 1L
+                    , remark
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
+
     }
 
     private void pushVoiceDeatil(List<CallRecording> callRecordingList, LocalFile localFile) {
