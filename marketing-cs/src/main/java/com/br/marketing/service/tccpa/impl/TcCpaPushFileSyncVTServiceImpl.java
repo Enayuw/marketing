@@ -197,7 +197,7 @@ public class TcCpaPushFileSyncVTServiceImpl implements TcCpaPushFileSyncVTServic
         if (path == null) {
             return "/";
         }
-        return path.endsWith("/") ? path : path + "/";
+        return path.endsWith("/") ? path : (path + "/");
     }
 
     /**
