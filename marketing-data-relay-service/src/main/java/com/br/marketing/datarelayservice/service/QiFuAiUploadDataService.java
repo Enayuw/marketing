@@ -196,14 +196,22 @@ public class QiFuAiUploadDataService {
         // 埋点
         JSONObject condition = new JSONObject();
         condition.put("requestId", requestId);
-
-        trackingService.trackBusinessLog(DataFlowDirection.IN
-                , uploadData.getApiCode()
-                , "奇富AI语音机器人当月报表数据接入接口"
-                ,"b_drs_customize_upload_data${tCid}"
-                , JSON.toJSONString(condition)
-                , (long) (dataList == null ? 0 : dataList.size())
-                , TrackingContext.generateBatchId());
+        try {
+            trackingService.trackBusinessLog(DataFlowDirection.IN
+                    , uploadData.getApiCode()
+                    , "奇富AI语音机器人当月报表数据接入接口"
+                    ,"b_drs_customize_upload_data${tCid}"
+                    , JSON.toJSONString(condition)
+                    , (long) (dataList == null ? 0 : dataList.size())
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
 
         return null;
     }
@@ -256,14 +264,22 @@ public class QiFuAiUploadDataService {
         // 埋点
         JSONObject condition = new JSONObject();
         condition.put("requestId", requestId);
-
-        trackingService.trackBusinessLog(DataFlowDirection.IN
-                , uploadData.getApiCode()
-                , "奇富AI语音机器人排名报表推送接口"
-                ,"b_drs_customize_upload_data${tCid}"
-                , JSON.toJSONString(condition)
-                , (long) (dataList == null ? 0 : dataList.size())
-                , TrackingContext.generateBatchId());
+        try {
+            trackingService.trackBusinessLog(DataFlowDirection.IN
+                    , uploadData.getApiCode()
+                    , "奇富AI语音机器人排名报表推送接口"
+                    ,"b_drs_customize_upload_data${tCid}"
+                    , JSON.toJSONString(condition)
+                    , (long) (dataList == null ? 0 : dataList.size())
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
 
         return null;
 
@@ -319,14 +335,22 @@ public class QiFuAiUploadDataService {
         // 埋点
         JSONObject condition = new JSONObject();
         condition.put("requestId", requestId);
-
-        trackingService.trackBusinessLog(DataFlowDirection.IN
-                , uploadData.getApiCode()
-                , "奇富AI上传数据接入接口"
-                ,"b_drs_customize_upload_data${tCid}"
-                , JSON.toJSONString(condition)
-                , (long) (dataList == null ? 0 : dataList.size())
-                , TrackingContext.generateBatchId());
+        try {
+            trackingService.trackBusinessLog(DataFlowDirection.IN
+                    , uploadData.getApiCode()
+                    , "奇富AI上传数据接入接口"
+                    ,"b_drs_customize_upload_data${tCid}"
+                    , JSON.toJSONString(condition)
+                    , (long) (dataList == null ? 0 : dataList.size())
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
 
         return null;
     }
@@ -373,6 +397,27 @@ public class QiFuAiUploadDataService {
                     "jsonData:" + decryptData + ",bizType:" + bizType, "360AI事件推送上传数据入库失败！！！"));
             return new Pair<>(CodeEnum.GWS200, FlagEnum.F);
         }
+
+        // 埋点
+        JSONObject condition = new JSONObject();
+        condition.put("requestId", requestId);
+        try {
+            trackingService.trackBusinessLog(DataFlowDirection.IN
+                    , uploadData.getApiCode()
+                    , "360AI语音机器人事件推送接口"
+                    ,"b_drs_customize_upload_data${tCid}"
+                    , JSON.toJSONString(condition)
+                    , (long) (dataList == null ? 0 : dataList.size())
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
+
         return new Pair<>(CodeEnum.GWS100,FlagEnum.S);
     }
 }
