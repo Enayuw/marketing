@@ -2,9 +2,11 @@ package com.br.marketing.check.job.dataclean;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.entity.MarketingCleanDataFile;
@@ -20,6 +22,9 @@ import com.br.marketing.service.clean.common.impl.DataCleanServiceImpl;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.google.common.collect.Lists;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,7 +62,8 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
 
     @Autowired
     MarketingCleanDataFileMapper marketingCleanDataFileMapper;
-
+    @Resource
+    private TrackingService trackingService;
     @Resource
     private DataCleanServiceImpl dataCleanService;
 
@@ -114,6 +120,24 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
                 log.warn("开始填充文件表头及样例,fileName={}", cleanDataFile.getFileName());
                 fillHeaderAndData(cleanDataFile);
             });
+        }
+
+        try {
+            String remark = String.format("数据清洗文件同步,时间：%s"
+                    , date);
+            trackingService.trackPointLog(DataFlowDirection.OUT
+                    , apiCode
+                    , "数据清洗文件同步"
+                    , (long) syncCycleConfigs.size()
+                    , remark
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
         }
 
     }

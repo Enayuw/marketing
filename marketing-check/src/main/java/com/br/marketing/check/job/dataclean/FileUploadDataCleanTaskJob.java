@@ -16,6 +16,9 @@ import com.br.marketing.mapper.rulecleaning.MarketingDataCleanGeneralConfigMappe
 import com.br.marketing.service.clean.common.DataCleanService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -47,6 +50,9 @@ public class FileUploadDataCleanTaskJob extends AbstractSimpleElasticJob {
 
     @Resource
     private DataCleanService dataCleanService;
+
+    @Resource
+    private TrackingService trackingService;
 
     @Resource
     SyncConfigMapper syncConfigMapper;
@@ -93,6 +99,25 @@ public class FileUploadDataCleanTaskJob extends AbstractSimpleElasticJob {
             update.setId(cleanFile.getId());
             marketingCleanDataFileMapper.updateByPrimaryKeySelective(update);
         });
+
+        try {
+            String remark = String.format("文件上传数据清洗JOB,时间：%s"
+                    , appletDateList);
+            trackingService.trackPointLog(DataFlowDirection.OUT
+                    , apiCode
+                    , "文件上传数据清洗JOB"
+                    , (long) ruleList.size()
+                    , remark
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
+
     }
 
     private MarketingCleanDataFile getCleanFileTask(MarketingDataCleanGeneralConfig config, List<String> appletDateList,String localPath) {

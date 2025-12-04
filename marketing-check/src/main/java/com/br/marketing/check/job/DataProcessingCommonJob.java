@@ -2,6 +2,8 @@ package com.br.marketing.check.job;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.spring.DataProcessingContext;
 import com.br.marketing.entity.LocalFile;
@@ -12,6 +14,9 @@ import com.br.marketing.mapper.dataProcess.DataProcessingConfigMapper;
 import com.br.marketing.service.Impl.dataProcess.DataProcessAbstractProxy;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
@@ -55,6 +60,8 @@ public class DataProcessingCommonJob extends AbstractSimpleElasticJob {
 
     @Resource
     DataProcessingConfigMapper dataProcessingConfigMapper;
+    @Resource
+    private TrackingService trackingService;
 
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
@@ -115,6 +122,7 @@ public class DataProcessingCommonJob extends AbstractSimpleElasticJob {
         for (DataProcessingConfig task : tasks) {
             log.warn("数据处理任务开始，apiCode:{}，fileName:{}", task.getApiCode(), task.getLocalFile().getFileName());
             process(task);
+            trackPointLog(task);
             log.warn("数据处理任务结束，apiCode:{}，fileName:{}", task.getApiCode(), task.getLocalFile().getFileName());
         }
     }
@@ -129,4 +137,25 @@ public class DataProcessingCommonJob extends AbstractSimpleElasticJob {
             log.error("数据处理任务异常,配置表id:{},apiCode:{}", task.getId(), task.getApiCode(), e.getMessage(), e);
         }
     }
+
+    private void trackPointLog(DataProcessingConfig task) {
+        try {
+            String remark = String.format("文件数据处理通用流程（客户数据清洗等）,id：%s"
+                    , task.getId());
+            trackingService.trackPointLog(DataFlowDirection.OUT
+                    , task.getApiCode()
+                    , "文件数据处理通用流程（客户数据清洗等）"
+                    , 1L
+                    , remark
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
+    }
+
 }

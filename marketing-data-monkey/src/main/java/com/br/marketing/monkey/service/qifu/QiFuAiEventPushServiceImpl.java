@@ -2,6 +2,7 @@ package com.br.marketing.monkey.service.qifu;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson2.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.qifu.ResponseData;
 import com.br.marketing.client.qifu.callrealtime.CallRealTimeDTO;
@@ -9,6 +10,7 @@ import com.br.marketing.client.qifu.callrealtime.QryCallRealTimeReq;
 import com.br.marketing.client.qifu.callrealtime.QryCallRealTimeResp;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.BQifuUploadDataOriginal;
 import com.br.marketing.entity.DrsCustomizeUploadData;
 import com.br.marketing.entity.EventPushData;
@@ -19,6 +21,10 @@ import com.br.marketing.service.Impl.qifu.enums.QiFuProcessStatusEnum;
 import com.br.marketing.service.Impl.qifu.enums.QiFuSelectStatusEnum;
 import com.br.marketing.service.Impl.qifu.enums.QiFuSyncStatusEnum;
 import com.br.marketing.strategy.MethodRetryHandlerService;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +42,7 @@ import java.util.stream.Collectors;
  * @Date 2025/11/17
  */
 @Service
+@Slf4j
 public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
 
     private static final Logger logger = LoggerFactory.getLogger(QiFuAiEventPushServiceImpl.class);
@@ -53,6 +60,9 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
 
     @Resource
     private QiFuAiEventPushService qiFuAiEventPushService;
+
+    @Resource
+    private TrackingService trackingService;
 
     private static final Integer PAGE_SIZE = 50;
 
@@ -102,6 +112,28 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
                     //在事务中处理数据库操作：插入数据 + 更新状态
                     qiFuAiEventPushService.processBatchData(queryedtList, drsCustomizeUploadData);
                 }
+
+                JSONObject condition = new JSONObject();
+                condition.put("id", drsCustomizeUploadData.getId());
+                condition.put("tCid", ROBOT_EVENT_PUSH);
+                try {
+                    trackingService.trackBusinessLog(DataFlowDirection.IN
+                            , "3700226"
+                            , "奇富ai事件推送实时数据查询"
+                            , "b_drs_customize_upload_data${tCid}"
+                            , JSON.toJSONString(condition)
+                            , (long) resultList.size()
+                            , TrackingContext.generateBatchId());
+                } catch (Exception ex) {
+                    log.warn(
+                            AlertLog.buildWarnMessage(
+                                    AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                    , ex.getMessage()
+                                    , "埋点异常")
+                            , ex);
+                }
+
+
             }
         }
     }

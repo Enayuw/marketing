@@ -20,6 +20,9 @@ import com.br.marketing.service.Impl.qifu.enums.QiFuProcessStatusEnum;
 import com.br.marketing.service.Impl.qifu.enums.QiFuSelectStatusEnum;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.stereotype.Service;
@@ -29,12 +32,7 @@ import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -88,6 +86,9 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
+    @Resource
+    private TrackingService trackingService;
+
     @Override
     public void queryCallMessage() {
         // 获取今天的日期
@@ -122,6 +123,25 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
 
         // 关闭线程池
         shutdownThreadPool(threadPool);
+
+        try {
+            String remark = String.format("奇富360ai查询外呼信息,时间：%s"
+                    , timeThreshold);
+            trackingService.trackPointLog(DataFlowDirection.IN
+                    , "3700226"
+                    , "奇富360定制查询外呼信息"
+                    , (long) userTypeList.size()
+                    , remark
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
+
     }
 
     /**

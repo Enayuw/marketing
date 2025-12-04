@@ -17,6 +17,9 @@ import com.br.marketing.mapper.BQifuUploadDataOriginalMapper;
 import com.br.marketing.service.Impl.qifu.enums.QiFuProcessStatusEnum;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.stereotype.Service;
@@ -53,6 +56,9 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    private TrackingService trackingService;
 
     @Override
     public void aiCleanProcessFromOriginal() {
@@ -93,6 +99,26 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
             if (dataList.size() < PAGE_SIZE) {
                 hasMore = false;
             }
+
+            try {
+                String remark = String.format("奇富ai清洗, 日期：%s"
+                        , todayDate);
+                trackingService.trackPointLog(DataFlowDirection.IN
+                        , dataList.get(0).getApiCode()
+                        , "奇富ai清洗"
+                        , (long) dataList.size()
+                        , remark
+                        , TrackingContext.generateBatchId());
+            } catch (Exception ex) {
+                log.warn(
+                        AlertLog.buildWarnMessage(
+                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                , ex.getMessage()
+                                , "埋点异常")
+                        , ex);
+            }
+
+
         }
     }
 
