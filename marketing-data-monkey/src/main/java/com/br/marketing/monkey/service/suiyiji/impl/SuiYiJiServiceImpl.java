@@ -749,9 +749,10 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
         }
 
         try {
-            String code = responseMap.get("code");
-            String result = responseMap.get("result");
-            String message = responseMap.get("message");
+            JSONObject jsonObject = JSON.parseObject(content);
+            String code = jsonObject.getString("code");
+            String result = jsonObject.getString("result");
+            String message = jsonObject.getString("message");
 
             Integer queryStatus;
             Integer invocationStatus = null;
