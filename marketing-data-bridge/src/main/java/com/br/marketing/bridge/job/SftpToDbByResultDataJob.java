@@ -1,10 +1,12 @@
 package com.br.marketing.bridge.job;
 
+import com.br.common.log.AlertLog;
 import com.br.marketing.bridge.common.utils.SftpToDbUtils;
 import com.br.marketing.bridge.model.dto.FileContext;
 import com.br.marketing.bridge.service.todb.impl.SftpToDbByCommonService;
 import com.br.marketing.bridge.service.todb.impl.SftpToDbByDXService;
 import com.br.marketing.client.SftpClient;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.entity.LocalFile;
@@ -23,6 +25,9 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.jcraft.jsch.JSchException;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -82,6 +87,9 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
     @Resource
     ICompatibleService iCompatibleService;
 
+    @Resource
+    private TrackingService trackingService;
+
     /**
      * 1、先从customer读取客户
      * 2、再从sftp配置表读取路径
@@ -132,6 +140,25 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
                     }
                 }
             }
+
+            try {
+                String remark = String.format("电销文件入库,id：%s"
+                        , t.getId());
+                trackingService.trackPointLog(DataFlowDirection.OUT
+                        , t.getApiCode()
+                        , "电销文件入库"
+                        , 1L
+                        , remark
+                        , TrackingContext.generateBatchId());
+            } catch (Exception ex) {
+                log.warn(
+                        AlertLog.buildWarnMessage(
+                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                , ex.getMessage()
+                                , "埋点异常")
+                        , ex);
+            }
+
         });
     }
 

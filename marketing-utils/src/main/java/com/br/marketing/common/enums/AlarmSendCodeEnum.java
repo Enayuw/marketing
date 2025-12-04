@@ -346,6 +346,8 @@ public enum AlarmSendCodeEnum {
 
     TONGCHENG_CPA_SERVICEERROR("7001001", "同程CPA业务异常"),
 
+    TRACKING_POINT_SERVICEERROR("7000002", "埋点异常"),
+
     SYNC_REPORT_EXPORT_SERVICEERROR("8001001", "上传记录导出异常"),
 
     //查询mock-Api异常,立即推送
