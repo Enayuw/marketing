@@ -95,14 +95,25 @@ public class IntelligentCustomerServiceClient {
                     //调用数量监控
                     BrCounter.count(PrometheusMonitorUtils.COUNT_POLICY_API_METRIC_NAME, dto.getApiCode(), "policy-api",
                             pushNum);
-                    trackingService.trackDetailedLog(
-                            DataFlowDirection.OUT
-                            , dto.getApiCode()
-                            , "推送决策"
-                            , s
-                            , Boolean.TRUE
-                            , Long.valueOf(pushNum)
-                            , TrackingContext.generateBatchId());
+                    //region 埋点
+                    try {
+                        trackingService.trackDetailedLog(
+                                DataFlowDirection.OUT
+                                , dto.getApiCode()
+                                , "推送决策"
+                                , s
+                                , Boolean.TRUE
+                                , Long.valueOf(pushNum)
+                                , TrackingContext.generateBatchId());
+                    } catch (Exception ex) {
+                        logger.warn(
+                                AlertLog.buildWarnMessage(
+                                        AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                        , ex.getMessage()
+                                        , "埋点异常")
+                                , ex);
+                    }
+                    //endregion
                 } catch (Exception ex) {
                     logger.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), "推送决策接口统计异常!"), ex);
                 }
@@ -157,14 +168,25 @@ public class IntelligentCustomerServiceClient {
                     PushMarketingUserTaskInfoDTO taskInfoDTO = (PushMarketingUserTaskInfoDTO) dto.getJsonData();
                     BrCounter.count(PrometheusMonitorUtils.COUNT_POLICY_API_METRIC_NAME, dto.getApiCode(), "policy-api",
                             taskInfoDTO.getData().size());
-                    trackingService.trackDetailedLog(
-                            DataFlowDirection.OUT
-                            , dto.getApiCode()
-                            , "推送决策"
-                            , JSON.toJSONString(dto.getJsonData())
-                            , Boolean.TRUE
-                            , Long.valueOf(taskInfoDTO.getData().size())
-                            , TrackingContext.generateBatchId());
+                    //region 埋点
+                    try {
+                        trackingService.trackDetailedLog(
+                                DataFlowDirection.OUT
+                                , dto.getApiCode()
+                                , "推送决策"
+                                , JSON.toJSONString(dto.getJsonData())
+                                , Boolean.TRUE
+                                , Long.valueOf(taskInfoDTO.getData().size())
+                                , TrackingContext.generateBatchId());
+                    }catch (Exception ex){
+                        logger.warn(
+                                AlertLog.buildWarnMessage(
+                                        AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                        , ex.getMessage()
+                                        , "埋点异常")
+                                , ex);
+                    }
+                    //endregion
                 } catch (Exception ex) {
                     logger.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), "推送决策接口异常!"), ex);
                 }

@@ -289,7 +289,7 @@ public class ShuHeUserServiceImpl {
         caseShuheUserMapper.insertSelective(caseShuheUser);
         saveShuheTransferInfo(apiCode, caseShuheUser, transferSyncUser);
 
-        // 埋点
+        //region 埋点
         JSONObject condition = new JSONObject();
         condition.put("request_id", transferSyncUser.getRequestId());
         try {
@@ -308,6 +308,7 @@ public class ShuHeUserServiceImpl {
                             , "埋点异常")
                     , ex);
         }
+        //endregion
     }
 
     private void saveShuheTransferInfo(String apiCode, CaseShuheUser caseShuheUser, MarketingTransferSyncUser transferSyncUser) {

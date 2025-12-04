@@ -334,6 +334,11 @@ public class VariableDicServiceImpl implements VariableDicService {
                             variableDic.setApiCode(apiCode);
                             variableDic.setFieldValueSource(apiDataInfoDTO.getMsgSource());
                             variableDicMapper.insertSelective(variableDic);
+                            try{
+
+                            }catch (Exception ex){
+
+                            }
                             return variableDic;
                         }
                         return null;
