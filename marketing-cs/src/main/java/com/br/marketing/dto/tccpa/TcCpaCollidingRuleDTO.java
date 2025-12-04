@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.NotEmpty;
-
 import java.util.List;
 
 @Data
@@ -14,10 +13,9 @@ import java.util.List;
 public class TcCpaCollidingRuleDTO {
 
     @Schema(description = "数据包id集合")
-    @ApiModelProperty(value = "撞库规则id")
     private Long taskId;
 
-    @ApiModelProperty(value = "数据包id集合")
+    @Schema(description = "数据包id集合")
     @NotEmpty(message = "数据包id集合不能为空")
     private List<String> packageIds;
 
