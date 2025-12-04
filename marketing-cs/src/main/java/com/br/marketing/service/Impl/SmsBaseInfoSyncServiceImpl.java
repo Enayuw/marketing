@@ -102,10 +102,10 @@ public class SmsBaseInfoSyncServiceImpl implements SmsBaseInfoSyncService {
      */
     private void dealSceneTwo(List<DdSmsBaseInfoDto> ddSmsBaseInfoDtoList, List<SmsBaseFullInfoDTO> smsBaseFullInfoDtoList) {
         try {
-            Set<Long> dbGatewayIds = smsBaseFullInfoDtoList.stream()
+            Set<Long> dbChannelIdIds = smsBaseFullInfoDtoList.stream()
                     .map(SmsBaseFullInfoDTO::getChannelId).collect(Collectors.toSet());
             List<DdSmsBaseInfoDto> onlyInGatewayDtoList = ddSmsBaseInfoDtoList.stream()
-                    .filter(dto -> !dbGatewayIds.contains(dto.getChannelId())).toList();
+                    .filter(dto -> !dbChannelIdIds.contains(dto.getChannelId())).toList();
             // 添加记录
             onlyInGatewayDtoList.forEach(dto -> {
                 checkSmsVendorExist(dto.getVendorId(),dto.getVendorName());
