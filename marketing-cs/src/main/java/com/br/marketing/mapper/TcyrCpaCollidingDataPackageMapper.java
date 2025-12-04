@@ -15,4 +15,7 @@ public interface TcyrCpaCollidingDataPackageMapper extends TcyrCpaCollidingDataP
     List<Long> queryPackageIdstikv_();
 
     List<TcyrCpaCollidingDataPackage> selectByCondition(@Param("packageName") String packageName, @Param("enabled") Integer enabled);
+
+    String queryPackageNamesByIds(@Param("packageIds") List<Long> packageIds);
+
 }

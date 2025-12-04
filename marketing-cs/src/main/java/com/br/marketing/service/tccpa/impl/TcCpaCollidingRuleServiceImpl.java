@@ -4,13 +4,11 @@ import com.alibaba.fastjson.JSONArray;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.*;
-import com.br.marketing.dto.tccpa.TcCpaCollidingRuleDTO;
-import com.br.marketing.dto.tccpa.TcCpaCollidingRuleInfoDTO;
+import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.tccpa.*;
 import com.br.marketing.dto.tc.TcCpaMagnitudeDistDTO;
 import com.br.marketing.dto.tc.TcyrCpaCollidingDataPackageInfo;
 import com.br.marketing.dto.tc.TcyrCpaDeleteRuleInfo;
-import com.br.marketing.dto.tccpa.TcyrFailMsgSupplyDTO;
-import com.br.marketing.dto.tccpa.TcyrFailMsgSupplyGroupDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.TcCpaCleanStatusEnum;
 import com.br.marketing.enums.TcCpaFailMsgEnum;
@@ -18,12 +16,16 @@ import com.br.marketing.enums.TcCpaSupplyTypeEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.tccpa.TcCpaCollidingRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.pagehelper.PageHelper;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -48,9 +50,12 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
     TcyrCpaCollidingTaskMapper tcyrCpaCollidingTaskMapper;
 
     @Resource
+    private MarketingCustomerMapper marketingCustomerMapper;
+
+    @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
-
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public Result<TcCpaCollidingRuleInfoDTO> info() {
@@ -89,17 +94,18 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
     }
 
     @Override
-    public Result<List<TcyrFailMsgSupplyGroupDTO>> magnitudeDist(String releaseTimes) {
+    public Result<List<TcyrFailMsgSupplyGroupDTO>> magnitudeDist(String releaseTimes, Long taskId) {
         List<String> releaseTimeList = Arrays.asList(releaseTimes.split(","));
         if(CollectionUtils.isEmpty(releaseTimeList)){
             return null;
         }
         //1.读取需要补充的failMsg配置
-        String supplyFailMsgs = marketingCommonConfig.getTcyrCpaPushFileVTConfig().getString("supplyFailMsgs");
-        List<Integer> supplyFailMsgList = Arrays.stream(supplyFailMsgs.split(","))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .map(Integer::parseInt)
+        JSONArray supplyFailMsgs = marketingCommonConfig.getTcyrCpaPushFileVTConfig().getJSONArray("supplyFailMsgs");
+        List<Integer> supplyFailMsgList = IntStream.range(0, supplyFailMsgs.size())
+                .mapToObj(supplyFailMsgs::getJSONObject)
+                .filter(obj -> obj != null && obj.containsKey("failMsg"))
+                .map(obj -> obj.getInteger("failMsg"))
+                .filter(value -> value != null)
                 .collect(Collectors.toList());
         //2.查询量级
         List<TcyrCpaMagnitude> magnitudeList = getTcyrCpaMagnitudes(releaseTimeList, supplyFailMsgList);
@@ -115,11 +121,203 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
                 .collect(Collectors.toList());
         //4.补充量级为0的数据
         List<TcyrCpaMagnitude> allMagnitudeList = fillMissingData(magnitudeList, releaseTimeList, supplyFailMsgList);
-        //5.按releaseTime分组
-        List<TcyrFailMsgSupplyGroupDTO> result = groupByDate(allMagnitudeList);
+        //5.查询上次勾选的格子
+        List<String> isSupplyList = getIsSupplyData(taskId);
+        //6.按releaseTime分组
+        List<TcyrFailMsgSupplyGroupDTO> result = groupByDate(allMagnitudeList, isSupplyList);
         return new Result<List<TcCpaMagnitudeDistDTO>>()
                 .setCode(ResultCode.SUCCESS.getValue())
                 .setDate(result);
+    }
+
+    /**
+     * 查询上次勾选的格子
+     * @param taskId
+     */
+    private List<String> getIsSupplyData(Long taskId) {
+        if (taskId == null) {
+            return null;
+        }
+        String supplyRuleInfo = tcyrCpaCollidingTaskMapper.querysupplyRuleInfo(taskId);
+        if (StringUtils.isEmpty(supplyRuleInfo)) {
+            return null;
+        }
+        List<TcyrSupplyRuleInfo> supplyRuleInfos;
+        List<String> isSupplyList = new ArrayList<>();
+        try {
+            supplyRuleInfos = objectMapper.readValue(supplyRuleInfo,
+                    new TypeReference<List<TcyrSupplyRuleInfo>>() {
+                    });
+        } catch (IOException e) {
+            log.error("同程cpa-supplyRuleInfos转化异常," + e.getMessage());
+            throw new RuntimeException(e);
+        }
+        for (TcyrSupplyRuleInfo ruleInfo : supplyRuleInfos) {
+            List<String> releaseTimes = Arrays.stream(ruleInfo.getReleaseTime().split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .collect(Collectors.toList());
+            for (String releaseTime : releaseTimes) {
+                isSupplyList.add(releaseTime + "-" + ruleInfo.getFailMsg());
+            }
+        }
+        return isSupplyList;
+
+    }
+
+    @Override
+    public Result rule(TcCpaCollidingRuleDTO ruleDTO) {
+        //1.创建基础任务，设置共性的属性
+        List<String> packageIds = ruleDTO.getPackageIds();
+        List<Long> packageIdStrs = packageIds.stream()
+                .map(Long::valueOf)
+                .collect(Collectors.toList());
+        String packageNames = tcyrCpaCollidingDataPackageMapper.queryPackageNamesByIds(packageIdStrs);
+        TcyrCpaCollidingTask basicTask = new TcyrCpaCollidingTask();
+        basicTask.setApiCode(marketingCommonConfig.getTcyrApiCode());
+        basicTask.setPackageIds(String.join(",", packageIds));
+        basicTask.setPackageNames(packageNames);
+        basicTask.setLimitNum(ruleDTO.getLimitNum());
+        basicTask.setDeleteRuleIds(String.join(",", ruleDTO.getDeleteRuleIds()));
+        //1.1创建补包信息
+        if (CollectionUtils.isNotEmpty(ruleDTO.getFailMsgSupplyGroups())) {
+            //过滤掉isSupply=false的数据
+            List<TcyrFailMsgSupplyGroupDTO> supplyGroupDTOS = filterByIsSupply(ruleDTO.getFailMsgSupplyGroups());
+            if (CollectionUtils.isNotEmpty(supplyGroupDTOS)) {
+                JSONArray supplyFailMsgs = marketingCommonConfig.getTcyrCpaPushFileVTConfig().getJSONArray("supplyFailMsgs");
+                Map<Integer, Integer> failMsgToPriority = parseWithStream(supplyFailMsgs);
+                //构造数据
+                List<TcyrSupplyRuleInfo> supplyRuleInfos = generateGroupedSupplyRules(supplyGroupDTOS, failMsgToPriority);
+                basicTask.setSupplyRuleInfo(JsonParseUtils.toJson(supplyRuleInfos));
+            }
+        }
+        //2.遍历撞库日期，插入【b_tcyr_cpa_colliding_task】
+        for (String collidingDate : ruleDTO.getCollidingDates()) {
+            TcyrCpaCollidingTask task = new TcyrCpaCollidingTask();
+            BeanUtils.copyProperties(basicTask, task);
+            task.setCollidingDate(DateHelper.parseDate(collidingDate));
+            task.setCollidingTime(DateHelper.parseDate(collidingDate + " " + ruleDTO.getCollidingTime()));
+            tcyrCpaCollidingTaskMapper.insertSelective(task);
+        }
+        return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    @Override
+    public PageResultReturn list(int current, int size, String packageName, Integer enabled) {
+        PageHelper.startPage(current, size);
+        List<TcCpaCollidingTaskDTO> dtos = new ArrayList<>();
+        //1.数据查询
+        List<TcyrCpaCollidingTask> taskList = tcyrCpaCollidingTaskMapper.queryTaskListbyPage(packageName, enabled);
+        if (CollectionUtils.isEmpty(taskList)) {
+            return PageResultReturn.setPageResult(dtos, current, size);
+        }
+        //2.获取MarketingCustomer
+        Map<String, MarketingCustomer> customers = getCustomer(taskList);
+        //3.封装数据
+        for (TcyrCpaCollidingTask task : taskList) {
+            TcCpaCollidingTaskDTO taskDTO = new TcCpaCollidingTaskDTO();
+            dtos.add(taskDTO);
+            //基础字段
+            BeanUtils.copyProperties(task, taskDTO);
+            //转换字段
+            MarketingCustomer customer = customers.get(task.getApiCode());
+            taskDTO.setCid(customer.getCid());
+            taskDTO.setCustomerName(customer.getShortName());
+            List<String> packageIds = Arrays.stream(task.getPackageIds().split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .collect(Collectors.toList());
+            taskDTO.setPackageIds(packageIds);
+            taskDTO.setCollidingDate(DateHelper.formatDate(task.getCollidingDate()));
+            taskDTO.setCollidingTime(DateHelper.formatHMS(task.getCollidingTime()));
+            List<String> deleteRuleIds = Arrays.stream(task.getDeleteRuleIds().split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .collect(Collectors.toList());
+            taskDTO.setDeleteRuleIds(deleteRuleIds);
+            if (StringUtils.isNotEmpty(task.getSupplyRuleInfo())) {
+                List<TcyrSupplyRuleInfo> supplyRuleInfos;
+                Set<String> releaseTimeSet = new HashSet<>();
+                try {
+                    supplyRuleInfos = objectMapper.readValue(task.getSupplyRuleInfo(),
+                            new TypeReference<List<TcyrSupplyRuleInfo>>() {
+                            });
+                } catch (IOException e) {
+                    log.error("同程cpa-supplyRuleInfos转化异常," + e.getMessage());
+                    throw new RuntimeException(e);
+                }
+                for (TcyrSupplyRuleInfo supplyRuleInfo : supplyRuleInfos) {
+                    Set<String> releaseTimes = Arrays.stream(supplyRuleInfo.getReleaseTime().split(","))
+                            .map(String::trim)
+                            .filter(s -> !s.isEmpty())
+                            .collect(Collectors.toSet());
+                    releaseTimeSet.addAll(releaseTimes);
+                }
+                taskDTO.setReleaseTimes(String.join(",", releaseTimeSet));
+            }
+        }
+        return PageResultReturn.setPageResult(dtos, current, size);
+    }
+
+    @Override
+    public Result update(TcCpaCollidingRuleDTO ruleDTO) {
+        //1.查询原数据并校验
+        TcyrCpaCollidingTask exTask = tcyrCpaCollidingTaskMapper.selectByPrimaryKey(ruleDTO.getTaskId());
+        if(exTask == null){
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("未查到对应撞库任务，请联系开发人员！");
+        }
+        if (exTask.getEnabled() == Constants.ENABLED_ACT) {
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("启用状态的撞库任务不可修改！");
+        }
+        //2.赋值基础字段
+        List<String> packageIds = ruleDTO.getPackageIds();
+        List<Long> packageIdStrs = packageIds.stream()
+                .map(Long::valueOf)
+                .collect(Collectors.toList());
+        String packageNames = tcyrCpaCollidingDataPackageMapper.queryPackageNamesByIds(packageIdStrs);
+        String collidingDate = DateHelper.formatDate(exTask.getCollidingDate());
+        TcyrCpaCollidingTask task = new TcyrCpaCollidingTask();
+        task.setId(ruleDTO.getTaskId());
+        task.setPackageIds(String.join(",", packageIds));
+        task.setPackageNames(packageNames);
+        task.setDeleteRuleIds(String.join(",", ruleDTO.getDeleteRuleIds()));
+        task.setLimitNum(ruleDTO.getLimitNum());
+        task.setCollidingTime(DateHelper.parseDate(collidingDate + " " + ruleDTO.getCollidingTime()));
+        //todo 更新时需要更新量级不
+        //3.赋值补包字段
+        if (CollectionUtils.isEmpty(ruleDTO.getFailMsgSupplyGroups())) {
+            task.setSupplyRuleInfo(null);
+        } else {
+            //过滤掉isSupply=false的数据
+            List<TcyrFailMsgSupplyGroupDTO> supplyGroupDTOS = filterByIsSupply(ruleDTO.getFailMsgSupplyGroups());
+            if (CollectionUtils.isNotEmpty(supplyGroupDTOS)) {
+                JSONArray supplyFailMsgs = marketingCommonConfig.getTcyrCpaPushFileVTConfig().getJSONArray("supplyFailMsgs");
+                Map<Integer, Integer> failMsgToPriority = parseWithStream(supplyFailMsgs);
+                //构造数据
+                List<TcyrSupplyRuleInfo> supplyRuleInfos = generateGroupedSupplyRules(supplyGroupDTOS, failMsgToPriority);
+                task.setSupplyRuleInfo(JsonParseUtils.toJson(supplyRuleInfos));
+            }
+        }
+        tcyrCpaCollidingTaskMapper.updateByPrimaryKeySelective(task);
+        return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    @Override
+    public Result enable(Long taskId, Integer enabled) {
+        TcyrCpaCollidingTask task = new TcyrCpaCollidingTask();
+        task.setId(taskId);
+        task.setEnabled(enabled);
+        tcyrCpaCollidingTaskMapper.updateByPrimaryKeySelective(task);
+        return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    private Map<String, MarketingCustomer> getCustomer(List<TcyrCpaCollidingTask> taskList) {
+        List<String> apiCodes = taskList.stream().map(TcyrCpaCollidingTask::getApiCode).collect(Collectors.toList());
+        MarketingCustomerExample customerExample = new MarketingCustomerExample();
+        customerExample.createCriteria().andApiCodeIn(apiCodes);
+        Map<String, MarketingCustomer> customers = marketingCustomerMapper.selectByExample(customerExample)
+                .stream().collect(Collectors.toMap(MarketingCustomer::getApiCode, customer -> customer));
+        return customers;
     }
 
     /**
@@ -197,37 +395,6 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
         return result;
     }
 
-    @Override
-    public Result rule(TcCpaCollidingRuleDTO ruleDTO) {
-        //1.创建基础任务，设置共性的属性
-        TcyrCpaCollidingTask basicTask = new TcyrCpaCollidingTask();
-        basicTask.setApiCode(marketingCommonConfig.getTcyrApiCode());
-        basicTask.setPackageIds(String.join(",", ruleDTO.getPackageIds()));
-        basicTask.setLimitNum(ruleDTO.getLimitNum());
-        basicTask.setDeleteRuleIds(String.join(",", ruleDTO.getDeleteRuleIds()));
-        //1.1创建补包信息
-        if (CollectionUtils.isNotEmpty(ruleDTO.getFailMsgSupplyGroups())) {
-            //过滤掉isSupply=false的数据
-            List<TcyrFailMsgSupplyGroupDTO> supplyGroupDTOS = filterByIsSupply(ruleDTO.getFailMsgSupplyGroups());
-            if (CollectionUtils.isNotEmpty(supplyGroupDTOS)) {
-                JSONArray supplyFailMsgs = marketingCommonConfig.getTcyrCpaPushFileVTConfig().getJSONArray("supplyFailMsgs");
-                Map<Integer, Integer> failMsgToPriority = parseWithStream(supplyFailMsgs);
-                //构造数据
-                List<TcyrSupplyRuleInfo> supplyRuleInfos = generateGroupedSupplyRules(supplyGroupDTOS, failMsgToPriority);
-                basicTask.setSupplyRuleInfo(JsonParseUtils.toJson(supplyRuleInfos));
-            }
-        }
-        //2.遍历撞库日期，插入【b_tcyr_cpa_colliding_task】
-        for (String collidingDate : ruleDTO.getCollidingDates()) {
-            TcyrCpaCollidingTask task = new TcyrCpaCollidingTask();
-            BeanUtils.copyProperties(basicTask, task);
-            task.setCollidingDate(DateHelper.parseDate(collidingDate));
-            task.setCollidingTime(DateHelper.parseDate(collidingDate + " " + ruleDTO.getCollidingTime()));
-            tcyrCpaCollidingTaskMapper.insertSelective(task);
-        }
-        return new Result().setCode(ResultCode.SUCCESS.getValue());
-    }
-
     /**
      * 只保留isSupply=true的数据
      * @param failMsgSupplyGroups
@@ -289,7 +456,7 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
     /**
      * 将List<TcyrCpaMagnitude>转换为按日期分组的结果
      */
-    public List<TcyrFailMsgSupplyGroupDTO> groupByDate(List<TcyrCpaMagnitude> magnitudeList) {
+    public List<TcyrFailMsgSupplyGroupDTO> groupByDate(List<TcyrCpaMagnitude> magnitudeList, List<String> isSupplyList) {
         if (CollectionUtils.isEmpty(magnitudeList)) {
             return Collections.emptyList();
         }
@@ -311,7 +478,8 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
                             .filter(item -> item.getFailMsg() != null)
                             .map(item -> new TcyrFailMsgSupplyDTO(
                                     item.getFailMsg(),
-                                    item.getMagnitude() != null ? item.getMagnitude() : 0L, false
+                                    item.getMagnitude() != null ? item.getMagnitude() : 0L,
+                                    getIsSupply(isSupplyList, entry.getKey() + "-" + item.getFailMsg())
                             ))
                             .sorted(Comparator.comparing(TcyrFailMsgSupplyDTO::getFailMsg))
                             .collect(Collectors.toList());
@@ -320,6 +488,13 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
                 })
                 .sorted(Comparator.comparing(TcyrFailMsgSupplyGroupDTO::getReleaseTime))
                 .collect(Collectors.toList());
+    }
+
+    private boolean getIsSupply(List<String> isSupplyList, String key) {
+        if(CollectionUtils.isEmpty(isSupplyList)) {
+            return false;
+        }
+        return isSupplyList.contains(key);
     }
 
     /**

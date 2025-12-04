@@ -19,6 +19,11 @@ public class TcyrCpaCollidingTask {
     private String packageIds;
 
     /**
+     * 数据包名称集合
+     */
+    private String packageNames;
+
+    /**
      * 撞库日期
      */
     private Date collidingDate;
@@ -52,6 +57,11 @@ public class TcyrCpaCollidingTask {
      * 补充量级
      */
     private Integer supplyNum;
+
+    /**
+     * 推送时间
+     */
+    private Date pushTime;
 
     /**
      * 任务状态 0-待统计；1-统计中；2-统计完成；3-筛选中；4-筛选完成；5-推送中；6-推送完成；7-推送失败；
@@ -105,6 +115,14 @@ public class TcyrCpaCollidingTask {
 
     public void setPackageIds(String packageIds) {
         this.packageIds = packageIds == null ? null : packageIds.trim();
+    }
+
+    public String getPackageNames() {
+        return packageNames;
+    }
+
+    public void setPackageNames(String packageNames) {
+        this.packageNames = packageNames == null ? null : packageNames.trim();
     }
 
     public Date getCollidingDate() {
@@ -161,6 +179,14 @@ public class TcyrCpaCollidingTask {
 
     public void setSupplyNum(Integer supplyNum) {
         this.supplyNum = supplyNum;
+    }
+
+    public Date getPushTime() {
+        return pushTime;
+    }
+
+    public void setPushTime(Date pushTime) {
+        this.pushTime = pushTime;
     }
 
     public Integer getStatus() {
