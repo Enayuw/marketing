@@ -21,6 +21,7 @@ import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -96,7 +97,7 @@ public class TcCpaPushFileSyncVTServiceImpl implements TcCpaPushFileSyncVTServic
 
             // 2. 获取CSV文件列表
             Map<String, SftpATTRS> csvFileMap = innerSftpClient.listFiles(srcPath, ".csv");
-            List<String> csvFiles = csvFileMap.keySet().stream().sorted(String::compareTo).toList();
+            List<String> csvFiles = csvFileMap.keySet().stream().sorted(String::compareTo).collect(Collectors.toList());
 
             log.warn("{}, 找到{}个CSV文件需要同步: {}", TITLE, csvFiles.size(), csvFiles);
             // 3. 同步文件

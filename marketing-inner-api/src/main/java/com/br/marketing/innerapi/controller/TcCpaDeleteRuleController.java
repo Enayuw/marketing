@@ -3,13 +3,12 @@ package com.br.marketing.innerapi.controller;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.enums.TcCpaFailMsgEnum;
-import com.br.marketing.enums.TcFailMsgEnum;
 import com.br.marketing.service.tccpa.TcCpaDataDeleteRuleService;
 import com.br.marketing.vo.tccpa.TcyrCpaDeleteRuleVO;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -23,7 +22,7 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping("/tcCpa/customize/deleteRule")
-@Api(value = "TcCpaCustomizeController")
+@Tag(name = "TcCpaCustomizeController")
 public class TcCpaDeleteRuleController {
 
     private static final Integer CODE_1 = 1;
@@ -35,12 +34,12 @@ public class TcCpaDeleteRuleController {
      * 同程CPA跑分文件数据包删除
      * @return
      */
-    @ApiOperation(value = "同程剔除规则列表 ", notes = "同程剔除规则列表 ", httpMethod = "GET")
+    @Operation(summary = "同程剔除规则列表 ", description = "同程剔除规则列表 ")
     @GetMapping("/page")
-    @ApiImplicitParams({@ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
-            , @ApiImplicitParam(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
-            , @ApiImplicitParam(name = "packageName", value = "包名称", paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "status", value = "状态", paramType = "query", dataType = "integer")
+    @Parameters({@Parameter(name = "current", description = "页号")
+            , @Parameter(name = "size", description = "页大小")
+            , @Parameter(name = "ruleName", description = "包名称")
+            , @Parameter(name = "enabled", description = "状态")
     })
     public ApiResult<PageResultReturn> page(@RequestParam(defaultValue = "1") int current
             , @RequestParam(defaultValue = "10") int size
@@ -55,7 +54,7 @@ public class TcCpaDeleteRuleController {
      * @param deleteRuleVO
      * @return
      */
-    @ApiOperation(value = "同程剔除规则启用/禁用", notes = "同程剔除规则启用/禁用", httpMethod = "POST")
+    @Operation(summary = "同程剔除规则启用/禁用", description = "同程剔除规则启用/禁用")
     @PostMapping("/enable")
     public ApiResult enable(@RequestBody TcyrCpaDeleteRuleVO deleteRuleVO) {
         return new ApiResult().fromResult(tcCpaDataDeleteRuleService.enable(deleteRuleVO.getId(), deleteRuleVO.getEnabled()), CODE_1);
@@ -67,7 +66,7 @@ public class TcCpaDeleteRuleController {
      * 同程CPA跑分文件数据包删除
      * @return
      */
-    @ApiOperation(value = "同程CPA剔除规则删除", notes = "同程CPA剔除规则删除", httpMethod = "GET")
+    @Operation(summary = "同程CPA剔除规则删除", description = "同程CPA剔除规则删除")
     @GetMapping("/delete")
     public ApiResult delete(@RequestParam("id") Long id) {
         return new ApiResult().fromResult(tcCpaDataDeleteRuleService.delete(id), CODE_1);
@@ -77,7 +76,7 @@ public class TcCpaDeleteRuleController {
      * 同程CPA跑分文件数据包删除
      * @return
      */
-    @ApiOperation(value = "获取FailMsg列表", notes = "获取FailMsg列表", httpMethod = "GET")
+    @Operation(summary = "获取FailMsg列表", description = "获取FailMsg列表")
     @GetMapping("/getFailMsgs")
     public ApiResult getFailMsgs() {
         List<Integer> failMsgs = Arrays.stream(TcCpaFailMsgEnum.values()).map(TcCpaFailMsgEnum::getValue).collect(Collectors.toList());
@@ -88,7 +87,7 @@ public class TcCpaDeleteRuleController {
      * 同程CPA跑分文件数据包删除
      * @return
      */
-    @ApiOperation(value = "同程剔除规则新增", notes = "同程剔除规则新增", httpMethod = "POST")
+    @Operation(summary = "同程剔除规则新增", description = "同程剔除规则新增")
     @PostMapping("/rule")
     public ApiResult rule(@RequestBody TcyrCpaDeleteRuleVO ruleVO) {
         return new ApiResult().fromResult(tcCpaDataDeleteRuleService.rule(ruleVO), CODE_1);
