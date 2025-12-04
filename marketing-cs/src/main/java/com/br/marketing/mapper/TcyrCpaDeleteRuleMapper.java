@@ -10,6 +10,6 @@ public interface TcyrCpaDeleteRuleMapper extends TcyrCpaDeleteRuleMapperBase{
 
     Integer calculateDeleteNumByScript(@Param("executeScript") String executeScript);
 
-
+    Integer executeUnionQueries(@Param("scripts") List<String> scripts);
 
 }

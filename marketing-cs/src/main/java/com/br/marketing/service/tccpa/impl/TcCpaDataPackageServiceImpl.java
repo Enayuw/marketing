@@ -6,7 +6,6 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.tccpa.TcCpDataCleanTaskDTO;
 import com.br.marketing.dto.tccpa.TcCpDataPackageGenDTO;
 import com.br.marketing.dto.tccpa.TcyrCpaCollidingDataPackageVO;
 import com.br.marketing.entity.*;
@@ -15,6 +14,7 @@ import com.br.marketing.enums.clean.DataCleanStatusEnum;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.TcyrCpaCollidingDataCleanTaskMapper;
 import com.br.marketing.mapper.TcyrCpaCollidingDataPackageMapper;
+import com.br.marketing.mapper.TcyrCpaCollidingTaskMapper;
 import com.br.marketing.service.tccpa.TcCpaDataPackageService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.EsConditionTransferSqlUtil;
@@ -23,7 +23,6 @@ import com.github.pagehelper.PageInfo;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +30,6 @@ import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,16 +37,16 @@ import java.util.stream.Collectors;
 public class TcCpaDataPackageServiceImpl implements TcCpaDataPackageService {
 
     @Resource
-    private MarketingCommonConfig marketingCommonConfig;
-
-    @Resource
-    TcyrCpaCollidingDataPackageMapper tcyrCpaCollidingDataPackageMapper;
+    private TcyrCpaCollidingDataPackageMapper tcyrCpaCollidingDataPackageMapper;
 
     @Resource
     private MarketingCustomerMapper marketingCustomerMapper;
 
     @Resource
     private TcyrCpaCollidingDataCleanTaskMapper tcyrCpaCollidingDataCleanTaskMapper;
+
+    @Resource
+    private TcyrCpaCollidingTaskMapper tcyrCpaCollidingTaskMapper;
 
     @Override
     public Result tcDataPackageGen(TcCpDataPackageGenDTO dto) {
@@ -106,6 +104,11 @@ public class TcCpaDataPackageServiceImpl implements TcCpaDataPackageService {
         if (tcyrCpaCollidingDataCleanTaskMapper.countByExample(taskExample) > 0) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("存在待清洗、清洗中、清洗失败或重试的清洗任务，不能修改数据包");
         }
+        TcyrCpaCollidingDataPackage existedPackage = tcyrCpaCollidingDataPackageMapper.selectByPrimaryKey(packageVO.getId());
+        if(packageVO.getEnabled().equals(Constants.ENABLED_FORB) && !Objects.equals(existedPackage.getEnabled(), packageVO.getEnabled())) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("撞库任务中存在的数据包不能禁用");
+        }
+
         TcyrCpaCollidingDataPackage dataPackage = new TcyrCpaCollidingDataPackage();
         BeanUtils.copyProperties(packageVO, dataPackage);
 
@@ -123,6 +126,12 @@ public class TcCpaDataPackageServiceImpl implements TcCpaDataPackageService {
         if (tcyrCpaCollidingDataCleanTaskMapper.countByExample(taskExample) > 0) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("存在待清洗、清洗中、清洗失败或重试的清洗任务，禁止删除数据包");
         }
+        TcyrCpaCollidingTaskExample collidingExample = new TcyrCpaCollidingTaskExample();
+        collidingExample.createCriteria().andPackageIdsLike(String.valueOf(id));
+        if (tcyrCpaCollidingTaskMapper.countByExample(collidingExample) > 0) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("撞库任务中存在的数据包不能删除");
+        }
+
         TcyrCpaCollidingDataPackageExample dataPackageExample = new TcyrCpaCollidingDataPackageExample();
         dataPackageExample.createCriteria().andIdEqualTo(id);
         TcyrCpaCollidingDataPackage dataPackage = new TcyrCpaCollidingDataPackage();
