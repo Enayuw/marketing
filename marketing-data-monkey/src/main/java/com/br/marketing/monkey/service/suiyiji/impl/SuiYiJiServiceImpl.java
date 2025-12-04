@@ -1,9 +1,12 @@
 package com.br.marketing.monkey.service.suiyiji.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSON;
+import com.br.marketing.aspect.Mockable;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.constants.MockConstants;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.LocalFileExample;
 import com.br.marketing.entity.SYJOriginalData;
@@ -47,10 +50,10 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
     @Resource
     private HttpProxyClient httpProxyClient;
 
-    @Value("${api.syj.baseUrl.originalUrl:00}")
+    @Value("${api.syj.originalUrl:00}")
     private String originalUrl;
 
-    @Value("${api.syj.baseUrl.blackUrl:00}")
+    @Value("${api.syj.blackUrl:00}")
     private String blackUrl;
 
     private static final Integer PAGE_SIZE = 500;
@@ -69,12 +72,17 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
 
     @Override
     public void originalToUpload(String apiCode) {
+        Map<String, String> reqMap = new HashMap<>();
+        reqMap.put("data", "e419019923b8f5a29352983352baf9d9");
+        Map<String, String> map = callCustomerApi(reqMap, originalUrl);
+        log.warn(map.toString());
 
-        List<LocalFile> localFileList = getFileIdByApiCodeAndFileType(apiCode, SftpFileTypeEnum.SYJ_ADMISSION.getValue());
 
-        for (LocalFile localFile : localFileList) {
-            originalProcess(localFile);
-        }
+//        List<LocalFile> localFileList = getFileIdByApiCodeAndFileType(apiCode, SftpFileTypeEnum.SYJ_ADMISSION.getValue());
+//
+//        for (LocalFile localFile : localFileList) {
+//            originalProcess(localFile);
+//        }
 
     }
 
@@ -170,7 +178,7 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
                 long queryStartTime = System.currentTimeMillis();
                 List<SYJOriginalData> originalDataList = originalDataMapper.queryOriginalData(fileId, minId, PAGE_SIZE);
                 long queryCost = System.currentTimeMillis() - queryStartTime;
-                
+
                 if (queryCost > 100) {
                     log.warn("数据库查询耗时较长，fileId={}, 批次大小={}, 耗时={}ms", fileId, PAGE_SIZE, queryCost);
                 }
@@ -320,15 +328,16 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
     /**
      * 调用客户接口
      */
+    @Mockable(mockName = MockConstants.TEST_OBJECT_RETURN)
     private Map<String, String> callCustomerApi(Object reqMap, String url) {
         return httpProxyClient.sendByCodeWithLog(
                 reqMap,
                 url,
                 false,
-                MediaType.APPLICATION_FORM_URLENCODED.getType(),
-                null,
+                MediaType.APPLICATION_JSON_UTF8_VALUE,
+                JSON.toJSONString(reqMap),
                 true,
-                false
+                true
         );
     }
 
