@@ -50,6 +50,9 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
     private MarketingTcyrCpaFailDataMapper marketingTcyrCpaFailDataMapper;
 
     @Resource
+    private TcyrCpaCollidingTaskMapper tcyrCpaCollidingTaskMapper;
+
+    @Resource
     private MarketingTcyrCpaSuccessDataMapper marketingTcyrCpaSuccessDataMapper;
 
     @Override
@@ -60,7 +63,8 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
         if (CollectionUtils.isEmpty(tcyrCpaCollectTasks)) {
             return;
         }
-        // todo 更新【b_tcyr_cpa_colliding_task】和【b_tcyr_cpa_delete_rule】
+        TcyrCpaCollidingTaskExample collidingExample = new TcyrCpaCollidingTaskExample();
+
         for (TcyrCpaCollectTask tcyrCpaCollectTask : tcyrCpaCollectTasks) {
             tcyrCpaCollectTask.setStatus(TcCpaSyncDealStatusEnum.DEAL_MIDDLE.getValue());
             tcyrCpaCollectTaskMapper.updateByPrimaryKey(tcyrCpaCollectTask);

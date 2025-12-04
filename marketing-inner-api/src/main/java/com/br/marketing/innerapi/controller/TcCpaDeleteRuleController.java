@@ -2,6 +2,7 @@ package com.br.marketing.innerapi.controller;
 
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.enums.TcCpaFailMsgEnum;
 import com.br.marketing.enums.TcFailMsgEnum;
 import com.br.marketing.service.tccpa.TcCpaDataDeleteRuleService;
 import com.br.marketing.vo.tccpa.TcyrCpaDeleteRuleVO;
@@ -79,7 +80,7 @@ public class TcCpaDeleteRuleController {
     @ApiOperation(value = "获取FailMsg列表", notes = "获取FailMsg列表", httpMethod = "GET")
     @GetMapping("/getFailMsgs")
     public ApiResult getFailMsgs() {
-        List<String> failMsgs = Arrays.stream(TcFailMsgEnum.values()).map(TcFailMsgEnum::getValue).collect(Collectors.toList());
+        List<Integer> failMsgs = Arrays.stream(TcCpaFailMsgEnum.values()).map(TcCpaFailMsgEnum::getValue).collect(Collectors.toList());
         return new ApiResult().success().setData(failMsgs);
     }
 
