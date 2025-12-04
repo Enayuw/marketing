@@ -23,7 +23,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 /**
@@ -98,4 +100,22 @@ public class BackEndController {
 
         return thirdPartnerDataService.saveData(dataList, accessNumber, data);
     }
+
+    /**
+     * 查询上传逾期金额接口（外呼→营销）
+     * @param custNum
+     * @return
+     */
+    @Operation(summary = "查询上传逾期金额接口")
+    @GetMapping("/queryUploadOverAmt")
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
+    public Result<String> queryUploadOverAmt(@RequestParam(required = true) String custNum, HttpServletRequest request) {
+        try {
+            return pushRuleService.queryUploadOverAmt(custNum, request);
+        } catch (Exception ex) {
+            log.error("外呼查询上传逾期金额接口异常", ex);
+            return new Result<String>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(ex.getMessage());
+        }
+    }
+
 }
