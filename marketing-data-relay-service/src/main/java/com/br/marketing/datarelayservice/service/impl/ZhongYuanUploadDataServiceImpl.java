@@ -98,6 +98,25 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             LoginResponse loginResponse = new LoginResponse();
             loginResponse.setToken(token);
 
+            try {
+                Map<String, String> zhongYuanIdentity = marketingCommonConfig.getZhongYuanIdentity();
+                String apiCode = zhongYuanIdentity.get("apiCode");
+                String remark = String.format("中原消金-用户登录接口，获取token：%s", token);
+                trackingService.trackPointLog(DataFlowDirection.IN
+                        , apiCode
+                        , "中原消金-用户登录接口"
+                        , 1L
+                        , remark
+                        , TrackingContext.generateBatchId());
+            } catch (Exception ex) {
+                log.warn(
+                        AlertLog.buildWarnMessage(
+                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                , ex.getMessage()
+                                , "埋点异常")
+                        , ex);
+            }
+
             return ZhongYuanBaseResponse.success(loginResponse);
 
         } catch (Exception e) {
@@ -442,6 +461,25 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
 
             // 5. 构建响应
             ZhongYuanBaseResponse<List<SceneVariableResponse>> response = ZhongYuanBaseResponse.success(sceneVariableList);
+
+            try {
+                Map<String, String> zhongYuanIdentity = marketingCommonConfig.getZhongYuanIdentity();
+                String apiCode = zhongYuanIdentity.get("apiCode");
+                String remark = String.format("中原消金-场景变量信息接口，sceneCode：%s", sceneData.getSceneCode());
+                trackingService.trackPointLog(DataFlowDirection.IN
+                        , apiCode
+                        , "中原消金-场景变量信息接口"
+                        , 1L
+                        , remark
+                        , TrackingContext.generateBatchId());
+            } catch (Exception ex) {
+                log.warn(
+                        AlertLog.buildWarnMessage(
+                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                , ex.getMessage()
+                                , "埋点异常")
+                        , ex);
+            }
 
             log.warn("中原消金场景变量查询成功，sceneCode: {}, variableCount: {}",
                     sceneData.getSceneCode(), sceneVariableList.size());
