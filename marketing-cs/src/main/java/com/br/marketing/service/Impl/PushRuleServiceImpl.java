@@ -142,6 +142,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
@@ -182,6 +183,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         errorCodeHm.put("1005", "入库异常");
         errorCodeHm.put("1006", "参数过长");
         errorCodeHm.put("1007", "清洗异常");
+        errorCodeHm.put("1008", "存在4个字节字符");
 
     }
 
@@ -2886,6 +2888,27 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     }
 
+    @Override
+    public Result<String> queryUploadOverAmt(String custNum, HttpServletRequest request) {
+
+        Map<String, String> zhongYuanIdentity = marketingCommonConfig.getZhongYuanIdentity();
+        String testApiCode = request.getHeader("Test-ApiCode");
+        String apiCode = testApiCode != null ? testApiCode : zhongYuanIdentity.get("apiCode");
+
+        MarketingSyncUser marketingSyncUser = marketingUserMapper.selectSyncUserByCustNum(apiCode, custNum, null);
+        if(marketingSyncUser == null){
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("数据为空！");
+        }
+        // overAmt
+        String reserveField1 = marketingSyncUser.getReserveField1();
+        JSONObject jsonObject = JSONObject.parseObject(reserveField1);
+        String overAmt = jsonObject.getString("overAmt");
+        if(StringUtils.isEmpty(overAmt)){
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("overAmt字段不存在！");
+        }
+        return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(overAmt);
+    }
+
     /**
      * 根据apiCode与operateType，区分AI与非AI客户，AI客户返回true，并发送到AI队列，非AI客户返回false
      * 使用范围：上传数据入库mq队列、pulsar队列
@@ -3271,6 +3294,13 @@ public class PushRuleServiceImpl implements PushRuleService {
             Integer finalIsCheck = isCheck;
             Map<String, MarketingDataCleanGeneralRuleConfig> finalConfigRule = configRule;
             list.add(() -> {
+                if (contains4ByteChar(marketingPreUserDetailDTO.getName())) {
+                    MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
+                    errorDetailVO.setCustNum(marketingPreUserDetailDTO.getCustNum());
+                    errorDetailVO.setErrorCode("1008");
+                    errorDetailVO.setErrorMsg(errorCodeHm.get("1008"));
+                    return new Result().setCode(ResultCode.FAIL.getValue()).setDate(errorDetailVO);
+                }
                 //数据清洗处理
                 if (!CollectionUtils.isEmpty(finalConfigRule)) {
                     Boolean cleanResult = handlerDataClean(marketingPreUserDetailDTO, finalConfigRule);
@@ -3397,6 +3427,13 @@ public class PushRuleServiceImpl implements PushRuleService {
                 } catch (DuplicateKeyException e) {
                     log.warn("insertMarketingSyncUser数据重复,{},{}", e.getMessage(), JSON.toJSON(marketingSyncUser), e);
                 } catch (Exception ex) {
+                    if (ex.getMessage() != null && ex.getMessage().contains("Incorrect string value")) {
+                        MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
+                        errorDetailVO.setCustNum(marketingPreUserDetailDTO.getCustNum());
+                        errorDetailVO.setErrorCode("1008");
+                        errorDetailVO.setErrorMsg(errorCodeHm.get("1008"));
+                        return new Result().setCode(ResultCode.FAIL.getValue()).setDate(errorDetailVO);
+                    }
                     if (ex.getMessage().contains("IDX_taskId_custNum")) {
                         MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
                         errorDetailVO.setCustNum(marketingPreUserDetailDTO.getCustNum());
@@ -3568,6 +3605,31 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
     }
 
+<<<<<<< HEAD
+=======
+    /**
+     * 判断字符串是否包含4字节字符（生僻字、emoji等）
+     */
+    public boolean contains4ByteChar(String str) {
+        try {
+            if (StringUtils.isEmpty(str)) {
+                return false;
+            }
+            for (int i = 0; i < str.length(); i++) {
+                char c = str.charAt(i);
+                // 判断是否是高代理项（4字节字符的第一部分）
+                if (Character.isHighSurrogate(c)) {
+                    return true;
+                }
+            }
+        } catch (Exception ex) {
+            log.error("name字段判断4字节异常，name={}", str, ex);
+        }
+        return false;
+    }
+
+
+>>>>>>> 69bbf9779a9f67ee7c97b0c5e45a7da4c2752161
     private void addCellReserveFileld1(JSONObject reserveFileld1Json, String cell, Integer isCheck,
                                        IUploadCheckService iUploadCheckService, CustomerTagsVO tags) {
         if (StringUtils.isNotEmpty(cell)) {
@@ -3590,14 +3652,24 @@ public class PushRuleServiceImpl implements PushRuleService {
      * 处理debtorCell1-4字段，生成debtorCellList
      * 基于原始值去重，保留顺序：cell → debtorCell1 → debtorCell2 → debtorCell3 → debtorCell4
      *
+<<<<<<< HEAD
      * @param reserveFileld1Json  扩展字段JSON对象
      * @param cell                主手机号字段值，用于去重
      * @param isCheck             是否校验
+=======
+     * @param reserveFileld1Json 扩展字段JSON对象
+     * @param cell 主手机号字段值，用于去重
+     * @param isCheck 是否校验
+>>>>>>> 69bbf9779a9f67ee7c97b0c5e45a7da4c2752161
      * @param iUploadCheckService 解密服务
      * @param tags                客户标签配置
      */
     private void processDebtorCells(JSONObject reserveFileld1Json, String cell, Integer isCheck,
+<<<<<<< HEAD
                                     IUploadCheckService iUploadCheckService, CustomerTagsVO tags) {
+=======
+                                   IUploadCheckService iUploadCheckService, CustomerTagsVO tags) {
+>>>>>>> 69bbf9779a9f67ee7c97b0c5e45a7da4c2752161
         String[] debtorCellFields = {"debtorCell1", "debtorCell2", "debtorCell3", "debtorCell4"};
         JSONArray debtorCellList = new JSONArray();
         int order = 1;
@@ -3661,14 +3733,23 @@ public class PushRuleServiceImpl implements PushRuleService {
      * 解密debtorCell字段值
      * 使用iUploadCheckService.process3keyCheck的解密逻辑
      *
+<<<<<<< HEAD
      * @param encryptedValue      加密值
      * @param isCheck             是否校验
+=======
+     * @param encryptedValue 加密值
+     * @param isCheck 是否校验
+>>>>>>> 69bbf9779a9f67ee7c97b0c5e45a7da4c2752161
      * @param iUploadCheckService 解密服务
      * @param tags                客户标签配置
      * @return 解密后的明文值，解密失败返回空字符串
      */
     private String decryptDebtorCell(String encryptedValue, Integer isCheck,
+<<<<<<< HEAD
                                      IUploadCheckService iUploadCheckService, CustomerTagsVO tags) {
+=======
+                                    IUploadCheckService iUploadCheckService, CustomerTagsVO tags) {
+>>>>>>> 69bbf9779a9f67ee7c97b0c5e45a7da4c2752161
         if (StringUtils.isEmpty(encryptedValue)) {
             return "";
         }

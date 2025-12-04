@@ -30,6 +30,7 @@ import com.br.marketing.vo.PushInfoDetailVO;
 import com.br.marketing.vo.ScoreConditionDetailVO;
 import com.br.marketing.vo.xiecheng.PushViewVO;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -242,5 +243,6 @@ public interface PushRuleService {
 
     void sendJsonParseMq(String apiCode, Long id, Integer dataSourceType, Integer dataType, Integer acceptType);
 
+    Result<String> queryUploadOverAmt(String custNum, HttpServletRequest request);
 
 }

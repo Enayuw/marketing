@@ -2,9 +2,11 @@ package com.br.marketing.client.taikang;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.taikang.util.ChannelRequest;
 import com.br.marketing.client.taikang.util.SimpleDataPackToolsV2;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.aes.AesTaiKang;
 import lombok.extern.slf4j.Slf4j;
@@ -44,11 +46,12 @@ public class TaikangClient {
                     channelRequest,
                     taikangConfig.get("url"),
                     true,
-                    JSON.toJSONString(taikangConfig),
+                    JSON.toJSONString(taikangMarketingEvent),
                     headers);
             return JSONObject.toJSONString(result);
         } catch (Exception e) {
-            log.error("调用泰康营销事件失败,eventId={}, cause={}", taikangMarketingEvent.getEventId(), e.getMessage(), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TAIKANG_MARKING_SERVICEERROR.getCode(),
+                    "调用泰康营销事件失败,eventId=" + taikangMarketingEvent.getEventId()), e);
         }
         return null;
     }
