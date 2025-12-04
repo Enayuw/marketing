@@ -902,6 +902,66 @@ public class TcyrCpaCollidingTaskExample {
             return (Criteria) this;
         }
 
+        public Criteria andPushNumIsNull() {
+            addCriterion("push_num is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumIsNotNull() {
+            addCriterion("push_num is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumEqualTo(Integer value) {
+            addCriterion("push_num =", value, "pushNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumNotEqualTo(Integer value) {
+            addCriterion("push_num <>", value, "pushNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumGreaterThan(Integer value) {
+            addCriterion("push_num >", value, "pushNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumGreaterThanOrEqualTo(Integer value) {
+            addCriterion("push_num >=", value, "pushNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumLessThan(Integer value) {
+            addCriterion("push_num <", value, "pushNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumLessThanOrEqualTo(Integer value) {
+            addCriterion("push_num <=", value, "pushNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumIn(List<Integer> values) {
+            addCriterion("push_num in", values, "pushNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumNotIn(List<Integer> values) {
+            addCriterion("push_num not in", values, "pushNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumBetween(Integer value1, Integer value2) {
+            addCriterion("push_num between", value1, value2, "pushNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushNumNotBetween(Integer value1, Integer value2) {
+            addCriterion("push_num not between", value1, value2, "pushNum");
+            return (Criteria) this;
+        }
+
         public Criteria andStatusIsNull() {
             addCriterion("`status` is null");
             return (Criteria) this;

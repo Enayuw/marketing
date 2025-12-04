@@ -54,6 +54,9 @@ public class TcCpaCollidingTaskDTO {
     @Schema(description = "推送时间")
     private Date pushTime;
 
+    @Schema(description = "推送量级")
+    private Integer pushNum;
+
     @Schema(description = "推送状态")
     private Integer status;
 

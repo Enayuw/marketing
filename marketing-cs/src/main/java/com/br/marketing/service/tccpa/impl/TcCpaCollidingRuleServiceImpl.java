@@ -11,6 +11,7 @@ import com.br.marketing.dto.tc.TcyrCpaCollidingDataPackageInfo;
 import com.br.marketing.dto.tc.TcyrCpaDeleteRuleInfo;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.TcCpaCleanStatusEnum;
+import com.br.marketing.enums.TcCpaCollidingTaskStatusEnum;
 import com.br.marketing.enums.TcCpaFailMsgEnum;
 import com.br.marketing.enums.TcCpaSupplyTypeEnum;
 import com.br.marketing.mapper.*;
@@ -268,6 +269,9 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
         }
         if (exTask.getEnabled() == Constants.ENABLED_ACT) {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("启用状态的撞库任务不可修改！");
+        }
+        if (exTask.getStatus() > TcCpaCollidingTaskStatusEnum.STATUS_STA_COMPLETED.getValue()) {
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("该撞库任务已进入推送流程，不可修改！");
         }
         //2.赋值基础字段
         List<String> packageIds = ruleDTO.getPackageIds();

@@ -64,6 +64,11 @@ public class TcyrCpaCollidingTask {
     private Date pushTime;
 
     /**
+     * 推送量级
+     */
+    private Integer pushNum;
+
+    /**
      * 任务状态 0-待统计；1-统计中；2-统计完成；3-筛选中；4-筛选完成；5-推送中；6-推送完成；7-推送失败；
      */
     private Integer status;
@@ -187,6 +192,14 @@ public class TcyrCpaCollidingTask {
 
     public void setPushTime(Date pushTime) {
         this.pushTime = pushTime;
+    }
+
+    public Integer getPushNum() {
+        return pushNum;
+    }
+
+    public void setPushNum(Integer pushNum) {
+        this.pushNum = pushNum;
     }
 
     public Integer getStatus() {
