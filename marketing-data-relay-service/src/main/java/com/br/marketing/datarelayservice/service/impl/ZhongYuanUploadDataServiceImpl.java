@@ -8,10 +8,7 @@ import com.br.marketing.datarelayservice.service.ZhongYuanUploadDataService;
 import com.br.marketing.dto.zhongyuan.*;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.clean.DataProcessEnum;
-import com.br.marketing.mapper.CallRecordLLMResultV2Mapper;
-import com.br.marketing.mapper.CallRecordingMapper;
-import com.br.marketing.mapper.ZhongYuanTransferMapper;
-import com.br.marketing.mapper.ZhongYuanUploadMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.mapper.rulecleaning.MarketingCustomerOriginalDataMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -47,6 +44,8 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
     private CallRecordLLMResultV2Mapper callRecordLLMResultV2Mapper;
+    @Resource
+    private MarketingSceneVariableMapper marketingSceneVariableMapper;
     private static final String TOKEN_PREFIX = "zyxj:token:";
     private static final long TOKEN_EXPIRE_TIME = 7200; // 2小时
 
@@ -80,7 +79,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             // 4. 直接检查Redis中是否存在有效的Token（通过appUser）
             String tokenKey = TOKEN_PREFIX + loginData.getAppUser();
             String token = redisChgService.get(tokenKey);
-            
+
             if (StringUtils.isEmpty(token)) {
                 // 不存在Token，生成新Token
                 token = generateToken(loginData.getAppUser());
@@ -160,7 +159,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
 
             // 保存到数据库
             int insertResult = zhongYuanUploadMapper.insertSelective(zhongYuanUpload);
-            log.warn("中原消金批量任务数据入库成功，batchNo: {}, insertResult: {}, id: {}", 
+            log.warn("中原消金批量任务数据入库成功，batchNo: {}, insertResult: {}, id: {}",
                     batchData.getBatchNo(), insertResult, zhongYuanUpload.getId());
 
             // 5. 数据清洗和推送逻辑
@@ -207,7 +206,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
         try {
             // 1. 构建标准上传数据结构
             JSONObject pushData = new JSONObject();
-            
+
             // 2. batchNo=batchUid=上传taskId
             pushData.put("taskId", batchData.getBatchNo());
 
@@ -231,7 +230,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
                 }
             }
             pushData.put("dataItems", dataItems);
-            
+
             // 5. 转换为JSON字符串并保存
             String jsonData = JSON.toJSONString(pushData);
             log.warn("中原消金数据清洗推送成功，jsonData: {}", jsonData);
@@ -259,26 +258,26 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
      * @return Map包含dataItem和batchNumber
      */
     private Map<String, Object> buildDataItem(BatchTaskRequest.TaskData taskData,
-                                              BatchTaskRequest batchData, 
+                                              BatchTaskRequest batchData,
                                               ZhongYuanBaseRequest<BatchTaskRequest> baseRequest,
                                               String apiCode) {
         Map<String, Object> result = new HashMap<>();
         try {
             JSONObject dataItem = new JSONObject();
-            
+
             // 1. cell: 使用telNo
             if (StringUtils.hasText(taskData.getTelNo())) {
                 dataItem.put("cell", taskData.getTelNo());
             }
-            
+
             // 2. custNum: 使用taskNo
             if (StringUtils.hasText(taskData.getTaskNo())) {
                 dataItem.put("custNum", taskData.getTaskNo());
             }
-            
+
             // 3. operateType: 固定值"5"
             dataItem.put("operateType", "5");
-            
+
             // 4. 构建reserveField1
             Map<String, Object> reserveFieldResult = buildReserveField1(taskData, batchData, baseRequest);
             JSONObject reserveField1 = (JSONObject) reserveFieldResult.get("reserveField1");
@@ -305,10 +304,10 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
     private Map<String, Object> buildReserveField1(BatchTaskRequest.TaskData taskData,
                                                    BatchTaskRequest batchData,
                                                    ZhongYuanBaseRequest<BatchTaskRequest> baseRequest
-                                                   ) {
+    ) {
         Map<String, Object> result = new HashMap<>();
         JSONObject reserveField1 = new JSONObject();
-        
+
         // 1. 从baseRequest获取所有字段，直接放入reserveField1
         if (baseRequest != null) {
             if (StringUtils.hasText(baseRequest.getFlowId())) {
@@ -330,7 +329,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
                 reserveField1.put("token", baseRequest.getToken());
             }
         }
-        
+
         // 2. 从batchData获取所有字段，直接放入reserveField1
         if (batchData != null) {
             if (StringUtils.hasText(batchData.getBatchName())) {
@@ -358,7 +357,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
                 reserveField1.put("reportEndFlag", batchData.getReportEndFlag());
             }
         }
-        
+
         // 3. 从taskData获取所有字段，直接放入reserveField1
         if (taskData != null) {
             if (StringUtils.hasText(taskData.getTaskNo())) {
@@ -367,7 +366,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             if (StringUtils.hasText(taskData.getTelNo())) {
                 reserveField1.put("telNo", taskData.getTelNo());
             }
-            
+
             // 4. 从variableList获取所有变量，直接放入reserveField1
             if (taskData.getVariableList() != null) {
                 for (BatchTaskRequest.Variable variable : taskData.getVariableList()) {
@@ -453,12 +452,12 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
     private ZhongYuanBaseResponse<?> validateTokenFromRequest(ZhongYuanBaseRequest<?> baseRequest) {
         // 1. 从baseRequest获取token
         String token = baseRequest != null ? baseRequest.getToken() : null;
-        
+
         // 2. Token为空检查
         if (!StringUtils.hasText(token)) {
             return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.TOKEN_INVALID.getCode(), ZhongYuanResponseCodeEnum.TOKEN_INVALID.getMessage());
         }
-        
+
         // 3. 验证Token
         try {
             validateToken(token);
@@ -550,7 +549,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
         // 3. 从配置获取appUser，然后查询Redis验证token
         Map<String, String> zhongYuanIdentity = marketingCommonConfig.getZhongYuanIdentity();
         String appUser = zhongYuanIdentity.get("appUser");
-        
+
         if (!StringUtils.hasText(appUser)) {
             throw new RuntimeException(ZhongYuanResponseCodeEnum.TOKEN_INVALID.getCode() + ":系统配置错误");
         }
@@ -570,7 +569,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
 
         // 6. 更新过期时间（续期）
         redisChgService.setex(userTokenKey, token, (int) TOKEN_EXPIRE_TIME);
-        
+
         log.warn("Token校验成功，token: {}, appUser: {}", token, appUser);
     }
 
@@ -638,7 +637,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             // 保存到数据库
             int insertResult = zhongYuanTransferMapper.insertSelective(zhongYuanTransfer);
             log.warn("中原消金批量外呼任务状态修改数据入库成功，operation: {}, taskUidCount: {}, insertResult: {}, id: {}",
-                    statusData.getOperation(), 
+                    statusData.getOperation(),
                     statusData.getTaskUidList() != null ? statusData.getTaskUidList().size() : 0,
                     insertResult, zhongYuanTransfer.getId());
 
@@ -732,4 +731,92 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.SYSTEM_ERROR.getCode(), ZhongYuanResponseCodeEnum.SYSTEM_ERROR.getMessage() + "：" + e.getMessage());
         }
     }
+
+    @Override
+    public ZhongYuanBaseResponse<?> changeSceneVariable(String jsonData, HttpServletRequest request) {
+        try {
+            log.warn("中原消金外呼任务场景变量修改接口请求，jsonData: {}", jsonData);
+
+            // 1. 解析请求数据
+            ZhongYuanBaseRequest<ChangeSceneVariableRequest> baseRequest = JSON.parseObject(jsonData,
+                    new com.alibaba.fastjson.TypeReference<ZhongYuanBaseRequest<ChangeSceneVariableRequest>>() {
+                    });
+
+            if (baseRequest == null || baseRequest.getData() == null) {
+                return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.PARAM_ERROR.getCode(),
+                        ZhongYuanResponseCodeEnum.PARAM_ERROR.getMessage());
+            }
+
+            // 2. Token验证
+            ZhongYuanBaseResponse<?> tokenResponse = validateTokenFromRequest(baseRequest);
+            if (!ZhongYuanResponseCodeEnum.SUCCESS.getCode().equals(tokenResponse.getCode())) {
+                return tokenResponse;
+            }
+
+            ChangeSceneVariableRequest changeData = baseRequest.getData();
+
+            // 3. 参数校验
+            if (!StringUtils.hasText(changeData.getTaskUid())) {
+                return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.PARAM_ERROR.getCode(),
+                        "参数错误：taskUid为空");
+            }
+
+            if (!StringUtils.hasText(changeData.getSceneCode())) {
+                return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.PARAM_ERROR.getCode(),
+                        "参数错误：sceneCode为空");
+            }
+
+            if (changeData.getVariableList() == null || changeData.getVariableList().isEmpty()) {
+                return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.PARAM_ERROR.getCode(),
+                        "参数错误：variableList为空");
+            }
+
+            // 4. 获取apiCode
+            Map<String, String> zhongYuanIdentity = marketingCommonConfig.getZhongYuanIdentity();
+            String testApiCode = request.getHeader("Test-ApiCode");
+            String apiCode = testApiCode != null ? testApiCode : zhongYuanIdentity.get("apiCode");
+
+            // 5. 记录变更数据到数据库
+            MarketingSceneVariable marketingSceneVariable = new MarketingSceneVariable();
+            marketingSceneVariable.setApiCode(apiCode);
+            marketingSceneVariable.setFlowId(baseRequest.getFlowId());
+            marketingSceneVariable.setSysId(baseRequest.getSysId());
+            marketingSceneVariable.setTimestamp(baseRequest.getTimestamp());
+            marketingSceneVariable.setChannelNo(baseRequest.getChannelNo());
+            marketingSceneVariable.setVersion(baseRequest.getVersion());
+            marketingSceneVariable.setToken(baseRequest.getToken());
+            marketingSceneVariable.setSceneCode(changeData.getSceneCode());
+            marketingSceneVariable.setTaskUid(changeData.getTaskUid());
+            // 将变量列表转换为JSON字符串存储
+            marketingSceneVariable.setVariableList(JSON.toJSONString(changeData.getVariableList()));
+            marketingSceneVariable.setExecuteStatus(0); // 0-待执行
+            marketingSceneVariable.setCreateTime(new Date());
+            marketingSceneVariable.setUpdateTime(new Date());
+
+            // 执行插入操作
+            int insertResult = marketingSceneVariableMapper.insertSelective(marketingSceneVariable);
+            if (insertResult <= 0) {
+                log.error("中原消金外呼任务场景变量修改失败，插入数据库失败，taskUid: {}, sceneCode: {}",
+                        changeData.getTaskUid(), changeData.getSceneCode());
+                return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.SYSTEM_ERROR.getCode(),
+                        "数据更新失败");
+            }
+
+            // 6. 构建响应
+            ChangeSceneVariableResponse responseData = new ChangeSceneVariableResponse();
+            responseData.setTaskUid(changeData.getTaskUid());
+            responseData.setEw("更新成功");
+
+            log.warn("中原消金外呼任务场景变量修改成功，taskUid: {}, sceneCode: {}, variableList: {}",
+                    changeData.getTaskUid(), changeData.getSceneCode(), JSON.toJSONString(changeData.getVariableList()));
+
+            return ZhongYuanBaseResponse.success(responseData);
+
+        } catch (Exception e) {
+            log.error("中原消金外呼任务场景变量修改接口异常", e);
+            return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.SYSTEM_ERROR.getCode(),
+                    ZhongYuanResponseCodeEnum.SYSTEM_ERROR.getMessage() + "：" + e.getMessage());
+        }
+    }
+
 }

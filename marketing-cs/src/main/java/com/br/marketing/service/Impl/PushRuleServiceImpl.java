@@ -138,6 +138,7 @@ import org.springframework.util.*;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
@@ -2852,6 +2853,27 @@ public class PushRuleServiceImpl implements PushRuleService {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage(), "上传数据清洗-发送JSON结构解析消息异常"), e);
         }
 
+    }
+
+    @Override
+    public Result<String> queryUploadOverAmt(String custNum, HttpServletRequest request) {
+
+        Map<String, String> zhongYuanIdentity = marketingCommonConfig.getZhongYuanIdentity();
+        String testApiCode = request.getHeader("Test-ApiCode");
+        String apiCode = testApiCode != null ? testApiCode : zhongYuanIdentity.get("apiCode");
+
+        MarketingSyncUser marketingSyncUser = marketingUserMapper.selectSyncUserByCustNum(apiCode, custNum, null);
+        if(marketingSyncUser == null){
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("数据为空！");
+        }
+        // overAmt
+        String reserveField1 = marketingSyncUser.getReserveField1();
+        JSONObject jsonObject = JSONObject.parseObject(reserveField1);
+        String overAmt = jsonObject.getString("overAmt");
+        if(StringUtils.isEmpty(overAmt)){
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("overAmt字段不存在！");
+        }
+        return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(overAmt);
     }
 
     /**
