@@ -324,6 +324,9 @@ public enum AlarmSendCodeEnum {
     //pp停车业务告警码
     PP_MARKING_SERVICEERROR("6060001", "pp停车业务异常"),
 
+    //泰康业务告警码
+    TAIKANG_MARKING_SERVICEERROR("6061001", "泰康业务异常"),
+
     //榕树新客接口调用失败
     RSXK_INTERFACE("6071001", "榕树新客接口异常"),
     //榕树新客业务异常
@@ -351,6 +354,10 @@ public enum AlarmSendCodeEnum {
     POLLING_GROUP_EXCEPTION("8001003", "轮询开发组异常"),
 
     MARKETING_AVIATORSCRIPT_LINESMS_ERROR("8001004", "短信/线路钉钉文档配置入库异常"),
+
+    MARKETING_AVIATORSCRIPT_LINE_CHANGE_ERROR("8001005", "线路三方字段同步异常"),
+
+    ZHONGYUAN_XIAOJIN_SERVICEERROR("8001006", "中原消金业务异常"),
 
     ;
 

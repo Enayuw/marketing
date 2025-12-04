@@ -108,4 +108,16 @@ public class ZnkfPushController {
             throw ex;
         }
     }
+
+    @Operation(summary = "接收回调数据并入库（通用接口，支持不同版本）")
+    @PostMapping("/callbackDataInsert")
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
+    public String callbackDataInsert(@RequestBody String jsonData) {
+        try {
+            return znkfPushService.callbackDataInsert(jsonData);
+        } catch (Exception ex) {
+            log.error("接收回调数据并入库失败，错误信息：{}", ex.getMessage(), ex);
+            return "fail";
+        }
+    }
 }

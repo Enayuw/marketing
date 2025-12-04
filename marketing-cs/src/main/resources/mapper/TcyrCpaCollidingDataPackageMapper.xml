@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.TcyrCpaCollidingDataPackageMapper" >
+  <update id="batchUpdatePackageMagnitude">
+    UPDATE b_tcyr_cpa_colliding_data_package
+    SET
+    magnitude = CASE id
+    <foreach collection="updPkgs" item="item">
+      WHEN #{item.id} THEN #{item.magnitude}
+    </foreach>
+    END,
+    update_time = NOW()
+    WHERE id IN
+    <foreach collection="updPkgs" item="item" open="(" separator="," close=")">
+      #{item.id}
+    </foreach>
+  </update>
+
+  <select id="queryPackageInfo" resultType="com.br.marketing.entity.TcyrCpaCollidingDataPackage">
+    select id, package_name, magnitude
+    from b_tcyr_cpa_colliding_data_package
+    where clean_status = 2 and is_del = 1
+  </select>
+
+  <select id="queryPackageIdstikv_" resultType="java.lang.Long">
+    select id
+    from b_tcyr_cpa_colliding_data_package
+    where clean_status = 2 and is_del = 1
+  </select>
+
+  <select id="selectByCondition" resultType="com.br.marketing.entity.TcyrCpaCollidingDataPackage">
+    select <include refid="Base_Column_List"/>
+    from b_tcyr_cpa_colliding_data_package
+    where is_del = 1
+    <if test="packageName != null and packageName != ''">
+      and package_name like concat('%',#{packageName},'%')
+    </if>
+    <if test="enabled != null">
+      and enabled = #{enabled}
+    </if>
+    order by update_time desc
+  </select>
+
+</mapper>
