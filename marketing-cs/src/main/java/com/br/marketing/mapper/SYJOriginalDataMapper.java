@@ -1,5 +1,6 @@
 package com.br.marketing.mapper;
 
+import com.br.marketing.entity.SYJBlackData;
 import com.br.marketing.entity.SYJOriginalData;
 import org.apache.ibatis.annotations.Param;
 
