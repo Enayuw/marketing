@@ -6,7 +6,7 @@ package com.br.marketing.enums;
 public enum TcCpaSupplyTypeEnum {
 
     SUPPLY_COMMON(1,"通用"),
-    SUPPLY_CUS(1,"定制"),
+    SUPPLY_CUS(2,"定制"),
     ;
 
     TcCpaSupplyTypeEnum(Integer value, String desc){

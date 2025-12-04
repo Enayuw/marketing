@@ -20,7 +20,7 @@ public class TcCpaCollidingRuleDTO {
     private List<String> deleteRuleIds;
 
     @ApiModelProperty(value = "补包规则releaseTime集合")
-    private List<String> supplyReleaseTimes;
+    private List<TcyrFailMsgSupplyGroupDTO> failMsgSupplyGroups;
 
     @ApiModelProperty(value = "提取量级阈值")
     private Integer limitNum;

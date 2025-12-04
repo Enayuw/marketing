@@ -3,7 +3,6 @@ package com.br.marketing.innerapi.controller;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.dto.tccpa.TcCpaCollidingRuleDTO;
 import com.br.marketing.dto.tccpa.TcCpaCollidingRuleInfoDTO;
-import com.br.marketing.dto.tc.TcCpaMagnitudeDistDTO;
 import com.br.marketing.dto.tccpa.TcyrFailMsgSupplyGroupDTO;
 import com.br.marketing.service.tccpa.TcCpaCollidingRuleService;
 import io.swagger.annotations.Api;

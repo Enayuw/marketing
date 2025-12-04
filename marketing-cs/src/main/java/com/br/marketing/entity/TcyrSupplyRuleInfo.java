@@ -14,6 +14,4 @@ public class TcyrSupplyRuleInfo {
     private String supplyScript;
 
     private Integer failMsg;
-
-    private Integer supplyNum;
 }
