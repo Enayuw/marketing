@@ -44,7 +44,7 @@ public enum TcCpaFailMsgEnum {
         return lockValue;
     }
 
-    public void setLockValue(Integer value) {
+    public void setLockValue(Integer lockValue) {
         this.lockValue = lockValue;
     }
 }
