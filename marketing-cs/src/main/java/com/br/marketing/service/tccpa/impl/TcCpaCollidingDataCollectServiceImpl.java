@@ -5,10 +5,12 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.TcCpaCollidingSourceTypeEnum;
+import com.br.marketing.enums.TcCpaCollidingTaskStatusEnum;
 import com.br.marketing.enums.TcCpaSyncDealStatusEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.tccpa.TcCpaCollidingDataCollectService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.common.utils.Constants;
 import com.google.common.collect.Lists;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
@@ -19,13 +21,10 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -64,6 +63,15 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
             return;
         }
         TcyrCpaCollidingTaskExample collidingExample = new TcyrCpaCollidingTaskExample();
+        collidingExample.createCriteria().andCollidingDateEqualTo(new Date())
+                .andStatusIn(Lists.newArrayList(TcCpaCollidingTaskStatusEnum.STATUS_WAIT_STA.getValue(),
+                        TcCpaCollidingTaskStatusEnum.STATUS_STA_COMPLETED.getValue()))
+                .andEnabledEqualTo(1).andIsDelEqualTo(Constants.DATA_VALID);
+        List<TcyrCpaCollidingTask> collidingTasks = tcyrCpaCollidingTaskMapper.selectByExample(collidingExample);
+        for (TcyrCpaCollidingTask collidingTask : collidingTasks) {
+            collidingTask.setStatus(TcCpaCollidingTaskStatusEnum.STATUS_STAING.getValue());
+            tcyrCpaCollidingTaskMapper.updateByPrimaryKey(collidingTask);
+        }
 
         for (TcyrCpaCollectTask tcyrCpaCollectTask : tcyrCpaCollectTasks) {
             tcyrCpaCollectTask.setStatus(TcCpaSyncDealStatusEnum.DEAL_MIDDLE.getValue());
