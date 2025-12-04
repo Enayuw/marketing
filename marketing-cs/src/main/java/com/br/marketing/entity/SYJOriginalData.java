@@ -34,6 +34,11 @@ public class SYJOriginalData {
     private Integer invocationStatus;
 
     /**
+     * 0-待推送，1-推送中，2-推送失败，3-推送成功
+     */
+    private Integer pushStatus;
+
+    /**
      * 状态 1-正常,2-非正常
      */
     private Integer status;
@@ -109,6 +114,14 @@ public class SYJOriginalData {
 
     public void setInvocationStatus(Integer invocationStatus) {
         this.invocationStatus = invocationStatus;
+    }
+
+    public Integer getPushStatus() {
+        return pushStatus;
+    }
+
+    public void setPushStatus(Integer pushStatus) {
+        this.pushStatus = pushStatus;
     }
 
     public Integer getStatus() {

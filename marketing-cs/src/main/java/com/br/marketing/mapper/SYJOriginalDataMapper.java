@@ -1,6 +1,5 @@
 package com.br.marketing.mapper;
 
-import com.br.marketing.entity.SYJBlackData;
 import com.br.marketing.entity.SYJOriginalData;
 import org.apache.ibatis.annotations.Param;
 
@@ -13,9 +12,12 @@ import java.util.List;
  */
 public interface SYJOriginalDataMapper extends SYJOriginalDataMapperBase {
 
-    List<SYJOriginalData> queryOriginalData(@Param("localId") Long localId, @Param("minId") Long minId,@Param("pageSize") Integer pageSize);
+    List<SYJOriginalData> queryOriginalData(@Param("localId") Long localId, @Param("minId") Long minId, @Param("pageSize") Integer pageSize);
 
     void batchUpdateStatus(@Param("ids") List<Long> ids, @Param("queryStatus") Integer queryStatus,@Param("invocationStatus") Integer invocationStatus);
 
+    List<SYJOriginalData> queryPushData(@Param("localId") Long localId, @Param("minId") Long minId,@Param("pageSize") Integer pageSize);
+
+    int updateBatchByIds(@Param("ids") List<Long> ids, @Param("pushStatus") Integer pushStatus);
 }
 

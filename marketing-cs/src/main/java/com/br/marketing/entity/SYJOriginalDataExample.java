@@ -485,6 +485,66 @@ public class SYJOriginalDataExample {
             return (Criteria) this;
         }
 
+        public Criteria andPushStatusIsNull() {
+            addCriterion("push_status is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusIsNotNull() {
+            addCriterion("push_status is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusEqualTo(Integer value) {
+            addCriterion("push_status =", value, "pushStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusNotEqualTo(Integer value) {
+            addCriterion("push_status <>", value, "pushStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusGreaterThan(Integer value) {
+            addCriterion("push_status >", value, "pushStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusGreaterThanOrEqualTo(Integer value) {
+            addCriterion("push_status >=", value, "pushStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusLessThan(Integer value) {
+            addCriterion("push_status <", value, "pushStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusLessThanOrEqualTo(Integer value) {
+            addCriterion("push_status <=", value, "pushStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusIn(List<Integer> values) {
+            addCriterion("push_status in", values, "pushStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusNotIn(List<Integer> values) {
+            addCriterion("push_status not in", values, "pushStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusBetween(Integer value1, Integer value2) {
+            addCriterion("push_status between", value1, value2, "pushStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushStatusNotBetween(Integer value1, Integer value2) {
+            addCriterion("push_status not between", value1, value2, "pushStatus");
+            return (Criteria) this;
+        }
+
         public Criteria andStatusIsNull() {
             addCriterion("`status` is null");
             return (Criteria) this;

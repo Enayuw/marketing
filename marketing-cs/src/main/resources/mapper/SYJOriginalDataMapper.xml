@@ -31,4 +31,27 @@
         </foreach>
     </update>
 
+    <select id="queryPushData" resultType="com.br.marketing.entity.SYJOriginalData">
+        select *
+        from b_syj_original_data
+        where local_id = #{localId}
+        and query_status = 3
+        and invocation_status = 0
+        and status = 1
+        <if test="minId != null and minId >0">
+            and id >=#{minId}
+        </if>
+        order by id asc
+        limit #{pageSize}
+    </select>
+
+    <update id="updateBatchByIds">
+        update b_syj_original_data
+        set push_status = #{pushStatus}
+        where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
 </mapper>

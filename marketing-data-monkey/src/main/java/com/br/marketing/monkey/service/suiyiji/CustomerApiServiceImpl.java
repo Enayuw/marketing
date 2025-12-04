@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import com.br.marketing.aspect.Mockable;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.constants.MockConstants;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
@@ -22,13 +23,16 @@ public class CustomerApiServiceImpl implements CustomerApiService{
     @Resource
     private HttpProxyClient httpProxyClient;
 
+    @Value("${api.syj.isProxy:false}")
+    private Boolean isProxy;
+
     @Override
     @Mockable(mockName = MockConstants.TEST_OBJECT_RETURN)
     public Map<String, String> callCustomerApi(Object reqMap, String url) {
         return httpProxyClient.sendByCodeWithLog(
                 reqMap,
                 url,
-                false,
+                isProxy,
                 MediaType.APPLICATION_JSON_UTF8_VALUE,
                 JSON.toJSONString(reqMap),
                 true,

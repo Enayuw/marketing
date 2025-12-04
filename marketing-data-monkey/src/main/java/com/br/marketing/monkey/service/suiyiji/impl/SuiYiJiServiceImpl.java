@@ -2,16 +2,19 @@ package com.br.marketing.monkey.service.suiyiji.impl;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.alibaba.fastjson2.JSON;
-import com.br.marketing.aspect.Mockable;
-import com.br.marketing.client.HttpProxyClient;
+import com.br.common.util.DateUtils;
+import com.br.marketing.client.marketingapi.input.UploadDataDTO;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.constants.MockConstants;
+import com.br.marketing.dto.MarketingPreUserDTO;
+import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.LocalFileExample;
 import com.br.marketing.entity.SYJBlackData;
-import com.br.marketing.entity.SYJBlackDataExample;
 import com.br.marketing.entity.SYJOriginalData;
+import com.br.marketing.entity.SYJOriginalDataExample;
 import com.br.marketing.entity.UpdateTask;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.SYJBlackDataMapper;
@@ -19,6 +22,7 @@ import com.br.marketing.mapper.SYJOriginalDataMapper;
 import com.br.marketing.monkey.enums.syj.QueryStatusEnum;
 import com.br.marketing.monkey.service.suiyiji.CustomerApiService;
 import com.br.marketing.monkey.service.suiyiji.SuiYiJiService;
+import com.br.marketing.service.PushInfoService;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.RateLimiter;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +46,9 @@ import java.util.stream.Collectors;
 public class SuiYiJiServiceImpl implements SuiYiJiService {
 
     @Resource
+    private PushInfoService pushInfoService;
+
+    @Resource
     private LocalFileMapper localFileMapper;
 
     @Resource
@@ -59,7 +66,7 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
     @Value("${api.syj.blackUrl:00}")
     private String blackUrl;
 
-    private static final Integer PAGE_SIZE = 2000;
+    private static final Integer PAGE_SIZE = 500;
 
     // QPS限制：500（原始数据）
     private static final double QPS_LIMIT = 500.0;
@@ -85,7 +92,7 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
         List<LocalFile> localFileList = getFileIdByApiCodeAndFileType(apiCode, SftpFileTypeEnum.SYJ_ADMISSION.getValue());
 
         for (LocalFile localFile : localFileList) {
-            originalProcess(localFile);
+            originalProcess(apiCode, localFile);
         }
 
     }
@@ -417,24 +424,7 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
     }
 
     /**
-     * 查询黑名单数据
-     */
-    private List<SYJBlackData> queryBlackData(Long fileId, Long minId, Integer pageSize) {
-        SYJBlackDataExample example = new SYJBlackDataExample();
-        SYJBlackDataExample.Criteria criteria = example.createCriteria();
-        criteria.andLocalIdEqualTo(fileId)
-                .andQueryStatusEqualTo(0)
-                .andStatusEqualTo(1);
-        if (minId != null && minId > 0) {
-            criteria.andIdGreaterThan(minId);
-        }
-        example.setOrderByClause("id asc limit " + pageSize);
-        return blackDataMapper.selectByExample(example);
-    }
-
-
-    /**
-     * 创建错误UpdateTask（通用方法）
+     * 创建错误UpdateTask
      */
     private UpdateTask createErrorTask(Long dataId, String errorMessage) {
         return new UpdateTask(
@@ -578,16 +568,13 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
     }
 
 
-    void originalProcess(LocalFile localFile) {
+    void originalProcess(String apiCode, LocalFile localFile) {
         Long fileId = localFile.getId();
         //更新b_local_file记录push_status=1(推送中)
         updateLocalFilePushStatus(localFile, "1", new Date(), null, null);
 
         Long minId = null;
-        // 创建RateLimiter，限制QPS为500
         RateLimiter rateLimiter = RateLimiter.create(QPS_LIMIT);
-        // 创建线程池，核心线程数根据QPS和响应时间调整
-        // 假设平均响应时间100ms，500 QPS需要约50个线程
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(50, 100, "syj_original", 500);
 
         // 用于批量更新的结果缓存
@@ -715,11 +702,30 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
                 processBatchUpdate(finalTasks);
             }
 
-            updateLocalFilePushStatus(localFile, "2", null, new Date(), null);
+            // 统计queryStatus=3的量级
+            int queryStatus3Count = countOriginalDataByQueryStatus(fileId, QueryStatusEnum.QUERY_SUCCESS.getCode());
+            Integer actualNumber = localFile.getActualNumber();
+
+            // 对比actualNumber和queryStatus=3的数量
+            if (actualNumber != null && actualNumber.equals(queryStatus3Count)) {
+                // 一致，标记为推送成功
+                updateLocalFilePushStatus(localFile, "2", null, new Date(), null);
+                log.info("【原始数据推送成功】fileId={}, 文件量级={}, queryStatus=3的数量={}, 一致",
+                        fileId, actualNumber, queryStatus3Count);
+            } else {
+                // 不一致，标记为推送失败
+                updateLocalFilePushStatus(localFile, "3", null, new Date(), "量级不一致");
+                log.error("【原始数据推送失败】fileId={}, 文件量级={}, queryStatus=3的数量={}, 不一致，已标记为推送失败",
+                        fileId, actualNumber, queryStatus3Count);
+            }
 
             // 输出最终统计信息
             logFinalStatistics(fileId, startTime, totalRequestCount, successRequestCount,
-                    failRequestCount, "原始数据", null, null);
+                    failRequestCount, "原始数据", actualNumber, queryStatus3Count);
+
+            // 调用上传接口
+            pushUpload(apiCode, localFile.getId());
+
         } finally {
             shutdownResources(scheduledFuture, qpsStatFuture, scheduledExecutor, threadPool);
         }
@@ -733,7 +739,14 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
      * 不修改status字段
      */
     private UpdateTask parseOriginalResponse(Long dataId, Map<String, String> responseMap) {
+        // 验证HTTP响应
+        List<UpdateTask> errorTasks = new ArrayList<>();
+        String content = validateHttpResponse(responseMap, Collections.singletonList(dataId), errorTasks);
 
+        // 如果验证失败，返回错误任务
+        if (content == null && !errorTasks.isEmpty()) {
+            return errorTasks.get(0);
+        }
 
         try {
             String code = responseMap.get("code");
@@ -743,23 +756,23 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
             Integer queryStatus;
             Integer invocationStatus = null;
 
-            // query_status对应响应中的code（0-调用成功，1-系统异常）
+            // code = 0 && result = 1: queryStatus=3, invocationStatus=0
+            // code = 0 && result = 2: queryStatus=3, invocationStatus=1
+            // 接口异常: queryStatus=2
             if ("0".equals(code)) {
-                // code=0 对应查询成功
+                // code=0 表示调用成功，queryStatus=3
                 queryStatus = QueryStatusEnum.QUERY_SUCCESS.getCode();
+                // invocation_status对应响应中的result
+                if ("1".equals(result)) {
+                    invocationStatus = 0; // result=1 对应 invocationStatus=0
+                } else if ("2".equals(result)) {
+                    invocationStatus = 1; // result=2 对应 invocationStatus=1
+                }
             } else {
-                // code=1 对应查询失败
+                // code!=0 表示接口异常，queryStatus=2
                 queryStatus = QueryStatusEnum.QUERY_FAILED.getCode();
             }
 
-            // invocation_status对应响应中的result（1-准入，2-不准入）
-            if ("1".equals(result)) {
-                invocationStatus = 1; // 1-准入
-            } else if ("2".equals(result)) {
-                invocationStatus = 2; // 2-不准入
-            }
-
-            // status字段不修改，传null
             return new UpdateTask(dataId, queryStatus, invocationStatus, message);
         } catch (Exception e) {
             log.error("解析响应JSON异常，dataId={}, responseMap={}", dataId, responseMap, e);
@@ -886,6 +899,79 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
         }
 
         return content;
+    }
+
+    /**
+     * 统计原始数据中指定queryStatus的数量
+     *
+     * @param fileId      文件ID
+     * @param queryStatus 查询状态
+     * @return 数量
+     */
+    private int countOriginalDataByQueryStatus(Long fileId, Integer queryStatus) {
+        SYJOriginalDataExample example = new SYJOriginalDataExample();
+        SYJOriginalDataExample.Criteria criteria = example.createCriteria();
+        criteria.andLocalIdEqualTo(fileId)
+                .andQueryStatusEqualTo(queryStatus)
+                .andStatusEqualTo(1); // 只统计正常状态的数据
+        Integer count = originalDataMapper.countByExample(example);
+        return count != null ? count : 0;
+    }
+
+    /**
+     * 原始数据处理完成后的后续流程
+     * 待实现
+     */
+    private void pushUpload(String apiCode, Long localId) {
+
+        Long minId = null;
+
+        while (true) {
+            List<SYJOriginalData> dataList = originalDataMapper.queryPushData(localId, minId, 500);
+            if (dataList == null || dataList.isEmpty()) {
+                break;
+            }
+
+            minId = dataList.get(dataList.size() - 1).getId();
+
+            List<Long> ids = dataList.stream().map(SYJOriginalData::getId).toList();
+            //更新明细表推送状态为1（推送中）
+            originalDataMapper.updateBatchByIds(ids, 1);
+
+            Result<MarketingPreUserDTO> userDTO = buildPushDto(dataList);
+            UploadDataDTO uploadDataDTO = new UploadDataDTO();
+            uploadDataDTO.setApiCode(apiCode);
+            uploadDataDTO.setJsonData(String.valueOf(userDTO));
+            Result<Boolean> result = pushInfoService.pushUploadByRetry(uploadDataDTO, null);
+            if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                //更新明细表推送状态为2（推送成功）
+                originalDataMapper.updateBatchByIds(ids, 3);
+            } else {
+                //更新明细表推送状态为2（推送失败）
+                originalDataMapper.updateBatchByIds(ids, 2);
+            }
+
+        }
+
+    }
+
+    private Result<MarketingPreUserDTO> buildPushDto(List<SYJOriginalData> dataList) {
+        Result<MarketingPreUserDTO> res = new Result<>();
+        MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
+        List<MarketingPreUserDetailDTO> dataItems = new ArrayList<>();
+        dataList.forEach(data -> {
+            MarketingPreUserDetailDTO marketingPreUserDetailDTO = new MarketingPreUserDetailDTO();
+            marketingPreUserDetailDTO.setCell(data.getCell());
+            marketingPreUserDetailDTO.setCustNum(data.getCell());
+            JSONObject reserveField1 = new JSONObject();
+            reserveField1.put("userType", "1");
+            marketingPreUserDetailDTO.setReserveField1(reserveField1.toJSONString());
+            dataItems.add(marketingPreUserDetailDTO);
+        });
+        marketingPreUserDTO.setTaskId(DateUtils.format(new Date(), "yyyyMMdd"));
+        marketingPreUserDTO.setDataItems(dataItems);
+
+        return res.setCode(ResultCode.SUCCESS.getValue()).setDate(marketingPreUserDTO);
     }
 
 }
