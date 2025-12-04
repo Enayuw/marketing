@@ -467,6 +467,7 @@ public class LineSmsAccountNormalServiceImpl implements LineSmsAccountNormalServ
             smsAccountLogNormalVO.setDetail(dbLogDetailObj.toJSONString());
             smsAccountLogNormalVO.setUserId(smsDbLog.getUserId());
             smsAccountLogNormalVO.setUserName(smsDbLog.getUserName());
+            smsAccountLogNormalVO.setRealName(smsDbLog.getRealName());
             smsAccountLogNormalVO.setOpeType(smsDbLog.getOpeType());
             smsAccountLogNormalVO.setCreateTime(smsDbLog.getCreateTime());
             smsAccountLogNormalVO.setUpdateTime(smsDbLog.getUpdateTime());
