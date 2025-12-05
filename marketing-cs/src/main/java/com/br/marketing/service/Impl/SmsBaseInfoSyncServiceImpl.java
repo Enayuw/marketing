@@ -51,7 +51,7 @@ public class SmsBaseInfoSyncServiceImpl implements SmsBaseInfoSyncService {
      * 2: channelName 字段修改
      * 3: 三方短信侧删除
      *
-     * 供应商组合表(b_marketing_sms_supplier_info_normal) ope_status字段枚举
+     * 供应商组合表(b_marketing_sms_vendor_info_normal) ope_status字段枚举
      * 0: 未修改
      * 1: ---
      * 2: vendorName修改
@@ -124,7 +124,6 @@ public class SmsBaseInfoSyncServiceImpl implements SmsBaseInfoSyncService {
     /**
      * 场景3-历史集处理
      * (库表有,三方接口有)
-     *  TODO 12-03-> 空vendorInfo 信息处理 (filter "channelDTOList": [] 做venderInfo 的处理)
      */
     private void dealSceneThree(List<DdSmsBaseInfoDto> ddSmsBaseInfoDtoList, List<SmsBaseFullInfoDTO> smsBaseFullInfoDtoList) {
         Map<Long, DdSmsBaseInfoDto> ddSmsMap = ddSmsBaseInfoDtoList.stream()
