@@ -3,9 +3,17 @@ spring:
   application:
     name: marketing-xc-loop-cycle
   profiles.active: prod
+  main:
+    allow-circular-references: true  # 允许循环依赖
+  autoconfigure:
+    exclude:
+      - com.br.transfer.config.log.Log4j2DynamicAutoConfiguration
+      - com.br.transfer.config.log.TempLog4j2DynamicAutoConfiguration
   aop:
    proxy-target-class: true
    auto: true
+  lifecycle:
+    timeout-per-shutdown-phase: 30s  # 优雅关闭超时时间
   threadpool:
     queueCapacity: 10000
     # 线程池所使用的缓冲队列
@@ -19,11 +27,18 @@ spring:
     # 线程池所生产的线程名前缀
 server:
   port: 17601
+  shutdown: graceful  # 启用优雅关闭
 
-mybatis:
+mybatis-plus:
   mapper-locations: mapper/*.xml
   configuration:
     map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: isDeleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
 #exporter监控
 endpoints:
   prometheus:

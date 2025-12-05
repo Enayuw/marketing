@@ -3,12 +3,12 @@ datasource:
     names: shardingmarketing,marketing-tikiv,marketing-tiflash,marketing-doris,marketing-bi
     defaultSource: shardingmarketing
     shardingmarketing:
+      name: shardingmarketing
       jdbc-url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8
       username: u_pd_marketing
       password: f9daIYUIAXQkeyVbDoOI
       type: com.zaxxer.hikari.HikariDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
-      isSharding: true
       minimum-idle: 1 # 最小空闲连接数
       maximum-pool-size: 300 # 最大连接池数量
       connection-timeout: 60000 # 获取连接超时时间，单位毫秒
@@ -17,7 +17,7 @@ datasource:
       keepalive-time: 30000 # 连接保活时间，单位毫秒
       connection-test-query: select 1 # 连接测试查询
     marketing-tikiv:
-      name: marketing
+      name: marketing-tikiv
       type: com.zaxxer.hikari.HikariDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
       jdbc-url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8
@@ -40,7 +40,7 @@ datasource:
     #      filters: stat,wall,log4j2
     #      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
     marketing-tiflash:
-      name: marketing
+      name: marketing-tiflash
       type: com.zaxxer.hikari.HikariDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
       jdbc-url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8
@@ -63,7 +63,7 @@ datasource:
 #      filters: stat,wall,log4j2
 #      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
     marketing-doris:
-      name: marketing
+      name: marketing-doris
       type: com.zaxxer.hikari.HikariDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
       jdbc-url: jdbc:mysql://tidb-pre.brapp.com:9030/marketing
@@ -78,7 +78,7 @@ datasource:
       connection-test-query: select 1 # 连接测试查询
       replicationAllocation: tag.location.default:1
     marketing-bi:
-      name: marketing
+      name: marketing-bi
       type: com.zaxxer.hikari.HikariDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
       jdbc-url: jdbc:mysql://tidb-pre.brapp.com:9030/marketing

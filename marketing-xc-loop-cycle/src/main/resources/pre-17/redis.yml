@@ -1,0 +1,9 @@
+spring:
+  redis:
+    multiple:
+      name: marketing_redis
+      password: pd1-marketing-19tgr
+      timeout: 10000
+      max-attempts: 5
+      codec: string.utf8
+      proxy-uri: redis://pd1-2-marketing-pre.brapp.com:6400

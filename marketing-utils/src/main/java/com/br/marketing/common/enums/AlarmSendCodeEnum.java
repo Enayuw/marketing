@@ -80,6 +80,8 @@ public enum AlarmSendCodeEnum {
 
     DB_ERROR("80001", "数据库异常"),
 
+    MARKETING_ERROR("90000", "服务开关未关闭"),
+
     //中台业务未知错误,立即推送
     YINGXIAO_SERVICEERROR("6000000", "中台业务未知错误"),
 
