@@ -139,16 +139,19 @@ public class SmsBaseInfoSyncServiceImpl implements SmsBaseInfoSyncService {
                     //3.1 channelId->vendorId发生了变化
                     if (!Objects.equals(ddSmsInfoItem.getVendorId(), dbFullInfoItem.getVendorId())){
                         checkSmsVendorExist(ddSmsInfoItem.getVendorId(),ddSmsInfoItem.getVendorName());
-                        smsBaseInfoNormalMapper.updateBaseInfoById(dbFullInfoItem.getId(),ddSmsInfoItem.getChannelName(),dbFullInfoItem.getVendorId(),1);
+                        smsBaseInfoNormalMapper.updateBaseInfoById(dbFullInfoItem.getId(),ddSmsInfoItem.getChannelName(),
+                                dbFullInfoItem.getVendorId(),1);
                         smsBaseInfoNormalMapper.insertSelective(fillSmsBaseInfo(ddSmsInfoItem));
                     }else {
                         //3.2 vendorName修改
                         if (!ddSmsInfoItem.getVendorName().equals(dbFullInfoItem.getVendorName())) {
-                            smsVendorInfoNormalMapper.updateInfoById(dbFullInfoItem.getVendorPrimaryId(),ddSmsInfoItem.getVendorName(),2);
+                            smsVendorInfoNormalMapper.updateInfoById(dbFullInfoItem.getVendorPrimaryId(),
+                                    ddSmsInfoItem.getVendorName(),2);
                         }
                         // 3.3 场景 channelName发生了改变
                         if (!ddSmsInfoItem.getChannelName().equals(dbFullInfoItem.getChannelName())) {
-                            smsBaseInfoNormalMapper.updateBaseInfoById(dbFullInfoItem.getId(),ddSmsInfoItem.getChannelName(),dbFullInfoItem.getVendorId(),2);
+                            smsBaseInfoNormalMapper.updateBaseInfoById(dbFullInfoItem.getId(),ddSmsInfoItem.getChannelName(),
+                                    dbFullInfoItem.getVendorId(),2);
                         }
                     }
                 }
