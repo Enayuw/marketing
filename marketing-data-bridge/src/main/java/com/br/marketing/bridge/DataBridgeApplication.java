@@ -24,7 +24,7 @@ import org.springframework.context.annotation.ImportResource;
         SpringBootConfiguration.class,
         GroovyTemplateAutoConfiguration.class
     },
-    scanBasePackages = {"com.br.marketing"}
+    scanBasePackages = {"com.br.marketing","com.marketingkit"}
 )
 @EnableAspectJAutoProxy
 @MapperScan("com.br.marketing.mapper")
