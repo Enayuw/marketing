@@ -11,6 +11,7 @@ import com.br.marketing.entity.MarketingCustomerExample;
 import com.br.marketing.entity.TcyrCpaDeleteRule;
 import com.br.marketing.entity.TcyrCpaDeleteRuleExample;
 import com.br.marketing.mapper.MarketingCustomerMapper;
+import com.br.marketing.mapper.TcyrCpaCommonMapper;
 import com.br.marketing.mapper.TcyrCpaDeleteRuleMapper;
 import com.br.marketing.service.tccpa.TcCpaDataDeleteRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -40,6 +41,9 @@ public class TcCpaDeleteRuleServiceImpl implements TcCpaDataDeleteRuleService {
 
     @Resource
     private MarketingCustomerMapper marketingCustomerMapper;
+
+    @Resource
+    private TcyrCpaCommonMapper tcyrCpaCommonMapper;
 
     @Resource
     private TcyrCpaDeleteRuleMapper tcyrCpaDeleteRuleMapper;
@@ -150,7 +154,7 @@ public class TcCpaDeleteRuleServiceImpl implements TcCpaDataDeleteRuleService {
      */
     private void calculateDeleteNum(TcyrCpaDeleteRule rule) {
         try {
-            Integer deleteNum = tcyrCpaDeleteRuleMapper.calculateDeleteNumByScript(rule.getExecuteScript());
+            Integer deleteNum = tcyrCpaCommonMapper.calculateDeleteNumByScript(rule.getExecuteScript());
             rule.setDeleteNum(deleteNum != null ? deleteNum : 0);
         } catch (Exception e) {
             rule.setDeleteNum(0);
