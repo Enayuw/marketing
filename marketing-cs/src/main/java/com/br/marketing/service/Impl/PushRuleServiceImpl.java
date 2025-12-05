@@ -3605,8 +3605,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
     }
 
-<<<<<<< HEAD
-=======
     /**
      * 判断字符串是否包含4字节字符（生僻字、emoji等）
      */
@@ -3628,8 +3626,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         return false;
     }
 
-
->>>>>>> 69bbf9779a9f67ee7c97b0c5e45a7da4c2752161
     private void addCellReserveFileld1(JSONObject reserveFileld1Json, String cell, Integer isCheck,
                                        IUploadCheckService iUploadCheckService, CustomerTagsVO tags) {
         if (StringUtils.isNotEmpty(cell)) {
@@ -3652,24 +3648,14 @@ public class PushRuleServiceImpl implements PushRuleService {
      * 处理debtorCell1-4字段，生成debtorCellList
      * 基于原始值去重，保留顺序：cell → debtorCell1 → debtorCell2 → debtorCell3 → debtorCell4
      *
-<<<<<<< HEAD
-     * @param reserveFileld1Json  扩展字段JSON对象
-     * @param cell                主手机号字段值，用于去重
-     * @param isCheck             是否校验
-=======
      * @param reserveFileld1Json 扩展字段JSON对象
      * @param cell 主手机号字段值，用于去重
      * @param isCheck 是否校验
->>>>>>> 69bbf9779a9f67ee7c97b0c5e45a7da4c2752161
      * @param iUploadCheckService 解密服务
      * @param tags                客户标签配置
      */
     private void processDebtorCells(JSONObject reserveFileld1Json, String cell, Integer isCheck,
-<<<<<<< HEAD
                                     IUploadCheckService iUploadCheckService, CustomerTagsVO tags) {
-=======
-                                   IUploadCheckService iUploadCheckService, CustomerTagsVO tags) {
->>>>>>> 69bbf9779a9f67ee7c97b0c5e45a7da4c2752161
         String[] debtorCellFields = {"debtorCell1", "debtorCell2", "debtorCell3", "debtorCell4"};
         JSONArray debtorCellList = new JSONArray();
         int order = 1;
@@ -3733,23 +3719,14 @@ public class PushRuleServiceImpl implements PushRuleService {
      * 解密debtorCell字段值
      * 使用iUploadCheckService.process3keyCheck的解密逻辑
      *
-<<<<<<< HEAD
-     * @param encryptedValue      加密值
-     * @param isCheck             是否校验
-=======
      * @param encryptedValue 加密值
      * @param isCheck 是否校验
->>>>>>> 69bbf9779a9f67ee7c97b0c5e45a7da4c2752161
      * @param iUploadCheckService 解密服务
      * @param tags                客户标签配置
      * @return 解密后的明文值，解密失败返回空字符串
      */
     private String decryptDebtorCell(String encryptedValue, Integer isCheck,
-<<<<<<< HEAD
                                      IUploadCheckService iUploadCheckService, CustomerTagsVO tags) {
-=======
-                                    IUploadCheckService iUploadCheckService, CustomerTagsVO tags) {
->>>>>>> 69bbf9779a9f67ee7c97b0c5e45a7da4c2752161
         if (StringUtils.isEmpty(encryptedValue)) {
             return "";
         }
