@@ -8,6 +8,7 @@ import com.br.marketing.enums.TcCpaCollidingDealStatusEnum;
 import com.br.marketing.enums.TcCpaCollidingTaskStatusEnum;
 import com.br.marketing.mapper.TcyrCpaCollidingTaskMapper;
 import com.br.marketing.service.tccpa.TcCpaCollidingDataFilterService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
@@ -26,9 +27,11 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
     @Resource
     TcyrCpaCollidingTaskMapper tcyrCpaCollidingTaskMapper;
 
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
     @Override
     public void process() {
-        //1.查询统计完成的任务
+        //1.查询统计完成和待统计的撞库任务
         TcyrCpaCollidingTaskExample taskExample = new TcyrCpaCollidingTaskExample();
         taskExample.createCriteria()
                 .andCollidingDateEqualTo(new Date())
@@ -39,7 +42,31 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
         if (CollectionUtils.isEmpty(tasks)) {
             return;
         }
-        //2.
+        //2.遍历撞库任务
+        for (TcyrCpaCollidingTask task : tasks) {
+            process(task);
+        }
+    }
 
+    /**
+     * 处理撞库任务
+     * @param task
+     */
+    private void process(TcyrCpaCollidingTask task) {
+        //1.对于新创建和重新统计的任务，在过滤前进行统计
+        if(task.getStatus() == TcCpaCollidingTaskStatusEnum.STATUS_WAIT_STA.getValue()){
+            //todo 更新量级的方法
+        }
+        //2.更新撞库任务状态为3-筛选中
+        task.setStatus(TcCpaCollidingTaskStatusEnum.STATUS_FILTERING.getValue());
+        tcyrCpaCollidingTaskMapper.updateByPrimaryKeySelective(task);
+        //3.过滤撞库数据
+        filter(task);
+    }
+
+
+    private void filter(TcyrCpaCollidingTask task) {
+
+        task.getSupplyRuleInfo();
     }
 }
