@@ -155,6 +155,9 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
                     break;
                 }
 
+                List<Long> idList = blackDataList.stream().map(SYJBlackData::getId).collect(Collectors.toList());
+                blackDataMapper.batchUpdateStatus(idList, QueryStatusEnum.QUERYING.getCode());
+
                 minId = blackDataList.get(blackDataList.size() - 1).getId();
 
                 // 将数据分批，每批最多100个手机号
@@ -567,6 +570,10 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
         originalDataMapper.batchUpdateStatus(dataIdList, queryStatus, invocationStatus);
     }
 
+    void updateBlackData(List<Long> dataIdList, Integer queryStatus, Integer invocationStatus) {
+        blackDataMapper.batchUpdateStatus(dataIdList, queryStatus);
+    }
+
 
     void originalProcess(String apiCode, LocalFile localFile) {
         Long fileId = localFile.getId();
@@ -599,16 +606,14 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
         try {
             while (true) {
                 // 捞取明细数据，分批处理（PAGE_SIZE可配置）
-                long queryStartTime = System.currentTimeMillis();
                 List<SYJOriginalData> originalDataList = originalDataMapper.queryOriginalData(fileId, minId, PAGE_SIZE);
-                long queryCost = System.currentTimeMillis() - queryStartTime;
 
-                if (queryCost > 100) {
-                    log.warn("数据库查询耗时较长，fileId={}, 批次大小={}, 耗时={}ms", fileId, PAGE_SIZE, queryCost);
-                }
                 if (originalDataList.isEmpty()) {
                     break;
                 }
+
+                List<Long> idList = originalDataList.stream().map(SYJOriginalData::getId).collect(Collectors.toList());
+                updateOriginalData(idList, QueryStatusEnum.QUERYING.getCode(), null);
 
                 minId = originalDataList.get(originalDataList.size() - 1).getId();
 

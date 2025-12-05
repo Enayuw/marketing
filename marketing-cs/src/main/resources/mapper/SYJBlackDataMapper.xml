@@ -15,5 +15,18 @@
         limit #{pageSize}
     </select>
 
+    <update id="batchUpdateStatus">
+        update b_syj_black_data
+        <trim prefix="set" suffixOverrides=",">
+            <if test="queryStatus != null">
+                query_status = #{queryStatus},
+            </if>
+        </trim>
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+
 
 </mapper>

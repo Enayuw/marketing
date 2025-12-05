@@ -15,4 +15,5 @@ public interface SYJBlackDataMapper extends SYJBlackDataMapperBase {
     List<SYJBlackData> queryBlackData(@Param("localId") Long localId, @Param("minId") Long minId, @Param("pageSize") Integer pageSize);
 
 
+    void batchUpdateStatus(@Param("ids") List<Long> ids, @Param("queryStatus") Integer queryStatus);
 }

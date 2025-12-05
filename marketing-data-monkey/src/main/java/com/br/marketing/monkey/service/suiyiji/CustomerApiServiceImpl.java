@@ -3,6 +3,7 @@ package com.br.marketing.monkey.service.suiyiji;
 import com.alibaba.fastjson2.JSON;
 import com.br.marketing.aspect.Mockable;
 import com.br.marketing.client.HttpProxyClient;
+import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.constants.MockConstants;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -27,6 +28,7 @@ public class CustomerApiServiceImpl implements CustomerApiService{
     private Boolean isProxy;
 
     @Override
+    @RetryMethod()
     @Mockable(mockName = MockConstants.TEST_OBJECT_RETURN)
     public Map<String, String> callCustomerApi(Object reqMap, String url) {
         return httpProxyClient.sendByCodeWithLog(
