@@ -1,6 +1,6 @@
 package com.br.marketing.service.datamap.impl;
 
-import java.util.Date;
+import java.util.*;
 
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
@@ -23,9 +23,6 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -300,24 +297,51 @@ public class TrackingLinkServiceImpl implements TrackingLinkService {
 
         linkMapper.updateByPrimaryKeySelective(bizTrackingLink);
 
-        // 2. 逻辑删除原有节点
-        BizTrackingLinkNode bizTrackingLinkNode1 = new BizTrackingLinkNode();
-        bizTrackingLinkNode1.setStatus(Byte.valueOf("0"));
-        BizTrackingLinkNodeExample bizTrackingLinkNodeExample = new BizTrackingLinkNodeExample();
-        bizTrackingLinkNodeExample.createCriteria().andLinkIdEqualTo(linkId);
-        linkNodeMapper.updateByExampleSelective(bizTrackingLinkNode1,bizTrackingLinkNodeExample);
+        // 2. 查询现有节点
+        BizTrackingLinkNodeExample existingNodeExample = new BizTrackingLinkNodeExample();
+        existingNodeExample.createCriteria().andLinkIdEqualTo(linkId);
+        List<BizTrackingLinkNode> existingNodes = linkNodeMapper.selectByExample(existingNodeExample);
 
-        // 3. 重新插入节点
+        // 3. 将现有节点转为 Map，以 nodeId 为 key
+        Map<Long, BizTrackingLinkNode> existingNodeMap = existingNodes.stream()
+                .collect(Collectors.toMap(BizTrackingLinkNode::getNodeId, node -> node, (k1, k2) -> k1));
+
+        // 4. 收集请求中的 nodeId 集合
+        Set<Long> requestNodeIds = request.getNodes().stream()
+                .map(LinkNodeVO::getNodeId)
+                .collect(Collectors.toSet());
+
+        // 5. 遍历请求节点，存在则更新，不存在则新增
         for (LinkNodeVO nodeDTO : request.getNodes()) {
-            BizTrackingLinkNode bizTrackingLinkNode = new BizTrackingLinkNode();
-            bizTrackingLinkNode.setLinkId(linkId);
-            bizTrackingLinkNode.setNodeId(nodeDTO.getNodeId());
-            bizTrackingLinkNode.setNodeDictId(nodeDTO.getNodeDictId());
-            bizTrackingLinkNode.setNodeAlias(nodeDTO.getNodeAlias());
-            bizTrackingLinkNode.setStatus((byte)1);
-            bizTrackingLinkNode.setCreatedTime(new Date());
-            bizTrackingLinkNode.setUpdatedTime(new Date());
-            linkNodeMapper.insertSelective(bizTrackingLinkNode);
+            BizTrackingLinkNode existingNode = existingNodeMap.get(nodeDTO.getNodeId());
+            if (existingNode != null) {
+                // 节点已存在，更新
+                existingNode.setNodeDictId(nodeDTO.getNodeDictId());
+                existingNode.setNodeAlias(nodeDTO.getNodeAlias());
+                existingNode.setStatus((byte) 1);
+                existingNode.setUpdatedTime(new Date());
+                linkNodeMapper.updateByPrimaryKeySelective(existingNode);
+            } else {
+                // 节点不存在，新增
+                BizTrackingLinkNode newNode = new BizTrackingLinkNode();
+                newNode.setLinkId(linkId);
+                newNode.setNodeId(nodeDTO.getNodeId());
+                newNode.setNodeDictId(nodeDTO.getNodeDictId());
+                newNode.setNodeAlias(nodeDTO.getNodeAlias());
+                newNode.setStatus((byte) 1);
+                newNode.setCreatedTime(new Date());
+                newNode.setUpdatedTime(new Date());
+                linkNodeMapper.insertSelective(newNode);
+            }
+        }
+
+        // 6. 逻辑删除请求中不存在的节点
+        for (BizTrackingLinkNode existingNode : existingNodes) {
+            if (!requestNodeIds.contains(existingNode.getNodeId())) {
+                existingNode.setStatus((byte) 0);
+                existingNode.setUpdatedTime(new Date());
+                linkNodeMapper.updateByPrimaryKeySelective(existingNode);
+            }
         }
 
         return new ApiResult<Boolean>().success(true);
