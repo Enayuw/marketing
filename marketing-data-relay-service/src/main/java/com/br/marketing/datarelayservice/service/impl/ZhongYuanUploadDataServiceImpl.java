@@ -8,10 +8,7 @@ import com.br.marketing.datarelayservice.service.ZhongYuanUploadDataService;
 import com.br.marketing.dto.zhongyuan.*;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.clean.DataProcessEnum;
-import com.br.marketing.mapper.CallRecordLLMResultV2Mapper;
-import com.br.marketing.mapper.CallRecordingMapper;
-import com.br.marketing.mapper.ZhongYuanTransferMapper;
-import com.br.marketing.mapper.ZhongYuanUploadMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.mapper.rulecleaning.MarketingCustomerOriginalDataMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -47,6 +44,8 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
     private CallRecordLLMResultV2Mapper callRecordLLMResultV2Mapper;
+    @Resource
+    private MarketingSceneVariableMapper marketingSceneVariableMapper;
     private static final String TOKEN_PREFIX = "zyxj:token:";
     private static final long TOKEN_EXPIRE_TIME = 7200; // 2小时
 
@@ -732,4 +731,92 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.SYSTEM_ERROR.getCode(), ZhongYuanResponseCodeEnum.SYSTEM_ERROR.getMessage() + "：" + e.getMessage());
         }
     }
+
+    @Override
+    public ZhongYuanBaseResponse<?> changeSceneVariable(String jsonData, HttpServletRequest request) {
+        try {
+            log.warn("中原消金外呼任务场景变量修改接口请求，jsonData: {}", jsonData);
+
+            // 1. 解析请求数据
+            ZhongYuanBaseRequest<ChangeSceneVariableRequest> baseRequest = JSON.parseObject(jsonData,
+                    new com.alibaba.fastjson.TypeReference<ZhongYuanBaseRequest<ChangeSceneVariableRequest>>() {
+                    });
+
+            if (baseRequest == null || baseRequest.getData() == null) {
+                return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.PARAM_ERROR.getCode(), 
+                        ZhongYuanResponseCodeEnum.PARAM_ERROR.getMessage());
+            }
+
+            // 2. Token验证
+            ZhongYuanBaseResponse<?> tokenResponse = validateTokenFromRequest(baseRequest);
+            if (!ZhongYuanResponseCodeEnum.SUCCESS.getCode().equals(tokenResponse.getCode())) {
+                return tokenResponse;
+            }
+
+            ChangeSceneVariableRequest changeData = baseRequest.getData();
+
+            // 3. 参数校验
+            if (!StringUtils.hasText(changeData.getTaskUid())) {
+                return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.PARAM_ERROR.getCode(), 
+                        "参数错误：taskUid为空");
+            }
+            
+            if (!StringUtils.hasText(changeData.getSceneCode())) {
+                return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.PARAM_ERROR.getCode(), 
+                        "参数错误：sceneCode为空");
+            }
+            
+            if (changeData.getVariableList() == null || changeData.getVariableList().isEmpty()) {
+                return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.PARAM_ERROR.getCode(), 
+                        "参数错误：variableList为空");
+            }
+
+            // 4. 获取apiCode
+            Map<String, String> zhongYuanIdentity = marketingCommonConfig.getZhongYuanIdentity();
+            String testApiCode = request.getHeader("Test-ApiCode");
+            String apiCode = testApiCode != null ? testApiCode : zhongYuanIdentity.get("apiCode");
+
+            // 5. 记录变更数据到数据库
+            MarketingSceneVariable marketingSceneVariable = new MarketingSceneVariable();
+            marketingSceneVariable.setApiCode(apiCode);
+            marketingSceneVariable.setFlowId(baseRequest.getFlowId());
+            marketingSceneVariable.setSysId(baseRequest.getSysId());
+            marketingSceneVariable.setTimestamp(baseRequest.getTimestamp());
+            marketingSceneVariable.setChannelNo(baseRequest.getChannelNo());
+            marketingSceneVariable.setVersion(baseRequest.getVersion());
+            marketingSceneVariable.setToken(baseRequest.getToken());
+            marketingSceneVariable.setSceneCode(changeData.getSceneCode());
+            marketingSceneVariable.setTaskUid(changeData.getTaskUid());
+            // 将变量列表转换为JSON字符串存储
+            marketingSceneVariable.setVariableList(JSON.toJSONString(changeData.getVariableList()));
+            marketingSceneVariable.setExecuteStatus(0); // 0-待执行
+            marketingSceneVariable.setCreateTime(new Date());
+            marketingSceneVariable.setUpdateTime(new Date());
+
+            // 执行插入操作
+            int insertResult = marketingSceneVariableMapper.insertSelective(marketingSceneVariable);
+            if (insertResult <= 0) {
+                log.error("中原消金外呼任务场景变量修改失败，插入数据库失败，taskUid: {}, sceneCode: {}", 
+                        changeData.getTaskUid(), changeData.getSceneCode());
+                return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.SYSTEM_ERROR.getCode(), 
+                        "数据更新失败");
+            }
+
+            // 6. 构建响应
+            ChangeSceneVariableResponse responseData = new ChangeSceneVariableResponse();
+            responseData.setTaskUid(changeData.getTaskUid());
+            responseData.setEw("更新成功");
+
+            log.warn("中原消金外呼任务场景变量修改成功，taskUid: {}, sceneCode: {}, variableList: {}", 
+                    changeData.getTaskUid(), changeData.getSceneCode(), JSON.toJSONString(changeData.getVariableList()));
+
+            return ZhongYuanBaseResponse.success(responseData);
+
+        } catch (Exception e) {
+            log.error("中原消金外呼任务场景变量修改接口异常", e);
+            return ZhongYuanBaseResponse.fail(ZhongYuanResponseCodeEnum.SYSTEM_ERROR.getCode(), 
+                    ZhongYuanResponseCodeEnum.SYSTEM_ERROR.getMessage() + "：" + e.getMessage());
+        }
+    }
+
 }
