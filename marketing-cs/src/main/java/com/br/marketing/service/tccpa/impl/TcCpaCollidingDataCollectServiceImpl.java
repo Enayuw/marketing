@@ -55,6 +55,9 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
     private TcyrCpaDeleteRuleMapper tcyrCpaDeleteRuleMapper;
 
     @Resource
+    private MarketingTcyrCpaSuccessRecordMapper marketingTcyrCpaSuccessRecordMapper;
+
+    @Resource
     private MarketingTcyrCpaSuccessDataMapper marketingTcyrCpaSuccessDataMapper;
 
     @Override
@@ -71,26 +74,27 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
                         TcCpaCollidingTaskStatusEnum.STATUS_STA_COMPLETED.getValue()))
                 .andEnabledEqualTo(1).andIsDelEqualTo(Constants.DATA_VALID);
         List<TcyrCpaCollidingTask> collidingTasks = tcyrCpaCollidingTaskMapper.selectByExample(collidingExample);
+
+        for (TcyrCpaCollectTask tcyrCpaCollectTask : tcyrCpaCollectTasks) {
+            tcyrCpaCollectTask.setStatus(TcCpaSyncDealStatusEnum.DEAL_MIDDLE.getValue());
+            tcyrCpaCollectTaskMapper.updateByPrimaryKey(tcyrCpaCollectTask);
+
+            Long syncFileId = tcyrCpaCollectTask.getSourceId();
+            TpDynamicExecutor actionPool = TpDynamicExecutorFactory.getThreadPool(
+                    ThreadPoolNameEnum.TCYR_CPA_COLLIDING_DATA_COLLECT.getName(), 50, 50);
+            int threadCount = actionPool.getMaximumPoolSize();
+
+            if (Objects.equals(tcyrCpaCollectTask.getSourceType(), TcCpaCollidingSourceTypeEnum.SUCCESS.getValue())) {
+                successProcess(tcyrCpaCollectTask, syncFileId, actionPool, threadCount);
+            } else {
+                failProcess(tcyrCpaCollectTask, syncFileId, actionPool, threadCount);
+            }
+        }
+
         for (TcyrCpaCollidingTask collidingTask : collidingTasks) {
             try {
                 collidingTask.setStatus(TcCpaCollidingTaskStatusEnum.STATUS_STAING.getValue());
                 tcyrCpaCollidingTaskMapper.updateByPrimaryKey(collidingTask);
-
-                for (TcyrCpaCollectTask tcyrCpaCollectTask : tcyrCpaCollectTasks) {
-                    tcyrCpaCollectTask.setStatus(TcCpaSyncDealStatusEnum.DEAL_MIDDLE.getValue());
-                    tcyrCpaCollectTaskMapper.updateByPrimaryKey(tcyrCpaCollectTask);
-
-                    Long syncFileId = tcyrCpaCollectTask.getSourceId();
-                    TpDynamicExecutor actionPool = TpDynamicExecutorFactory.getThreadPool(
-                            ThreadPoolNameEnum.TCYR_CPA_COLLIDING_DATA_COLLECT.getName(), 50, 50);
-                    int threadCount = actionPool.getMaximumPoolSize();
-
-                    if (Objects.equals(tcyrCpaCollectTask.getSourceType(), TcCpaCollidingSourceTypeEnum.SUCCESS.getValue())) {
-                        successProcess(tcyrCpaCollectTask, syncFileId, actionPool, threadCount);
-                    } else {
-                        failProcess(tcyrCpaCollectTask, syncFileId, actionPool, threadCount);
-                    }
-                }
                 updateDeletedNum(collidingTask);
                 updateSupplyNum(collidingTask);
 
@@ -134,6 +138,11 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
         TcyrCpaDeleteRuleExample deleteRuleExample = new TcyrCpaDeleteRuleExample();
         deleteRuleExample.createCriteria().andIdIn(deleteRuleIds);
         List<TcyrCpaDeleteRule> deleteRules = tcyrCpaDeleteRuleMapper.selectByExample(deleteRuleExample);
+        deleteRules.forEach(deleteRule -> {
+            deleteRule.setDeleteNum(tcyrCpaDeleteRuleMapper.calculateDeleteNumByScript(deleteRule.getExecuteScript()));
+            tcyrCpaDeleteRuleMapper.updateByPrimaryKey(deleteRule);
+        });
+
         List<String> scripts = deleteRules.stream()
                 .map(TcyrCpaDeleteRule::getExecuteScript)
                 .filter(StringUtils::isNotBlank)

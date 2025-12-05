@@ -3,11 +3,11 @@
 <mapper namespace="com.br.marketing.mapper.TcyrCpaDeleteRuleMapper" >
 
     <select id="calculateDeleteNumByScript" resultType="java.lang.Integer">
-        select count(1) from (#{executeScript}) as temp
+        select count(distinct(user_key)) from (${executeScript}) as temp
     </select>
 
     <select id="executeUnionQueries" resultType="java.lang.Integer">
-        SELECT SUM(distinct_value) as total_sum FROM (
+        SELECT count(distinct_value) as total_sum FROM (
         SELECT DISTINCT user_key as distinct_value FROM (
         <foreach collection="scripts" item="script" separator=" UNION ALL ">
             (${script})
