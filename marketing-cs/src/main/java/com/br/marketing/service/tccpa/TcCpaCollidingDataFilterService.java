@@ -7,5 +7,5 @@ package com.br.marketing.service.tccpa;
  **/
 public interface TcCpaCollidingDataFilterService {
 
-    void  process();
+    void process();
 }

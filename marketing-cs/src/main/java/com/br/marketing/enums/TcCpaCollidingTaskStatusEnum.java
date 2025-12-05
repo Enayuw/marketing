@@ -5,8 +5,7 @@ package com.br.marketing.enums;
  */
 public enum TcCpaCollidingTaskStatusEnum {
 
-    STATUS_WAIT_STA(0, "待统计"),
-    STATUS_STAING(1, "统计中"),
+    STATUS_WAIT_STA(1, "待统计"),
     STATUS_STA_COMPLETED(2, "统计完成"),
     STATUS_FILTERING(3, "筛选中"),
     STATUS_FILTER_COMPLETED(4, "筛选完成"),
