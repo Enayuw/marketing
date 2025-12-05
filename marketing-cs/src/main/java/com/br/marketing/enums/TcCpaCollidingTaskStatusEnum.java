@@ -12,7 +12,6 @@ public enum TcCpaCollidingTaskStatusEnum {
     STATUS_PUSHING(5, "推送中"),
     STATUS_PUSH_COMPLETED(6, "推送完成"),
     STATUS_PUSH_FAIL(7, "推送失败"),
-    STATUS_STA_FAIL(8, "统计失败"),
     ;
 
     TcCpaCollidingTaskStatusEnum(Integer value, String desc){
