@@ -1,6 +1,6 @@
 package com.br.marketing.datarelayservice.client;
 
-import com.br.marketing.entity.EventPushData;
+import com.br.marketing.entity.RobotEventPushData;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -14,6 +14,6 @@ import java.util.List;
 @Data
 public class QiFuAiRobotEventPushBizDataDTO implements Serializable {
 
-    private List<EventPushData> eventList;
+    private List<RobotEventPushData> eventList;
 
 }

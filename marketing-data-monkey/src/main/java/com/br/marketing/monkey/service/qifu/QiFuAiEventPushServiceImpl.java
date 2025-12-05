@@ -10,7 +10,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.entity.BQifuUploadDataOriginal;
 import com.br.marketing.entity.DrsCustomizeUploadData;
-import com.br.marketing.entity.EventPushData;
+import com.br.marketing.entity.RobotEventPushData;
 import com.br.marketing.mapper.BQifuUploadDataOriginalMapper;
 import com.br.marketing.mapper.DrsCustomizeUploadDataMapper;
 import com.br.marketing.service.Impl.qifu.enums.QiFuDataTypeEnum;
@@ -75,20 +75,20 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
                 List<BQifuUploadDataOriginal> resultList = new ArrayList<>();
 
                 JSONObject jsonObject = JSONObject.parseObject(drsCustomizeUploadData.getRequestJsonData());
-                List<EventPushData> eventPushDataList = jsonObject.getJSONArray("eventList").toJavaList(EventPushData.class);
+                List<RobotEventPushData> robotEventPushDataList = jsonObject.getJSONArray("eventList").toJavaList(RobotEventPushData.class);
 
-                if (eventPushDataList != null && !CollectionUtils.isEmpty(eventPushDataList)) {
-                    for (EventPushData eventPushData : eventPushDataList) {
-                        String serialNo = eventPushData.getSerialNo();
+                if (robotEventPushDataList != null && !CollectionUtils.isEmpty(robotEventPushDataList)) {
+                    for (RobotEventPushData robotEventPushData : robotEventPushDataList) {
+                        String serialNo = robotEventPushData.getSerialNo();
 
                         //根据serialNo查询明细表
                         List<BQifuUploadDataOriginal> uploadDataOriginalList = qiFuAiEventPushService.getQiFuUploadDataOriginalBySerialNo(serialNo);
                         if (!CollectionUtils.isEmpty(uploadDataOriginalList)) {
                             BQifuUploadDataOriginal bqifuUploadDataOriginal = uploadDataOriginalList.get(0);
-                            bqifuUploadDataOriginal.setEventType(eventPushData.getEventType());
+                            bqifuUploadDataOriginal.setEventType(robotEventPushData.getEventType());
                             bqifuUploadDataOriginal.setSerialNo(serialNo);
-                            bqifuUploadDataOriginal.setTemplateNo(eventPushData.getTemplateNo());
-                            bqifuUploadDataOriginal.setFlowNo(eventPushData.getFlowNo());
+                            bqifuUploadDataOriginal.setTemplateNo(robotEventPushData.getTemplateNo());
+                            bqifuUploadDataOriginal.setFlowNo(robotEventPushData.getFlowNo());
                             resultList.add(bqifuUploadDataOriginal);
                         }
                     }
