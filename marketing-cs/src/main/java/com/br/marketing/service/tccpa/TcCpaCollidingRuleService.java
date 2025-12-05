@@ -4,6 +4,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.tccpa.TcCpaCollidingRuleDTO;
 import com.br.marketing.dto.tccpa.TcCpaCollidingRuleInfoDTO;
+import com.br.marketing.dto.tccpa.TcCpaCollidingRuleQueryDTO;
 import com.br.marketing.dto.tccpa.TcyrFailMsgSupplyGroupDTO;
 
 import java.util.List;
@@ -22,9 +23,10 @@ public interface TcCpaCollidingRuleService {
 
     Result rule(TcCpaCollidingRuleDTO ruleDTO);
 
-    PageResultReturn list(int current, int size, String packageName, Integer enabled);
+    PageResultReturn list(TcCpaCollidingRuleQueryDTO dto);
 
     Result update(TcCpaCollidingRuleDTO ruleDTO);
 
     Result enable(Long taskId, Integer enabled);
+
 }

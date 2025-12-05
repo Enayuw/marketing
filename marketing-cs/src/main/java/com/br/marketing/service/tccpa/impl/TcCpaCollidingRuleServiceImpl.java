@@ -204,13 +204,17 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
     }
 
     @Override
-    public PageResultReturn list(int current, int size, String packageName, Integer enabled) {
-        PageHelper.startPage(current, size);
+    public PageResultReturn list(TcCpaCollidingRuleQueryDTO dto) {
+        PageHelper.startPage(dto.getCurrent(), dto.getSize());
         List<TcCpaCollidingTaskDTO> dtos = new ArrayList<>();
         //1.数据查询
-        List<TcyrCpaCollidingTask> taskList = tcyrCpaCollidingTaskMapper.queryTaskListbyPage(packageName, enabled);
+        List<TcyrCpaCollidingTask> taskList = tcyrCpaCollidingTaskMapper.queryTaskListbyPage(
+                dto.getPackageName(),
+                dto.getEnabled(),
+                dto.getCollidingDateBegin(),
+                dto.getCollidingDateEnd());
         if (CollectionUtils.isEmpty(taskList)) {
-            return PageResultReturn.setPageResult(dtos, current, size);
+            return PageResultReturn.setPageResult(dtos, dto.getCurrent(), dto.getSize());
         }
         //2.获取MarketingCustomer
         Map<String, MarketingCustomer> customers = getCustomer(taskList);
@@ -257,7 +261,7 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
                 taskDTO.setReleaseTimes(String.join(",", releaseTimeSet));
             }
         }
-        return PageResultReturn.setPageResult(dtos, current, size);
+        return PageResultReturn.setPageResult(dtos, dto.getCurrent(), dto.getSize());
     }
 
     @Override

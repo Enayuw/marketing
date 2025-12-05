@@ -4,8 +4,10 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.tccpa.TcCpaCollidingRuleDTO;
 import com.br.marketing.dto.tccpa.TcCpaCollidingRuleInfoDTO;
+import com.br.marketing.dto.tccpa.TcCpaCollidingRuleQueryDTO;
 import com.br.marketing.dto.tccpa.TcyrFailMsgSupplyGroupDTO;
 import com.br.marketing.service.tccpa.TcCpaCollidingRuleService;
+import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -49,18 +51,8 @@ public class TcCpaCollidingRuleController {
 
     @Operation(summary = "同程CPA撞库规则列表查询", description = "同程CPA撞库规则列表查询")
     @GetMapping("/list")
-    @Parameters({
-            @Parameter(name = "current", description = "页号"),
-            @Parameter(name = "size", description = "页大小"),
-            @Parameter(name = "packageName", description = "数据包名称"),
-            @Parameter(name = "enabled", description = "任务状态")
-    })
-    public ApiResult<PageResultReturn> list(@RequestParam(defaultValue = "1") int current,
-                                            @RequestParam(defaultValue = "10") int size,
-                                            @RequestParam(required = false) String packageName,
-                                            @RequestParam(required = false) Integer enabled) {
-        return new ApiResult<PageResultReturn>().success(
-                tcCpaCollidingRuleService.list(current, size, packageName, enabled));
+    public ApiResult<PageResultReturn> list(@Valid TcCpaCollidingRuleQueryDTO dto) {
+        return new ApiResult<PageResultReturn>().success(tcCpaCollidingRuleService.list(dto));
     }
 
     @Operation(summary = "同程CPA撞库规则修改", description = "同程CPA撞库规则修改")

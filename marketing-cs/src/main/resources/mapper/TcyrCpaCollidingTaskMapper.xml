@@ -11,6 +11,10 @@
         <if test="enabled !=null">
             AND enabled = #{enabled}
         </if>
+        <if test="collidingDateBegin != null and collidingDateBegin != '' and collidingDateEnd != null and collidingDateEnd != ''">
+            AND colliding_time <![CDATA[ >= ]]> #{collidingDateBegin}
+            AND colliding_time <![CDATA[ <= ]]> #{collidingDateEnd}
+        </if>
         order by colliding_date desc, colliding_time asc
     </select>
 
