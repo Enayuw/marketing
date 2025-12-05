@@ -5,12 +5,14 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.common.log.AlertLog;
+import com.br.marketing.aspect.Mockable;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.constants.MockConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -42,6 +44,7 @@ public class SuiyijiClient {
 
     @RetryMethod(retryNowNum = 2)
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
+    @Mockable(mockName = MockConstants.SUIYIJI_QUERY_BLACK)
     public Result<String> getBlackList() {
         try {
             HashMap<String, String> resMap = httpProxyClient.getWithLog(getBlackUrl, isProxy, null);

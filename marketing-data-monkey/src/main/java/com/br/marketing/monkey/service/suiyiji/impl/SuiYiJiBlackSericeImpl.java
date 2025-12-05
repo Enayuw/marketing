@@ -2,10 +2,12 @@ package com.br.marketing.monkey.service.suiyiji.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.encryption.Md5Utils;
 import com.br.marketing.client.marketingapi.input.PushTransferDataDetailDTO;
 import com.br.marketing.client.suiyiji.SuiyijiClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.validators.user.UserValidator;
 import com.br.marketing.dto.TransferDataDTO;
 import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.monkey.service.suiyiji.SuiYiJiBlackService;
@@ -41,6 +43,7 @@ public class SuiYiJiBlackSericeImpl implements SuiYiJiBlackService {
         if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
             return;
         }
+        log.warn("随意记黑名单查询结果result={}",JSON.toJSONString(result));
         String jsonData = result.getData();
         List<String> blackList = JSON.parseArray(jsonData, String.class);
         List<List<String>> splitLists = Lists.partition(blackList, 500);
@@ -48,6 +51,11 @@ public class SuiYiJiBlackSericeImpl implements SuiYiJiBlackService {
             List<TransferDataItemDTO> dataItems = new ArrayList<>();
             for (String cell : blackDatas) {
                 TransferDataItemDTO item = new TransferDataItemDTO();
+                UserValidator userValidator = new UserValidator(0);
+                //明文进行MD5处理
+                if (userValidator.validatePhone(cell)) {
+                    cell = Md5Utils.cell32(cell);
+                }
                 item.setCustNum(cell);
                 item.setUserType("1");
                 JSONObject reserveField1 = new JSONObject();

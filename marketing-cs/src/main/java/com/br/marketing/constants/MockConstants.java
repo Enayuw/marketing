@@ -28,7 +28,10 @@ public final class MockConstants {
     public static final String TEST_DTO_RETURN = "test_dto_return";
     public static final String TEST_LIST_RETURN = "test_list_return";
     // ==================== 工具方法 ====================
-    
+    //随意记黑名单获取MOCK
+    public static final String SUIYIJI_QUERY_BLACK = "suiyiji_query_black";
+
+
     /**
      * 获取所有Mock名称的列表
      * @return 所有Mock名称列表
@@ -43,7 +46,8 @@ public final class MockConstants {
             TEST_RESULT_RETURN,
             // 复杂对象类型
             TEST_DTO_RETURN,
-            TEST_LIST_RETURN
+            TEST_LIST_RETURN,
+            SUIYIJI_QUERY_BLACK
         );
     }
     
