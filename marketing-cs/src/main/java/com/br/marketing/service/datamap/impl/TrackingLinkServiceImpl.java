@@ -97,22 +97,7 @@ public class TrackingLinkServiceImpl implements TrackingLinkService {
         linkMapper.insertSelective(bizTrackingLink);
         Long linkId = bizTrackingLink.getId();
 
-        // 3. Create link nodes
-        if (!CollectionUtils.isEmpty(request.getNodes())) {
-            for (LinkNodeVO nodeDTO : request.getNodes()) {
-                BizTrackingLinkNode bizTrackingLinkNode = new BizTrackingLinkNode();
-                bizTrackingLinkNode.setLinkId(linkId);
-                bizTrackingLinkNode.setNodeId(nodeDTO.getNodeId());
-                bizTrackingLinkNode.setNodeDictId(nodeDTO.getNodeDictId());
-                bizTrackingLinkNode.setNodeAlias(nodeDTO.getNodeAlias());
-                bizTrackingLinkNode.setStatus((byte)1);
-                bizTrackingLinkNode.setCreatedTime(new Date());
-                bizTrackingLinkNode.setUpdatedTime(new Date());
-                linkNodeMapper.insertSelective(bizTrackingLinkNode);
-            }
-        }
-
-        // 4. Build response
+        // 3. Build response
         CreateLinkResponse response = CreateLinkResponse.builder()
                 .linkId(linkId)
                 .linkCode(linkCode)
