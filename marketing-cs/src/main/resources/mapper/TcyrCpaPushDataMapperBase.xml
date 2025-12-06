@@ -5,6 +5,7 @@
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="task_id" property="taskId" jdbcType="INTEGER" />
     <result column="colliding_date" property="collidingDate" jdbcType="DATE" />
+    <result column="package_id" property="packageId" jdbcType="BIGINT" />
     <result column="priority" property="priority" jdbcType="INTEGER" />
     <result column="user_key" property="userKey" jdbcType="VARCHAR" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
@@ -71,7 +72,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, task_id, colliding_date, priority, user_key, is_del, extend, create_time, update_time
+    id, task_id, colliding_date, package_id, priority, user_key, is_del, extend, create_time,
+    update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.TcyrCpaPushDataExample" >
     select
@@ -107,12 +109,14 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_tcyr_cpa_push_data (task_id, colliding_date, priority,
-    user_key, is_del, extend,
-    create_time, update_time)
-    values (#{taskId,jdbcType=INTEGER}, #{collidingDate,jdbcType=DATE}, #{priority,jdbcType=INTEGER},
-    #{userKey,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR},
-    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+    insert into b_tcyr_cpa_push_data (task_id, colliding_date, package_id,
+    priority, user_key, is_del,
+    extend, create_time, update_time
+    )
+    values (#{taskId,jdbcType=INTEGER}, #{collidingDate,jdbcType=DATE}, #{packageId,jdbcType=BIGINT},
+    #{priority,jdbcType=INTEGER}, #{userKey,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER},
+    #{extend,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+    )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.TcyrCpaPushData" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -125,6 +129,9 @@
       </if>
       <if test="collidingDate != null" >
         colliding_date,
+      </if>
+      <if test="packageId != null" >
+        package_id,
       </if>
       <if test="priority != null" >
         priority,
@@ -151,6 +158,9 @@
       </if>
       <if test="collidingDate != null" >
         #{collidingDate,jdbcType=DATE},
+      </if>
+      <if test="packageId != null" >
+        #{packageId,jdbcType=BIGINT},
       </if>
       <if test="priority != null" >
         #{priority,jdbcType=INTEGER},
@@ -190,6 +200,9 @@
       <if test="record.collidingDate != null" >
         colliding_date = #{record.collidingDate,jdbcType=DATE},
       </if>
+      <if test="record.packageId != null" >
+        package_id = #{record.packageId,jdbcType=BIGINT},
+      </if>
       <if test="record.priority != null" >
         priority = #{record.priority,jdbcType=INTEGER},
       </if>
@@ -218,6 +231,7 @@
     set id = #{record.id,jdbcType=BIGINT},
     task_id = #{record.taskId,jdbcType=INTEGER},
     colliding_date = #{record.collidingDate,jdbcType=DATE},
+    package_id = #{record.packageId,jdbcType=BIGINT},
     priority = #{record.priority,jdbcType=INTEGER},
     user_key = #{record.userKey,jdbcType=VARCHAR},
     is_del = #{record.isDel,jdbcType=INTEGER},
@@ -236,6 +250,9 @@
       </if>
       <if test="collidingDate != null" >
         colliding_date = #{collidingDate,jdbcType=DATE},
+      </if>
+      <if test="packageId != null" >
+        package_id = #{packageId,jdbcType=BIGINT},
       </if>
       <if test="priority != null" >
         priority = #{priority,jdbcType=INTEGER},
@@ -262,6 +279,7 @@
     update b_tcyr_cpa_push_data
     set task_id = #{taskId,jdbcType=INTEGER},
         colliding_date = #{collidingDate,jdbcType=DATE},
+        package_id = #{packageId,jdbcType=BIGINT},
         priority = #{priority,jdbcType=INTEGER},
         user_key = #{userKey,jdbcType=VARCHAR},
         is_del = #{isDel,jdbcType=INTEGER},

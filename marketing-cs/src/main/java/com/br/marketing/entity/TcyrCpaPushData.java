@@ -19,6 +19,11 @@ public class TcyrCpaPushData {
     private Date collidingDate;
 
     /**
+     * 数据包id
+     */
+    private Long packageId;
+
+    /**
      * 优先级
      */
     private Integer priority;
@@ -70,6 +75,14 @@ public class TcyrCpaPushData {
 
     public void setCollidingDate(Date collidingDate) {
         this.collidingDate = collidingDate;
+    }
+
+    public Long getPackageId() {
+        return packageId;
+    }
+
+    public void setPackageId(Long packageId) {
+        this.packageId = packageId;
     }
 
     public Integer getPriority() {
