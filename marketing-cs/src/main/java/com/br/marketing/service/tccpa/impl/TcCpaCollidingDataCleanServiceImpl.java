@@ -128,7 +128,7 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
             tcyrCpaCollidingDataCleanTaskMapper.updateByPrimaryKeySelective(cleanTask);
             //5.开启线程池
             threadPool = TpDynamicExecutorFactory
-                    .getThreadPool(ThreadPoolNameEnum.XIECHENG_CYCLE_DELETE_EST.getName(), 10, 100);
+                    .getThreadPool(ThreadPoolNameEnum.XIECHENG_CYCLE_DELETE_EST.getName(), 50, 100);
             List<CompletableFuture<Void>> futures = new ArrayList<>();
             //6.删除数据包
             if (CollectionUtils.isNotEmpty(deletePackages)) {

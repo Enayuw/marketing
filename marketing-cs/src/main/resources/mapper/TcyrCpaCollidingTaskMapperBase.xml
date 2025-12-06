@@ -16,6 +16,8 @@
     <result column="push_time" property="pushTime" jdbcType="TIMESTAMP" />
     <result column="push_num" property="pushNum" jdbcType="INTEGER" />
     <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="filter_info" property="filterInfo" jdbcType="VARCHAR" />
+    <result column="isRetry" property="isretry" jdbcType="INTEGER" />
     <result column="enabled" property="enabled" jdbcType="INTEGER" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
     <result column="extend" property="extend" jdbcType="VARCHAR" />
@@ -83,7 +85,7 @@
   <sql id="Base_Column_List" >
     id, api_code, package_ids, package_names, colliding_date, colliding_time, limit_num,
     delete_rule_ids, delete_num, supply_rule_info, supply_num, push_time, push_num, `status`,
-    enabled, is_del, extend, create_time, update_time
+    filter_info, isRetry, enabled, is_del, extend, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.TcyrCpaCollidingTaskExample" >
     select
@@ -123,16 +125,16 @@
     colliding_date, colliding_time, limit_num,
     delete_rule_ids, delete_num, supply_rule_info,
     supply_num, push_time, push_num,
-    `status`, enabled, is_del,
-    extend, create_time, update_time
-    )
+    `status`, filter_info, isRetry,
+    enabled, is_del, extend,
+    create_time, update_time)
     values (#{apiCode,jdbcType=VARCHAR}, #{packageIds,jdbcType=VARCHAR}, #{packageNames,jdbcType=VARCHAR},
     #{collidingDate,jdbcType=DATE}, #{collidingTime,jdbcType=TIMESTAMP}, #{limitNum,jdbcType=INTEGER},
     #{deleteRuleIds,jdbcType=VARCHAR}, #{deleteNum,jdbcType=INTEGER}, #{supplyRuleInfo,jdbcType=VARCHAR},
     #{supplyNum,jdbcType=INTEGER}, #{pushTime,jdbcType=TIMESTAMP}, #{pushNum,jdbcType=INTEGER},
-    #{status,jdbcType=INTEGER}, #{enabled,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER},
-    #{extend,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
-    )
+    #{status,jdbcType=INTEGER}, #{filterInfo,jdbcType=VARCHAR}, #{isretry,jdbcType=INTEGER},
+    #{enabled,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR},
+    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.TcyrCpaCollidingTask" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -178,6 +180,12 @@
       </if>
       <if test="status != null" >
         `status`,
+      </if>
+      <if test="filterInfo != null" >
+        filter_info,
+      </if>
+      <if test="isretry != null" >
+        isRetry,
       </if>
       <if test="enabled != null" >
         enabled,
@@ -234,6 +242,12 @@
       </if>
       <if test="status != null" >
         #{status,jdbcType=INTEGER},
+      </if>
+      <if test="filterInfo != null" >
+        #{filterInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="isretry != null" >
+        #{isretry,jdbcType=INTEGER},
       </if>
       <if test="enabled != null" >
         #{enabled,jdbcType=INTEGER},
@@ -303,6 +317,12 @@
       <if test="record.status != null" >
         `status` = #{record.status,jdbcType=INTEGER},
       </if>
+      <if test="record.filterInfo != null" >
+        filter_info = #{record.filterInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isretry != null" >
+        isRetry = #{record.isretry,jdbcType=INTEGER},
+      </if>
       <if test="record.enabled != null" >
         enabled = #{record.enabled,jdbcType=INTEGER},
       </if>
@@ -339,6 +359,8 @@
     push_time = #{record.pushTime,jdbcType=TIMESTAMP},
     push_num = #{record.pushNum,jdbcType=INTEGER},
     `status` = #{record.status,jdbcType=INTEGER},
+    filter_info = #{record.filterInfo,jdbcType=VARCHAR},
+    isRetry = #{record.isretry,jdbcType=INTEGER},
     enabled = #{record.enabled,jdbcType=INTEGER},
     is_del = #{record.isDel,jdbcType=INTEGER},
     extend = #{record.extend,jdbcType=VARCHAR},
@@ -390,6 +412,12 @@
       <if test="status != null" >
         `status` = #{status,jdbcType=INTEGER},
       </if>
+      <if test="filterInfo != null" >
+        filter_info = #{filterInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="isretry != null" >
+        isRetry = #{isretry,jdbcType=INTEGER},
+      </if>
       <if test="enabled != null" >
         enabled = #{enabled,jdbcType=INTEGER},
       </if>
@@ -423,6 +451,8 @@
         push_time = #{pushTime,jdbcType=TIMESTAMP},
         push_num = #{pushNum,jdbcType=INTEGER},
         `status` = #{status,jdbcType=INTEGER},
+        filter_info = #{filterInfo,jdbcType=VARCHAR},
+        isRetry = #{isretry,jdbcType=INTEGER},
         enabled = #{enabled,jdbcType=INTEGER},
         is_del = #{isDel,jdbcType=INTEGER},
         extend = #{extend,jdbcType=VARCHAR},

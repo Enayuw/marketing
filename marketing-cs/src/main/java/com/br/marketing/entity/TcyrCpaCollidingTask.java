@@ -19,6 +19,11 @@ public class TcyrCpaCollidingTask {
     private String packageIds;
 
     /**
+     * 重试数据包id集合
+     */
+    private String retryPackageIds;
+
+    /**
      * 数据包名称集合
      */
     private String packageNames;
@@ -74,6 +79,11 @@ public class TcyrCpaCollidingTask {
     private Integer status;
 
     /**
+     * 重新筛选
+     */
+    private Integer isretry;
+
+    /**
      * 禁用标志 0-禁用 1-启用
      */
     private Integer enabled;
@@ -120,6 +130,14 @@ public class TcyrCpaCollidingTask {
 
     public void setPackageIds(String packageIds) {
         this.packageIds = packageIds == null ? null : packageIds.trim();
+    }
+
+    public String getRetryPackageIds() {
+        return retryPackageIds;
+    }
+
+    public void setRetryPackageIds(String retryPackageIds) {
+        this.retryPackageIds = retryPackageIds == null ? null : retryPackageIds.trim();
     }
 
     public String getPackageNames() {
@@ -208,6 +226,14 @@ public class TcyrCpaCollidingTask {
 
     public void setStatus(Integer status) {
         this.status = status;
+    }
+
+    public Integer getIsretry() {
+        return isretry;
+    }
+
+    public void setIsretry(Integer isretry) {
+        this.isretry = isretry;
     }
 
     public Integer getEnabled() {

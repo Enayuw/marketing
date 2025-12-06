@@ -25,4 +25,6 @@ public interface TcyrCpaCollidingDataMapper extends TcyrCpaCollidingDataMapperBa
     int updateIsDelByIds(@Param("ids") List<Long> ids);
 
     Long queryUnDeleteCounttiflash_(@Param("packageId")Long packageId);
+
+    List<String> queryuserKeyWithPagetikv_(@Param("packageId")Long packageId, @Param("minUserKey") String minUserKey);
 }

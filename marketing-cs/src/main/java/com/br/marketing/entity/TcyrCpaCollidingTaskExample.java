@@ -332,6 +332,76 @@ public class TcyrCpaCollidingTaskExample {
             return (Criteria) this;
         }
 
+        public Criteria andRetryPackageIdsIsNull() {
+            addCriterion("retry_package_ids is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetryPackageIdsIsNotNull() {
+            addCriterion("retry_package_ids is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetryPackageIdsEqualTo(String value) {
+            addCriterion("retry_package_ids =", value, "retryPackageIds");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetryPackageIdsNotEqualTo(String value) {
+            addCriterion("retry_package_ids <>", value, "retryPackageIds");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetryPackageIdsGreaterThan(String value) {
+            addCriterion("retry_package_ids >", value, "retryPackageIds");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetryPackageIdsGreaterThanOrEqualTo(String value) {
+            addCriterion("retry_package_ids >=", value, "retryPackageIds");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetryPackageIdsLessThan(String value) {
+            addCriterion("retry_package_ids <", value, "retryPackageIds");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetryPackageIdsLessThanOrEqualTo(String value) {
+            addCriterion("retry_package_ids <=", value, "retryPackageIds");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetryPackageIdsLike(String value) {
+            addCriterion("retry_package_ids like", value, "retryPackageIds");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetryPackageIdsNotLike(String value) {
+            addCriterion("retry_package_ids not like", value, "retryPackageIds");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetryPackageIdsIn(List<String> values) {
+            addCriterion("retry_package_ids in", values, "retryPackageIds");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetryPackageIdsNotIn(List<String> values) {
+            addCriterion("retry_package_ids not in", values, "retryPackageIds");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetryPackageIdsBetween(String value1, String value2) {
+            addCriterion("retry_package_ids between", value1, value2, "retryPackageIds");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetryPackageIdsNotBetween(String value1, String value2) {
+            addCriterion("retry_package_ids not between", value1, value2, "retryPackageIds");
+            return (Criteria) this;
+        }
+
         public Criteria andPackageNamesIsNull() {
             addCriterion("package_names is null");
             return (Criteria) this;
@@ -1019,6 +1089,66 @@ public class TcyrCpaCollidingTaskExample {
 
         public Criteria andStatusNotBetween(Integer value1, Integer value2) {
             addCriterion("`status` not between", value1, value2, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsretryIsNull() {
+            addCriterion("isRetry is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsretryIsNotNull() {
+            addCriterion("isRetry is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsretryEqualTo(Integer value) {
+            addCriterion("isRetry =", value, "isretry");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsretryNotEqualTo(Integer value) {
+            addCriterion("isRetry <>", value, "isretry");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsretryGreaterThan(Integer value) {
+            addCriterion("isRetry >", value, "isretry");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsretryGreaterThanOrEqualTo(Integer value) {
+            addCriterion("isRetry >=", value, "isretry");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsretryLessThan(Integer value) {
+            addCriterion("isRetry <", value, "isretry");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsretryLessThanOrEqualTo(Integer value) {
+            addCriterion("isRetry <=", value, "isretry");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsretryIn(List<Integer> values) {
+            addCriterion("isRetry in", values, "isretry");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsretryNotIn(List<Integer> values) {
+            addCriterion("isRetry not in", values, "isretry");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsretryBetween(Integer value1, Integer value2) {
+            addCriterion("isRetry between", value1, value2, "isretry");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsretryNotBetween(Integer value1, Integer value2) {
+            addCriterion("isRetry not between", value1, value2, "isretry");
             return (Criteria) this;
         }
 

@@ -66,4 +66,14 @@
         and is_del = 1
     </select>
 
+    <select id="queryuserKeyWithPagetikv_" resultType="java.lang.String">
+        select user_key from b_tcyr_cpa_colliding_data
+        where package_id = #{packageId}
+        and is_del = 1
+        <if test="minUserKey != null">
+            and user_key > #{minUserKey}
+        </if>
+        order by user_key limit 2000
+    </select>
+
 </mapper>
