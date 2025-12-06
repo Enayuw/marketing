@@ -3,10 +3,21 @@
 <mapper namespace="com.br.marketing.mapper.TcyrCpaPushDataMapper" >
 
     <select id="countByTaskId" resultType="java.lang.Integer">
-        select count(1) from tcyr_cpa_push_data where task_id = #{taskId}
+        select count(1)
+        from b_tcyr_cpa_push_data
+        where task_id = #{taskId}
     </select>
 
-    <select id="selectByTaskIdWithPagination" resultType="com.br.marketing.entity.TcyrCpaPushData">
-        select * from tcyr_cpa_push_data where task_id = #{taskId} limit #{offset}, #{limit}
+    <select id="selectWithPagination" resultType="com.br.marketing.entity.TcyrCpaPushData">
+        select id, user_key, priority
+        from b_tcyr_cpa_push_data
+        where is_del = 1
+          and colliding_date = curdate()
+          and (
+            priority > #{lastPriority}
+                or (priority = #{lastPriority} and id > #{lastId})
+            )
+        order by priority desc, id asc
+            limit #{limit}
     </select>
 </mapper>

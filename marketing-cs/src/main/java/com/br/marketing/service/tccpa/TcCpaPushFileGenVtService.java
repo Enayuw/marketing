@@ -5,7 +5,7 @@ package com.br.marketing.service.tccpa;
  * @author xiong.luo
  * @date 2025/12/02 19:10
  **/
-public interface TcCpaPushFileGenVTService {
+public interface TcCpaPushFileGenVtService {
 
     void process();
 }

@@ -14,7 +14,9 @@ public interface TcyrCpaPushDataMapper extends TcyrCpaPushDataMapperBase{
     /**
      * 分页查询数据
      */
-    List<TcyrCpaPushData> selectByTaskIdWithPagination(@Param("taskId") Integer taskId, @Param("offset") int offset,
-            @Param("limit") int limit);
-
+    List<TcyrCpaPushData> selectWithPagination(
+            @Param("lastPriority") Integer lastPriority,
+            @Param("lastId") Long lastId,
+            @Param("limit") Integer limit
+    );
 }

@@ -89,7 +89,7 @@ public class TcCpaCommonServiceImpl implements TcCpaCommonService {
         List<TcyrCpaDeleteRule> deleteRules = tcyrCpaDeleteRuleMapper.selectByExample(deleteRuleExample);
 
         List<String> scripts = deleteRules.stream()
-                .map(TcyrCpaDeleteRule::getExecuteScript)
+                .map(TcyrCpaDeleteRule::getExecuteInfo)
                 .filter(StringUtils::isNotBlank)
                 .collect(Collectors.toList());
 

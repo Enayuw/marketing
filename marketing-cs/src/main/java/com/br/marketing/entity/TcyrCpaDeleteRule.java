@@ -33,7 +33,7 @@ public class TcyrCpaDeleteRule {
     /**
      * 执行脚本
      */
-    private String executeScript;
+    private String executeInfo;
 
     /**
      * 规则量级
@@ -105,12 +105,12 @@ public class TcyrCpaDeleteRule {
         this.failMsgs = failMsgs == null ? null : failMsgs.trim();
     }
 
-    public String getExecuteScript() {
-        return executeScript;
+    public String getExecuteInfo() {
+        return executeInfo;
     }
 
-    public void setExecuteScript(String executeScript) {
-        this.executeScript = executeScript == null ? null : executeScript.trim();
+    public void setExecuteInfo(String executeInfo) {
+        this.executeInfo = executeInfo == null ? null : executeInfo.trim();
     }
 
     public Integer getDeleteNum() {

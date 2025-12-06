@@ -3,22 +3,24 @@ package com.br.marketing.service.tccpa.impl;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.tccpa.FilePushTaskFileDTO;
 import com.br.marketing.dto.tccpa.FilePushTaskInfo;
-import com.br.marketing.dto.tccpa.FilePushTaskScriptNumDTO;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.TcCpaCollidingTaskStatusEnum;
 import com.br.marketing.enums.TcCpaIsDelEnum;
-import com.br.marketing.enums.TcCpaPushFileScriptPriorityEnum;
 import com.br.marketing.enums.TcCpaPushFileTaskStatusEnum;
-import com.br.marketing.mapper.MarketingTcyrCpaPushFileScriptMapper;
+import com.br.marketing.mapper.TcyrCpaCollidingTaskMapper;
+import com.br.marketing.mapper.TcyrCpaPushDataMapper;
 import com.br.marketing.mapper.TcyrCpaPushFileTaskVtMapper;
 import com.br.marketing.service.Impl.SftpInnerServiceImpl;
 import com.br.marketing.service.SyncConfigService;
-import com.br.marketing.service.tccpa.TcCpaPushFileGenVTService;
+import com.br.marketing.service.tccpa.TcCpaPushFileGenVtService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.api.client.util.Lists;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -37,16 +39,16 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-@Service
 @Slf4j
-public class TcCpaPushFileGenVTServiceImpl implements TcCpaPushFileGenVTService {
+@Service
+public class TcCpaPushFileGenVtServiceImpl implements TcCpaPushFileGenVtService {
 
     @Value("${innerSftp.uploadpath:00}")
     private String upLoadPath;
 
-    private final static String TITLE = "【同程易融CPA-推送文件数据生成】";
+    private final static String TITLE = "【TCYR CPA自动化-推送文件数据生成】";
 
-    private final static String FILE_PATH = "/tongcheng_cpa_push_file/";
+    private final static String FILE_PATH = "/tongcheng_cpa_push_file_vt/";
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -57,47 +59,73 @@ public class TcCpaPushFileGenVTServiceImpl implements TcCpaPushFileGenVTService 
     private TcyrCpaPushFileTaskVtMapper tcyrCpaPushFileTaskVtMapper;
 
     @Resource
-    private MarketingTcyrCpaPushFileScriptMapper tcyrCpaPushFileScriptMapper;
+    private TcyrCpaPushDataMapper tcyrCpaPushDataMapper;
 
     @Resource
-    SyncConfigService syncConfigService;
+    private SyncConfigService syncConfigService;
 
     @Resource
     private SftpInnerServiceImpl sftpInnerService;
+
+    @Resource
+    private TcyrCpaCollidingTaskMapper tcyrCpaCollidingTaskMapper;
 
     @Override
     public void process() {
         String apiCode = marketingCommonConfig.getTcyrCpaApiCode();
         //1.查询今天是否已有推送文件任务
         TcyrCpaPushFileTaskVtExample taskExample = new TcyrCpaPushFileTaskVtExample();
-        taskExample.createCriteria()
-                .andApiCodeEqualTo(apiCode)
-                .andPushDateEqualTo(new Date())
+        taskExample.createCriteria().andApiCodeEqualTo(apiCode).andPushDateEqualTo(new Date())
                 .andStatusNotEqualTo(TcCpaPushFileTaskStatusEnum.STATUS_FAIL.getValue())
                 .andIsDelEqualTo(TcCpaIsDelEnum.DEL_NO.getValue());
         List<TcyrCpaPushFileTaskVt> tasks = tcyrCpaPushFileTaskVtMapper.selectByExample(taskExample);
-        if (tasks.size() > 0) {
+        if (CollectionUtils.isNotEmpty(tasks)) {
             return;
         }
+
+        // 判断撞库任务是否还有没筛选完成的
+        TcyrCpaCollidingTaskExample example = new TcyrCpaCollidingTaskExample();
+        example.createCriteria().andApiCodeEqualTo(apiCode).andIsDelEqualTo(TcCpaIsDelEnum.DEL_NO.getValue())
+                .andCollidingDateEqualTo(new Date())
+                .andStatusLessThan(TcCpaCollidingTaskStatusEnum.STATUS_FILTER_COMPLETED.getValue());
+        if (tcyrCpaCollidingTaskMapper.countByExample(example) > 0) {
+            return;
+        }
+        // 查询已经完成筛选的任务
+        example = new TcyrCpaCollidingTaskExample();
+        example.createCriteria().andApiCodeEqualTo(apiCode).andIsDelEqualTo(TcCpaIsDelEnum.DEL_NO.getValue())
+                .andStatusEqualTo(TcCpaCollidingTaskStatusEnum.STATUS_FILTER_COMPLETED.getValue());
+        List<TcyrCpaCollidingTask> collidingTasks = tcyrCpaCollidingTaskMapper.selectByExample(example);
+        if (CollectionUtils.isEmpty(collidingTasks)) {
+            return;
+        }
+        // 更新撞库任务状态
+        collidingTasks.forEach(collidingTask -> {
+            collidingTask.setStatus(TcCpaCollidingTaskStatusEnum.STATUS_PUSHING.getValue());
+            tcyrCpaCollidingTaskMapper.updateByPrimaryKeySelective(collidingTask);
+        });
+
         //2.服务器路径
         String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
-        String localPath = syncConfigService.getPath()
-                .concat(apiCode).concat(FILE_PATH).concat(yyyyMMdd).concat("/");
-//        String localPath = "D:/".concat("tongcheng_cpa_push_file/").concat(yyyyMMdd).concat("/");
+//        String localPath = syncConfigService.getPath().concat(apiCode).concat(FILE_PATH).concat(yyyyMMdd).concat("/");
+        String localPath = "D:/".concat("tongcheng_cpa_push_file_vt/").concat(yyyyMMdd).concat("/");
 
-        //3.新增一条推送文件任务
+        //3.新增推送文件任务
         TcyrCpaPushFileTaskVt task = new TcyrCpaPushFileTaskVt();
         task.setApiCode(apiCode);
         task.setLocalPath(localPath);
         task.setPushDate(new Date());
         task.setStatus(TcCpaPushFileTaskStatusEnum.STATUS_GENINAG.getValue());
-        task.setIsDel(TcCpaIsDelEnum.DEL_NO.getValue());
+        task.setIsDel(Constants.DATA_VALID);
+        task.setCollidingTaskIds(collidingTasks.stream().map(TcyrCpaCollidingTask::getId).map(String::valueOf)
+                .collect(Collectors.joining(",")));
         tcyrCpaPushFileTaskVtMapper.insertSelective(task);
+
         FilePushTaskInfo info = new FilePushTaskInfo();
         String infoString = null;
         try {
             //4.文件写入
-            Boolean isCompleted = write(apiCode, localPath, yyyyMMdd, info);
+            Boolean isCompleted = write(localPath, yyyyMMdd, info);
             //5.整理并核验info
             if (isCompleted) {
                 checkInfo(info);
@@ -126,7 +154,7 @@ public class TcCpaPushFileGenVTServiceImpl implements TcCpaPushFileGenVTService 
                     "文件生成异常，请检查！", TITLE));
         }
         tcyrCpaPushFileTaskVtMapper.updateByPrimaryKeySelective(updateTaskGen);
-        if (updateTaskGen.getStatus() == TcCpaPushFileTaskStatusEnum.STATUS_FAIL.getValue()) {
+        if (Objects.equals(updateTaskGen.getStatus(), TcCpaPushFileTaskStatusEnum.STATUS_FAIL.getValue())) {
             return;
         }
         //7.上传至内部sftp
@@ -158,23 +186,21 @@ public class TcCpaPushFileGenVTServiceImpl implements TcCpaPushFileGenVTService 
             return;
         }
         //2.核对量级
-        Integer extraNumAct = info.getFiles().stream()
+        int extraNumAct = info.getFiles().stream()
+                .filter(Objects::nonNull)  // 过滤空对象
                 .filter(dto -> !dto.getCsvIndex().equals("ok"))
-                .filter(Objects::nonNull) // 过滤空对象
                 .map(FilePushTaskFileDTO::getTotal) // 获取AtomicInteger对象
                 .filter(Objects::nonNull)// 过滤空的AtomicInteger
                 .mapToInt(AtomicInteger::get) // 转换为int值
                 .sum();
         info.setExtraNumAct(extraNumAct);
-        if (extraNumAct.intValue() != (info.getExtraNumExp().intValue())) {
-            logWarnAndinfoRecord(
-                    "期望提取量级：" + info.getExtraNumExp() + ",实际提取量级：" + extraNumAct + "，请核对！", info);
+        if (extraNumAct != (info.getExtraNumExp())) {
+            logWarnAndinfoRecord("期望提取量级：" + info.getExtraNumExp() + ",实际提取量级：" + extraNumAct + "，请核对！", info);
         }
     }
 
     /**
      * 写入主流程
-     * @param apiCode
      * @param localPath 服务器路径
      * @param yyyyMMdd  日期
      * @param info 执行情况
@@ -183,7 +209,7 @@ public class TcCpaPushFileGenVTServiceImpl implements TcCpaPushFileGenVTService 
      * @author hedongshuo
      * @date 2025/8/26 16:19
      **/
-    private Boolean write(String apiCode, String localPath, String yyyyMMdd, FilePushTaskInfo info) {
+    private Boolean write(String localPath, String yyyyMMdd, FilePushTaskInfo info) {
         Map<String, ImmutablePair<BufferedWriter, FilePushTaskFileDTO>> fwMap = new HashMap();
         try {
             //1.创建目录
@@ -200,8 +226,10 @@ public class TcCpaPushFileGenVTServiceImpl implements TcCpaPushFileGenVTService 
             info.setOnlyOk(onlyOk);
             if(!onlyOk){
                 //2.生成数据文件
-                Boolean writeSuccess = writeFile(apiCode, localPath, yyyyMMdd, info, fwMap);
-                if (!writeSuccess) return false;
+                Boolean writeSuccess = writeFile(localPath, yyyyMMdd, info, fwMap);
+                if (!writeSuccess) {
+                    return false;
+                }
             }
             //3.生成标识文件
             List<String> countResult = new ArrayList<>();
@@ -238,120 +266,84 @@ public class TcCpaPushFileGenVTServiceImpl implements TcCpaPushFileGenVTService 
         return true;
     }
 
-    private Boolean writeFile(String apiCode, String localPath, String yyyyMMdd, FilePushTaskInfo info, Map<String, ImmutablePair<BufferedWriter, FilePushTaskFileDTO>> fwMap) throws Exception {
-        //1.查询提取脚本
-        MarketingTcyrCpaPushFileScriptExample scriptExample = new MarketingTcyrCpaPushFileScriptExample();
-        scriptExample.createCriteria()
-                .andApiCodeEqualTo(apiCode)
-                .andIsDelEqualTo(TcCpaIsDelEnum.DEL_NO.getValue());
-        scriptExample.setOrderByClause("priority asc");
-        List<MarketingTcyrCpaPushFileScript> scripts = tcyrCpaPushFileScriptMapper.selectByExample(scriptExample);
-        if (org.apache.commons.collections.CollectionUtils.isEmpty(scripts)) {
-            logWarnAndinfoRecord("未配置提取脚本，请检查！", info);
-            return false;
-        }
-        //2.查询量级
-        List<FilePushTaskScriptNumDTO> scriptNumDTOS = new ArrayList<>();
-        Integer scriptNum = 0;
-        for (MarketingTcyrCpaPushFileScript script : scripts) {
-            String extraCountSql = "select count(0) from ("
-                    .concat(script.getExtractScript())
-                    .concat(") as countTable");
-            Integer count = 0;
-            if (script.getDataSource() == TcCpaPushFileScriptPriorityEnum.PRIORITY_TIDB.getValue()) {
-                count = tcyrCpaPushFileScriptMapper.getTcyrCpaPushFileDataCounttikv_(extraCountSql);
-            } else if (script.getDataSource() == TcCpaPushFileScriptPriorityEnum.PRIORITY_DORIS.getValue()) {
-                count = tcyrCpaPushFileScriptMapper.getTcyrCpaPushFileDataCountbI_(extraCountSql);
-            }
-            FilePushTaskScriptNumDTO scriptNumDTO = new FilePushTaskScriptNumDTO();
-            scriptNumDTO.setPriority(script.getPriority());
-            scriptNumDTO.setCount(count);
-            scriptNumDTOS.add(scriptNumDTO);
-            scriptNum += count;
-        }
-        info.setScriptNumDTOS(scriptNumDTOS);
-        info.setScriptNum(scriptNum);
-        if (scriptNum.intValue() == 0) {
-            logWarnAndinfoRecord("脚本查询量级为0！", info);
-            return false;
-        }
-        //3.所需配置
+    private Boolean writeFile(String localPath, String yyyyMMdd, FilePushTaskInfo info,
+                              Map<String, ImmutablePair<BufferedWriter, FilePushTaskFileDTO>> fwMap) throws Exception {
+        // 查询量级
+        TcyrCpaPushDataExample example = new TcyrCpaPushDataExample();
+        example.createCriteria().andIsDelEqualTo(Constants.DATA_VALID);
+        int pushDataNum = tcyrCpaPushDataMapper.countByExample(example);
+
+        //所需配置
         Integer extraNumTotal = marketingCommonConfig.getTcyrCpaPushFileConfig().getInteger("extraNumTotal");
         Integer extraNumSingle = marketingCommonConfig.getTcyrCpaPushFileConfig().getInteger("extraNumSingle");
         Integer threadPoolSize = marketingCommonConfig.getTcyrCpaPushFileConfig().getInteger("threadPoolSize");
         info.setExtraNumTotal(extraNumTotal);
         info.setExtraNumSingle(extraNumSingle);
+
         //期望提取量级
-        Integer extraNumExp = Math.min(extraNumTotal, scriptNum);
+        Integer extraNumExp = Math.min(extraNumTotal, pushDataNum);
         info.setExtraNumExp(extraNumExp);
         //数据提取量级
-        Integer extraDataNum = 0;
+        int extraDataNum = 0;
         //文件提取量级
-        Integer extraCsvNum = 0;
+        int extraCsvNum = 0;
         //4.创建writer池
         for (int i = 1; i <= (extraNumExp  + extraNumSingle - 1) / extraNumSingle; i++) {
             fwMap.put(String.valueOf(i), genWriter(localPath, yyyyMMdd, String.valueOf(i)));
         }
         //csv索引
-        Integer csvIndex = 1;
+        int csvIndex = 1;
         //5.创建线程池
         TpDynamicExecutor actionPool = TpDynamicExecutorFactory.getThreadPool(
-                ThreadPoolNameEnum.TCYR_CPA_PUSH_FILE_GEN.getName(), threadPoolSize, threadPoolSize);
-        List<CompletableFuture<Void>> futures = new ArrayList<>();
-        outerLoop:
-        for (MarketingTcyrCpaPushFileScript script : scripts) {
-            //用cus_num卡
-            String minCusNum = "";
+                ThreadPoolNameEnum.TCYR_CPA_PUSH_FILE_GEN_VT.getName(), threadPoolSize, threadPoolSize);
+        try {
+            List<CompletableFuture<Void>> futures = Lists.newArrayList();
+            // 复合游标分页
+            Integer lastPriority = Integer.MIN_VALUE;
+            Long lastId = 0L;
             for (; ; ) {
-                Integer pageSize = marketingCommonConfig.getTcyrCpaPushFileConfig().getInteger("pageSize");
-                String extraSql = script.getExtractScript()
-                        .concat(StringUtils.isEmpty(minCusNum) ? " " : " and " + script.getOutputField() + " > " + "'" + minCusNum + "' ")
-                        .concat("order by " + script.getOutputField() + " limit ")
-                        .concat(pageSize.toString());
-                List<String> result = null;
-                if (script.getDataSource() == TcCpaPushFileScriptPriorityEnum.PRIORITY_TIDB.getValue()) {
-                    result = tcyrCpaPushFileScriptMapper.getTcyrCpaPushFileDatatikv_(extraSql);
-                } else if (script.getDataSource() == TcCpaPushFileScriptPriorityEnum.PRIORITY_DORIS.getValue()) {
-                    result = tcyrCpaPushFileScriptMapper.getTcyrCpaPushFileDatabI_(extraSql);
+                Integer pageSize = marketingCommonConfig.getTcyrCpaPushFileVTConfig().getInteger("pageSize");
+                List<TcyrCpaPushData> pushDataList = tcyrCpaPushDataMapper.selectWithPagination(lastPriority, lastId, pageSize);
+                if (CollectionUtils.isEmpty(pushDataList)) {
+                    break;
                 }
-                if(CollectionUtils.isEmpty(result)){
-                    //未查到数据，执行下一个脚本
-                    continue outerLoop;
+                // 总量控制
+                if (extraDataNum + pushDataList.size() > extraNumTotal) {
+                    pushDataList = pushDataList.subList(0, extraNumTotal - extraDataNum);
                 }
-                //判断总量级
-                if(extraDataNum + result.size() > extraNumTotal){
-                    //确定可提取的数据
-                    result = result.subList(0, extraNumTotal - extraDataNum);
+                TcyrCpaPushData lastRecord = pushDataList.get(pushDataList.size() - 1);
+                lastPriority = lastRecord.getPriority();
+                lastId = lastRecord.getId();
+
+                extraDataNum += pushDataList.size();
+                List<String> userKeys = pushDataList.stream().map(TcyrCpaPushData::getUserKey).collect(Collectors.toList());
+                int fromIndex = 0;
+                while (fromIndex < userKeys.size()) {
+                    int remainingCapacity = extraNumSingle - extraCsvNum;
+                    int toIndex = Math.min(fromIndex + remainingCapacity, userKeys.size());
+                    List<String> chunk = userKeys.subList(fromIndex, toIndex);
+                    int currentCsvIndex = csvIndex;
+                    futures.add(CompletableFuture.runAsync(
+                            () -> writeData(fwMap.get(Integer.toString(currentCsvIndex)), chunk),
+                            actionPool
+                    ));
+                    extraCsvNum += chunk.size();
+                    if (extraCsvNum >= extraNumSingle) {
+                        csvIndex++;
+                        extraCsvNum = 0;
+                    }
+                    fromIndex = toIndex;
                 }
-                minCusNum = result.get(result.size() - 1);
-                extraDataNum = extraDataNum + result.size();
-                //判断可写入文件的量级
-                while (extraCsvNum + result.size() > extraNumSingle) {
-                    List<String> resultThisCsv = result.subList(0, extraNumSingle - extraCsvNum);
-                    Integer subCsvIndex = csvIndex;
-                    futures.add(CompletableFuture.runAsync(()
-                            -> writeData(fwMap.get(subCsvIndex.toString()), resultThisCsv), actionPool));
-                    result = result.subList(extraNumSingle - extraCsvNum, result.size());
-                    csvIndex++;
-                    extraCsvNum = 0;
-                }
-                List<String> finalResult = result;
-                Integer finalCsvIndex = csvIndex;
-                futures.add(CompletableFuture.runAsync(()
-                        -> writeData(fwMap.get(finalCsvIndex.toString()), finalResult), actionPool));
-                if (extraCsvNum + result.size() == extraNumSingle) {
-                    csvIndex++;
-                    extraCsvNum = 0;
-                } else {
-                    extraCsvNum = extraCsvNum + result.size();
-                }
-                if (extraDataNum.intValue() == extraNumTotal.intValue()) {
-                    break outerLoop;
+                if (extraDataNum >= extraNumTotal) {
+                    break;
                 }
             }
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        } catch (Exception e) {
+            logWarnAndinfoRecord(e.getMessage(), info);
+        } finally {
+            actionPool.shutdownAndAwaitTermination();
         }
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-        actionPool.shutdownAndAwaitTermination();
         return true;
     }
 
@@ -369,17 +361,14 @@ public class TcCpaPushFileGenVTServiceImpl implements TcCpaPushFileGenVTService 
     /**
      * 文件写入
      * @param pair
-     * @param cusNums
+     * @param userKeys
      */
-    private void writeData(ImmutablePair<BufferedWriter, FilePushTaskFileDTO> pair, List<String> cusNums) {
+    private void writeData(ImmutablePair<BufferedWriter, FilePushTaskFileDTO> pair, List<String> userKeys) {
         try {
             Writer writer = pair.getLeft();
             FilePushTaskFileDTO taskFileDTO = pair.getRight();
-            for (String cusNum : cusNums) {
-                //csv行
-                StringBuilder line = new StringBuilder();
-                line.append(cusNum).append("\r\n");
-                writer.write(line.toString());
+            for (String userKey : userKeys) {
+                writer.write(userKey + "\r\n");
                 taskFileDTO.getTotal().incrementAndGet();
             }
             writer.flush();

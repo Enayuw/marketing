@@ -1,19 +1,16 @@
 package com.br.marketing.service.tccpa.impl;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.TypeReference;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.TcCpaCollectStatusEnum;
 import com.br.marketing.enums.TcCpaCollidingSourceTypeEnum;
 import com.br.marketing.enums.TcCpaCollidingTaskStatusEnum;
-import com.br.marketing.enums.TcCpaSyncDealStatusEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.tccpa.TcCpaCollidingDataCollectService;
 import com.br.marketing.service.tccpa.TcCpaCommonService;
-import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
@@ -26,7 +23,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -67,7 +63,7 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
     @Override
     public void process() {
         TcyrCpaCollectTaskExample example = new TcyrCpaCollectTaskExample();
-        example.createCriteria().andStatusEqualTo(TcCpaSyncDealStatusEnum.DEAL_NO.getValue());
+        example.createCriteria().andStatusEqualTo(TcCpaCollectStatusEnum.DEAL_NO.getValue()).andIsDelEqualTo(Constants.DATA_VALID);
         List<TcyrCpaCollectTask> tcyrCpaCollectTasks = tcyrCpaCollectTaskMapper.selectByExample(example);
         if (CollectionUtils.isEmpty(tcyrCpaCollectTasks)) {
             return;
@@ -75,7 +71,7 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
 
         // 进行数据收集任务
         for (TcyrCpaCollectTask tcyrCpaCollectTask : tcyrCpaCollectTasks) {
-            tcyrCpaCollectTask.setStatus(TcCpaSyncDealStatusEnum.DEAL_MIDDLE.getValue());
+            tcyrCpaCollectTask.setStatus(TcCpaCollectStatusEnum.DEAL_MIDDLE.getValue());
             tcyrCpaCollectTaskMapper.updateByPrimaryKey(tcyrCpaCollectTask);
 
             Long syncFileId = tcyrCpaCollectTask.getSourceId();
@@ -94,13 +90,18 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
         TcyrCpaDeleteRuleExample deleteRuleExample = new TcyrCpaDeleteRuleExample();
         List<TcyrCpaDeleteRule> deleteRules = tcyrCpaDeleteRuleMapper.selectByExample(deleteRuleExample);
         deleteRules.forEach(deleteRule -> {
-            deleteRule.setDeleteNum(tcyrCpaCommonMapper.calculateDeleteNumByScript(deleteRule.getExecuteScript()));
-            tcyrCpaDeleteRuleMapper.updateByPrimaryKey(deleteRule);
+            try {
+                deleteRule.setDeleteNum(tcyrCpaCommonMapper.calculateDeleteNumByScript(deleteRule.getExecuteInfo()));
+                tcyrCpaDeleteRuleMapper.updateByPrimaryKey(deleteRule);
+            } catch (Exception e) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
+                        "剔除规则更新剔除量级失败，规则id：" + deleteRule.getId(), TITLE), e);
+            }
         });
 
         // 更新撞库任务量级
         example = new TcyrCpaCollectTaskExample();
-        example.createCriteria().andStatusEqualTo(TcCpaSyncDealStatusEnum.DEAL_NO.getValue())
+        example.createCriteria().andStatusEqualTo(TcCpaCollectStatusEnum.DEAL_NO.getValue())
                 .andSourceTypeIn(Lists.newArrayList(TcCpaCollidingSourceTypeEnum.SUCCESS.getValue(),
                         TcCpaCollidingSourceTypeEnum.FAIL.getValue()));
         if(tcyrCpaCollectTaskMapper.countByExample(example) > 0) {
@@ -109,15 +110,19 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
 
         TcyrCpaCollidingTaskExample collidingExample = new TcyrCpaCollidingTaskExample();
         collidingExample.createCriteria().andCollidingDateEqualTo(new Date())
-                .andStatusIn(Lists.newArrayList(TcCpaCollidingTaskStatusEnum.STATUS_WAIT_STA.getValue(),
-                        TcCpaCollidingTaskStatusEnum.STATUS_STA_COMPLETED.getValue()))
+                .andStatusEqualTo(TcCpaCollidingTaskStatusEnum.STATUS_WAIT_STA.getValue())
                 .andEnabledEqualTo(Constants.ENABLED_ACT).andIsDelEqualTo(Constants.DATA_VALID);
         List<TcyrCpaCollidingTask> collidingTasks = tcyrCpaCollidingTaskMapper.selectByExample(collidingExample);
 
         for (TcyrCpaCollidingTask collidingTask : collidingTasks) {
-            collidingTask.setStatus(TcCpaCollidingTaskStatusEnum.STATUS_STA_COMPLETED.getValue());
-            tcCpaCommonService.updateVolumeByTask(collidingTask);
-            tcyrCpaCollidingTaskMapper.updateByPrimaryKey(collidingTask);
+            try {
+                collidingTask.setStatus(TcCpaCollidingTaskStatusEnum.STATUS_STA_COMPLETED.getValue());
+                tcCpaCommonService.updateVolumeByTask(collidingTask);
+                tcyrCpaCollidingTaskMapper.updateByPrimaryKey(collidingTask);
+            } catch (Exception e) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
+                        "撞库任务更新量级失败，taskId：" + collidingTask.getId(), TITLE), e);
+            }
         }
     }
 
@@ -131,7 +136,7 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
 
             if (minId == null || maxId == null) {
                 log.warn("没有找到需要处理的成功数据，syncFileId: {}", syncFileId);
-                tcyrCpaCollectTask.setStatus(TcCpaSyncDealStatusEnum.DEAL_SUCCESS.getValue());
+                tcyrCpaCollectTask.setStatus(TcCpaCollectStatusEnum.DEAL_SUCCESS.getValue());
                 tcyrCpaCollectTaskMapper.updateByPrimaryKey(tcyrCpaCollectTask);
                 return;
             }
@@ -161,12 +166,12 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
 
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
-            tcyrCpaCollectTask.setStatus(TcCpaSyncDealStatusEnum.DEAL_SUCCESS.getValue());
+            tcyrCpaCollectTask.setStatus(TcCpaCollectStatusEnum.DEAL_SUCCESS.getValue());
             tcyrCpaCollectTaskMapper.updateByPrimaryKey(tcyrCpaCollectTask);
 
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(), e.getMessage(), TITLE), e);
-            tcyrCpaCollectTask.setStatus(TcCpaSyncDealStatusEnum.DEAL_FAIL.getValue());
+            tcyrCpaCollectTask.setStatus(TcCpaCollectStatusEnum.DEAL_FAIL.getValue());
             tcyrCpaCollectTaskMapper.updateByPrimaryKey(tcyrCpaCollectTask);
         } finally {
             actionPool.shutdownAndAwaitTermination();
@@ -227,7 +232,7 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
 
             if (minId == null || maxId == null) {
                 log.warn("没有找到需要处理的失败数据，syncFileId: {}", syncFileId);
-                tcyrCpaCollectTask.setStatus(TcCpaSyncDealStatusEnum.DEAL_SUCCESS.getValue());
+                tcyrCpaCollectTask.setStatus(TcCpaCollectStatusEnum.DEAL_SUCCESS.getValue());
                 tcyrCpaCollectTaskMapper.updateByPrimaryKey(tcyrCpaCollectTask);
                 return;
             }
@@ -255,12 +260,12 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
 
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
-            tcyrCpaCollectTask.setStatus(TcCpaSyncDealStatusEnum.DEAL_SUCCESS.getValue());
+            tcyrCpaCollectTask.setStatus(TcCpaCollectStatusEnum.DEAL_SUCCESS.getValue());
             tcyrCpaCollectTaskMapper.updateByPrimaryKey(tcyrCpaCollectTask);
 
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(), e.getMessage(), TITLE), e);
-            tcyrCpaCollectTask.setStatus(TcCpaSyncDealStatusEnum.DEAL_FAIL.getValue());
+            tcyrCpaCollectTask.setStatus(TcCpaCollectStatusEnum.DEAL_FAIL.getValue());
             tcyrCpaCollectTaskMapper.updateByPrimaryKey(tcyrCpaCollectTask);
         } finally {
             actionPool.shutdownAndAwaitTermination();

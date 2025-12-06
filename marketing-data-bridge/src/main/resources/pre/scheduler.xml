@@ -675,7 +675,7 @@
     <job:simple id="【bridge】-TcCpaPushFileGenVTJob"
                 class="com.br.marketing.bridge.job.tccpa.TcCpaPushFileGenVTJob"
                 cron="0 0 18 29 9 ? 2050-2050"
-                description="同程CPA撞库推送文件生成job"
+                description="同程CPA自动化撞库推送文件生成VTjob"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
                 sharding-item-parameters="0=A"

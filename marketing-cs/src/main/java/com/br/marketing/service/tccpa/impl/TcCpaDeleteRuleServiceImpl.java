@@ -78,11 +78,11 @@ public class TcCpaDeleteRuleServiceImpl implements TcCpaDataDeleteRuleService {
         switch (ruleType) {
             case 1: // 周期锁定
                 String script1 = "select user_key from b_tcyr_cpa_lock_data where lock_belong = 1 and date(release_time) < curdate() and is_del = 1";
-                rule.setExecuteScript(script1);
+                rule.setExecuteInfo(script1);
                 break;
             case 2: // 大空白组
                 String script2 = "select user_key from b_tcyr_cpa_blank_data where is_del = 1";
-                rule.setExecuteScript(script2);
+                rule.setExecuteInfo(script2);
                 break;
             case 3: // failMsg
                 processFailMsgRule(rule);
@@ -105,7 +105,7 @@ public class TcCpaDeleteRuleServiceImpl implements TcCpaDataDeleteRuleService {
         }
 
         String script = generateFailMsgScript(rule.getFailMsgs());
-        rule.setExecuteScript(script);
+        rule.setExecuteInfo(script);
     }
 
     /**
@@ -143,7 +143,7 @@ public class TcCpaDeleteRuleServiceImpl implements TcCpaDataDeleteRuleService {
      * 处理自定义规则（rule_type = 4）
      */
     private void processCustomRule(TcyrCpaDeleteRule rule) {
-        if (StringUtils.isBlank(rule.getExecuteScript())) {
+        if (StringUtils.isBlank(rule.getExecuteInfo())) {
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(), "规则类型为4时，执行脚本不能为空"));
         }
         rule.setFailMsgs(null);
@@ -154,7 +154,7 @@ public class TcCpaDeleteRuleServiceImpl implements TcCpaDataDeleteRuleService {
      */
     private void calculateDeleteNum(TcyrCpaDeleteRule rule) {
         try {
-            Integer deleteNum = tcyrCpaCommonMapper.calculateDeleteNumByScript(rule.getExecuteScript());
+            Integer deleteNum = tcyrCpaCommonMapper.calculateDeleteNumByScript(rule.getExecuteInfo());
             rule.setDeleteNum(deleteNum != null ? deleteNum : 0);
         } catch (Exception e) {
             rule.setDeleteNum(0);

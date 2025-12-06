@@ -7,7 +7,7 @@
     <result column="rule_name" property="ruleName" jdbcType="VARCHAR" />
     <result column="rule_type" property="ruleType" jdbcType="INTEGER" />
     <result column="fail_msgs" property="failMsgs" jdbcType="VARCHAR" />
-    <result column="execute_script" property="executeScript" jdbcType="VARCHAR" />
+    <result column="execute_info" property="executeInfo" jdbcType="VARCHAR" />
     <result column="delete_num" property="deleteNum" jdbcType="INTEGER" />
     <result column="enabled" property="enabled" jdbcType="INTEGER" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
@@ -74,7 +74,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, rule_name, rule_type, fail_msgs, execute_script, delete_num, enabled, 
+    id, api_code, rule_name, rule_type, fail_msgs, execute_info, delete_num, enabled, 
     is_del, extend, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.TcyrCpaDeleteRuleExample" >
@@ -112,11 +112,11 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_tcyr_cpa_delete_rule (api_code, rule_name, rule_type, 
-      fail_msgs, execute_script, delete_num, 
+      fail_msgs, execute_info, delete_num, 
       enabled, is_del, extend, 
       create_time, update_time)
     values (#{apiCode,jdbcType=VARCHAR}, #{ruleName,jdbcType=VARCHAR}, #{ruleType,jdbcType=INTEGER}, 
-      #{failMsgs,jdbcType=VARCHAR}, #{executeScript,jdbcType=VARCHAR}, #{deleteNum,jdbcType=INTEGER}, 
+      #{failMsgs,jdbcType=VARCHAR}, #{executeInfo,jdbcType=VARCHAR}, #{deleteNum,jdbcType=INTEGER}, 
       #{enabled,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR}, 
       #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
@@ -138,8 +138,8 @@
       <if test="failMsgs != null" >
         fail_msgs,
       </if>
-      <if test="executeScript != null" >
-        execute_script,
+      <if test="executeInfo != null" >
+        execute_info,
       </if>
       <if test="deleteNum != null" >
         delete_num,
@@ -173,8 +173,8 @@
       <if test="failMsgs != null" >
         #{failMsgs,jdbcType=VARCHAR},
       </if>
-      <if test="executeScript != null" >
-        #{executeScript,jdbcType=VARCHAR},
+      <if test="executeInfo != null" >
+        #{executeInfo,jdbcType=VARCHAR},
       </if>
       <if test="deleteNum != null" >
         #{deleteNum,jdbcType=INTEGER},
@@ -220,8 +220,8 @@
       <if test="record.failMsgs != null" >
         fail_msgs = #{record.failMsgs,jdbcType=VARCHAR},
       </if>
-      <if test="record.executeScript != null" >
-        execute_script = #{record.executeScript,jdbcType=VARCHAR},
+      <if test="record.executeInfo != null" >
+        execute_info = #{record.executeInfo,jdbcType=VARCHAR},
       </if>
       <if test="record.deleteNum != null" >
         delete_num = #{record.deleteNum,jdbcType=INTEGER},
@@ -253,7 +253,7 @@
       rule_name = #{record.ruleName,jdbcType=VARCHAR},
       rule_type = #{record.ruleType,jdbcType=INTEGER},
       fail_msgs = #{record.failMsgs,jdbcType=VARCHAR},
-      execute_script = #{record.executeScript,jdbcType=VARCHAR},
+      execute_info = #{record.executeInfo,jdbcType=VARCHAR},
       delete_num = #{record.deleteNum,jdbcType=INTEGER},
       enabled = #{record.enabled,jdbcType=INTEGER},
       is_del = #{record.isDel,jdbcType=INTEGER},
@@ -279,8 +279,8 @@
       <if test="failMsgs != null" >
         fail_msgs = #{failMsgs,jdbcType=VARCHAR},
       </if>
-      <if test="executeScript != null" >
-        execute_script = #{executeScript,jdbcType=VARCHAR},
+      <if test="executeInfo != null" >
+        execute_info = #{executeInfo,jdbcType=VARCHAR},
       </if>
       <if test="deleteNum != null" >
         delete_num = #{deleteNum,jdbcType=INTEGER},
@@ -309,7 +309,7 @@
       rule_name = #{ruleName,jdbcType=VARCHAR},
       rule_type = #{ruleType,jdbcType=INTEGER},
       fail_msgs = #{failMsgs,jdbcType=VARCHAR},
-      execute_script = #{executeScript,jdbcType=VARCHAR},
+      execute_info = #{executeInfo,jdbcType=VARCHAR},
       delete_num = #{deleteNum,jdbcType=INTEGER},
       enabled = #{enabled,jdbcType=INTEGER},
       is_del = #{isDel,jdbcType=INTEGER},

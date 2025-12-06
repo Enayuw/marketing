@@ -435,73 +435,73 @@ public class TcyrCpaDeleteRuleExample {
             return (Criteria) this;
         }
 
-        public Criteria andExecuteScriptIsNull() {
-            addCriterion("execute_script is null");
+        public Criteria andExecuteInfoIsNull() {
+            addCriterion("execute_info is null");
             return (Criteria) this;
         }
 
-        public Criteria andExecuteScriptIsNotNull() {
-            addCriterion("execute_script is not null");
+        public Criteria andExecuteInfoIsNotNull() {
+            addCriterion("execute_info is not null");
             return (Criteria) this;
         }
 
-        public Criteria andExecuteScriptEqualTo(String value) {
-            addCriterion("execute_script =", value, "executeScript");
+        public Criteria andExecuteInfoEqualTo(String value) {
+            addCriterion("execute_info =", value, "executeScript");
             return (Criteria) this;
         }
 
-        public Criteria andExecuteScriptNotEqualTo(String value) {
-            addCriterion("execute_script <>", value, "executeScript");
+        public Criteria andExecuteInfoNotEqualTo(String value) {
+            addCriterion("execute_info <>", value, "executeScript");
             return (Criteria) this;
         }
 
-        public Criteria andExecuteScriptGreaterThan(String value) {
-            addCriterion("execute_script >", value, "executeScript");
+        public Criteria andExecuteInfoGreaterThan(String value) {
+            addCriterion("execute_info >", value, "executeScript");
             return (Criteria) this;
         }
 
-        public Criteria andExecuteScriptGreaterThanOrEqualTo(String value) {
-            addCriterion("execute_script >=", value, "executeScript");
+        public Criteria andExecuteInfoGreaterThanOrEqualTo(String value) {
+            addCriterion("execute_info >=", value, "executeScript");
             return (Criteria) this;
         }
 
-        public Criteria andExecuteScriptLessThan(String value) {
-            addCriterion("execute_script <", value, "executeScript");
+        public Criteria andExecuteInfoLessThan(String value) {
+            addCriterion("execute_info <", value, "executeScript");
             return (Criteria) this;
         }
 
-        public Criteria andExecuteScriptLessThanOrEqualTo(String value) {
-            addCriterion("execute_script <=", value, "executeScript");
+        public Criteria andExecuteInfoLessThanOrEqualTo(String value) {
+            addCriterion("execute_info <=", value, "executeScript");
             return (Criteria) this;
         }
 
-        public Criteria andExecuteScriptLike(String value) {
-            addCriterion("execute_script like", value, "executeScript");
+        public Criteria andExecuteInfoLike(String value) {
+            addCriterion("execute_info like", value, "executeScript");
             return (Criteria) this;
         }
 
-        public Criteria andExecuteScriptNotLike(String value) {
-            addCriterion("execute_script not like", value, "executeScript");
+        public Criteria andExecuteInfoNotLike(String value) {
+            addCriterion("execute_info not like", value, "executeScript");
             return (Criteria) this;
         }
 
-        public Criteria andExecuteScriptIn(List<String> values) {
-            addCriterion("execute_script in", values, "executeScript");
+        public Criteria andExecuteInfoIn(List<String> values) {
+            addCriterion("execute_info in", values, "executeScript");
             return (Criteria) this;
         }
 
-        public Criteria andExecuteScriptNotIn(List<String> values) {
-            addCriterion("execute_script not in", values, "executeScript");
+        public Criteria andExecuteInfoNotIn(List<String> values) {
+            addCriterion("execute_info not in", values, "executeScript");
             return (Criteria) this;
         }
 
-        public Criteria andExecuteScriptBetween(String value1, String value2) {
-            addCriterion("execute_script between", value1, value2, "executeScript");
+        public Criteria andExecuteInfoBetween(String value1, String value2) {
+            addCriterion("execute_info between", value1, value2, "executeScript");
             return (Criteria) this;
         }
 
-        public Criteria andExecuteScriptNotBetween(String value1, String value2) {
-            addCriterion("execute_script not between", value1, value2, "executeScript");
+        public Criteria andExecuteInfoNotBetween(String value1, String value2) {
+            addCriterion("execute_info not between", value1, value2, "executeScript");
             return (Criteria) this;
         }
 
