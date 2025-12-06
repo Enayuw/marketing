@@ -28,5 +28,17 @@
         </foreach>
     </update>
 
+    <select id="queryFailedBlackData" resultType="com.br.marketing.entity.SYJBlackData">
+        select *
+        from b_syj_black_data
+        where local_id = #{localId}
+        and query_status != 3
+        and status = 1
+        <if test="minId != null and minId > 0">
+            and id >= #{minId}
+        </if>
+        order by id asc
+        limit #{pageSize}
+    </select>
 
 </mapper>

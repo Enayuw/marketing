@@ -36,7 +36,7 @@
         from b_syj_original_data
         where local_id = #{localId}
         and query_status = 3
-        and invocation_status = 0
+        and (push_status = 0 or push_status is null)
         and status = 1
         <if test="minId != null and minId >0">
             and id >=#{minId}
@@ -53,5 +53,18 @@
             #{id}
         </foreach>
     </update>
+
+    <select id="queryFailedOriginalData" resultType="com.br.marketing.entity.SYJOriginalData">
+        select *
+        from b_syj_original_data
+        where local_id = #{localId}
+        and query_status = 2
+        and status = 1
+        <if test="minId != null and minId > 0">
+            and id >= #{minId}
+        </if>
+        order by id asc
+        limit #{pageSize}
+    </select>
 
 </mapper>
