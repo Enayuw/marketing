@@ -1,15 +1,18 @@
 package com.br.marketing.service.tccpa.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.tccpa.TcCpaDeleteRuleExecuteInfoDTO;
 import com.br.marketing.entity.MarketingCustomer;
 import com.br.marketing.entity.MarketingCustomerExample;
 import com.br.marketing.entity.TcyrCpaDeleteRule;
 import com.br.marketing.entity.TcyrCpaDeleteRuleExample;
+import com.br.marketing.enums.TcCpaDeleteRuleSourceTypeEnum;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.TcyrCpaCommonMapper;
 import com.br.marketing.mapper.TcyrCpaDeleteRuleMapper;
@@ -21,14 +24,12 @@ import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.curator.shaded.com.google.common.base.Splitter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -77,14 +78,22 @@ public class TcCpaDeleteRuleServiceImpl implements TcCpaDataDeleteRuleService {
 
         switch (ruleType) {
             case 1: // 周期锁定
-                String script1 = "select user_key from b_tcyr_cpa_lock_data where lock_belong = 1 and date(release_time) < curdate() and is_del = 1";
-                rule.setExecuteInfo(script1);
+                TcCpaDeleteRuleExecuteInfoDTO executeInfo = new TcCpaDeleteRuleExecuteInfoDTO();
+                executeInfo.setSourceType(TcCpaDeleteRuleSourceTypeEnum.LOCK_DATA.getValue());
+                executeInfo.setValue(Lists.newArrayList(1));
+                rule.setExecuteInfo(JSON.toJSONString(executeInfo));
                 break;
             case 2: // 大空白组
-                String script2 = "select user_key from b_tcyr_cpa_blank_data where is_del = 1";
-                rule.setExecuteInfo(script2);
+                TcCpaDeleteRuleExecuteInfoDTO executeInfo2 = new TcCpaDeleteRuleExecuteInfoDTO();
+                executeInfo2.setSourceType(TcCpaDeleteRuleSourceTypeEnum.BLANK_DATA.getValue());
+                rule.setExecuteInfo(JSON.toJSONString(executeInfo2));
                 break;
             case 3: // failMsg
+                TcCpaDeleteRuleExecuteInfoDTO executeInfo3 = new TcCpaDeleteRuleExecuteInfoDTO();
+                executeInfo3.setSourceType(TcCpaDeleteRuleSourceTypeEnum.INVALUE_DATA.getValue());
+                executeInfo3.setValue(Splitter.on(",").splitToList(rule.getFailMsgs()).stream()
+                        .map(Integer::parseInt).collect(Collectors.toList()));
+                rule.setExecuteInfo(JSON.toJSONString(executeInfo3));
                 processFailMsgRule(rule);
                 break;
             case 4: // 自定义

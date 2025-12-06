@@ -2,6 +2,8 @@ package com.br.marketing.dto.tccpa;
 
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class TcCpaDeleteRuleExecuteInfoDTO {
 
@@ -12,4 +14,6 @@ public class TcCpaDeleteRuleExecuteInfoDTO {
     private String mappingField;
 
     private String condition;
+
+    private List<Integer> value;
 }
