@@ -18,4 +18,6 @@ public interface TcyrCpaCollidingDataPackageMapper extends TcyrCpaCollidingDataP
 
     String queryPackageNamesByIds(@Param("packageIds") List<Long> packageIds);
 
+    List<Long> orderByPriority(@Param("packageIds") List<Long> packageIds);
+
 }

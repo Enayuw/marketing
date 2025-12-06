@@ -14,6 +14,16 @@ public class TcyrCpaPushData {
     private Integer taskId;
 
     /**
+     * 撞库日期
+     */
+    private Date collidingDate;
+
+    /**
+     * 优先级
+     */
+    private Integer priority;
+
+    /**
      * 用户唯一编号
      */
     private String userKey;
@@ -52,6 +62,22 @@ public class TcyrCpaPushData {
 
     public void setTaskId(Integer taskId) {
         this.taskId = taskId;
+    }
+
+    public Date getCollidingDate() {
+        return collidingDate;
+    }
+
+    public void setCollidingDate(Date collidingDate) {
+        this.collidingDate = collidingDate;
+    }
+
+    public Integer getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Integer priority) {
+        this.priority = priority;
     }
 
     public String getUserKey() {

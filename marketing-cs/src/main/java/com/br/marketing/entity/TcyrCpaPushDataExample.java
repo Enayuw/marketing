@@ -2,6 +2,7 @@ package com.br.marketing.entity;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 public class TcyrCpaPushDataExample {
@@ -103,6 +104,32 @@ public class TcyrCpaPushDataExample {
                 throw new RuntimeException("Between values for " + property + " cannot be null");
             }
             criteria.add(new Criterion(condition, value1, value2));
+        }
+
+        protected void addCriterionForJDBCDate(String condition, Date value, String property) {
+            if (value == null) {
+                throw new RuntimeException("Value for " + property + " cannot be null");
+            }
+            addCriterion(condition, new java.sql.Date(value.getTime()), property);
+        }
+
+        protected void addCriterionForJDBCDate(String condition, List<Date> values, String property) {
+            if (values == null || values.size() == 0) {
+                throw new RuntimeException("Value list for " + property + " cannot be null or empty");
+            }
+            List<java.sql.Date> dateList = new ArrayList<java.sql.Date>();
+            Iterator<Date> iter = values.iterator();
+            while (iter.hasNext()) {
+                dateList.add(new java.sql.Date(iter.next().getTime()));
+            }
+            addCriterion(condition, dateList, property);
+        }
+
+        protected void addCriterionForJDBCDate(String condition, Date value1, Date value2, String property) {
+            if (value1 == null || value2 == null) {
+                throw new RuntimeException("Between values for " + property + " cannot be null");
+            }
+            addCriterion(condition, new java.sql.Date(value1.getTime()), new java.sql.Date(value2.getTime()), property);
         }
 
         public Criteria andIdIsNull() {
@@ -222,6 +249,126 @@ public class TcyrCpaPushDataExample {
 
         public Criteria andTaskIdNotBetween(Integer value1, Integer value2) {
             addCriterion("task_id not between", value1, value2, "taskId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingDateIsNull() {
+            addCriterion("colliding_date is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingDateIsNotNull() {
+            addCriterion("colliding_date is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingDateEqualTo(Date value) {
+            addCriterionForJDBCDate("colliding_date =", value, "collidingDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingDateNotEqualTo(Date value) {
+            addCriterionForJDBCDate("colliding_date <>", value, "collidingDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingDateGreaterThan(Date value) {
+            addCriterionForJDBCDate("colliding_date >", value, "collidingDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingDateGreaterThanOrEqualTo(Date value) {
+            addCriterionForJDBCDate("colliding_date >=", value, "collidingDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingDateLessThan(Date value) {
+            addCriterionForJDBCDate("colliding_date <", value, "collidingDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingDateLessThanOrEqualTo(Date value) {
+            addCriterionForJDBCDate("colliding_date <=", value, "collidingDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingDateIn(List<Date> values) {
+            addCriterionForJDBCDate("colliding_date in", values, "collidingDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingDateNotIn(List<Date> values) {
+            addCriterionForJDBCDate("colliding_date not in", values, "collidingDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingDateBetween(Date value1, Date value2) {
+            addCriterionForJDBCDate("colliding_date between", value1, value2, "collidingDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingDateNotBetween(Date value1, Date value2) {
+            addCriterionForJDBCDate("colliding_date not between", value1, value2, "collidingDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andPriorityIsNull() {
+            addCriterion("priority is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPriorityIsNotNull() {
+            addCriterion("priority is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPriorityEqualTo(Integer value) {
+            addCriterion("priority =", value, "priority");
+            return (Criteria) this;
+        }
+
+        public Criteria andPriorityNotEqualTo(Integer value) {
+            addCriterion("priority <>", value, "priority");
+            return (Criteria) this;
+        }
+
+        public Criteria andPriorityGreaterThan(Integer value) {
+            addCriterion("priority >", value, "priority");
+            return (Criteria) this;
+        }
+
+        public Criteria andPriorityGreaterThanOrEqualTo(Integer value) {
+            addCriterion("priority >=", value, "priority");
+            return (Criteria) this;
+        }
+
+        public Criteria andPriorityLessThan(Integer value) {
+            addCriterion("priority <", value, "priority");
+            return (Criteria) this;
+        }
+
+        public Criteria andPriorityLessThanOrEqualTo(Integer value) {
+            addCriterion("priority <=", value, "priority");
+            return (Criteria) this;
+        }
+
+        public Criteria andPriorityIn(List<Integer> values) {
+            addCriterion("priority in", values, "priority");
+            return (Criteria) this;
+        }
+
+        public Criteria andPriorityNotIn(List<Integer> values) {
+            addCriterion("priority not in", values, "priority");
+            return (Criteria) this;
+        }
+
+        public Criteria andPriorityBetween(Integer value1, Integer value2) {
+            addCriterion("priority between", value1, value2, "priority");
+            return (Criteria) this;
+        }
+
+        public Criteria andPriorityNotBetween(Integer value1, Integer value2) {
+            addCriterion("priority not between", value1, value2, "priority");
             return (Criteria) this;
         }
 

@@ -1,12 +1,11 @@
 package com.br.marketing.service.tccpa.impl;
 
 import com.br.marketing.common.utils.Constants;
-import com.br.marketing.entity.TcyrCpaCollidingTask;
-import com.br.marketing.entity.TcyrCpaCollidingTaskExample;
-import com.br.marketing.enums.TcCpaCleanStatusEnum;
-import com.br.marketing.enums.TcCpaCollidingDealStatusEnum;
+import com.br.marketing.entity.*;
 import com.br.marketing.enums.TcCpaCollidingTaskStatusEnum;
+import com.br.marketing.mapper.TcyrCpaCollidingDataPackageMapper;
 import com.br.marketing.mapper.TcyrCpaCollidingTaskMapper;
+import com.br.marketing.mapper.TcyrCpaDeleteRuleMapper;
 import com.br.marketing.service.tccpa.TcCpaCollidingDataFilterService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +16,7 @@ import javax.annotation.Resource;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -27,7 +27,15 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
     @Resource
     TcyrCpaCollidingTaskMapper tcyrCpaCollidingTaskMapper;
 
+    @Resource
+    TcyrCpaDeleteRuleMapper tcyrCpaDeleteRuleMapper;
+
+    @Resource
+    TcyrCpaCollidingDataPackageMapper tcyrCpaCollidingDataPackageMapper;
+
     private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    private static final int PAGE_SIZE = 2000;
 
     @Override
     public void process() {
@@ -38,11 +46,14 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
                 .andIsDelEqualTo(Constants.DATA_VALID)
                 .andEnabledEqualTo(Constants.ENABLED_ACT)
                 .andStatusLessThanOrEqualTo(TcCpaCollidingTaskStatusEnum.STATUS_STA_COMPLETED.getValue());
+        //如果一天配置多个撞库任务，那每个任务中数据包建议不重复，且按优先级从高到低创建撞库任务
+        taskExample.setOrderByClause("create_time asc");
         List<TcyrCpaCollidingTask> tasks = tcyrCpaCollidingTaskMapper.selectByExample(taskExample);
         if (CollectionUtils.isEmpty(tasks)) {
             return;
         }
-        //2.遍历撞库任务
+        //
+        //3.遍历撞库任务
         for (TcyrCpaCollidingTask task : tasks) {
             process(task);
         }
@@ -66,7 +77,76 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
 
 
     private void filter(TcyrCpaCollidingTask task) {
+        //1.获得数据包id并按优先级从高到低排序
+        List<TcyrCpaCollidingDataPackage> packages = getPackageIds(task.getPackageIds());
+        //2.获取剔除规则
+        List<TcyrCpaDeleteRule> deleteRules = getDeleteRules(task);
+        //3.获取撞库量级上限，将其作为可插入量级的初始值
+        Integer insertAbleNum = task.getLimitNum();
+        String supplyRuleInfo = task.getSupplyRuleInfo();
+        for (TcyrCpaCollidingDataPackage pck : packages) {
+            insertPackageData(pck.getId(), deleteRules, insertAbleNum, pck.getMagnitude());
+        }
+    }
 
-        task.getSupplyRuleInfo();
+    /**
+     * @description 将数据包经过过滤规则，插入到推送数据池中
+     * @param id
+     * @param deleteRules
+     * @param insertAbleNum
+     * @param magnitude
+     * @return void
+     * @author hedongshuo
+     * @date 2025/12/5 21:07
+     **/
+    private void insertPackageData(Long id, List<TcyrCpaDeleteRule> deleteRules, Integer insertAbleNum, Integer magnitude) {
+        for (int i = 0; i < (magnitude + PAGE_SIZE - 1) / PAGE_SIZE; i++) {
+
+        }
+    }
+
+    /**
+     * @param task
+     * @return void
+     * @description 获取剔除规则
+     * @author hedongshuo
+     * @date 2025/12/5 20:40
+     **/
+    private List<TcyrCpaDeleteRule> getDeleteRules(TcyrCpaCollidingTask task) {
+        List<Long> deleteRuleIds = Arrays.stream(task.getDeleteRuleIds().split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .map(Long::valueOf)
+                .collect(Collectors.toList());
+        TcyrCpaDeleteRuleExample example = new TcyrCpaDeleteRuleExample();
+        example.createCriteria()
+                .andIdIn(deleteRuleIds)
+                .andIsDelEqualTo(Constants.DATA_VALID)
+                .andEnabledEqualTo(Constants.ENABLED_ACT);
+        example.setOrderByClause("rule_type asc");
+        return tcyrCpaDeleteRuleMapper.selectByExample(example);
+    }
+
+    /**
+     * @param packageIdStrs
+     * @return java.util.List<java.lang.Long>
+     * @description 获取排好序的数据包id
+     * @author hedongshuo
+     * @date 2025/12/5 20:40
+     **/
+    private List<TcyrCpaCollidingDataPackage> getPackageIds(String packageIdStrs) {
+        List<Long> packageIds = Arrays.stream(packageIdStrs.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .map(Long::valueOf)
+                .collect(Collectors.toList());
+        TcyrCpaCollidingDataPackageExample example = new TcyrCpaCollidingDataPackageExample();
+        example.createCriteria()
+                .andIdIn(packageIds)
+                .andIsDelEqualTo(Constants.DATA_VALID)
+                .andEnabledEqualTo(Constants.ENABLED_ACT);
+        example.setOrderByClause("priority asc, create_time desc");
+        List<TcyrCpaCollidingDataPackage> packages = tcyrCpaCollidingDataPackageMapper.selectByExample(example);
+        return packages;
     }
 }
