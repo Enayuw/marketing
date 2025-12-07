@@ -16,6 +16,7 @@ import com.br.marketing.enums.TcCpaDeleteRuleSourceTypeEnum;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.TcyrCpaCommonMapper;
 import com.br.marketing.mapper.TcyrCpaDeleteRuleMapper;
+import com.br.marketing.service.tccpa.TcCpaCommonService;
 import com.br.marketing.service.tccpa.TcCpaDataDeleteRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.tccpa.TcyrCpaDeleteRuleVO;
@@ -44,10 +45,10 @@ public class TcCpaDeleteRuleServiceImpl implements TcCpaDataDeleteRuleService {
     private MarketingCustomerMapper marketingCustomerMapper;
 
     @Resource
-    private TcyrCpaCommonMapper tcyrCpaCommonMapper;
+    private TcyrCpaDeleteRuleMapper tcyrCpaDeleteRuleMapper;
 
     @Resource
-    private TcyrCpaDeleteRuleMapper tcyrCpaDeleteRuleMapper;
+    private TcCpaCommonService tcCpaCommonService;
 
     @Override
     public Result rule(TcyrCpaDeleteRuleVO ruleVO) {
@@ -68,7 +69,6 @@ public class TcCpaDeleteRuleServiceImpl implements TcCpaDataDeleteRuleService {
             }
         }
         processRuleByType(rule);
-        calculateDeleteNum(rule);
         tcyrCpaDeleteRuleMapper.insert(rule);
         return new Result().success();
     }
@@ -81,19 +81,16 @@ public class TcCpaDeleteRuleServiceImpl implements TcCpaDataDeleteRuleService {
                 TcCpaDeleteRuleExecuteInfoDTO executeInfo = new TcCpaDeleteRuleExecuteInfoDTO();
                 executeInfo.setSourceType(TcCpaDeleteRuleSourceTypeEnum.LOCK_DATA.getValue());
                 executeInfo.setValue(Lists.newArrayList(1));
-                rule.setExecuteInfo(JSON.toJSONString(executeInfo));
+                rule.setDeleteNum(tcCpaCommonService.calculateVolume(Lists.newArrayList(executeInfo)));
+                rule.setExecuteInfo(JSON.toJSONString(Lists.newArrayList(executeInfo)));
                 break;
             case 2: // 大空白组
                 TcCpaDeleteRuleExecuteInfoDTO executeInfo2 = new TcCpaDeleteRuleExecuteInfoDTO();
                 executeInfo2.setSourceType(TcCpaDeleteRuleSourceTypeEnum.BLANK_DATA.getValue());
-                rule.setExecuteInfo(JSON.toJSONString(executeInfo2));
+                rule.setDeleteNum(tcCpaCommonService.calculateVolume(Lists.newArrayList(executeInfo2)));
+                rule.setExecuteInfo(JSON.toJSONString(Lists.newArrayList(executeInfo2)));
                 break;
             case 3: // failMsg
-                TcCpaDeleteRuleExecuteInfoDTO executeInfo3 = new TcCpaDeleteRuleExecuteInfoDTO();
-                executeInfo3.setSourceType(TcCpaDeleteRuleSourceTypeEnum.INVALUE_DATA.getValue());
-                executeInfo3.setValue(Splitter.on(",").splitToList(rule.getFailMsgs()).stream()
-                        .map(Integer::parseInt).collect(Collectors.toList()));
-                rule.setExecuteInfo(JSON.toJSONString(executeInfo3));
                 processFailMsgRule(rule);
                 break;
             case 4: // 自定义
@@ -112,40 +109,27 @@ public class TcCpaDeleteRuleServiceImpl implements TcCpaDataDeleteRuleService {
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(), "规则类型为3时，失败类型不能为空"));
             return;
         }
-
-        String script = generateFailMsgScript(rule.getFailMsgs());
-        rule.setExecuteInfo(script);
-    }
-
-    /**
-     * 生成failMsg类型的执行脚本
-     */
-    private String generateFailMsgScript(String failMsgs) {
-        if (StringUtils.isBlank(failMsgs)) {
-            return ""; // 处理空输入
-        }
-
-        String[] failMsgArray = failMsgs.split(",");
+        String[] failMsgArray = rule.getFailMsgs().split(",");
         List<String> nonTwoValues = Arrays.stream(failMsgArray).map(String::trim)
                 .filter(s -> !StringUtils.equals("2", s)).collect(Collectors.toList());
         boolean hasTwo = Arrays.stream(failMsgArray)
                 .map(String::trim).anyMatch(s -> StringUtils.equals("2", s));
 
-        StringBuilder script = new StringBuilder();
+        List<TcCpaDeleteRuleExecuteInfoDTO> executeInfos = Lists.newArrayList();
         if (CollectionUtils.isNotEmpty(nonTwoValues)) {
-            String inClause = String.join(",", nonTwoValues);
-            script.append("select user_key from b_tcyr_cpa_invalue_data where fail_msg in (")
-                    .append(inClause)
-                    .append(") and is_del = 1");
+            TcCpaDeleteRuleExecuteInfoDTO executeInfo2 = new TcCpaDeleteRuleExecuteInfoDTO();
+            executeInfo2.setSourceType(TcCpaDeleteRuleSourceTypeEnum.INVALUE_DATA.getValue());
+            executeInfo2.setValue(nonTwoValues.stream().map(Integer::parseInt).collect(Collectors.toList()));
+            executeInfos.add(executeInfo2);
         }
-
         if (hasTwo) {
-            if (script.length() > 0) {
-                script.append(" union all ");
-            }
-            script.append("select user_key from b_tcyr_cpa_lock_data where lock_belong = 2 and date(release_time) < curdate() and is_del = 1");
+            TcCpaDeleteRuleExecuteInfoDTO executeInfo = new TcCpaDeleteRuleExecuteInfoDTO();
+            executeInfo.setSourceType(TcCpaDeleteRuleSourceTypeEnum.LOCK_DATA.getValue());
+            executeInfo.setValue(Lists.newArrayList(2));
+            executeInfos.add(executeInfo);
         }
-        return script.toString();
+        rule.setExecuteInfo(JSON.toJSONString(executeInfos));
+        rule.setDeleteNum(tcCpaCommonService.calculateVolume(executeInfos));
     }
 
     /**
@@ -156,18 +140,6 @@ public class TcCpaDeleteRuleServiceImpl implements TcCpaDataDeleteRuleService {
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(), "规则类型为4时，执行脚本不能为空"));
         }
         rule.setFailMsgs(null);
-    }
-
-    /**
-     * 计算剔除量级
-     */
-    private void calculateDeleteNum(TcyrCpaDeleteRule rule) {
-        try {
-            Integer deleteNum = tcyrCpaCommonMapper.calculateDeleteNumByScript(rule.getExecuteInfo());
-            rule.setDeleteNum(deleteNum != null ? deleteNum : 0);
-        } catch (Exception e) {
-            rule.setDeleteNum(0);
-        }
     }
 
     @Override

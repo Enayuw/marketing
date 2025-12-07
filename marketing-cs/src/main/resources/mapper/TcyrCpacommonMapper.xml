@@ -7,12 +7,10 @@
     </select>
 
     <select id="executeUnionQueries" resultType="java.lang.Integer">
-        SELECT count(distinct_value) as total_sum FROM (
-        SELECT DISTINCT user_key as distinct_value FROM (
+        SELECT count(distinct(user_key)) as total_sum FROM (
         <foreach collection="scripts" item="script" separator=" UNION ALL ">
             (${script})
         </foreach>
-        ) as union_result
         ) as distinct_result
     </select>
 

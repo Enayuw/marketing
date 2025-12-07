@@ -83,9 +83,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, package_ids, package_names, colliding_date, colliding_time, limit_num,
-    delete_rule_ids, delete_num, supply_rule_info, supply_num, push_time, push_num, `status`,
-    filter_info, isRetry, enabled, is_del, extend, create_time, update_time
+    *
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.TcyrCpaCollidingTaskExample" >
     select

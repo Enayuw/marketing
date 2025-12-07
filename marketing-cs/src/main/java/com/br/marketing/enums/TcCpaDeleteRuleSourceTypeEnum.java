@@ -11,10 +11,11 @@ import java.util.Map;
 @Getter
 public enum TcCpaDeleteRuleSourceTypeEnum {
 
-    LOCK_DATA(1, "b_tcyr_cpa_lock_data lock", "lock.lock_belong",  " date(lock.release_time) > curdate() and lock.is_del = 1"),
-    BLANK_DATA(2, "b_tcyr_cpa_blank_data blank", null, " blank.is_del = 1"),
-    INVALUE_DATA(3, "b_tcyr_cpa_invalue_data invalue", "invalue.fail_msg", " date(lock.release_time) > curdate() and invalue.is_del = 1"),
-    CUSTOMIZE(9, null,  null, null),
+    LOCK_DATA(1, "b_tcyr_cpa_lock_data lockData", "lockData.user_key", "lockData.lock_belong",  " date(lockData.release_time) > curdate() and lockData.is_del = 1"),
+    BLANK_DATA(2, "b_tcyr_cpa_blank_data blank", "blank.user_key", null, " blank.is_del = 1"),
+    INVALUE_DATA(3, "b_tcyr_cpa_invalue_data invalue", "invalue.user_key", "invalue.fail_msg", " date(invalue.release_time) > curdate() and invalue.is_del = 1"),
+
+    CUSTOMIZE(9, null,  null,null, null),
     ;
 
     private static final Map<Integer, TcCpaDeleteRuleSourceTypeEnum> ENUM_MAP = new HashMap<>();
@@ -30,9 +31,10 @@ public enum TcCpaDeleteRuleSourceTypeEnum {
         return ENUM_MAP.get(value);
     }
 
-    TcCpaDeleteRuleSourceTypeEnum(Integer value, String tableName, String field, String defaultCondition) {
+    TcCpaDeleteRuleSourceTypeEnum(Integer value, String tableName, String select, String field, String defaultCondition) {
         this.value = value;
         this.tableName = tableName;
+        this.select = select;
         this.field = field;
         this.defaultCondition = defaultCondition;
     }
@@ -40,6 +42,8 @@ public enum TcCpaDeleteRuleSourceTypeEnum {
     private final Integer value;
 
     private final String tableName;
+
+    private final String select;
 
     private final String field;
 

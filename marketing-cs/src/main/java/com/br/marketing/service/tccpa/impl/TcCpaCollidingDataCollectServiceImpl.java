@@ -4,6 +4,7 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.Constants;
+import com.br.marketing.dto.tccpa.TcCpaDeleteRuleExecuteInfoDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.TcCpaCollectStatusEnum;
 import com.br.marketing.enums.TcCpaCollidingSourceTypeEnum;
@@ -11,6 +12,8 @@ import com.br.marketing.enums.TcCpaCollidingTaskStatusEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.tccpa.TcCpaCollidingDataCollectService;
 import com.br.marketing.service.tccpa.TcCpaCommonService;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
@@ -34,6 +37,9 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
     private final static String TITLE = "【同程易融CPA-colliding data collect任务】";
 
     @Resource
+    private ObjectMapper objectMapper;
+
+    @Resource
     private TcyrCpaLockDataMapper tcyrCpaLockDataMapper;
 
     @Resource
@@ -53,9 +59,6 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
 
     @Resource
     private TcyrCpaDeleteRuleMapper tcyrCpaDeleteRuleMapper;
-
-    @Resource
-    private TcyrCpaCommonMapper tcyrCpaCommonMapper;
 
     @Resource
     private MarketingTcyrCpaSuccessDataMapper marketingTcyrCpaSuccessDataMapper;
@@ -86,20 +89,7 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
             }
         }
 
-        // 更新剔除规则对应量级
-        TcyrCpaDeleteRuleExample deleteRuleExample = new TcyrCpaDeleteRuleExample();
-        List<TcyrCpaDeleteRule> deleteRules = tcyrCpaDeleteRuleMapper.selectByExample(deleteRuleExample);
-        deleteRules.forEach(deleteRule -> {
-            try {
-                deleteRule.setDeleteNum(tcyrCpaCommonMapper.calculateDeleteNumByScript(deleteRule.getExecuteInfo()));
-                tcyrCpaDeleteRuleMapper.updateByPrimaryKey(deleteRule);
-            } catch (Exception e) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
-                        "剔除规则更新剔除量级失败，规则id：" + deleteRule.getId(), TITLE), e);
-            }
-        });
-
-        // 更新撞库任务量级
+        // 判断当日统计任务全部完成
         example = new TcyrCpaCollectTaskExample();
         example.createCriteria().andStatusEqualTo(TcCpaCollectStatusEnum.DEAL_NO.getValue())
                 .andSourceTypeIn(Lists.newArrayList(TcCpaCollidingSourceTypeEnum.SUCCESS.getValue(),
@@ -108,6 +98,23 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
             return;
         }
 
+        // 更新剔除规则对应量级
+        TcyrCpaDeleteRuleExample deleteRuleExample = new TcyrCpaDeleteRuleExample();
+        List<TcyrCpaDeleteRule> deleteRules = tcyrCpaDeleteRuleMapper.selectByExample(deleteRuleExample);
+        deleteRules.forEach(deleteRule -> {
+            try {
+                List<TcCpaDeleteRuleExecuteInfoDTO> executeInfos = objectMapper.readValue(deleteRule.getExecuteInfo(),
+                        new TypeReference<List<TcCpaDeleteRuleExecuteInfoDTO>>() {
+                        });
+                deleteRule.setDeleteNum(tcCpaCommonService.calculateVolume(executeInfos));
+                tcyrCpaDeleteRuleMapper.updateByPrimaryKey(deleteRule);
+            } catch (Exception e) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
+                        "剔除规则更新剔除量级失败，规则id：" + deleteRule.getId(), TITLE), e);
+            }
+        });
+
+        // 更新撞库任务量级
         TcyrCpaCollidingTaskExample collidingExample = new TcyrCpaCollidingTaskExample();
         collidingExample.createCriteria().andCollidingDateEqualTo(new Date())
                 .andStatusEqualTo(TcCpaCollidingTaskStatusEnum.STATUS_WAIT_STA.getValue())
