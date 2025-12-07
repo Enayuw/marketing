@@ -107,19 +107,19 @@ public class TcCpaPushFileGenVtServiceImpl implements TcCpaPushFileGenVtService 
 
         //2.服务器路径
         String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
-//        String localPath = syncConfigService.getPath().concat(apiCode).concat(FILE_PATH).concat(yyyyMMdd).concat("/");
-        String localPath = "D:/".concat("tongcheng_cpa_push_file_vt/").concat(yyyyMMdd).concat("/");
+        String localPath = syncConfigService.getPath().concat(apiCode).concat(FILE_PATH).concat(yyyyMMdd).concat("/");
+//        String localPath = "D:/".concat("tongcheng_cpa_push_file_vt/").concat(yyyyMMdd).concat("/");
 
         //3.新增推送文件任务
-        TcyrCpaPushFileTaskVt task = new TcyrCpaPushFileTaskVt();
-        task.setApiCode(apiCode);
-        task.setLocalPath(localPath);
-        task.setPushDate(new Date());
-        task.setStatus(TcCpaPushFileTaskStatusEnum.STATUS_GENINAG.getValue());
-        task.setIsDel(Constants.DATA_VALID);
-        task.setCollidingTaskIds(collidingTasks.stream().map(TcyrCpaCollidingTask::getId).map(String::valueOf)
+        TcyrCpaPushFileTaskVt pushTask = new TcyrCpaPushFileTaskVt();
+        pushTask.setApiCode(apiCode);
+        pushTask.setLocalPath(localPath);
+        pushTask.setPushDate(new Date());
+        pushTask.setStatus(TcCpaPushFileTaskStatusEnum.STATUS_GENINAG.getValue());
+        pushTask.setIsDel(Constants.DATA_VALID);
+        pushTask.setCollidingTaskIds(collidingTasks.stream().map(TcyrCpaCollidingTask::getId).map(String::valueOf)
                 .collect(Collectors.joining(",")));
-        tcyrCpaPushFileTaskVtMapper.insertSelective(task);
+        tcyrCpaPushFileTaskVtMapper.insertSelective(pushTask);
 
         FilePushTaskInfo info = new FilePushTaskInfo();
         String infoString = null;
@@ -143,7 +143,7 @@ public class TcCpaPushFileGenVtServiceImpl implements TcCpaPushFileGenVtService 
         }
         //6.更新推送文件任务
         TcyrCpaPushFileTaskVt updateTaskGen = new TcyrCpaPushFileTaskVt();
-        updateTaskGen.setId(task.getId());
+        updateTaskGen.setId(pushTask.getId());
         updateTaskGen.setTotal(info.getExtraNumAct());
         updateTaskGen.setInfo(infoString);
         if (StringUtils.isEmpty(info.getMessage())) {
@@ -164,7 +164,7 @@ public class TcCpaPushFileGenVtServiceImpl implements TcCpaPushFileGenVtService 
         String uploadPath = upLoadPath.concat(apiCode).concat(FILE_PATH).concat(yyyyMMdd);
         sftpInnerService.pushInnerSftp(localPath, uploadPath, fileNames);
         TcyrCpaPushFileTaskVt updateTaskPutInnerSftp = new TcyrCpaPushFileTaskVt();
-        updateTaskPutInnerSftp.setId(task.getId());
+        updateTaskPutInnerSftp.setId(pushTask.getId());
         updateTaskPutInnerSftp.setInnerSftpPath(uploadPath);
         updateTaskPutInnerSftp.setStatus(TcCpaPushFileTaskStatusEnum.STATUS_INNER_SFTP.getValue());
         tcyrCpaPushFileTaskVtMapper.updateByPrimaryKeySelective(updateTaskPutInnerSftp);

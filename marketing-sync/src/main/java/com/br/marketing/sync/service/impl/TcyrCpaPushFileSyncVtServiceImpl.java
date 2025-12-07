@@ -10,12 +10,10 @@ import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
-import com.br.marketing.enums.SyncConfigCustomizedTypeEnum;
-import com.br.marketing.enums.SyncConfigTypeEnum;
-import com.br.marketing.enums.TcCpaIsDelEnum;
-import com.br.marketing.enums.TcCpaPushFileTaskStatusEnum;
+import com.br.marketing.enums.*;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.mapper.SyncLogMapper;
+import com.br.marketing.mapper.TcyrCpaCollidingTaskMapper;
 import com.br.marketing.mapper.TcyrCpaPushFileTaskVtMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.sync.SyncApplication;
@@ -48,40 +46,56 @@ public class TcyrCpaPushFileSyncVtServiceImpl implements TcyrCpaPushFileSyncVtSe
     @Resource
     private SyncLogMapper syncLogMapper;
 
+    @Resource
+    private TcyrCpaCollidingTaskMapper tcyrCpaCollidingTaskMapper;
+
     @Override
     public void fileSync(String pushDate) {
         String apiCode = marketingCommonConfig.getTcyrCpaApiCode();
         //1.查询今天是否有待同步文件任务
         TcyrCpaPushFileTaskVtExample taskExample = new TcyrCpaPushFileTaskVtExample();
+        TcyrCpaPushFileTaskVtExample.Criteria criteria = taskExample.createCriteria();
         if (StringUtils.isEmpty(pushDate)) {
-            taskExample.createCriteria()
-                    .andApiCodeEqualTo(apiCode)
-                    .andStatusEqualTo(TcCpaPushFileTaskStatusEnum.STATUS_INNER_SFTP.getValue())
-                    .andIsDelEqualTo(TcCpaIsDelEnum.DEL_NO.getValue())
-                    .andPushDateEqualTo(new Date());
+            criteria.andPushDateEqualTo(new Date());
         } else {
-            taskExample.createCriteria()
-                    .andApiCodeEqualTo(apiCode)
-                    .andStatusEqualTo(TcCpaPushFileTaskStatusEnum.STATUS_INNER_SFTP.getValue())
-                    .andIsDelEqualTo(TcCpaIsDelEnum.DEL_NO.getValue())
-                    .andPushDateEqualTo(TimeUtils.parseStringToDate(pushDate));
+            criteria.andPushDateEqualTo(TimeUtils.parseStringToDate(pushDate));
         }
+        criteria.andApiCodeEqualTo(apiCode)
+                .andStatusEqualTo(TcCpaPushFileTaskStatusEnum.STATUS_INNER_SFTP.getValue())
+                .andIsDelEqualTo(TcCpaIsDelEnum.DEL_NO.getValue());
         List<TcyrCpaPushFileTaskVt> tasks = tcyrCpaPushFileTaskVtMapper.selectByExample(taskExample);
         if (CollectionUtils.isEmpty(tasks)) {
             return;
         }
+
+        TcyrCpaCollidingTaskExample example = new TcyrCpaCollidingTaskExample();
+        example.createCriteria().andApiCodeEqualTo(apiCode).andIsDelEqualTo(TcCpaIsDelEnum.DEL_NO.getValue())
+                .andStatusEqualTo(TcCpaCollidingTaskStatusEnum.STATUS_PUSHING.getValue());
+        List<TcyrCpaCollidingTask> collidingTasks = tcyrCpaCollidingTaskMapper.selectByExample(example);
+
         for (TcyrCpaPushFileTaskVt task : tasks) {
             TcyrCpaPushFileTaskVt updateTask = new TcyrCpaPushFileTaskVt();
             try {
                 updateTask.setId(task.getId());
                 fileSyncProcess(task, updateTask);
                 updateTask.setStatus(TcCpaPushFileTaskStatusEnum.STATUS_OPE_SFTP.getValue());
+                collidingTasks.forEach(collidingTask -> {
+                    collidingTask.setStatus(TcCpaCollidingTaskStatusEnum.STATUS_PUSH_COMPLETED.getValue());
+                });
             } catch (Exception e) {
+                collidingTasks.forEach(collidingTask -> {
+                    collidingTask.setStatus(TcCpaCollidingTaskStatusEnum.STATUS_PUSH_FAIL.getValue());
+                });
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
                         "sftp同步异常！", TITLE), e);
             }
+            collidingTasks.forEach(collidingTask -> {
+                tcyrCpaCollidingTaskMapper.updateByPrimaryKeySelective(collidingTask);
+            });
             tcyrCpaPushFileTaskVtMapper.updateByPrimaryKeySelective(updateTask);
         }
+
+
     }
 
     private void fileSyncProcess(TcyrCpaPushFileTaskVt task, TcyrCpaPushFileTaskVt updateTask) {
