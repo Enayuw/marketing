@@ -138,8 +138,6 @@ public class LineBaseInfoSyncServiceImpl implements LineBaseInfoSyncService {
                     //3.1 场景 lineSupplier修改 //3.2 场景 其它字段发生修改
                     if (!ddLineInfoItem.getLineSupplier().equals(dbFullInfoItem.getLineSupplier())) {
                         //3.1场景 lineSupplier修改
-                        //dbFullInfoItem->lineSupplierId 对应记录b_marketing_line_supplier_info_normal记录   修改ope_status = 1
-                        lineSupplierInfoNormalMapper.updateOpeStatusById(dbFullInfoItem.getLineSupplierId(),1);
                         //dbFullInfoItem->gatewayId 对应b_marketing_line_base_info_normal记录  修改ope_status = 1
                         lineBaseInfoNormalMapper.updateBaseInfoById(dbFullInfoItem.getId(),ddLineInfoItem.getCaller(),
                                 ddLineInfoItem.getOutboundNumber(),ddLineInfoItem.getProjectName(),1);
