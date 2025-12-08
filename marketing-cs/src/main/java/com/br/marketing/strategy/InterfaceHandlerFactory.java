@@ -157,6 +157,7 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
          */
         List<Object> transmitFacts = originData.collect(mqFact, context);
 
+        // todo
         String apiCode = context.getApiCode();
         // 检查配置是否要给间隔job添加数据以及是否继续往下走
         Map<String, JSONObject> periodPushConfig = marketingCommonConfig.getPeriodPushConfig();
