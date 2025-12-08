@@ -1,11 +1,11 @@
 package com.br.marketing.aspect;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.context.MqIdempotentContext;
 import com.br.marketing.enums.MqIdempotentTableType;
-import com.br.marketing.origin.MqFact;
 import com.br.marketing.service.MqIdempotentService;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -34,8 +34,8 @@ public class MqIdempotentAspect {
 
     @Around("@annotation(mqIdempotent)")
     public Object around(ProceedingJoinPoint joinPoint, MqIdempotent mqIdempotent) throws Throwable {
-        // 解析消息获取idempotentKey
-        Long idempotentKey = extractIdempotentKey(joinPoint.getArgs());
+        // 提取幂等键
+        Long idempotentKey = extractIdempotentKey(joinPoint.getArgs(), mqIdempotent);
         if (idempotentKey == null) {
             log.warn("消息中未找到idempotentKey，跳过幂等性检查");
             return joinPoint.proceed();
@@ -46,7 +46,7 @@ public class MqIdempotentAspect {
         String apiCode = MqIdempotentContext.getApiCode();
         MqIdempotentTableType tableType = mqIdempotent.tableType();
         
-        // 尝试插入幂等记录
+        // 尝试插入幂等记录（失败时抛出异常，让MQ重试）
         Long recordId = insertIdempotentRecord(tableType, idempotentKey, apiCode, tag);
         if (recordId == null) {
             // DuplicateKeyException，消息已处理过，直接返回成功
@@ -63,16 +63,18 @@ public class MqIdempotentAspect {
             // 业务处理异常，删除幂等记录，让MQ重试
             deleteIdempotentRecordOnException(tableType, idempotentKey, recordId);
             throw e;
-        } finally {
-            // 清理ThreadLocal
-            MqIdempotentContext.clear();
         }
     }
     
     /**
      * 从方法参数中提取idempotentKey
+     * 支持从 MqFact 对象或任意 JSON 中提取
+     * 
+     * @param args 方法参数
+     * @param mqIdempotent 注解配置
+     * @return idempotentKey，如果未找到返回null
      */
-    private Long extractIdempotentKey(Object[] args) {
+    private Long extractIdempotentKey(Object[] args, MqIdempotent mqIdempotent) {
         if (args == null || args.length == 0) {
             return null;
         }
@@ -83,11 +85,33 @@ public class MqIdempotentAspect {
         }
         
         String message = (String) firstArg;
+        String idempotentKeyField = mqIdempotent.idempotentKeyField();
+        
         try {
-            MqFact mqFact = JSON.parseObject(message, MqFact.class);
-            return mqFact != null ? mqFact.getIdempotentKey() : null;
+            // 先尝试解析为 JSONObject，直接获取字段（支持任意JSON格式）
+            JSONObject jsonObject = JSON.parseObject(message);
+            if (jsonObject != null && jsonObject.containsKey(idempotentKeyField)) {
+                Object value = jsonObject.get(idempotentKeyField);
+                if (value != null) {
+                    // 支持 Long、Number 和 String 类型
+                    if (value instanceof Long) {
+                        return (Long) value;
+                    } else if (value instanceof Number) {
+                        return ((Number) value).longValue();
+                    } else if (value instanceof String) {
+                        try {
+                            return Long.parseLong((String) value);
+                        } catch (NumberFormatException e) {
+                            log.warn("idempotentKey字段值不是有效的Long类型: {}", value);
+                            return null;
+                        }
+                    }
+                }
+            }
+
+            return null;
         } catch (Exception e) {
-            log.warn("解析MQ消息获取idempotentKey失败: {}", message, e);
+            log.warn("解析MQ消息获取idempotentKey失败，字段名: {}, message: {}", idempotentKeyField, message, e);
             return null;
         }
     }
@@ -95,9 +119,10 @@ public class MqIdempotentAspect {
     /**
      * 插入幂等记录
      * @return 记录ID，如果返回null表示消息已处理过（DuplicateKeyException）
+     * @throws RuntimeException 插入失败时抛出异常，让MQ重试
      */
     private Long insertIdempotentRecord(MqIdempotentTableType tableType, Long idempotentKey, 
-                                        String apiCode, String tag) {
+                                        String apiCode, String tag) throws RuntimeException {
         try {
             Long recordId = mqIdempotentService.insertIdempotentRecord(tableType, idempotentKey, apiCode, tag);
             log.warn("幂等性检查通过，插入幂等记录成功，tableType: {}, idempotentKey: {}, recordId: {}, tag: {}", 
@@ -108,10 +133,11 @@ public class MqIdempotentAspect {
                     tableType.getCode(), idempotentKey, tag);
             return null;
         } catch (Exception e) {
-            log.error("插入幂等记录失败，tableType: {}, idempotentKey: {}, tag: {}", 
-                    tableType.getCode(), idempotentKey, tag, e);
-            // 插入失败不影响业务处理，返回一个特殊值表示需要继续执行
-            return -1L;
+            // 插入失败，无法保证幂等性，抛出异常让MQ重试（最多16次）
+            String errorMsg = String.format("插入幂等记录失败，无法保证幂等性，tableType: %s, idempotentKey: %s, tag: %s", 
+                    tableType.getCode(), idempotentKey, tag);
+            log.error(errorMsg, e);
+            throw new RuntimeException(errorMsg, e);
         }
     }
     
@@ -139,7 +165,8 @@ public class MqIdempotentAspect {
     }
     
     /**
-     * 业务异常时删除幂等记录
+     * 业务异常时删除幂等记录（带重试机制）
+     * 删除失败时进行有限次数的重试，提高删除成功率
      */
     private void deleteIdempotentRecordOnException(MqIdempotentTableType tableType, 
                                                    Long idempotentKey, Long recordId) {
@@ -147,13 +174,39 @@ public class MqIdempotentAspect {
             return;
         }
         
-        try {
-            mqIdempotentService.deleteIdempotentRecord(tableType, recordId);
-            log.warn("业务处理异常，已删除幂等记录，tableType: {}, idempotentKey: {}, recordId: {}, 等待MQ重试", 
-                    tableType.getCode(), idempotentKey, recordId);
-        } catch (Exception e) {
-            log.error("删除幂等记录失败，tableType: {}, idempotentKey: {}, recordId: {}", 
-                    tableType.getCode(), idempotentKey, recordId, e);
+        int maxRetries = 3;
+        int retryCount = 0;
+        boolean deleted = false;
+        
+        while (retryCount < maxRetries && !deleted) {
+            try {
+                mqIdempotentService.deleteIdempotentRecord(tableType, recordId);
+                log.warn("业务处理异常，已删除幂等记录，tableType: {}, idempotentKey: {}, recordId: {}, 重试次数: {}, 等待MQ重试", 
+                        tableType.getCode(), idempotentKey, recordId, retryCount);
+                deleted = true;
+            } catch (Exception e) {
+                retryCount++;
+                if (retryCount < maxRetries) {
+                    log.warn("删除幂等记录失败，准备重试，tableType: {}, idempotentKey: {}, recordId: {}, 重试次数: {}/{}", 
+                            tableType.getCode(), idempotentKey, recordId, retryCount, maxRetries, e);
+                    try {
+                        // 递增延迟：100ms, 200ms, 300ms
+                        Thread.sleep(100L * retryCount);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        log.warn("删除幂等记录重试延迟被中断，tableType: {}, idempotentKey: {}, recordId: {}", 
+                                tableType.getCode(), idempotentKey, recordId);
+                        break;
+                    }
+                } else {
+                    // 重试失败，记录告警
+                    String errorMsg = String.format("删除幂等记录失败（已重试%d次），幂等记录可能残留，tableType: %s, idempotentKey: %s, recordId: %s", 
+                            maxRetries, tableType.getCode(), idempotentKey, recordId);
+                    log.error(errorMsg, e);
+                    // TODO: 可以发送告警通知，但不要影响业务异常的重试
+                    // 注意：这里不抛出异常，因为业务异常已经抛出，MQ会重试
+                }
+            }
         }
     }
     
