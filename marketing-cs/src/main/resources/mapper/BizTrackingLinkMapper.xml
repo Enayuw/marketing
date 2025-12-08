@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.BizTrackingLinkMapper" >
+
+    <!-- 查询所有启用的链路 -->
+    <select id="selectEnabledLinks" resultType="com.br.marketing.entity.BizTrackingLink">
+        SELECT
+            id,
+            link_code AS linkCode,
+            link_name AS linkName,
+            biz_scene AS bizScene,
+            description,
+            status,
+            created_time AS createdTime,
+            updated_time AS updatedTime
+        FROM biz_tracking_link
+        WHERE status = 1
+        ORDER BY created_time DESC
+    </select>
+
+    <!-- 查询链路列表 -->
+    <select id="selectLinkList" resultType="com.br.marketing.dto.datamap.LinkListItemDTO">
+        SELECT
+        l.id,
+        l.api_code AS apiCode,
+        l.link_code AS linkCode,
+        l.link_name AS linkName,
+        l.biz_scene AS bizScene,
+        l.description,
+        l.status,
+        COUNT(ln.id) AS nodeCount,
+        l.created_time AS createdTime,
+        l.updated_time AS updatedTime
+        FROM biz_tracking_link l
+        LEFT JOIN biz_tracking_link_node ln ON l.id = ln.link_id AND ln.status = 1
+        <where>
+            <if test="query.apiCode != null and query.apiCode != ''">
+                AND l.api_code LIKE CONCAT('%', #{query.apiCode}, '%')
+            </if>
+            <if test="query.linkCode != null and query.linkCode != ''">
+                AND l.link_code LIKE CONCAT('%', #{query.linkCode}, '%')
+            </if>
+            <if test="query.linkName != null and query.linkName != ''">
+                AND l.link_name LIKE CONCAT('%', #{query.linkName}, '%')
+            </if>
+            <if test="query.status != null">
+                AND l.status = #{query.status}
+            </if>
+        </where>
+        GROUP BY l.id
+        ORDER BY l.id DESC
+    </select>
+
+    <!-- 统计链路数量 -->
+    <select id="countLinkList" resultType="java.lang.Long">
+        SELECT COUNT(DISTINCT l.id)
+        FROM biz_tracking_link l
+        LEFT JOIN biz_tracking_link_node ln ON l.id = ln.link_id AND ln.status = 1
+        <where>
+            <if test="query.linkCode != null and query.linkCode != ''">
+                AND l.link_code LIKE CONCAT('%', #{query.linkCode}, '%')
+            </if>
+            <if test="query.linkName != null and query.linkName != ''">
+                AND l.link_name LIKE CONCAT('%', #{query.linkName}, '%')
+            </if>
+            <if test="query.apiCode != null and query.apiCode != ''">
+                AND EXISTS (
+                SELECT 1 FROM biz_tracking_link_node ln2
+                INNER JOIN biz_tracking_node_dict nd ON ln2.node_dict_id = nd.id
+                WHERE ln2.link_id = l.id
+                AND nd.api_code LIKE CONCAT('%', #{query.apiCode}, '%')
+                )
+            </if>
+            <if test="query.status != null">
+                AND l.status = #{query.status}
+            </if>
+        </where>
+    </select>
+
+    <!-- 批量更新链路状态 -->
+    <update id="updateLinkStatus">
+        UPDATE biz_tracking_link
+        SET status = #{status},
+        updated_time = NOW()
+        WHERE id IN
+        <foreach collection="linkIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+</mapper>
