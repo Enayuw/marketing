@@ -56,6 +56,7 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
+    @Resource
     private TcCpaCommonService tcCpaCommonService;
 
     private static final ObjectMapper objectMapper = new ObjectMapper();

@@ -13,6 +13,7 @@ import com.br.marketing.enums.TcCpaDeleteRuleSourceTypeEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.tccpa.TcCpaCollidingDataFilterService;
 import com.br.marketing.service.tccpa.TcCpaCommonService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
@@ -54,15 +55,20 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
     @Resource
     TcCpaCommonService tcCpaCommonService;
 
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final int PAGE_SIZE = 2000;
 
     @Override
     public void process() {
+        String apiCode = marketingCommonConfig.getTcyrCpaApiCode();
         //1.查询统计完成和待统计的撞库任务
         TcyrCpaCollidingTaskExample taskExample = new TcyrCpaCollidingTaskExample();
         taskExample.createCriteria()
+                .andApiCodeEqualTo(apiCode)
                 .andCollidingDateEqualTo(new Date())
                 .andIsDelEqualTo(Constants.DATA_VALID)
                 .andEnabledEqualTo(Constants.ENABLED_ACT)
