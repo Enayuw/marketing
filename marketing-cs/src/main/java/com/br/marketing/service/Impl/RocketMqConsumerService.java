@@ -6,6 +6,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.config.RocketMqSwitch;
+import com.br.marketing.context.MqIdempotentContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.springframework.stereotype.Service;
@@ -51,6 +52,8 @@ public class RocketMqConsumerService {
         String msgId = messageExt.getMsgId();
         Result<Boolean> apply = null;
         try {
+            // 设置tag到ThreadLocal，供幂等性切面使用
+            MqIdempotentContext.setTag(tags);
             apply = method.apply(t);
             /*
              * code 为SUCCESS 认为消费成功
@@ -84,6 +87,9 @@ public class RocketMqConsumerService {
             log.warn(error, e);
             alarmClient.sendAlarm(error, "RocketMQ消费异常", AlarmSendCodeEnum.ROCKETMQ_CONSUMER_ERROR.getCode());
             throw e;
+        } finally {
+            // 清理ThreadLocal
+            MqIdempotentContext.clear();
         }
         rocketMqSwitch.rocketLogSwitchFlag(tags, messageExt, t, startTime);
     }

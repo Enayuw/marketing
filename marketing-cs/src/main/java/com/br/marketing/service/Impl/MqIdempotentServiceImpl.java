@@ -1,0 +1,119 @@
+package com.br.marketing.service.Impl;
+
+import com.br.marketing.entity.MqIdempotentCommon;
+import com.br.marketing.entity.MqIdempotentSpecial;
+import com.br.marketing.enums.MqIdempotentTableType;
+import com.br.marketing.mapper.MqIdempotentCommonMapper;
+import com.br.marketing.mapper.MqIdempotentSpecialMapper;
+import com.br.marketing.service.MqIdempotentService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
+import javax.annotation.Resource;
+import java.util.Date;
+
+/**
+ * MQ幂等性服务实现
+ */
+@Service
+@Slf4j
+public class MqIdempotentServiceImpl implements MqIdempotentService {
+    
+    @Resource
+    private MqIdempotentCommonMapper mqIdempotentCommonMapper;
+    
+    @Resource
+    private MqIdempotentSpecialMapper mqIdempotentSpecialMapper;
+    
+    private static final Integer NOT_DELETED = 0;
+    
+    @Override
+    public Long insertIdempotentRecord(MqIdempotentTableType tableType, Long idempotentKey, String apiCode, String tag) {
+        Date now = new Date();
+        
+        switch (tableType) {
+            case COMMON:
+                MqIdempotentCommon commonRecord = createCommonRecord(idempotentKey, apiCode, tag, now);
+                mqIdempotentCommonMapper.insertSelective(commonRecord);
+                return commonRecord.getId();
+            case SPECIAL:
+                MqIdempotentSpecial specialRecord = createSpecialRecord(idempotentKey, apiCode, tag, now);
+                mqIdempotentSpecialMapper.insertSelective(specialRecord);
+                return specialRecord.getId();
+            default:
+                throw new IllegalArgumentException("不支持的幂等表类型: " + tableType);
+        }
+    }
+    
+    @Override
+    public void deleteIdempotentRecord(MqIdempotentTableType tableType, Long recordId) {
+        switch (tableType) {
+            case COMMON:
+                mqIdempotentCommonMapper.deleteByPrimaryKey(recordId);
+                break;
+            case SPECIAL:
+                mqIdempotentSpecialMapper.deleteByPrimaryKey(recordId);
+                break;
+            default:
+                throw new IllegalArgumentException("不支持的幂等表类型: " + tableType);
+        }
+    }
+    
+    @Override
+    public void updateApiCode(MqIdempotentTableType tableType, Long recordId, String apiCode) {
+        if (!StringUtils.hasText(apiCode)) {
+            return;
+        }
+        
+        Date now = new Date();
+        
+        switch (tableType) {
+            case COMMON:
+                MqIdempotentCommon commonRecord = new MqIdempotentCommon();
+                commonRecord.setId(recordId);
+                commonRecord.setApiCode(apiCode);
+                commonRecord.setUpdateTime(now);
+                mqIdempotentCommonMapper.updateByPrimaryKeySelective(commonRecord);
+                break;
+            case SPECIAL:
+                MqIdempotentSpecial specialRecord = new MqIdempotentSpecial();
+                specialRecord.setId(recordId);
+                specialRecord.setApiCode(apiCode);
+                specialRecord.setUpdateTime(now);
+                mqIdempotentSpecialMapper.updateByPrimaryKeySelective(specialRecord);
+                break;
+            default:
+                throw new IllegalArgumentException("不支持的幂等表类型: " + tableType);
+        }
+    }
+    
+    /**
+     * 创建通用表记录
+     */
+    private MqIdempotentCommon createCommonRecord(Long idempotentKey, String apiCode, String tag, Date now) {
+        MqIdempotentCommon record = new MqIdempotentCommon();
+        record.setIdempotentkey(idempotentKey);
+        record.setApiCode(apiCode);
+        record.setTag(tag);
+        record.setIsDeleted(NOT_DELETED);
+        record.setCreateTime(now);
+        record.setUpdateTime(now);
+        return record;
+    }
+    
+    /**
+     * 创建特殊表记录
+     */
+    private MqIdempotentSpecial createSpecialRecord(Long idempotentKey, String apiCode, String tag, Date now) {
+        MqIdempotentSpecial record = new MqIdempotentSpecial();
+        record.setIdempotentkey(idempotentKey);
+        record.setApiCode(apiCode);
+        record.setTag(tag);
+        record.setIsDeleted(NOT_DELETED);
+        record.setCreateTime(now);
+        record.setUpdateTime(now);
+        return record;
+    }
+}
+
