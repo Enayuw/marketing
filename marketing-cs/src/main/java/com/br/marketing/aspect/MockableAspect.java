@@ -161,15 +161,25 @@ public class MockableAspect {
 
             // 处理 ApiResult 类型
             if (ApiResult.class.isAssignableFrom(returnType)) {
-                return new ApiResult<>().success(responseBody);
+                try {
+                    return objectMapper.convertValue(responseBody, objectMapper.getTypeFactory().constructType(method.getGenericReturnType()));
+                } catch (Exception e) {
+                    log.debug(TITLE + "【ApiResult转换】方法 {} 响应体无法直接转换为ApiResult，使用success包装", methodName);
+                    return new ApiResult<>().success(responseBody);
+                }
             }
 
             // 处理 Result 类型
             if (Result.class.isAssignableFrom(returnType)) {
-                Result<Object> result = new Result<>();
-                result.success();
-                result.setDate(responseBody);
-                return result;
+                try {
+                    return objectMapper.convertValue(responseBody, objectMapper.getTypeFactory().constructType(method.getGenericReturnType()));
+                } catch (Exception e) {
+                    log.debug(TITLE + "【Result转换】方法 {} 响应体无法直接转换为Result，使用success包装", methodName);
+                    Result<Object> result = new Result<>();
+                    result.success();
+                    result.setDate(responseBody);
+                    return result;
+                }
             }
 
             // 处理 List 类型

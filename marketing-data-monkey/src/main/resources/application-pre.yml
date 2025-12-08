@@ -268,7 +268,7 @@ api:
     originalUrl: ${api.syj.baseUrl}/yjPart/${api.syj.code}
     blackUrl: ${api.syj.baseUrl}/yjPart/blackList/insertUnsubscribeData/${api.syj.code}
   mock:
-    baseUrl: http://marketing-inner-api
+    baseUrl: https://marketing-pre.100credit.com/api/marketing-inner-api
     redisUrl: ${api.mock.baseUrl}/mockRedis/queryMockConfig
 
 spring:
