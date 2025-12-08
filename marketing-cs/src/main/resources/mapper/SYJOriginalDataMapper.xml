@@ -17,14 +17,8 @@
 
     <update id="batchUpdateStatus">
         update b_syj_original_data
-        <trim prefix="set" suffixOverrides=",">
-            <if test="queryStatus != null">
-                query_status = #{queryStatus},
-            </if>
-            <if test="invocationStatus != null">
-                invocation_status = #{invocationStatus},
-            </if>
-        </trim>
+        set
+            query_status = #{queryStatus}
         where id in
         <foreach collection="ids" item="id" separator="," open="(" close=")">
             #{id}

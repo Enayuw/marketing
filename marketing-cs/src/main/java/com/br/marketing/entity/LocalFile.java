@@ -84,7 +84,7 @@ public class LocalFile {
     private Date pushEndTime;
 
     /**
-     * 推送状态 1 推送中  2 非推送中
+     * 推送状态 0-未推送；1-推送中；2-部分成功；3-推送成功；4-推送失败
      */
     private String pushStatus;
 

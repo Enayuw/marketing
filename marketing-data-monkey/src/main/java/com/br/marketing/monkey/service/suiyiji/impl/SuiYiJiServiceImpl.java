@@ -88,57 +88,62 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
 
     @Override
     public void originalToUpload(String apiCode) {
-        List<LocalFile> localFileList = getFileIdByApiCodeAndFileType(apiCode, SftpFileTypeEnum.SYJ_ORIGINAL.getValue());
+        List<LocalFile> localFileList = getAllFilesToProcess(apiCode, SftpFileTypeEnum.SYJ_ORIGINAL.getValue());
         for (LocalFile localFile : localFileList) {
-            originalProcess(apiCode, localFile);
+            String pushStatus = localFile.getPushStatus();
+
+            // 根据push_status走不同的处理逻辑（只查询0、2、4状态）
+            if (LocalFilePushStatusEnum.NOT_PUSHED.getCode().equals(pushStatus)) {
+                // 未推送（0）：正常处理
+                originalProcess(apiCode, localFile);
+            } else if (LocalFilePushStatusEnum.PARTIAL_SUCCESS.getCode().equals(pushStatus)
+                    || LocalFilePushStatusEnum.PUSH_FAILED.getCode().equals(pushStatus)) {
+                // 部分成功（2）或推送失败（4）：重试处理
+                processRetry(localFile, () -> retryOriginalProcess(apiCode, localFile));
+            }
         }
     }
 
     @Override
     public void blackToUpload(String apiCode) {
-        List<LocalFile> localFileList = getFileIdByApiCodeAndFileType(apiCode, SftpFileTypeEnum.SYJ_BLACK.getValue());
+        List<LocalFile> localFileList = getAllFilesToProcess(apiCode, SftpFileTypeEnum.SYJ_BLACK.getValue());
         for (LocalFile localFile : localFileList) {
-            blackProcess(localFile);
+            String pushStatus = localFile.getPushStatus();
+
+            // 根据push_status走不同的处理逻辑（只查询0、2、4状态）
+            if (LocalFilePushStatusEnum.NOT_PUSHED.getCode().equals(pushStatus)) {
+                // 未推送（0）：正常处理
+                blackProcess(localFile);
+            } else if (LocalFilePushStatusEnum.PARTIAL_SUCCESS.getCode().equals(pushStatus)
+                    || LocalFilePushStatusEnum.PUSH_FAILED.getCode().equals(pushStatus)) {
+                // 部分成功（2）或推送失败（4）：重试处理
+                processRetry(localFile, () -> retryBlackProcess(apiCode, localFile));
+            }
         }
-    }
-
-    @Override
-    public void retryPartialSuccessFiles(String apiCode) {
-        retryPartialSuccessFilesInternal(apiCode, SftpFileTypeEnum.SYJ_ORIGINAL.getValue(), this::retryOriginalProcess);
-    }
-
-    @Override
-    public void retryPartialSuccessBlackFiles(String apiCode) {
-        retryPartialSuccessFilesInternal(apiCode, SftpFileTypeEnum.SYJ_BLACK.getValue(), this::retryBlackProcess);
     }
 
     /**
-     * 重试部分成功文件的公共方法
+     * 处理重试逻辑的公共方法
      *
-     * @param apiCode   API编码
-     * @param fileType  文件类型
-     * @param retryProcessor 重试处理器
+     * @param localFile     文件对象
+     * @param retryAction   重试执行动作
      */
-    private void retryPartialSuccessFilesInternal(String apiCode, String fileType, 
-                                                   java.util.function.BiConsumer<String, LocalFile> retryProcessor) {
-        List<LocalFile> retryFileList = getRetryFileList(apiCode, fileType);
-        for (LocalFile localFile : retryFileList) {
-            // 检查重试次数
-            Integer retryCount = localFile.getRetryCount();
-            if (retryCount != null && retryCount >= 1) {
-                log.warn("文件已达到最大重试次数，跳过重试，fileId={}, retryCount={}",
-                        localFile.getId(), retryCount);
-                continue;
-            }
-
-            // 更新重试次数和状态
-            localFile.setRetryCount((retryCount == null ? 0 : retryCount) + 1);
-            localFileMapper.updateByPrimaryKeySelective(localFile);
-
-            // 执行重试
-            retryProcessor.accept(apiCode, localFile);
+    private void processRetry(LocalFile localFile, Runnable retryAction) {
+        Integer retryCount = localFile.getRetryCount();
+        if (retryCount != null && retryCount >= 1) {
+            log.warn("文件已达到最大重试次数，跳过重试，fileId={}, retryCount={}, pushStatus={}",
+                    localFile.getId(), retryCount, localFile.getPushStatus());
+            return;
         }
+
+        // 更新重试次数和状态
+        localFile.setRetryCount((retryCount == null ? 0 : retryCount) + 1);
+        localFileMapper.updateByPrimaryKeySelective(localFile);
+
+        // 执行重试
+        retryAction.run();
     }
+
 
     // ==================== 撞库数据处理相关 ====================
 
@@ -197,6 +202,8 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
 
         // 获取文件量级
         Integer actualNumber = localFile.getActualNumber();
+        // 如果是重试逻辑，保存重试前的push_number（用于累加）
+        Integer originalPushNumber = !logPrefix.isEmpty() ? localFile.getPushNumber() : null;
 
         Long minId = null;
         RateLimiter rateLimiter = RateLimiter.create(QPS_LIMIT);
@@ -221,8 +228,8 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
                 break;
             }
 
-            List<Long> idList = originalDataList.stream().map(SYJOriginalData::getId).collect(Collectors.toList());
-            batchUpdateOriginalData(idList, QueryStatusEnum.QUERYING.getCode(), null);
+            List<Long> idList = originalDataList.stream().map(SYJOriginalData::getId).toList();
+            batchUpdateOriginalData(idList, QueryStatusEnum.QUERYING.getCode());
 
             minId = originalDataList.get(originalDataList.size() - 1).getId();
 
@@ -306,18 +313,35 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
                 // 统计queryStatus=3的量级
                 int queryStatus3Count = countOriginalDataByQueryStatus(fileId, QueryStatusEnum.QUERY_SUCCESS.getCode());
 
-                // 对比actualNumber和queryStatus=3的数量
-                if (actualNumber != null && actualNumber.equals(queryStatus3Count)) {
+                // 更新push_number字段
+                if (!logPrefix.isEmpty()) {
+                    // 重试逻辑：push_number = 重试前的值 + 重试后的值
+                    int finalPushNumber = (originalPushNumber != null ? originalPushNumber : 0) + queryStatus3Count;
+                    localFile.setPushNumber(finalPushNumber);
+                    log.info("{}重试逻辑更新push_number，fileId={}, 重试前push_number={}, 重试成功量级={}, 新push_number={}",
+                            logPrefix, fileId, originalPushNumber, queryStatus3Count, finalPushNumber);
+                } else {
+                    // 正常处理：push_number = 本次成功的数量
+                    localFile.setPushNumber(queryStatus3Count);
+                }
+
+                // 对比actualNumber和查询成功的数量
+                // 正常处理：对比actualNumber（原始量级）和queryStatus3Count（本次成功数）
+                // 重试处理：对比actualNumber（原始量级）和finalPushNumber（重试前+重试后的总数）
+                int compareValue = !logPrefix.isEmpty() && originalPushNumber != null
+                        ? (originalPushNumber + queryStatus3Count)
+                        : queryStatus3Count;
+                if (actualNumber != null && actualNumber.equals(compareValue)) {
                     // 一致，标记为推送成功
                     updateLocalFilePushStatus(localFile, LocalFilePushStatusEnum.PUSH_SUCCESS.getCode(), null, new Date(), null);
                     log.info("{}撞库数据推送成功，fileId={}, 文件量级={}, 查询成功的量级={}, 一致",
-                            logPrefix, fileId, actualNumber, queryStatus3Count);
+                            logPrefix, fileId, actualNumber, compareValue);
                 } else {
                     // 不一致，标记为部分成功
                     String errorMessage = logPrefix.isEmpty() ? "量级不一致" : "重试后量级仍不一致";
                     updateLocalFilePushStatus(localFile, LocalFilePushStatusEnum.PARTIAL_SUCCESS.getCode(), null, new Date(), errorMessage);
                     log.error("{}撞库数据推送失败，fileId={}, 文件量级={}, 查询成功的量级={}, 不一致，已标记为部分成功",
-                            logPrefix, fileId, actualNumber, queryStatus3Count);
+                            logPrefix, fileId, actualNumber, compareValue);
                 }
 
                 // 调用上传接口
@@ -339,8 +363,8 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
     /**
      * 批量更新撞库数据状态
      */
-    void batchUpdateOriginalData(List<Long> dataIdList, Integer queryStatus, Integer invocationStatus) {
-        originalDataMapper.batchUpdateStatus(dataIdList, queryStatus, null);
+    void batchUpdateOriginalData(List<Long> dataIdList, Integer queryStatus) {
+        originalDataMapper.batchUpdateStatus(dataIdList, queryStatus);
     }
 
     /**
@@ -353,7 +377,6 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
     /**
      * 解析撞库数据响应并构建更新任务
      * query_status对应响应中的code（0-调用成功，1-系统异常）
-     * invocation_status对应响应中的result（1-准入，2-不准入）
      * 不修改status字段
      */
     private UpdateTask parseOriginalResponse(Long dataId, Map<String, String> responseMap) {
@@ -507,6 +530,8 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
 
         // 获取文件量级
         Integer actualNumber = localFile.getActualNumber();
+        // 如果是重试逻辑，保存重试前的push_number
+        Integer originalPushNumber = !logPrefix.isEmpty() ? localFile.getPushNumber() : null;
 
         Long minId = null;
         // 创建RateLimiter，限制QPS < 10
@@ -615,20 +640,35 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
                 // 全部处理完成后，比较actual_number字段的值
                 int totalSuccNumValue = totalSuccNum.get();
 
-                localFile.setPushNumber(totalSuccNumValue);
+                // 更新push_number字段
+                if (!logPrefix.isEmpty()) {
+                    // 重试逻辑：push_number = 重试前的值 + 重试后的值
+                    int finalPushNumber = (originalPushNumber != null ? originalPushNumber : 0) + totalSuccNumValue;
+                    localFile.setPushNumber(finalPushNumber);
+                    log.info("{}重试逻辑更新push_number，fileId={}, 重试前push_number={}, 重试成功量级={}, 新push_number={}",
+                            logPrefix, fileId, originalPushNumber, totalSuccNumValue, finalPushNumber);
+                } else {
+                    // 正常处理：push_number = 本次成功的数量
+                    localFile.setPushNumber(totalSuccNumValue);
+                }
 
                 // 对比actual_number和汇总的succNum
-                if (actualNumber != null && !actualNumber.equals(totalSuccNumValue)) {
+                // 正常处理：对比actualNumber（原始量级）和totalSuccNumValue（本次成功数）
+                // 重试处理：对比actualNumber（原始量级）和finalPushNumber（重试前+重试后的总数）
+                int compareValue = !logPrefix.isEmpty() && originalPushNumber != null
+                        ? (originalPushNumber + totalSuccNumValue)
+                        : totalSuccNumValue;
+                if (actualNumber != null && !actualNumber.equals(compareValue)) {
                     // 不一致，标记为部分成功
                     String errorMessage = logPrefix.isEmpty() ? "量级不一致" : "重试后量级仍不一致";
                     updateLocalFilePushStatus(localFile, LocalFilePushStatusEnum.PARTIAL_SUCCESS.getCode(), null, new Date(), errorMessage);
-                    log.error("{}黑名单推送失败，fileId={}, 文件量级={}, 成功量级={}, 不一致，已标记为部分成功",
-                            logPrefix, fileId, actualNumber, totalSuccNumValue);
+                    log.error("{}黑名单推送失败，fileId={}, 期望量级={}, 实际量级={}, 不一致，已标记为部分成功",
+                            logPrefix, fileId, actualNumber, compareValue);
                 } else {
                     // 量级一致，标记为推送成功
                     updateLocalFilePushStatus(localFile, LocalFilePushStatusEnum.PUSH_SUCCESS.getCode(), null, new Date(), null);
-                    log.warn("{}黑名单推送成功，fileId={}, 文件量级={}, 成功量级={}, 一致",
-                            logPrefix, fileId, actualNumber, totalSuccNumValue);
+                    log.warn("{}黑名单推送成功，fileId={}, 期望量级={}, 实际量级={}, 一致",
+                            logPrefix, fileId, actualNumber, compareValue);
                 }
             } catch (Exception e) {
                 log.error("{}黑名单后续处理异常，fileId={}", logPrefix, fileId, e);
@@ -645,9 +685,8 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
 
     /**
      * 批量更新黑名单数据状态
-     * 注意：黑名单数据不更新invocationStatus字段
      */
-    void batchUpdateBlackData(List<Long> dataIdList, Integer queryStatus, Integer invocationStatus) {
+    void batchUpdateBlackData(List<Long> dataIdList, Integer queryStatus) {
         blackDataMapper.batchUpdateStatus(dataIdList, queryStatus);
     }
 
@@ -744,7 +783,7 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
      */
     @FunctionalInterface
     private interface BatchUpdateFunction {
-        void update(List<Long> ids, Integer queryStatus, Integer invocationStatus);
+        void update(List<Long> ids, Integer queryStatus);
     }
 
     /**
@@ -772,7 +811,7 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
     }
 
     /**
-     * 按状态分组任务（只按queryStatus分组）
+     * 按状态分组任务
      */
     private Map<String, List<UpdateTask>> groupTasksByStatus(List<UpdateTask> tasks) {
         Map<String, List<UpdateTask>> groupedTasks = new HashMap<>();
@@ -792,7 +831,7 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
         for (List<UpdateTask> batchTasks : partitions) {
             List<Long> batchIds = batchTasks.stream().map(UpdateTask::getDataId).toList();
             try {
-                updateFunction.update(batchIds, sampleTask.getQueryStatus(), null);
+                updateFunction.update(batchIds, sampleTask.getQueryStatus());
                 log.warn("{}批量更新成功，batchSize={}, queryStatus={}",
                         logPrefix, batchIds.size(), sampleTask.getQueryStatus());
             } catch (Exception e) {
@@ -817,8 +856,7 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
                         .orElse(sampleTask);
                 updateFunction.update(
                         Collections.singletonList(id),
-                        task.getQueryStatus(),
-                        null
+                        task.getQueryStatus()
                 );
             } catch (Exception ex) {
                 log.error("{}单个更新数据库异常，dataId={}", logPrefix, id, ex);
@@ -881,7 +919,7 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
         }
     }
 
-    // ==================== 辅助工具方法 ====================
+    // ==================== 入库文件相关方法 ====================
 
     /**
      * 更新LocalFile推送状态为完成
@@ -943,46 +981,28 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
     }
 
     /**
-     * 获取b_local_file表中处理完成且校验通过的文件id集合
+     * 查询所有需要处理的文件（包括未推送、部分成功、推送失败）
+     * 只查询 push_status 为 0、2、4 的文件
      *
      * @param apiCode  apiCode
      * @param fileType 文件类型
+     * @return 需要处理的文件列表
      */
-    List<LocalFile> getFileIdByApiCodeAndFileType(String apiCode, String fileType) {
+    private List<LocalFile> getAllFilesToProcess(String apiCode, String fileType) {
         LocalFileExample example = new LocalFileExample();
-        example.createCriteria()
-                .andApiCodeEqualTo(apiCode)
+        LocalFileExample.Criteria criteria = example.createCriteria();
+        criteria.andApiCodeEqualTo(apiCode)
                 .andFileTypeEqualTo(fileType)
                 .andStatusEqualTo("2")
                 .andCompleteEqualTo("1")
-                .andPushStatusIsNull();
+                .andPushStatusIn(Arrays.asList(
+                        LocalFilePushStatusEnum.NOT_PUSHED.getCode(),
+                        LocalFilePushStatusEnum.PARTIAL_SUCCESS.getCode(),
+                        LocalFilePushStatusEnum.PUSH_FAILED.getCode()
+                ));
+
         return localFileMapper.selectByExample(example);
     }
 
-    /**
-     * 查询需要重试的文件列表（部分成功且重试次数小于1）
-     *
-     * @param apiCode  apiCode
-     * @param fileType 文件类型
-     * @return 需要重试的文件列表
-     */
-    private List<LocalFile> getRetryFileList(String apiCode, String fileType) {
-        LocalFileExample example = new LocalFileExample();
-        example.createCriteria()
-                .andApiCodeEqualTo(apiCode)
-                .andFileTypeEqualTo(fileType)
-                .andStatusEqualTo("2")
-                .andCompleteEqualTo("1")
-                .andPushStatusEqualTo(LocalFilePushStatusEnum.PARTIAL_SUCCESS.getCode());
-        List<LocalFile> allFiles = localFileMapper.selectByExample(example);
-        
-        // 过滤出重试次数小于1的文件（因为Example可能不支持retryCount字段）
-        return allFiles.stream()
-                .filter(file -> {
-                    Integer retryCount = file.getRetryCount();
-                    return retryCount == null || retryCount < 1;
-                })
-                .collect(Collectors.toList());
-    }
 
 }
