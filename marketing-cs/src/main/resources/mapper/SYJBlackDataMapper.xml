@@ -21,6 +21,9 @@
             <if test="queryStatus != null">
                 query_status = #{queryStatus},
             </if>
+            <if test="extend != null">
+                extend = #{extend},
+            </if>
         </trim>
         where id in
         <foreach collection="ids" item="id" separator="," open="(" close=")">
