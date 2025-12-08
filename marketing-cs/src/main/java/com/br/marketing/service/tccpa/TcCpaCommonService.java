@@ -15,4 +15,8 @@ public interface TcCpaCommonService {
     void updateVolumeByTaskId(Long taskId);
 
     Integer calculateVolume(List<TcCpaDeleteRuleExecuteInfoDTO> executeInfos);
+
+    Integer convertFailMsgToLockBelong(Integer failMsg);
+
+    Integer convertLockBelongToFailMsg(Integer lockBelong);
 }

@@ -10,7 +10,7 @@ public enum TcCpaFailMsgEnum {
     FAIL_TRANSFER(3,"已转化", null),
     FAIL_NOONE(4,"无此用户", null),
     FAIL_OUTLIMIT(5,"达到限额", null),
-    FAIL_BLANK(6,"达到限额", 3),
+    FAIL_BLANK(6,"空白组", 3),
     ;
 
     TcCpaFailMsgEnum(Integer value, String desc, Integer lockValue){

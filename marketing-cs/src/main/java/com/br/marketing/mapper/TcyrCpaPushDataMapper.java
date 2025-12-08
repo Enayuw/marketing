@@ -19,4 +19,6 @@ public interface TcyrCpaPushDataMapper extends TcyrCpaPushDataMapperBase{
             @Param("lastId") Long lastId,
             @Param("limit") Integer limit
     );
+
+    void insertBatchWithCollidingDate(@Param("dataList") List<TcyrCpaPushData> dataList);
 }

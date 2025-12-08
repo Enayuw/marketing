@@ -59,6 +59,16 @@ public class TcyrCpaCollidingTask {
     private String supplyRuleInfo;
 
     /**
+     * 补充数据包id
+     */
+    private String supplyPackageId;
+
+    /**
+     * 重试补充fail_msg集合
+     */
+    private String retrySupplyFailMsgs;
+
+    /**
      * 补充量级
      */
     private Integer supplyNum;
@@ -194,6 +204,22 @@ public class TcyrCpaCollidingTask {
 
     public void setSupplyRuleInfo(String supplyRuleInfo) {
         this.supplyRuleInfo = supplyRuleInfo == null ? null : supplyRuleInfo.trim();
+    }
+
+    public String getSupplyPackageId() {
+        return supplyPackageId;
+    }
+
+    public void setSupplyPackageId(String supplyPackageId) {
+        this.supplyPackageId = supplyPackageId == null ? null : supplyPackageId.trim();
+    }
+
+    public String getRetrySupplyFailMsgs() {
+        return retrySupplyFailMsgs;
+    }
+
+    public void setRetrySupplyFailMsgs(String retrySupplyFailMsgs) {
+        this.retrySupplyFailMsgs = retrySupplyFailMsgs == null ? null : retrySupplyFailMsgs.trim();
     }
 
     public Integer getSupplyNum() {

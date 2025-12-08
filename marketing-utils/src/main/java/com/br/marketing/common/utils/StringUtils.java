@@ -283,4 +283,13 @@ public class StringUtils {
         return longs;
     }
 
+    public static String LongsConvertStr(List<Long> longs) {
+        if (longs == null || longs.isEmpty()) {
+            return "";
+        }
+        return longs.stream()
+                .map(String::valueOf)
+                .collect(Collectors.joining(","));
+    }
+
 }

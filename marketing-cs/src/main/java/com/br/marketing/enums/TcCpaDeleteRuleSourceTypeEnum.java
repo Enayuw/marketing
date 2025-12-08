@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 推送文件状态枚举
+ * 剔除规则数据来源枚举
  */
 @Getter
 public enum TcCpaDeleteRuleSourceTypeEnum {

@@ -7,6 +7,7 @@ import com.br.marketing.dto.tccpa.TcCpaDeleteRuleExecuteInfoDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.TcCpaCollidingTaskStatusEnum;
 import com.br.marketing.enums.TcCpaDeleteRuleSourceTypeEnum;
+import com.br.marketing.enums.TcCpaFailMsgEnum;
 import com.br.marketing.mapper.TcyrCpaCollidingTaskMapper;
 import com.br.marketing.mapper.TcyrCpaCommonMapper;
 import com.br.marketing.mapper.TcyrCpaDeleteRuleMapper;
@@ -186,5 +187,31 @@ public class TcCpaCommonServiceImpl implements TcCpaCommonService {
         return scripts.size() == 1 ?
                 tcyrCpaCommonMapper.calculateDeleteNumByScript(scripts.get(0)) :
                 tcyrCpaCommonMapper.executeUnionQueries(scripts);
+    }
+
+    @Override
+    public Integer convertFailMsgToLockBelong(Integer failMsg) {
+        if (failMsg == null) {
+            return null;
+        }
+        for (TcCpaFailMsgEnum enumItem : TcCpaFailMsgEnum.values()) {
+            if (failMsg.equals(enumItem.getValue())) {
+                return enumItem.getLockValue();
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public Integer convertLockBelongToFailMsg(Integer lockBelong) {
+        if (lockBelong == null) {
+            return null;
+        }
+        for (TcCpaFailMsgEnum enumItem : TcCpaFailMsgEnum.values()) {
+            if (lockBelong.equals(enumItem.getLockValue())) {
+                return enumItem.getValue();
+            }
+        }
+        return null;
     }
 }

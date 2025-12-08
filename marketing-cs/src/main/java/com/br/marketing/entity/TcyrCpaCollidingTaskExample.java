@@ -852,6 +852,146 @@ public class TcyrCpaCollidingTaskExample {
             return (Criteria) this;
         }
 
+        public Criteria andSupplyPackageIdIsNull() {
+            addCriterion("supply_package_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSupplyPackageIdIsNotNull() {
+            addCriterion("supply_package_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSupplyPackageIdEqualTo(String value) {
+            addCriterion("supply_package_id =", value, "supplyPackageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSupplyPackageIdNotEqualTo(String value) {
+            addCriterion("supply_package_id <>", value, "supplyPackageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSupplyPackageIdGreaterThan(String value) {
+            addCriterion("supply_package_id >", value, "supplyPackageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSupplyPackageIdGreaterThanOrEqualTo(String value) {
+            addCriterion("supply_package_id >=", value, "supplyPackageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSupplyPackageIdLessThan(String value) {
+            addCriterion("supply_package_id <", value, "supplyPackageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSupplyPackageIdLessThanOrEqualTo(String value) {
+            addCriterion("supply_package_id <=", value, "supplyPackageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSupplyPackageIdLike(String value) {
+            addCriterion("supply_package_id like", value, "supplyPackageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSupplyPackageIdNotLike(String value) {
+            addCriterion("supply_package_id not like", value, "supplyPackageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSupplyPackageIdIn(List<String> values) {
+            addCriterion("supply_package_id in", values, "supplyPackageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSupplyPackageIdNotIn(List<String> values) {
+            addCriterion("supply_package_id not in", values, "supplyPackageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSupplyPackageIdBetween(String value1, String value2) {
+            addCriterion("supply_package_id between", value1, value2, "supplyPackageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSupplyPackageIdNotBetween(String value1, String value2) {
+            addCriterion("supply_package_id not between", value1, value2, "supplyPackageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetrySupplyFailMsgsIsNull() {
+            addCriterion("retry_supply_fail_msgs is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetrySupplyFailMsgsIsNotNull() {
+            addCriterion("retry_supply_fail_msgs is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetrySupplyFailMsgsEqualTo(String value) {
+            addCriterion("retry_supply_fail_msgs =", value, "retrySupplyFailMsgs");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetrySupplyFailMsgsNotEqualTo(String value) {
+            addCriterion("retry_supply_fail_msgs <>", value, "retrySupplyFailMsgs");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetrySupplyFailMsgsGreaterThan(String value) {
+            addCriterion("retry_supply_fail_msgs >", value, "retrySupplyFailMsgs");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetrySupplyFailMsgsGreaterThanOrEqualTo(String value) {
+            addCriterion("retry_supply_fail_msgs >=", value, "retrySupplyFailMsgs");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetrySupplyFailMsgsLessThan(String value) {
+            addCriterion("retry_supply_fail_msgs <", value, "retrySupplyFailMsgs");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetrySupplyFailMsgsLessThanOrEqualTo(String value) {
+            addCriterion("retry_supply_fail_msgs <=", value, "retrySupplyFailMsgs");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetrySupplyFailMsgsLike(String value) {
+            addCriterion("retry_supply_fail_msgs like", value, "retrySupplyFailMsgs");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetrySupplyFailMsgsNotLike(String value) {
+            addCriterion("retry_supply_fail_msgs not like", value, "retrySupplyFailMsgs");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetrySupplyFailMsgsIn(List<String> values) {
+            addCriterion("retry_supply_fail_msgs in", values, "retrySupplyFailMsgs");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetrySupplyFailMsgsNotIn(List<String> values) {
+            addCriterion("retry_supply_fail_msgs not in", values, "retrySupplyFailMsgs");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetrySupplyFailMsgsBetween(String value1, String value2) {
+            addCriterion("retry_supply_fail_msgs between", value1, value2, "retrySupplyFailMsgs");
+            return (Criteria) this;
+        }
+
+        public Criteria andRetrySupplyFailMsgsNotBetween(String value1, String value2) {
+            addCriterion("retry_supply_fail_msgs not between", value1, value2, "retrySupplyFailMsgs");
+            return (Criteria) this;
+        }
+
         public Criteria andSupplyNumIsNull() {
             addCriterion("supply_num is null");
             return (Criteria) this;

@@ -13,9 +13,9 @@ import com.br.marketing.entity.*;
 import com.br.marketing.enums.TcCpaCleanStatusEnum;
 import com.br.marketing.enums.TcCpaCollidingTaskStatusEnum;
 import com.br.marketing.enums.TcCpaFailMsgEnum;
-import com.br.marketing.enums.TcCpaSupplyTypeEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.tccpa.TcCpaCollidingRuleService;
+import com.br.marketing.service.tccpa.TcCpaCommonService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -55,6 +55,8 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+
+    private TcCpaCommonService tcCpaCommonService;
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -114,7 +116,7 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
         magnitudeList = magnitudeList.stream()
                 .map(item -> {
                     if (item.getLockBelong() != null) {
-                        Integer failMsg = convertLockBelongToFailMsg(item.getLockBelong());
+                        Integer failMsg = tcCpaCommonService.convertLockBelongToFailMsg(item.getLockBelong());
                         item.setFailMsg(failMsg);
                     }
                     return item;
@@ -154,11 +156,7 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
             throw new RuntimeException(e);
         }
         for (TcyrSupplyRuleInfo ruleInfo : supplyRuleInfos) {
-            List<String> releaseTimes = Arrays.stream(ruleInfo.getReleaseTime().split(","))
-                    .map(String::trim)
-                    .filter(s -> !s.isEmpty())
-                    .collect(Collectors.toList());
-            for (String releaseTime : releaseTimes) {
+            for (String releaseTime : ruleInfo.getReleaseTimes()) {
                 isSupplyList.add(releaseTime + "-" + ruleInfo.getFailMsg());
             }
         }
@@ -252,11 +250,7 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
                     throw new RuntimeException(e);
                 }
                 for (TcyrSupplyRuleInfo supplyRuleInfo : supplyRuleInfos) {
-                    Set<String> releaseTimes = Arrays.stream(supplyRuleInfo.getReleaseTime().split(","))
-                            .map(String::trim)
-                            .filter(s -> !s.isEmpty())
-                            .collect(Collectors.toSet());
-                    releaseTimeSet.addAll(releaseTimes);
+                    releaseTimeSet.addAll(supplyRuleInfo.getReleaseTimes());
                 }
                 taskDTO.setReleaseTimes(String.join(",", releaseTimeSet));
             }
@@ -427,39 +421,9 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
                 .collect(Collectors.toList());
     }
 
-    /**
-     * 将lockBelong转换为failMsg
-     * @param lockBelong
-     * @return
-     */
-    private Integer convertLockBelongToFailMsg(Integer lockBelong) {
-        if (lockBelong == null) {
-            return null;
-        }
-        for (TcCpaFailMsgEnum enumItem : TcCpaFailMsgEnum.values()) {
-            if (lockBelong.equals(enumItem.getLockValue())) {
-                return enumItem.getValue();
-            }
-        }
-        return null;
-    }
 
-    /**
-     * 将failMsg转换为lockBelong
-     * @param failMsg
-     * @return
-     */
-    private Integer convertFailMsgToLockBelong(Integer failMsg) {
-        if (failMsg == null) {
-            return null;
-        }
-        for (TcCpaFailMsgEnum enumItem : TcCpaFailMsgEnum.values()) {
-            if (failMsg.equals(enumItem.getValue())) {
-                return enumItem.getLockValue();
-            }
-        }
-        return null;
-    }
+
+
 
     /**
      * 将List<TcyrCpaMagnitude>转换为按日期分组的结果
@@ -556,9 +520,8 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
             SupplyGroupData groupData = entry.getValue();
             Integer priority = failMsgToPriority.get(groupData.getFailMsg());
             TcyrSupplyRuleInfo ruleInfo = new TcyrSupplyRuleInfo();
-            ruleInfo.setSupplyType(TcCpaSupplyTypeEnum.SUPPLY_COMMON.getValue());
             ruleInfo.setPriority(priority != null ? priority : 99);
-            ruleInfo.setReleaseTime(String.join(",", groupData.getDates()));
+            ruleInfo.setReleaseTimes(groupData.getDates());
             ruleInfo.setFailMsg(groupData.getFailMsg());
             String supplyScript = generateDynamicSql(groupData.getFailMsg(), groupData.getDates());
             ruleInfo.setSupplyScript(supplyScript);
@@ -574,7 +537,7 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
      */
     private String generateDynamicSql(Integer failMsg, List<String> dates) {
         //1.根据failMsg获取lockBelong
-        Integer lockBelong = convertFailMsgToLockBelong(failMsg);
+        Integer lockBelong = tcCpaCommonService.convertFailMsgToLockBelong(failMsg);
         if (lockBelong == null) {
             //查询【b_tcyr_cpa_invalue_data】
             String dateConditions = dates.stream()

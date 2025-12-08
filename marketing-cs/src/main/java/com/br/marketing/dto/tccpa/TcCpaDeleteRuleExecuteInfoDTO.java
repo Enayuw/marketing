@@ -29,7 +29,7 @@ public class TcCpaDeleteRuleExecuteInfoDTO {
             for (Integer num : value) {
             joiner.add(num.toString());
         }
-        return join().toString();
+        return joiner.toString();
     }
 
 }

@@ -66,14 +66,12 @@
         and is_del = 1
     </select>
 
-    <select id="queryuserKeyWithPagetikv_" resultType="java.lang.String">
-        select user_key from b_tcyr_cpa_colliding_data
-        where package_id = #{packageId}
-        and is_del = 1
+    <select id="queryUserKeyWithPagetikv_" resultType="java.lang.String">
+        ${querySql}
         <if test="minUserKey != null">
-            and user_key > #{minUserKey}
+            and ${fieldName} > #{minUserKey}
         </if>
-        order by user_key limit 2000
+        order by ${fieldName} limit 2000
     </select>
 
 </mapper>
