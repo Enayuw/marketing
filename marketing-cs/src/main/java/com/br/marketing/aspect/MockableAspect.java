@@ -164,7 +164,7 @@ public class MockableAspect {
                 try {
                     return objectMapper.convertValue(responseBody, objectMapper.getTypeFactory().constructType(method.getGenericReturnType()));
                 } catch (Exception e) {
-                    log.debug(TITLE + "【ApiResult转换】方法 {} 响应体无法直接转换为ApiResult，使用success包装", methodName);
+                    log.warn(TITLE + "【ApiResult转换】方法 {} 响应体无法直接转换为ApiResult，使用success包装", methodName);
                     return new ApiResult<>().success(responseBody);
                 }
             }
@@ -174,7 +174,7 @@ public class MockableAspect {
                 try {
                     return objectMapper.convertValue(responseBody, objectMapper.getTypeFactory().constructType(method.getGenericReturnType()));
                 } catch (Exception e) {
-                    log.debug(TITLE + "【Result转换】方法 {} 响应体无法直接转换为Result，使用success包装", methodName);
+                    log.warn(TITLE + "【Result转换】方法 {} 响应体无法直接转换为Result，使用success包装", methodName);
                     Result<Object> result = new Result<>();
                     result.success();
                     result.setDate(responseBody);
