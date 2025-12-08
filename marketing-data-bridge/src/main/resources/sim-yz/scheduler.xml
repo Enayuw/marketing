@@ -14,6 +14,7 @@
                         http://www.dangdang.com/schema/ddframe/job/job.xsd 
                         ">
     <context:component-scan base-package="com.br.marketing.bridge.job"/>
+    <context:component-scan base-package="com.br.marketing.bridge.monitor"/>
 
     <reg:zookeeper id="regCenter"
                    server-lists="${SERVER_LISTS}"
@@ -586,7 +587,7 @@
 
     <job:simple id="【bridge】-ZhongYuanCleanTransferDataJob"
                 class="com.br.marketing.bridge.job.ZhongYuanCleanTransferDataJob"
-                cron="0 0/10 * * * ?"
+                cron="0 0/1 * * * ?"
                 description="中原消金转化数据清洗Job"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -601,7 +602,7 @@
 
     <job:simple id="【bridge】-ZhongYuanUploadDataJob"
                 class="com.br.marketing.bridge.job.ZhongYuanUploadDataJob"
-                cron="0 0/2 * * * ?"
+                cron="0 0/1 * * * ?"
                 description="中原消金数据上传Job"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -670,6 +671,36 @@
                 failover="false"
                 misfire="false"
                 disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
+    <job:simple id="【bridge】-ZhongYuanUpdateSceneVariableJob"
+                class="com.br.marketing.bridge.job.ZhongYuanUpdateSceneVariableJob"
+                cron="0 0/1 * * * ?"
+                description="中原消金修改场景变量job"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
+    <job:simple id="【bridge】DataBridgeJobSwitchGuardJob"
+                class="com.br.marketing.bridge.monitor.DataBridgeJobSwitchGuardJob"
+                cron="0 */5 * * * ?"
+                description="data-bridge服务Job开关守护任务，每5分钟扫描一次，开关开启超过30分钟则告警"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="false"
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
