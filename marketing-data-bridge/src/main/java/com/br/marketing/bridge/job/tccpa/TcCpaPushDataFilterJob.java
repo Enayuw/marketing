@@ -3,6 +3,8 @@ package com.br.marketing.bridge.job.tccpa;
 import com.br.marketing.service.tccpa.TcCpaCollidingDataFilterService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 
@@ -12,6 +14,8 @@ import javax.annotation.Resource;
  * @date 2025/11/26 17:48
  * 技术方案：https://c.100credit.cn/pages/viewpage.action?pageId=227791172
  **/
+@Component
+@Slf4j
 public class TcCpaPushDataFilterJob extends AbstractSimpleElasticJob {
 
     @Resource

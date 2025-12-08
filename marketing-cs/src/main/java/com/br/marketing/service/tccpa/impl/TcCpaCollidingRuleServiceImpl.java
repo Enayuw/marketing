@@ -174,7 +174,7 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
                 .collect(Collectors.toList());
         String packageNames = tcyrCpaCollidingDataPackageMapper.queryPackageNamesByIds(packageIdStrs);
         TcyrCpaCollidingTask basicTask = new TcyrCpaCollidingTask();
-        basicTask.setApiCode(marketingCommonConfig.getTcyrApiCode());
+        basicTask.setApiCode(marketingCommonConfig.getTcyrCpaApiCode());
         basicTask.setPackageIds(String.join(",", packageIds));
         basicTask.setPackageNames(packageNames);
         basicTask.setLimitNum(ruleDTO.getLimitNum());
