@@ -2,7 +2,7 @@ package com.br.marketing.monkey.job.syj;
 
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.TransferActionFront;
-import com.br.marketing.monkey.service.suiyiji.SuiYiJiBlackService;
+import com.br.marketing.monkey.service.syj.SuiYiJiBlackService;
 import com.br.marketing.service.Impl.JobManager;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;

@@ -1,16 +1,16 @@
-package com.br.marketing.monkey.service.suiyiji;
+package com.br.marketing.monkey.service.syj.impl;
 
 import com.alibaba.fastjson2.JSON;
 import com.br.marketing.aspect.Mockable;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.constants.MockConstants;
+import com.br.marketing.monkey.service.syj.CustomerApiService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 /**
@@ -19,7 +19,7 @@ import java.util.Map;
  * @Date 2025/12/4
  */
 @Service
-public class CustomerApiServiceImpl implements CustomerApiService{
+public class CustomerApiServiceImpl implements CustomerApiService {
 
     @Resource
     private HttpProxyClient httpProxyClient;

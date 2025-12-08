@@ -1,4 +1,4 @@
-package com.br.marketing.monkey.service.suiyiji;
+package com.br.marketing.monkey.service.syj;
 
 import org.springframework.stereotype.Service;
 

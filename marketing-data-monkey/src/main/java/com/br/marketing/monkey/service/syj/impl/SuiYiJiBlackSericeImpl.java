@@ -1,4 +1,4 @@
-package com.br.marketing.monkey.service.suiyiji.impl;
+package com.br.marketing.monkey.service.syj.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -10,7 +10,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.validators.user.UserValidator;
 import com.br.marketing.dto.TransferDataDTO;
 import com.br.marketing.dto.TransferDataItemDTO;
-import com.br.marketing.monkey.service.suiyiji.SuiYiJiBlackService;
+import com.br.marketing.monkey.service.syj.SuiYiJiBlackService;
 import com.br.marketing.service.PushInfoService;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;

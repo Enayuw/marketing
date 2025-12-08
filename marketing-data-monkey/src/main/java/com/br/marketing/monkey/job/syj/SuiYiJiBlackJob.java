@@ -1,7 +1,7 @@
 package com.br.marketing.monkey.job.syj;
 
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.monkey.service.suiyiji.SuiYiJiService;
+import com.br.marketing.monkey.service.syj.SuiYiJiService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;

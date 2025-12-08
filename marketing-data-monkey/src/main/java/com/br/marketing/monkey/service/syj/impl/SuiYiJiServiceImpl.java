@@ -1,4 +1,4 @@
-package com.br.marketing.monkey.service.suiyiji.impl;
+package com.br.marketing.monkey.service.syj.impl;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.alibaba.fastjson2.JSON;
@@ -21,8 +21,8 @@ import com.br.marketing.mapper.SYJBlackDataMapper;
 import com.br.marketing.mapper.SYJOriginalDataMapper;
 import com.br.marketing.monkey.enums.syj.LocalFilePushStatusEnum;
 import com.br.marketing.monkey.enums.syj.QueryStatusEnum;
-import com.br.marketing.monkey.service.suiyiji.CustomerApiService;
-import com.br.marketing.monkey.service.suiyiji.SuiYiJiService;
+import com.br.marketing.monkey.service.syj.CustomerApiService;
+import com.br.marketing.monkey.service.syj.SuiYiJiService;
 import com.br.marketing.service.PushInfoService;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.RateLimiter;
@@ -117,7 +117,7 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
             } else if (LocalFilePushStatusEnum.PARTIAL_SUCCESS.getCode().equals(pushStatus)
                     || LocalFilePushStatusEnum.PUSH_FAILED.getCode().equals(pushStatus)) {
                 // 部分成功（2）或推送失败（4）：重试处理
-                processRetry(localFile, () -> retryBlackProcess(apiCode, localFile));
+                processRetry(localFile, () -> retryBlackProcess(localFile));
             }
         }
     }
@@ -501,7 +501,7 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
     /**
      * 重试处理黑名单数据（针对部分成功的文件）
      */
-    private void retryBlackProcess(String apiCode, LocalFile localFile) {
+    private void retryBlackProcess(LocalFile localFile) {
         processBlackDataInternal(localFile, blackDataMapper::queryFailedBlackData, "syj_black_retry", "【重试】");
     }
 
