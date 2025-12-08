@@ -7,8 +7,8 @@ public enum QueryStatusEnum {
 
     NO_QUERIED(0, "未查询"),
     QUERYING(1, "查询中"),
-    QUERY_FAILED(2, "查询失败"),
-    QUERY_SUCCESS(3, "查询成功");
+    QUERY_SUCCESS(2, "查询成功"),
+    QUERY_FAILED(3, "查询失败");
 
 
     private Integer code;

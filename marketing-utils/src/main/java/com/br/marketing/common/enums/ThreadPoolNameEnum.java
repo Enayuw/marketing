@@ -56,6 +56,9 @@ public enum ThreadPoolNameEnum {
     XIECHENG_CALL_SMS_REPORT(32,"xiecheng_call_sms_report", "携程通话&短信明细上报"),
     HALO_CALLBACK_DATA_3710217(40,"halo_callback_data_3710217","哈啰营销数据回传"),
     XIECHENG_CYCLE_DELETE_EST(41,"xiecheng_cycle_delete_est", "携程周期剔除量级预估"),
+
+    SYJ_ORIGINAL_DEAL(50,"syj_original","随忆记用户撞库"),
+    SYJ_BLACK_DEAL(51,"syj_black","随忆记黑名单")
     ;
 
     private final Integer order;
