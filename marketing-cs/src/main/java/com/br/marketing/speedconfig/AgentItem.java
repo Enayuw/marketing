@@ -46,6 +46,8 @@ public class AgentItem {
 
     private Integer speedTest;
 
+    private String callRecordConfig;
+
     @SpeedItem(topic = "marketing",key = "marketing_broadcast_notice_item")
     public String getMessage(){
         return message;

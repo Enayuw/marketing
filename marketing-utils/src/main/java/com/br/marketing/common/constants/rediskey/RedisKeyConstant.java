@@ -390,6 +390,11 @@ public class RedisKeyConstant {
     public static final String tcyrCpaCollidingFailDeal = prefix.concat("tcyr_cpa:collidingFailDeal");
 
     /**
+     * 同程CPA-撞库失败数据处理流程锁
+     */
+    public static final String tcyrCpaDataCollectDeal = prefix.concat("tcyr_cpa:dataCollect");
+
+    /**
      * 雪花算法
      */
     public static final String SNOWFLAKE = prefix.concat("snowflake:");
@@ -424,4 +429,11 @@ public class RedisKeyConstant {
      * ai客户数据推送决策根据yyyyMMdd-apiCode:userType:custNum计数
      */
     public static final String AI_TOPOLICY_PUSH_COUNTER = prefix.concat("ai:toPolicy:push:counter:");
+
+    /**
+     * 上传数据重推决策每日次数key
+     */
+    public static final String UPLOAD_REPUSH_POLICY_NUM = prefix.concat("upload:toPolicy:repush:num:");
+
+
 }

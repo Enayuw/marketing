@@ -3507,4 +3507,22 @@ public class MarketingCommonConfig {
      */
     private Map<String, Boolean> pushDataSwitch;
 
+    /**
+     * 中原消金权限验证
+     * {"apiCode":"7492860","appUser":"zyxfjr_coll","appKey":"87C5FCB80F872B8D67BA3306BB09157C"}
+     */
+    private Map<String, String> zhongYuanIdentity;
+
+    /**
+     * 携程贷后apicode集合
+     */
+    private List<String> xieChengPostLoanApiCodeLists;
+
+    /**
+     * 泰康请求参数
+     */
+    private Map<String,String> taikangConfig;
+
+
+    private Map<String, Boolean> tcCpaMockConfig;
 }

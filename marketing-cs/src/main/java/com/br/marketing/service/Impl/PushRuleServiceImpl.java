@@ -1,5 +1,8 @@
 package com.br.marketing.service.Impl;
+import java.util.Date;
 
+import cn.hutool.core.date.DatePattern;
+import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.*;
 import com.br.arch.geo.pulsar.ProductPulsarClientManager;
 import com.br.arch.geo.pulsar.ProductPulsarProducer;
@@ -90,6 +93,13 @@ import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.service.rulecenter.IEsActionService;
 import com.br.marketing.service.rulecenter.IRuleCenterFilterTemplateService;
 import com.br.marketing.service.rulecenter.RuleCenterBySourceTypeFactory;
+import com.br.marketing.service.rulecenter.enums.RuleCenterPushTargetEnum;
+import com.br.marketing.service.rulecenter.impl.push.UploadRePushPolicyStrategy;
+import com.br.marketing.service.strategy.pushpreview.IPushPreviewStrategy;
+import com.br.marketing.service.strategy.pushpreview.PushPreviewStrategyEnum;
+import com.br.marketing.service.strategy.pushpreview.PushPreviewStrategyFactory;
+import com.br.marketing.service.strategy.pushcustomer.IPushCustomerStrategy;
+import com.br.marketing.service.strategy.pushcustomer.PushCustomerStrategyFactory;
 import com.br.marketing.service.tag.calculate.TagHandleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.TimeUtils;
@@ -128,6 +138,7 @@ import org.springframework.util.*;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
@@ -166,6 +177,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         errorCodeHm.put("1005", "入库异常");
         errorCodeHm.put("1006", "参数过长");
         errorCodeHm.put("1007", "清洗异常");
+        errorCodeHm.put("1008", "存在4个字节字符");
 
     }
 
@@ -291,10 +303,22 @@ public class PushRuleServiceImpl implements PushRuleService {
     private SnowflakeRedisGeneratorHandle snowflakeRedisGeneratorHandle;
 
     @Resource
+    private UploadRePushPolicyStrategy uploadRePushPolicyStrategy;
+
+    @Resource
     private RuleCenterLabelService ruleCenterLabelService;
+
+    @Resource
+    private MarketingSyncReportMapper syncReportMapper;
 
     @Autowired
     private TagDataRuleCalculateMapper tagDataRuleCalculateMapper;
+
+    @Resource
+    private PushPreviewStrategyFactory pushPreviewStrategyFactory;
+
+    @Resource
+    private PushCustomerStrategyFactory pushCustomerStrategyFactory;
 
     @Resource
     private VariableAllocationServiceImpl variableAllocationService;
@@ -549,136 +573,31 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Result<String> pushCustomer(PushCustomerDTO dto) {
-        AssertResult.assertResult(checkThreekEnc(dto.getFileIdList()));
-        /**
-         * 先校验下 传过来的批次和 模型是否匹配
-         * 推送mq
-         */
-        //region check
-        if (dto.getBatchNumberList().size() > 50) {
-            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("批次最多选择50个");
-        }
-        if (dto.getmPlanNum() != null && dto.getmPlanNum() <= 0) {
-            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("推送数量不能小于等于0");
-        }
-        if (dto.getmPercentage() != null && dto.getmPercentage().compareTo(new BigDecimal(0)) <= 0) {
-            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("百分比不能小于等于0");
-        }
-        StraHisFileExample fileExample = new StraHisFileExample();
-        fileExample.createCriteria().andIdIn(dto.getFileIdList());
-        List<StraHisFile> files = straHisFileMapper.selectByExample(fileExample);
-        CustomerInfoPushMain customerInfoPushMain = new CustomerInfoPushMain();
-        Integer pushNum;
-        //携程撞库，则不再查询Doris，由前端透传
-        //事务@Transactional方法中，切换数据源会失效
-        if (isXieChengData(dto)) {
-            JSONObject jsonObject = JSON.parseObject(dto.getmRuleCondition());
-            XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
-            XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
-            pushNum = dto.getmPrePlanNum();
-            customerInfoPushMain.setFilterType(1);
-            Boolean xcTruePushCustomerPushPreviewOptFlag = marketingCommonConfig.getXcTruePushCustomerPushPreviewOptFlag();
-            if (!xcTruePushCustomerPushPreviewOptFlag) {
-                customerInfoPushMain.setExtend(cycleDataQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO));
-            } else {
-                List<String> querySqls = new ArrayList<>();
-                cycleDataQueryOpt(jsonObject, dto.getBatchNumberList(), collidingFilterDTO, querySqls);
-                customerInfoPushMain.setExtend(String.join(";", querySqls));
-            }
-        } else {
-            pushNum = dto.getmPrePlanNum();
-        }
-        //endregion
+        try {
+            PushPreviewStrategyEnum strategyType;
 
-        //region insert db
-        StraHisFileExample straHisFileExample = new StraHisFileExample();
-        straHisFileExample.createCriteria().andIdIn(dto.getFileIdList());
-        List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
-        List<String> showTitles = straHisFiles.stream().map(t -> t.getBatchNumber()).collect(Collectors.toList());
-        customerInfoPushMain.setmApiCode(dto.getApiCode());
-        customerInfoPushMain.setmRuleCondition(dto.getmRuleCondition());
-        customerInfoPushMain.setmRuleConditionShow(dto.getmRuleConditionShow());
-        customerInfoPushMain.setmScoreCondition(dto.getmScoreCondition());
-        customerInfoPushMain.setmPercentage(dto.getmPercentage());
-        customerInfoPushMain.setmPlanNum(dto.getmPlanNum());
-        customerInfoPushMain.setmRealyNum(pushNum);
-        Date date = new Date();
-        customerInfoPushMain.setCreateTime(date);
-        customerInfoPushMain.setUpdateTime(date);
-        customerInfoPushMain.setmCusBatchNumberList(Joiner.on(",").join(showTitles));
-        customerInfoPushMain.setmStatus(PushRuleStatusEnum.TO_BE_RUNNING.getValue());
-        customerInfoPushMain.setOptUserId(String.valueOf(dto.getUserDetail().getId()));
-        customerInfoPushMain.setOptUserName(dto.getUserDetail().getRealName());
-        customerInfoPushMain.setTagContent(dto.getmTagCondition());
-        if (Objects.nonNull(dto.getIsScoreMerge()) && dto.getIsScoreMerge()) {
-            customerInfoPushMain.setPushTarget(2);
-            customerInfoPushMain.setExtend(dto.getScoreMergeField());
-        }
-        customerInfoPushMainMapper.insertSelective(customerInfoPushMain);
-        //数据集名称更新
-        String batchName;
-        if (StringUtils.isNotEmpty(dto.getBatchName())) {
-            batchName = dto.getBatchName();
-        } else {  //默认名称
-            if (StringUtils.isNotEmpty(dto.getRuleModelName())) {
-                batchName = LocalDate.now().toString().concat("-").concat(dto.getRuleModelName()).concat("-").concat(LocalTime.now().withNano(0)
-                        .toString());
+            // 判断任务类型，选择对应策略
+            if (Objects.equals(dto.getTaskType(), TaskTypeEnum.UPLOAD_TASKS.getValue())) {
+                strategyType = PushPreviewStrategyEnum.UPLOAD_TASK;
             } else {
-                batchName = LocalDate.now().toString().concat("-").concat(customerInfoPushMain.getId().toString()).concat("-").
-                        concat(LocalTime.now().withNano(0).toString());
-            }
-        }
-        CustomerInfoPushMain updatePushMain = new CustomerInfoPushMain();
-        updatePushMain.setId(customerInfoPushMain.getId());
-        updatePushMain.setBatchName(batchName);
-        customerInfoPushMainMapper.updateByPrimaryKeySelective(updatePushMain);
-        files.forEach(t -> {
-            CustomerInfoPushBatch customerInfoPushBatch = new CustomerInfoPushBatch();
-            customerInfoPushBatch.setmId(customerInfoPushMain.getId());
-            customerInfoPushBatch.setmApiCode(dto.getApiCode());
-            customerInfoPushBatch.setmBatchNumber(t.getBatchNumber());
-            customerInfoPushBatch.setCreateTime(date);
-            customerInfoPushBatch.setUpdateTime(date);
-            customerInfoPushBatch.setmFileId(t.getId());
-            customerInfoPushBatchMapper.insertSelective(customerInfoPushBatch);
-        });
-        //endregion
-        return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(customerInfoPushMain.getId().toString());
-    }
+                // 跑分任务需要校验加密类型
+                AssertResult.assertResult(checkThreekEnc(dto.getFileIdList()));
 
-    private Result<PushViewVO> getTotal(PushCustomerDTO dto) {
-        int total;
-        PushViewVO pushViewVO = new PushViewVO();
-        if (isXieChengData(dto)) {
-            total = getXieChengDataNum(dto.getmRuleCondition(), dto.getBatchNumberList(), pushViewVO);
-        } else if (Objects.nonNull(dto.getIsScoreMerge()) && dto.getIsScoreMerge()) {
-            //合并跑分计算
-            long start = System.currentTimeMillis();
-            // 组装查询sql
-            String countSql = "SELECT COUNT(1) ".concat(ruleCenterLabelService.scoreMergeAssemble(dto));
-            // 执行查询获取统计数量
-            Integer count = tagDataRuleCalculateMapper.getCountbI_(countSql);
-            log.warn("跑分合并预览量级查询sql={}，耗时={}ms", countSql, System.currentTimeMillis() - start);
-            total = (count != null ? count : 0);
-        } else {
-            Result<PushViewVO> pushViewVOResult = this.queryFederation(dto, pushViewVO);
-            if (!ResultCode.SUCCESS.getValue().equals(pushViewVOResult.getCode())) {
-                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage(pushViewVOResult.getMessage());
+                if (isXieChengData(dto)) {
+                    strategyType = PushPreviewStrategyEnum.XIE_CHENG_SCORE;
+                } else if (Objects.nonNull(dto.getIsScoreMerge()) && dto.getIsScoreMerge()) {
+                    strategyType = PushPreviewStrategyEnum.MERGE_SCORE;
+                } else {
+                    strategyType = PushPreviewStrategyEnum.COMMON_SCORE;
+                }
             }
-            total = pushViewVOResult.getData().getTotal();
+
+            IPushCustomerStrategy strategy = pushCustomerStrategyFactory.getStrategy(strategyType);
+            return strategy.execute(dto);
+        } catch (Exception e) {
+            log.error("推送客户执行失败，apiCode: {}, taskType: {}", dto.getApiCode(), dto.getTaskType(), e);
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("推送客户执行失败: " + e.getMessage());
         }
-        if (total <= 0) {
-            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("无符合的数据");
-        }
-        if (dto.getmPercentage() != null) {
-            if (dto.getmPercentage().compareTo(new BigDecimal(0)) <= 0) {
-                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("百分比不能小于等于0");
-            }
-            Integer res = dto.getmPercentage().multiply(new BigDecimal(total)).setScale(0, RoundingMode.UP).intValue();
-            return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
-        }
-        pushViewVO.setTotal(total);
-        return new Result<PushViewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushViewVO);
     }
 
     @Override
@@ -846,7 +765,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         return sql;
     }
 
-    private int getXieChengDataNum(String mRuleCondition, List<String> batchNumberList, PushViewVO pushViewVO) {
+    public int getXieChengDataNum(String mRuleCondition, List<String> batchNumberList, PushViewVO pushViewVO) {
         //blacklist_delete有值时，前端控制不会做量级预览
         int total = 0;
         String querySql = "";
@@ -1198,7 +1117,7 @@ public class PushRuleServiceImpl implements PushRuleService {
      * @param collidingFilterDTO
      * @param querySqls
      */
-    private void cycleDataQueryOpt(JSONObject jsonObject, List<String> batchNumberList,
+    public void cycleDataQueryOpt(JSONObject jsonObject, List<String> batchNumberList,
                                    XieChengCollidingFilterDTO collidingFilterDTO, List<String> querySqls) {
         String cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where release_time>= " +
                 "DATE_ADD(CURDATE(), INTERVAL 1 DAY)  and  release_time< DATE_ADD(CURDATE(), INTERVAL 7 DAY) and is_delete=0";
@@ -1223,7 +1142,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
     }
 
-    private String cycleDataQuery(JSONObject jsonObject, List<String> batchNumberList, XieChengCollidingFilterDTO xieChengCollidingFilterDTO) {
+    public String cycleDataQuery(JSONObject jsonObject, List<String> batchNumberList, XieChengCollidingFilterDTO xieChengCollidingFilterDTO) {
         String scoreSql = scoreSql(jsonObject, batchNumberList);
         String cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where release_time>= " +
                 "DATE_ADD(CURDATE(), INTERVAL 1 DAY)  and  release_time< DATE_ADD(CURDATE(), INTERVAL 7 DAY) and is_delete=0";
@@ -1367,8 +1286,45 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public Result<PushViewVO> pushPreview(PushCustomerDTO dto) {
-        AssertResult.assertResult(checkThreekEnc(dto.getFileIdList()));
-        return getTotal(dto);
+        // 使用策略模式处理推送预览
+        try {
+            // 1. 判断任务类型，确定使用哪个策略
+            PushPreviewStrategyEnum strategyType;
+
+            if (Objects.equals(dto.getTaskType(), TaskTypeEnum.UPLOAD_TASKS.getValue())) {
+                // 上传任务策略
+                strategyType = PushPreviewStrategyEnum.UPLOAD_TASK;
+            } else {
+                // 跑分任务需要参数校验
+                if (dto.getBatchNumberList().isEmpty()) {
+                    return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("批次号不能为空");
+                }
+                if (dto.getFileIdList().isEmpty()) {
+                    return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("fileIdList不能为空");
+                }
+                // 校验加密类型一致性
+                AssertResult.assertResult(checkThreekEnc(dto.getFileIdList()));
+
+                // 判断跑分任务的具体类型
+                if (isXieChengData(dto)) {
+                    // 携程跑分任务策略
+                    strategyType = PushPreviewStrategyEnum.XIE_CHENG_SCORE;
+                } else if (Objects.nonNull(dto.getIsScoreMerge()) && dto.getIsScoreMerge()) {
+                    // 合并跑分任务策略
+                    strategyType = PushPreviewStrategyEnum.MERGE_SCORE;
+                } else {
+                    // 通用跑分任务策略
+                    strategyType = PushPreviewStrategyEnum.COMMON_SCORE;
+                }
+            }
+
+            // 2. 根据策略类型获取策略并执行
+            IPushPreviewStrategy strategy = pushPreviewStrategyFactory.getStrategy(strategyType);
+            return strategy.execute(dto);
+        } catch (Exception e) {
+            log.error("推送预览执行失败，apiCode: {}, taskType: {}", dto.getApiCode(), dto.getTaskType(), e);
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("推送预览执行失败: " + e.getMessage());
+        }
     }
 
     @Override
@@ -2899,6 +2855,27 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     }
 
+    @Override
+    public Result<String> queryUploadOverAmt(String custNum, HttpServletRequest request) {
+
+        Map<String, String> zhongYuanIdentity = marketingCommonConfig.getZhongYuanIdentity();
+        String testApiCode = request.getHeader("Test-ApiCode");
+        String apiCode = testApiCode != null ? testApiCode : zhongYuanIdentity.get("apiCode");
+
+        MarketingSyncUser marketingSyncUser = marketingUserMapper.selectSyncUserByCustNum(apiCode, custNum, null);
+        if(marketingSyncUser == null){
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("数据为空！");
+        }
+        // overAmt
+        String reserveField1 = marketingSyncUser.getReserveField1();
+        JSONObject jsonObject = JSONObject.parseObject(reserveField1);
+        String overAmt = jsonObject.getString("overAmt");
+        if(StringUtils.isEmpty(overAmt)){
+            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("overAmt字段不存在！");
+        }
+        return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(overAmt);
+    }
+
     /**
      * 根据apiCode与operateType，区分AI与非AI客户，AI客户返回true，并发送到AI队列，非AI客户返回false
      * 使用范围：上传数据入库mq队列、pulsar队列
@@ -3033,7 +3010,6 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public void judgeEncryptType(PushMarketingUserDetailByRuleDTO pushData, MarketingSyncUser syncUser, Integer jc3keyType) {
-        log.warn("进入自动化推决策规则ToPolicyCommonRule：" + JSONObject.toJSONString(syncUser));
         Boolean isOpenNewEncrypt = marketingCommonConfig.getIsOpenNewEncrypt();
         if (!isOpenNewEncrypt) {
             if (jc3keyType == null) {
@@ -3284,6 +3260,13 @@ public class PushRuleServiceImpl implements PushRuleService {
             Integer finalIsCheck = isCheck;
             Map<String, MarketingDataCleanGeneralRuleConfig> finalConfigRule = configRule;
             list.add(() -> {
+                if (contains4ByteChar(marketingPreUserDetailDTO.getName())) {
+                    MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
+                    errorDetailVO.setCustNum(marketingPreUserDetailDTO.getCustNum());
+                    errorDetailVO.setErrorCode("1008");
+                    errorDetailVO.setErrorMsg(errorCodeHm.get("1008"));
+                    return new Result().setCode(ResultCode.FAIL.getValue()).setDate(errorDetailVO);
+                }
                 //数据清洗处理
                 if (!CollectionUtils.isEmpty(finalConfigRule)) {
                     Boolean cleanResult = handlerDataClean(marketingPreUserDetailDTO, finalConfigRule);
@@ -3410,6 +3393,13 @@ public class PushRuleServiceImpl implements PushRuleService {
                 } catch (DuplicateKeyException e) {
                     log.warn("insertMarketingSyncUser数据重复,{},{}", e.getMessage(), JSON.toJSON(marketingSyncUser), e);
                 } catch (Exception ex) {
+                    if (ex.getMessage() != null && ex.getMessage().contains("Incorrect string value")) {
+                        MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
+                        errorDetailVO.setCustNum(marketingPreUserDetailDTO.getCustNum());
+                        errorDetailVO.setErrorCode("1008");
+                        errorDetailVO.setErrorMsg(errorCodeHm.get("1008"));
+                        return new Result().setCode(ResultCode.FAIL.getValue()).setDate(errorDetailVO);
+                    }
                     if (ex.getMessage().contains("IDX_taskId_custNum")) {
                         MarketingPreUserErrorDetailVO errorDetailVO = new MarketingPreUserErrorDetailVO();
                         errorDetailVO.setCustNum(marketingPreUserDetailDTO.getCustNum());
@@ -3561,6 +3551,28 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
     }
+
+    /**
+     * 判断字符串是否包含4字节字符（生僻字、emoji等）
+     */
+    public boolean contains4ByteChar(String str) {
+        try {
+            if (StringUtils.isEmpty(str)) {
+                return false;
+            }
+            for (int i = 0; i < str.length(); i++) {
+                char c = str.charAt(i);
+                // 判断是否是高代理项（4字节字符的第一部分）
+                if (Character.isHighSurrogate(c)) {
+                    return true;
+                }
+            }
+        } catch (Exception ex) {
+            log.error("name字段判断4字节异常，name={}", str, ex);
+        }
+        return false;
+    }
+
 
     private void addCellReserveFileld1(JSONObject reserveFileld1Json, String cell, Integer isCheck, 
                                        IUploadCheckService iUploadCheckService, CustomerTagsVO tags) {
@@ -3869,7 +3881,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         } catch (DuplicateKeyException keyException) {
             alarmClient.sendAlarm(String.format("pulsar上传数据消费requestId冲突 requestId：%s", jsonData.getRequestId())
                     , "pulsar上传数据消费异常", AlarmSendCodeEnum.REQUESTID_CONFLICT.getCode());
-            
+
             // 查询数据库中是否存在该requestId的数据且status为1
             try {
                 MarketingSyncInfo existingSyncInfo = marketingSyncInfoMapper.getByApiCodeAndRequestBatch(apiCode, jsonData.getRequestId());
@@ -3926,6 +3938,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
             });
             cleanData(finalReserveFieldObject, finalReserveFileld1Json, apiCode);
+            // 携程贷后定制
+            if (marketingCommonConfig.getXieChengPostLoanApiCodeLists().contains(apiCode)) {
+                xieChengPostLoanHandle(finalReserveFieldObject);
+            }
         }
         return JSONObject.toJSONString(finalReserveFieldObject);
     }
@@ -4088,7 +4104,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         } catch (DuplicateKeyException keyException) {
             alarmClient.sendAlarm(String.format("pulsar转化数据消费requestId冲突 requestId：%s", transferDataDTO.getRequestId())
                     , "pulsar转化数据消费异常", AlarmSendCodeEnum.REQUESTID_CONFLICT.getCode());
-            
+
             // 查询数据库中是否存在该requestId的数据且status为1（进行中状态）
             try {
                 MarketingTransferInfo existingTransferInfo = marketingTransferInfoMapper
@@ -6049,4 +6065,33 @@ public class PushRuleServiceImpl implements PushRuleService {
         return null;
     }
 
+    private void xieChengPostLoanHandle(JSONObject finalReserveFieldObject) {
+        try {
+            // 如果ifMinRepay=false，则ifMinRepay和minRepayAmt的值置空
+            if (finalReserveFieldObject.containsKey("ifMinRepay") && !finalReserveFieldObject.getBoolean("ifMinRepay")) {
+                finalReserveFieldObject.put("ifMinRepay", "");
+                finalReserveFieldObject.put("minRepayAmt", "");
+            }
+            // 如果supportWx=0时，置空
+            if (finalReserveFieldObject.containsKey("supportWx") && (finalReserveFieldObject.getInteger("supportWx") == 0
+                    || "0".equals(finalReserveFieldObject.getString("supportWx")))) {
+                finalReserveFieldObject.put("supportWx", "");
+            }
+            // 如果supportDeduct中不包含“协议”则置空
+            if (finalReserveFieldObject.containsKey("supportDeduct") && !finalReserveFieldObject.getString("supportDeduct").contains("协议")) {
+                finalReserveFieldObject.put("supportDeduct", "");
+            }
+            // 把loanTime的值20251120调整成2025-11-20的格式，并赋值到loanTimes上
+            String loanTime = finalReserveFieldObject.getString("loanTime");
+            if (StringUtils.isNotBlank(loanTime)) {
+                Date date = DateUtil.parse(loanTime);
+                // 格式化为yyyy-MM-dd格式
+                String formattedDate = DateUtil.format(date, DatePattern.NORM_DATE_PATTERN);
+                finalReserveFieldObject.put("loanTime", formattedDate);
+            }
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.INITDATA_MUST_ERROR.getCode(),
+                    "携程贷后定制清洗异常" + e + "，reserve_field1:" + JSON.toJSONString(finalReserveFieldObject) + "msg:" + e.getMessage()));
+        }
+    }
 }

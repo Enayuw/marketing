@@ -73,6 +73,17 @@
             <artifactId>spring_boot_exporter</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>-->
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>5.8.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15to18</artifactId>
+            <version>1.71</version>
+        </dependency>
+
     </dependencies>
     <build>
         <resources>

@@ -11,6 +11,9 @@ public class LineAccountDto {
     @ApiModelProperty(value = "configId")
     private Long configId;
 
+    @ApiModelProperty(value = "groupId")
+    private Long groupId;
+
     @ApiModelProperty(value = "供应商名称")
     @NotEmpty(message = "供应商名称不能为空")
     private String lineSupplier;
