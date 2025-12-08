@@ -312,7 +312,7 @@
 
     <job:simple id="【bridge】-TcSyncDataDownFileShardJob"
                 class="com.br.marketing.bridge.job.tc.TcSyncDataDownFileShardJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 0/30 * * * ?"
                 description="同城易融DownFile_Shard文件拉取任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -390,7 +390,7 @@
 
     <job:simple id="【bridge】-TcSyncQuickDealShardJob"
                 class="com.br.marketing.bridge.job.tc.TcSyncQuickDealShardJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 0/30 * * * ?"
                 description="同城易融QuickDeal任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="5"
@@ -405,7 +405,7 @@
 
     <job:simple id="【bridge】-TcSyncDbDealShardJob"
                 class="com.br.marketing.bridge.job.tc.TcSyncDbDealShardJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 0/30 * * * ?"
                 description="同城易融DbDeal任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="5"
