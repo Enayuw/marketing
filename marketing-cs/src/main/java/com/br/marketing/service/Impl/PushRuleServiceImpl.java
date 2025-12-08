@@ -2882,7 +2882,11 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public Result<ConditionVO> getConditionById(String apiCode, Long conditionId) {
-        List<ConditionOfScoreVO> scoreByNameNumberList = scoreSearchConditionMapper.getScoreByNameNumberList(Collections.singletonList(conditionId), null);
+        List<ConditionOfScoreVO> scoreByNameNumberList = scoreSearchConditionMapper
+                .getScoreByNameNumberList(
+                        Collections.singletonList(conditionId),
+                        null
+                );
         if (scoreByNameNumberList.size() <= 0) {
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("无符合条件的数据");
         }
