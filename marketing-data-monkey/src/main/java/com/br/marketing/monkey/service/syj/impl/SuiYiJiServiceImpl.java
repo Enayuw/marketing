@@ -110,9 +110,9 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
         for (LocalFile localFile : localFileList) {
             String pushStatus = localFile.getPushStatus();
 
-            // 根据push_status走不同的处理逻辑（只查询0、2、4状态）
-            if (LocalFilePushStatusEnum.NOT_PUSHED.getCode().equals(pushStatus)) {
-                // 未推送（0）：正常处理
+            // 根据push_status走不同的处理逻辑
+            if (pushStatus == null || LocalFilePushStatusEnum.NOT_PUSHED.getCode().equals(pushStatus)) {
+                // push_status为null或未推送（0）：正常处理
                 blackProcess(localFile);
             } else if (LocalFilePushStatusEnum.PARTIAL_SUCCESS.getCode().equals(pushStatus)
                     || LocalFilePushStatusEnum.PUSH_FAILED.getCode().equals(pushStatus)) {
@@ -985,8 +985,9 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
     }
 
     /**
-     * 查询所有需要处理的文件（包括未推送、部分成功、推送失败）
-     * 只查询 push_status 为 0、2、4 的文件
+     * 查询所有需要处理的文件
+     * syj_original类型：查询 push_status 为 0、2、4 的文件
+     * syj_black类型：查询 push_status 为 null、2、4 的文件
      *
      * @param apiCode  apiCode
      * @param fileType 文件类型
@@ -998,12 +999,30 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
         criteria.andApiCodeEqualTo(apiCode)
                 .andFileTypeEqualTo(fileType)
                 .andStatusEqualTo("2")
-                .andCompleteEqualTo("1")
-                .andPushStatusIn(Arrays.asList(
-                        LocalFilePushStatusEnum.NOT_PUSHED.getCode(),
-                        LocalFilePushStatusEnum.PARTIAL_SUCCESS.getCode(),
-                        LocalFilePushStatusEnum.PUSH_FAILED.getCode()
-                ));
+                .andCompleteEqualTo("1");
+
+        // 根据文件类型设置不同的push_status查询条件
+        if (SftpFileTypeEnum.SYJ_ORIGINAL.getValue().equals(fileType)) {
+            // 撞库数据：查询 push_status = 0, 2, 4
+            criteria.andPushStatusIn(Arrays.asList(
+                    LocalFilePushStatusEnum.NOT_PUSHED.getCode(),
+                    LocalFilePushStatusEnum.PARTIAL_SUCCESS.getCode(),
+                    LocalFilePushStatusEnum.PUSH_FAILED.getCode()
+            ));
+        } else if (SftpFileTypeEnum.SYJ_BLACK.getValue().equals(fileType)) {
+            // 黑名单数据：查询 push_status = null, 2, 4
+            // 使用OR条件：push_status is null OR push_status in (2, 4)
+            criteria.andPushStatusIn(Arrays.asList(
+                    LocalFilePushStatusEnum.PARTIAL_SUCCESS.getCode(),
+                    LocalFilePushStatusEnum.PUSH_FAILED.getCode()
+            ));
+            // 添加OR条件：push_status is null
+            example.or().andApiCodeEqualTo(apiCode)
+                    .andFileTypeEqualTo(fileType)
+                    .andStatusEqualTo("2")
+                    .andCompleteEqualTo("1")
+                    .andPushStatusIsNull();
+        }
 
         return localFileMapper.selectByExample(example);
     }
