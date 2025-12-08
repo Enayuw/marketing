@@ -1,11 +1,13 @@
 package com.br.marketing.strategy;
 
 import com.alibaba.fastjson.JSON;
+import com.br.marketing.aspect.MqIdempotent;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.enums.MqIdempotentTableType;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.rule.InterfaceParams;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +36,7 @@ public class InterfaceHandlerService {
      *  2、遍历所有数据，按照不同调用接口逻辑将数据分类
      *  3、不同数据调用不同的接口处理
      */
-
+    @MqIdempotent(tableType = MqIdempotentTableType.SPECIAL)
     public Result<Boolean> handleDataDirection(String message){
 
         Result<Boolean> result = new Result<>().setCode(ResultCode.SUCCESS.getValue());
