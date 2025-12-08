@@ -229,7 +229,7 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
             }
 
             List<Long> idList = originalDataList.stream().map(SYJOriginalData::getId).toList();
-            batchUpdateOriginalData(idList, QueryStatusEnum.QUERYING.getCode());
+            batchUpdateOriginalData(idList, QueryStatusEnum.QUERYING.getCode(), null);
 
             minId = originalDataList.get(originalDataList.size() - 1).getId();
 
@@ -363,8 +363,8 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
     /**
      * 批量更新撞库数据状态
      */
-    void batchUpdateOriginalData(List<Long> dataIdList, Integer queryStatus) {
-        originalDataMapper.batchUpdateStatus(dataIdList, queryStatus);
+    void batchUpdateOriginalData(List<Long> dataIdList, Integer queryStatus, String extend) {
+        originalDataMapper.batchUpdateStatus(dataIdList, queryStatus, extend);
     }
 
     /**
@@ -396,6 +396,7 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
             String message = jsonObject.getString("message");
 
             Integer queryStatus;
+            String messageData;
 
             // 只有code = 0 && result = 1的情况下queryStatus才是3
             if ("0".equals(code) && "1".equals(result)) {
@@ -562,7 +563,7 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
             }
 
             List<Long> idList = blackDataList.stream().map(SYJBlackData::getId).collect(Collectors.toList());
-            blackDataMapper.batchUpdateStatus(idList, QueryStatusEnum.QUERYING.getCode());
+            blackDataMapper.batchUpdateStatus(idList, QueryStatusEnum.QUERYING.getCode(), null);
 
             minId = blackDataList.get(blackDataList.size() - 1).getId();
 
@@ -686,8 +687,8 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
     /**
      * 批量更新黑名单数据状态
      */
-    void batchUpdateBlackData(List<Long> dataIdList, Integer queryStatus) {
-        blackDataMapper.batchUpdateStatus(dataIdList, queryStatus);
+    void batchUpdateBlackData(List<Long> dataIdList, Integer queryStatus, String extend) {
+        blackDataMapper.batchUpdateStatus(dataIdList, queryStatus, extend);
     }
 
     /**
@@ -783,7 +784,7 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
      */
     @FunctionalInterface
     private interface BatchUpdateFunction {
-        void update(List<Long> ids, Integer queryStatus);
+        void update(List<Long> ids, Integer queryStatus, String extend);
     }
 
     /**
@@ -811,12 +812,14 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
     }
 
     /**
-     * 按状态分组任务
+     * 按状态和扩展字段分组任务（相同queryStatus和extend的合并更新）
      */
     private Map<String, List<UpdateTask>> groupTasksByStatus(List<UpdateTask> tasks) {
         Map<String, List<UpdateTask>> groupedTasks = new HashMap<>();
         for (UpdateTask task : tasks) {
-            String key = task.getQueryStatus() != null ? String.valueOf(task.getQueryStatus()) : "null";
+            String statusKey = task.getQueryStatus() != null ? String.valueOf(task.getQueryStatus()) : "null";
+            String extendKey = task.getExtend() != null ? task.getExtend() : "null";
+            String key = statusKey + "_" + extendKey;
             groupedTasks.computeIfAbsent(key, k -> new ArrayList<>()).add(task);
         }
         return groupedTasks;
@@ -831,12 +834,12 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
         for (List<UpdateTask> batchTasks : partitions) {
             List<Long> batchIds = batchTasks.stream().map(UpdateTask::getDataId).toList();
             try {
-                updateFunction.update(batchIds, sampleTask.getQueryStatus());
-                log.warn("{}批量更新成功，batchSize={}, queryStatus={}",
-                        logPrefix, batchIds.size(), sampleTask.getQueryStatus());
+                updateFunction.update(batchIds, sampleTask.getQueryStatus(), sampleTask.getExtend());
+                log.warn("{}批量更新成功，batchSize={}, queryStatus={}, extend={}",
+                        logPrefix, batchIds.size(), sampleTask.getQueryStatus(), sampleTask.getExtend());
             } catch (Exception e) {
-                log.error("{}批量更新数据库异常，batchSize={}, queryStatus={}",
-                        logPrefix, batchIds.size(), sampleTask.getQueryStatus(), e);
+                log.error("{}批量更新数据库异常，batchSize={}, queryStatus={}, extend={}",
+                        logPrefix, batchIds.size(), sampleTask.getQueryStatus(), sampleTask.getExtend(), e);
                 // 如果批量更新失败，尝试单个更新
                 updateOneByOne(batchIds, sampleTask, batchTasks, updateFunction, logPrefix);
             }
@@ -856,7 +859,8 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
                         .orElse(sampleTask);
                 updateFunction.update(
                         Collections.singletonList(id),
-                        task.getQueryStatus()
+                        task.getQueryStatus(),
+                        task.getExtend()
                 );
             } catch (Exception ex) {
                 log.error("{}单个更新数据库异常，dataId={}", logPrefix, id, ex);

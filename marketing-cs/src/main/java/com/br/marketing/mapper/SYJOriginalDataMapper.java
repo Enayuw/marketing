@@ -14,7 +14,7 @@ public interface SYJOriginalDataMapper extends SYJOriginalDataMapperBase {
 
     List<SYJOriginalData> queryOriginalData(@Param("localId") Long localId, @Param("minId") Long minId, @Param("pageSize") Integer pageSize);
 
-    void batchUpdateStatus(@Param("ids") List<Long> ids, @Param("queryStatus") Integer queryStatus);
+    void batchUpdateStatus(@Param("ids") List<Long> ids, @Param("queryStatus") Integer queryStatus, @Param("extend") String extend);
 
     List<SYJOriginalData> queryPushData(@Param("localId") Long localId, @Param("minId") Long minId,@Param("pageSize") Integer pageSize);
 

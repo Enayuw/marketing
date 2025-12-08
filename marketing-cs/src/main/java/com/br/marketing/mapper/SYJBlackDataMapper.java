@@ -14,7 +14,7 @@ public interface SYJBlackDataMapper extends SYJBlackDataMapperBase {
 
     List<SYJBlackData> queryBlackData(@Param("localId") Long localId, @Param("minId") Long minId, @Param("pageSize") Integer pageSize);
 
-    void batchUpdateStatus(@Param("ids") List<Long> ids, @Param("queryStatus") Integer queryStatus);
+    void batchUpdateStatus(@Param("ids") List<Long> ids, @Param("queryStatus") Integer queryStatus, @Param("extend") String extend);
 
     /**
      * 查询未查询成功的黑名单数据（用于重试）
