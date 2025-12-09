@@ -120,24 +120,24 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
                 log.warn("开始填充文件表头及样例,fileName={}", cleanDataFile.getFileName());
                 fillHeaderAndData(cleanDataFile);
             });
-        }
 
-        try {
-            String remark = String.format("数据清洗文件同步,时间：%s"
-                    , date);
-            trackingService.trackPointLog(DataFlowDirection.OUT
-                    , apiCode
-                    , "数据清洗文件同步"
-                    , (long) syncCycleConfigs.size()
-                    , remark
-                    , TrackingContext.generateBatchId());
-        } catch (Exception ex) {
-            log.warn(
-                    AlertLog.buildWarnMessage(
-                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
-                            , ex.getMessage()
-                            , "埋点异常")
-                    , ex);
+            try {
+                String remark = String.format("数据清洗文件同步,清洗配置id：%s"
+                        , syncCycleConfig.getId());
+                trackingService.trackPointLog(DataFlowDirection.OUT
+                        , syncCycleConfig.getApiCode()
+                        , "数据清洗文件同步"
+                        , (long) cleanDataFiles.size()
+                        , remark
+                        , TrackingContext.generateBatchId());
+            } catch (Exception ex) {
+                log.warn(
+                        AlertLog.buildWarnMessage(
+                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                , ex.getMessage()
+                                , "埋点异常")
+                        , ex);
+            }
         }
 
     }

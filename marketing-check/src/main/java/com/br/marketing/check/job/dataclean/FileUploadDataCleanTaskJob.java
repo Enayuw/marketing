@@ -98,25 +98,26 @@ public class FileUploadDataCleanTaskJob extends AbstractSimpleElasticJob {
             update.setStatus(DataProcessEnum.FileStatusEnum.SUCCESS.getCode());
             update.setId(cleanFile.getId());
             marketingCleanDataFileMapper.updateByPrimaryKeySelective(update);
-        });
+            // 埋点
+            try {
+                String remark = String.format("文件上传数据清洗JOB,清洗文件id：%s"
+                        , cleanFile.getId());
+                trackingService.trackPointLog(DataFlowDirection.OUT
+                        , config.getApiCode()
+                        , "文件上传数据清洗JOB"
+                        , 1L
+                        , remark
+                        , TrackingContext.generateBatchId());
+            } catch (Exception ex) {
+                log.warn(
+                        AlertLog.buildWarnMessage(
+                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                , ex.getMessage()
+                                , "埋点异常")
+                        , ex);
+            }
 
-        try {
-            String remark = String.format("文件上传数据清洗JOB,时间：%s"
-                    , appletDateList);
-            trackingService.trackPointLog(DataFlowDirection.OUT
-                    , apiCode
-                    , "文件上传数据清洗JOB"
-                    , (long) ruleList.size()
-                    , remark
-                    , TrackingContext.generateBatchId());
-        } catch (Exception ex) {
-            log.warn(
-                    AlertLog.buildWarnMessage(
-                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
-                            , ex.getMessage()
-                            , "埋点异常")
-                    , ex);
-        }
+        });
 
     }
 

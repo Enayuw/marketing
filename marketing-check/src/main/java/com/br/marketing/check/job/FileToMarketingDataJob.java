@@ -178,18 +178,22 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                             }
                         }
                     }
+                    trackPointLog(dataFileConfig);
                 }
 
             }
         }
 
+    }
+
+    private void trackPointLog(MarketingDataFileConfig dataFileConfig){
         try {
             String remark = String.format("【通用文件清洗】,文件类型：%s"
-                    , "原始数据文件");
+                    , dataFileConfig.getCleanType().equals(0)?"上传":"转化");
             trackingService.trackPointLog(DataFlowDirection.OUT
-                    , apiCode
-                    , "【通用文件清洗】"
-                    , (long) syncConfigs.size()
+                    , dataFileConfig.getApiCode()
+                    , "【通用文件清洗JOB】"
+                    , 1L
                     , remark
                     , TrackingContext.generateBatchId());
         } catch (Exception ex) {
@@ -200,7 +204,6 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                             , "埋点异常")
                     , ex);
         }
-
     }
 
     /**
