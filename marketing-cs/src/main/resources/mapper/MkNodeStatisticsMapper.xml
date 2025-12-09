@@ -8,11 +8,11 @@
             api_code AS apiCode,
             link_id AS linkId,
             link_node_id AS linkNodeId,
-            SUM(total_count) AS totalCount,
-            SUM(total_magnitude) AS totalMagnitude,
-            MIN(first_update_time) AS firstUpdateTime,
-            MAX(last_update_time) AS lastUpdateTime,
-            SUM(update_count) AS updateCount
+            total_count AS totalCount,
+            total_magnitude AS totalMagnitude,
+            first_update_time AS firstUpdateTime,
+            last_update_time AS lastUpdateTime,
+            update_count AS updateCount
         FROM mk_node_statistics
         <where>
             <if test="linkNodeIds != null and linkNodeIds.size() > 0">
@@ -28,7 +28,6 @@
                 AND stat_date &lt;= #{endDate}
             </if>
         </where>
-        GROUP BY link_node_id, api_code, link_id
     </select>
 
 </mapper>
