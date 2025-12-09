@@ -79,16 +79,19 @@ public class CustomUploadDataCleanJob extends AbstractSimpleElasticJob {
                     //更新配置运行状态：
                     config.setCustomRunStatus(DataCleanConfigRunStatusEnum.READY.getCode());
                     marketingDataCleanGeneralConfigMapper.updateByPrimaryKeySelective(config);
+                    trackPointLog(cleanDataTask);
                 }
         );
+    }
 
+    private void trackPointLog(MarketingDataCleanGeneralConfig cleanDataTask){
         try {
-            String remark = String.format("定制上传数据清洗,时间：%s"
-                    , appletDateList);
+            String remark = String.format("定制上传数据清洗job,任务id：%s"
+                    , cleanDataTask.getId());
             trackingService.trackPointLog(DataFlowDirection.IN
-                    , apiCode
-                    , "定制上传数据清洗"
-                    , (long) configList.size()
+                    , cleanDataTask.getApiCode()
+                    , "定制上传数据清洗job"
+                    , 1L
                     , remark
                     , TrackingContext.generateBatchId());
         } catch (Exception ex) {
@@ -99,7 +102,6 @@ public class CustomUploadDataCleanJob extends AbstractSimpleElasticJob {
                             , "埋点异常")
                     , ex);
         }
-
     }
 
     private MarketingDataCleanGeneralConfig getCleanDataTask(MarketingDataCleanGeneralConfig config, List<String> appletDateList) {
