@@ -2,8 +2,10 @@ package com.br.marketing.aspect;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.context.MqIdempotentContext;
 import com.br.marketing.enums.MqIdempotentTableType;
 import com.br.marketing.service.MqIdempotentService;
@@ -34,35 +36,39 @@ public class MqIdempotentAspect {
 
     @Around("@annotation(mqIdempotent)")
     public Object around(ProceedingJoinPoint joinPoint, MqIdempotent mqIdempotent) throws Throwable {
-        // 提取幂等键
-        Long idempotentKey = extractIdempotentKey(joinPoint.getArgs(), mqIdempotent);
-        if (idempotentKey == null) {
-            log.warn("消息中未找到idempotentKey，跳过幂等性检查");
-            return joinPoint.proceed();
-        }
-        
-        // 获取上下文信息
-        String tag = MqIdempotentContext.getTag();
-        String apiCode = MqIdempotentContext.getApiCode();
-        MqIdempotentTableType tableType = mqIdempotent.tableType();
-        
-        // 尝试插入幂等记录（失败时抛出异常，让MQ重试）
-        Long recordId = insertIdempotentRecord(tableType, idempotentKey, apiCode, tag);
-        if (recordId == null) {
-            // DuplicateKeyException，消息已处理过，直接返回成功
-            return createSuccessResult();
-        }
-        
-        // 执行业务逻辑
         try {
-            Object result = joinPoint.proceed();
-            // 业务处理成功，更新apiCode
-            updateApiCodeIfNeeded(tableType, recordId, apiCode);
-            return result;
-        } catch (Throwable e) {
-            // 业务处理异常，删除幂等记录，让MQ重试
-            deleteIdempotentRecordOnException(tableType, idempotentKey, recordId);
-            throw e;
+            // 提取幂等键
+            Long idempotentKey = extractIdempotentKey(joinPoint.getArgs(), mqIdempotent);
+            if (idempotentKey == null) {
+                log.warn("消息中未找到idempotentKey，跳过幂等性检查(在服务上线过程中会出现，当生产者节点全部上线完成后不应再出现该消息！)");
+                return joinPoint.proceed();
+            }
+
+            // 获取上下文信息
+            String tag = MqIdempotentContext.getTag();
+            String apiCode = MqIdempotentContext.getApiCode();
+            MqIdempotentTableType tableType = mqIdempotent.tableType();
+
+            // 尝试插入幂等记录（失败时抛出异常，让MQ重试）
+            Long recordId = insertIdempotentRecord(tableType, idempotentKey, apiCode, tag);
+            if (recordId == null) {
+                // DuplicateKeyException，消息已处理过，直接返回成功
+                return createSuccessResult();
+            }
+
+            // 执行业务逻辑
+            try {
+                Object result = joinPoint.proceed();
+                // 业务处理成功，更新apiCode
+                updateApiCodeIfNeeded(tableType, recordId, apiCode);
+                return result;
+            } catch (Throwable e) {
+                // 业务处理异常，删除幂等记录，让MQ重试
+                deleteIdempotentRecordOnException(tableType, idempotentKey, recordId);
+                throw e;
+            }
+        } finally {
+            MqIdempotentContext.clear();
         }
     }
     
@@ -125,24 +131,24 @@ public class MqIdempotentAspect {
                                         String apiCode, String tag) throws RuntimeException {
         try {
             Long recordId = mqIdempotentService.insertIdempotentRecord(tableType, idempotentKey, apiCode, tag);
-            log.warn("幂等性检查通过，插入幂等记录成功，tableType: {}, idempotentKey: {}, recordId: {}, tag: {}", 
+            log.warn("消息幂等校验通过，插入幂等记录成功，tableType: {}, idempotentKey: {}, recordId: {}, tag: {}",
                     tableType.getCode(), idempotentKey, recordId, tag);
             return recordId;
         } catch (DuplicateKeyException e) {
-            log.warn("消息已处理过（幂等性检查），tableType: {}, idempotentKey: {}, tag: {}, 跳过本次处理", 
-                    tableType.getCode(), idempotentKey, tag);
+            String subject = "消息幂等校验不通过！";
+            String message = String.format("消息已处理过（幂等性检查），tableType: %s, idempotentKey: %s, tag: %s, 跳过本次处理, error: %s",
+                    tableType.getCode(), idempotentKey, tag, e.getMessage());
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), message
+                    , subject), e);
             return null;
         } catch (Exception e) {
             // 插入失败，无法保证幂等性，抛出异常让MQ重试（最多16次）
-            String errorMsg = String.format("插入幂等记录失败，无法保证幂等性，tableType: %s, idempotentKey: %s, tag: %s", 
-                    tableType.getCode(), idempotentKey, tag);
-            log.error(errorMsg, e);
-            throw new RuntimeException(errorMsg, e);
+            throw new RuntimeException(e.getMessage(), e);
         }
     }
     
     /**
-     * 更新apiCode（如果需要）
+     * 更新apiCode
      */
     private void updateApiCodeIfNeeded(MqIdempotentTableType tableType, Long recordId, String originalApiCode) {
         if (recordId == null || recordId < 0) {
@@ -159,8 +165,9 @@ public class MqIdempotentAspect {
             log.warn("业务处理成功，更新幂等记录apiCode，tableType: {}, recordId: {}, apiCode: {}", 
                     tableType.getCode(), recordId, currentApiCode);
         } catch (Exception e) {
-            log.warn("更新幂等记录apiCode失败，tableType: {}, recordId: {}", 
-                    tableType.getCode(), recordId, e);
+            String subject = "更新幂等记录apiCode失败";
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage()
+                    , subject), e);
         }
     }
     
@@ -202,9 +209,9 @@ public class MqIdempotentAspect {
                     // 重试失败，记录告警
                     String errorMsg = String.format("删除幂等记录失败（已重试%d次），幂等记录可能残留，tableType: %s, idempotentKey: %s, recordId: %s", 
                             maxRetries, tableType.getCode(), idempotentKey, recordId);
-                    log.error(errorMsg, e);
-                    // TODO: 可以发送告警通知，但不要影响业务异常的重试
-                    // 注意：这里不抛出异常，因为业务异常已经抛出，MQ会重试
+                    String subject = "删除幂等记录失败";
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),errorMsg
+                            , subject), e);
                 }
             }
         }
