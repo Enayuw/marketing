@@ -178,32 +178,11 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                             }
                         }
                     }
-                    trackPointLog(dataFileConfig);
                 }
 
             }
         }
 
-    }
-
-    private void trackPointLog(MarketingDataFileConfig dataFileConfig){
-        try {
-            String remark = String.format("【通用文件清洗】,文件类型：%s"
-                    , dataFileConfig.getCleanType().equals(0)?"上传":"转化");
-            trackingService.trackPointLog(DataFlowDirection.OUT
-                    , dataFileConfig.getApiCode()
-                    , "【通用文件清洗JOB】"
-                    , 1L
-                    , remark
-                    , TrackingContext.generateBatchId());
-        } catch (Exception ex) {
-            log.warn(
-                    AlertLog.buildWarnMessage(
-                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
-                            , ex.getMessage()
-                            , "埋点异常")
-                    , ex);
-        }
     }
 
     /**
@@ -441,6 +420,25 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
         updateFile.setPushEndTime(end);
         updateFile.setComplete(errorNum > 0 ? "3" : "1");
         localFileMapper.updateByPrimaryKeySelective(updateFile);
+        // 埋点
+        try {
+            String remark = String.format("【通用文件清洗】,文件类型：%s"
+                    , "上传");
+            trackingService.trackPointLog(DataFlowDirection.OUT
+                    , apiCode
+                    , "【通用文件清洗JOB】"
+                    , Long.valueOf(pushSum)
+                    , remark
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
+
         //region 提示
         try {
             StringBuilder content = new StringBuilder();
@@ -683,6 +681,25 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
             }
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
+        }
+
+        // 埋点
+        try {
+            String remark = String.format("【通用文件清洗】,文件类型：%s"
+                    , "转化");
+            trackingService.trackPointLog(DataFlowDirection.OUT
+                    , apiCode
+                    , "【通用文件清洗JOB】"
+                    , Long.valueOf(pushSum)
+                    , remark
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
         }
 
         Date end = new Date();
