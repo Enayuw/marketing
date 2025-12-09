@@ -95,7 +95,7 @@ public class UploadDataController {
         return qiFuAiResDTO;
     }
 
-    @ApiOperation(value = "360AI语音机器人效果推送接口")
+    @Operation(summary = "360AI语音机器人效果推送接口")
     @PostMapping("/uploadData/effect")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public QiFuAiResDTO qiFuAiRobotEffectPushUploadData(@RequestBody QiFuAiReqDTO requestBody, HttpServletRequest request) {
