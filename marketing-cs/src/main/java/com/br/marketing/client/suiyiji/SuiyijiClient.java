@@ -91,7 +91,7 @@ public class SuiyijiClient {
 
     @RetryMethod(retryNowNum = 3)
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
-    @Mockable(mockName = MockConstants.TEST_OBJECT_RETURN)
+    @Mockable(mockName = MockConstants.SUIYIJI_ORIGINAL)
     public Result<String> originalApi(Object reqMap) {
         Map<String, String> responseMap = httpProxyClient.sendByCodeWithLog(
                 reqMap,
@@ -126,8 +126,8 @@ public class SuiyijiClient {
 
     @RetryMethod(retryNowNum = 3)
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
-    @Mockable(mockName = MockConstants.TEST_OBJECT_RETURN)
-    public Result<String> blackApi(Object reqMap) {
+    @Mockable(mockName = MockConstants.SUIYIJI_BLACK)
+    public Result<Integer> blackApi(Object reqMap) {
         Map<String, String> responseMap = httpProxyClient.sendByCodeWithLog(
                 reqMap,
                 blackUrl,
@@ -146,8 +146,8 @@ public class SuiyijiClient {
 
         String content = responseMap.get("content");
         JSONObject jsonObject = JSON.parseObject(content);
-        Integer code = (Integer) jsonObject.get("code");
-        Integer succNum = (Integer) jsonObject.get("succNum");
+        Integer code = jsonObject.getInteger("code");
+        Integer succNum = jsonObject.getInteger("succNum");
         String msg = jsonObject.getString("msg");
 
         // code: 0-调用成功，-1-系统异常

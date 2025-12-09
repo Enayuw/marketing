@@ -472,23 +472,14 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
                         reqMap.put("datas", cellList);
 
                         // 调用接口
-                        Result<String> result = suiyijiClient.blackApi(reqMap);
+                        Result<Integer> result = suiyijiClient.blackApi(reqMap);
 
                         // result的data字段就是succNum的值
                         List<Long> dataIds = partition.stream().map(SYJBlackData::getId).toList();
                         
                         if (result != null && ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                             // 调用成功，解析succNum
-                            int succNum = 0;
-                            try {
-                                String dataStr = result.getData();
-                                if (dataStr != null && !dataStr.isEmpty()) {
-                                    succNum = Integer.parseInt(dataStr.trim());
-                                }
-                            } catch (NumberFormatException e) {
-                                log.warn("{}解析succNum失败，fileId={}, data={}", logPrefix, fileId, result.getData(), e);
-                            }
-                            
+                            int succNum = result.getData();
                             // 累加成功数量
                             if (succNum > 0) {
                                 totalSuccessCount.addAndGet(succNum);
