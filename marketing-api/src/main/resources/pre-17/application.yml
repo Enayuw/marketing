@@ -49,9 +49,9 @@ springdoc:
     enabled: true
     path: /v3/api-docs
   swagger-ui:
-    config-url: /compass-api/api/marketing-api/v3/api-docs/swagger-config
-    url: /compass-api/api/marketing-api/v3/api-docs
-    path: /a/swagger-ui.html
+    config-url: /v3/api-docs/swagger-config
+    url: /v3/api-docs
+    path: /swagger-ui.html
     disable-swagger-default-url: true
 
 #exporter监控
