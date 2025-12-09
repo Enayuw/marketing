@@ -112,6 +112,7 @@ public class ShuHeDxCustomerTransferImpl implements AssembleData<ConversionData>
                 return null;
             }
         }
+        conversionData.setCaseNum(transfer.getCustNum());
         TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
         BeanUtils.copyProperties(transfer, vo);
         conversionData.setInversionInfo(JSON.toJSONString(vo));
