@@ -8,7 +8,7 @@ import lombok.Data;
  * @Date 2025/11/17
  */
 @Data
-public class RobotEventPushData {
+public class EventPushData {
 
     /**
      * 人群下发唯一识别码

@@ -14,7 +14,7 @@ import com.br.marketing.datarelayservice.enums.QiFuAiBizTypeEnum;
 import com.br.marketing.entity.BillReport;
 import com.br.marketing.entity.DrsCustomizeUploadData;
 import com.br.marketing.entity.RobotEffectData;
-import com.br.marketing.entity.RobotEventPushData;
+import com.br.marketing.entity.EventPushData;
 import com.br.marketing.mapper.DrsCustomizeUploadDataMapper;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -319,7 +319,7 @@ public class QiFuAiUploadDataService {
             }
             return new Pair<>(CodeEnum.GWS200, FlagEnum.F);
         }
-        List<RobotEventPushData> dataList = qiFuAiRobotEventPushBizDataDTO.getEventList();
+        List<EventPushData> dataList = qiFuAiRobotEventPushBizDataDTO.getEventList();
         uploadData.setRequestId(requestId);
         uploadData.setRequestJsonData(decryptData);
         uploadData.setBizDataNumber(dataList == null ? 0 : dataList.size());
