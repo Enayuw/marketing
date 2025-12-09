@@ -79,7 +79,8 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
             } else if (LocalFilePushStatusEnum.PARTIAL_SUCCESS.getCode().equals(pushStatus)
                     || LocalFilePushStatusEnum.PUSH_FAILED.getCode().equals(pushStatus)) {
                 // 部分成功（2）或推送失败（4）：重试处理
-                processRetry(localFile, () -> retryOriginalProcess(apiCode, localFile));
+                processRetry(localFile);
+                retryOriginalProcess(apiCode, localFile);
             }
         }
     }
@@ -97,18 +98,18 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
             } else if (LocalFilePushStatusEnum.PARTIAL_SUCCESS.getCode().equals(pushStatus)
                     || LocalFilePushStatusEnum.PUSH_FAILED.getCode().equals(pushStatus)) {
                 // 部分成功（2）或推送失败（4）：重试处理
-                processRetry(localFile, () -> retryBlackProcess(localFile));
+                processRetry(localFile);
+                retryBlackProcess(localFile);
             }
         }
     }
 
     /**
-     * 处理重试逻辑的公共方法
+     * 判断是否可以重试，并更新重试次数
      *
      * @param localFile   文件对象
-     * @param retryAction 重试执行动作
      */
-    private void processRetry(LocalFile localFile, Runnable retryAction) {
+    private void processRetry(LocalFile localFile) {
         Integer retryCount = localFile.getRetryCount();
         if (retryCount != null && retryCount >= 1) {
             log.warn("文件已达到最大重试次数，跳过重试，fileId={}, retryCount={}, pushStatus={}",
@@ -119,9 +120,6 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
         // 更新重试次数和状态
         localFile.setRetryCount((retryCount == null ? 0 : retryCount) + 1);
         localFileMapper.updateByPrimaryKeySelective(localFile);
-
-        // 执行重试
-        retryAction.run();
     }
 
 

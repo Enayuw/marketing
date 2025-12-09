@@ -93,34 +93,40 @@ public class SuiyijiClient {
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     @Mockable(mockName = MockConstants.SUIYIJI_ORIGINAL)
     public Result<String> originalApi(Object reqMap) {
-        Map<String, String> responseMap = httpProxyClient.sendByCodeWithLog(
-                reqMap,
-                originalUrl,
-                isProxy,
-                MediaType.APPLICATION_JSON_UTF8_VALUE,
-                com.alibaba.fastjson2.JSON.toJSONString(reqMap),
-                true,
-                true
-        );
+        try {
+            Map<String, String> responseMap = httpProxyClient.sendByCodeWithLog(
+                    reqMap,
+                    originalUrl,
+                    isProxy,
+                    MediaType.APPLICATION_JSON_UTF8_VALUE,
+                    com.alibaba.fastjson2.JSON.toJSONString(reqMap),
+                    true,
+                    true
+            );
 
-        if (!"200".equals(responseMap.get("httpcode")) || StringUtils.isBlank(responseMap.get("content"))) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SUIYIJI_SERVICE_ERROR.getCode()
-                    , "随忆记用户信息撞库接口异常-请求url:" + originalUrl + ";返回:" + JSON.toJSONString(responseMap)));
-            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(responseMap));
-        }
+            if (!"200".equals(responseMap.get("httpcode")) || StringUtils.isBlank(responseMap.get("content"))) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SUIYIJI_SERVICE_ERROR.getCode()
+                        , "随忆记用户信息撞库接口异常-请求url:" + originalUrl + ";返回:" + JSON.toJSONString(responseMap)));
+                return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(responseMap));
+            }
 
-        String content = responseMap.get("content");
-        JSONObject jsonObject = JSON.parseObject(content);
-        String code = jsonObject.getString("code");
-        String result = jsonObject.getString("result");
-        String message = jsonObject.getString("message");
+            String content = responseMap.get("content");
+            JSONObject jsonObject = JSON.parseObject(content);
+            String code = jsonObject.getString("code");
+            String result = jsonObject.getString("result");
+            String message = jsonObject.getString("message");
 
-        // 只有code = 0 && result = 1的情况下queryStatus才是3
-        if ("0".equals(code) && "1".equals(result)) {
-            return new Result<>().success().setMessage(message);
-        } else {
-            // 其他情况（code!=0 或 result!=1），queryStatus=2
-            return new Result<>().failure().setMessage(message);
+            // 只有code = 0 && result = 1的情况下queryStatus才是3
+            if ("0".equals(code) && "1".equals(result)) {
+                return new Result<>().success().setMessage(message);
+            } else {
+                // 其他情况（code!=0 或 result!=1），queryStatus=2
+                return new Result<>().failure().setMessage(message);
+            }
+        }catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SUIYIJI_SERVICE_ERROR.getCode(), e.getMessage()
+                    , "随忆记用户信息撞库接口异常"));
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage("接口异常");
         }
     }
 
@@ -128,33 +134,39 @@ public class SuiyijiClient {
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     @Mockable(mockName = MockConstants.SUIYIJI_BLACK)
     public Result<Integer> blackApi(Object reqMap) {
-        Map<String, String> responseMap = httpProxyClient.sendByCodeWithLog(
-                reqMap,
-                blackUrl,
-                isProxy,
-                MediaType.APPLICATION_JSON_UTF8_VALUE,
-                com.alibaba.fastjson2.JSON.toJSONString(reqMap),
-                true,
-                true
-        );
+        try {
+            Map<String, String> responseMap = httpProxyClient.sendByCodeWithLog(
+                    reqMap,
+                    blackUrl,
+                    isProxy,
+                    MediaType.APPLICATION_JSON_UTF8_VALUE,
+                    com.alibaba.fastjson2.JSON.toJSONString(reqMap),
+                    true,
+                    true
+            );
 
-        if (!"200".equals(responseMap.get("httpcode")) || StringUtils.isBlank(responseMap.get("content"))) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SUIYIJI_SERVICE_ERROR.getCode()
-                    , "随忆记用户信息撞库接口异常-请求url:" + originalUrl + ";返回:" + JSON.toJSONString(responseMap)));
-            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(responseMap));
-        }
+            if (!"200".equals(responseMap.get("httpcode")) || StringUtils.isBlank(responseMap.get("content"))) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SUIYIJI_SERVICE_ERROR.getCode()
+                        , "随忆记黑名单接口异常-请求url:" + originalUrl + ";返回:" + JSON.toJSONString(responseMap)));
+                return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(responseMap));
+            }
 
-        String content = responseMap.get("content");
-        JSONObject jsonObject = JSON.parseObject(content);
-        Integer code = jsonObject.getInteger("code");
-        Integer succNum = jsonObject.getInteger("succNum");
-        String msg = jsonObject.getString("msg");
+            String content = responseMap.get("content");
+            JSONObject jsonObject = JSON.parseObject(content);
+            Integer code = jsonObject.getInteger("code");
+            Integer succNum = jsonObject.getInteger("succNum");
+            String msg = jsonObject.getString("msg");
 
-        // code: 0-调用成功，-1-系统异常
-        if (code == 0) {
-            return new Result<>().success().setDate(succNum).setMessage(msg);
-        } else {
-            return new Result<>().failure().setDate(succNum).setMessage(msg);
+            // code: 0-调用成功，-1-系统异常
+            if (code == 0) {
+                return new Result<>().success().setDate(succNum).setMessage(msg);
+            } else {
+                return new Result<>().failure().setDate(succNum).setMessage(msg);
+            }
+        }catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SUIYIJI_SERVICE_ERROR.getCode(), e.getMessage()
+                    , "随意记获取黑名单接口异常"));
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage("接口异常");
         }
     }
 }
