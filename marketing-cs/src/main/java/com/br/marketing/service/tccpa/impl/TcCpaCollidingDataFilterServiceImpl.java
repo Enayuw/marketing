@@ -60,15 +60,15 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    private static final int PAGE_SIZE = 2000;
+    private static int PAGE_SIZE;
 
     @Override
     public void process() {
-        String apiCode = marketingCommonConfig.getTcyrCpaApiCode();
+        PAGE_SIZE = marketingCommonConfig.getTcyrCpaPushFileVTConfig().getInteger("filterPageSize");
         //1.查询统计完成和待统计的撞库任务
         TcyrCpaCollidingTaskExample taskExample = new TcyrCpaCollidingTaskExample();
         taskExample.createCriteria()
-                .andApiCodeEqualTo(apiCode)
+                .andApiCodeEqualTo(marketingCommonConfig.getTcyrCpaApiCode())
                 .andCollidingDateEqualTo(new Date())
                 .andIsDelEqualTo(Constants.DATA_VALID)
                 .andEnabledEqualTo(Constants.ENABLED_ACT)
@@ -97,6 +97,7 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
                 break;
             }
         }
+        threadPool.shutdownAndAwaitTermination();
     }
 
     /**
@@ -107,13 +108,13 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
      */
     private boolean process(TcyrCpaCollidingTask task, Date colldingDate,
                             TpDynamicExecutor threadPool, List<CompletableFuture<Void>> futures) throws IOException {
-        //1.对于新创建和重新统计的任务，在过滤前进行统计
+        //1.对于新创建，在过滤前进行统计
         if (task.getStatus() == TcCpaCollidingTaskStatusEnum.STATUS_WAIT_STA.getValue()) {
             tcCpaCommonService.updateVolumeByTask(task);
             //可跳过2-统计完成，直接到3-筛选中
         }
         //2.筛选中的任务，isRetry=0，代表还未解决完问题
-        if (task.getStatus() == TcCpaCollidingTaskStatusEnum.STATUS_WAIT_STA.getValue()
+        if (task.getStatus() == TcCpaCollidingTaskStatusEnum.STATUS_FILTERING.getValue()
                 && task.getIsretry() == TcCpaCollidingTaskIsRetryEnum.RETRY_NO.getValue()) {
             return false;
         }
@@ -122,12 +123,12 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
             task.setStatus(TcCpaCollidingTaskStatusEnum.STATUS_FILTERING.getValue());
             tcyrCpaCollidingTaskMapper.updateByPrimaryKeySelective(task);
         }
-        //3.过滤撞库数据
+        //3.筛选撞库数据
         boolean isSuccess = filter(task, colldingDate, threadPool, futures);
         if (isSuccess) {
             task.setStatus(TcCpaCollidingTaskStatusEnum.STATUS_FILTER_COMPLETED.getValue());
-            tcyrCpaCollidingTaskMapper.updateByPrimaryKeySelective(task);
         }
+        tcyrCpaCollidingTaskMapper.updateByPrimaryKeySelective(task);
         return isSuccess;
     }
 
@@ -138,6 +139,7 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
         List<Long> deleteRuleIds = StringUtils.StrsConvertLongs(task.getDeleteRuleIds());
         //2.获取join片段
         String joinFrag = getDeleteSqlFrag(deleteRuleIds);
+        log.warn(TITLE + "joinFrag: " + joinFrag);
         //3.是否重试
         boolean isRetry = task.getStatus() == TcCpaCollidingTaskStatusEnum.STATUS_WAIT_STA.getValue()
                 && task.getIsretry() == TcCpaCollidingTaskIsRetryEnum.RETRY_YES.getValue();
@@ -208,22 +210,22 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
         for (TcyrSupplyRuleInfo pck : supplyRuleInfos) {
             try{
                 String querySql = genSupplyQuerySql(joinFrag, pck);
-                boolean hasError = packageProcess(task.getId().intValue(), supplyPackageId, pck.getPriority(),
+                boolean isSuccess = packageProcess(task.getId().intValue(), supplyPackageId, pck.getPriority(),
                         colldingDate, querySql, "pck.user_key",
                         insertAbleNum, threadPool, futures);
-                if (hasError) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
-                            "补充包数据筛选子线程异常，failMsg:" + pck.getFailMsg(), TITLE));
-                    task.setIsretry(TcCpaCollidingTaskIsRetryEnum.RETRY_YES.getValue());
-                    task.setRetrySupplyFailMsgs(String.join(",", remaingFaiMsgs));
-                    return false;
-                } else {
+                if (isSuccess) {
                     remaingFaiMsgs.remove(pck.getFailMsg());
                     int insertCount = queryCount(task.getId().intValue(), supplyPackageId);
                     insertAbleNum = insertAbleNum - insertCount;
                     if(insertAbleNum <= 0){
                         break;
                     }
+                } else {
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
+                            "补充包数据筛选子线程异常，failMsg:" + pck.getFailMsg(), TITLE));
+                    task.setIsretry(TcCpaCollidingTaskIsRetryEnum.RETRY_YES.getValue());
+                    task.setRetrySupplyFailMsgs(String.join(",", remaingFaiMsgs));
+                    return false;
                 }
             }catch (Exception e){
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
@@ -231,7 +233,7 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
             }
         }
         task.setIsretry(TcCpaCollidingTaskIsRetryEnum.RETRY_NO.getValue());
-        task.setRetrySupplyFailMsgs(null);
+        task.setRetrySupplyFailMsgs("");
         return true;
     }
 
@@ -276,25 +278,26 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
         for (TcyrCpaCollidingDataPackage pck : packages) {
             try{
                 int packageInsertAbleNum = Math.min(insertAbleNum, pck.getMagnitude());
-                String querySql = "select pck.user_key from tcyr_cpa_colliding_data pck "
+                String querySql = "select pck.user_key from b_tcyr_cpa_colliding_data pck "
                         .concat(joinFrag)
                         .concat(" and pck.package_id = " + pck.getId());
-                boolean hasError = packageProcess(task.getId().intValue(), pck.getId(), pck.getPriority(),
+                log.warn(TITLE + "querySql: " + querySql);
+                boolean isSuccess = packageProcess(task.getId().intValue(), pck.getId(), pck.getPriority(),
                         colldingDate, querySql, "pck.user_key",
                         packageInsertAbleNum, threadPool, futures);
-                if (hasError) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
-                            "数据筛选子线程异常，packageId:" + pck.getId(), TITLE));
-                    task.setIsretry(TcCpaCollidingTaskIsRetryEnum.RETRY_YES.getValue());
-                    task.setRetryPackageIds(StringUtils.LongsConvertStr(remaingPackagesIds));
-                    return false;
-                } else {
+                if (isSuccess) {
                     remaingPackagesIds.remove(pck.getId());
                     int insertCount = queryCount(task.getId().intValue(), pck.getId());
                     insertAbleNum = insertAbleNum - insertCount;
                     if(insertAbleNum <= 0){
                         break;
                     }
+                } else {
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
+                            "数据筛选子线程异常，packageId:" + pck.getId(), TITLE));
+                    task.setIsretry(TcCpaCollidingTaskIsRetryEnum.RETRY_YES.getValue());
+                    task.setRetryPackageIds(StringUtils.LongsConvertStr(remaingPackagesIds));
+                    return false;
                 }
             }catch (Exception e){
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
@@ -302,7 +305,7 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
             }
         }
         task.setIsretry(TcCpaCollidingTaskIsRetryEnum.RETRY_NO.getValue());
-        task.setRetryPackageIds(null);
+        task.setRetryPackageIds("");
         return true;
     }
 
@@ -393,7 +396,17 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
                     return false;
                 }
                 //1.查询数据
-                userKeys = tcyrCpaCollidingDataMapper.queryUserKeyWithPagetikv_(querySql, fieldName, minUserKey);
+                try {
+                    if (marketingCommonConfig.getTcCpaMockConfig().get("query")) {
+                        throw new IllegalArgumentException();
+                    }
+                    userKeys = tcyrCpaCollidingDataMapper.queryUserKeyWithPagetikv_(querySql, fieldName, minUserKey, PAGE_SIZE);
+                } catch (Exception e) {
+                    log.warn("同程CPA撞库数据筛选，数据查询异常，packageId：{}，batchNumber：{}", packageId);
+                    hasError.set(true);
+                    CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+                    return false;
+                }
                 if(CollectionUtils.isEmpty(userKeys)){
                     CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
                     return true;
@@ -405,6 +418,9 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
                 List<String> finalUserKeys = userKeys;
                 CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                     try {
+                        if (marketingCommonConfig.getTcCpaMockConfig().get("insert")) {
+                            throw new IllegalArgumentException();
+                        }
                         insertData(finalUserKeys, taskId, colldingDate, packageId, priority);
                     } catch (Exception e) {
                         log.warn("同程CPA撞库数据筛选，子线程数据插入异常，packageId：{}，batchNumber：{}", packageId);
@@ -461,7 +477,7 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
      **/
     private String getDeleteSqlFrag(List<Long> deleteRuleIds) throws IOException {
         String joinFrag = "";
-        String whereFrag = " where pck.id_del = 1";
+        String whereFrag = " where pck.is_del = 1";
         if (CollectionUtils.isEmpty(deleteRuleIds)) {
             return whereFrag;
         }
@@ -507,14 +523,14 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
         //通用的剔除规则，生成sql片段
         for (TcCpaDeleteRuleExecuteInfoDTO info : commonInfos.values()) {
             TcCpaDeleteRuleSourceTypeEnum sourceTypeEnum = TcCpaDeleteRuleSourceTypeEnum.getByValue(info.getSourceType());
-            joinFrag.concat(" left join " + sourceTypeEnum.getTableName() +
+            joinFrag = joinFrag.concat(" left join " + sourceTypeEnum.getTableName() +
                     " on " + sourceTypeEnum.getSelect() + " = pck.user_key" +
                     " and " + sourceTypeEnum.getDefaultCondition());
             //lock
             if (info.getSourceType() != TcCpaDeleteRuleSourceTypeEnum.BLANK_DATA.getValue()) {
-                joinFrag.concat(" and " + sourceTypeEnum.getSelect() + " in " + info.join());
+                joinFrag = joinFrag.concat(" and " + sourceTypeEnum.getSelect() + " in " + info.join());
             }
-            whereFrag.concat(" and " + sourceTypeEnum.getSelect() + " is null");
+            whereFrag = whereFrag.concat(" and " + sourceTypeEnum.getSelect() + " is null");
         }
         return joinFrag + whereFrag;
     }

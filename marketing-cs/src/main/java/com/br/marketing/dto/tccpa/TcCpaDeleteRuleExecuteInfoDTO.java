@@ -2,6 +2,7 @@ package com.br.marketing.dto.tccpa;
 
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
 
@@ -19,6 +20,9 @@ public class TcCpaDeleteRuleExecuteInfoDTO {
     private List<Integer> value;
 
     public void addValue(Integer singleValue) {
+        if(value == null) {
+            value = new ArrayList<>();
+        }
         if(!value.contains(singleValue)) {
             value.add(singleValue);
         }

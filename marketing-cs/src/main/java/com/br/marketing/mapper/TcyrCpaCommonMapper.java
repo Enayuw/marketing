@@ -8,6 +8,6 @@ public interface TcyrCpaCommonMapper {
 
     Integer calculateDeleteNumByScript(@Param("executeScript") String executeScript);
 
-    Integer executeUnionQueries(@Param("scripts") List<String> scripts);
+    Integer executeUnionQueriestikv_(@Param("scripts") List<String> scripts);
 
 }

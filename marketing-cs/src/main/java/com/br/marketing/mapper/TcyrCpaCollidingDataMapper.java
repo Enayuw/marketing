@@ -28,5 +28,6 @@ public interface TcyrCpaCollidingDataMapper extends TcyrCpaCollidingDataMapperBa
 
     List<String> queryUserKeyWithPagetikv_(@Param("querySql") String querySql,
                                            @Param("fieldName") String fieldName,
-                                           @Param("minUserKey") String minUserKey);
+                                           @Param("minUserKey") String minUserKey,
+                                           @Param("pageSize") int pageSize);
 }

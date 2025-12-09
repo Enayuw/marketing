@@ -78,7 +78,7 @@ public class TcCpaCommonServiceImpl implements TcCpaCommonService {
                 .collect(Collectors.toList());
 
         if (CollectionUtils.isNotEmpty(supplyScripts)) {
-            int supplyNum = tcyrCpaCommonMapper.executeUnionQueries(supplyScripts);
+            int supplyNum = tcyrCpaCommonMapper.executeUnionQueriestikv_(supplyScripts);
             collidingTask.setSupplyNum(supplyNum);
         }
     }
@@ -186,7 +186,7 @@ public class TcCpaCommonServiceImpl implements TcCpaCommonService {
     private Integer executeScripts(List<String> scripts) {
         return scripts.size() == 1 ?
                 tcyrCpaCommonMapper.calculateDeleteNumByScript(scripts.get(0)) :
-                tcyrCpaCommonMapper.executeUnionQueries(scripts);
+                tcyrCpaCommonMapper.executeUnionQueriestikv_(scripts);
     }
 
     @Override

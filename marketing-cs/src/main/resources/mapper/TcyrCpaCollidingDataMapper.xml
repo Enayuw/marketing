@@ -71,7 +71,7 @@
         <if test="minUserKey != null">
             and ${fieldName} > #{minUserKey}
         </if>
-        order by ${fieldName} limit 2000
+        order by ${fieldName} limit #{pageSize}
     </select>
 
 </mapper>

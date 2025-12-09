@@ -6,7 +6,7 @@
         select count(distinct(user_key)) from (${executeScript}) as temp
     </select>
 
-    <select id="executeUnionQueries" resultType="java.lang.Integer">
+    <select id="executeUnionQueriestikv_" resultType="java.lang.Integer">
         SELECT count(distinct(user_key)) as total_sum FROM (
         <foreach collection="scripts" item="script" separator=" UNION ALL ">
             (${script})
