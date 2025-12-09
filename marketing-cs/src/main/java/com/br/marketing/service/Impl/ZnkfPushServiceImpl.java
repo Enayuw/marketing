@@ -67,6 +67,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationAdapter;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
@@ -568,7 +570,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             JSONObject jsonObject = JSONObject.parseObject(jsonData);
             String version = jsonObject.getString("version");
             if (StringUtils.isEmpty(version)) {
-                log.warn("JSON数据中缺少version字段");
+                log.warn("[通用大模型回调]JSON数据中缺少version字段");
                 return "lack version";
             }
 
@@ -578,7 +580,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             // 解析数据结构，获取sessionId
             String sessionId = getSessionIdFromJson(jsonObject);
             if (StringUtils.isEmpty(sessionId)) {
-                log.error("JSON数据中缺少sessionId字段");
+                log.error("[通用大模型回调]JSON数据中缺少sessionId字段");
                 return "lack sessionId";
             }
 
@@ -587,18 +589,27 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             Map<String, Object> resultMap = new HashMap<>();
             callRecordLLMResultV2Mapper.insertData(insertSql, resultMap);
             Long versionRecordId = resultMap.get("id") != null ? ((Number) resultMap.get("id")).longValue() : null;
-            log.warn("插入版本明细表成功，tableName={}, sessionId={}, versionRecordId={}", tableName, sessionId, versionRecordId);
+            log.warn("[通用大模型回调]插入版本明细表成功，tableName={}, sessionId={}, versionRecordId={}", tableName, sessionId, versionRecordId);
 
             // 判断version版本是不是 LLMResultV2
             if ("LLMResultV2".equals(version)) {
-                // 异步发送mq消息去入库，只发送数据id
-                rocketMqSwitch.syncSend(MarketingCallRecordConstants.TOPIC,
-                        MarketingCallRecordConstants.TAG_MARKETING_CALL_RECORD_VERSION_INSERT, versionRecordId);
-                log.warn("发送MQ消息成功，tableName={}, dataId={}", tableName, versionRecordId);
+                // 注册事务提交后的回调，确保数据已经持久化后再发送MQ消息
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
+                    @Override
+                    public void afterCommit() {
+                        try {
+                            rocketMqSwitch.syncSend(MarketingCallRecordConstants.TOPIC,
+                                    MarketingCallRecordConstants.TAG_MARKETING_CALL_RECORD_VERSION_INSERT, versionRecordId);
+                            log.warn("[通用大模型回调]发送MQ消息成功，tableName={}, dataId={}", tableName, versionRecordId);
+                        } catch (Exception e) {
+                            log.error("[通用大模型回调]事务提交后发送MQ消息失败，tableName={}, dataId={}", tableName, versionRecordId, e);
+                        }
+                    }
+                });
             }
             return "success";
         } catch (Exception ex) {
-            log.error("回调数据入库失败，错误信息：{}", ex.getMessage(), ex);
+            log.error("[通用大模型回调]回调数据入库失败，错误信息：{}", ex.getMessage(), ex);
             // 重新抛出异常，确保事务回滚所有DML操作
             throw ex;
         }
