@@ -25,9 +25,6 @@ spring:
     # 线程池维护线程所允许的空闲时间
     threadNamePrefix: ThreadPool-Common
     # 线程池所生产的线程名前缀
-  mvc:
-    pathmatch:
-      matching-strategy: ANT_PATH_MATCHER
 
 server:
   port: 18704
