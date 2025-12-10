@@ -30,7 +30,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.*;
-import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -199,9 +198,6 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
             // 用于收集成功的数据
             List<SYJOriginalData> successDataList = Collections.synchronizedList(new ArrayList<>());
 
-            // 使用CountDownLatch等待所有任务完成
-            CountDownLatch latch = new CountDownLatch(originalDataList.size());
-
             // 批量更新状态为查询中
             List<Long> idList = originalDataList.stream().map(SYJOriginalData::getId).toList();
             batchUpdateOriginalData(idList, QueryStatusEnum.QUERYING.getCode(), null);
@@ -237,19 +233,8 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
                         // 更新明细数据query_status和extend字段
                         originalDataMapper.updateByPrimaryKeySelective(originalData);
 
-                    } finally {
-                        // 任务完成，计数器减1
-                        latch.countDown();
                     }
                 });
-            }
-
-            // 等待所有任务完成
-            try {
-                latch.await();
-            } catch (InterruptedException e) {
-                log.error("{}等待任务完成被中断，fileId={}", logPrefix, fileId, e);
-                Thread.currentThread().interrupt();
             }
 
             // 2000条都处理完成后，将查询成功的数据调用pushUpload方法
@@ -418,9 +403,6 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
             // 将数据分批，每批100条（黑名单接口每批最多100个手机号）
             List<List<SYJBlackData>> partitions = Lists.partition(blackDataList, BLACK_BATCH_SIZE);
 
-            // 使用CountDownLatch等待所有任务完成
-            CountDownLatch latch = new CountDownLatch(partitions.size());
-
             for (List<SYJBlackData> partition : partitions) {
                 // 批量更新状态为查询中
                 List<Long> idList = partition.stream().map(SYJBlackData::getId).collect(Collectors.toList());
@@ -429,13 +411,7 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
                 // 构建cell列表
                 List<String> cellList = partition.stream()
                         .map(SYJBlackData::getCell)
-                        .filter(Objects::nonNull)
                         .toList();
-
-                if (cellList.isEmpty()) {
-                    latch.countDown();
-                    continue;
-                }
 
                 // 异步处理每个批次
                 threadPool.execute(() -> {
@@ -478,19 +454,8 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
                         // 异常情况，标记为查询失败
                         List<Long> dataIds = partition.stream().map(SYJBlackData::getId).toList();
                         batchUpdateBlackData(dataIds, requestId, QueryStatusEnum.QUERY_FAILED.getCode(), "其它异常");
-                    } finally {
-                        // 任务完成，计数器减1
-                        latch.countDown();
                     }
                 });
-            }
-
-            // 等待所有任务完成
-            try {
-                latch.await();
-            } catch (InterruptedException e) {
-                log.error("{}等待任务完成被中断，fileId={}", logPrefix, fileId, e);
-                Thread.currentThread().interrupt();
             }
         }
 
