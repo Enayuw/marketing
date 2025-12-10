@@ -114,7 +114,8 @@ public class TcCpaDeleteRuleServiceImpl implements TcCpaDataDeleteRuleService {
                 .map(Integer::parseInt).collect(Collectors.toList());
         List<Integer> lockData = Arrays.stream(failMsgArray).map(String::trim)
                 .filter(tcCpaFailMsgEnum -> Objects.nonNull(TcCpaFailMsgEnum.getByValue(Integer.valueOf(tcCpaFailMsgEnum)).getLockValue()))
-                .map(Integer::parseInt).collect(Collectors.toList());
+                .map(x -> TcCpaFailMsgEnum.getByValue(Integer.valueOf(x)).getLockValue())
+                .collect(Collectors.toList());
 
         List<TcCpaDeleteRuleExecuteInfoDTO> executeInfos = Lists.newArrayList();
         if (CollectionUtils.isNotEmpty(invalues)) {
