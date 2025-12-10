@@ -12,6 +12,9 @@ public class SmsAccountDto {
     @Schema(description = "configId")
     private Long configId;
 
+    @Schema(description = "groupId")
+    private Long groupId;
+
     @Schema(description = "供应商id")
     @NotNull(message = "供应商id不能为空")
     private Long vendorId;
