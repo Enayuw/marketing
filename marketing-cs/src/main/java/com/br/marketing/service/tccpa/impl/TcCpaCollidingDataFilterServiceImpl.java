@@ -137,7 +137,10 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
         boolean isSuccess = filter(task, taskPackages, colldingDate, threadPool, futures);
         if (isSuccess) {
             //计算总量级
-            int pushNum = queryPackageCount(packageIds, colldingDate);
+            int pushNum = taskPackages.stream()
+                    .filter(pkg -> pkg != null && pkg.getMagnitude() != null)
+                    .mapToInt(TcyrCpaCollidingTaskPackage::getMagnitude)
+                    .sum();
             task.setPushNum(pushNum);
             task.setStatus(TcCpaCollidingTaskStatusEnum.STATUS_FILTER_COMPLETED.getValue());
         }
@@ -159,7 +162,7 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
         for (TcyrCpaCollidingDataPackage dataPackage : packages) {
             TcyrCpaCollidingTaskPackage taskPackage = new TcyrCpaCollidingTaskPackage();
             taskPackage.setCollidingTaskId(task.getId());
-            taskPackage.setPackageType(TcCpaCollidingTaskPackageType.SCORE.getValue());
+            taskPackage.setPackageType(TcCpaCollidingTaskPackageTypeEnum.SCORE.getValue());
             taskPackage.setPackageId(dataPackage.getId());
             taskPackage.setPriority(dataPackage.getPriority());
             taskPackages.add(taskPackage);
@@ -173,7 +176,7 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
             for (TcyrSupplyRuleInfo supplyRuleInfo : supplyRuleInfos) {
                 TcyrCpaCollidingTaskPackage taskPackage = new TcyrCpaCollidingTaskPackage();
                 taskPackage.setCollidingTaskId(task.getId());
-                taskPackage.setPackageType(TcCpaCollidingTaskPackageType.SUPPLY.getValue());
+                taskPackage.setPackageType(TcCpaCollidingTaskPackageTypeEnum.SUPPLY.getValue());
                 taskPackage.setPackageId(genSupplyPackageId(supplyRuleInfo.getPriority()));
                 taskPackage.setPriority(supplyRuleInfo.getPriority());
                 taskPackage.setFailMsg(supplyRuleInfo.getFailMsg().toString());
@@ -222,7 +225,7 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
                 break;
             }
             try {
-                if (taskPackage.getPackageType() == TcCpaCollidingTaskPackageType.SCORE.getValue()) {
+                if (taskPackage.getPackageType() == TcCpaCollidingTaskPackageTypeEnum.SCORE.getValue()) {
                     querySql = "select pck.user_key from b_tcyr_cpa_colliding_data pck "
                             .concat(joinFrag)
                             .concat(" and pck.package_id = " + taskPackage.getPackageId());
@@ -475,7 +478,7 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
                 //通用的剔除规则，相同的sourceType的规则，value值需要做汇总去重
                 TcCpaDeleteRuleExecuteInfoDTO updInfo =
                         commonInfos.computeIfAbsent(info.getSourceType(), k -> info);
-                updInfo.addValue(info.getSourceType());
+                updInfo.addValue(info.getValue());
             }
         }
         //通用的剔除规则，生成sql片段
@@ -486,7 +489,7 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
                     " and " + sourceTypeEnum.getDefaultCondition());
             //lock
             if (info.getSourceType() != TcCpaDeleteRuleSourceTypeEnum.BLANK_DATA.getValue()) {
-                joinFrag = joinFrag.concat(" and " + sourceTypeEnum.getSelect() + " in " + info.join());
+                joinFrag = joinFrag.concat(" and " + sourceTypeEnum.getField() + " in " + info.join());
             }
             whereFrag = whereFrag.concat(" and " + sourceTypeEnum.getSelect() + " is null");
         }

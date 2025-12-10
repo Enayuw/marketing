@@ -3,12 +3,12 @@ package com.br.marketing.enums;
 /**
  * package_type枚举
  */
-public enum TcCpaCollidingTaskPackageType {
+public enum TcCpaCollidingTaskPackageTypeEnum {
 
     SCORE(1,"跑分"),
     SUPPLY(2,"补充"),
     ;
-    TcCpaCollidingTaskPackageType(Integer value, String desc){
+    TcCpaCollidingTaskPackageTypeEnum(Integer value, String desc){
           this.value = value;
             this.desc=desc;
     }

@@ -19,12 +19,14 @@ public class TcCpaDeleteRuleExecuteInfoDTO {
 
     private List<Integer> value;
 
-    public void addValue(Integer singleValue) {
+    public void addValue(List<Integer> newValue) {
         if(value == null) {
-            value = new ArrayList<>();
+            return;
         }
-        if(!value.contains(singleValue)) {
-            value.add(singleValue);
+        for (Integer singleValue : newValue) {
+            if(!value.contains(singleValue)) {
+                value.add(singleValue);
+            }
         }
     }
 
