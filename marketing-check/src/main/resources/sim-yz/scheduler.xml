@@ -14,6 +14,7 @@
                         http://www.dangdang.com/schema/ddframe/job/job.xsd
                         ">
     <context:component-scan base-package="com.br.marketing.check.job"/>
+    <context:component-scan base-package="com.br.marketing.check.monitor"/>
 
     <reg:zookeeper id="regCenter"
                    server-lists="${SERVER_LISTS}"
@@ -1225,22 +1226,6 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="【check】-QiFuQueryCallRealTimeJob"
-                class="com.br.marketing.check.job.qifu.QiFuQueryCallRealTimeJob"
-                cron="0 0/5 10-23 * * ?"
-                description="奇富AI查询外呼信息"
-                registry-center-ref="regCenter"
-                sharding-total-count="1"
-                sharding-item-parameters="0=A"
-                monitor-execution="true"
-                failover="false"
-                misfire="false"
-                disabled="true"
-                overwrite="true"
-                job-parameter=""
-                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
-    />
-
     <job:simple id="【check】-CalculateTagDataJob"
                 class="com.br.marketing.check.job.tag.CalculateTagDataJob"
                 cron="0 30 0 * * ?"
@@ -1333,6 +1318,37 @@
                 failover="false"
                 misfire="false"
                 disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
+    <job:simple id="【check】-QiFuDataFlattenJob"
+                class="com.br.marketing.check.job.qifu.QiFuDataFlattenJob"
+                cron="0 1/10 * * * ?"
+                description="奇富定制前置表数据打平Job"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                job-parameter="{}"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
+    <job:simple id="【check】CheckJobSwitchGuardJob"
+                class="com.br.marketing.check.monitor.CheckJobSwitchGuardJob"
+                cron="0 */5 * * * ?"
+                description="check服务Job开关守护任务，每5分钟扫描一次，开关开启超过30分钟则告警"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="false"
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />

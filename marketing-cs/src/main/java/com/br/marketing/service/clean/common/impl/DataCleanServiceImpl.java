@@ -489,7 +489,8 @@ public class DataCleanServiceImpl implements DataCleanService {
         return marketingPreUserDTO;
     }
 
-    public void dataCleanNotConfigHandler(JSONObject jsonObject, Collection<MarketingDataCleanGeneralRuleConfig> ruleConfigList,
+    public void dataCleanNotConfigHandler(JSONObject jsonObject,
+                                          Collection<MarketingDataCleanGeneralRuleConfig> ruleConfigList,
                                           MarketingPreUserDetailDTO marketingPreUserDetailDTO) {
         // 收集ruleConfigList中所有的mappingField，用于快速判断字段是否已配置
         Set<String> configuredFields = new HashSet<>();
@@ -542,8 +543,8 @@ public class DataCleanServiceImpl implements DataCleanService {
                     Object reserveFieldValue = reserveEntry.getValue();
                     // 如果嵌套字段不在配置中，则添加到reserveField1
                     if (!configuredFields.contains(reserveFieldName)) {
-                        marketingPreUserDetailDTO.setReserveField1(setExtendField(marketingPreUserDetailDTO.getReserveField1(),
-                                reserveFieldName, reserveFieldValue));
+                        marketingPreUserDetailDTO.setReserveField1(
+                                setExtendField(marketingPreUserDetailDTO.getReserveField1(), reserveFieldName, reserveFieldValue));
                     }
                 }
                 continue;

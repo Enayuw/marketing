@@ -79,8 +79,11 @@ public class ZhongYuanTransferDataToCustomerNotFirstTimeJob extends AbstractSimp
             log.error(ex.getMessage(), ex);
         }
     }
-    private void dealTransferDataWithThread(ThreadPoolExecutor zhongYuanTransferToDaasAndCustomerFilterThreadPool, List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
-        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(zhongYuanTransferToDaasAndCustomerFilterThreadPool, marketingCommonConfig.getZhongYuanTransferDataToDaasAndCustomerFilterThreadNum());
+    private void dealTransferDataWithThread(ThreadPoolExecutor zhongYuanTransferToDaasAndCustomerFilterThreadPool
+            , List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(
+                zhongYuanTransferToDaasAndCustomerFilterThreadPool
+                , marketingCommonConfig.getZhongYuanTransferDataToDaasAndCustomerFilterThreadNum());
         zhongYuanTransferToDaasAndCustomerFilterThreadPool.execute(() -> threadDoProcess(marketingTransferSyncUserList));
     }
     /**
@@ -109,7 +112,8 @@ public class ZhongYuanTransferDataToCustomerNotFirstTimeJob extends AbstractSimp
      * @param indexId 起始id
      * @return
      */
-    private List<MarketingTransferSyncUser> getMarketingTransferSyncUsers(String apiCode, String parameter, String tcId, Long indexId) {
+    private List<MarketingTransferSyncUser> getMarketingTransferSyncUsers(
+            String apiCode, String parameter, String tcId, Long indexId) {
         String startDate = LocalDate.now().toString();
         String endDate = LocalDate.now().toString();
         if (StringUtils.isNotBlank(parameter)) {

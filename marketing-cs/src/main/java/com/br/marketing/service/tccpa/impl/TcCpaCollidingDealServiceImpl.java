@@ -15,15 +15,16 @@ import com.br.marketing.dto.tccpa.TcyrCpaSuccessMqDTO;
 import com.br.marketing.entity.MarketingTcyrCpaSuccessData;
 import com.br.marketing.entity.MarketingTcyrCpaSuccessFile;
 import com.br.marketing.entity.MarketingTcyrCpaSuccessRecord;
-import com.br.marketing.enums.TcCpaCollidingDealStatusEnum;
-import com.br.marketing.enums.TcCpaIsDelEnum;
-import com.br.marketing.enums.TcCpaMatchStatusEnum;
+import com.br.marketing.entity.TcyrCpaCollectTask;
+import com.br.marketing.enums.*;
 import com.br.marketing.mapper.MarketingTcyrCpaSuccessDataMapper;
 import com.br.marketing.mapper.MarketingTcyrCpaSuccessFileMapper;
 import com.br.marketing.mapper.MarketingTcyrCpaSuccessRecordMapper;
+import com.br.marketing.mapper.TcyrCpaCollectTaskMapper;
 import com.br.marketing.service.tccpa.TcCpaCollidingDealService;
 import com.br.marketing.service.tccpa.TcCpaCustCellMappingService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.google.common.collect.Lists;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +38,11 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 
 @Service
@@ -58,9 +63,11 @@ public class TcCpaCollidingDealServiceImpl implements TcCpaCollidingDealService 
     @Resource
     private MarketingTcyrCpaSuccessFileMapper tcyrCpaSuccessFileMapper;
 
-
     @Resource
     private MarketingTcyrCpaSuccessDataMapper tcyrCpaSuccessDataMapper;
+
+    @Resource
+    private TcyrCpaCollectTaskMapper tcyrCpaCollectTaskMapper;
 
     @Autowired
     private RedisChgService redisChgService;
@@ -70,7 +77,7 @@ public class TcCpaCollidingDealServiceImpl implements TcCpaCollidingDealService 
 
     @Override
     public void shardProcess(String apiCode) {
-        String lockKey = RedisKeyConstant.tcyrCpaCollidingSuccessDeal.concat(apiCode);;
+        String lockKey = RedisKeyConstant.tcyrCpaCollidingSuccessDeal.concat(apiCode);
         String lockValue = UUID.randomUUID().toString();
         TpDynamicExecutor actionPool = TpDynamicExecutorFactory.getThreadPool(
                 ThreadPoolNameEnum.TCYR_CPA_COLLIDING_DEAL.getName(), 50, 50);
@@ -118,6 +125,7 @@ public class TcCpaCollidingDealServiceImpl implements TcCpaCollidingDealService 
         try (BufferedReader reader = new BufferedReader(new FileReader(txtFile))) {
             String line;
             List<String> batchData = new ArrayList<>();
+            List<CompletableFuture<Void>> futures = Lists.newArrayList();
             while ((line = reader.readLine()) != null) {
                 batchData.add(line);
                 if (batchData.size() == marketingCommonConfig.getTcyrCpaCollidingDealShardConfig().getInteger("pageSize")) {
@@ -126,20 +134,32 @@ public class TcCpaCollidingDealServiceImpl implements TcCpaCollidingDealService 
                         break;
                     }
                     List<String> batchDealData = new ArrayList<>(batchData);
-                    actionPool.submit(()->
-                            dbDealBatchLine(tcyrCpaSuccessFile.getApiCode(),tcyrCpaSuccessRecord.getBatchNo(),tcyrCpaSuccessRecord.getData(),tcyrCpaSuccessFile.getId(),batchDealData)
-                    );
+                    CompletableFuture<Void> future = CompletableFuture.runAsync(() ->
+                                    dbDealBatchLine(tcyrCpaSuccessFile.getApiCode(), tcyrCpaSuccessRecord.getBatchNo(),
+                                            tcyrCpaSuccessRecord.getData(), tcyrCpaSuccessFile.getId(), batchDealData),
+                            actionPool);
                     batchData.clear();
+                    futures.add(future);
                 }
                 totalCount++;
             }
             if (!batchData.isEmpty()) {
-                actionPool.submit(()->
-                        dbDealBatchLine(tcyrCpaSuccessFile.getApiCode(),tcyrCpaSuccessRecord.getBatchNo(),tcyrCpaSuccessRecord.getData(),tcyrCpaSuccessFile.getId(),batchData)
-                );
+                CompletableFuture<Void> future = CompletableFuture.runAsync(() ->
+                                dbDealBatchLine(tcyrCpaSuccessFile.getApiCode(), tcyrCpaSuccessRecord.getBatchNo(),
+                                        tcyrCpaSuccessRecord.getData(), tcyrCpaSuccessFile.getId(), batchData),
+                        actionPool);
+                futures.add(future);
             }
             //3.修改csvFile totalCount数量、dbDeal状态、
-            tcyrCpaSuccessFileMapper.updateColliDingDataDealStatusAndTotalCount(tcyrCpaSuccessFile.getId(),TcCpaCollidingDealStatusEnum.DEAL_SUCCESS.getValue(), totalCount);
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+            tcyrCpaSuccessFileMapper.updateColliDingDataDealStatusAndTotalCount(tcyrCpaSuccessFile.getId(),
+                    TcCpaCollidingDealStatusEnum.DEAL_SUCCESS.getValue(), totalCount);
+            TcyrCpaCollectTask tcyrCpaCollectTask = TcyrCpaCollectTask.builder().batchNo(tcyrCpaSuccessFile.getBatchNo())
+                    .status(TcCpaSyncDealStatusEnum.DEAL_NO.getValue()).sourceId(tcyrCpaSuccessFile.getId()).isDel(1)
+                    .extend(tcyrCpaSuccessFile.getExtend()).sourceType(TcCpaCollidingSourceTypeEnum.SUCCESS.getValue())
+                    .createTime(new Date()).updateTime(new Date())
+                    .apiCode(marketingCommonConfig.getTcyrCpaApiCode()).build();
+            tcyrCpaCollectTaskMapper.insert(tcyrCpaCollectTask);
         } catch (IOException e) {
             //4.修改quick_deal_status 异常状态
             tcyrCpaSuccessFileMapper.updateColliDingDataDealStatus(tcyrCpaSuccessFile.getId(),TcCpaCollidingDealStatusEnum.DEAL_FAIL.getValue());
