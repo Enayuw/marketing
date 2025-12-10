@@ -36,23 +36,18 @@ public class MqIdempotentAspect {
 
     @Around("@annotation(mqIdempotent)")
     public Object around(ProceedingJoinPoint joinPoint, MqIdempotent mqIdempotent) throws Throwable {
-        // 获取上下文信息
-        String tag = MqIdempotentContext.getTag();
-        String apiCode = MqIdempotentContext.getApiCode();
-        MqIdempotentTableType tableType = mqIdempotent.tableType();
-        
         try {
             // 提取幂等键
-            Long idempotentKey = extractIdempotentKey(joinPoint.getArgs(), mqIdempotent, tag, apiCode);
+            Long idempotentKey = extractIdempotentKey(joinPoint.getArgs(), mqIdempotent);
             if (idempotentKey == null) {
-                String logMsg = String.format("消息中未找到idempotentKey，跳过幂等性检查(在服务上线过程中会出现，当生产者节点全部上线完成后不应再出现该消息！), tag: %s", 
-                        tag == null ? "null" : tag);
-                if (apiCode != null) {
-                    logMsg += String.format(", apiCode: %s", apiCode);
-                }
-                log.warn(logMsg);
+                log.warn("消息中未找到idempotentKey，跳过幂等性检查(在服务上线过程中会出现，当生产者节点全部上线完成后不应再出现该消息！)");
                 return joinPoint.proceed();
             }
+
+            // 获取上下文信息
+            String tag = MqIdempotentContext.getTag();
+            String apiCode = MqIdempotentContext.getApiCode();
+            MqIdempotentTableType tableType = mqIdempotent.tableType();
 
             // 尝试插入幂等记录（失败时抛出异常，让MQ重试）
             Long recordId = insertIdempotentRecord(tableType, idempotentKey, apiCode, tag);
@@ -65,11 +60,11 @@ public class MqIdempotentAspect {
             try {
                 Object result = joinPoint.proceed();
                 // 业务处理成功，更新apiCode
-                updateApiCodeIfNeeded(tableType, recordId, apiCode, tag);
+                updateApiCodeIfNeeded(tableType, recordId, apiCode);
                 return result;
             } catch (Throwable e) {
                 // 业务处理异常，删除幂等记录，让MQ重试
-                deleteIdempotentRecordOnException(tableType, idempotentKey, recordId, tag, apiCode);
+                deleteIdempotentRecordOnException(tableType, idempotentKey, recordId);
                 throw e;
             }
         } finally {
@@ -83,11 +78,9 @@ public class MqIdempotentAspect {
      * 
      * @param args 方法参数
      * @param mqIdempotent 注解配置
-     * @param tag tag信息
-     * @param apiCode apiCode信息
      * @return idempotentKey，如果未找到返回null
      */
-    private Long extractIdempotentKey(Object[] args, MqIdempotent mqIdempotent, String tag, String apiCode) {
+    private Long extractIdempotentKey(Object[] args, MqIdempotent mqIdempotent) {
         if (args == null || args.length == 0) {
             return null;
         }
@@ -115,11 +108,7 @@ public class MqIdempotentAspect {
                         try {
                             return Long.parseLong((String) value);
                         } catch (NumberFormatException e) {
-                            String logMsg = String.format("idempotentKey字段值不是有效的Long类型: %s, tag: %s", value, tag == null ? "null" : tag);
-                            if (apiCode != null) {
-                                logMsg += String.format(", apiCode: %s", apiCode);
-                            }
-                            log.warn(logMsg);
+                            log.warn("idempotentKey字段值不是有效的Long类型: {}", value);
                             return null;
                         }
                     }
@@ -128,11 +117,7 @@ public class MqIdempotentAspect {
 
             return null;
         } catch (Exception e) {
-            String logMsg = String.format("解析MQ消息获取idempotentKey失败，字段名: %s, tag: %s", idempotentKeyField, tag == null ? "null" : tag);
-            if (apiCode != null) {
-                logMsg += String.format(", apiCode: %s", apiCode);
-            }
-            log.warn(logMsg + ", message: " + message, e);
+            log.warn("解析MQ消息获取idempotentKey失败，字段名: {}, message: {}", idempotentKeyField, message, e);
             return null;
         }
     }
@@ -146,20 +131,13 @@ public class MqIdempotentAspect {
                                         String apiCode, String tag) throws RuntimeException {
         try {
             Long recordId = mqIdempotentService.insertIdempotentRecord(tableType, idempotentKey, apiCode, tag);
-            String logMsg = String.format("消息幂等校验通过，插入幂等记录成功，tableType: %s, idempotentKey: %s, recordId: %s, tag: %s",
-                    tableType.getCode(), idempotentKey, recordId, tag == null ? "null" : tag);
-            if (apiCode != null) {
-                logMsg += String.format(", apiCode: %s", apiCode);
-            }
-            log.warn(logMsg);
+            log.warn("消息幂等校验通过，插入幂等记录成功，tableType: {}, idempotentKey: {}, recordId: {}, tag: {}",
+                    tableType.getCode(), idempotentKey, recordId, tag);
             return recordId;
         } catch (DuplicateKeyException e) {
             String subject = "消息幂等校验不通过！";
             String message = String.format("消息已处理过（幂等性检查），tableType: %s, idempotentKey: %s, tag: %s, 跳过本次处理, error: %s",
-                    tableType.getCode(), idempotentKey, tag == null ? "null" : tag, e.getMessage());
-            if (apiCode != null) {
-                message += String.format(", apiCode: %s", apiCode);
-            }
+                    tableType.getCode(), idempotentKey, tag, e.getMessage());
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), message
                     , subject), e);
             return null;
@@ -172,7 +150,7 @@ public class MqIdempotentAspect {
     /**
      * 更新apiCode
      */
-    private void updateApiCodeIfNeeded(MqIdempotentTableType tableType, Long recordId, String originalApiCode, String tag) {
+    private void updateApiCodeIfNeeded(MqIdempotentTableType tableType, Long recordId, String originalApiCode) {
         if (recordId == null || recordId < 0) {
             return;
         }
@@ -184,17 +162,11 @@ public class MqIdempotentAspect {
         
         try {
             mqIdempotentService.updateApiCode(tableType, recordId, currentApiCode);
-            String logMsg = String.format("业务处理成功，更新幂等记录apiCode，tableType: %s, recordId: %s, apiCode: %s, tag: %s",
-                    tableType.getCode(), recordId, currentApiCode, tag == null ? "null" : tag);
-            log.warn(logMsg);
+            log.warn("业务处理成功，更新幂等记录apiCode，tableType: {}, recordId: {}, apiCode: {}", 
+                    tableType.getCode(), recordId, currentApiCode);
         } catch (Exception e) {
             String subject = "更新幂等记录apiCode失败";
-            String errorMsg = String.format("更新幂等记录apiCode失败，tableType: %s, recordId: %s, tag: %s, error: %s",
-                    tableType.getCode(), recordId, tag == null ? "null" : tag, e.getMessage());
-            if (currentApiCode != null) {
-                errorMsg += String.format(", apiCode: %s", currentApiCode);
-            }
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), errorMsg
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage()
                     , subject), e);
         }
     }
@@ -204,7 +176,7 @@ public class MqIdempotentAspect {
      * 删除失败时进行有限次数的重试，提高删除成功率
      */
     private void deleteIdempotentRecordOnException(MqIdempotentTableType tableType, 
-                                                   Long idempotentKey, Long recordId, String tag, String apiCode) {
+                                                   Long idempotentKey, Long recordId) {
         if (recordId == null || recordId < 0) {
             return;
         }
@@ -216,44 +188,29 @@ public class MqIdempotentAspect {
         while (retryCount < maxRetries && !deleted) {
             try {
                 mqIdempotentService.deleteIdempotentRecord(tableType, recordId);
-                String logMsg = String.format("业务处理异常，已删除幂等记录，tableType: %s, idempotentKey: %s, recordId: %s, 重试次数: %s, tag: %s",
-                        tableType.getCode(), idempotentKey, recordId, retryCount, tag == null ? "null" : tag);
-                if (apiCode != null) {
-                    logMsg += String.format(", apiCode: %s", apiCode);
-                }
-                log.warn(logMsg + ", 等待MQ重试");
+                log.warn("业务处理异常，已删除幂等记录，tableType: {}, idempotentKey: {}, recordId: {}, 重试次数: {}, 等待MQ重试", 
+                        tableType.getCode(), idempotentKey, recordId, retryCount);
                 deleted = true;
             } catch (Exception e) {
                 retryCount++;
                 if (retryCount < maxRetries) {
-                    String logMsg = String.format("删除幂等记录失败，准备重试，tableType: %s, idempotentKey: %s, recordId: %s, 重试次数: %s/%s, tag: %s",
-                            tableType.getCode(), idempotentKey, recordId, retryCount, maxRetries, tag == null ? "null" : tag);
-                    if (apiCode != null) {
-                        logMsg += String.format(", apiCode: %s", apiCode);
-                    }
-                    log.warn(logMsg, e);
+                    log.warn("删除幂等记录失败，准备重试，tableType: {}, idempotentKey: {}, recordId: {}, 重试次数: {}/{}", 
+                            tableType.getCode(), idempotentKey, recordId, retryCount, maxRetries, e);
                     try {
                         // 递增延迟：100ms, 200ms, 300ms
                         Thread.sleep(100L * retryCount);
                     } catch (InterruptedException ie) {
                         Thread.currentThread().interrupt();
-                        String interruptMsg = String.format("删除幂等记录重试延迟被中断，tableType: %s, idempotentKey: %s, recordId: %s, tag: %s",
-                                tableType.getCode(), idempotentKey, recordId, tag == null ? "null" : tag);
-                        if (apiCode != null) {
-                            interruptMsg += String.format(", apiCode: %s", apiCode);
-                        }
-                        log.warn(interruptMsg);
+                        log.warn("删除幂等记录重试延迟被中断，tableType: {}, idempotentKey: {}, recordId: {}", 
+                                tableType.getCode(), idempotentKey, recordId);
                         break;
                     }
                 } else {
                     // 重试失败，记录告警
-                    String errorMsg = String.format("删除幂等记录失败（已重试%d次），幂等记录可能残留，tableType: %s, idempotentKey: %s, recordId: %s, tag: %s, error: %s",
-                            maxRetries, tableType.getCode(), idempotentKey, recordId, tag == null ? "null" : tag, e.getMessage());
-                    if (apiCode != null) {
-                        errorMsg += String.format(", apiCode: %s", apiCode);
-                    }
+                    String errorMsg = String.format("删除幂等记录失败（已重试%d次），幂等记录可能残留，tableType: %s, idempotentKey: %s, recordId: %s", 
+                            maxRetries, tableType.getCode(), idempotentKey, recordId);
                     String subject = "删除幂等记录失败";
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), errorMsg
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),errorMsg
                             , subject), e);
                 }
             }
