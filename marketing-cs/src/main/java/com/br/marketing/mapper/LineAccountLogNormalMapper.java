@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface LineAccountLogNormalMapper extends LineAccountLogNormalMapperBase{
 
-    List<LineAccountLogNormal> getLineAccountLogs(@Param("sourceId") Long sourceId);
+    List<LineAccountLogNormal> getLineAccountLogs(@Param("groupId") Long groupId);
 }

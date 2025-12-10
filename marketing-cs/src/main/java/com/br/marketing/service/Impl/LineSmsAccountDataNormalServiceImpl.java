@@ -7,9 +7,7 @@ import com.br.marketing.dto.account.*;
 import com.br.marketing.entity.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.enums.OpeTypeEnum;
-import com.br.marketing.mapper.LineAccountDetailNormalMapper;
-import com.br.marketing.mapper.LineAccountLogNormalMapper;
-import com.br.marketing.mapper.LineSupplierInfoNormalMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.service.LineSmsAccountDataNormalService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,6 +44,15 @@ public class LineSmsAccountDataNormalServiceImpl implements LineSmsAccountDataNo
 
     @Resource
     private LineAccountLogNormalMapper lineAccountLogNormalMapper;
+
+    @Resource
+    private SmsAccountDetailNormalMapper smsAccountDetailNormalMapper;
+
+    @Resource
+    private SmsAccountLogNormalMapper smsAccountLogNormalMapper;
+
+    @Resource
+    private SmsVendorInfoNormalMapper smsVendorInfoNormalMapper;
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -208,6 +215,169 @@ public class LineSmsAccountDataNormalServiceImpl implements LineSmsAccountDataNo
         newLogNormal.setCreateTime(null);
         newLogNormal.setUpdateTime(null);
         lineAccountLogNormalMapper.insertSelective(newLogNormal);
+    }
+
+    @Override
+    public void addSmsAccount(SmsAccountDto dto)  throws JsonProcessingException{
+        long groupId = Long.parseLong(
+                ThreadLocalRandom.current().nextInt(100, 1000)
+                        + String.valueOf(System.currentTimeMillis()));
+        List<Long> channelIds = dto.getChannels().stream().map(SmsChannelDto::getChannelId).collect(Collectors.toList());
+        channelIds.forEach(channelId -> {
+            for (PriceDateDTO priceDate : dto.getPriceDates()) {
+                Date effectStartDate = Date.from(priceDate.getEffectStartDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
+                Date effectEndDate = null;
+                if (priceDate.getEffectEndDate() != null) {
+                    effectEndDate = Date.from(priceDate.getEffectEndDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
+                }
+                SmsAccountDetailNormal itemObj = new SmsAccountDetailNormal();
+                itemObj.setGroupId(groupId);
+                itemObj.setVendorId(dto.getVendorId());
+                itemObj.setChannelId(channelId);
+                itemObj.setPrice(priceDate.getPrice());
+                itemObj.setEffectStartDate(effectStartDate);
+                itemObj.setEffectStartDate(effectStartDate);
+                itemObj.setEffectEndDate(effectEndDate);
+                smsAccountDetailNormalMapper.insertSelective(itemObj);
+            }
+        });
+
+        //对应日志保存 log->从ThreadContextInfo.getUser() 获取操作用户
+        SmsAccountLogNormal  logItem = new SmsAccountLogNormal();
+        logItem.setGroupId(groupId);
+        logItem.setVendorId(dto.getVendorId());
+        JSONObject detail = new JSONObject();
+        detail.put("channelIds", objectMapper.writeValueAsString(channelIds));
+        detail.put("priceDates", JSON.toJSONString(dto.getPriceDates()));
+        logItem.setDetail(detail.toJSONString());
+        userRecord(logItem);
+        logItem.setOpeType(OpeTypeEnum.OPE_TYPE_INS.getType());
+        smsAccountLogNormalMapper.insertSelective(logItem);
+    }
+
+    @Override
+    public void updSmsAccount(SmsAccountDto dto) throws JsonProcessingException {
+        //1.删除detail
+        SmsAccountDetailNormalExample smsDetailExample = new SmsAccountDetailNormalExample();
+        smsDetailExample.createCriteria().andGroupIdEqualTo(dto.getGroupId());
+        SmsAccountDetailNormal updateAccountDetailNormal = new SmsAccountDetailNormal();
+        updateAccountDetailNormal.setIsDelete(ISDELETED_DEL);
+        smsAccountDetailNormalMapper.updateByExampleSelective(updateAccountDetailNormal, smsDetailExample);
+
+        //2.新增
+        List<Long> channelIds = dto.getChannels().stream().map(SmsChannelDto::getChannelId).collect(Collectors.toList());
+        channelIds.forEach(channelId -> {
+            for (PriceDateDTO priceDate : dto.getPriceDates()) {
+                Date effectStartDate = Date.from(priceDate.getEffectStartDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
+                Date effectEndDate = null;
+                if (priceDate.getEffectEndDate() != null) {
+                    effectEndDate = Date.from(priceDate.getEffectEndDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
+                }
+                SmsAccountDetailNormal itemObj = new SmsAccountDetailNormal();
+                itemObj.setGroupId(dto.getGroupId());
+                itemObj.setVendorId(dto.getVendorId());
+                itemObj.setChannelId(channelId);
+                itemObj.setPrice(priceDate.getPrice());
+                itemObj.setEffectStartDate(effectStartDate);
+                itemObj.setEffectStartDate(effectStartDate);
+                itemObj.setEffectEndDate(effectEndDate);
+                smsAccountDetailNormalMapper.insertSelective(itemObj);
+            }
+        });
+
+        //对应日志保存 log->从ThreadContextInfo.getUser() 获取操作用户
+        SmsAccountLogNormal  logItem = new SmsAccountLogNormal();
+        logItem.setGroupId(dto.getGroupId());
+        logItem.setVendorId(dto.getVendorId());
+        JSONObject detail = new JSONObject();
+        detail.put("channelIds", objectMapper.writeValueAsString(channelIds));
+        detail.put("priceDates", JSON.toJSONString(dto.getPriceDates()));
+        logItem.setDetail(detail.toJSONString());
+        userRecord(logItem);
+        logItem.setOpeType(OpeTypeEnum.OPE_TYPE_UPD.getType());
+        smsAccountLogNormalMapper.insertSelective(logItem);
+    }
+
+    @Override
+    public void allowSmsAccount(Long groupId) {
+        //2.启用detail
+        SmsAccountDetailNormalExample accountDetailNormalExample = new SmsAccountDetailNormalExample();
+        accountDetailNormalExample.createCriteria().andGroupIdEqualTo(groupId).andIsDeleteEqualTo(0);
+        SmsAccountDetailNormal updateAccountDetailNormal = new SmsAccountDetailNormal();
+        updateAccountDetailNormal.setEnabled(ENABLED_ACT);
+        smsAccountDetailNormalMapper.updateByExampleSelective(updateAccountDetailNormal, accountDetailNormalExample);
+        //3.新增启用日志
+        SmsAccountLogNormalExample logNormalExample = new SmsAccountLogNormalExample();
+        logNormalExample.createCriteria().andGroupIdEqualTo(groupId).andIsDeleteEqualTo(0);
+        logNormalExample.setOrderByClause("create_time desc limit 1");
+        SmsAccountLogNormal oldLogNormal = smsAccountLogNormalMapper.selectByExample(logNormalExample).get(0);
+        SmsAccountLogNormal newLogNormal = new SmsAccountLogNormal();
+        BeanUtils.copyProperties(oldLogNormal, newLogNormal);
+        newLogNormal.setId(null);
+        userRecord(newLogNormal);
+        newLogNormal.setOpeType(OpeTypeEnum.OPE_TYPE_ALLOW.getType());
+        newLogNormal.setCreateTime(null);
+        newLogNormal.setUpdateTime(null);
+        smsAccountLogNormalMapper.insertSelective(newLogNormal);
+    }
+
+    @Override
+    public void forbSmsAccount(Long groupId) {
+        //2.禁用detail
+        SmsAccountDetailNormalExample accountDetailNormalExample = new SmsAccountDetailNormalExample();
+        accountDetailNormalExample.createCriteria().andGroupIdEqualTo(groupId).andIsDeleteEqualTo(0);
+        SmsAccountDetailNormal updateAccountDetailNormal = new SmsAccountDetailNormal();
+        updateAccountDetailNormal.setEnabled(ENABLED_FORB);
+        smsAccountDetailNormalMapper.updateByExampleSelective(updateAccountDetailNormal, accountDetailNormalExample);
+
+        //3.新增禁用日志
+        SmsAccountLogNormalExample logNormalExample = new SmsAccountLogNormalExample();
+        logNormalExample.createCriteria().andGroupIdEqualTo(groupId).andIsDeleteEqualTo(0);
+        logNormalExample.setOrderByClause("create_time desc limit 1");
+        SmsAccountLogNormal oldLogNormal = smsAccountLogNormalMapper.selectByExample(logNormalExample).get(0);
+        SmsAccountLogNormal newLogNormal = new SmsAccountLogNormal();
+        BeanUtils.copyProperties(oldLogNormal, newLogNormal);
+        newLogNormal.setId(null);
+        userRecord(newLogNormal);
+        newLogNormal.setOpeType(OpeTypeEnum.OPE_TYPE_FOB.getType());
+        newLogNormal.setCreateTime(null);
+        newLogNormal.setUpdateTime(null);
+        smsAccountLogNormalMapper.insertSelective(newLogNormal);
+    }
+
+    @Override
+    public void deleteSmsAccount(Long groupId) {
+        //2.删除配置(id_delete=1)
+        SmsAccountDetailNormalExample smsAccountDetailNormalExample = new SmsAccountDetailNormalExample();
+        smsAccountDetailNormalExample.createCriteria().andGroupIdEqualTo(groupId);
+        SmsAccountDetailNormal updateAccountDetailNormal = new SmsAccountDetailNormal();
+        updateAccountDetailNormal.setIsDelete(ISDELETED_DEL);
+        smsAccountDetailNormalMapper.updateByExampleSelective(updateAccountDetailNormal, smsAccountDetailNormalExample);
+
+        //3.新增删除日志
+        SmsAccountLogNormalExample logNormalExample = new SmsAccountLogNormalExample();
+        logNormalExample.createCriteria().andGroupIdEqualTo(groupId).andIsDeleteEqualTo(0);
+        logNormalExample.setOrderByClause("create_time desc limit 1");
+        SmsAccountLogNormal oldLogNormal = smsAccountLogNormalMapper.selectByExample(logNormalExample).get(0);
+        SmsAccountLogNormal newLogNormal = new SmsAccountLogNormal();
+        BeanUtils.copyProperties(oldLogNormal, newLogNormal);
+        newLogNormal.setId(null);
+        userRecord(newLogNormal);
+        newLogNormal.setOpeType(OpeTypeEnum.OPE_TYPE_DEL.getType());
+        newLogNormal.setCreateTime(null);
+        newLogNormal.setUpdateTime(null);
+        smsAccountLogNormalMapper.insertSelective(newLogNormal);
+    }
+
+    private void userRecord(SmsAccountLogNormal logItem) {
+        MarketingUserDetail userDetail = ThreadContextInfo.getUser();
+        if (userDetail != null) {
+            if (userDetail.getId() != null) {
+                logItem.setUserId(userDetail.getId().toString());
+            }
+            logItem.setUserName(userDetail.getUserName());
+            logItem.setRealName(userDetail.getRealName());
+        }
     }
 
     private void userRecord(LineAccountLogNormal logItem) {

@@ -11,10 +11,10 @@ public interface LineBaseInfoNormalMapper extends LineBaseInfoNormalMapperBase{
 
 
     //页面查询->查询所有的数据->查询历史数据
-    List<LineBaseFullInfoDTO> selectLineBaeFullInfoList();
+    List<LineBaseFullInfoDTO> selectLineBaseFullInfoList();
 
     //三方数据同步->有效的数据和三方比较
-    List<LineBaseFullInfoDTO> selectLineBaeUseInfoList();
+    List<LineBaseFullInfoDTO> selectLineBaseUseInfoList();
 
     void updateOnlyDbOpStatus(@Param("onlyInDbIdList") List<Long> onlyInDbIdList,
                               @Param("opeStatus") Integer opStatus);
@@ -29,5 +29,5 @@ public interface LineBaseInfoNormalMapper extends LineBaseInfoNormalMapperBase{
                                       @Param("projectName") String projectName,
                                       @Param("caller") String caller);
 
-    List<LineBaseInfoNormal> selectByIdList(@Param("gatewayIdList") List<Long> gatewayIdList);
+    List<LineBaseInfoNormal> selectByGatewayIdListtikv_(@Param("gatewayIdList") List<Long> gatewayIdList);
 }

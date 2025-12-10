@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.SmsBaseInfoNormalMapper" >
+
+    <select id="selectList" resultType="com.br.marketing.entity.SmsBaseInfoNormal">
+        SELECT
+            id, channel_id, vendor_id, channel_name, create_time, update_time, ope_status, ope_time, is_delete
+        FROM b_marketing_sms_base_info_normal
+        WHERE is_delete = 0
+    </select>
+
+
+    <select id="selectSmsBaseUseInfoList" resultType="com.br.marketing.dto.SmsBaseFullInfoDTO">
+        SELECT
+            bb.id,bb.channel_id,bb.vendor_id,bb.channel_name,ss.vendor_name,ss.id as vendor_primary_id
+        FROM
+            b_marketing_sms_base_info_normal bb
+                inner join b_marketing_sms_vendor_info_normal ss on bb.vendor_id = ss.vendor_id
+            WHERE
+            bb.ope_status in (0,2) and bb.is_delete = 0 and ss.ope_status in (0,2) and ss.is_delete = 0
+    </select>
+
+    <select id="selectSmsBaseFullInfoList" resultType="com.br.marketing.dto.SmsBaseFullInfoDTO">
+        SELECT
+            bb.id,bb.channel_id,bb.vendor_id,bb.channel_name,ss.vendor_name,ss.id as vendor_primary_id
+        FROM
+            b_marketing_sms_base_info_normal bb
+                inner join b_marketing_sms_vendor_info_normal ss on bb.vendor_id = ss.vendor_id
+            WHERE
+             bb.is_delete = 0 and  ss.is_delete = 0
+    </select>
+
+    <select id="selectByChannelIdListtikv_" resultType="com.br.marketing.entity.SmsBaseInfoNormal">
+        SELECT * FROM (
+            SELECT
+                id, channel_id, vendor_id, channel_name,
+                create_time, update_time, ope_status, ope_time,
+                is_delete,
+            -- 优先规则：ope_status in (0,2) 排在最前
+                ROW_NUMBER() OVER (
+                    PARTITION BY channel_id
+                    ORDER BY
+                    CASE WHEN ope_status IN (0, 2) THEN 0 ELSE 1 END,
+                    create_time DESC
+                ) as rn
+            FROM b_marketing_sms_base_info_normal
+            WHERE channel_id IN (
+                <foreach collection="channelIdList" item="channel_id" index="index" separator=",">
+                    #{channel_id}
+                </foreach>
+            )
+            AND is_delete = 0
+        ) t
+        WHERE rn = 1
+    </select>
+
+    <select id="selectByChannelId" resultType="com.br.marketing.entity.SmsBaseInfoNormal">
+        SELECT
+            id, channel_id, vendor_id, channel_name, create_time, update_time, ope_status, ope_time, is_delete
+        FROM b_marketing_sms_base_info_normal
+        WHERE vendor_id = #{vendorId} and channel_id= #{channelId} and ope_status in (0,2) and is_delete = 0
+    </select>
+
+    <update id="updateOnlyDbOpStatus">
+        UPDATE
+            b_marketing_sms_base_info_normal
+        SET ope_status = #{opeStatus},ope_time = now()
+        WHERE
+            channel_id in (
+            <foreach collection="onlyInDbIdList" item="channel_id" index="index" separator=",">
+                #{channel_id}
+            </foreach>
+            ) and ope_status in (0,2)
+    </update>
+
+    <update id="updateBaseInfoById">
+        UPDATE
+            b_marketing_sms_base_info_normal
+        SET vendor_id = #{vendorId},channel_name = #{channelName},ope_status = #{opeStatus},ope_time = now()
+        WHERE
+            id = #{id}
+    </update>
+
+
+</mapper>
