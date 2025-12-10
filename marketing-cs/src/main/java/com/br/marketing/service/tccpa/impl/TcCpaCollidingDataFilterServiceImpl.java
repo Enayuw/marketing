@@ -66,7 +66,6 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
 
     @Override
     public void process() {
-        PAGE_SIZE = marketingCommonConfig.getTcyrCpaPushFileVTConfig().getInteger("filterPageSize");
         //1.查询统计完成撞库任务
         TcyrCpaCollidingTaskExample taskExample = new TcyrCpaCollidingTaskExample();
         taskExample.createCriteria()
@@ -334,11 +333,12 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
         List<String> userKeys;
         String minUserKey = null;
         int loopCount;
+        int pageSize = marketingCommonConfig.getTcyrCpaPushFileVTConfig().getInteger("filterPageSize");
         for (; ; ) {
-            if (remaingAbleNum < PAGE_SIZE) {
+            if (remaingAbleNum < pageSize) {
                 loopCount = 1;
             } else {
-                loopCount = remaingAbleNum / PAGE_SIZE;
+                loopCount = remaingAbleNum / pageSize;
             }
             for (int i = 0; i < loopCount; i++) {
                 if (hasError.get()) {
@@ -349,7 +349,8 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
                     if (marketingCommonConfig.getTcCpaMockConfig().get("query")) {
                         throw new IllegalArgumentException();
                     }
-                    userKeys = tcyrCpaCollidingDataMapper.queryUserKeyWithPagetikv_(querySql, fieldName, minUserKey, PAGE_SIZE);
+                    pageSize = marketingCommonConfig.getTcyrCpaPushFileVTConfig().getInteger("filterPageSize");
+                    userKeys = tcyrCpaCollidingDataMapper.queryUserKeyWithPagetikv_(querySql, fieldName, minUserKey, pageSize);
                 } catch (Exception e) {
                     log.warn("同程CPA撞库数据筛选，数据查询异常，packageId：{}，batchNumber：{}", packageId);
                     hasError.set(true);
