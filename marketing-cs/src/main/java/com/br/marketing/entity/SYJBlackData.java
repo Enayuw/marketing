@@ -21,7 +21,7 @@ public class SYJBlackData {
     /**
      * 请求唯一id
      */
-    private Long requestId;
+    private String requestId;
 
     /**
      * MD5加密手机号
@@ -87,12 +87,12 @@ public class SYJBlackData {
         this.localId = localId;
     }
 
-    public Long getRequestId() {
+    public String getRequestId() {
         return requestId;
     }
 
-    public void setRequestId(Long requestId) {
-        this.requestId = requestId;
+    public void setRequestId(String requestId) {
+        this.requestId = requestId == null ? null : requestId.trim();
     }
 
     public String getCell() {

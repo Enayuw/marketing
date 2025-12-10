@@ -305,52 +305,62 @@ public class SYJBlackDataExample {
             return (Criteria) this;
         }
 
-        public Criteria andRequestIdEqualTo(Long value) {
+        public Criteria andRequestIdEqualTo(String value) {
             addCriterion("request_id =", value, "requestId");
             return (Criteria) this;
         }
 
-        public Criteria andRequestIdNotEqualTo(Long value) {
+        public Criteria andRequestIdNotEqualTo(String value) {
             addCriterion("request_id <>", value, "requestId");
             return (Criteria) this;
         }
 
-        public Criteria andRequestIdGreaterThan(Long value) {
+        public Criteria andRequestIdGreaterThan(String value) {
             addCriterion("request_id >", value, "requestId");
             return (Criteria) this;
         }
 
-        public Criteria andRequestIdGreaterThanOrEqualTo(Long value) {
+        public Criteria andRequestIdGreaterThanOrEqualTo(String value) {
             addCriterion("request_id >=", value, "requestId");
             return (Criteria) this;
         }
 
-        public Criteria andRequestIdLessThan(Long value) {
+        public Criteria andRequestIdLessThan(String value) {
             addCriterion("request_id <", value, "requestId");
             return (Criteria) this;
         }
 
-        public Criteria andRequestIdLessThanOrEqualTo(Long value) {
+        public Criteria andRequestIdLessThanOrEqualTo(String value) {
             addCriterion("request_id <=", value, "requestId");
             return (Criteria) this;
         }
 
-        public Criteria andRequestIdIn(List<Long> values) {
+        public Criteria andRequestIdLike(String value) {
+            addCriterion("request_id like", value, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdNotLike(String value) {
+            addCriterion("request_id not like", value, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdIn(List<String> values) {
             addCriterion("request_id in", values, "requestId");
             return (Criteria) this;
         }
 
-        public Criteria andRequestIdNotIn(List<Long> values) {
+        public Criteria andRequestIdNotIn(List<String> values) {
             addCriterion("request_id not in", values, "requestId");
             return (Criteria) this;
         }
 
-        public Criteria andRequestIdBetween(Long value1, Long value2) {
+        public Criteria andRequestIdBetween(String value1, String value2) {
             addCriterion("request_id between", value1, value2, "requestId");
             return (Criteria) this;
         }
 
-        public Criteria andRequestIdNotBetween(Long value1, Long value2) {
+        public Criteria andRequestIdNotBetween(String value1, String value2) {
             addCriterion("request_id not between", value1, value2, "requestId");
             return (Criteria) this;
         }
