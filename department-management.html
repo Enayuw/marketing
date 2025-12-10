@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>行业模板管理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .breadcrumb {
+            margin-bottom: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .breadcrumb a {
+            color: #666;
+            text-decoration: none;
+        }
+        
+        .breadcrumb a:hover {
+            color: #1890ff;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .filter-section {
+            padding: 20px;
+            background: #fafafa;
+            border-bottom: 1px solid #e8e8e8;
+        }
+        
+        .filter-row {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .filter-item label {
+            font-size: 14px;
+            color: #333;
+            white-space: nowrap;
+        }
+        
+        .filter-item select {
+            min-width: 180px;
+            height: 32px;
+            padding: 4px 11px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+            background: white;
+        }
+        
+        .filter-item select:focus {
+            border-color: #40a9ff;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-left: auto;
+        }
+        
+        .btn {
+            height: 32px;
+            padding: 4px 15px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #1890ff;
+            border-color: #1890ff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #40a9ff;
+            border-color: #40a9ff;
+        }
+        
+        .btn-default {
+            background: white;
+            color: #333;
+        }
+        
+        .btn-default:hover {
+            border-color: #40a9ff;
+            color: #40a9ff;
+        }
+        
+        .table-section {
+            padding: 0;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        
+        th {
+            background: #fafafa;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 500;
+            color: #333;
+            border-bottom: 1px solid #e8e8e8;
+            white-space: nowrap;
+        }
+        
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            color: #666;
+        }
+        
+        tr:hover {
+            background: #fafafa;
+        }
+        
+        .sequence-number {
+            color: #999;
+            font-weight: normal;
+        }
+        
+        .api-code {
+            font-family: 'Courier New', monospace;
+            color: #1890ff;
+        }
+        
+        .department-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            background: #f6ffed;
+            border: 1px solid #b7eb8f;
+            border-radius: 4px;
+            color: #52c41a;
+            font-size: 12px;
+        }
+        
+        .template-name {
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .pagination {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #f0f0f0;
+        }
+        
+        .pagination-info {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .pagination-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .pagination-btn {
+            padding: 4px 8px;
+            border: 1px solid #d9d9d9;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .pagination-btn:hover {
+            border-color: #40a9ff;
+            color: #40a9ff;
+        }
+        
+        .pagination-btn.active {
+            background: #1890ff;
+            border-color: #1890ff;
+            color: white;
+        }
+        
+        .pagination-btn:disabled {
+            background: #f5f5f5;
+            color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        /* 新增按钮样式 */
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: white;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .add-btn {
+            background: #1890ff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .add-btn:hover {
+            background: #40a9ff;
+        }
+        
+        /* 弹窗样式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 1000;
+        }
+        
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            width: 600px;
+            max-width: 90vw;
+            max-height: 80vh;
+            overflow-y: auto;
+            z-index: 1001;
+        }
+        
+        .modal-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #999;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .close-btn:hover {
+            color: #666;
+        }
+        
+        .modal-body {
+            padding: 24px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .form-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .form-item.full-width {
+            flex: 2;
+        }
+        
+        .form-item label {
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .form-item label .required {
+            color: #ff4d4f;
+            margin-right: 4px;
+        }
+        
+        .form-item input,
+        .form-item select {
+            height: 32px;
+            padding: 4px 11px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+            background: white;
+        }
+        
+        .form-item input:focus,
+        .form-item select:focus {
+            border-color: #40a9ff;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+        }
+        
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+        
+        .btn-cancel {
+            background: white;
+            color: #333;
+            border: 1px solid #d9d9d9;
+        }
+        
+        .btn-cancel:hover {
+            border-color: #40a9ff;
+            color: #40a9ff;
+        }
+    </style>
+</head>
+<body>
+    <!-- 面包屑导航 -->
+    <div class="breadcrumb">
+        <a href="#">首页</a> > <a href="#">标签管理</a> > 行业模板
+    </div>
+    
+    <div class="container">
+        <!-- 头部操作区域 -->
+        <div class="header-actions">
+            <div class="breadcrumb" style="margin: 0;">
+                <a href="#">首页</a> > <a href="#">标签管理</a> > 行业模板
+            </div>
+            <button class="add-btn" onclick="openAddModal()">新增</button>
+        </div>
+        
+        <!-- 筛选区域 -->
+        <div class="filter-section">
+            <div class="filter-row">
+                <div class="filter-item">
+                    <label>一级部门</label>
+                    <select id="level1Dept">
+                        <option value="">请选择一级部门</option>
+                        <option value="finance">财富</option>
+                        <option value="credit">信贷</option>
+                        <option value="operation">运营</option>
+                        <option value="tech">技术</option>
+                    </select>
+                </div>
+                
+                <div class="filter-item">
+                    <label>二级部门</label>
+                    <select id="level2Dept">
+                        <option value="">请选择二级部门</option>
+                        <option value="wealth">财富业务部</option>
+                        <option value="credit-business">信贷业务部</option>
+                        <option value="smart-operation">智能运营</option>
+                        <option value="vehicle">车险生态业务部</option>
+                    </select>
+                </div>
+                
+                <div class="filter-item">
+                    <label>三级部门</label>
+                    <select id="level3Dept">
+                        <option value="">请选择三级部门</option>
+                        <option value="sub1">理财产品部</option>
+                        <option value="sub2">风控审核部</option>
+                        <option value="sub3">数据分析部</option>
+                        <option value="sub4">产品运营部</option>
+                        <option value="sub5">营销推广部</option>
+                    </select>
+                </div>
+                
+                <div class="filter-item">
+                    <label>上传来源</label>
+                    <select id="uploadSource">
+                        <option value="">全部</option>
+                        <option value="marketing-platform">营销中台</option>
+                    </select>
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="searchData()">查询</button>
+                    <button class="btn btn-default" onclick="resetForm()">重置</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 表格区域 -->
+        <div class="table-section">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>一级部门</th>
+                            <th>二级部门</th>
+                            <th>三级部门</th>
+                            <th>授权APICode</th>
+                            <th>行业模板</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTable">
+                        <tr>
+                            <td class="sequence-number">1</td>
+                            <td><span class="department-tag">财富</span></td>
+                            <td>财富业务部</td>
+                            <td>理财产品部</td>
+                            <td class="api-code">7449099</td>
+                            <td class="template-name">智能运营模板</td>
+                        </tr>
+                        <tr>
+                            <td class="sequence-number">2</td>
+                            <td><span class="department-tag">信贷</span></td>
+                            <td>信贷业务部</td>
+                            <td>风控审核部</td>
+                            <td class="api-code">7437561</td>
+                            <td class="template-name">催收Agent模板</td>
+                        </tr>
+                        <tr>
+                            <td class="sequence-number">3</td>
+                            <td><span class="department-tag">运营</span></td>
+                            <td>车险生态业务部</td>
+                            <td>数据分析部</td>
+                            <td class="api-code">7491014</td>
+                            <td class="template-name">VoiceGPT模板</td>
+                        </tr>
+                        <tr>
+                            <td class="sequence-number">4</td>
+                            <td><span class="department-tag">信贷</span></td>
+                            <td>信贷业务部</td>
+                            <td>产品运营部</td>
+                            <td class="api-code">7437557</td>
+                            <td class="template-name">智能客服模板</td>
+                        </tr>
+                        <tr>
+                            <td class="sequence-number">5</td>
+                            <td><span class="department-tag">运营</span></td>
+                            <td>智能运营</td>
+                            <td>营销推广部</td>
+                            <td class="api-code">7491013</td>
+                            <td class="template-name">营销活动模板</td>
+                        </tr>
+                        <tr>
+                            <td class="sequence-number">6</td>
+                            <td><span class="department-tag">技术</span></td>
+                            <td>技术研发部</td>
+                            <td>前端开发部</td>
+                            <td class="api-code">7491015</td>
+                            <td class="template-name">前端组件模板</td>
+                        </tr>
+                        <tr>
+                            <td class="sequence-number">7</td>
+                            <td><span class="department-tag">技术</span></td>
+                            <td>技术研发部</td>
+                            <td>后端开发部</td>
+                            <td class="api-code">7491016</td>
+                            <td class="template-name">API服务模板</td>
+                        </tr>
+                        <tr>
+                            <td class="sequence-number">8</td>
+                            <td><span class="department-tag">财富</span></td>
+                            <td>财富业务部</td>
+                            <td>投资顾问部</td>
+                            <td class="api-code">7449100</td>
+                            <td class="template-name">投资建议模板</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- 分页区域 -->
+        <div class="pagination">
+            <div class="pagination-info">
+                共 8 条记录，第 1/1 页
+            </div>
+            <div class="pagination-controls">
+                <button class="pagination-btn" disabled>上一页</button>
+                <button class="pagination-btn active">1</button>
+                <button class="pagination-btn" disabled>下一页</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增弹窗 -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeAddModal()">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="modal-title">新增行业模板</div>
+                <button class="close-btn" onclick="closeAddModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="addForm">
+                    <div class="form-row">
+                        <div class="form-item">
+                            <label><span class="required">*</span>一级部门</label>
+                            <select id="addLevel1Dept" required>
+                                <option value="">请选择一级部门</option>
+                                <option value="finance">财富</option>
+                                <option value="credit">信贷</option>
+                                <option value="operation">运营</option>
+                                <option value="tech">技术</option>
+                            </select>
+                        </div>
+                        <div class="form-item">
+                            <label><span class="required">*</span>二级部门</label>
+                            <select id="addLevel2Dept" required>
+                                <option value="">请选择二级部门</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-item">
+                            <label><span class="required">*</span>三级部门</label>
+                            <select id="addLevel3Dept" required>
+                                <option value="">请选择三级部门</option>
+                            </select>
+                        </div>
+                        <div class="form-item">
+                            <label><span class="required">*</span>上传来源</label>
+                            <select id="addUploadSource" required>
+                                <option value="">请选择上传来源</option>
+                                <option value="marketing-platform">营销中台</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-item">
+                            <label><span class="required">*</span>行业模板</label>
+                            <select id="addIndustryTemplate" required>
+                                <option value="">请选择行业模板</option>
+                                <option value="standard-upload">标准上传模板</option>
+                                <option value="standard-transform">标准转化模板</option>
+                            </select>
+                        </div>
+                        <div class="form-item">
+                            <label><span class="required">*</span>授权APICode</label>
+                            <input type="text" id="addApiCode" placeholder="请输入授权APICode" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-cancel" onclick="closeAddModal()">返回</button>
+                <button class="btn btn-primary" onclick="saveData()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 模拟数据
+        const mockData = [
+            { id: 1, level1: '财富', level2: '财富业务部', level3: '理财产品部', apiCode: '7449099', template: '标准上传模板', source: 'marketing-platform' },
+            { id: 2, level1: '信贷', level2: '信贷业务部', level3: '风控审核部', apiCode: '7437561', template: '标准转化模板', source: 'marketing-platform' },
+            { id: 3, level1: '运营', level2: '车险生态业务部', level3: '数据分析部', apiCode: '7491014', template: '标准上传模板', source: 'marketing-platform' },
+            { id: 4, level1: '信贷', level2: '信贷业务部', level3: '产品运营部', apiCode: '7437557', template: '标准转化模板', source: 'marketing-platform' },
+            { id: 5, level1: '运营', level2: '智能运营', level3: '营销推广部', apiCode: '7491013', template: '标准上传模板', source: 'marketing-platform' },
+            { id: 6, level1: '技术', level2: '技术研发部', level3: '前端开发部', apiCode: '7491015', template: '标准转化模板', source: 'marketing-platform' },
+            { id: 7, level1: '技术', level2: '技术研发部', level3: '后端开发部', apiCode: '7491016', template: '标准上传模板', source: 'marketing-platform' },
+            { id: 8, level1: '财富', level2: '财富业务部', level3: '投资顾问部', apiCode: '7449100', template: '标准转化模板', source: 'marketing-platform' }
+        ];
+        
+        function searchData() {
+            const level1 = document.getElementById('level1Dept').value;
+            const level2 = document.getElementById('level2Dept').value;
+            const level3 = document.getElementById('level3Dept').value;
+            const source = document.getElementById('uploadSource').value;
+            
+            console.log('查询条件:', { level1, level2, level3, source });
+            
+            // 简单的筛选逻辑
+            let filteredData = mockData;
+            
+            if (level1) {
+                const level1Map = {
+                    'finance': '财富',
+                    'credit': '信贷',
+                    'operation': '运营',
+                    'tech': '技术'
+                };
+                filteredData = filteredData.filter(item => item.level1 === level1Map[level1]);
+            }
+            
+            if (source) {
+                filteredData = filteredData.filter(item => item.source === source);
+            }
+            
+            renderTable(filteredData);
+        }
+        
+        function renderTable(data) {
+            const tbody = document.getElementById('dataTable');
+            tbody.innerHTML = '';
+            
+            data.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="sequence-number">${index + 1}</td>
+                    <td><span class="department-tag">${item.level1}</span></td>
+                    <td>${item.level2}</td>
+                    <td>${item.level3}</td>
+                    <td class="api-code">${item.apiCode}</td>
+                    <td class="template-name">${item.template}</td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            // 更新分页信息
+            document.querySelector('.pagination-info').textContent = `共 ${data.length} 条记录，第 1/1 页`;
+        }
+        
+        function resetForm() {
+            document.getElementById('level1Dept').value = '';
+            document.getElementById('level2Dept').value = '';
+            document.getElementById('level3Dept').value = '';
+            document.getElementById('uploadSource').value = '';
+            
+            // 重置表格数据
+            renderTable(mockData);
+        }
+        
+        // 级联选择逻辑
+        document.getElementById('level1Dept').addEventListener('change', function() {
+            const level2Select = document.getElementById('level2Dept');
+            const level3Select = document.getElementById('level3Dept');
+            
+            // 清空下级选项
+            level2Select.innerHTML = '<option value="">请选择二级部门</option>';
+            level3Select.innerHTML = '<option value="">请选择三级部门</option>';
+            
+            const level1Value = this.value;
+            const level2Options = {
+                'finance': [
+                    { value: 'wealth', text: '财富业务部' },
+                    { value: 'investment', text: '投资管理部' }
+                ],
+                'credit': [
+                    { value: 'credit-business', text: '信贷业务部' },
+                    { value: 'risk-control', text: '风险控制部' }
+                ],
+                'operation': [
+                    { value: 'smart-operation', text: '智能运营' },
+                    { value: 'vehicle', text: '车险生态业务部' }
+                ],
+                'tech': [
+                    { value: 'development', text: '技术研发部' },
+                    { value: 'architecture', text: '架构设计部' }
+                ]
+            };
+            
+            if (level2Options[level1Value]) {
+                level2Options[level1Value].forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.value;
+                    optionElement.textContent = option.text;
+                    level2Select.appendChild(optionElement);
+                });
+            }
+        });
+        
+        document.getElementById('level2Dept').addEventListener('change', function() {
+            const level3Select = document.getElementById('level3Dept');
+            level3Select.innerHTML = '<option value="">请选择三级部门</option>';
+            
+            const level2Value = this.value;
+            const level3Options = {
+                'wealth': ['理财产品部', '投资顾问部'],
+                'credit-business': ['风控审核部', '产品运营部'],
+                'smart-operation': ['营销推广部', '数据运营部'],
+                'vehicle': ['数据分析部', '业务拓展部'],
+                'development': ['前端开发部', '后端开发部'],
+                'architecture': ['系统架构部', '数据架构部']
+            };
+            
+            if (level3Options[level2Value]) {
+                level3Options[level2Value].forEach((option, index) => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = `sub${index + 1}`;
+                    optionElement.textContent = option;
+                    level3Select.appendChild(optionElement);
+                });
+            }
+        });
+        
+        // 新增弹窗相关函数
+        function openAddModal() {
+            document.getElementById('modalOverlay').style.display = 'block';
+            document.body.style.overflow = 'hidden'; // 防止背景滚动
+        }
+        
+        function closeAddModal() {
+            document.getElementById('modalOverlay').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            resetAddForm();
+        }
+        
+        function resetAddForm() {
+            document.getElementById('addForm').reset();
+            // 清空级联选择
+            document.getElementById('addLevel2Dept').innerHTML = '<option value="">请选择二级部门</option>';
+            document.getElementById('addLevel3Dept').innerHTML = '<option value="">请选择三级部门</option>';
+        }
+        
+        // 新增表单的级联选择逻辑
+        document.getElementById('addLevel1Dept').addEventListener('change', function() {
+            const level2Select = document.getElementById('addLevel2Dept');
+            const level3Select = document.getElementById('addLevel3Dept');
+            
+            // 清空下级选项
+            level2Select.innerHTML = '<option value="">请选择二级部门</option>';
+            level3Select.innerHTML = '<option value="">请选择三级部门</option>';
+            
+            const level1Value = this.value;
+            const level2Options = {
+                'finance': [
+                    { value: 'wealth', text: '财富业务部' },
+                    { value: 'investment', text: '投资管理部' }
+                ],
+                'credit': [
+                    { value: 'credit-business', text: '信贷业务部' },
+                    { value: 'risk-control', text: '风险控制部' }
+                ],
+                'operation': [
+                    { value: 'smart-operation', text: '智能运营' },
+                    { value: 'vehicle', text: '车险生态业务部' }
+                ],
+                'tech': [
+                    { value: 'development', text: '技术研发部' },
+                    { value: 'architecture', text: '架构设计部' }
+                ]
+            };
+            
+            if (level2Options[level1Value]) {
+                level2Options[level1Value].forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option.value;
+                    optionElement.textContent = option.text;
+                    level2Select.appendChild(optionElement);
+                });
+            }
+        });
+        
+        document.getElementById('addLevel2Dept').addEventListener('change', function() {
+            const level3Select = document.getElementById('addLevel3Dept');
+            level3Select.innerHTML = '<option value="">请选择三级部门</option>';
+            
+            const level2Value = this.value;
+            const level3Options = {
+                'wealth': ['理财产品部', '投资顾问部'],
+                'credit-business': ['风控审核部', '产品运营部'],
+                'smart-operation': ['营销推广部', '数据运营部'],
+                'vehicle': ['数据分析部', '业务拓展部'],
+                'development': ['前端开发部', '后端开发部'],
+                'architecture': ['系统架构部', '数据架构部']
+            };
+            
+            if (level3Options[level2Value]) {
+                level3Options[level2Value].forEach((option, index) => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = `sub${index + 1}`;
+                    optionElement.textContent = option;
+                    level3Select.appendChild(optionElement);
+                });
+            }
+        });
+        
+        // 保存数据函数
+        function saveData() {
+            const form = document.getElementById('addForm');
+            
+            // 表单验证
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            
+            // 获取表单数据
+            const formData = {
+                level1: document.getElementById('addLevel1Dept').value,
+                level2: document.getElementById('addLevel2Dept').value,
+                level3: document.getElementById('addLevel3Dept').value,
+                uploadSource: document.getElementById('addUploadSource').value,
+                industryTemplate: document.getElementById('addIndustryTemplate').value,
+                apiCode: document.getElementById('addApiCode').value
+            };
+            
+            console.log('新增数据:', formData);
+            
+            // 这里可以添加实际的保存逻辑，比如发送到后端API
+            // 模拟保存成功
+            alert('保存成功！');
+            closeAddModal();
+            
+            // 可以在这里刷新表格数据
+            // searchData();
+        }
+        
+        // ESC键关闭弹窗
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeAddModal();
+            }
+        });
+    </script>
+</body>
+</html>
