@@ -10,17 +10,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
- * 描述：： 携程新版短信撞库 job
+ * 携程CPS黑名单撞库
  * <p>
  * ------------------------------------
  *
  * @program: marketing
- * @ClassName XieChengSmsCollidingDataVtToSendJob
  * @author: it-yml
  * @create: 2023-07-11 19:31
  * @Version 1.0

@@ -8,7 +8,6 @@ datasource:
       password: ENC(mysql-prod-ai-marketing-password)
       type: com.alibaba.druid.pool.DruidDataSource
       driver-class-name: com.mysql.jdbc.Driver
-      isSharding: true
       filters: stat
       maxActive: 300
       initialSize: 10
@@ -315,7 +314,6 @@ rocketmq:
     enableMsgTrace: false
     # 消息跟踪主题的名称值。如果不进行配置，可以使用默认的跟踪主题名称
     customizedTraceTopic: RMQ_SYS_TRACE_TOPIC
-    namespace: ${ROCKETMQ_NAMESPACE:sim}
   consumer:
     #    # 配置指定group是否启动监听器 group1.topic1 = false
     #    listeners:
@@ -330,4 +328,3 @@ rocketmq:
     # 一次拉取消息最大值，注意是拉取消息的最大值而非消费最大值
     pull-batch-size: 5
     # 其他配置参考属性类
-    namespace: ${ROCKETMQ_NAMESPACE:sim}

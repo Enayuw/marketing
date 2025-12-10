@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.SmsAccountLogNormalMapper" >
+
+    <select id="getLineAccountLogs" resultType="com.br.marketing.entity.SmsAccountLogNormal">
+        SELECT
+            id, group_id, vendor_id, detail, user_id, user_name, real_name, ope_type, create_time,
+            update_time, is_delete
+        FROM b_marketing_sms_account_log_normal
+        WHERE
+            group_id = #{groupId} and is_delete = 0
+        ORDER BY create_time DESC
+    </select>
+</mapper>

@@ -3,9 +3,17 @@ spring:
     name: marketing-xc-consumer
   profiles:
     active: pre
+  main:
+    allow-circular-references: true  # 允许循环依赖
+  autoconfigure:
+    exclude:
+      - com.br.transfer.config.log.Log4j2DynamicAutoConfiguration
+      - com.br.transfer.config.log.TempLog4j2DynamicAutoConfiguration
   aop:
     proxy-target-class: true
     auto: true
+  lifecycle:
+    timeout-per-shutdown-phase: 30s  # 优雅关闭超时时间
   threadpool:
     queueCapacity: 50000
     # 线程池所使用的缓冲队列
@@ -20,11 +28,20 @@ spring:
 
 server:
   port: 18888
-  maxHttpPostSize: 209715200
-mybatis:
+  tomcat:
+    max-http-form-post-size: 209715200
+  shutdown: graceful  # 启用优雅关闭
+
+mybatis-plus:
   mapper-locations: mapper/*.xml
   configuration:
     map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: isDeleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
 
 # 线程池动态配置监控
 tp:
