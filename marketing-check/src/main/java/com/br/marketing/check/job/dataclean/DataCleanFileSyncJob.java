@@ -120,24 +120,6 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
                 log.warn("开始填充文件表头及样例,fileName={}", cleanDataFile.getFileName());
                 fillHeaderAndData(cleanDataFile);
             });
-
-            try {
-                String remark = String.format("数据清洗文件同步,清洗配置id：%s"
-                        , syncCycleConfig.getId());
-                trackingService.trackPointLog(DataFlowDirection.OUT
-                        , syncCycleConfig.getApiCode()
-                        , "数据清洗文件同步"
-                        , (long) cleanDataFiles.size()
-                        , remark
-                        , TrackingContext.generateBatchId());
-            } catch (Exception ex) {
-                log.warn(
-                        AlertLog.buildWarnMessage(
-                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
-                                , ex.getMessage()
-                                , "埋点异常")
-                        , ex);
-            }
         }
 
     }
@@ -176,6 +158,25 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
         dataFile.setReceiveDate(LocalDate.now().toString());
         dataFile.setTestRunData(JSON.toJSONString(jsonList));
         marketingCleanDataFileMapper.updateByPrimaryKeySelective(dataFile);
+
+        try {
+            String remark = String.format("数据清洗文件同步,文件名称：%s"
+                    , cleanDataFile.getFileName());
+            trackingService.trackPointLog(DataFlowDirection.OUT
+                    , cleanDataFile.getApiCode()
+                    , "数据清洗文件同步"
+                    , (long) batchLines.size()
+                    , remark
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
+
     }
 
     private void fileSyncTable(SyncConfig syncConfig, String path, String fileName) {
