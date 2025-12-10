@@ -12,16 +12,7 @@ import java.util.List;
  */
 public interface SYJBlackDataMapper extends SYJBlackDataMapperBase {
 
-    List<SYJBlackData> queryBlackData(@Param("localId") Long localId, @Param("minId") Long minId, @Param("pageSize") Integer pageSize);
+    List<SYJBlackData> queryBlackData(@Param("localId") Long localId, @Param("queryStatus") Integer queryStatus, @Param("minId") Long minId, @Param("pageSize") Integer pageSize);
 
-    void batchUpdateStatus(@Param("ids") List<Long> ids, @Param("queryStatus") Integer queryStatus, @Param("extend") String extend);
-
-    /**
-     * 查询未查询成功的黑名单数据（用于重试）
-     * @param localId 文件ID
-     * @param minId 最小ID（分页用）
-     * @param pageSize 每页大小
-     * @return 未查询成功的数据列表（query_status != 3）
-     */
-    List<SYJBlackData> queryFailedBlackData(@Param("localId") Long localId, @Param("minId") Long minId, @Param("pageSize") Integer pageSize);
+    void batchUpdateStatus(@Param("ids") List<Long> ids, @Param("requestId") String requestId, @Param("queryStatus") Integer queryStatus, @Param("extend") String extend);
 }

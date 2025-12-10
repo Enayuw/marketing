@@ -295,6 +295,66 @@ public class SYJBlackDataExample {
             return (Criteria) this;
         }
 
+        public Criteria andRequestIdIsNull() {
+            addCriterion("request_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdIsNotNull() {
+            addCriterion("request_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdEqualTo(Long value) {
+            addCriterion("request_id =", value, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdNotEqualTo(Long value) {
+            addCriterion("request_id <>", value, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdGreaterThan(Long value) {
+            addCriterion("request_id >", value, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("request_id >=", value, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdLessThan(Long value) {
+            addCriterion("request_id <", value, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdLessThanOrEqualTo(Long value) {
+            addCriterion("request_id <=", value, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdIn(List<Long> values) {
+            addCriterion("request_id in", values, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdNotIn(List<Long> values) {
+            addCriterion("request_id not in", values, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdBetween(Long value1, Long value2) {
+            addCriterion("request_id between", value1, value2, "requestId");
+            return (Criteria) this;
+        }
+
+        public Criteria andRequestIdNotBetween(Long value1, Long value2) {
+            addCriterion("request_id not between", value1, value2, "requestId");
+            return (Criteria) this;
+        }
+
         public Criteria andCellIsNull() {
             addCriterion("cell is null");
             return (Criteria) this;
@@ -422,66 +482,6 @@ public class SYJBlackDataExample {
 
         public Criteria andQueryStatusNotBetween(Integer value1, Integer value2) {
             addCriterion("query_status not between", value1, value2, "queryStatus");
-            return (Criteria) this;
-        }
-
-        public Criteria andInvocationStatusIsNull() {
-            addCriterion("invocation_status is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andInvocationStatusIsNotNull() {
-            addCriterion("invocation_status is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andInvocationStatusEqualTo(Integer value) {
-            addCriterion("invocation_status =", value, "invocationStatus");
-            return (Criteria) this;
-        }
-
-        public Criteria andInvocationStatusNotEqualTo(Integer value) {
-            addCriterion("invocation_status <>", value, "invocationStatus");
-            return (Criteria) this;
-        }
-
-        public Criteria andInvocationStatusGreaterThan(Integer value) {
-            addCriterion("invocation_status >", value, "invocationStatus");
-            return (Criteria) this;
-        }
-
-        public Criteria andInvocationStatusGreaterThanOrEqualTo(Integer value) {
-            addCriterion("invocation_status >=", value, "invocationStatus");
-            return (Criteria) this;
-        }
-
-        public Criteria andInvocationStatusLessThan(Integer value) {
-            addCriterion("invocation_status <", value, "invocationStatus");
-            return (Criteria) this;
-        }
-
-        public Criteria andInvocationStatusLessThanOrEqualTo(Integer value) {
-            addCriterion("invocation_status <=", value, "invocationStatus");
-            return (Criteria) this;
-        }
-
-        public Criteria andInvocationStatusIn(List<Integer> values) {
-            addCriterion("invocation_status in", values, "invocationStatus");
-            return (Criteria) this;
-        }
-
-        public Criteria andInvocationStatusNotIn(List<Integer> values) {
-            addCriterion("invocation_status not in", values, "invocationStatus");
-            return (Criteria) this;
-        }
-
-        public Criteria andInvocationStatusBetween(Integer value1, Integer value2) {
-            addCriterion("invocation_status between", value1, value2, "invocationStatus");
-            return (Criteria) this;
-        }
-
-        public Criteria andInvocationStatusNotBetween(Integer value1, Integer value2) {
-            addCriterion("invocation_status not between", value1, value2, "invocationStatus");
             return (Criteria) this;
         }
 

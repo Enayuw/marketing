@@ -19,19 +19,19 @@ public class SYJBlackData {
     private Long localId;
 
     /**
+     * 请求唯一id
+     */
+    private Long requestId;
+
+    /**
      * MD5加密手机号
      */
     private String cell;
 
     /**
-     * 0-未查询，1-查询中，2-查询失败，3-查询成功
+     * 0-未查询，1-查询中，2-查询成功，3-查询失败，4-部分成功
      */
     private Integer queryStatus;
-
-    /**
-     * 0-调用成功，1-系统异常
-     */
-    private Integer invocationStatus;
 
     /**
      * 状态 1-正常,2-非正常
@@ -87,6 +87,14 @@ public class SYJBlackData {
         this.localId = localId;
     }
 
+    public Long getRequestId() {
+        return requestId;
+    }
+
+    public void setRequestId(Long requestId) {
+        this.requestId = requestId;
+    }
+
     public String getCell() {
         return cell;
     }
@@ -101,14 +109,6 @@ public class SYJBlackData {
 
     public void setQueryStatus(Integer queryStatus) {
         this.queryStatus = queryStatus;
-    }
-
-    public Integer getInvocationStatus() {
-        return invocationStatus;
-    }
-
-    public void setInvocationStatus(Integer invocationStatus) {
-        this.invocationStatus = invocationStatus;
     }
 
     public Integer getStatus() {
