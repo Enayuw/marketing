@@ -4,12 +4,11 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
-import com.br.marketing.service.ValidityPeriodDataService;
 import com.br.marketing.service.ZhongYuanService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
-import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -80,12 +79,11 @@ public class ZhongYuanTransferDataToCustomerNotFirstTimeJob extends AbstractSimp
             log.error(ex.getMessage(), ex);
         }
     }
-    private void dealTransferDataWithThread(ThreadPoolExecutor zhongYuanTransferToDaasAndCustomerFilterThreadPool, List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
-        zhongYuanTransferToDaasAndCustomerFilterThreadPool
-                .setCorePoolSize(marketingCommonConfig.getZhongYuanTransferDataToDaasAndCustomerFilterThreadNum());
-        zhongYuanTransferToDaasAndCustomerFilterThreadPool
-                .setMaximumPoolSize(marketingCommonConfig.getZhongYuanTransferDataToDaasAndCustomerFilterThreadNum());
-
+    private void dealTransferDataWithThread(ThreadPoolExecutor zhongYuanTransferToDaasAndCustomerFilterThreadPool
+            , List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
+        ThreadPoolAdjustmentUtil.adjustThreadPoolSize(
+                zhongYuanTransferToDaasAndCustomerFilterThreadPool
+                , marketingCommonConfig.getZhongYuanTransferDataToDaasAndCustomerFilterThreadNum());
         zhongYuanTransferToDaasAndCustomerFilterThreadPool.execute(() -> threadDoProcess(marketingTransferSyncUserList));
     }
     /**
@@ -114,7 +112,8 @@ public class ZhongYuanTransferDataToCustomerNotFirstTimeJob extends AbstractSimp
      * @param indexId 起始id
      * @return
      */
-    private List<MarketingTransferSyncUser> getMarketingTransferSyncUsers(String apiCode, String parameter, String tcId, Long indexId) {
+    private List<MarketingTransferSyncUser> getMarketingTransferSyncUsers(
+            String apiCode, String parameter, String tcId, Long indexId) {
         String startDate = LocalDate.now().toString();
         String endDate = LocalDate.now().toString();
         if (StringUtils.isNotBlank(parameter)) {
