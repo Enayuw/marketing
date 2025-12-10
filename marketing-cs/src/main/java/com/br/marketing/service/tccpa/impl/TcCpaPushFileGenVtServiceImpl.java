@@ -56,13 +56,13 @@ public class TcCpaPushFileGenVtServiceImpl implements TcCpaPushFileGenVtService 
     private MarketingCommonConfig marketingCommonConfig;
 
     @Resource
+    private SyncConfigService syncConfigService;
+
+    @Resource
     private TcyrCpaPushFileTaskVtMapper tcyrCpaPushFileTaskVtMapper;
 
     @Resource
     private TcyrCpaPushDataMapper tcyrCpaPushDataMapper;
-
-    @Resource
-    private SyncConfigService syncConfigService;
 
     @Resource
     private SftpInnerServiceImpl sftpInnerService;
@@ -115,6 +115,8 @@ public class TcCpaPushFileGenVtServiceImpl implements TcCpaPushFileGenVtService 
         pushTask.setApiCode(apiCode);
         pushTask.setLocalPath(localPath);
         pushTask.setPushDate(new Date());
+        pushTask.setPushTime(collidingTasks.stream().max(Comparator.comparing(TcyrCpaCollidingTask::getCollidingTime))
+                .orElse(new TcyrCpaCollidingTask()).getPushTime());
         pushTask.setStatus(TcCpaPushFileTaskStatusEnum.STATUS_GENINAG.getValue());
         pushTask.setIsDel(Constants.DATA_VALID);
         pushTask.setCollidingTaskIds(collidingTasks.stream().map(TcyrCpaCollidingTask::getId).map(String::valueOf)
@@ -122,10 +124,11 @@ public class TcCpaPushFileGenVtServiceImpl implements TcCpaPushFileGenVtService 
         tcyrCpaPushFileTaskVtMapper.insertSelective(pushTask);
 
         FilePushTaskInfo info = new FilePushTaskInfo();
+        List<Long> taskIds = collidingTasks.stream().map(TcyrCpaCollidingTask::getId).collect(Collectors.toList());
         String infoString = null;
         try {
             //4.文件写入
-            Boolean isCompleted = write(localPath, yyyyMMdd, info);
+            Boolean isCompleted = write(localPath, yyyyMMdd, info, taskIds);
             //5.整理并核验info
             if (isCompleted) {
                 checkInfo(info);
@@ -135,6 +138,10 @@ public class TcCpaPushFileGenVtServiceImpl implements TcCpaPushFileGenVtService 
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
                     e.getMessage(), TITLE), e);
         }
+        /*
+
+         */
+        //
         try {
             infoString = objectMapper.writeValueAsString(info);
         } catch (Exception e) {
@@ -209,7 +216,7 @@ public class TcCpaPushFileGenVtServiceImpl implements TcCpaPushFileGenVtService 
      * @author hedongshuo
      * @date 2025/8/26 16:19
      **/
-    private Boolean write(String localPath, String yyyyMMdd, FilePushTaskInfo info) {
+    private Boolean write(String localPath, String yyyyMMdd, FilePushTaskInfo info, List<Long> taskIds) {
         Map<String, ImmutablePair<BufferedWriter, FilePushTaskFileDTO>> fwMap = new HashMap();
         try {
             //1.创建目录
@@ -221,12 +228,13 @@ public class TcCpaPushFileGenVtServiceImpl implements TcCpaPushFileGenVtService 
                     return false;
                 }
             }
+
             //判断是否生成数据文件
             Boolean onlyOk = marketingCommonConfig.getTcyrCpaPushFileConfig().getBoolean("onlyOk");
             info.setOnlyOk(onlyOk);
             if(!onlyOk){
                 //2.生成数据文件
-                Boolean writeSuccess = writeFile(localPath, yyyyMMdd, info, fwMap);
+                Boolean writeSuccess = writeFile(localPath, yyyyMMdd, info, fwMap, taskIds);
                 if (!writeSuccess) {
                     return false;
                 }
@@ -252,7 +260,7 @@ public class TcCpaPushFileGenVtServiceImpl implements TcCpaPushFileGenVtService 
                     writer.close();
                 } catch (Exception e) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
-                            "close writer error", TITLE));
+                            "close writer error", TITLE), e);
                 }
             }
         }
@@ -267,55 +275,47 @@ public class TcCpaPushFileGenVtServiceImpl implements TcCpaPushFileGenVtService 
     }
 
     private Boolean writeFile(String localPath, String yyyyMMdd, FilePushTaskInfo info,
-                              Map<String, ImmutablePair<BufferedWriter, FilePushTaskFileDTO>> fwMap) throws Exception {
+                              Map<String, ImmutablePair<BufferedWriter, FilePushTaskFileDTO>> fwMap, List<Long> taskIds) throws Exception {
         // 查询量级
         TcyrCpaPushDataExample example = new TcyrCpaPushDataExample();
         example.createCriteria().andIsDelEqualTo(Constants.DATA_VALID);
         int pushDataNum = tcyrCpaPushDataMapper.countByExample(example);
 
         //所需配置
-        Integer extraNumTotal = marketingCommonConfig.getTcyrCpaPushFileConfig().getInteger("extraNumTotal");
-        Integer extraNumSingle = marketingCommonConfig.getTcyrCpaPushFileConfig().getInteger("extraNumSingle");
-        Integer threadPoolSize = marketingCommonConfig.getTcyrCpaPushFileConfig().getInteger("threadPoolSize");
-        info.setExtraNumTotal(extraNumTotal);
+        Integer extraNumSingle = marketingCommonConfig.getTcyrCpaPushFileVTConfig().getInteger("extraNumSingle");
+        Integer threadPoolSize = marketingCommonConfig.getTcyrCpaPushFileVTConfig().getInteger("threadPoolSize");
         info.setExtraNumSingle(extraNumSingle);
 
         //期望提取量级
-        Integer extraNumExp = Math.min(extraNumTotal, pushDataNum);
-        info.setExtraNumExp(extraNumExp);
-        //数据提取量级
-        int extraDataNum = 0;
+        info.setExtraNumExp(pushDataNum);
         //文件提取量级
         int extraCsvNum = 0;
         //4.创建writer池
-        for (int i = 1; i <= (extraNumExp  + extraNumSingle - 1) / extraNumSingle; i++) {
+        for (int i = 1; i <= (pushDataNum + extraNumSingle - 1) / extraNumSingle; i++) {
             fwMap.put(String.valueOf(i), genWriter(localPath, yyyyMMdd, String.valueOf(i)));
         }
         //csv索引
         int csvIndex = 1;
         //5.创建线程池
+        //
         TpDynamicExecutor actionPool = TpDynamicExecutorFactory.getThreadPool(
                 ThreadPoolNameEnum.TCYR_CPA_PUSH_FILE_GEN_VT.getName(), threadPoolSize, threadPoolSize);
         try {
             List<CompletableFuture<Void>> futures = Lists.newArrayList();
             // 复合游标分页
-            Integer lastPriority = Integer.MIN_VALUE;
+            Integer lastPriority = Integer.MAX_VALUE;
             Long lastId = 0L;
             for (; ; ) {
                 Integer pageSize = marketingCommonConfig.getTcyrCpaPushFileVTConfig().getInteger("pageSize");
-                List<TcyrCpaPushData> pushDataList = tcyrCpaPushDataMapper.selectWithPagination(lastPriority, lastId, pageSize);
+                List<TcyrCpaPushData> pushDataList = tcyrCpaPushDataMapper.selectWithPagination(lastPriority, lastId,
+                        pageSize, taskIds);
                 if (CollectionUtils.isEmpty(pushDataList)) {
                     break;
-                }
-                // 总量控制
-                if (extraDataNum + pushDataList.size() > extraNumTotal) {
-                    pushDataList = pushDataList.subList(0, extraNumTotal - extraDataNum);
                 }
                 TcyrCpaPushData lastRecord = pushDataList.get(pushDataList.size() - 1);
                 lastPriority = lastRecord.getPriority();
                 lastId = lastRecord.getId();
 
-                extraDataNum += pushDataList.size();
                 List<String> userKeys = pushDataList.stream().map(TcyrCpaPushData::getUserKey).collect(Collectors.toList());
                 int fromIndex = 0;
                 while (fromIndex < userKeys.size()) {
@@ -333,9 +333,6 @@ public class TcCpaPushFileGenVtServiceImpl implements TcCpaPushFileGenVtService 
                         extraCsvNum = 0;
                     }
                     fromIndex = toIndex;
-                }
-                if (extraDataNum >= extraNumTotal) {
-                    break;
                 }
             }
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
@@ -374,7 +371,7 @@ public class TcCpaPushFileGenVtServiceImpl implements TcCpaPushFileGenVtService 
             writer.flush();
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
-                    "文件写入异常", TITLE));
+                    "文件写入异常", TITLE), e);
         }
     }
 

@@ -2,10 +2,13 @@ package com.br.marketing.dto.tccpa;
 
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Data
-public class FilePushTaskInfo {
+public class FilePushTaskInfo implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     //配置：文件提取总量级
     private Integer extraNumTotal;

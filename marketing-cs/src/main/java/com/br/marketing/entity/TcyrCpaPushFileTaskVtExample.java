@@ -602,6 +602,66 @@ public class TcyrCpaPushFileTaskVtExample {
             return (Criteria) this;
         }
 
+        public Criteria andPushTimeIsNull() {
+            addCriterion("push_time is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTimeIsNotNull() {
+            addCriterion("push_time is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTimeEqualTo(Date value) {
+            addCriterion("push_time =", value, "pushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTimeNotEqualTo(Date value) {
+            addCriterion("push_time <>", value, "pushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTimeGreaterThan(Date value) {
+            addCriterion("push_time >", value, "pushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTimeGreaterThanOrEqualTo(Date value) {
+            addCriterion("push_time >=", value, "pushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTimeLessThan(Date value) {
+            addCriterion("push_time <", value, "pushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTimeLessThanOrEqualTo(Date value) {
+            addCriterion("push_time <=", value, "pushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTimeIn(List<Date> values) {
+            addCriterion("push_time in", values, "pushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTimeNotIn(List<Date> values) {
+            addCriterion("push_time not in", values, "pushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTimeBetween(Date value1, Date value2) {
+            addCriterion("push_time between", value1, value2, "pushTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTimeNotBetween(Date value1, Date value2) {
+            addCriterion("push_time not between", value1, value2, "pushTime");
+            return (Criteria) this;
+        }
+
         public Criteria andStatusIsNull() {
             addCriterion("`status` is null");
             return (Criteria) this;
@@ -719,76 +779,6 @@ public class TcyrCpaPushFileTaskVtExample {
 
         public Criteria andTotalNotBetween(Integer value1, Integer value2) {
             addCriterion("total not between", value1, value2, "total");
-            return (Criteria) this;
-        }
-
-        public Criteria andInfoIsNull() {
-            addCriterion("info is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andInfoIsNotNull() {
-            addCriterion("info is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andInfoEqualTo(String value) {
-            addCriterion("info =", value, "info");
-            return (Criteria) this;
-        }
-
-        public Criteria andInfoNotEqualTo(String value) {
-            addCriterion("info <>", value, "info");
-            return (Criteria) this;
-        }
-
-        public Criteria andInfoGreaterThan(String value) {
-            addCriterion("info >", value, "info");
-            return (Criteria) this;
-        }
-
-        public Criteria andInfoGreaterThanOrEqualTo(String value) {
-            addCriterion("info >=", value, "info");
-            return (Criteria) this;
-        }
-
-        public Criteria andInfoLessThan(String value) {
-            addCriterion("info <", value, "info");
-            return (Criteria) this;
-        }
-
-        public Criteria andInfoLessThanOrEqualTo(String value) {
-            addCriterion("info <=", value, "info");
-            return (Criteria) this;
-        }
-
-        public Criteria andInfoLike(String value) {
-            addCriterion("info like", value, "info");
-            return (Criteria) this;
-        }
-
-        public Criteria andInfoNotLike(String value) {
-            addCriterion("info not like", value, "info");
-            return (Criteria) this;
-        }
-
-        public Criteria andInfoIn(List<String> values) {
-            addCriterion("info in", values, "info");
-            return (Criteria) this;
-        }
-
-        public Criteria andInfoNotIn(List<String> values) {
-            addCriterion("info not in", values, "info");
-            return (Criteria) this;
-        }
-
-        public Criteria andInfoBetween(String value1, String value2) {
-            addCriterion("info between", value1, value2, "info");
-            return (Criteria) this;
-        }
-
-        public Criteria andInfoNotBetween(String value1, String value2) {
-            addCriterion("info not between", value1, value2, "info");
             return (Criteria) this;
         }
 
@@ -1102,8 +1092,8 @@ public class TcyrCpaPushFileTaskVtExample {
         protected Criterion(String condition) {
             super();
             this.condition = condition;
-            this.typeHandler = null;
-            this.noValue = true;
+            typeHandler = null;
+            noValue = true;
         }
 
         protected Criterion(String condition, Object value, String typeHandler) {
@@ -1112,9 +1102,9 @@ public class TcyrCpaPushFileTaskVtExample {
             this.value = value;
             this.typeHandler = typeHandler;
             if (value instanceof List<?>) {
-                this.listValue = true;
+                listValue = true;
             } else {
-                this.singleValue = true;
+                singleValue = true;
             }
         }
 
@@ -1128,7 +1118,7 @@ public class TcyrCpaPushFileTaskVtExample {
             this.value = value;
             this.secondValue = secondValue;
             this.typeHandler = typeHandler;
-            this.betweenValue = true;
+            betweenValue = true;
         }
 
         protected Criterion(String condition, Object value, Object secondValue) {

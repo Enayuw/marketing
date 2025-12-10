@@ -67,6 +67,10 @@ public class TcyrCpaPushFileSyncVtServiceImpl implements TcyrCpaPushFileSyncVtSe
         if (CollectionUtils.isEmpty(tasks)) {
             return;
         }
+        Date pushTime = tasks.get(0).getPushTime();
+        if (new Date().compareTo(pushTime) < 0) {
+            return;
+        }
 
         TcyrCpaCollidingTaskExample example = new TcyrCpaCollidingTaskExample();
         example.createCriteria().andApiCodeEqualTo(apiCode).andIsDelEqualTo(TcCpaIsDelEnum.DEL_NO.getValue())

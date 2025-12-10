@@ -1,10 +1,9 @@
 package com.br.marketing.entity;
 
 import java.util.Date;
-
 public class TcyrCpaPushFileTaskVt {
     /**
-     * 
+     *
      */
     private Long id;
 
@@ -39,6 +38,11 @@ public class TcyrCpaPushFileTaskVt {
     private Date pushDate;
 
     /**
+     * 送撞时间（多个撞库任务取最晚时间）
+     */
+    private Date pushTime;
+
+    /**
      * 任务状态 1-生成中；2-生成成功；3-生成失败；4-传输至内部sftp；5-传输至运营sftp
      */
     private Integer status;
@@ -47,11 +51,6 @@ public class TcyrCpaPushFileTaskVt {
      * 文件总量级
      */
     private Integer total;
-
-    /**
-     * 提取详情
-     */
-    private String info;
 
     /**
      * 1-正常；9-删除
@@ -72,6 +71,11 @@ public class TcyrCpaPushFileTaskVt {
      * 更新时间
      */
     private Date updateTime;
+
+    /**
+     * 提取详情
+     */
+    private String info;
 
     public Long getId() {
         return id;
@@ -129,6 +133,14 @@ public class TcyrCpaPushFileTaskVt {
         this.pushDate = pushDate;
     }
 
+    public Date getPushTime() {
+        return pushTime;
+    }
+
+    public void setPushTime(Date pushTime) {
+        this.pushTime = pushTime;
+    }
+
     public Integer getStatus() {
         return status;
     }
@@ -143,14 +155,6 @@ public class TcyrCpaPushFileTaskVt {
 
     public void setTotal(Integer total) {
         this.total = total;
-    }
-
-    public String getInfo() {
-        return info;
-    }
-
-    public void setInfo(String info) {
-        this.info = info == null ? null : info.trim();
     }
 
     public Integer getIsDel() {
@@ -183,5 +187,13 @@ public class TcyrCpaPushFileTaskVt {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public String getInfo() {
+        return info;
+    }
+
+    public void setInfo(String info) {
+        this.info = info == null ? null : info.trim();
     }
 }

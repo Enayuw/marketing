@@ -22,10 +22,14 @@
         where is_del = 1
           and colliding_date = curdate()
           and (
-            priority > #{lastPriority}
+        priority &lt; #{lastPriority}
                 or (priority = #{lastPriority} and id > #{lastId})
             )
-        order by priority desc, id asc
+        and task_id in
+        <foreach item="taskId" collection="taskIds" open="(" separator="," close=")">
+            #{taskId}
+        </foreach>
+        order by priority asc, id asc
             limit #{limit}
     </select>
 </mapper>

@@ -9,13 +9,16 @@
     <result column="inner_sftp_path" property="innerSftpPath" jdbcType="VARCHAR" />
     <result column="ope_sftp_path" property="opeSftpPath" jdbcType="VARCHAR" />
     <result column="push_date" property="pushDate" jdbcType="DATE" />
+    <result column="push_time" property="pushTime" jdbcType="TIMESTAMP" />
     <result column="status" property="status" jdbcType="INTEGER" />
     <result column="total" property="total" jdbcType="INTEGER" />
-    <result column="info" property="info" jdbcType="VARCHAR" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
     <result column="extend" property="extend" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.TcyrCpaPushFileTaskVt" extends="BaseResultMap" >
+    <result column="info" property="info" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -77,8 +80,27 @@
   </sql>
   <sql id="Base_Column_List" >
     id, api_code, colliding_task_ids, local_path, inner_sftp_path, ope_sftp_path, push_date, 
-    `status`, total, info, is_del, extend, create_time, update_time
+    push_time, `status`, total, is_del, extend, create_time, update_time
   </sql>
+  <sql id="Blob_Column_List" >
+    info
+  </sql>
+  <select id="selectByExampleWithBLOBs" resultMap="ResultMapWithBLOBs" parameterType="com.br.marketing.entity.TcyrCpaPushFileTaskVtExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from b_tcyr_cpa_push_file_task_vt
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.TcyrCpaPushFileTaskVtExample" >
     select
     <if test="distinct" >
@@ -93,9 +115,11 @@
       order by ${orderByClause}
     </if>
   </select>
-  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
+    select
     <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
     from b_tcyr_cpa_push_file_task_vt
     where id = #{id,jdbcType=BIGINT}
   </select>
@@ -113,16 +137,16 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_tcyr_cpa_push_file_task_vt (api_code, colliding_task_ids, local_path, 
-      inner_sftp_path, ope_sftp_path, push_date, 
-      `status`, total, info, 
-      is_del, extend, create_time, 
-      update_time)
-    values (#{apiCode,jdbcType=VARCHAR}, #{collidingTaskIds,jdbcType=VARCHAR}, #{localPath,jdbcType=VARCHAR}, 
-      #{innerSftpPath,jdbcType=VARCHAR}, #{opeSftpPath,jdbcType=VARCHAR}, #{pushDate,jdbcType=DATE}, 
-      #{status,jdbcType=INTEGER}, #{total,jdbcType=INTEGER}, #{info,jdbcType=VARCHAR}, 
-      #{isDel,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP})
+    insert into b_tcyr_cpa_push_file_task_vt (api_code, colliding_task_ids, local_path,
+    inner_sftp_path, ope_sftp_path, push_date,
+    push_time, `status`, total,
+    is_del, extend, create_time,
+    update_time, info)
+    values (#{apiCode,jdbcType=VARCHAR}, #{collidingTaskIds,jdbcType=VARCHAR}, #{localPath,jdbcType=VARCHAR},
+    #{innerSftpPath,jdbcType=VARCHAR}, #{opeSftpPath,jdbcType=VARCHAR}, #{pushDate,jdbcType=DATE},
+    #{pushTime,jdbcType=TIMESTAMP}, #{status,jdbcType=INTEGER}, #{total,jdbcType=INTEGER},
+    #{isDel,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP},
+    #{updateTime,jdbcType=TIMESTAMP}, #{info,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.TcyrCpaPushFileTaskVt" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -148,14 +172,14 @@
       <if test="pushDate != null" >
         push_date,
       </if>
+      <if test="pushTime != null" >
+        push_time,
+      </if>
       <if test="status != null" >
         `status`,
       </if>
       <if test="total != null" >
         total,
-      </if>
-      <if test="info != null" >
-        info,
       </if>
       <if test="isDel != null" >
         is_del,
@@ -168,6 +192,9 @@
       </if>
       <if test="updateTime != null" >
         update_time,
+      </if>
+      <if test="info != null" >
+        info,
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
@@ -189,14 +216,14 @@
       <if test="pushDate != null" >
         #{pushDate,jdbcType=DATE},
       </if>
+      <if test="pushTime != null" >
+        #{pushTime,jdbcType=TIMESTAMP},
+      </if>
       <if test="status != null" >
         #{status,jdbcType=INTEGER},
       </if>
       <if test="total != null" >
         #{total,jdbcType=INTEGER},
-      </if>
-      <if test="info != null" >
-        #{info,jdbcType=VARCHAR},
       </if>
       <if test="isDel != null" >
         #{isDel,jdbcType=INTEGER},
@@ -209,6 +236,9 @@
       </if>
       <if test="updateTime != null" >
         #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="info != null" >
+        #{info,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -242,14 +272,14 @@
       <if test="record.pushDate != null" >
         push_date = #{record.pushDate,jdbcType=DATE},
       </if>
+      <if test="record.pushTime != null" >
+        push_time = #{record.pushTime,jdbcType=TIMESTAMP},
+      </if>
       <if test="record.status != null" >
         `status` = #{record.status,jdbcType=INTEGER},
       </if>
       <if test="record.total != null" >
         total = #{record.total,jdbcType=INTEGER},
-      </if>
-      <if test="record.info != null" >
-        info = #{record.info,jdbcType=VARCHAR},
       </if>
       <if test="record.isDel != null" >
         is_del = #{record.isDel,jdbcType=INTEGER},
@@ -263,7 +293,31 @@
       <if test="record.updateTime != null" >
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="record.info != null" >
+        info = #{record.info,jdbcType=VARCHAR},
+      </if>
     </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExampleWithBLOBs" parameterType="map" >
+    update b_tcyr_cpa_push_file_task_vt
+    set id = #{record.id,jdbcType=BIGINT},
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    colliding_task_ids = #{record.collidingTaskIds,jdbcType=VARCHAR},
+    local_path = #{record.localPath,jdbcType=VARCHAR},
+    inner_sftp_path = #{record.innerSftpPath,jdbcType=VARCHAR},
+    ope_sftp_path = #{record.opeSftpPath,jdbcType=VARCHAR},
+    push_date = #{record.pushDate,jdbcType=DATE},
+    push_time = #{record.pushTime,jdbcType=TIMESTAMP},
+    `status` = #{record.status,jdbcType=INTEGER},
+    total = #{record.total,jdbcType=INTEGER},
+    is_del = #{record.isDel,jdbcType=INTEGER},
+    extend = #{record.extend,jdbcType=VARCHAR},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    info = #{record.info,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -271,19 +325,19 @@
   <update id="updateByExample" parameterType="map" >
     update b_tcyr_cpa_push_file_task_vt
     set id = #{record.id,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      colliding_task_ids = #{record.collidingTaskIds,jdbcType=VARCHAR},
-      local_path = #{record.localPath,jdbcType=VARCHAR},
-      inner_sftp_path = #{record.innerSftpPath,jdbcType=VARCHAR},
-      ope_sftp_path = #{record.opeSftpPath,jdbcType=VARCHAR},
-      push_date = #{record.pushDate,jdbcType=DATE},
-      `status` = #{record.status,jdbcType=INTEGER},
-      total = #{record.total,jdbcType=INTEGER},
-      info = #{record.info,jdbcType=VARCHAR},
-      is_del = #{record.isDel,jdbcType=INTEGER},
-      extend = #{record.extend,jdbcType=VARCHAR},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    colliding_task_ids = #{record.collidingTaskIds,jdbcType=VARCHAR},
+    local_path = #{record.localPath,jdbcType=VARCHAR},
+    inner_sftp_path = #{record.innerSftpPath,jdbcType=VARCHAR},
+    ope_sftp_path = #{record.opeSftpPath,jdbcType=VARCHAR},
+    push_date = #{record.pushDate,jdbcType=DATE},
+    push_time = #{record.pushTime,jdbcType=TIMESTAMP},
+    `status` = #{record.status,jdbcType=INTEGER},
+    total = #{record.total,jdbcType=INTEGER},
+    is_del = #{record.isDel,jdbcType=INTEGER},
+    extend = #{record.extend,jdbcType=VARCHAR},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -309,14 +363,14 @@
       <if test="pushDate != null" >
         push_date = #{pushDate,jdbcType=DATE},
       </if>
+      <if test="pushTime != null" >
+        push_time = #{pushTime,jdbcType=TIMESTAMP},
+      </if>
       <if test="status != null" >
         `status` = #{status,jdbcType=INTEGER},
       </if>
       <if test="total != null" >
         total = #{total,jdbcType=INTEGER},
-      </if>
-      <if test="info != null" >
-        info = #{info,jdbcType=VARCHAR},
       </if>
       <if test="isDel != null" >
         is_del = #{isDel,jdbcType=INTEGER},
@@ -330,24 +384,45 @@
       <if test="updateTime != null" >
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="info != null" >
+        info = #{info,jdbcType=VARCHAR},
+      </if>
     </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.br.marketing.entity.TcyrCpaPushFileTaskVt" >
+    update b_tcyr_cpa_push_file_task_vt
+    set api_code = #{apiCode,jdbcType=VARCHAR},
+        colliding_task_ids = #{collidingTaskIds,jdbcType=VARCHAR},
+        local_path = #{localPath,jdbcType=VARCHAR},
+        inner_sftp_path = #{innerSftpPath,jdbcType=VARCHAR},
+        ope_sftp_path = #{opeSftpPath,jdbcType=VARCHAR},
+        push_date = #{pushDate,jdbcType=DATE},
+        push_time = #{pushTime,jdbcType=TIMESTAMP},
+        `status` = #{status,jdbcType=INTEGER},
+        total = #{total,jdbcType=INTEGER},
+        is_del = #{isDel,jdbcType=INTEGER},
+        extend = #{extend,jdbcType=VARCHAR},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        info = #{info,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.TcyrCpaPushFileTaskVt" >
     update b_tcyr_cpa_push_file_task_vt
     set api_code = #{apiCode,jdbcType=VARCHAR},
-      colliding_task_ids = #{collidingTaskIds,jdbcType=VARCHAR},
-      local_path = #{localPath,jdbcType=VARCHAR},
-      inner_sftp_path = #{innerSftpPath,jdbcType=VARCHAR},
-      ope_sftp_path = #{opeSftpPath,jdbcType=VARCHAR},
-      push_date = #{pushDate,jdbcType=DATE},
-      `status` = #{status,jdbcType=INTEGER},
-      total = #{total,jdbcType=INTEGER},
-      info = #{info,jdbcType=VARCHAR},
-      is_del = #{isDel,jdbcType=INTEGER},
-      extend = #{extend,jdbcType=VARCHAR},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+        colliding_task_ids = #{collidingTaskIds,jdbcType=VARCHAR},
+        local_path = #{localPath,jdbcType=VARCHAR},
+        inner_sftp_path = #{innerSftpPath,jdbcType=VARCHAR},
+        ope_sftp_path = #{opeSftpPath,jdbcType=VARCHAR},
+        push_date = #{pushDate,jdbcType=DATE},
+        push_time = #{pushTime,jdbcType=TIMESTAMP},
+        `status` = #{status,jdbcType=INTEGER},
+        total = #{total,jdbcType=INTEGER},
+        is_del = #{isDel,jdbcType=INTEGER},
+        extend = #{extend,jdbcType=VARCHAR},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

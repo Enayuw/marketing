@@ -94,7 +94,7 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
                 }
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
-                        "数据筛选流程异常，taskId:" + task.getId(), TITLE));
+                        "数据筛选流程异常，taskId:" + task.getId(), TITLE), e);
                 break;
             }
         }

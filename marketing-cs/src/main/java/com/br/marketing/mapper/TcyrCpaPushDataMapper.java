@@ -15,9 +15,8 @@ public interface TcyrCpaPushDataMapper extends TcyrCpaPushDataMapperBase{
      * 分页查询数据
      */
     List<TcyrCpaPushData> selectWithPagination(
-            @Param("lastPriority") Integer lastPriority,
-            @Param("lastId") Long lastId,
-            @Param("limit") Integer limit
+            @Param("lastPriority") Integer lastPriority, @Param("lastId") Long lastId,
+            @Param("limit") Integer limit, @Param("taskIds") List<Long> taskIds
     );
 
     void insertBatchWithCollidingDate(@Param("dataList") List<TcyrCpaPushData> dataList);
