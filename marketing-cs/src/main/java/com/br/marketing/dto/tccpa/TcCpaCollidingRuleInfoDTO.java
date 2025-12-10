@@ -20,9 +20,6 @@ public class TcCpaCollidingRuleInfoDTO {
     @Schema(description = "剔除规则")
     private List<TcyrCpaDeleteRuleInfo> deleteRules;
 
-    @Schema(description = "提取量级阈值")
-    private Integer extraNumTotal;
-
     @Schema(description = "提取时间")
     private String extraTime;
 }

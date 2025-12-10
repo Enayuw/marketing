@@ -25,9 +25,6 @@ public class TcCpaCollidingRuleDTO {
     @Schema(description = "补包规则releaseTime集合")
     private List<TcyrFailMsgSupplyGroupDTO> failMsgSupplyGroups;
 
-    @Schema(description = "提取量级阈值")
-    private Integer limitNum;
-
     @Schema(description = "撞库日期集合")
     @NotEmpty(message = "撞库日期集合不能为空")
     private List<String> collidingDates;

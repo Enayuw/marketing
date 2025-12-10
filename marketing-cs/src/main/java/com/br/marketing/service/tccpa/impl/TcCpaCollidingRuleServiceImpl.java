@@ -90,7 +90,6 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
             infoDTO.setDeleteRules(deleteRuleInfo);
         }
         //3.查询提取量级阈值和提取时间
-        infoDTO.setExtraNumTotal(marketingCommonConfig.getTcyrCpaPushFileVTConfig().getInteger("extraNumTotal"));
         infoDTO.setExtraTime(marketingCommonConfig.getTcyrCpaPushFileVTConfig().getString("extraTime"));
         return new Result<TcCpaCollidingRuleInfoDTO>()
                 .setCode(ResultCode.SUCCESS.getValue())
@@ -134,6 +133,42 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
                 .setDate(result);
     }
 
+    @Override
+    public Result rule(TcCpaCollidingRuleDTO ruleDTO) {
+        //1.创建基础任务，设置共性的属性
+        List<String> packageIds = ruleDTO.getPackageIds();
+        List<Long> packageIdStrs = packageIds.stream()
+                .map(Long::valueOf)
+                .collect(Collectors.toList());
+        String packageNames = tcyrCpaCollidingDataPackageMapper.queryPackageNamesByIds(packageIdStrs);
+        TcyrCpaCollidingTask basicTask = new TcyrCpaCollidingTask();
+        basicTask.setApiCode(marketingCommonConfig.getTcyrCpaApiCode());
+        basicTask.setPackageIds(String.join(",", packageIds));
+        basicTask.setPackageNames(packageNames);
+        basicTask.setDeleteRuleIds(String.join(",", ruleDTO.getDeleteRuleIds()));
+        //1.1创建补包信息
+        if (CollectionUtils.isNotEmpty(ruleDTO.getFailMsgSupplyGroups())) {
+            //过滤掉isSupply=false的数据
+            List<TcyrFailMsgSupplyGroupDTO> supplyGroupDTOS = filterByIsSupply(ruleDTO.getFailMsgSupplyGroups());
+            if (CollectionUtils.isNotEmpty(supplyGroupDTOS)) {
+                JSONArray supplyFailMsgs = marketingCommonConfig.getTcyrCpaPushFileVTConfig().getJSONArray("supplyFailMsgs");
+                Map<Integer, Integer> failMsgToPriority = parseWithStream(supplyFailMsgs);
+                //构造数据
+                List<TcyrSupplyRuleInfo> supplyRuleInfos = generateGroupedSupplyRules(supplyGroupDTOS, failMsgToPriority);
+                basicTask.setSupplyRuleInfo(JsonParseUtils.toJson(supplyRuleInfos));
+            }
+        }
+        //2.遍历撞库日期，插入【b_tcyr_cpa_colliding_task】
+        for (String collidingDate : ruleDTO.getCollidingDates()) {
+            TcyrCpaCollidingTask task = new TcyrCpaCollidingTask();
+            BeanUtils.copyProperties(basicTask, task);
+            task.setCollidingDate(DateHelper.parseDate(collidingDate));
+            task.setCollidingTime(DateHelper.parseDate(collidingDate + " " + ruleDTO.getCollidingTime()));
+            tcyrCpaCollidingTaskMapper.insertSelective(task);
+        }
+        return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
     /**
      * 查询上次勾选的格子
      * @param taskId
@@ -165,42 +200,7 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
 
     }
 
-    @Override
-    public Result rule(TcCpaCollidingRuleDTO ruleDTO) {
-        //1.创建基础任务，设置共性的属性
-        List<String> packageIds = ruleDTO.getPackageIds();
-        List<Long> packageIdStrs = packageIds.stream()
-                .map(Long::valueOf)
-                .collect(Collectors.toList());
-        String packageNames = tcyrCpaCollidingDataPackageMapper.queryPackageNamesByIds(packageIdStrs);
-        TcyrCpaCollidingTask basicTask = new TcyrCpaCollidingTask();
-        basicTask.setApiCode(marketingCommonConfig.getTcyrCpaApiCode());
-        basicTask.setPackageIds(String.join(",", packageIds));
-        basicTask.setPackageNames(packageNames);
-        basicTask.setLimitNum(ruleDTO.getLimitNum());
-        basicTask.setDeleteRuleIds(String.join(",", ruleDTO.getDeleteRuleIds()));
-        //1.1创建补包信息
-        if (CollectionUtils.isNotEmpty(ruleDTO.getFailMsgSupplyGroups())) {
-            //过滤掉isSupply=false的数据
-            List<TcyrFailMsgSupplyGroupDTO> supplyGroupDTOS = filterByIsSupply(ruleDTO.getFailMsgSupplyGroups());
-            if (CollectionUtils.isNotEmpty(supplyGroupDTOS)) {
-                JSONArray supplyFailMsgs = marketingCommonConfig.getTcyrCpaPushFileVTConfig().getJSONArray("supplyFailMsgs");
-                Map<Integer, Integer> failMsgToPriority = parseWithStream(supplyFailMsgs);
-                //构造数据
-                List<TcyrSupplyRuleInfo> supplyRuleInfos = generateGroupedSupplyRules(supplyGroupDTOS, failMsgToPriority);
-                basicTask.setSupplyRuleInfo(JsonParseUtils.toJson(supplyRuleInfos));
-            }
-        }
-        //2.遍历撞库日期，插入【b_tcyr_cpa_colliding_task】
-        for (String collidingDate : ruleDTO.getCollidingDates()) {
-            TcyrCpaCollidingTask task = new TcyrCpaCollidingTask();
-            BeanUtils.copyProperties(basicTask, task);
-            task.setCollidingDate(DateHelper.parseDate(collidingDate));
-            task.setCollidingTime(DateHelper.parseDate(collidingDate + " " + ruleDTO.getCollidingTime()));
-            tcyrCpaCollidingTaskMapper.insertSelective(task);
-        }
-        return new Result().setCode(ResultCode.SUCCESS.getValue());
-    }
+
 
     @Override
     public PageResultReturn list(TcCpaCollidingRuleQueryDTO dto) {
@@ -284,7 +284,6 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
         task.setPackageIds(String.join(",", packageIds));
         task.setPackageNames(packageNames);
         task.setDeleteRuleIds(String.join(",", ruleDTO.getDeleteRuleIds()));
-        task.setLimitNum(ruleDTO.getLimitNum());
         task.setCollidingTime(DateHelper.parseDate(collidingDate + " " + ruleDTO.getCollidingTime()));
         //todo 更新时需要更新量级不
         //3.赋值补包字段
@@ -521,7 +520,7 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
             SupplyGroupData groupData = entry.getValue();
             Integer priority = failMsgToPriority.get(groupData.getFailMsg());
             TcyrSupplyRuleInfo ruleInfo = new TcyrSupplyRuleInfo();
-            ruleInfo.setPriority(priority != null ? priority : 99);
+            ruleInfo.setPriority(priority != null ? 100 + priority : 99);
             ruleInfo.setReleaseTimes(groupData.getDates());
             ruleInfo.setFailMsg(groupData.getFailMsg());
             String supplyScript = generateDynamicSql(groupData.getFailMsg(), groupData.getDates());

@@ -19,11 +19,6 @@ public class TcyrCpaCollidingTask {
     private String packageIds;
 
     /**
-     * 重试数据包id集合
-     */
-    private String retryPackageIds;
-
-    /**
      * 数据包名称集合
      */
     private String packageNames;
@@ -37,11 +32,6 @@ public class TcyrCpaCollidingTask {
      * 撞库时间
      */
     private Date collidingTime;
-
-    /**
-     * 撞库量级上限
-     */
-    private Integer limitNum;
 
     /**
      * 剔除规则id集合
@@ -59,16 +49,6 @@ public class TcyrCpaCollidingTask {
     private String supplyRuleInfo;
 
     /**
-     * 补充数据包id
-     */
-    private String supplyPackageId;
-
-    /**
-     * 重试补充fail_msg集合
-     */
-    private String retrySupplyFailMsgs;
-
-    /**
      * 补充量级
      */
     private Integer supplyNum;
@@ -84,14 +64,9 @@ public class TcyrCpaCollidingTask {
     private Integer pushNum;
 
     /**
-     * 任务状态 0-待统计；1-统计中；2-统计完成；3-筛选中；4-筛选完成；5-推送中；6-推送完成；7-推送失败；
+     * 任务状态 1-待统计；2-统计完成；3-筛选中；4-筛选完成；5-推送中；6-推送完成；7-推送失败；
      */
     private Integer status;
-
-    /**
-     * 重新筛选
-     */
-    private Integer isretry;
 
     /**
      * 禁用标志 0-禁用 1-启用
@@ -142,14 +117,6 @@ public class TcyrCpaCollidingTask {
         this.packageIds = packageIds == null ? null : packageIds.trim();
     }
 
-    public String getRetryPackageIds() {
-        return retryPackageIds;
-    }
-
-    public void setRetryPackageIds(String retryPackageIds) {
-        this.retryPackageIds = retryPackageIds == null ? null : retryPackageIds.trim();
-    }
-
     public String getPackageNames() {
         return packageNames;
     }
@@ -174,14 +141,6 @@ public class TcyrCpaCollidingTask {
         this.collidingTime = collidingTime;
     }
 
-    public Integer getLimitNum() {
-        return limitNum;
-    }
-
-    public void setLimitNum(Integer limitNum) {
-        this.limitNum = limitNum;
-    }
-
     public String getDeleteRuleIds() {
         return deleteRuleIds;
     }
@@ -204,22 +163,6 @@ public class TcyrCpaCollidingTask {
 
     public void setSupplyRuleInfo(String supplyRuleInfo) {
         this.supplyRuleInfo = supplyRuleInfo == null ? null : supplyRuleInfo.trim();
-    }
-
-    public String getSupplyPackageId() {
-        return supplyPackageId;
-    }
-
-    public void setSupplyPackageId(String supplyPackageId) {
-        this.supplyPackageId = supplyPackageId == null ? null : supplyPackageId.trim();
-    }
-
-    public String getRetrySupplyFailMsgs() {
-        return retrySupplyFailMsgs;
-    }
-
-    public void setRetrySupplyFailMsgs(String retrySupplyFailMsgs) {
-        this.retrySupplyFailMsgs = retrySupplyFailMsgs == null ? null : retrySupplyFailMsgs.trim();
     }
 
     public Integer getSupplyNum() {
@@ -252,14 +195,6 @@ public class TcyrCpaCollidingTask {
 
     public void setStatus(Integer status) {
         this.status = status;
-    }
-
-    public Integer getIsretry() {
-        return isretry;
-    }
-
-    public void setIsretry(Integer isretry) {
-        this.isretry = isretry;
     }
 
     public Integer getEnabled() {
