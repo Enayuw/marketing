@@ -37,7 +37,7 @@ public class OpenAPIConfig {
                         .license(new License().name("百融云").url("https://brgroup.com")));
 
         if(!"dev".equals(activeProfile)){
-            info.addServersItem(new Server().url("/compass-api/api/marketing-api"));
+            info.addServersItem(new Server().url("/api/marketing-api"));
         }
 
         return info;
