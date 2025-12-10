@@ -14,6 +14,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.constants.MockConstants;
 import com.br.marketing.entity.UpdateTask;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -51,6 +52,9 @@ public class SuiyijiClient {
     @Resource
     private HttpProxyClient httpProxyClient;
 
+    @Resource
+    MarketingCommonConfig marketingCommonConfig;
+
     @RetryMethod(retryNowNum = 2)
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     @Mockable(mockName = MockConstants.SUIYIJI_QUERY_BLACK)
@@ -65,14 +69,16 @@ public class SuiyijiClient {
             String content = resMap.get("content");
             JSONObject resultJson = JSONObject.parseObject(content);
             String returncode = resultJson.getString("code");
-            //String data = resultJson.getString("data");
-            String data = "111";
+            String data = resultJson.getString("data");
             if ("0".equals(returncode)) {
                 if (StringUtils.isNotEmpty(data)) {
                     //RSA解密
-                    //String decodeStr = SuiyijiRSAUtil.decryptByPrivateKey(data, brPrivateKey);
-                    String decodeStr = "[\"15711399935\",\"1843452345\"]";
-
+                    if (StringUtils.isNotEmpty(marketingCommonConfig.getSuiyijiBlackBrPrivateKey())) {
+                        brPrivateKey = marketingCommonConfig.getSuiyijiBlackBrPrivateKey();
+                    }
+                    log.warn("调用随意记获取黑名单解密，data={},brPrivateKey={}", data, brPrivateKey);
+                    String decodeStr = SuiyijiRSAUtil.decryptByPrivateKey(data, brPrivateKey);
+                    //String decodeStr = "[\"15711399935\",\"1843452345\"]";
                     return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(decodeStr);
                 } else {
                     log.error("随意记获取黑名单返回data为空");

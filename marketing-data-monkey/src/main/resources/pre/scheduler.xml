@@ -802,7 +802,7 @@
     />
     <job:simple id="【monkey】-SuiYiJiGetBlackJob"
                 class="com.br.marketing.monkey.job.syj.SuiYiJiGetBlackJob"
-                cron="0 0 18 29 9 ? 2099-2099"
+                cron="0 0 16 * * ? *"
                 description="随记忆获取黑名单推转化"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"

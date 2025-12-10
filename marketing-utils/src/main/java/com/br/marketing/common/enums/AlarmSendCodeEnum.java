@@ -359,7 +359,7 @@ public enum AlarmSendCodeEnum {
 
     MARKETING_AVIATORSCRIPT_LINE_CHANGE_ERROR("8001005", "线路三方字段同步异常"),
     //随意记
-    SUIYIJI_SERVICE_ERROR("8001006", "随意记调用异常"),
+    SUIYIJI_SERVICE_ERROR("8001008", "随意记调用异常"),
 
     MARKETING_AVIATORSCRIPT_SMS_CHANGE_ERROR("8001007", "短信三方字段同步异常"),
 
