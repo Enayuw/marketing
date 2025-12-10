@@ -29,7 +29,7 @@ public class CaptchaController {
     /**
      * 验证码
      */
-    @GetMapping("/captcha.do")
+    @GetMapping("/captcha")
     public ApiResult<JSONObject> captcha(HttpSession session) {
         //定义图形验证码的长、宽、验证码字符数、干扰元素个数
         CircleCaptcha captcha = CaptchaUtil.createCircleCaptcha(206, 41, 4, 0);
