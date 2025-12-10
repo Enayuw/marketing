@@ -2872,6 +2872,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         List<ConditionVO> conditionVOS = new ArrayList<>();
         scoreByNameNumberList.forEach(score -> {
             ConditionVO conditionVO = new ConditionVO();
+            conditionVO.setId(score.getId());
             conditionVO.setConditionId(score.getId());
             conditionVO.setName(score.getName());
             conditionVO.setSourceType(score.getSourceType());

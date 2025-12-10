@@ -6,6 +6,9 @@ import lombok.Data;
 @Data
 public class ConditionVO {
 
+    @ApiModelProperty(value = "id")
+    private Long id;
+
     @ApiModelProperty(value = "conditionId")
     private Long conditionId;
 
