@@ -1,6 +1,5 @@
 package com.br.marketing.service.Impl;
 
-import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.entity.MqIdempotentCommon;
 import com.br.marketing.entity.MqIdempotentSpecial;
 import com.br.marketing.enums.MqIdempotentTableType;
@@ -12,8 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 /**
@@ -100,8 +97,6 @@ public class MqIdempotentServiceImpl implements MqIdempotentService {
         record.setApiCode(apiCode);
         record.setTag(tag);
         record.setIsDeleted(NOT_DELETED);
-        String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
-        record.setCreateDate(Integer.valueOf(yyyyMMdd));
         record.setCreateTime(now);
         record.setUpdateTime(now);
         return record;
@@ -116,8 +111,6 @@ public class MqIdempotentServiceImpl implements MqIdempotentService {
         record.setApiCode(apiCode);
         record.setTag(tag);
         record.setIsDeleted(NOT_DELETED);
-        String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
-        record.setCreateDate(Integer.valueOf(yyyyMMdd));
         record.setCreateTime(now);
         record.setUpdateTime(now);
         return record;
