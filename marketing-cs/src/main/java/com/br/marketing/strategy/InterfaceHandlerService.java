@@ -1,7 +1,6 @@
 package com.br.marketing.strategy;
 
 import com.alibaba.fastjson.JSON;
-import com.br.common.log.AlertLog;
 import com.br.marketing.aspect.MqIdempotent;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.commondto.Result;
@@ -65,14 +64,18 @@ public class InterfaceHandlerService {
 
         } catch (Exception e) {
             String apiCode = processHandlerContext.getApiCode();
-            String errorMsg = String.format("规则中心-业务逻辑消费异常，apiCode: %s, error: %s",
-                    apiCode == null ? "null" : apiCode, e.getMessage());
-            String subject = "规则中心-业务逻辑消费异常";
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), errorMsg
-                    , subject), e);
+            String error = String.format("规则中心-业务逻辑消费异常！: %s \r\napiCode:%s, message:%s, errorMsg:%s"
+                    , apiCode == null ? "null" : apiCode, message, e.getMessage());
+            log.warn(error, e);
+            alarmClient.sendAlarm(error, "规则中心-业务逻辑消费异常！", AlarmSendCodeEnum.ROCKETMQ_CONSUMER_ERROR.getCode());
             throw e;
         }
 
         return result;
     }
+
+    private void verifyIdempotent(){
+
+    }
+
 }
