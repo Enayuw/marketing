@@ -403,7 +403,7 @@ public class TaskServiceImpl implements ITaskService {
     private int getResource() throws Exception {
         int hasResource = 0;
         int maxNum = marketingCommonConfig.getTaskResourceMaxNum() == null ? 300 : marketingCommonConfig.getTaskResourceMaxNum();
-        List<String> parentPaths = Arrays.asList(ZookeeperPath.loanPath, ZookeeperPath.marketPath);
+        List<String> parentPaths = Arrays.asList(ZookeeperPath.marketPath);
         for (String parentPath : parentPaths) {
             if (client.checkExists().forPath(parentPath) != null) {
                 List<String> loanPaths = client.getChildren().forPath(parentPath);
