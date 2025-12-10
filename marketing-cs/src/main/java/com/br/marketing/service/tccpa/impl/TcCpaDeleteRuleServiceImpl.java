@@ -13,8 +13,8 @@ import com.br.marketing.entity.MarketingCustomerExample;
 import com.br.marketing.entity.TcyrCpaDeleteRule;
 import com.br.marketing.entity.TcyrCpaDeleteRuleExample;
 import com.br.marketing.enums.TcCpaDeleteRuleSourceTypeEnum;
+import com.br.marketing.enums.TcCpaFailMsgEnum;
 import com.br.marketing.mapper.MarketingCustomerMapper;
-import com.br.marketing.mapper.TcyrCpaCommonMapper;
 import com.br.marketing.mapper.TcyrCpaDeleteRuleMapper;
 import com.br.marketing.service.tccpa.TcCpaCommonService;
 import com.br.marketing.service.tccpa.TcCpaDataDeleteRuleService;
@@ -25,7 +25,6 @@ import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.curator.shaded.com.google.common.base.Splitter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -54,7 +53,7 @@ public class TcCpaDeleteRuleServiceImpl implements TcCpaDataDeleteRuleService {
     public Result rule(TcyrCpaDeleteRuleVO ruleVO) {
         TcyrCpaDeleteRule rule = new TcyrCpaDeleteRule();
         BeanUtils.copyProperties(ruleVO, rule);
-        rule.setEnabled(Constants.ENABLED_FORB);
+        rule.setEnabled(Constants.ENABLED_ACT);
         rule.setIsDel(Constants.DATA_VALID);
         rule.setApiCode(marketingCommonConfig.getTcyrCpaApiCode());
         rule.setCreateTime(new Date());
@@ -106,26 +105,28 @@ public class TcCpaDeleteRuleServiceImpl implements TcCpaDataDeleteRuleService {
      */
     private void processFailMsgRule(TcyrCpaDeleteRule rule) {
         if (rule.getFailMsgs() == null || rule.getFailMsgs().trim().isEmpty()) {
-            log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(), "规则类型为3时，失败类型不能为空"));
+            log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(), "规则类型为3时，failMsgs不能为空"));
             return;
         }
         String[] failMsgArray = rule.getFailMsgs().split(",");
-        List<String> nonTwoValues = Arrays.stream(failMsgArray).map(String::trim)
-                .filter(s -> !StringUtils.equals("2", s)).collect(Collectors.toList());
-        boolean hasTwo = Arrays.stream(failMsgArray)
-                .map(String::trim).anyMatch(s -> StringUtils.equals("2", s));
+        List<Integer> invalues = Arrays.stream(failMsgArray).map(String::trim)
+                .filter(tcCpaFailMsgEnum -> Objects.isNull(TcCpaFailMsgEnum.getByValue(Integer.valueOf(tcCpaFailMsgEnum)).getLockValue()))
+                .map(Integer::parseInt).collect(Collectors.toList());
+        List<Integer> lockData = Arrays.stream(failMsgArray).map(String::trim)
+                .filter(tcCpaFailMsgEnum -> Objects.nonNull(TcCpaFailMsgEnum.getByValue(Integer.valueOf(tcCpaFailMsgEnum)).getLockValue()))
+                .map(Integer::parseInt).collect(Collectors.toList());
 
         List<TcCpaDeleteRuleExecuteInfoDTO> executeInfos = Lists.newArrayList();
-        if (CollectionUtils.isNotEmpty(nonTwoValues)) {
+        if (CollectionUtils.isNotEmpty(invalues)) {
             TcCpaDeleteRuleExecuteInfoDTO executeInfo2 = new TcCpaDeleteRuleExecuteInfoDTO();
             executeInfo2.setSourceType(TcCpaDeleteRuleSourceTypeEnum.INVALUE_DATA.getValue());
-            executeInfo2.setValue(nonTwoValues.stream().map(Integer::parseInt).collect(Collectors.toList()));
+            executeInfo2.setValue(invalues);
             executeInfos.add(executeInfo2);
         }
-        if (hasTwo) {
+        if (CollectionUtils.isNotEmpty(lockData)) {
             TcCpaDeleteRuleExecuteInfoDTO executeInfo = new TcCpaDeleteRuleExecuteInfoDTO();
             executeInfo.setSourceType(TcCpaDeleteRuleSourceTypeEnum.LOCK_DATA.getValue());
-            executeInfo.setValue(Lists.newArrayList(2));
+            executeInfo.setValue(lockData);
             executeInfos.add(executeInfo);
         }
         rule.setExecuteInfo(JSON.toJSONString(executeInfos));

@@ -1,5 +1,8 @@
 package com.br.marketing.enums;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * clean_status枚举
  */
@@ -12,6 +15,19 @@ public enum TcCpaFailMsgEnum {
     FAIL_OUTLIMIT(5,"达到限额", null),
     FAIL_BLANK(6,"空白组", 3),
     ;
+
+    private static final Map<Integer, TcCpaFailMsgEnum> ENUM_MAP = new HashMap<>();
+
+    static {
+        for (TcCpaFailMsgEnum value : TcCpaFailMsgEnum.values()) {
+            ENUM_MAP.put(value.value, value);
+            ENUM_MAP.put(value.value, value);
+        }
+    }
+
+    public static TcCpaFailMsgEnum getByValue(Integer value) {
+        return ENUM_MAP.get(value);
+    }
 
     TcCpaFailMsgEnum(Integer value, String desc, Integer lockValue){
           this.value = value;
