@@ -46,7 +46,7 @@ public class TcCpaCollidingDataMagnitudeServiceImpl implements TcCpaCollidingDat
     public void process() {
         // 判断当日统计任务是否完成
         TcyrCpaCollectTaskExample example = new TcyrCpaCollectTaskExample();
-        example.createCriteria().andStatusEqualTo(TcCpaCollectStatusEnum.DEAL_NO.getValue())
+        example.createCriteria().andStatusLessThan(TcCpaCollectStatusEnum.DEAL_SUCCESS.getValue())
                 .andSourceTypeIn(Lists.newArrayList(TcCpaCollidingSourceTypeEnum.SUCCESS.getValue(),
                         TcCpaCollidingSourceTypeEnum.FAIL.getValue()));
         if (tcyrCpaCollectTaskMapper.countByExample(example) > 0) {
