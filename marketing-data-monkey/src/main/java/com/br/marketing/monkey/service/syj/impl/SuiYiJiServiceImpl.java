@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -198,6 +199,9 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
             // 用于收集成功的数据
             List<SYJOriginalData> successDataList = Collections.synchronizedList(new ArrayList<>());
 
+            // 使用CountDownLatch等待所有任务完成
+            CountDownLatch latch = new CountDownLatch(originalDataList.size());
+
             // 批量更新状态为查询中
             List<Long> idList = originalDataList.stream().map(SYJOriginalData::getId).toList();
             batchUpdateOriginalData(idList, QueryStatusEnum.QUERYING.getCode(), null);
@@ -233,8 +237,19 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
                         // 更新明细数据query_status和extend字段
                         originalDataMapper.updateByPrimaryKeySelective(originalData);
 
+                    }finally {
+                        // 任务完成，计数器减1
+                        latch.countDown();
                     }
                 });
+            }
+
+            // 等待所有任务完成
+            try {
+                latch.await();
+            } catch (InterruptedException e) {
+                log.error("{}等待任务完成被中断，fileId={}", logPrefix, fileId, e);
+                Thread.currentThread().interrupt();
             }
 
             // 2000条都处理完成后，将查询成功的数据调用pushUpload方法
