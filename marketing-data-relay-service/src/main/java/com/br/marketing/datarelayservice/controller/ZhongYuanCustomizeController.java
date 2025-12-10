@@ -22,7 +22,7 @@ import javax.servlet.http.HttpServletRequest;
  * @Date 2025/11/14 11:12
  */
 @Tag(name = "中原消金")
-@RequestMapping("/api/znwh/poc")
+@RequestMapping("/api/znwh")
 @RestController
 @Slf4j
 public class ZhongYuanCustomizeController {
@@ -31,28 +31,28 @@ public class ZhongYuanCustomizeController {
     private ZhongYuanUploadDataService zhongYuanUploadDataService;
 
     @Operation(summary = "用户登录接口")
-    @PostMapping("/task/login")
+    @PostMapping("/poc/task/login")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ZhongYuanBaseResponse<?> login(@RequestBody String jsonData, HttpServletRequest request) {
         return zhongYuanUploadDataService.login(jsonData, request);
     }
 
     @Operation(summary = "外呼上报接口")
-    @PostMapping("/batchTask")
+    @PostMapping("/poc/batchTask")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ZhongYuanBaseResponse<?> batchTask(@RequestBody String jsonData, HttpServletRequest request) {
         return zhongYuanUploadDataService.batchTask(jsonData, request);
     }
 
     @Operation(summary = "场景变量信息接口")
-    @PostMapping("/sceneVariable")
+    @PostMapping("/poc/sceneVariable")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ZhongYuanBaseResponse<?> sceneVariable(@RequestBody String jsonData, HttpServletRequest request) {
         return zhongYuanUploadDataService.sceneVariable(jsonData, request);
     }
 
     @Operation(summary = "批量外呼任务状态修改接口")
-    @PostMapping("/task/status")
+    @PostMapping("/poc/task/status")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public ZhongYuanBaseResponse<?> status(@RequestBody String jsonData, HttpServletRequest request) {
         return zhongYuanUploadDataService.status(jsonData, request);
