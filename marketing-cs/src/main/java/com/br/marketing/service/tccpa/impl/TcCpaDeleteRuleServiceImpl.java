@@ -8,13 +8,11 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.tccpa.TcCpaDeleteRuleExecuteInfoDTO;
-import com.br.marketing.entity.MarketingCustomer;
-import com.br.marketing.entity.MarketingCustomerExample;
-import com.br.marketing.entity.TcyrCpaDeleteRule;
-import com.br.marketing.entity.TcyrCpaDeleteRuleExample;
+import com.br.marketing.entity.*;
 import com.br.marketing.enums.TcCpaDeleteRuleSourceTypeEnum;
 import com.br.marketing.enums.TcCpaFailMsgEnum;
 import com.br.marketing.mapper.MarketingCustomerMapper;
+import com.br.marketing.mapper.TcyrCpaCollidingTaskMapper;
 import com.br.marketing.mapper.TcyrCpaDeleteRuleMapper;
 import com.br.marketing.service.tccpa.TcCpaCommonService;
 import com.br.marketing.service.tccpa.TcCpaDataDeleteRuleService;
@@ -45,6 +43,9 @@ public class TcCpaDeleteRuleServiceImpl implements TcCpaDataDeleteRuleService {
 
     @Resource
     private TcyrCpaDeleteRuleMapper tcyrCpaDeleteRuleMapper;
+
+    @Resource
+    private TcyrCpaCollidingTaskMapper tcyrCpaCollidingTaskMapper;
 
     @Resource
     private TcCpaCommonService tcCpaCommonService;
@@ -183,6 +184,12 @@ public class TcCpaDeleteRuleServiceImpl implements TcCpaDataDeleteRuleService {
 
     @Override
     public Result enable(Long id, Integer enabled) {
+        TcyrCpaCollidingTaskExample taskExample = new TcyrCpaCollidingTaskExample();
+        taskExample.createCriteria().andDeleteRuleIdsLike(String.valueOf(id));
+        if(tcyrCpaCollidingTaskMapper.countByExample(taskExample) > 0 && Objects.equals(enabled, Constants.ENABLED_FORB)) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("存在已使用该规则的撞库任务，不能禁用剔除规则");
+        }
+
         TcyrCpaDeleteRuleExample example = new TcyrCpaDeleteRuleExample();
         example.createCriteria().andIdEqualTo(id);
 
@@ -195,6 +202,12 @@ public class TcCpaDeleteRuleServiceImpl implements TcCpaDataDeleteRuleService {
     public Result delete(Long id) {
         TcyrCpaDeleteRuleExample example = new TcyrCpaDeleteRuleExample();
         example.createCriteria().andIdEqualTo(id);
+
+        TcyrCpaCollidingTaskExample taskExample = new TcyrCpaCollidingTaskExample();
+        taskExample.createCriteria().andDeleteRuleIdsLike(String.valueOf(id));
+        if(tcyrCpaCollidingTaskMapper.countByExample(taskExample) > 0) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("存在已使用该规则的撞库任务，不能删除剔除规则");
+        }
 
         TcyrCpaDeleteRule rule = new TcyrCpaDeleteRule();
         rule.setIsDel(Constants.DATA_DEL);
