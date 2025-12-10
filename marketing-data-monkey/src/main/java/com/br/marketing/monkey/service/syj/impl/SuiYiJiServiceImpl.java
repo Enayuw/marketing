@@ -277,7 +277,7 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
                     logPrefix, fileId, actualNumber, compareValue);
         } else if (actualNumber != null && actualNumber.equals(compareValue)) {
             // 量级一致，更新为推送成功
-            updateLocalFilePushStatus(localFile, LocalFilePushStatusEnum.PUSH_SUCCESS.getCode(), null, new Date(), null);
+            updateLocalFilePushStatus(localFile, LocalFilePushStatusEnum.PUSH_SUCCESS.getCode(), null, new Date(), "全部成功");
             log.warn("{}撞库数据处理完成，量级一致，fileId={}, 期望量级={}, 实际量级={}, 已更新为推送成功",
                     logPrefix, fileId, actualNumber, compareValue);
         } else {
@@ -490,7 +490,7 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
                     logPrefix, fileId, actualNumber, compareValue);
         } else if (actualNumber != null && actualNumber.equals(compareValue)) {
             // 量级一致，更新为推送成功
-            updateLocalFilePushStatus(localFile, LocalFilePushStatusEnum.PUSH_SUCCESS.getCode(), null, new Date(), null);
+            updateLocalFilePushStatus(localFile, LocalFilePushStatusEnum.PUSH_SUCCESS.getCode(), null, new Date(), "全部成功");
             log.warn("{}黑名单处理完成，量级一致，fileId={}, 期望量级={}, 实际量级={}, 已更新为推送成功",
                     logPrefix, fileId, actualNumber, compareValue);
         } else {
