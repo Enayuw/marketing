@@ -1,10 +1,8 @@
 package com.br.marketing.strategy;
 
 import com.alibaba.fastjson.JSON;
-import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.rule.InterfaceParams;
@@ -24,9 +22,6 @@ public class InterfaceHandlerService {
     @Resource
     private InterfaceHandlerFactory interfaceHandlerFactory;
 
-    @Resource
-    private AlarmApiClient alarmClient;
-
 
     /**
      *  处理数据流向
@@ -38,7 +33,7 @@ public class InterfaceHandlerService {
     public Result<Boolean> handleDataDirection(String message){
 
         Result<Boolean> result = new Result<>().setCode(ResultCode.SUCCESS.getValue());
-        ProcessHandlerContext processHandlerContext = new ProcessHandlerContext();
+
         try {
             /**
              *
@@ -47,6 +42,7 @@ public class InterfaceHandlerService {
              *     如 { 1:List<BlackListDTO>,4:List<ConversionData>}
              */
             MqFact mqFact = JSON.parseObject(message, MqFact.class);
+            ProcessHandlerContext processHandlerContext = new ProcessHandlerContext();
             processHandlerContext.setMqFact(mqFact);
 
             Map<Integer, List<InterfaceParams>> map =interfaceHandlerFactory.collectAndAssembleData(mqFact,processHandlerContext);
@@ -61,19 +57,10 @@ public class InterfaceHandlerService {
             result.setDate(false);
 
         } catch (Exception e) {
-            String apiCode = processHandlerContext.getApiCode();
-            String error = String.format("规则中心-业务逻辑消费异常！: %s \r\napiCode:%s, message:%s, errorMsg:%s"
-                    , apiCode == null ? "null" : apiCode, message, e.getMessage());
-            log.warn(error, e);
-            alarmClient.sendAlarm(error, "规则中心-业务逻辑消费异常！", AlarmSendCodeEnum.ROCKETMQ_CONSUMER_ERROR.getCode());
-            throw e;
+            log.error("通用转化逻辑处理数据 mq:{} 失败 -- ",message,e);
+            result.setDate(true);
         }
-
         return result;
-    }
-
-    private void verifyIdempotent(){
-
     }
 
 }

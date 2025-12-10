@@ -93,6 +93,7 @@ import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.service.rulecenter.IEsActionService;
 import com.br.marketing.service.rulecenter.IRuleCenterFilterTemplateService;
 import com.br.marketing.service.rulecenter.RuleCenterBySourceTypeFactory;
+import com.br.marketing.service.rulecenter.enums.RuleCenterPushTargetEnum;
 import com.br.marketing.service.rulecenter.impl.push.UploadRePushPolicyStrategy;
 import com.br.marketing.service.strategy.pushpreview.IPushPreviewStrategy;
 import com.br.marketing.service.strategy.pushpreview.PushPreviewStrategyEnum;
@@ -140,12 +141,14 @@ import org.springframework.web.client.RestTemplate;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
@@ -3519,8 +3522,6 @@ public class PushRuleServiceImpl implements PushRuleService {
             mrpMqFact.setSourceId(infoId);
             mrpMqFact.setSource(TransferSource.INIT_DATA_SET_PROCESS.getCode());
             mrpMqFact.setApiCode(apiCode);
-            mrpMqFact.setIdempotentKey(snowflakeRedisGeneratorHandle.nextId());
-
             if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_MRP_UNIVERSAL_TRANSFER_RECEIVE)) {
                 String message = JSON.toJSONString(mrpMqFact);
                 rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
@@ -3710,7 +3711,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         MqFact mqFact = new MqFact();
         mqFact.setSourceId(infoId);
         mqFact.setSource(TransferSource.INIT_DATA_SET_PROCESS.getCode());
-        mqFact.setIdempotentKey(snowflakeRedisGeneratorHandle.nextId());
 
         List<String> initDataPushApiCode = marketingCommonConfig.getInitDataPushRule() == null ? new ArrayList<String>() :
                 marketingCommonConfig.getInitDataPushRule();
