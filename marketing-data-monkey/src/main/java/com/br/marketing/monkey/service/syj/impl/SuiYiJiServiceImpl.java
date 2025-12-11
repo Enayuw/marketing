@@ -267,14 +267,14 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
         // 所有数据处理完成后，比较成功量级和文件原始量级
         int finalSuccessCount = totalSuccessCount.get();
         // 如果是重试逻辑，需要累加重试前的成功数量
-        int compareValue = !logPrefix.isEmpty() && originalPushNumber != null
+        int compareValue = !logPrefix.isEmpty()
                 ? (originalPushNumber + finalSuccessCount)
                 : finalSuccessCount;
 
         // 更新push_number字段
         if (!logPrefix.isEmpty()) {
             // 重试逻辑：push_number = 重试前的值 + 重试后的值
-            int finalPushNumber = (originalPushNumber != null ? originalPushNumber : 0) + finalSuccessCount;
+            int finalPushNumber = originalPushNumber + finalSuccessCount;
             localFile.setPushNumber(finalPushNumber);
             log.warn("{}重试逻辑更新push_number，fileId={}, 重试前push_number={}, 重试成功量级={}, 新push_number={}",
                     logPrefix, fileId, originalPushNumber, finalSuccessCount, finalPushNumber);
@@ -481,7 +481,7 @@ public class SuiYiJiServiceImpl implements SuiYiJiService {
         int finalSuccessCount = totalSuccessCount.get();
         // 如果是重试逻辑，需要累加重试前的成功数量
         int compareValue = !logPrefix.isEmpty()
-                ? originalPushNumber + finalSuccessCount
+                ? (originalPushNumber + finalSuccessCount)
                 : finalSuccessCount;
 
         // 更新push_number字段

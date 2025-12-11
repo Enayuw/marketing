@@ -12,7 +12,10 @@ import java.util.List;
  */
 public interface SYJOriginalDataMapper extends SYJOriginalDataMapperBase {
 
-    List<SYJOriginalData> queryOriginalData(@Param("localId") Long localId, @Param("queryStatus") Integer queryStatus, @Param("minId") Long minId, @Param("pageSize") Integer pageSize);
+    List<SYJOriginalData> queryOriginalData(@Param("localId") Long localId
+            , @Param("queryStatus") Integer queryStatus
+            , @Param("minId") Long minId
+            , @Param("pageSize") Integer pageSize);
 
     void batchUpdateStatus(@Param("ids") List<Long> ids, @Param("queryStatus") Integer queryStatus, @Param("extend") String extend);
 
