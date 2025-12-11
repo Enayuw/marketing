@@ -68,4 +68,14 @@ public interface BQifuUploadDataOriginalMapper extends BQifuUploadDataOriginalMa
      */
     void batchUpdateStatus(@Param("records") List<BQifuUploadDataOriginal> records);
 
+    /**
+     * 批量更新指定条件的记录的清洗状态为0
+     * 条件：非实时数据（is_real=0）、指定user_type、今天的数据、查询状态非0
+     * @param userType 场景标识
+     * @param todayDate 今天的日期 yyyy-MM-dd
+     * @return 更新的记录数
+     */
+    int updateStatusToUnprocessedForNonRealtime(@Param("userType") String userType,
+                                                  @Param("todayDate") String todayDate);
+
 }
