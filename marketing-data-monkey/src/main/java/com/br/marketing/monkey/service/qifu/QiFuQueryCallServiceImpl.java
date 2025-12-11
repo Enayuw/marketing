@@ -316,7 +316,8 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
     /**
      * 处理某个userType的数据列表（单场景调用接口）
      */
-    private void processUserTypeDataList(String userType, List<BQifuUploadDataOriginal> dataList, String todayDate, LocalTime timeThreshold, String cleaningSwitch) {
+    private void processUserTypeDataList(String userType, List<BQifuUploadDataOriginal> dataList,
+                                         String todayDate, LocalTime timeThreshold, String cleaningSwitch) {
         // 按serialNo分组，每50个一批调用接口
         List<String> serialNoList = dataList.stream()
                 .map(BQifuUploadDataOriginal::getSerialNo)
