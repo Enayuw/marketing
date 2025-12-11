@@ -30,6 +30,9 @@ public final class MockConstants {
     public static final String TEST_DTO_RETURN = "test_dto_return";
     public static final String TEST_LIST_RETURN = "test_list_return";
     // ==================== 工具方法 ====================
+
+    public static final String TEST_QIFIUQUERY_RETURN = "test_qifuquery_return";
+
     //随意记黑名单获取MOCK
     public static final String SUIYIJI_QUERY_BLACK = "suiyiji_query_black";
     //随忆记用户信息撞库
@@ -38,9 +41,6 @@ public final class MockConstants {
     public static final String SUIYIJI_BLACK = "suiyiji_black";
 
 
-
-    public static final String TEST_QIFIUQUERY_RETURN = "test_qifuquery_return";
-
     /**
      * 获取所有Mock名称的列表
      *
@@ -48,19 +48,19 @@ public final class MockConstants {
      */
     public static List<String> getAllMockNames() {
         return Arrays.asList(
-            // 基础类型
-            TEST_VOID_RETURN,
-            TEST_OBJECT_RETURN,
-            // 框架封装类型
-            TEST_API_RESULT_RETURN,
-            TEST_RESULT_RETURN,
-            // 复杂对象类型
-            TEST_DTO_RETURN,
-            TEST_LIST_RETURN,
-            TEST_QIFIUQUERY_RETURN,
-            SUIYIJI_QUERY_BLACK,
-            SUIYIJI_ORIGINAL,
-            SUIYIJI_BLACK
+                // 基础类型
+                TEST_VOID_RETURN,
+                TEST_OBJECT_RETURN,
+                // 框架封装类型
+                TEST_API_RESULT_RETURN,
+                TEST_RESULT_RETURN,
+                // 复杂对象类型
+                TEST_DTO_RETURN,
+                TEST_LIST_RETURN,
+                TEST_QIFIUQUERY_RETURN,
+                SUIYIJI_QUERY_BLACK,
+                SUIYIJI_ORIGINAL,
+                SUIYIJI_BLACK
         );
     }
 
