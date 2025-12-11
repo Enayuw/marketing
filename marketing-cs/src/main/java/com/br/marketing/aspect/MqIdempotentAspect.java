@@ -128,9 +128,7 @@ public class MqIdempotentAspect {
     private Long insertIdempotentRecord(MqIdempotentTableType tableType, Long idempotentKey,
                                         String apiCode, String tag) throws RuntimeException {
         try {
-            Long recordId = mqIdempotentService.insertIdempotentRecord(tableType, idempotentKey, apiCode, tag);
-            log.warn("消息幂等校验通过，插入幂等记录成功，idempotentKey: {}, recordId: {}, tag: {}", idempotentKey, recordId, tag);
-            return recordId;
+            return mqIdempotentService.insertIdempotentRecord(tableType, idempotentKey, apiCode, tag);
         } catch (DuplicateKeyException e) {
             String subject = "MQ幂等切面, 幂等校验不通过！";
             String message = String.format("该MQ消息已处理过, idempotentKey: %s, tag: %s, 跳过本次处理, error: %s",
