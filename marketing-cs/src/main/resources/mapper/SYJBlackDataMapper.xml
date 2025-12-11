@@ -9,7 +9,7 @@
         and query_status = #{queryStatus}
         and status = 1
         <if test="minId != null and minId >0">
-            and id >=#{minId}
+            and id > #{minId}
         </if>
         order by id asc
         limit #{pageSize}
