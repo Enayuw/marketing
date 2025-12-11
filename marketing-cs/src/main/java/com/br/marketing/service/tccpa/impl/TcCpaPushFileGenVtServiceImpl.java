@@ -116,7 +116,7 @@ public class TcCpaPushFileGenVtServiceImpl implements TcCpaPushFileGenVtService 
         pushTask.setLocalPath(localPath);
         pushTask.setPushDate(new Date());
         pushTask.setPushTime(collidingTasks.stream().max(Comparator.comparing(TcyrCpaCollidingTask::getCollidingTime))
-                .orElse(new TcyrCpaCollidingTask()).getPushTime());
+                .orElse(new TcyrCpaCollidingTask()).getCollidingTime());
         pushTask.setStatus(TcCpaPushFileTaskStatusEnum.STATUS_GENINAG.getValue());
         pushTask.setIsDel(Constants.DATA_VALID);
         pushTask.setCollidingTaskIds(collidingTasks.stream().map(TcyrCpaCollidingTask::getId).map(String::valueOf)

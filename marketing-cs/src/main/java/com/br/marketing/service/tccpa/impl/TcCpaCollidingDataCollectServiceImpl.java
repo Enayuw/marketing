@@ -114,11 +114,13 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
 
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
+            tcyrCpaCollectTask.setUpdateTime(new Date());
             tcyrCpaCollectTask.setStatus(TcCpaCollectStatusEnum.DEAL_SUCCESS.getValue());
             tcyrCpaCollectTaskMapper.updateByPrimaryKey(tcyrCpaCollectTask);
 
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(), e.getMessage(), TITLE), e);
+            tcyrCpaCollectTask.setUpdateTime(new Date());
             tcyrCpaCollectTask.setStatus(TcCpaCollectStatusEnum.DEAL_FAIL.getValue());
             tcyrCpaCollectTaskMapper.updateByPrimaryKey(tcyrCpaCollectTask);
         } finally {
@@ -208,12 +210,14 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
 
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
+            tcyrCpaCollectTask.setUpdateTime(new Date());
             tcyrCpaCollectTask.setStatus(TcCpaCollectStatusEnum.DEAL_SUCCESS.getValue());
             tcyrCpaCollectTaskMapper.updateByPrimaryKey(tcyrCpaCollectTask);
 
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(), e.getMessage(), TITLE), e);
             tcyrCpaCollectTask.setStatus(TcCpaCollectStatusEnum.DEAL_FAIL.getValue());
+            tcyrCpaCollectTask.setUpdateTime(new Date());
             tcyrCpaCollectTaskMapper.updateByPrimaryKey(tcyrCpaCollectTask);
         } finally {
             actionPool.shutdownAndAwaitTermination();
