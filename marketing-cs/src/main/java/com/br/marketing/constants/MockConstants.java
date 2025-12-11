@@ -11,7 +11,9 @@ import java.util.List;
  */
 public final class MockConstants {
 
-    private MockConstants() {}
+    private MockConstants() {
+    }
+
     /**
      * 基础类型Mock名称
      */
@@ -31,27 +33,40 @@ public final class MockConstants {
 
     public static final String TEST_QIFIUQUERY_RETURN = "test_qifuquery_return";
 
+    //随意记黑名单获取MOCK
+    public static final String SUIYIJI_QUERY_BLACK = "suiyiji_query_black";
+    //随忆记用户信息撞库
+    public static final String SUIYIJI_ORIGINAL = "suiyiji_original";
+    //随忆记黑名单
+    public static final String SUIYIJI_BLACK = "suiyiji_black";
+
+
     /**
      * 获取所有Mock名称的列表
+     *
      * @return 所有Mock名称列表
      */
     public static List<String> getAllMockNames() {
         return Arrays.asList(
-            // 基础类型
-            TEST_VOID_RETURN,
-            TEST_OBJECT_RETURN,
-            // 框架封装类型
-            TEST_API_RESULT_RETURN,
-            TEST_RESULT_RETURN,
-            // 复杂对象类型
-            TEST_DTO_RETURN,
-            TEST_LIST_RETURN,
-            TEST_QIFIUQUERY_RETURN
+                // 基础类型
+                TEST_VOID_RETURN,
+                TEST_OBJECT_RETURN,
+                // 框架封装类型
+                TEST_API_RESULT_RETURN,
+                TEST_RESULT_RETURN,
+                // 复杂对象类型
+                TEST_DTO_RETURN,
+                TEST_LIST_RETURN,
+                TEST_QIFIUQUERY_RETURN,
+                SUIYIJI_QUERY_BLACK,
+                SUIYIJI_ORIGINAL,
+                SUIYIJI_BLACK
         );
     }
-    
+
     /**
      * 检查指定的Mock名称是否存在
+     *
      * @param mockName Mock名称
      * @return 是否存在
      */
