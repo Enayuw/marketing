@@ -185,7 +185,7 @@ public class TcCpaDeleteRuleServiceImpl implements TcCpaDataDeleteRuleService {
     @Override
     public Result enable(Long id, Integer enabled) {
         TcyrCpaCollidingTaskExample taskExample = new TcyrCpaCollidingTaskExample();
-        taskExample.createCriteria().andDeleteRuleIdsLike(String.valueOf(id));
+        taskExample.createCriteria().andDeleteRuleIdsLike("%" + id + "%");
         if(tcyrCpaCollidingTaskMapper.countByExample(taskExample) > 0 && Objects.equals(enabled, Constants.ENABLED_FORB)) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("存在已使用该规则的撞库任务，不能禁用剔除规则");
         }
@@ -204,7 +204,7 @@ public class TcCpaDeleteRuleServiceImpl implements TcCpaDataDeleteRuleService {
         example.createCriteria().andIdEqualTo(id);
 
         TcyrCpaCollidingTaskExample taskExample = new TcyrCpaCollidingTaskExample();
-        taskExample.createCriteria().andDeleteRuleIdsLike(String.valueOf(id));
+        taskExample.createCriteria().andDeleteRuleIdsLike("%" + id + "%");
         if(tcyrCpaCollidingTaskMapper.countByExample(taskExample) > 0) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("存在已使用该规则的撞库任务，不能删除剔除规则");
         }
