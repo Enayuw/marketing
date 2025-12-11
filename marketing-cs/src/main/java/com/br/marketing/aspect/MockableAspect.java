@@ -161,69 +161,20 @@ public class MockableAspect {
 
             // 处理 ApiResult 类型
             if (ApiResult.class.isAssignableFrom(returnType)) {
-                return new ApiResult<>().success(responseBody);
+                try {
+                    return objectMapper.convertValue(responseBody, objectMapper.getTypeFactory().constructType(method.getGenericReturnType()));
+                } catch (Exception e) {
+                    log.warn(TITLE + "【ApiResult转换】方法 {} 响应体无法直接转换为ApiResult，使用success包装", methodName);
+                    return new ApiResult<>().success(responseBody);
+                }
             }
 
             // 处理 Result 类型
             if (Result.class.isAssignableFrom(returnType)) {
-                // 如果 responseBody 本身就是 Result 类型（从 JSON 解析出来的）
-                if (responseBody instanceof Result) {
-                    Result<?> parsedResult = (Result<?>) responseBody;
-                    // 需要转换 Result 内部的 data 字段类型
-                    Type genericReturnType = method.getGenericReturnType();
-                    if (genericReturnType instanceof ParameterizedType) {
-                        ParameterizedType parameterizedType = (ParameterizedType) genericReturnType;
-                        Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
-                        if (actualTypeArguments.length > 0) {
-                            // 获取 Result<T> 中的 T 类型
-                            Type dataType = actualTypeArguments[0];
-                            Object data = parsedResult.getData();
-                            // 如果 data 是 Map 类型，需要转换为目标类型
-                            if (data != null && (data instanceof java.util.Map)) {
-                                try {
-                                    Object convertedData = objectMapper.readValue(
-                                        objectMapper.writeValueAsString(data),
-                                        objectMapper.getTypeFactory().constructType(dataType)
-                                    );
-                                    Result<Object> result = new Result<>();
-                                    result.setCode(parsedResult.getCode());
-                                    result.setMessage(parsedResult.getMessage());
-                                    result.setDate(convertedData);
-                                    return result;
-                                } catch (Exception e) {
-                                    log.warn(TITLE + "【Result内部data类型转换失败】方法 {} data字段无法转换为目标类型，使用原始data。错误：{}",
-                                            methodName, e.getMessage());
-                                }
-                            }
-                        }
-                    }
-                    // 如果转换失败，返回原始 Result
-                    return parsedResult;
-                } else {
-                    // responseBody 不是 Result 类型，需要创建新的 Result 并转换 data 类型
-                    Type genericReturnType = method.getGenericReturnType();
-                    if (genericReturnType instanceof ParameterizedType) {
-                        ParameterizedType parameterizedType = (ParameterizedType) genericReturnType;
-                        Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
-                        if (actualTypeArguments.length > 0) {
-                            Type dataType = actualTypeArguments[0];
-                            try {
-                                // 将 responseBody 转换为目标类型
-                                Object convertedData = objectMapper.readValue(
-                                    objectMapper.writeValueAsString(responseBody),
-                                    objectMapper.getTypeFactory().constructType(dataType)
-                                );
-                                Result<Object> result = new Result<>();
-                                result.success();
-                                result.setDate(convertedData);
-                                return result;
-                            } catch (Exception e) {
-                                log.warn(TITLE + "【Result data类型转换失败】方法 {} 无法将响应数据转换为目标类型，使用原始数据。错误：{}",
-                                        methodName, e.getMessage());
-                            }
-                        }
-                    }
-                    // 降级处理：直接设置 responseBody
+                try {
+                    return objectMapper.convertValue(responseBody, objectMapper.getTypeFactory().constructType(method.getGenericReturnType()));
+                } catch (Exception e) {
+                    log.warn(TITLE + "【Result转换】方法 {} 响应体无法直接转换为Result，使用success包装", methodName);
                     Result<Object> result = new Result<>();
                     result.success();
                     result.setDate(responseBody);

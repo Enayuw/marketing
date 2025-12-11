@@ -15,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 public enum FileTypeToAssemblerEnum {
 
     TRANSFER_CSV_COMMON("transfer_csv_common", "csvToDbAssembler", "1"),
+    SYJ_ORIGINAL("syj_original", "", "1"),
     ;
 
     private String fileType;
