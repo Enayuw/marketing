@@ -245,4 +245,6 @@ public interface PushRuleService {
 
     Result<String> queryUploadOverAmt(String custNum, HttpServletRequest request);
 
+
+    void sendJsonParseMq(String apiCode,Integer dataSourceType,Integer systemType,Integer dataType,Integer acceptType,String jsonData);
 }

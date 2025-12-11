@@ -7,6 +7,7 @@ import com.alibaba.fastjson.TypeReference;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
+import com.br.marketing.client.rulecleaning.DataCleanDTO;
 import com.br.marketing.client.rulecleaning.RuleCleaningResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -17,6 +18,7 @@ import com.br.marketing.common.utils.JsonParseUtils;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
+import com.br.marketing.dto.dataclean.mq.CommonMqDataJsonParse;
 import com.br.marketing.dto.dataclean.mq.MqDataJsonParse;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.clean.DataCleanStatusEnum;
@@ -25,6 +27,7 @@ import com.br.marketing.enums.clean.DataSourceTypeEnum;
 import com.br.marketing.handle.SnowflakeRedisGeneratorHandle;
 import com.br.marketing.mapper.*;
 import com.br.marketing.mapper.rulecleaning.MarketingCustomerOriginalDataMapper;
+import com.br.marketing.mapper.rulecleaning.MarketingDataCleanGeneralConfigMapper;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.clean.common.DataCleanService;
@@ -96,6 +99,8 @@ public class DataCleanServiceImpl implements DataCleanService {
 
 
     private static final String TITLE = "【定制上传数据清洗】";
+    @Autowired
+    private MarketingDataCleanGeneralConfigMapper marketingDataCleanGeneralConfigMapper;
 
     @Override
     public Result<Boolean> customerDataJsonParse(String message) {
@@ -104,7 +109,8 @@ public class DataCleanServiceImpl implements DataCleanService {
         try {
             MqDataJsonParse mqDataJsonParse = JSON.parseObject(message, MqDataJsonParse.class);
             //获取表名
-            String tableName = DataProcessEnum.getByTypes(mqDataJsonParse.getDataType(), mqDataJsonParse.getAcceptType()).getTableName();
+            String tableName = DataProcessEnum.getByTypes(mqDataJsonParse.getDataType()
+                    , mqDataJsonParse.getAcceptType()).getTableName();
 
             Map<String, Object> originalData = marketingJsonNodeParseMapper.getOriginalData(mqDataJsonParse.getDataId(), tableName);
             String jsonData = (String) originalData.get("json_data");
@@ -116,6 +122,7 @@ public class DataCleanServiceImpl implements DataCleanService {
                 // 记录节点路径并递归遍历JSON结构
                 processJsonNode(
                         apiCode,
+                        mqDataJsonParse.getSystemType(),
                         mqDataJsonParse.getDataType(),
                         mqDataJsonParse.getAcceptType(),
                         "",
@@ -135,11 +142,50 @@ public class DataCleanServiceImpl implements DataCleanService {
         return result;
     }
 
+    @Override
+    public Result<Boolean> commonDataJsonParse(String message) {
+        Result<Boolean> result = new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(false);
+
+        try {
+            CommonMqDataJsonParse commonMqDataJsonParse = JSONObject.parseObject(message, CommonMqDataJsonParse.class);
+
+            String apiCode = commonMqDataJsonParse.getApiCode();
+            Integer systemType = commonMqDataJsonParse.getSystemType();
+            Integer dataType = commonMqDataJsonParse.getDataType();
+            Integer acceptType = commonMqDataJsonParse.getAcceptType();
+            String jsonData = commonMqDataJsonParse.getJsonData();
+            if (StringUtils.isNotEmpty(jsonData)) {
+                // 将JSON字符串转换为JSONObject或JSONArray
+                Object jsonObject = JSON.parse(jsonData);
+                // 记录节点路径并递归遍历JSON结构
+                processJsonNode(
+                        apiCode,
+                        systemType,
+                        dataType,
+                        acceptType,
+                        "",
+                        "",
+                        jsonObject,
+                        0,
+                        false
+                );
+
+            }else {
+                log.warn("通用清洗接口上传数据为空，apiCode:{}，systemType:{}，dataType:{}，acceptType:{}", apiCode, systemType, dataType, acceptType);
+            }
+        }catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
+                    "通用清洗接口上传数据JSON结构解析异常mq=" + message), e);
+        }
+        return result;
+    }
+
 
     /**
      * 递归处理JSON节点并存入数据库
      *
      * @param apiCode     API编码
+     * @param systemType    数据来源
      * @param dataType    数据类型
      * @param acceptType  接收类型
      * @param nodeName    节点名称
@@ -148,7 +194,7 @@ public class DataCleanServiceImpl implements DataCleanService {
      * @param level       节点层级
      * @param isArrayItem 是否为数组元素
      */
-    private void processJsonNode(String apiCode, Integer dataType, Integer acceptType,
+    private void processJsonNode(String apiCode, Integer systemType, Integer dataType, Integer acceptType,
                                  String nodeName, String parentPath, Object nodeValue, int level, boolean isArrayItem) {
         String nodeType;
         String nodeValueStr = null;
@@ -167,7 +213,7 @@ public class DataCleanServiceImpl implements DataCleanService {
             nodeValueStr = jsonObject.toString();
 
             // 保存当前对象节点，包含节点值
-            saveNodeData(apiCode, dataType, acceptType, nodeName, level, parentPath, nodeType, isArrayItem, nodeValueStr);
+            saveNodeData(apiCode, systemType, dataType, acceptType, nodeName, level, parentPath, nodeType, isArrayItem, nodeValueStr);
 
             // 构建新的父路径
             String newParentPath = parentPath;
@@ -177,7 +223,7 @@ public class DataCleanServiceImpl implements DataCleanService {
 
             // 递归处理对象的每个字段
             for (Map.Entry<String, Object> entry : jsonObject.entrySet()) {
-                processJsonNode(apiCode, dataType, acceptType, entry.getKey(), newParentPath, entry.getValue(), level + 1, false);
+                processJsonNode(apiCode, systemType, dataType, acceptType, entry.getKey(), newParentPath, entry.getValue(), level + 1, false);
             }
         } else if (nodeValue instanceof JSONArray) {
             // 数组类型
@@ -188,7 +234,7 @@ public class DataCleanServiceImpl implements DataCleanService {
             nodeValueStr = jsonArray.toString();
 
             // 保存当前数组节点，包含节点值
-            saveNodeData(apiCode, dataType, acceptType, nodeName, level, parentPath, nodeType, isArrayItem, nodeValueStr);
+            saveNodeData(apiCode, systemType, dataType, acceptType, nodeName, level, parentPath, nodeType, isArrayItem, nodeValueStr);
 
             // 构建新的父路径
             String newParentPath = parentPath;
@@ -211,7 +257,7 @@ public class DataCleanServiceImpl implements DataCleanService {
                         Object element = jsonArray.get(i);
                         if (element instanceof JSONObject) {
                             // 使用统一的节点名称 "item" 而不是索引
-                            processJsonNode(apiCode, dataType, acceptType, arrayItemName, newParentPath, element, level + 1, true);
+                            processJsonNode(apiCode, systemType, dataType, acceptType, arrayItemName, newParentPath, element, level + 1, true);
                         }
                     }
                 } else {
@@ -223,18 +269,18 @@ public class DataCleanServiceImpl implements DataCleanService {
             // 原始类型处理 - 新增String类型JSON解析支持
             if (nodeValue instanceof String) {
                 String stringValue = (String) nodeValue;
-                
+
                 // 尝试判断字符串是否为JSON格式并解析
                 Object parsedValue = tryParseJsonString(stringValue);
-                
+
                 if (parsedValue != null) {
                     // 如果解析成功，递归处理解析后的对象
                     log.debug("字符串解析为JSON成功，继续递归处理: {}", nodeName);
-                    processJsonNode(apiCode, dataType, acceptType, nodeName, parentPath, parsedValue, level, isArrayItem);
+                    processJsonNode(apiCode, systemType, dataType, acceptType, nodeName, parentPath, parsedValue, level, isArrayItem);
                     return;
                 }
             }
-            
+
             // 原始类型 (字符串、数字、布尔值等)
             nodeType = "primitive";
 
@@ -242,13 +288,13 @@ public class DataCleanServiceImpl implements DataCleanService {
             nodeValueStr = nodeValue.toString();
 
             // 保存原始类型节点，包含节点值
-            saveNodeData(apiCode, dataType, acceptType, nodeName, level, parentPath, nodeType, isArrayItem, nodeValueStr);
+            saveNodeData(apiCode, systemType, dataType, acceptType, nodeName, level, parentPath, nodeType, isArrayItem, nodeValueStr);
         }
     }
 
     /**
      * 尝试解析字符串为JSON对象或数组
-     * 
+     *
      * @param jsonString 待解析的JSON字符串
      * @return 解析成功返回JSONObject或JSONArray，失败返回null
      */
@@ -256,21 +302,21 @@ public class DataCleanServiceImpl implements DataCleanService {
         if (StringUtils.isEmpty(jsonString)) {
             return null;
         }
-        
+
         String trimmed = jsonString.trim();
-        
+
         // 判断是否可能为JSON格式 - 优化后的逻辑
         boolean isJsonObject = trimmed.startsWith("{") && trimmed.endsWith("}");
         boolean isJsonArray = trimmed.startsWith("[") && trimmed.endsWith("]");
-        
+
         if (!(isJsonObject || isJsonArray)) {
             return null;
         }
-        
+
         try {
             // 尝试解析为JSON对象或数组
             Object parsed = JSON.parse(trimmed);
-            
+
             // 只有解析结果是JSONObject或JSONArray才继续处理
             if (parsed instanceof JSONObject || parsed instanceof JSONArray) {
                 return parsed;
@@ -279,30 +325,38 @@ public class DataCleanServiceImpl implements DataCleanService {
             // 解析失败，记录调试日志但不抛出异常
             log.error("字符串JSON解析失败，按原始字符串处理: {}", e.getMessage());
         }
-        
+
         return null;
     }
 
     /**
      * 保存节点数据到数据库
      */
-    private void saveNodeData(String apiCode, Integer dataType, Integer acceptType, String nodeName,
+    private void saveNodeData(String apiCode, Integer systemType, Integer dataType, Integer acceptType, String nodeName,
                               Integer level, String parentPath, String nodeType,
                               boolean isArrayItem, String nodeValue) {
-        String redisKey = RedisKeyConstant.ORIGINAL_DATA_JSON_PARSE.concat(apiCode).concat(":").concat(dataType.toString()).concat(":").concat(acceptType.toString())
+        String redisKey = RedisKeyConstant.ORIGINAL_DATA_JSON_PARSE.concat(apiCode)
+                .concat(":").concat(systemType.toString()).concat(":")
+                .concat(dataType.toString()).concat(":")
+                .concat(acceptType.toString())
                 .concat(":").concat(level.toString());
         if (redisChgService.sismember(redisKey, nodeName)) {
             return;
         }
         //再查库
         MarketingJsonNodeParseExample jsonNodeParseExample = new MarketingJsonNodeParseExample();
-        jsonNodeParseExample.createCriteria().andApiCodeEqualTo(apiCode).andDataTypeEqualTo(dataType).andAcceptTypeEqualTo(acceptType)
-                .andParentPathEqualTo(parentPath).andNodeNameEqualTo(nodeName);
+        jsonNodeParseExample.createCriteria().andApiCodeEqualTo(apiCode)
+                .andSystemTypeEqualTo(systemType)
+                .andDataTypeEqualTo(dataType)
+                .andAcceptTypeEqualTo(acceptType)
+                .andParentPathEqualTo(parentPath)
+                .andNodeNameEqualTo(nodeName);
         List<MarketingJsonNodeParse> jsonNodeParseList = marketingJsonNodeParseMapper.selectByExample(jsonNodeParseExample);
         try {
             if (CollectionUtils.isEmpty(jsonNodeParseList)) {
                 MarketingJsonNodeParse jsonNodeParse = new MarketingJsonNodeParse();
                 jsonNodeParse.setApiCode(apiCode);
+                jsonNodeParse.setSystemType(systemType);
                 jsonNodeParse.setDataType(dataType);
                 jsonNodeParse.setAcceptType(acceptType);
                 jsonNodeParse.setParentPath(parentPath);
@@ -505,11 +559,11 @@ public class DataCleanServiceImpl implements DataCleanService {
         // 获取dataItems对象，判断是否存在
         Object dataItemsObj = jsonObject.get("dataItems");
         JSONObject targetObject;
-        
+
         if (dataItemsObj instanceof JSONObject) {
             // 如果有dataItems，则遍历dataItems下的字段
             targetObject = (JSONObject) dataItemsObj;
-            
+
             // 处理顶层的requestId和taskId字段（即使有dataItems，这两个字段也应该从顶层获取）
             if (!configuredFields.contains("requestId") && jsonObject.containsKey("requestId")) {
                 Object requestIdValue = jsonObject.get("requestId");
@@ -581,9 +635,182 @@ public class DataCleanServiceImpl implements DataCleanService {
         }
     }
 
+
+    public List<JSONObject> dataCleanByRules(List<JSONObject> jsonObjectList, List<MarketingDataCleanGeneralRuleConfig> ruleConfigList) {
+        jsonObjectList.forEach(jsonObject -> {
+            // 按照规则应用清洗逻辑，直接覆盖原字段
+            ruleConfigList.forEach(ruleConfig -> {
+                try {
+                    // 执行数据清洗
+                    Object result = ruleCleaningService.executeCleaningRule(jsonObject, ruleConfig);
+
+                    // 获取清洗字段路径（clean_fields）
+                    String cleanFields = ruleConfig.getCleanFields();
+
+                    if (StringUtils.isNotEmpty(cleanFields)) {
+                        // 根据 clean_fields 解析出字段路径，将清洗后的值赋值回原位置
+                        String cleanedValue = result != null ? result.toString() : null;
+                        setValueByCleanFieldsPath(jsonObject, cleanFields, cleanedValue);
+
+                        log.debug("字段清洗完成: cleanFields={}, cleanedValue={}", cleanFields, cleanedValue);
+                    } else {
+                        log.warn("清洗规则的cleanFields为空，跳过处理: mappingField={}", ruleConfig.getMappingField());
+                    }
+                } catch (Exception e) {
+                    log.error("字段清洗异常: mappingField={}, cleanFields={}",
+                            ruleConfig.getMappingField(), ruleConfig.getCleanFields(), e);
+                }
+            });
+        });
+        return jsonObjectList;
+    }
+
+    /**
+     * 根据 clean_fields 完整路径设置清洗后的值（支持任意类型）
+     * 将清洗后的值赋值回原字段位置
+     * 如果 clean_fields 只是字段名，会递归查找并更新所有匹配的字段
+     *
+     * @param jsonObject  目标JSON对象
+     * @param cleanFields 清洗字段的完整路径，如 "phone"、"variables.userType"、"data.item.name"
+     * @param value       要设置的值（Object类型，可以是String、JSONArray等）
+     */
+    private void setValueByCleanFieldsPath(JSONObject jsonObject, String cleanFields, Object value) {
+        if (jsonObject == null || StringUtils.isEmpty(cleanFields)) {
+            return;
+        }
+
+        // 解析完整路径
+        String[] pathParts = cleanFields.split("\\.");
+
+        // 如果路径只有一层（只有字段名），递归查找并更新该字段
+        if (pathParts.length == 1) {
+            boolean found = findAndUpdateField(jsonObject, cleanFields, value);
+            if (!found) {
+                log.warn("未找到字段: field={}", cleanFields);
+            }
+            return;
+        }
+
+        // 多层路径，按路径设置值
+        setValueByPath(jsonObject, pathParts, value, 0);
+    }
+
+    /**
+     * 递归查找并更新指定字段名的值
+     * 只更新已存在的字段，不新增字段
+     *
+     * @param jsonObject 目标JSON对象
+     * @param fieldName  字段名
+     * @param value      要设置的值（Object类型）
+     * @return 是否找到并更新了字段
+     */
+    private boolean findAndUpdateField(JSONObject jsonObject, String fieldName, Object value) {
+        if (jsonObject == null || StringUtils.isEmpty(fieldName)) {
+            return false;
+        }
+
+        boolean found = false;
+
+        // 遍历当前对象的所有键值对
+        for (Map.Entry<String, Object> entry : jsonObject.entrySet()) {
+            String key = entry.getKey();
+            Object val = entry.getValue();
+
+            // 如果键匹配，更新值
+            if (key.equals(fieldName)) {
+                jsonObject.put(fieldName, value);
+                log.debug("找到并更新字段: field={}, value={}", fieldName, value);
+                found = true;
+                // 继续查找，可能有多个同名字段
+            }
+
+            // 递归处理嵌套对象
+            if (val instanceof JSONObject) {
+                boolean foundInNested = findAndUpdateField((JSONObject) val, fieldName, value);
+                found = found || foundInNested;
+            }
+            // 递归处理数组
+            else if (val instanceof JSONArray) {
+                JSONArray array = (JSONArray) val;
+                for (int i = 0; i < array.size(); i++) {
+                    Object arrayItem = array.get(i);
+                    if (arrayItem instanceof JSONObject) {
+                        boolean foundInArray = findAndUpdateField((JSONObject) arrayItem, fieldName, value);
+                        found = found || foundInArray;
+                    }
+                }
+            }
+        }
+
+        return found;
+    }
+
+    /**
+     * 按照路径数组设置值
+     *
+     * @param jsonObject 目标JSON对象
+     * @param pathParts  路径数组
+     * @param value      要设置的值（Object类型）
+     * @param index      当前处理的路径索引
+     */
+    private void setValueByPath(JSONObject jsonObject, String[] pathParts, Object value, int index) {
+        if (jsonObject == null || pathParts == null || index >= pathParts.length) {
+            return;
+        }
+
+        String currentPart = pathParts[index];
+
+        // 如果是最后一个路径部分，设置值
+        if (index == pathParts.length - 1) {
+            jsonObject.put(currentPart, value);
+            log.debug("按路径设置字段: path={}, value={}", String.join(".", pathParts), value);
+            return;
+        }
+
+        // 处理数组情况：如果路径中包含 "item"，说明是数组元素
+        if ("item".equals(currentPart)) {
+            // 查找前一个路径对应的数组
+            if (index > 0) {
+                String arrayFieldName = pathParts[index - 1];
+                Object arrayObj = jsonObject.get(arrayFieldName);
+
+                if (arrayObj instanceof JSONArray) {
+                    JSONArray array = (JSONArray) arrayObj;
+                    // 对数组中的每个对象元素递归设置值
+                    for (int i = 0; i < array.size(); i++) {
+                        Object arrayItem = array.get(i);
+                        if (arrayItem instanceof JSONObject) {
+                            setValueByPath((JSONObject) arrayItem, pathParts, value, index + 1);
+                        }
+                    }
+                    return;
+                }
+            }
+            return;
+        }
+
+        // 获取下一层对象
+        Object nextObj = jsonObject.get(currentPart);
+
+        if (nextObj instanceof JSONObject) {
+            setValueByPath((JSONObject) nextObj, pathParts, value, index + 1);
+        } else if (nextObj instanceof JSONArray) {
+            // 如果是数组，对数组中的每个对象元素递归设置
+            JSONArray array = (JSONArray) nextObj;
+            for (int i = 0; i < array.size(); i++) {
+                Object arrayItem = array.get(i);
+                if (arrayItem instanceof JSONObject) {
+                    setValueByPath((JSONObject) arrayItem, pathParts, value, index + 1);
+                }
+            }
+        } else {
+            log.warn("路径不存在或类型不匹配: path={}, currentPart={}", String.join(".", pathParts), currentPart);
+        }
+    }
+
     /**
      * 插入清洗后的数据信息
-     * 
+     *
      * @param apiCode API编码，用于标识数据来源
      * @param marketingPreUserDTO 营销预处理用户数据DTO，包含清洗后的用户信息
      * @param id 原始数据的ID，用于更新清洗状态
@@ -660,16 +887,16 @@ public class DataCleanServiceImpl implements DataCleanService {
     public void fileUploadDataClean(MarketingCleanDataFile cleanFile, MarketingDataCleanGeneralConfig config) {
         log.warn(TITLE + "文件上传数据清洗开始，文件：{}", cleanFile.getFileName());
         Long start = System.currentTimeMillis();
-        
+
         String filePath = cleanFile.getLocalPath();
         String fileName = cleanFile.getFileName();
         String apiCode = config.getApiCode();
-        
-        //查询规则  
-        MarketingDataCleanGeneralRuleConfigExample ruleConfigExample = new MarketingDataCleanGeneralRuleConfigExample();    
+
+        //查询规则
+        MarketingDataCleanGeneralRuleConfigExample ruleConfigExample = new MarketingDataCleanGeneralRuleConfigExample();
         ruleConfigExample.createCriteria().andCleanConfigIdEqualTo(config.getId()).andIsDelEqualTo(1);
         List<MarketingDataCleanGeneralRuleConfig> ruleConfigList = marketingDataCleanGeneralRuleConfigMapper.selectByExample(ruleConfigExample);
-        
+
         if (CollectionUtils.isEmpty(ruleConfigList)) {
             log.warn("未找到清洗规则配置，apiCode: {}", apiCode);
             return;
@@ -682,11 +909,11 @@ public class DataCleanServiceImpl implements DataCleanService {
         }
         log.warn(TITLE + "文件上传数据清洗结束，文件：{}，耗时：{}ms", fileName, System.currentTimeMillis() - start);
     }
-    
+
     /**
      * 批量处理文件数据 - 每500行为一批，同步处理
      */
-    private void processByBatch(String filePath, String fileName, String apiCode, 
+    private void processByBatch(String filePath, String fileName, String apiCode,
                                List<MarketingDataCleanGeneralRuleConfig> ruleConfigList) {
         final int BATCH_SIZE = 500;
         String[] headers = null;
@@ -734,7 +961,7 @@ public class DataCleanServiceImpl implements DataCleanService {
                 totalProcessed += batchLines.size();
             }
             log.warn("文件处理完成，总共处理数据行数: {}", totalProcessed);
-            
+
         } catch (IOException e) {
             log.error("读取文件失败，文件路径: " + filePath, e);
         }
@@ -749,11 +976,11 @@ public class DataCleanServiceImpl implements DataCleanService {
             Thread.currentThread().interrupt();
         }
     }
-    
+
     /**
      * 功能说明：
      * 将一批原始文件行 清洗值上传表
-     * 
+     *
      * @param batchLines    待处理的文件行数据列表（不包含表头）
      * @param headers       文件表头字段数组
      * @param ruleConfigList 数据清洗规则配置列表，定义了字段映射和清洗逻辑
@@ -840,6 +1067,107 @@ public class DataCleanServiceImpl implements DataCleanService {
     }
 
     @Override
+    public Result commonClean(DataCleanDTO dto) {
+
+        try {
+            //参数校验，填充默认值
+            Boolean valid = paramsValid(dto);
+            if (Boolean.FALSE.equals(valid)) {
+                log.warn("数据清洗通用接口参数错误,params={}", dto);
+                return new Result().failure().setMessage("参数错误").setDate(null);
+            }
+
+            pushRuleService.sendJsonParseMq(dto.getApiCode(), 0, dto.getSystemType()
+                    , dto.getDataType(), dto.getAcceptType(), String.valueOf(dto.getJsonData()));
+
+            List<MarketingDataCleanGeneralConfig> marketingDataCleanGeneralConfigList =
+                    ruleCleaningService.queryCleanConfigCommon(dto.getApiCode(), dto.getSystemType(), dto.getDataType(), dto.getAcceptType());
+
+            if (marketingDataCleanGeneralConfigList.isEmpty()) {
+                log.warn("未查询到数据清洗通用配置，apiCode:{},systemType:{},dataType:{},acceptType:{}"
+                        , dto.getApiCode(),dto.getSystemType(), dto.getDataType(), dto.getAcceptType());
+                return new Result().failure().setDate(dto.getJsonData()).setMessage("未查询到数据清洗通用配置");
+            }
+            MarketingDataCleanGeneralConfig marketingDataCleanGeneralConfig = marketingDataCleanGeneralConfigList.get(0);
+            Long generalConfigId = marketingDataCleanGeneralConfig.getId();
+            log.warn("数据清洗通用接口，generalConfigId:{}", generalConfigId);
+            //查询清洗规则表
+            MarketingDataCleanGeneralRuleConfigExample ruleConfigExample = new MarketingDataCleanGeneralRuleConfigExample();
+            ruleConfigExample.createCriteria()
+                    .andCleanConfigIdEqualTo(generalConfigId)
+                    .andIsDelEqualTo(1);
+            List<MarketingDataCleanGeneralRuleConfig> marketingDataCleanGeneralRuleConfigList =
+                    marketingDataCleanGeneralRuleConfigMapper.selectByExample(ruleConfigExample);
+            if (marketingDataCleanGeneralRuleConfigList.isEmpty()) {
+                log.warn("未查询到数据清洗规则，apiCode:{},systemType:{},dataType:{},acceptType:{}"
+                        , dto.getApiCode(), dto.getSystemType(), dto.getDataType(), dto.getAcceptType());
+                return new Result().failure().setDate(dto.getJsonData()).setMessage("未查询到数据清洗规则");
+            }
+
+            //数据清洗
+            JSONObject jsonObject = JSON.parseObject(dto.getJsonData());
+
+            //层级字段处理
+            String levelField = null;
+            List<MarketingDataCleanGeneralRuleConfig> ruleConfigListTmp = new ArrayList<>(marketingDataCleanGeneralRuleConfigList);
+            List<MarketingDataCleanGeneralRuleConfig> dataItemList = ruleConfigListTmp.stream().filter(
+                    ruleConfig -> ruleConfig.getMappingField().equals("dataItems")
+            ).collect(Collectors.toList());
+            if (!CollectionUtils.isEmpty(dataItemList)) {
+                levelField = dataItemList.get(0).getCleanFields();
+            }
+
+            if (StringUtils.isNotEmpty(levelField)) {
+                // 如果有层级字段，提取该字段对应的数组进行清洗
+                List<JSONObject> jsonObjectLists = JsonParseUtils.parseJsonArrayByName(jsonObject, levelField);
+                // 清洗数组中的数据
+                dataCleanByRules(jsonObjectLists, marketingDataCleanGeneralRuleConfigList);
+                // 将清洗后的数组转换为JSONArray并直接替换原JSON对象中的字段
+                JSONArray cleanedArray = new JSONArray();
+                for (JSONObject cleanedJson : jsonObjectLists) {
+                    JSONObject object = cleanedJson.getJSONObject(levelField);
+                    cleanedArray.add(object);
+                }
+                // 直接替换顶层的levelField字段，避免递归查找导致的问题
+                jsonObject.put(levelField, cleanedArray);
+                // 返回完整的JSON对象
+                return new Result().success().setDate(jsonObject);
+            } else {
+                // 没有层级字段，直接清洗整个对象
+                List<JSONObject> jsonObjectLists = new ArrayList<>();
+                jsonObjectLists.add(jsonObject);
+                dataCleanByRules(jsonObjectLists, marketingDataCleanGeneralRuleConfigList);
+                // 返回清洗后的对象
+                return new Result().success().setDate(jsonObject);
+            }
+        } catch (Exception e) {
+            log.error("通用数据清洗异常，message:{}", e.getMessage());
+            return new Result().failure().setMessage(e.getMessage());
+        }
+    }
+
+    public Boolean paramsValid(DataCleanDTO dto) {
+        if (StringUtils.isEmpty(dto.getApiCode())) {
+            return false;
+        }
+        Integer systemType = dto.getSystemType();
+        if (StringUtils.isEmpty(systemType)){
+            return false;
+        }
+        if (systemType == 0) {
+            return !StringUtils.isEmpty(dto.getDataType()) && !StringUtils.isEmpty(dto.getAcceptType());
+        } else if (systemType == 1) {
+            if (StringUtils.isEmpty(dto.getDataType())){
+                dto.setDataType(0);
+            }
+            if (StringUtils.isEmpty(dto.getAcceptType())){
+                dto.setAcceptType(0);
+            }
+        }
+        return true;
+    }
+
+    @Override
     public void fileUploadCleanPre(List<List<RuleCleaningResult>> resultList, List<MarketingDataCleanGeneralRuleConfig> ruleList,
                                    MarketingCleanDataFile cleanDataFile,Integer actualNum) {
         List<JSONObject> jsonObjects = JSON.parseObject(cleanDataFile.getTestRunData(), new TypeReference<List<JSONObject>>() {});
@@ -878,15 +1206,15 @@ public class DataCleanServiceImpl implements DataCleanService {
         try {
             // 只使用逗号分隔解析行数据
             String[] values = lineData.split(",");
-            
+
             if (values.length == 0) {
                 log.warn("第{}行数据为空", rowIndex);
                 return null;
             }
-            
+
             // 构建JSON对象
             JSONObject jsonObject = new JSONObject();
-            
+
             // 按表头字段数量处理，多余的数据忽略，缺失的数据设为空字符串
             for (int i = 0; i < headers.length; i++) {
                 String fieldName = headers[i];

@@ -43,6 +43,16 @@ public enum DataProcessEnum {
         return null;
     }
 
+    @Getter
+    @AllArgsConstructor
+    public enum SystemTypeEnum{
+        MARKETING(0,"营销中台"),
+        CALL(1,"外呼系统");
+
+        private  Integer code;
+        private  String desc;
+    }
+
     /**
      * Data type enum: UPLOAD(0), TRANSFORM(1)
      */

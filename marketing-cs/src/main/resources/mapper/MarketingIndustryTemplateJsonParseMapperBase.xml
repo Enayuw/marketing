@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.MarketingJsonNodeParseMapperBase" >
-  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingJsonNodeParse" >
+<mapper namespace="com.br.marketing.mapper.MarketingIndustryTemplateJsonParseMapperBase" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingIndustryTemplateJsonParse" >
     <id column="id" property="id" jdbcType="BIGINT" />
-    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="interface_template_id" property="interfaceTemplateId" jdbcType="BIGINT" />
+    <result column="interface_template_name" property="interfaceTemplateName" jdbcType="VARCHAR" />
     <result column="system_type" property="systemType" jdbcType="INTEGER" />
     <result column="data_type" property="dataType" jdbcType="INTEGER" />
     <result column="accept_type" property="acceptType" jdbcType="INTEGER" />
@@ -75,16 +76,17 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, system_type, data_type, accept_type, node_name, node_value, parent_path,
-    node_type, is_array_item, `level`, create_time, update_time
+    id, interface_template_id, interface_template_name, system_type, data_type, accept_type,
+    node_name, node_value, parent_path, node_type, is_array_item, `level`, create_time,
+    update_time
   </sql>
-  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingJsonNodeParseExample" >
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingIndustryTemplateJsonParseExample" >
     select
     <if test="distinct" >
       distinct
     </if>
     <include refid="Base_Column_List" />
-    from b_marketing_json_node_parse
+    from b_marketing_industry_template_json_parse
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
@@ -95,42 +97,45 @@
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
     select
     <include refid="Base_Column_List" />
-    from b_marketing_json_node_parse
+    from b_marketing_industry_template_json_parse
     where id = #{id,jdbcType=BIGINT}
   </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
-    delete from b_marketing_json_node_parse
+    delete from b_marketing_industry_template_json_parse
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingJsonNodeParseExample" >
-    delete from b_marketing_json_node_parse
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingIndustryTemplateJsonParseExample" >
+    delete from b_marketing_industry_template_json_parse
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" parameterType="com.br.marketing.entity.MarketingJsonNodeParse" >
+  <insert id="insert" parameterType="com.br.marketing.entity.MarketingIndustryTemplateJsonParse" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_json_node_parse (api_code, system_type, data_type,
-    accept_type, node_name, node_value,
-    parent_path, node_type, is_array_item,
-    `level`, create_time, update_time
-    )
-    values (#{apiCode,jdbcType=VARCHAR}, #{systemType,jdbcType=INTEGER}, #{dataType,jdbcType=INTEGER},
-    #{acceptType,jdbcType=INTEGER}, #{nodeName,jdbcType=VARCHAR}, #{nodeValue,jdbcType=VARCHAR},
-    #{parentPath,jdbcType=VARCHAR}, #{nodeType,jdbcType=VARCHAR}, #{isArrayItem,jdbcType=BIT},
-    #{level,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
-    )
+    insert into b_marketing_industry_template_json_parse (interface_template_id, interface_template_name,
+    system_type, data_type, accept_type,
+    node_name, node_value, parent_path,
+    node_type, is_array_item, `level`,
+    create_time, update_time)
+    values (#{interfaceTemplateId,jdbcType=BIGINT}, #{interfaceTemplateName,jdbcType=VARCHAR},
+    #{systemType,jdbcType=INTEGER}, #{dataType,jdbcType=INTEGER}, #{acceptType,jdbcType=INTEGER},
+    #{nodeName,jdbcType=VARCHAR}, #{nodeValue,jdbcType=VARCHAR}, #{parentPath,jdbcType=VARCHAR},
+    #{nodeType,jdbcType=VARCHAR}, #{isArrayItem,jdbcType=BIT}, #{level,jdbcType=INTEGER},
+    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
-  <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingJsonNodeParse" >
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingIndustryTemplateJsonParse" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_json_node_parse
+    insert into b_marketing_industry_template_json_parse
     <trim prefix="(" suffix=")" suffixOverrides="," >
-      <if test="apiCode != null" >
-        api_code,
+      <if test="interfaceTemplateId != null" >
+        interface_template_id,
+      </if>
+      <if test="interfaceTemplateName != null" >
+        interface_template_name,
       </if>
       <if test="systemType != null" >
         system_type,
@@ -167,8 +172,11 @@
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
-      <if test="apiCode != null" >
-        #{apiCode,jdbcType=VARCHAR},
+      <if test="interfaceTemplateId != null" >
+        #{interfaceTemplateId,jdbcType=BIGINT},
+      </if>
+      <if test="interfaceTemplateName != null" >
+        #{interfaceTemplateName,jdbcType=VARCHAR},
       </if>
       <if test="systemType != null" >
         #{systemType,jdbcType=INTEGER},
@@ -205,20 +213,23 @@
       </if>
     </trim>
   </insert>
-  <select id="countByExample" parameterType="com.br.marketing.entity.MarketingJsonNodeParseExample" resultType="java.lang.Integer" >
-    select count(*) from b_marketing_json_node_parse
+  <select id="countByExample" parameterType="com.br.marketing.entity.MarketingIndustryTemplateJsonParseExample" resultType="java.lang.Integer" >
+    select count(*) from b_marketing_industry_template_json_parse
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </select>
   <update id="updateByExampleSelective" parameterType="map" >
-    update b_marketing_json_node_parse
+    update b_marketing_industry_template_json_parse
     <set >
       <if test="record.id != null" >
         id = #{record.id,jdbcType=BIGINT},
       </if>
-      <if test="record.apiCode != null" >
-        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      <if test="record.interfaceTemplateId != null" >
+        interface_template_id = #{record.interfaceTemplateId,jdbcType=BIGINT},
+      </if>
+      <if test="record.interfaceTemplateName != null" >
+        interface_template_name = #{record.interfaceTemplateName,jdbcType=VARCHAR},
       </if>
       <if test="record.systemType != null" >
         system_type = #{record.systemType,jdbcType=INTEGER},
@@ -259,9 +270,10 @@
     </if>
   </update>
   <update id="updateByExample" parameterType="map" >
-    update b_marketing_json_node_parse
+    update b_marketing_industry_template_json_parse
     set id = #{record.id,jdbcType=BIGINT},
-    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    interface_template_id = #{record.interfaceTemplateId,jdbcType=BIGINT},
+    interface_template_name = #{record.interfaceTemplateName,jdbcType=VARCHAR},
     system_type = #{record.systemType,jdbcType=INTEGER},
     data_type = #{record.dataType,jdbcType=INTEGER},
     accept_type = #{record.acceptType,jdbcType=INTEGER},
@@ -277,11 +289,14 @@
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingJsonNodeParse" >
-    update b_marketing_json_node_parse
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingIndustryTemplateJsonParse" >
+    update b_marketing_industry_template_json_parse
     <set >
-      <if test="apiCode != null" >
-        api_code = #{apiCode,jdbcType=VARCHAR},
+      <if test="interfaceTemplateId != null" >
+        interface_template_id = #{interfaceTemplateId,jdbcType=BIGINT},
+      </if>
+      <if test="interfaceTemplateName != null" >
+        interface_template_name = #{interfaceTemplateName,jdbcType=VARCHAR},
       </if>
       <if test="systemType != null" >
         system_type = #{systemType,jdbcType=INTEGER},
@@ -319,9 +334,10 @@
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingJsonNodeParse" >
-    update b_marketing_json_node_parse
-    set api_code = #{apiCode,jdbcType=VARCHAR},
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingIndustryTemplateJsonParse" >
+    update b_marketing_industry_template_json_parse
+    set interface_template_id = #{interfaceTemplateId,jdbcType=BIGINT},
+        interface_template_name = #{interfaceTemplateName,jdbcType=VARCHAR},
         system_type = #{systemType,jdbcType=INTEGER},
         data_type = #{dataType,jdbcType=INTEGER},
         accept_type = #{acceptType,jdbcType=INTEGER},

@@ -2,19 +2,24 @@ package com.br.marketing.entity;
 
 import java.util.Date;
 
-public class MarketingJsonNodeParse {
+public class MarketingIndustryTemplateJsonParse {
     /**
      * 主键ID
      */
     private Long id;
 
     /**
-     * API编码
+     * 接口id
      */
-    private String apiCode;
+    private Long interfaceTemplateId;
 
     /**
-     * 数据来源,0-营销中台 1-外呼系统
+     * 接口名称
+     */
+    private String interfaceTemplateName;
+
+    /**
+     * 系统类型 0-营销中台 1-外呼系统
      */
     private Integer systemType;
 
@@ -76,12 +81,20 @@ public class MarketingJsonNodeParse {
         this.id = id;
     }
 
-    public String getApiCode() {
-        return apiCode;
+    public Long getInterfaceTemplateId() {
+        return interfaceTemplateId;
     }
 
-    public void setApiCode(String apiCode) {
-        this.apiCode = apiCode == null ? null : apiCode.trim();
+    public void setInterfaceTemplateId(Long interfaceTemplateId) {
+        this.interfaceTemplateId = interfaceTemplateId;
+    }
+
+    public String getInterfaceTemplateName() {
+        return interfaceTemplateName;
+    }
+
+    public void setInterfaceTemplateName(String interfaceTemplateName) {
+        this.interfaceTemplateName = interfaceTemplateName == null ? null : interfaceTemplateName.trim();
     }
 
     public Integer getSystemType() {

@@ -1,40 +1,41 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.br.marketing.mapper.MarketingDataCleanGeneralConfigMapperBase">
-  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingDataCleanGeneralConfig">
-    <id column="id" jdbcType="BIGINT" property="id" />
-    <result column="api_code" jdbcType="VARCHAR" property="apiCode" />
-    <result column="account_type" jdbcType="VARCHAR" property="accountType" />
-    <result column="data_type" jdbcType="INTEGER" property="dataType" />
-    <result column="accept_type" jdbcType="INTEGER" property="acceptType" />
-    <result column="custom_run_status" jdbcType="INTEGER" property="customRunStatus" />
-    <result column="status" jdbcType="INTEGER" property="status" />
-    <result column="sftp_path" jdbcType="VARCHAR" property="sftpPath" />
-    <result column="is_del" jdbcType="INTEGER" property="isDel" />
-    <result column="opt_user_id" jdbcType="BIGINT" property="optUserId" />
-    <result column="opt_user_name" jdbcType="VARCHAR" property="optUserName" />
-    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
-    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.MarketingDataCleanGeneralConfigMapperBase" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingDataCleanGeneralConfig" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="account_type" property="accountType" jdbcType="VARCHAR" />
+    <result column="system_type" property="systemType" jdbcType="INTEGER" />
+    <result column="data_type" property="dataType" jdbcType="INTEGER" />
+    <result column="accept_type" property="acceptType" jdbcType="INTEGER" />
+    <result column="custom_run_status" property="customRunStatus" jdbcType="INTEGER" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="sftp_path" property="sftpPath" jdbcType="VARCHAR" />
+    <result column="is_del" property="isDel" jdbcType="INTEGER" />
+    <result column="opt_user_id" property="optUserId" jdbcType="BIGINT" />
+    <result column="opt_user_name" property="optUserName" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
   </resultMap>
-  <sql id="Example_Where_Clause">
-    <where>
-      <foreach collection="oredCriteria" item="criteria" separator="or">
-        <if test="criteria.valid">
-          <trim prefix="(" prefixOverrides="and" suffix=")">
-            <foreach collection="criteria.criteria" item="criterion">
-              <choose>
-                <when test="criterion.noValue">
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
                   and ${criterion.condition}
                 </when>
-                <when test="criterion.singleValue">
+                <when test="criterion.singleValue" >
                   and ${criterion.condition} #{criterion.value}
                 </when>
-                <when test="criterion.betweenValue">
+                <when test="criterion.betweenValue" >
                   and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
                 </when>
-                <when test="criterion.listValue">
+                <when test="criterion.listValue" >
                   and ${criterion.condition}
-                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
                     #{listItem}
                   </foreach>
                 </when>
@@ -45,25 +46,25 @@
       </foreach>
     </where>
   </sql>
-  <sql id="Update_By_Example_Where_Clause">
-    <where>
-      <foreach collection="example.oredCriteria" item="criteria" separator="or">
-        <if test="criteria.valid">
-          <trim prefix="(" prefixOverrides="and" suffix=")">
-            <foreach collection="criteria.criteria" item="criterion">
-              <choose>
-                <when test="criterion.noValue">
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
                   and ${criterion.condition}
                 </when>
-                <when test="criterion.singleValue">
+                <when test="criterion.singleValue" >
                   and ${criterion.condition} #{criterion.value}
                 </when>
-                <when test="criterion.betweenValue">
+                <when test="criterion.betweenValue" >
                   and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
                 </when>
-                <when test="criterion.listValue">
+                <when test="criterion.listValue" >
                   and ${criterion.condition}
-                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
                     #{listItem}
                   </foreach>
                 </when>
@@ -74,259 +75,279 @@
       </foreach>
     </where>
   </sql>
-  <sql id="Base_Column_List">
-    id, api_code, account_type, data_type, accept_type, custom_run_status, `status`, 
-    sftp_path, is_del, opt_user_id, opt_user_name, create_time, update_time
+  <sql id="Base_Column_List" >
+    id, api_code, account_type, system_type, data_type, accept_type, custom_run_status,
+    `status`, sftp_path, is_del, opt_user_id, opt_user_name, create_time, update_time
   </sql>
-  <select id="selectByExample" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralConfigExample" resultMap="BaseResultMap">
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralConfigExample" >
     select
-    <if test="distinct">
+    <if test="distinct" >
       distinct
     </if>
     <include refid="Base_Column_List" />
     from b_marketing_data_clean_general_config
-    <if test="_parameter != null">
+    <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
-    <if test="orderByClause != null">
+    <if test="orderByClause != null" >
       order by ${orderByClause}
     </if>
   </select>
-  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
-    select 
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select
     <include refid="Base_Column_List" />
     from b_marketing_data_clean_general_config
     where id = #{id,jdbcType=BIGINT}
   </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
     delete from b_marketing_data_clean_general_config
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralConfigExample">
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralConfigExample" >
     delete from b_marketing_data_clean_general_config
-    <if test="_parameter != null">
+    <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralConfig" useGeneratedKeys="true">
-    insert into b_marketing_data_clean_general_config (api_code, account_type, data_type, 
-      accept_type, custom_run_status, `status`, 
-      sftp_path, is_del, opt_user_id, 
-      opt_user_name, create_time, update_time
-      )
-    values (#{apiCode,jdbcType=VARCHAR}, #{accountType,jdbcType=VARCHAR}, #{dataType,jdbcType=INTEGER}, 
-      #{acceptType,jdbcType=INTEGER}, #{customRunStatus,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, 
-      #{sftpPath,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, #{optUserId,jdbcType=BIGINT}, 
-      #{optUserName,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
-      )
+  <insert id="insert" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralConfig" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_marketing_data_clean_general_config (api_code, account_type, system_type,
+    data_type, accept_type, custom_run_status,
+    `status`, sftp_path, is_del,
+    opt_user_id, opt_user_name, create_time,
+    update_time)
+    values (#{apiCode,jdbcType=VARCHAR}, #{accountType,jdbcType=VARCHAR}, #{systemType,jdbcType=INTEGER},
+    #{dataType,jdbcType=INTEGER}, #{acceptType,jdbcType=INTEGER}, #{customRunStatus,jdbcType=INTEGER},
+    #{status,jdbcType=INTEGER}, #{sftpPath,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER},
+    #{optUserId,jdbcType=BIGINT}, #{optUserName,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP},
+    #{updateTime,jdbcType=TIMESTAMP})
   </insert>
-  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralConfig" useGeneratedKeys="true">
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralConfig" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
     insert into b_marketing_data_clean_general_config
-    <trim prefix="(" suffix=")" suffixOverrides=",">
-      <if test="apiCode != null">
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
         api_code,
       </if>
-      <if test="accountType != null">
+      <if test="accountType != null" >
         account_type,
       </if>
-      <if test="dataType != null">
+      <if test="systemType != null" >
+        system_type,
+      </if>
+      <if test="dataType != null" >
         data_type,
       </if>
-      <if test="acceptType != null">
+      <if test="acceptType != null" >
         accept_type,
       </if>
-      <if test="customRunStatus != null">
+      <if test="customRunStatus != null" >
         custom_run_status,
       </if>
-      <if test="status != null">
+      <if test="status != null" >
         `status`,
       </if>
-      <if test="sftpPath != null">
+      <if test="sftpPath != null" >
         sftp_path,
       </if>
-      <if test="isDel != null">
+      <if test="isDel != null" >
         is_del,
       </if>
-      <if test="optUserId != null">
+      <if test="optUserId != null" >
         opt_user_id,
       </if>
-      <if test="optUserName != null">
+      <if test="optUserName != null" >
         opt_user_name,
       </if>
-      <if test="createTime != null">
+      <if test="createTime != null" >
         create_time,
       </if>
-      <if test="updateTime != null">
+      <if test="updateTime != null" >
         update_time,
       </if>
     </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides=",">
-      <if test="apiCode != null">
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
         #{apiCode,jdbcType=VARCHAR},
       </if>
-      <if test="accountType != null">
+      <if test="accountType != null" >
         #{accountType,jdbcType=VARCHAR},
       </if>
-      <if test="dataType != null">
+      <if test="systemType != null" >
+        #{systemType,jdbcType=INTEGER},
+      </if>
+      <if test="dataType != null" >
         #{dataType,jdbcType=INTEGER},
       </if>
-      <if test="acceptType != null">
+      <if test="acceptType != null" >
         #{acceptType,jdbcType=INTEGER},
       </if>
-      <if test="customRunStatus != null">
+      <if test="customRunStatus != null" >
         #{customRunStatus,jdbcType=INTEGER},
       </if>
-      <if test="status != null">
+      <if test="status != null" >
         #{status,jdbcType=INTEGER},
       </if>
-      <if test="sftpPath != null">
+      <if test="sftpPath != null" >
         #{sftpPath,jdbcType=VARCHAR},
       </if>
-      <if test="isDel != null">
+      <if test="isDel != null" >
         #{isDel,jdbcType=INTEGER},
       </if>
-      <if test="optUserId != null">
+      <if test="optUserId != null" >
         #{optUserId,jdbcType=BIGINT},
       </if>
-      <if test="optUserName != null">
+      <if test="optUserName != null" >
         #{optUserName,jdbcType=VARCHAR},
       </if>
-      <if test="createTime != null">
+      <if test="createTime != null" >
         #{createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="updateTime != null">
+      <if test="updateTime != null" >
         #{updateTime,jdbcType=TIMESTAMP},
       </if>
     </trim>
   </insert>
-  <select id="countByExample" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralConfigExample" resultType="java.lang.Long">
+  <select id="countByExample" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralConfigExample" resultType="java.lang.Integer" >
     select count(*) from b_marketing_data_clean_general_config
-    <if test="_parameter != null">
+    <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </select>
-  <update id="updateByExampleSelective" parameterType="map">
+  <update id="updateByExampleSelective" parameterType="map" >
     update b_marketing_data_clean_general_config
-    <set>
-      <if test="record.id != null">
+    <set >
+      <if test="record.id != null" >
         id = #{record.id,jdbcType=BIGINT},
       </if>
-      <if test="record.apiCode != null">
+      <if test="record.apiCode != null" >
         api_code = #{record.apiCode,jdbcType=VARCHAR},
       </if>
-      <if test="record.accountType != null">
+      <if test="record.accountType != null" >
         account_type = #{record.accountType,jdbcType=VARCHAR},
       </if>
-      <if test="record.dataType != null">
+      <if test="record.systemType != null" >
+        system_type = #{record.systemType,jdbcType=INTEGER},
+      </if>
+      <if test="record.dataType != null" >
         data_type = #{record.dataType,jdbcType=INTEGER},
       </if>
-      <if test="record.acceptType != null">
+      <if test="record.acceptType != null" >
         accept_type = #{record.acceptType,jdbcType=INTEGER},
       </if>
-      <if test="record.customRunStatus != null">
+      <if test="record.customRunStatus != null" >
         custom_run_status = #{record.customRunStatus,jdbcType=INTEGER},
       </if>
-      <if test="record.status != null">
+      <if test="record.status != null" >
         `status` = #{record.status,jdbcType=INTEGER},
       </if>
-      <if test="record.sftpPath != null">
+      <if test="record.sftpPath != null" >
         sftp_path = #{record.sftpPath,jdbcType=VARCHAR},
       </if>
-      <if test="record.isDel != null">
+      <if test="record.isDel != null" >
         is_del = #{record.isDel,jdbcType=INTEGER},
       </if>
-      <if test="record.optUserId != null">
+      <if test="record.optUserId != null" >
         opt_user_id = #{record.optUserId,jdbcType=BIGINT},
       </if>
-      <if test="record.optUserName != null">
+      <if test="record.optUserName != null" >
         opt_user_name = #{record.optUserName,jdbcType=VARCHAR},
       </if>
-      <if test="record.createTime != null">
+      <if test="record.createTime != null" >
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.updateTime != null">
+      <if test="record.updateTime != null" >
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
     </set>
-    <if test="_parameter != null">
+    <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByExample" parameterType="map">
+  <update id="updateByExample" parameterType="map" >
     update b_marketing_data_clean_general_config
     set id = #{record.id,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      account_type = #{record.accountType,jdbcType=VARCHAR},
-      data_type = #{record.dataType,jdbcType=INTEGER},
-      accept_type = #{record.acceptType,jdbcType=INTEGER},
-      custom_run_status = #{record.customRunStatus,jdbcType=INTEGER},
-      `status` = #{record.status,jdbcType=INTEGER},
-      sftp_path = #{record.sftpPath,jdbcType=VARCHAR},
-      is_del = #{record.isDel,jdbcType=INTEGER},
-      opt_user_id = #{record.optUserId,jdbcType=BIGINT},
-      opt_user_name = #{record.optUserName,jdbcType=VARCHAR},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
-    <if test="_parameter != null">
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    account_type = #{record.accountType,jdbcType=VARCHAR},
+    system_type = #{record.systemType,jdbcType=INTEGER},
+    data_type = #{record.dataType,jdbcType=INTEGER},
+    accept_type = #{record.acceptType,jdbcType=INTEGER},
+    custom_run_status = #{record.customRunStatus,jdbcType=INTEGER},
+    `status` = #{record.status,jdbcType=INTEGER},
+    sftp_path = #{record.sftpPath,jdbcType=VARCHAR},
+    is_del = #{record.isDel,jdbcType=INTEGER},
+    opt_user_id = #{record.optUserId,jdbcType=BIGINT},
+    opt_user_name = #{record.optUserName,jdbcType=VARCHAR},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralConfig">
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralConfig" >
     update b_marketing_data_clean_general_config
-    <set>
-      <if test="apiCode != null">
+    <set >
+      <if test="apiCode != null" >
         api_code = #{apiCode,jdbcType=VARCHAR},
       </if>
-      <if test="accountType != null">
+      <if test="accountType != null" >
         account_type = #{accountType,jdbcType=VARCHAR},
       </if>
-      <if test="dataType != null">
+      <if test="systemType != null" >
+        system_type = #{systemType,jdbcType=INTEGER},
+      </if>
+      <if test="dataType != null" >
         data_type = #{dataType,jdbcType=INTEGER},
       </if>
-      <if test="acceptType != null">
+      <if test="acceptType != null" >
         accept_type = #{acceptType,jdbcType=INTEGER},
       </if>
-      <if test="customRunStatus != null">
+      <if test="customRunStatus != null" >
         custom_run_status = #{customRunStatus,jdbcType=INTEGER},
       </if>
-      <if test="status != null">
+      <if test="status != null" >
         `status` = #{status,jdbcType=INTEGER},
       </if>
-      <if test="sftpPath != null">
+      <if test="sftpPath != null" >
         sftp_path = #{sftpPath,jdbcType=VARCHAR},
       </if>
-      <if test="isDel != null">
+      <if test="isDel != null" >
         is_del = #{isDel,jdbcType=INTEGER},
       </if>
-      <if test="optUserId != null">
+      <if test="optUserId != null" >
         opt_user_id = #{optUserId,jdbcType=BIGINT},
       </if>
-      <if test="optUserName != null">
+      <if test="optUserName != null" >
         opt_user_name = #{optUserName,jdbcType=VARCHAR},
       </if>
-      <if test="createTime != null">
+      <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="updateTime != null">
+      <if test="updateTime != null" >
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralConfig">
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralConfig" >
     update b_marketing_data_clean_general_config
     set api_code = #{apiCode,jdbcType=VARCHAR},
-      account_type = #{accountType,jdbcType=VARCHAR},
-      data_type = #{dataType,jdbcType=INTEGER},
-      accept_type = #{acceptType,jdbcType=INTEGER},
-      custom_run_status = #{customRunStatus,jdbcType=INTEGER},
-      `status` = #{status,jdbcType=INTEGER},
-      sftp_path = #{sftpPath,jdbcType=VARCHAR},
-      is_del = #{isDel,jdbcType=INTEGER},
-      opt_user_id = #{optUserId,jdbcType=BIGINT},
-      opt_user_name = #{optUserName,jdbcType=VARCHAR},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+        account_type = #{accountType,jdbcType=VARCHAR},
+        system_type = #{systemType,jdbcType=INTEGER},
+        data_type = #{dataType,jdbcType=INTEGER},
+        accept_type = #{acceptType,jdbcType=INTEGER},
+        custom_run_status = #{customRunStatus,jdbcType=INTEGER},
+        `status` = #{status,jdbcType=INTEGER},
+        sftp_path = #{sftpPath,jdbcType=VARCHAR},
+        is_del = #{isDel,jdbcType=INTEGER},
+        opt_user_id = #{optUserId,jdbcType=BIGINT},
+        opt_user_name = #{optUserName,jdbcType=VARCHAR},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

@@ -65,6 +65,11 @@ public class MarketingAssistConstants {
      * 客户原始数据json解析 Tag
      */
     public static final String TAG_MARKETING_CUSTOMER_DATA_JSON_PARSE = "Marketing.Customer.Data.Json.Parse";
+
+    /**
+     * 通用清洗接口上传原始数据json解析 Tag
+     */
+    public static final String TAG_MARKETING_COMMON_DATA_JSON_PARSE = "Marketing.Common.Data.Json.Parse";
 //    Tag 结束
 
 
