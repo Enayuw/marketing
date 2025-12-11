@@ -20,7 +20,7 @@ import javax.annotation.Resource;
 
 /**
  * MQ消息幂等切面
- *
+ * <p>
  * 处理流程：
  * 1. 前置：尝试插入幂等记录，如果DuplicateKeyException则直接返回成功，跳过业务处理
  * 2. 后置：业务处理成功，更新apiCode（如果之前为null）
@@ -43,7 +43,7 @@ public class MqIdempotentAspect {
 
         try {
             // 提取幂等键
-            Long idempotentKey = extractIdempotentKey(joinPoint.getArgs(), mqIdempotent, tag, apiCode);
+            Long idempotentKey = extractIdempotentKey(joinPoint.getArgs(), mqIdempotent, tag);
             if (idempotentKey == null) {
                 log.warn("MQ消息中未找到idempotentKey，跳过幂等性检查(在服务上线过程中会出现，当生产者节点全部上线完成后不应再出现该消息！), tag: {}", tag);
                 return joinPoint.proceed();
@@ -78,10 +78,9 @@ public class MqIdempotentAspect {
      * @param args         方法参数
      * @param mqIdempotent 注解配置
      * @param tag          tag信息
-     * @param apiCode      apiCode信息
      * @return idempotentKey，如果未找到返回null
      */
-    private Long extractIdempotentKey(Object[] args, MqIdempotent mqIdempotent, String tag, String apiCode) {
+    private Long extractIdempotentKey(Object[] args, MqIdempotent mqIdempotent, String tag) {
         if (args == null || args.length == 0) {
             return null;
         }
@@ -94,12 +93,11 @@ public class MqIdempotentAspect {
         String idempotentKeyField = mqIdempotent.idempotentKeyField();
 
         try {
-            // 先尝试解析为 JSONObject，直接获取字段（支持任意JSON格式）
+            // 先尝试解析为 JSONObject，直接获取字段
             JSONObject jsonObject = JSON.parseObject(message);
             if (jsonObject != null && jsonObject.containsKey(idempotentKeyField)) {
                 Object value = jsonObject.get(idempotentKeyField);
                 if (value != null) {
-                    // 支持 Long、Number 和 String 类型
                     if (value instanceof Long) {
                         return (Long) value;
                     } else if (value instanceof Number) {
@@ -108,11 +106,7 @@ public class MqIdempotentAspect {
                         try {
                             return Long.parseLong((String) value);
                         } catch (NumberFormatException e) {
-                            String logMsg = String.format("idempotentKey字段值不是有效的Long类型: %s, tag: %s", value, tag == null ? "null" : tag);
-                            if (apiCode != null) {
-                                logMsg += String.format(", apiCode: %s", apiCode);
-                            }
-                            log.warn(logMsg);
+                            log.warn("MQ幂等切面, idempotentKey字段值不是有效的Long类型: {}, tag: {}", value, tag);
                             return null;
                         }
                     }
@@ -121,11 +115,7 @@ public class MqIdempotentAspect {
 
             return null;
         } catch (Exception e) {
-            String logMsg = String.format("解析MQ消息获取idempotentKey失败，字段名: %s, tag: %s", idempotentKeyField, tag == null ? "null" : tag);
-            if (apiCode != null) {
-                logMsg += String.format(", apiCode: %s", apiCode);
-            }
-            log.warn(logMsg + ", message: " + message, e);
+            log.warn("MQ幂等切面, 解析MQ消息获取idempotentKey失败，字段名: {}, tag: {}, message: {}", idempotentKeyField, tag, message, e);
             return null;
         }
     }
@@ -139,20 +129,12 @@ public class MqIdempotentAspect {
                                         String apiCode, String tag) throws RuntimeException {
         try {
             Long recordId = mqIdempotentService.insertIdempotentRecord(tableType, idempotentKey, apiCode, tag);
-            String logMsg = String.format("消息幂等校验通过，插入幂等记录成功，tableType: %s, idempotentKey: %s, recordId: %s, tag: %s",
-                    tableType.getCode(), idempotentKey, recordId, tag == null ? "null" : tag);
-            if (apiCode != null) {
-                logMsg += String.format(", apiCode: %s", apiCode);
-            }
-            log.warn(logMsg);
+            log.warn("消息幂等校验通过，插入幂等记录成功，idempotentKey: {}, recordId: {}, tag: {}", idempotentKey, recordId, tag);
             return recordId;
         } catch (DuplicateKeyException e) {
-            String subject = "MQ消息幂等校验不通过！";
+            String subject = "MQ幂等切面, 幂等校验不通过！";
             String message = String.format("该MQ消息已处理过, idempotentKey: %s, tag: %s, 跳过本次处理, error: %s",
                     idempotentKey, tag, e.getMessage());
-            if (apiCode != null) {
-                message += String.format(", apiCode: %s", apiCode);
-            }
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), message
                     , subject), e);
             return null;
@@ -173,14 +155,11 @@ public class MqIdempotentAspect {
 
         try {
             mqIdempotentService.updateApiCode(tableType, recordId, currentApiCode);
-            String logMsg = String.format("业务处理成功，更新幂等记录apiCode，tableType: %s, recordId: %s, apiCode: %s, tag: %s",
-                    tableType.getCode(), recordId, currentApiCode, tag == null ? "null" : tag);
-            log.warn(logMsg);
+            log.warn("业务处理成功，更新幂等记录apiCode，recordId: {}, apiCode: {}, tag: {}", recordId, currentApiCode, tag);
         } catch (Exception e) {
-            String subject = "更新幂等记录apiCode失败";
-            String errorMsg = String.format("更新幂等记录apiCode失败, recordId: %s, tag: %s, error: %s",
-                    recordId, tag, e.getMessage());
-            errorMsg += String.format(", apiCode: %s", currentApiCode);
+            String subject = "MQ幂等切面, 更新幂等记录apiCode失败";
+            String errorMsg = String.format("更新幂等记录apiCode失败, recordId: %s, tag: %s, apiCode: %s, error: %s",
+                    recordId, tag, currentApiCode, e.getMessage());
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), errorMsg
                     , subject), e);
         }
@@ -200,34 +179,28 @@ public class MqIdempotentAspect {
         while (retryCount < maxRetries && !deleted) {
             try {
                 mqIdempotentService.deleteIdempotentRecord(tableType, recordId);
-                String logMsg = String.format("MQ幂等切面，业务处理异常，已删除幂等记录, idempotentKey: %s, recordId: %s, 重试次数: %s, tag: %s",
-                        idempotentKey, recordId, retryCount, tag);
-                logMsg += String.format(", apiCode: %s", apiCode);
-                log.warn(logMsg + ", 等待MQ重试");
+                log.warn("MQ幂等切面，业务处理异常，已删除幂等记录, idempotentKey: {}, recordId: {}, 重试次数: {}, tag: {}, apiCode: {}, 等待MQ重试",
+                        idempotentKey, recordId, retryCount, tag, apiCode);
                 deleted = true;
             } catch (Exception e) {
                 retryCount++;
                 if (retryCount < maxRetries) {
-                    String logMsg = String.format("MQ幂等切面，删除幂等记录失败，准备重试，idempotentKey: %s, recordId: %s, 重试次数: %s/%s, tag: %s",
-                            idempotentKey, recordId, retryCount, maxRetries, tag);
-                    logMsg += String.format(", apiCode: %s", apiCode);
-                    log.warn(logMsg, e);
+                    log.warn("MQ幂等切面，删除幂等记录失败，准备重试，idempotentKey: {}, recordId: {}, 重试次数: {}/{}, tag: {}, apiCode: {}",
+                            idempotentKey, recordId, retryCount, maxRetries, tag, apiCode, e);
                     try {
                         // 递增延迟：100ms, 200ms, 300ms
                         Thread.sleep(100L * retryCount);
                     } catch (InterruptedException ie) {
                         Thread.currentThread().interrupt();
-                        String interruptMsg = String.format("MQ幂等切面，删除幂等记录重试延迟被中断，idempotentKey: %s, recordId: %s, tag: %s",
-                                idempotentKey, recordId, tag);
-                        interruptMsg += String.format(", apiCode: %s", apiCode);
-                        log.warn(interruptMsg, ie);
+                        log.warn("MQ幂等切面，删除幂等记录重试延迟被中断，idempotentKey: {}, recordId: {}, tag: {}, apiCode: {}",
+                                idempotentKey, recordId, tag, apiCode, ie);
                         break;
                     }
                 } else {
                     // 重试失败，记录告警
-                    String errorMsg = String.format("MQ幂等切面，删除幂等记录失败（已重试%d次），幂等记录可能残留 idempotentKey: %s, recordId: %s, tag: %s, error: %s",
-                            maxRetries, idempotentKey, recordId, tag, e.getMessage());
-                    errorMsg += String.format(", apiCode: %s", apiCode);
+                    String errorMsg = String.format("MQ幂等切面，删除幂等记录失败（已重试%d次），" +
+                                    "幂等记录可能残留 idempotentKey: %s, recordId: %s, tag: %s, apiCode: %s, error: %s",
+                            maxRetries, idempotentKey, recordId, tag, apiCode != null ? apiCode : "null", e.getMessage());
                     String subject = "MQ幂等切面，删除幂等记录失败";
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), errorMsg
                             , subject), e);
