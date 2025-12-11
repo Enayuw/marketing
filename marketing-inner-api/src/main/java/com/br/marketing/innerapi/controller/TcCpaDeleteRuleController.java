@@ -9,11 +9,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import com.br.marketing.vo.tccpa.TcyrCpaFailMsgVO;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.Arrays;
-import java.util.List;
 import java.util.stream.Collectors;
 
 
@@ -79,8 +79,8 @@ public class TcCpaDeleteRuleController {
     @Operation(summary = "获取FailMsg列表", description = "获取FailMsg列表")
     @GetMapping("/getFailMsgs")
     public ApiResult getFailMsgs() {
-        List<Integer> failMsgs = Arrays.stream(TcCpaFailMsgEnum.values()).map(TcCpaFailMsgEnum::getValue).collect(Collectors.toList());
-        return new ApiResult().success().setData(failMsgs);
+        return new ApiResult().success().setData(Arrays.stream(TcCpaFailMsgEnum.values())
+                .map(TcyrCpaFailMsgVO::fromFailMsgEnum).collect(Collectors.toList()));
     }
 
     /**
