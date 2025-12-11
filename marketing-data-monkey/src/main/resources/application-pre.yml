@@ -262,8 +262,13 @@ api:
     appKey: c2300278153c40e081cfb39462ff8db3
     version: 1
     encryptionType: md5
+  syj:
+    baseUrl: https://partner.yhyunjin.com
+    code: bairong
+    originalUrl: ${api.syj.baseUrl}/yjPart/${api.syj.code}
+    blackUrl: ${api.syj.baseUrl}/yjPart/blackList/insertUnsubscribeData/${api.syj.code}
   mock:
-    baseUrl: http://marketing-inner-api
+    baseUrl: http://k8s.brapp.com/compass-api/api/marketing-inner-api
     redisUrl: ${api.mock.baseUrl}/mockRedis/queryMockConfig
 
 spring:

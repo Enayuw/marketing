@@ -29,12 +29,26 @@ public class XcLoopCycleJobSwitchGuardJob extends AbstractSimpleElasticJob {
      * 记录开关开启的时间戳（毫秒）
      * 如果为null或0，表示开关未开启或已关闭
      */
-    private static volatile Long switchOpenTime = null;
+    private static Long switchOpenTime = null;
 
     /**
      * 告警阈值：30分钟（毫秒）
      */
     private static final long ALARM_THRESHOLD_MS = 30 * 60 * 1000L;
+
+    /**
+     * 获取开关开启时间
+     */
+    private static Long getSwitchOpenTime() {
+        return switchOpenTime;
+    }
+
+    /**
+     * 设置开关开启时间
+     */
+    private static void setSwitchOpenTime(Long time) {
+        switchOpenTime = time;
+    }
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
@@ -48,14 +62,14 @@ public class XcLoopCycleJobSwitchGuardJob extends AbstractSimpleElasticJob {
                 long currentTime = System.currentTimeMillis();
                 
                 // 如果之前没有记录开启时间，记录当前时间
-                if (switchOpenTime == null) {
-                    switchOpenTime = currentTime;
+                if (getSwitchOpenTime() == null) {
+                    setSwitchOpenTime(currentTime);
                     log.info("检测到xc-loop-cycle Job开关已开启，开始计时");
                     return;
                 }
                 
                 // 计算开关已开启的时长
-                long openDuration = currentTime - switchOpenTime;
+                long openDuration = currentTime - getSwitchOpenTime();
                 
                 // 如果超过30分钟，发送告警
                 if (openDuration >= ALARM_THRESHOLD_MS) {
@@ -64,7 +78,7 @@ public class XcLoopCycleJobSwitchGuardJob extends AbstractSimpleElasticJob {
                         "【重要告警】xc-loop-cycle服务Job上线开关(xcLoopCycleJobOnlineSwitch)已开启超过%d分钟！" +
                         "请及时关闭开关，避免影响定时任务执行。开关开启时间：%s",
                         minutes,
-                        new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date(switchOpenTime))
+                        new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date(getSwitchOpenTime()))
                     );
                     
                     log.warn(AlertLog.buildWarnMessage(
@@ -78,9 +92,7 @@ public class XcLoopCycleJobSwitchGuardJob extends AbstractSimpleElasticJob {
                 }
             } else {
                 // 开关已关闭
-                if (switchOpenTime != null) {
-                    switchOpenTime = null;
-                }
+                setSwitchOpenTime(null);
             }
         } catch (Exception e) {
             log.error("xc-loop-cycle Job开关守护任务执行异常", e);
