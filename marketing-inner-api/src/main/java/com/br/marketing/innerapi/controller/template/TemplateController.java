@@ -7,10 +7,10 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.template.MarketingIndustryTemplateDTO;
 import com.br.marketing.entity.MarketingIndustryTemplate;
 import com.br.marketing.service.template.TemplateService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +24,7 @@ import javax.annotation.Resource;
  */
 @RestController
 @RequestMapping("/template")
-@Api(value = "行业模板相关接口", tags = "行业模板相关接口", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "行业模板相关接口", description = "行业模板相关接口")
 public class TemplateController {
 
     private static final Logger logger = LoggerFactory.getLogger(TemplateController.class);
@@ -38,7 +38,7 @@ public class TemplateController {
      * @param marketingIndustryTemplateDTO 模板信息
      * @return 是否新增成功
      */
-    @ApiOperation(value = "新增行业模板", notes = "新增行业模板")
+    @Operation(summary = "新增行业模板", description = "新增行业模板")
     @PostMapping(value = "/saveOrUpdateTemplate")
     public ApiResult<Boolean> saveOrUpdateTemplate(@RequestBody MarketingIndustryTemplateDTO marketingIndustryTemplateDTO) {
         try {
@@ -67,13 +67,15 @@ public class TemplateController {
      * @param apiType          三级部门
      * @return 查询结果
      */
-    @ApiOperation(value = "查询行业模板", notes = "查询行业模板接口")
-    @ApiImplicitParams(value = {@ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
-            , @ApiImplicitParam(name = "pageSize", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
-            , @ApiImplicitParam(name = "templateName", value = "行业模板名称", paramType = "query", dataType = "String", required = false)
-            , @ApiImplicitParam(name = "firstDepartment", value = "一级部门", paramType = "query", dataType = "String", required = false)
-            , @ApiImplicitParam(name = "secondDepartment", value = "二级部门", paramType = "query", dataType = "String", required = false)
-            , @ApiImplicitParam(name = "apiType", value = "三级部门", paramType = "query", dataType = "String", required = false)})
+    @Operation(summary = "查询行业模板", description = "查询行业模板接口")
+    @Parameters({
+            @Parameter(name = "current", description = "页号"),
+            @Parameter(name = "pageSize", description = "页大小"),
+            @Parameter(name = "templateName", description = "行业模板名称", required = false),
+            @Parameter(name = "firstDepartment", description = "一级部门", required = false),
+            @Parameter(name = "secondDepartment", description = "二级部门", required = false),
+            @Parameter(name = "apiType", description = "三级部门", required = false)
+    })
     @PostMapping(value = "/queryAllTemplate")
     public ApiResult<PageResultReturn<MarketingIndustryTemplate>> queryAllTemplate(@RequestParam(name = "current") Integer current
             , @RequestParam(name = "pageSize") Integer pageSize
@@ -96,7 +98,7 @@ public class TemplateController {
      * @param marketingIndustryTemplateDTO 行业模板信息
      * @return 修改结果
      */
-    @ApiOperation(value = "修改行业模板", notes = "修改行业模板接口")
+    @Operation(summary = "修改行业模板", description = "修改行业模板接口")
     @PostMapping(value = "/editTemplate")
     public ApiResult<Boolean> editTemplate(@RequestBody MarketingIndustryTemplateDTO marketingIndustryTemplateDTO) {
         try {
@@ -114,7 +116,7 @@ public class TemplateController {
      * @param id 模板id
      * @return 删除结果
      */
-    @ApiOperation(value = "删除行业模板", notes = "删除行业模板")
+    @Operation(summary = "删除行业模板", description = "删除行业模板")
     @GetMapping(value = "/deleteTemplate")
     public ApiResult<Boolean> deleteTemplate(@RequestParam(name = "id") Long id) {
         try {
@@ -126,7 +128,7 @@ public class TemplateController {
         }
     }
 
-    @ApiOperation("根据id查询行业模板")
+    @Operation(summary = "根据id查询行业模板", description = "根据id查询行业模板")
     @GetMapping(value = "/queryTemplateById")
     public ApiResult<MarketingIndustryTemplateDTO> queryTemplateById(@RequestParam(name = "id") Long id) {
         try {

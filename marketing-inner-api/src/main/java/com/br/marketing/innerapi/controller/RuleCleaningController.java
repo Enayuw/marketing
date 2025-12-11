@@ -162,7 +162,7 @@ public class RuleCleaningController {
     @Operation(summary = "模版字段配置查询", description = "模版字段配置查询")
     @Parameters({
             @Parameter(name = "dataType", description = "数据类型：0上传，1转化", required = true),
-            @Parameter(name = "acceptType", description = "接口类型：0通用,1定制,2FTP")
+            @Parameter(name = "acceptType", description = "接口类型：0通用,1定制,2FTP"),
             @Parameter(name = "systemType", description = "数据来源,0-营销中台 1-外呼系统", required = true),
     })
     @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_warn")})

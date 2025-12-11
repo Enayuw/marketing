@@ -4,8 +4,8 @@ import com.alibaba.fastjson.JSONArray;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.service.template.TemplateJsonParseService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,7 +22,7 @@ import javax.annotation.Resource;
  */
 @RestController
 @RequestMapping("/templateJsonParse")
-@Api(value = "行业模板Json数据相关接口", tags = "行业模板Json数据相关接口", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "行业模板Json数据相关接口", description = "行业模板Json数据相关接口")
 public class TemplateJsonParseController {
 
     private static final Logger logger = LoggerFactory.getLogger(TemplateJsonParseController.class);
@@ -30,7 +30,7 @@ public class TemplateJsonParseController {
     @Resource
     private TemplateJsonParseService templateJsonParseService;
 
-    @ApiOperation("根据三级部门及数据类型查询行业模板")
+    @Operation(summary = "根据三级部门及数据类型查询行业模板", description = "根据三级部门及数据类型查询行业模板")
     @PostMapping(value = "/queryTemplateJsonParse")
     public ApiResult<JSONArray> queryTemplateJsonParse(@RequestParam(name = "firstDepartment") String firstDepartment,
                                                        @RequestParam(name = "secondDepartment") String secondDepartment,

@@ -34,7 +34,7 @@ public class CleanFieldConfigVO {
     /**
      * 数据类型：0:上传，1:转化
      */
-    @ApiModelProperty(value = "数据源类型：0:营销中台，1:外呼系统")
+    @Schema(description = "数据源类型：0:营销中台，1:外呼系统")
     private Integer systemType;
 
 }
