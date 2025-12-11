@@ -1,24 +1,18 @@
 package com.br.marketing.service.tccpa.impl;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.dto.tccpa.TcCpaDeleteRuleExecuteInfoDTO;
 import com.br.marketing.entity.*;
-import com.br.marketing.enums.TcCpaCollidingTaskStatusEnum;
 import com.br.marketing.enums.TcCpaDeleteRuleSourceTypeEnum;
 import com.br.marketing.enums.TcCpaFailMsgEnum;
-import com.br.marketing.mapper.TcyrCpaCollidingTaskMapper;
 import com.br.marketing.mapper.TcyrCpaCommonMapper;
 import com.br.marketing.mapper.TcyrCpaDeleteRuleMapper;
 import com.br.marketing.service.tccpa.TcCpaCommonService;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
-import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.util.*;
@@ -31,100 +25,70 @@ public class TcCpaCommonServiceImpl implements TcCpaCommonService {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Resource
-    private TcyrCpaDeleteRuleMapper tcyrCpaDeleteRuleMapper;
-
-    @Resource
     private TcyrCpaCommonMapper tcyrCpaCommonMapper;
 
     @Resource
-    private TcyrCpaCollidingTaskMapper tcyrCpaCollidingTaskMapper;
+    private TcyrCpaDeleteRuleMapper tcyrCpaDeleteRuleMapper;
 
     @Override
-    public void updateVolume() {
-        TcyrCpaCollidingTaskExample collidingExample = new TcyrCpaCollidingTaskExample();
-        collidingExample.createCriteria().andCollidingDateEqualTo(new Date())
-                .andStatusIn(Lists.newArrayList(TcCpaCollidingTaskStatusEnum.STATUS_WAIT_STA.getValue(),
-                        TcCpaCollidingTaskStatusEnum.STATUS_STA_COMPLETED.getValue()))
-                .andEnabledEqualTo(Constants.ENABLED_ACT).andIsDelEqualTo(Constants.DATA_VALID);
-        List<TcyrCpaCollidingTask> collidingTasks = tcyrCpaCollidingTaskMapper.selectByExample(collidingExample);
-        collidingTasks.forEach(collidingTask -> {
-            updateDeletedNum(collidingTask);
-            updateSupplyNum(collidingTask);
-        });
-    }
-
-    @Override
-    public void updateVolumeByTask(TcyrCpaCollidingTask collidingTask) {
-        updateDeletedNum(collidingTask);
-        updateSupplyNum(collidingTask);
-    }
-
-    @Override
-    public void updateVolumeByTaskId(Long taskId) {
-        TcyrCpaCollidingTask collidingTask = tcyrCpaCollidingTaskMapper.selectByPrimaryKey(taskId);
-        updateVolumeByTask(collidingTask);
-    }
-
-    private void updateSupplyNum(TcyrCpaCollidingTask collidingTask) {
-        if(StringUtils.isBlank(collidingTask.getSupplyRuleInfo())) {
-            collidingTask.setSupplyNum(0);
-            return;
-        }
-        List<TcyrSupplyRuleInfo> supplyRuleInfos = JSON.parseObject(collidingTask.getSupplyRuleInfo(), new TypeReference<>() {
-        });
-        List<String> supplyScripts = supplyRuleInfos.stream()
-                .map(TcyrSupplyRuleInfo::getSupplyScript)
-                .filter(StringUtils::isNotBlank)
-                .collect(Collectors.toList());
-
-        if (CollectionUtils.isNotEmpty(supplyScripts)) {
-            int supplyNum = tcyrCpaCommonMapper.executeUnionQueriestikv_(supplyScripts);
-            collidingTask.setSupplyNum(supplyNum);
-        }
-    }
-
-    private void updateDeletedNum(TcyrCpaCollidingTask collidingTask) {
-        List<Long> deleteRuleIds = Splitter.on(',')
-                .trimResults().omitEmptyStrings().splitToStream(collidingTask.getDeleteRuleIds())
-                .map(Long::valueOf).collect(Collectors.toList());
-        if(CollectionUtils.isEmpty(deleteRuleIds)) {
-            collidingTask.setDeleteNum(0);
-            return;
-        }
-        TcyrCpaDeleteRuleExample deleteRuleExample = new TcyrCpaDeleteRuleExample();
-        deleteRuleExample.createCriteria().andIdIn(deleteRuleIds);
-        List<TcyrCpaDeleteRule> deleteRules = tcyrCpaDeleteRuleMapper.selectByExample(deleteRuleExample);
-
-        Integer deleteNum = getDeleteNum(deleteRules);
-        if (deleteNum == null) {
-            return;
-        }
-        collidingTask.setDeleteNum(deleteNum);
-    }
-
-    private Integer getDeleteNum(List<TcyrCpaDeleteRule> deleteRules) {
-        List<String> executeInfos = deleteRules.stream().map(TcyrCpaDeleteRule::getExecuteInfo)
-                .filter(StringUtils::isNotBlank).collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(executeInfos)) {
-            return null;
-        }
-        List<TcCpaDeleteRuleExecuteInfoDTO> ruleInfoList = new ArrayList<>();
-        for (TcyrCpaDeleteRule deleteRule : deleteRules) {
-            String executeInfo = deleteRule.getExecuteInfo();
-            if (StringUtils.isBlank(executeInfo)) {
-                continue;
+    public void updateVolumeByTask(TcyrCpaCollidingTask collidingTask) throws IOException {
+        String joinFrag = getDeleteSqlFrag(collidingTask.getDeleteRuleIds());
+        List<Long> packageIds = com.br.marketing.common.utils.StringUtils
+                .StrsConvertLongs(collidingTask.getPackageIds());
+        String packageIdStr = com.br.marketing.common.utils.StringUtils.join(packageIds);
+        //1.数据包预估
+        String packageEstSql = "select count(distinct pck.user_key) from b_tcyr_cpa_colliding_data pck "
+                .concat(" where pck.is_del = 1")
+                .concat(" and pck.package_id in " + packageIdStr);
+        //数据包全量
+        int packageEstNum = tcyrCpaCommonMapper.magnitudeQuerytiflash_(packageEstSql);
+        String packageEstWithDelSql = "select count(distinct pck.user_key) from b_tcyr_cpa_colliding_data pck "
+                .concat(joinFrag)
+                .concat(" and pck.package_id in " + packageIdStr);
+        //数据包预估
+        int packageEstWithDelNum = tcyrCpaCommonMapper.magnitudeQuerytiflash_(packageEstSql);
+        //2.补充包预估
+        //补充包全量
+        int supplyEstNum = 0;
+        //补充包预估
+        int supplyEstNumWithDel = 0;
+        if (StringUtils.isNotEmpty(collidingTask.getSupplyRuleInfo())) {
+            List<TcyrSupplyRuleInfo> supplyRuleInfos =
+                    objectMapper.readValue(collidingTask.getSupplyRuleInfo(),
+                            new com.fasterxml.jackson.core.type.TypeReference<List<TcyrSupplyRuleInfo>>() {
+                            });
+            for (TcyrSupplyRuleInfo ruleInfo : supplyRuleInfos) {
+                if (TcCpaFailMsgEnum.isLock(ruleInfo.getFailMsg())) {
+                    Integer lockBelong = convertFailMsgToLockBelong(ruleInfo.getFailMsg());
+                    String lockEstSql = "select count(distinct pck.user_key) from b_tcyr_cpa_lock_data pck "
+                            .concat(" where pck.is_del = 1")
+                            .concat(" and pck.lock_belong = " + lockBelong)
+                            .concat(" and date(pck.release_time) in " + ruleInfo.join());
+                    supplyEstNum += tcyrCpaCommonMapper.magnitudeQuerytiflash_(lockEstSql);
+                    String lockWithDelEstSql = "select count(distinct pck.user_key) from b_tcyr_cpa_lock_data pck "
+                            .concat(joinFrag)
+                            .concat(" and pck.lock_belong = " + lockBelong)
+                            .concat(" and date(pck.release_time) in " + ruleInfo.join());
+                    supplyEstNumWithDel += tcyrCpaCommonMapper.magnitudeQuerytiflash_(lockWithDelEstSql);
+                } else {
+                    String lockEstSql = "select count(distinct pck.user_key) from b_tcyr_cpa_invalue_data pck "
+                            .concat(" where pck.is_del = 1")
+                            .concat(" and pck.fail_msg = " + ruleInfo.getFailMsg())
+                            .concat(" and date(pck.release_time) in " + ruleInfo.join());
+                    supplyEstNum += tcyrCpaCommonMapper.magnitudeQuerytiflash_(lockEstSql);
+                    String lockWithDelEstSql = "select count(distinct pck.user_key) from b_tcyr_cpa_invalue_data pck "
+                            .concat(joinFrag)
+                            .concat(" and pck.fail_msg = " + ruleInfo.getFailMsg())
+                            .concat(" and date(pck.release_time) in " + ruleInfo.join());
+                    supplyEstNumWithDel += tcyrCpaCommonMapper.magnitudeQuerytiflash_(lockWithDelEstSql);
+                }
             }
-            List<TcCpaDeleteRuleExecuteInfoDTO> ruleInfos;
-            try {
-                ruleInfos = objectMapper.readValue(executeInfo,
-                        new com.fasterxml.jackson.core.type.TypeReference<List<TcCpaDeleteRuleExecuteInfoDTO>>() {
-                        });
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            ruleInfoList.addAll(ruleInfos);
         }
-        return calculateVolume(ruleInfoList);
+        int estNum = packageEstNum + supplyEstNum;
+        int estWithDelNum = packageEstWithDelNum + supplyEstNumWithDel;
+        collidingTask.setEstNum(estWithDelNum);
+        collidingTask.setSupplyNum(supplyEstNumWithDel);
+        collidingTask.setDeleteNum(estNum - estWithDelNum);
     }
 
     @Override
@@ -213,5 +177,67 @@ public class TcCpaCommonServiceImpl implements TcCpaCommonService {
             }
         }
         return null;
+    }
+
+    @Override
+    public String getDeleteSqlFrag(String deleteRuleIdStr) throws IOException {
+        List<Long> deleteRuleIds = com.br.marketing.common.utils.StringUtils.StrsConvertLongs(deleteRuleIdStr);
+        String joinFrag = "";
+        String whereFrag = " where pck.is_del = 1";
+        if (CollectionUtils.isEmpty(deleteRuleIds)) {
+            return whereFrag;
+        }
+        //1.获取剔除规则
+        TcyrCpaDeleteRuleExample example = new TcyrCpaDeleteRuleExample();
+        example.createCriteria()
+                .andIdIn(deleteRuleIds)
+                .andIsDelEqualTo(Constants.DATA_VALID)
+                .andEnabledEqualTo(Constants.ENABLED_ACT);
+        List<TcyrCpaDeleteRule> deleteRules = tcyrCpaDeleteRuleMapper.selectByExample(example);
+        if (CollectionUtils.isEmpty(deleteRules)) {
+            return whereFrag;
+        }
+        //2.将剔除规则中的信息，结构化
+        List<TcCpaDeleteRuleExecuteInfoDTO> infos = new ArrayList<>();
+        for (TcyrCpaDeleteRule deleteRule : deleteRules) {
+            String executeInfo = deleteRule.getExecuteInfo();
+            if (com.br.marketing.common.utils.StringUtils.isBlank(executeInfo)) {
+                continue;
+            }
+            List<TcCpaDeleteRuleExecuteInfoDTO> ruleInfos = objectMapper.readValue(
+                    executeInfo,
+                    new TypeReference<List<TcCpaDeleteRuleExecuteInfoDTO>>() {
+                    }
+            );
+            infos.addAll(ruleInfos);
+        }
+        //3.生成sql片段
+        Map<Integer, TcCpaDeleteRuleExecuteInfoDTO> commonInfos = new HashMap<>();
+        for (TcCpaDeleteRuleExecuteInfoDTO info : infos) {
+            //定制的剔除规则，在循环中就可以生成sql片段
+            if (info.getSourceType() == TcCpaDeleteRuleSourceTypeEnum.CUSTOMIZE.getValue()) {
+                joinFrag.concat(" left join " + info.getTableName() +
+                        " on " + info.getMappingField() + " = pck.user_key" + " and " + info.getCondition());
+                whereFrag.concat(" and " + info.getMappingField() + " is null");
+            } else {
+                //通用的剔除规则，相同的sourceType的规则，value值需要做汇总去重
+                TcCpaDeleteRuleExecuteInfoDTO updInfo =
+                        commonInfos.computeIfAbsent(info.getSourceType(), k -> info);
+                updInfo.addValue(info.getValue());
+            }
+        }
+        //通用的剔除规则，生成sql片段
+        for (TcCpaDeleteRuleExecuteInfoDTO info : commonInfos.values()) {
+            TcCpaDeleteRuleSourceTypeEnum sourceTypeEnum = TcCpaDeleteRuleSourceTypeEnum.getByValue(info.getSourceType());
+            joinFrag = joinFrag.concat(" left join " + sourceTypeEnum.getTableName() +
+                    " on " + sourceTypeEnum.getSelect() + " = pck.user_key" +
+                    " and " + sourceTypeEnum.getDefaultCondition());
+            //lock
+            if (info.getSourceType() != TcCpaDeleteRuleSourceTypeEnum.BLANK_DATA.getValue()) {
+                joinFrag = joinFrag.concat(" and " + sourceTypeEnum.getField() + " in " + info.join());
+            }
+            whereFrag = whereFrag.concat(" and " + sourceTypeEnum.getSelect() + " is null");
+        }
+        return joinFrag + whereFrag;
     }
 }

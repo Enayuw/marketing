@@ -169,39 +169,6 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
-    /**
-     * 查询上次勾选的格子
-     * @param taskId
-     */
-    private List<String> getIsSupplyData(Long taskId) {
-        if (taskId == null) {
-            return null;
-        }
-        String supplyRuleInfo = tcyrCpaCollidingTaskMapper.querysupplyRuleInfo(taskId);
-        if (StringUtils.isEmpty(supplyRuleInfo)) {
-            return null;
-        }
-        List<TcyrSupplyRuleInfo> supplyRuleInfos;
-        List<String> isSupplyList = new ArrayList<>();
-        try {
-            supplyRuleInfos = objectMapper.readValue(supplyRuleInfo,
-                    new TypeReference<List<TcyrSupplyRuleInfo>>() {
-                    });
-        } catch (IOException e) {
-            log.error("同程cpa-supplyRuleInfos转化异常," + e.getMessage());
-            throw new RuntimeException(e);
-        }
-        for (TcyrSupplyRuleInfo ruleInfo : supplyRuleInfos) {
-            for (String releaseTime : ruleInfo.getReleaseTimes()) {
-                isSupplyList.add(releaseTime + "-" + ruleInfo.getFailMsg());
-            }
-        }
-        return isSupplyList;
-
-    }
-
-
-
     @Override
     public PageResultReturn list(TcCpaCollidingRuleQueryDTO dto) {
         PageHelper.startPage(dto.getCurrent(), dto.getSize());
@@ -262,14 +229,14 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
     @Override
     public Result update(TcCpaCollidingRuleDTO ruleDTO) {
         //1.查询原数据并校验
-        TcyrCpaCollidingTask exTask = tcyrCpaCollidingTaskMapper.selectByPrimaryKey(ruleDTO.getTaskId());
-        if(exTask == null){
+        TcyrCpaCollidingTask task = tcyrCpaCollidingTaskMapper.selectByPrimaryKey(ruleDTO.getTaskId());
+        if(task == null){
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("未查到对应撞库任务，请联系开发人员！");
         }
-        if (exTask.getEnabled() == Constants.ENABLED_ACT) {
+        if (task.getEnabled() == Constants.ENABLED_ACT) {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("启用状态的撞库任务不可修改！");
         }
-        if (exTask.getStatus() > TcCpaCollidingTaskStatusEnum.STATUS_STA_COMPLETED.getValue()) {
+        if (task.getStatus() > TcCpaCollidingTaskStatusEnum.STATUS_STA_COMPLETED.getValue()) {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("该撞库任务已进入推送流程，不可修改！");
         }
         //2.赋值基础字段
@@ -278,13 +245,15 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
                 .map(Long::valueOf)
                 .collect(Collectors.toList());
         String packageNames = tcyrCpaCollidingDataPackageMapper.queryPackageNamesByIds(packageIdStrs);
-        String collidingDate = DateHelper.formatDate(exTask.getCollidingDate());
-        TcyrCpaCollidingTask task = new TcyrCpaCollidingTask();
-        task.setId(ruleDTO.getTaskId());
+        String collidingDate = DateHelper.formatDate(task.getCollidingDate());
         task.setPackageIds(String.join(",", packageIds));
         task.setPackageNames(packageNames);
         task.setDeleteRuleIds(String.join(",", ruleDTO.getDeleteRuleIds()));
         task.setCollidingTime(DateHelper.parseDate(collidingDate + " " + ruleDTO.getCollidingTime()));
+        task.setStatus(TcCpaCollidingTaskStatusEnum.STATUS_WAIT_STA.getValue());
+        task.setEstNum(null);
+        task.setSupplyNum(null);
+        task.setDeleteNum(null);
         //todo 更新时需要更新量级不
         //3.赋值补包字段
         if (CollectionUtils.isEmpty(ruleDTO.getFailMsgSupplyGroups())) {
@@ -311,6 +280,37 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
         task.setEnabled(enabled);
         tcyrCpaCollidingTaskMapper.updateByPrimaryKeySelective(task);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    /**
+     * 查询上次勾选的格子
+     * @param taskId
+     */
+    private List<String> getIsSupplyData(Long taskId) {
+        if (taskId == null) {
+            return null;
+        }
+        String supplyRuleInfo = tcyrCpaCollidingTaskMapper.querysupplyRuleInfo(taskId);
+        if (StringUtils.isEmpty(supplyRuleInfo)) {
+            return null;
+        }
+        List<TcyrSupplyRuleInfo> supplyRuleInfos;
+        List<String> isSupplyList = new ArrayList<>();
+        try {
+            supplyRuleInfos = objectMapper.readValue(supplyRuleInfo,
+                    new TypeReference<List<TcyrSupplyRuleInfo>>() {
+                    });
+        } catch (IOException e) {
+            log.error("同程cpa-supplyRuleInfos转化异常," + e.getMessage());
+            throw new RuntimeException(e);
+        }
+        for (TcyrSupplyRuleInfo ruleInfo : supplyRuleInfos) {
+            for (String releaseTime : ruleInfo.getReleaseTimes()) {
+                isSupplyList.add(releaseTime + "-" + ruleInfo.getFailMsg());
+            }
+        }
+        return isSupplyList;
+
     }
 
     private Map<String, MarketingCustomer> getCustomer(List<TcyrCpaCollidingTask> taskList) {
@@ -420,10 +420,6 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
                 .filter(group -> CollectionUtils.isNotEmpty(group.getSupplyInfo()))  // 过滤掉supplyInfo为空的组
                 .collect(Collectors.toList());
     }
-
-
-
-
 
     /**
      * 将List<TcyrCpaMagnitude>转换为按日期分组的结果

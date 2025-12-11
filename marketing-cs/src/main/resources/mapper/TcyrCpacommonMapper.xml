@@ -14,4 +14,8 @@
         ) as distinct_result
     </select>
 
+    <select id="magnitudeQuerytiflash_" resultType="java.lang.Integer">
+        ${querySql}
+    </select>
+
 </mapper>

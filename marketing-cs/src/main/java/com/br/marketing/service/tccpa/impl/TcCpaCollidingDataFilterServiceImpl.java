@@ -6,7 +6,6 @@ import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.JsonParseUtils;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.dto.tccpa.TcCpaDeleteRuleExecuteInfoDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.*;
 import com.br.marketing.mapper.*;
@@ -43,9 +42,6 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
     TcyrCpaCollidingTaskPackageMapper tcyrCpaCollidingTaskPackageMapper;
 
     @Resource
-    TcyrCpaDeleteRuleMapper tcyrCpaDeleteRuleMapper;
-
-    @Resource
     TcyrCpaCollidingDataPackageMapper tcyrCpaCollidingDataPackageMapper;
 
     @Resource
@@ -61,8 +57,6 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
     private MarketingCommonConfig marketingCommonConfig;
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
-
-    private static int PAGE_SIZE;
 
     @Override
     public void process() {
@@ -103,7 +97,6 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
 
     /**
      * 处理撞库任务
-     *
      * @param task
      * @return
      */
@@ -116,14 +109,10 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
         TcyrCpaCollidingTaskPackageExample taskPackageExample = new TcyrCpaCollidingTaskPackageExample();
         taskPackageExample.createCriteria()
                 .andCollidingTaskIdEqualTo(task.getId())
+                .andStatusLessThan(TcCpaCollidingTaskPackageStatus.STATUS_EXECUTED.getValue())
                 .andIsDelEqualTo(Constants.DATA_VALID);
         List<TcyrCpaCollidingTaskPackage> taskPackages = tcyrCpaCollidingTaskPackageMapper.selectByExample(taskPackageExample);
-        if (CollectionUtils.isNotEmpty(taskPackages)) {
-            taskPackages = taskPackages.stream()
-                    .filter(taskPackage ->
-                            taskPackage.getStatus() < TcCpaCollidingTaskPackageStatus.STATUS_EXECUTED.getValue())
-                    .collect(Collectors.toList());
-        } else {
+        if (CollectionUtils.isEmpty(taskPackages)) {
             taskPackages = getTaskPackage(task, packages);
             tcyrCpaCollidingTaskPackageMapper.insertBatch(taskPackages);
         }
@@ -143,6 +132,8 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
                     .sum();
             task.setPushNum(pushNum);
             task.setStatus(TcCpaCollidingTaskStatusEnum.STATUS_FILTER_COMPLETED.getValue());
+        } else {
+            task.setStatus(TcCpaCollidingTaskStatusEnum.STATUS_STA_COMPLETED.getValue());
         }
         tcyrCpaCollidingTaskMapper.updateByPrimaryKeySelective(task);
         return isSuccess;
@@ -150,7 +141,6 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
 
     /**
      * 获取【b_tcyr_cpa_colliding_task_package】
-     *
      * @param task
      * @param packages
      * @return
@@ -187,26 +177,10 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
         return taskPackages;
     }
 
-
-    private boolean filter(TcyrCpaCollidingTask task, List<TcyrCpaCollidingTaskPackage> taskPackages, Date colldingDate,
-                           TpDynamicExecutor threadPool, List<CompletableFuture<Void>> futures) throws IOException {
-        //1.获取剔除规则
-        List<Long> deleteRuleIds = StringUtils.StrsConvertLongs(task.getDeleteRuleIds());
-        //2.获取join片段
-        String joinFrag = getDeleteSqlFrag(deleteRuleIds);
-        log.warn(TITLE + "joinFrag: " + joinFrag);
-        boolean isSuccess;
-        //3.数据包插入
-        isSuccess = packageInsert(task, taskPackages, colldingDate, joinFrag,  threadPool, futures);
-        return isSuccess;
-    }
-
-
     /**
-     * @param task         撞库任务
+     * @param task 撞库任务
      * @param taskPackages 任务数据包
      * @param colldingDate 撞库日期
-     * @param joinFrag     join片段
      * @param threadPool
      * @param futures
      * @return void
@@ -214,11 +188,13 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
      * @author hedongshuo
      * @date 2025/12/8 10:17
      **/
-    private boolean packageInsert(TcyrCpaCollidingTask task, List<TcyrCpaCollidingTaskPackage> taskPackages, Date colldingDate, String joinFrag,
-                                  TpDynamicExecutor threadPool, List<CompletableFuture<Void>> futures) {
+    private boolean filter(TcyrCpaCollidingTask task, List<TcyrCpaCollidingTaskPackage> taskPackages, Date colldingDate,
+                           TpDynamicExecutor threadPool, List<CompletableFuture<Void>> futures) throws IOException {
         int insertAbleNum;
         String querySql;
         boolean isSuccess;
+        String joinFrag = tcCpaCommonService.getDeleteSqlFrag(task.getDeleteRuleIds());
+        log.warn(TITLE + "joinFrag: " + joinFrag);
         for (TcyrCpaCollidingTaskPackage taskPackage : taskPackages) {
             insertAbleNum = getInsertAbleNum(taskPackage.getPackageId(), colldingDate);
             if (insertAbleNum <= 0) {
@@ -319,7 +295,7 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
      * @param insertAbleNum
      * @param threadPool
      * @param futures
-     * @return void
+     * @return boolean
      * @description 将数据包经过筛选规则，插入到推送数据池中
      * @author hedongshuo
      * @date 2025/12/5 21:07
@@ -395,22 +371,13 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
      * 查询包插入量级
      * @param packageId
      * @param colldingDate
-     * @return
+     * @return int
      */
     private int queryPackageCount(Long packageId, Date colldingDate) {
         TcyrCpaPushDataExample countExample = new TcyrCpaPushDataExample();
         countExample.createCriteria()
                 .andCollidingDateEqualTo(colldingDate)
                 .andPackageIdEqualTo(packageId)
-                .andIsDelEqualTo(Constants.DATA_VALID);
-        return tcyrCpaPushDataMapper.countByExample(countExample);
-    }
-
-    private int queryPackageCount(List<Long> packageIds, Date colldingDate) {
-        TcyrCpaPushDataExample countExample = new TcyrCpaPushDataExample();
-        countExample.createCriteria()
-                .andCollidingDateEqualTo(colldingDate)
-                .andPackageIdIn(packageIds)
                 .andIsDelEqualTo(Constants.DATA_VALID);
         return tcyrCpaPushDataMapper.countByExample(countExample);
     }
@@ -426,74 +393,6 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
             return data;
         }).collect(Collectors.toList());
         tcyrCpaPushDataMapper.insertBatchWithCollidingDate(dataList);
-    }
-
-
-    /**
-     * @param deleteRuleIds
-     * @return void
-     * @description 获取剔除规则对应的sql片段
-     * @author hedongshuo
-     * @date 2025/12/5 20:40
-     **/
-    private String getDeleteSqlFrag(List<Long> deleteRuleIds) throws IOException {
-        String joinFrag = "";
-        String whereFrag = " where pck.is_del = 1";
-        if (CollectionUtils.isEmpty(deleteRuleIds)) {
-            return whereFrag;
-        }
-        //1.获取剔除规则
-        TcyrCpaDeleteRuleExample example = new TcyrCpaDeleteRuleExample();
-        example.createCriteria()
-                .andIdIn(deleteRuleIds)
-                .andIsDelEqualTo(Constants.DATA_VALID)
-                .andEnabledEqualTo(Constants.ENABLED_ACT);
-        List<TcyrCpaDeleteRule> deleteRules = tcyrCpaDeleteRuleMapper.selectByExample(example);
-        if (CollectionUtils.isEmpty(deleteRules)) {
-            return whereFrag;
-        }
-        //2.将剔除规则中的信息，结构化
-        List<TcCpaDeleteRuleExecuteInfoDTO> infos = new ArrayList<>();
-        for (TcyrCpaDeleteRule deleteRule : deleteRules) {
-            String executeInfo = deleteRule.getExecuteInfo();
-            if (StringUtils.isBlank(executeInfo)) {
-                continue;
-            }
-            List<TcCpaDeleteRuleExecuteInfoDTO> ruleInfos = objectMapper.readValue(
-                    executeInfo,
-                    new TypeReference<List<TcCpaDeleteRuleExecuteInfoDTO>>() {
-                    }
-            );
-            infos.addAll(ruleInfos);
-        }
-        //3.生成sql片段
-        Map<Integer, TcCpaDeleteRuleExecuteInfoDTO> commonInfos = new HashMap<>();
-        for (TcCpaDeleteRuleExecuteInfoDTO info : infos) {
-            //定制的剔除规则，在循环中就可以生成sql片段
-            if (info.getSourceType() == TcCpaDeleteRuleSourceTypeEnum.CUSTOMIZE.getValue()) {
-                joinFrag.concat(" left join " + info.getTableName() +
-                        " on " + info.getMappingField() + " = pck.user_key" + " and " + info.getCondition());
-                whereFrag.concat(" and " + info.getMappingField() + " is null");
-            } else {
-                //通用的剔除规则，相同的sourceType的规则，value值需要做汇总去重
-                TcCpaDeleteRuleExecuteInfoDTO updInfo =
-                        commonInfos.computeIfAbsent(info.getSourceType(), k -> info);
-                updInfo.addValue(info.getValue());
-            }
-        }
-        //通用的剔除规则，生成sql片段
-        for (TcCpaDeleteRuleExecuteInfoDTO info : commonInfos.values()) {
-            TcCpaDeleteRuleSourceTypeEnum sourceTypeEnum = TcCpaDeleteRuleSourceTypeEnum.getByValue(info.getSourceType());
-            joinFrag = joinFrag.concat(" left join " + sourceTypeEnum.getTableName() +
-                    " on " + sourceTypeEnum.getSelect() + " = pck.user_key" +
-                    " and " + sourceTypeEnum.getDefaultCondition());
-            //lock
-            if (info.getSourceType() != TcCpaDeleteRuleSourceTypeEnum.BLANK_DATA.getValue()) {
-                joinFrag = joinFrag.concat(" and " + sourceTypeEnum.getField() + " in " + info.join());
-            }
-            whereFrag = whereFrag.concat(" and " + sourceTypeEnum.getSelect() + " is null");
-        }
-        return joinFrag + whereFrag;
     }
 
     /**

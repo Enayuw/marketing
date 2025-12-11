@@ -292,4 +292,12 @@ public class StringUtils {
                 .collect(Collectors.joining(","));
     }
 
+    public static String join(List<Long> longs) {
+        StringJoiner joiner = new StringJoiner(",", "(", ")");
+        for (Long num : longs) {
+            joiner.add(num.toString());
+        }
+        return joiner.toString();
+    }
+
 }

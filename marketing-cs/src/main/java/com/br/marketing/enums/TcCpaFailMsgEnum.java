@@ -1,6 +1,8 @@
 package com.br.marketing.enums;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -18,15 +20,27 @@ public enum TcCpaFailMsgEnum {
 
     private static final Map<Integer, TcCpaFailMsgEnum> ENUM_MAP = new HashMap<>();
 
+    private static final List<Integer> LOCK_VALUES = new ArrayList<>();
+
+    private static final List<Integer> INVALUE_VALUES = new ArrayList<>();
+
     static {
         for (TcCpaFailMsgEnum value : TcCpaFailMsgEnum.values()) {
             ENUM_MAP.put(value.value, value);
-            ENUM_MAP.put(value.value, value);
+            if (value.getLockValue() != null) {
+                LOCK_VALUES.add(value.getValue());
+            } else {
+                INVALUE_VALUES.add(value.getValue());
+            }
         }
     }
 
     public static TcCpaFailMsgEnum getByValue(Integer value) {
         return ENUM_MAP.get(value);
+    }
+
+    public static boolean isLock(Integer failMsg) {
+        return LOCK_VALUES.contains(failMsg);
     }
 
     TcCpaFailMsgEnum(Integer value, String desc, Integer lockValue){

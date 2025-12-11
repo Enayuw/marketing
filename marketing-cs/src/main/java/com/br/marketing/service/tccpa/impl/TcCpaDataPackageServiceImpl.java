@@ -16,7 +16,6 @@ import com.br.marketing.mapper.TcyrCpaCollidingDataCleanTaskMapper;
 import com.br.marketing.mapper.TcyrCpaCollidingDataPackageMapper;
 import com.br.marketing.mapper.TcyrCpaCollidingTaskMapper;
 import com.br.marketing.service.tccpa.TcCpaDataPackageService;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.EsConditionTransferSqlUtil;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -25,7 +24,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
-
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
@@ -121,21 +119,25 @@ public class TcCpaDataPackageServiceImpl implements TcCpaDataPackageService {
 
     @Override
     public Result delete(Long id) {
-        TcyrCpaCollidingDataCleanTaskExample taskExample = new TcyrCpaCollidingDataCleanTaskExample();
-        taskExample.createCriteria().andCleanStatusNotEqualTo(TcCpaCleanStatusEnum.CLEAN_SUCCESS.getValue());
-        if (tcyrCpaCollidingDataCleanTaskMapper.countByExample(taskExample) > 0) {
-            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("存在待清洗、清洗中、清洗失败或重试的清洗任务，禁止删除数据包");
-        }
-        TcyrCpaCollidingTaskExample collidingExample = new TcyrCpaCollidingTaskExample();
-        collidingExample.createCriteria().andPackageIdsLike(String.valueOf(id));
-        if (tcyrCpaCollidingTaskMapper.countByExample(collidingExample) > 0) {
-            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("撞库任务中存在的数据包不能删除");
-        }
-
+        TcyrCpaCollidingDataPackage collidingDataPackage = tcyrCpaCollidingDataPackageMapper.selectByPrimaryKey(id);
         TcyrCpaCollidingDataPackageExample dataPackageExample = new TcyrCpaCollidingDataPackageExample();
         dataPackageExample.createCriteria().andIdEqualTo(id);
         TcyrCpaCollidingDataPackage dataPackage = new TcyrCpaCollidingDataPackage();
-        dataPackage.setIsDel(Constants.DATA_DELING);
+        if (collidingDataPackage.getCleanStatus() == TcCpaCleanStatusEnum.CLEAN_VOID.getValue()) {
+            dataPackage.setIsDel(Constants.DATA_DEL);
+        } else {
+            TcyrCpaCollidingDataCleanTaskExample taskExample = new TcyrCpaCollidingDataCleanTaskExample();
+            taskExample.createCriteria().andCleanStatusNotEqualTo(TcCpaCleanStatusEnum.CLEAN_SUCCESS.getValue());
+            if (tcyrCpaCollidingDataCleanTaskMapper.countByExample(taskExample) > 0) {
+                return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("存在待清洗、清洗中、清洗失败或重试的清洗任务，禁止删除数据包");
+            }
+            TcyrCpaCollidingTaskExample collidingExample = new TcyrCpaCollidingTaskExample();
+            collidingExample.createCriteria().andPackageIdsLike(String.valueOf(id));
+            if (tcyrCpaCollidingTaskMapper.countByExample(collidingExample) > 0) {
+                return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("撞库任务中存在的数据包不能删除");
+            }
+            dataPackage.setIsDel(Constants.DATA_DELING);
+        }
         tcyrCpaCollidingDataPackageMapper.updateByExampleSelective(dataPackage, dataPackageExample);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }

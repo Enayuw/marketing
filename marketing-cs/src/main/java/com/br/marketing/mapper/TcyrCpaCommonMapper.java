@@ -10,4 +10,6 @@ public interface TcyrCpaCommonMapper {
 
     Integer executeUnionQueriestikv_(@Param("scripts") List<String> scripts);
 
+    Integer magnitudeQuerytiflash_(@Param("querySql") String querySql);
+
 }

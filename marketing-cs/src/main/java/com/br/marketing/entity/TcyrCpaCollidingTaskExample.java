@@ -782,63 +782,63 @@ public class TcyrCpaCollidingTaskExample {
             return (Criteria) this;
         }
 
-        public Criteria andPushTimeIsNull() {
-            addCriterion("push_time is null");
+        public Criteria andEstNumIsNull() {
+            addCriterion("est_num is null");
             return (Criteria) this;
         }
 
-        public Criteria andPushTimeIsNotNull() {
-            addCriterion("push_time is not null");
+        public Criteria andEstNumIsNotNull() {
+            addCriterion("est_num is not null");
             return (Criteria) this;
         }
 
-        public Criteria andPushTimeEqualTo(Date value) {
-            addCriterion("push_time =", value, "pushTime");
+        public Criteria andEstNumEqualTo(Integer value) {
+            addCriterion("est_num =", value, "estNum");
             return (Criteria) this;
         }
 
-        public Criteria andPushTimeNotEqualTo(Date value) {
-            addCriterion("push_time <>", value, "pushTime");
+        public Criteria andEstNumNotEqualTo(Integer value) {
+            addCriterion("est_num <>", value, "estNum");
             return (Criteria) this;
         }
 
-        public Criteria andPushTimeGreaterThan(Date value) {
-            addCriterion("push_time >", value, "pushTime");
+        public Criteria andEstNumGreaterThan(Integer value) {
+            addCriterion("est_num >", value, "estNum");
             return (Criteria) this;
         }
 
-        public Criteria andPushTimeGreaterThanOrEqualTo(Date value) {
-            addCriterion("push_time >=", value, "pushTime");
+        public Criteria andEstNumGreaterThanOrEqualTo(Integer value) {
+            addCriterion("est_num >=", value, "estNum");
             return (Criteria) this;
         }
 
-        public Criteria andPushTimeLessThan(Date value) {
-            addCriterion("push_time <", value, "pushTime");
+        public Criteria andEstNumLessThan(Integer value) {
+            addCriterion("est_num <", value, "estNum");
             return (Criteria) this;
         }
 
-        public Criteria andPushTimeLessThanOrEqualTo(Date value) {
-            addCriterion("push_time <=", value, "pushTime");
+        public Criteria andEstNumLessThanOrEqualTo(Integer value) {
+            addCriterion("est_num <=", value, "estNum");
             return (Criteria) this;
         }
 
-        public Criteria andPushTimeIn(List<Date> values) {
-            addCriterion("push_time in", values, "pushTime");
+        public Criteria andEstNumIn(List<Integer> values) {
+            addCriterion("est_num in", values, "estNum");
             return (Criteria) this;
         }
 
-        public Criteria andPushTimeNotIn(List<Date> values) {
-            addCriterion("push_time not in", values, "pushTime");
+        public Criteria andEstNumNotIn(List<Integer> values) {
+            addCriterion("est_num not in", values, "estNum");
             return (Criteria) this;
         }
 
-        public Criteria andPushTimeBetween(Date value1, Date value2) {
-            addCriterion("push_time between", value1, value2, "pushTime");
+        public Criteria andEstNumBetween(Integer value1, Integer value2) {
+            addCriterion("est_num between", value1, value2, "estNum");
             return (Criteria) this;
         }
 
-        public Criteria andPushTimeNotBetween(Date value1, Date value2) {
-            addCriterion("push_time not between", value1, value2, "pushTime");
+        public Criteria andEstNumNotBetween(Integer value1, Integer value2) {
+            addCriterion("est_num not between", value1, value2, "estNum");
             return (Criteria) this;
         }
 

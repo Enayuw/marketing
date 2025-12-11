@@ -18,10 +18,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
 import javax.annotation.Resource;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -77,7 +75,7 @@ public class TcCpaCollidingDataMagnitudeServiceImpl implements TcCpaCollidingDat
             }
         });
 
-        // 更新撞库任务量级
+        // 更新撞库任务
         TcyrCpaCollidingTaskExample collidingExample = new TcyrCpaCollidingTaskExample();
         collidingExample.createCriteria().andCollidingDateEqualTo(new Date())
                 .andStatusEqualTo(TcCpaCollidingTaskStatusEnum.STATUS_WAIT_STA.getValue())
@@ -86,8 +84,8 @@ public class TcCpaCollidingDataMagnitudeServiceImpl implements TcCpaCollidingDat
 
         for (TcyrCpaCollidingTask collidingTask : collidingTasks) {
             try {
-                collidingTask.setStatus(TcCpaCollidingTaskStatusEnum.STATUS_STA_COMPLETED.getValue());
                 tcCpaCommonService.updateVolumeByTask(collidingTask);
+                collidingTask.setStatus(TcCpaCollidingTaskStatusEnum.STATUS_STA_COMPLETED.getValue());
                 tcyrCpaCollidingTaskMapper.updateByPrimaryKey(collidingTask);
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
@@ -95,4 +93,5 @@ public class TcCpaCollidingDataMagnitudeServiceImpl implements TcCpaCollidingDat
             }
         }
     }
+
 }

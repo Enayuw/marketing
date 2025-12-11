@@ -12,7 +12,7 @@
     <result column="delete_num" property="deleteNum" jdbcType="INTEGER" />
     <result column="supply_rule_info" property="supplyRuleInfo" jdbcType="VARCHAR" />
     <result column="supply_num" property="supplyNum" jdbcType="INTEGER" />
-    <result column="push_time" property="pushTime" jdbcType="TIMESTAMP" />
+    <result column="est_num" property="estNum" jdbcType="INTEGER" />
     <result column="push_num" property="pushNum" jdbcType="INTEGER" />
     <result column="status" property="status" jdbcType="INTEGER" />
     <result column="enabled" property="enabled" jdbcType="INTEGER" />
@@ -81,8 +81,8 @@
   </sql>
   <sql id="Base_Column_List" >
     id, api_code, package_ids, package_names, colliding_date, colliding_time, delete_rule_ids,
-    delete_num, supply_rule_info, supply_num, push_time, push_num, `status`, enabled,
-    is_del, extend, create_time, update_time
+    delete_num, supply_rule_info, supply_num, est_num, push_num, `status`, enabled, is_del,
+    extend, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.TcyrCpaCollidingTaskExample" >
     select
@@ -121,13 +121,13 @@
     insert into b_tcyr_cpa_colliding_task (api_code, package_ids, package_names,
     colliding_date, colliding_time, delete_rule_ids,
     delete_num, supply_rule_info, supply_num,
-    push_time, push_num, `status`,
+    est_num, push_num, `status`,
     enabled, is_del, extend,
     create_time, update_time)
     values (#{apiCode,jdbcType=VARCHAR}, #{packageIds,jdbcType=VARCHAR}, #{packageNames,jdbcType=VARCHAR},
     #{collidingDate,jdbcType=DATE}, #{collidingTime,jdbcType=TIMESTAMP}, #{deleteRuleIds,jdbcType=VARCHAR},
     #{deleteNum,jdbcType=INTEGER}, #{supplyRuleInfo,jdbcType=VARCHAR}, #{supplyNum,jdbcType=INTEGER},
-    #{pushTime,jdbcType=TIMESTAMP}, #{pushNum,jdbcType=INTEGER}, #{status,jdbcType=INTEGER},
+    #{estNum,jdbcType=INTEGER}, #{pushNum,jdbcType=INTEGER}, #{status,jdbcType=INTEGER},
     #{enabled,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR},
     #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
@@ -164,8 +164,8 @@
       <if test="supplyNum != null" >
         supply_num,
       </if>
-      <if test="pushTime != null" >
-        push_time,
+      <if test="estNum != null" >
+        est_num,
       </if>
       <if test="pushNum != null" >
         push_num,
@@ -217,8 +217,8 @@
       <if test="supplyNum != null" >
         #{supplyNum,jdbcType=INTEGER},
       </if>
-      <if test="pushTime != null" >
-        #{pushTime,jdbcType=TIMESTAMP},
+      <if test="estNum != null" >
+        #{estNum,jdbcType=INTEGER},
       </if>
       <if test="pushNum != null" >
         #{pushNum,jdbcType=INTEGER},
@@ -282,8 +282,8 @@
       <if test="record.supplyNum != null" >
         supply_num = #{record.supplyNum,jdbcType=INTEGER},
       </if>
-      <if test="record.pushTime != null" >
-        push_time = #{record.pushTime,jdbcType=TIMESTAMP},
+      <if test="record.estNum != null" >
+        est_num = #{record.estNum,jdbcType=INTEGER},
       </if>
       <if test="record.pushNum != null" >
         push_num = #{record.pushNum,jdbcType=INTEGER},
@@ -323,7 +323,7 @@
     delete_num = #{record.deleteNum,jdbcType=INTEGER},
     supply_rule_info = #{record.supplyRuleInfo,jdbcType=VARCHAR},
     supply_num = #{record.supplyNum,jdbcType=INTEGER},
-    push_time = #{record.pushTime,jdbcType=TIMESTAMP},
+    est_num = #{record.estNum,jdbcType=INTEGER},
     push_num = #{record.pushNum,jdbcType=INTEGER},
     `status` = #{record.status,jdbcType=INTEGER},
     enabled = #{record.enabled,jdbcType=INTEGER},
@@ -365,8 +365,8 @@
       <if test="supplyNum != null" >
         supply_num = #{supplyNum,jdbcType=INTEGER},
       </if>
-      <if test="pushTime != null" >
-        push_time = #{pushTime,jdbcType=TIMESTAMP},
+      <if test="estNum != null" >
+        est_num = #{estNum,jdbcType=INTEGER},
       </if>
       <if test="pushNum != null" >
         push_num = #{pushNum,jdbcType=INTEGER},
@@ -403,7 +403,7 @@
         delete_num = #{deleteNum,jdbcType=INTEGER},
         supply_rule_info = #{supplyRuleInfo,jdbcType=VARCHAR},
         supply_num = #{supplyNum,jdbcType=INTEGER},
-        push_time = #{pushTime,jdbcType=TIMESTAMP},
+        est_num = #{estNum,jdbcType=INTEGER},
         push_num = #{pushNum,jdbcType=INTEGER},
         `status` = #{status,jdbcType=INTEGER},
         enabled = #{enabled,jdbcType=INTEGER},

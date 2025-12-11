@@ -36,9 +36,6 @@ public class TcCpaCollidingTaskDTO {
     @Schema(description = "撞库时间")
     private String collidingTime;
 
-    @Schema(description = "撞库量级上限")
-    private Integer limitNum;
-
     @Schema(description = "剔除规则id集合")
     private List<String> deleteRuleIds;
 
@@ -51,8 +48,8 @@ public class TcCpaCollidingTaskDTO {
     @Schema(description = "补包量级")
     private Integer supplyNum;
 
-    @Schema(description = "推送时间")
-    private Date pushTime;
+    @Schema(description = "预估量级")
+    private Integer estNum;
 
     @Schema(description = "推送量级")
     private Integer pushNum;

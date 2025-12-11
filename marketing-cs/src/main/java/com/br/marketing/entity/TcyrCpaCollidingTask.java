@@ -54,9 +54,9 @@ public class TcyrCpaCollidingTask {
     private Integer supplyNum;
 
     /**
-     * 推送时间
+     * 预估量级
      */
-    private Date pushTime;
+    private Integer estNum;
 
     /**
      * 推送量级
@@ -173,12 +173,12 @@ public class TcyrCpaCollidingTask {
         this.supplyNum = supplyNum;
     }
 
-    public Date getPushTime() {
-        return pushTime;
+    public Integer getEstNum() {
+        return estNum;
     }
 
-    public void setPushTime(Date pushTime) {
-        this.pushTime = pushTime;
+    public void setEstNum(Integer estNum) {
+        this.estNum = estNum;
     }
 
     public Integer getPushNum() {
