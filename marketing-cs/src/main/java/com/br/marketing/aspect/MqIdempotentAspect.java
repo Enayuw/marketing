@@ -46,7 +46,12 @@ public class MqIdempotentAspect {
             Long idempotentKey = extractIdempotentKey(joinPoint.getArgs(), mqIdempotent, tag);
             if (idempotentKey == null) {
                 log.warn("MQ消息中未找到idempotentKey，跳过幂等性检查(在服务上线过程中会出现，当生产者节点全部上线完成后不应再出现该消息！), tag: {}", tag);
-                return joinPoint.proceed();
+                try {
+                    return joinPoint.proceed();
+                } catch (Throwable e) {
+                    // 业务处理异常，删除幂等记录，让MQ重试
+                    throw new RuntimeException(e);
+                }
             }
 
             // 尝试插入幂等记录（失败时抛出异常，让MQ重试）
