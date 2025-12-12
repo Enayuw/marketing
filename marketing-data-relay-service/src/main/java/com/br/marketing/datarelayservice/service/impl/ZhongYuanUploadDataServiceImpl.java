@@ -218,7 +218,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
                         , "中原消金-外呼上报接口"
                         ,"b_marketing_zhongyuan_upload"
                         , JSON.toJSONString(condition)
-                        , 1L
+                        , Long.valueOf(batchData.getTaskDataList().size())
                         , TrackingContext.generateBatchId());
             } catch (Exception ex) {
                 log.warn(
@@ -795,7 +795,7 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
                         , "中原消金-批量外呼任务状态修改接口"
                         ,"b_marketing_zhongyuan_transfer"
                         , JSON.toJSONString(condition)
-                        , (long) statusData.getTaskUidList().size()
+                        , Long.valueOf(statusData.getTaskUidList().size())
                         , TrackingContext.generateBatchId());
             } catch (Exception ex) {
                 log.warn(

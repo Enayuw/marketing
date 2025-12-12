@@ -134,7 +134,7 @@ public class SanLiuLingUploadDataService {
                         , "360催收定制上传接口"
                         ,"b_sanliuling_collection_details"
                         , JSON.toJSONString(condition)
-                        , (long) successList.size()
+                        , Long.valueOf(successList.size())
                         , TrackingContext.generateBatchId());
             } catch (Exception ex) {
                 log.warn(

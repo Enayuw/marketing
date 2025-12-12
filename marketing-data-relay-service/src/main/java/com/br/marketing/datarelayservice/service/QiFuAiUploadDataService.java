@@ -202,14 +202,13 @@ public class QiFuAiUploadDataService {
         // 埋点
         try {
             JSONObject condition = new JSONObject();
-            condition.put("tCid", uploadData.getTCid());
             condition.put("requestId", requestId);
             trackingService.trackBusinessLog(DataFlowDirection.IN
                     , uploadData.getApiCode()
                     , "奇富AI语音机器人当月报表数据接入接口"
-                    ,"b_drs_customize_upload_data${tCid}"
+                    ,"b_drs_customize_upload_data"+uploadData.getTCid()
                     , JSON.toJSONString(condition)
-                    , (long) (dataList == null ? 0 : dataList.size())
+                    , Long.valueOf(dataList == null ? 0 : dataList.size())
                     , TrackingContext.generateBatchId());
         } catch (Exception ex) {
             log.warn(
@@ -271,14 +270,13 @@ public class QiFuAiUploadDataService {
         // 埋点
         try {
             JSONObject condition = new JSONObject();
-            condition.put("tCid", uploadData.getTCid());
             condition.put("requestId", requestId);
             trackingService.trackBusinessLog(DataFlowDirection.IN
                     , uploadData.getApiCode()
                     , "奇富AI语音机器人排名报表推送接口"
-                    ,"b_drs_customize_upload_data${tCid}"
+                    ,"b_drs_customize_upload_data"+uploadData.getTCid()
                     , JSON.toJSONString(condition)
-                    , (long) (dataList == null ? 0 : dataList.size())
+                    , Long.valueOf(dataList == null ? 0 : dataList.size())
                     , TrackingContext.generateBatchId());
         } catch (Exception ex) {
             log.warn(
@@ -343,14 +341,13 @@ public class QiFuAiUploadDataService {
         // 埋点
         try {
             JSONObject condition = new JSONObject();
-            condition.put("tCid", uploadData.getTCid());
             condition.put("requestId", requestId);
             trackingService.trackBusinessLog(DataFlowDirection.IN
                     , uploadData.getApiCode()
                     , "奇富AI上传数据接入接口"
-                    ,"b_drs_customize_upload_data${tCid}"
+                    ,"b_drs_customize_upload_data"+uploadData.getTCid()
                     , JSON.toJSONString(condition)
-                    , (long) (dataList == null ? 0 : dataList.size())
+                    , Long.valueOf(dataList == null ? 0 : dataList.size())
                     , TrackingContext.generateBatchId());
         } catch (Exception ex) {
             log.warn(
@@ -410,14 +407,13 @@ public class QiFuAiUploadDataService {
         // 埋点
         try {
             JSONObject condition = new JSONObject();
-            condition.put("tCid", uploadData.getTCid());
             condition.put("requestId", requestId);
             trackingService.trackBusinessLog(DataFlowDirection.IN
                     , uploadData.getApiCode()
                     , "360AI语音机器人事件推送接口"
-                    ,"b_drs_customize_upload_data${tCid}"
+                    ,"b_drs_customize_upload_data"+uploadData.getTCid()
                     , JSON.toJSONString(condition)
-                    , (long) (dataList == null ? 0 : dataList.size())
+                    , Long.valueOf(dataList == null ? 0 : dataList.size())
                     , TrackingContext.generateBatchId());
         } catch (Exception ex) {
             log.warn(
@@ -477,14 +473,13 @@ public class QiFuAiUploadDataService {
         // 埋点
         try {
             JSONObject condition = new JSONObject();
-            condition.put("tCid", uploadData.getTCid());
             condition.put("requestId", requestId);
             trackingService.trackBusinessLog(DataFlowDirection.IN
                     , uploadData.getApiCode()
                     , "360AI语音效果上传数据接口"
-                    ,"b_drs_customize_upload_data${tCid}"
+                    ,"b_drs_customize_upload_data"+uploadData.getTCid()
                     , JSON.toJSONString(condition)
-                    , (long) (dataList == null ? 0 : dataList.size())
+                    , Long.valueOf(dataList == null ? 0 : dataList.size())
                     , TrackingContext.generateBatchId());
         } catch (Exception ex) {
             log.warn(

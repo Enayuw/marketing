@@ -90,12 +90,11 @@ public class SmyTransferDataService {
             // 埋点
             try {
                 JSONObject condition = new JSONObject();
-                condition.put("tCid", tCid);
                 condition.put("requestId", requestId);
                 trackingService.trackBusinessLog(DataFlowDirection.IN
                         , apiCode
                         , "萨摩耶定制转化接口"
-                        ,"b_customize_transfer_data_${tCid}"
+                        ,"b_customize_transfer_data_"+tCid
                         , JSON.toJSONString(condition)
                         , 1L
                         , TrackingContext.generateBatchId());
