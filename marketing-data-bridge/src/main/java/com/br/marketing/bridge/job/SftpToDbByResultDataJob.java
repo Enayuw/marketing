@@ -87,9 +87,6 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
     @Resource
     ICompatibleService iCompatibleService;
 
-    @Resource
-    private TrackingService trackingService;
-
     /**
      * 1、先从customer读取客户
      * 2、再从sftp配置表读取路径
@@ -140,25 +137,6 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
                     }
                 }
             }
-
-            try {
-                String remark = String.format("电销文件入库,id：%s"
-                        , t.getId());
-                trackingService.trackPointLog(DataFlowDirection.OUT
-                        , t.getApiCode()
-                        , "电销文件入库"
-                        , 1L
-                        , remark
-                        , TrackingContext.generateBatchId());
-            } catch (Exception ex) {
-                log.warn(
-                        AlertLog.buildWarnMessage(
-                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
-                                , ex.getMessage()
-                                , "埋点异常")
-                        , ex);
-            }
-
         });
     }
 

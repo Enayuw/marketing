@@ -104,25 +104,6 @@ public class ZhongBangAIPushVoiceFileJob extends AbstractSimpleElasticJob {
             if (b) {
                 jobManager.updateFrontDataStatus(actionFront.getId(), okStatus);
             }
-
-            try {
-                String remark = String.format("众邦AI上传录音文件，日期：%s"
-                        , value);
-                trackingService.trackPointLog(DataFlowDirection.OUT
-                        , apiCode
-                        , "众邦AI上传录音文件"
-                        , 1L
-                        , remark
-                        , TrackingContext.generateBatchId());
-            } catch (Exception ex) {
-                log.warn(
-                        AlertLog.buildWarnMessage(
-                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
-                                , ex.getMessage()
-                                , "埋点异常")
-                        , ex);
-            }
-
         }
 
 

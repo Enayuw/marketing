@@ -84,9 +84,9 @@ public class ZhongYuanCleanTransferDataJob extends AbstractSimpleElasticJob {
             // 3. 处理数据并推送
             processAndPushData(apiCode, transferList);
 
-            JSONObject condition = new JSONObject();
-            condition.put("clean_status", 0);
             try {
+                JSONObject condition = new JSONObject();
+                condition.put("clean_status", 0);
                 trackingService.trackBusinessLog(DataFlowDirection.IN
                         , apiCode
                         , "中原消金转化数据清洗"

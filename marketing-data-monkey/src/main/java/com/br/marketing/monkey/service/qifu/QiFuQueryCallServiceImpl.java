@@ -35,6 +35,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 /**
@@ -123,25 +124,6 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
 
         // 关闭线程池
         shutdownThreadPool(threadPool);
-
-        try {
-            String remark = String.format("奇富360ai查询外呼信息,时间：%s"
-                    , timeThreshold);
-            trackingService.trackPointLog(DataFlowDirection.IN
-                    , "3700226"
-                    , "奇富360定制查询外呼信息"
-                    , (long) userTypeList.size()
-                    , remark
-                    , TrackingContext.generateBatchId());
-        } catch (Exception ex) {
-            log.warn(
-                    AlertLog.buildWarnMessage(
-                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
-                            , ex.getMessage()
-                            , "埋点异常")
-                    , ex);
-        }
-
     }
 
     /**
@@ -283,7 +265,7 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
 
         Long indexId = null;
         boolean hasMore = true;
-
+        AtomicLong total = new AtomicLong(0L);
         while (hasMore) {
             // 查询当前场景今天的数据
             List<BQifuUploadDataOriginal> dataList = bQifuUploadDataOriginalMapper.selectDataForQueryCallByUserTypeAndDate(
@@ -294,6 +276,7 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
             }
 
             indexId = dataList.get(dataList.size() - 1).getId();
+            total.addAndGet(dataList.size());
 
             // 处理当前场景的数据（单场景调用接口）
             processUserTypeDataList(userType, dataList, todayDate, timeThreshold);
@@ -302,6 +285,25 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
                 hasMore = false;
             }
         }
+
+        try {
+            String remark = String.format("奇富360ai查询外呼信息,userType：%s"
+                    , userType);
+            trackingService.trackPointLog(DataFlowDirection.IN
+                    , "3700226"
+                    , "奇富360定制查询外呼信息"
+                    , total.get()
+                    , remark
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
+
     }
 
     /**

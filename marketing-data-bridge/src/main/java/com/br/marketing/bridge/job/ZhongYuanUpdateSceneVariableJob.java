@@ -112,10 +112,10 @@ public class ZhongYuanUpdateSceneVariableJob extends AbstractSimpleElasticJob {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHONGYUAN_XIAOJIN_SERVICEERROR.getCode(), errMsg));
             }
 
-            JSONObject condition = new JSONObject();
-            condition.put("成功条数", successCount);
-            condition.put("失败条数", failCount);
             try {
+                JSONObject condition = new JSONObject();
+                condition.put("成功条数", successCount);
+                condition.put("失败条数", failCount);
                 trackingService.trackBusinessLog(DataFlowDirection.IN
                         , apiCode
                         , "中原消金场景变量修改"

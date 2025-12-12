@@ -47,6 +47,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -175,6 +176,24 @@ public class ZhongBangAIVoiceServiceImpl implements ZhongBangAIVoiceService {
                     if (resultBool) {
                         localFile.setPushStatus(String.valueOf(PushFileStatusEnum.RUNNING.getCode()));
                         localFileMapper.updateByPrimaryKeySelective(localFile);
+                    }
+
+                    try {
+                        String remark = "众邦AI录音文件量级与明细量级不匹配，录音文件量级:" + fileInfoCount
+                                + ",明细量级:" + fileDetailsCount + ",明细文件：" + fileName;
+                        trackingService.trackPointLog(DataFlowDirection.OUT
+                                , apiCode
+                                , "众邦AI上传录音文件"
+                                , (long) fileDetailsCount
+                                , remark
+                                , TrackingContext.generateBatchId());
+                    } catch (Exception ex) {
+                        log.warn(
+                                AlertLog.buildWarnMessage(
+                                        AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                        , ex.getMessage()
+                                        , "埋点异常")
+                                , ex);
                     }
 
                 }
@@ -532,6 +551,7 @@ public class ZhongBangAIVoiceServiceImpl implements ZhongBangAIVoiceService {
                 marketingCommonConfig.getZhongBangAIPushFileDetailNum(), 30);
         //查询api录音回调
         Long indexId = null;
+        AtomicLong total = new AtomicLong(0L);
         while (true) {
             List<CallRecording> callRecordingList = callRecordingMapper.getCallRecord(apiCode,
                     date, indexId, pageSize);
@@ -539,6 +559,7 @@ public class ZhongBangAIVoiceServiceImpl implements ZhongBangAIVoiceService {
                 break;
             }
             indexId = callRecordingList.get(callRecordingList.size() - 1).getId();
+            total.addAndGet(callRecordingList.size());
             threadPool.submit(() -> {
                 try {
                     pushVoiceDeatil(callRecordingList, localFile);
@@ -576,7 +597,7 @@ public class ZhongBangAIVoiceServiceImpl implements ZhongBangAIVoiceService {
             trackingService.trackPointLog(DataFlowDirection.OUT
                     , apiCode
                     , "众邦AI-录音文件明细推送"
-                    , 1L
+                    , total.get()
                     , remark
                     , TrackingContext.generateBatchId());
         } catch (Exception ex) {

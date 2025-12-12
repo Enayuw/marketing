@@ -3,6 +3,7 @@ package com.br.marketing.check.service.Impl.qifu;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import com.br.common.log.AlertLog;
 import com.br.marketing.check.service.qifu.QiFuAiCleanService;
 import com.br.marketing.common.commondto.Result;
@@ -99,26 +100,6 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
             if (dataList.size() < PAGE_SIZE) {
                 hasMore = false;
             }
-
-            try {
-                String remark = String.format("奇富ai清洗, 日期：%s"
-                        , todayDate);
-                trackingService.trackPointLog(DataFlowDirection.IN
-                        , dataList.get(0).getApiCode()
-                        , "奇富ai清洗"
-                        , (long) dataList.size()
-                        , remark
-                        , TrackingContext.generateBatchId());
-            } catch (Exception ex) {
-                log.warn(
-                        AlertLog.buildWarnMessage(
-                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
-                                , ex.getMessage()
-                                , "埋点异常")
-                        , ex);
-            }
-
-
         }
     }
 
@@ -165,6 +146,19 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
         // 按 apiCode 分组
         Map<String, List<BQifuUploadDataOriginal>> apiCodeGroupMap = dataList.stream()
                 .collect(Collectors.groupingBy(BQifuUploadDataOriginal::getApiCode));
+
+        // 生成 batchId
+        String batchId = "";
+        try {
+            batchId = TrackingContext.generateBatchId();
+        }catch (Exception ex){
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
 
         // 对每个 apiCode 组进行批量推送
         for (Map.Entry<String, List<BQifuUploadDataOriginal>> entry : apiCodeGroupMap.entrySet()) {
@@ -220,6 +214,25 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
                             "奇富360ai批量推送失败，apiCode: " + apiCode + ", batchNo: " + batchNo + ", flowNo: " + flowNo + "，错误信息: " + errorMsg));
                 }
+
+                try {
+                    String remark = String.format("奇富360ai清洗, batchNo：%s, flowNo：%s"
+                            , batchNo, flowNo);
+                    trackingService.trackPointLog(DataFlowDirection.IN
+                            , apiCode
+                            , "奇富ai清洗"
+                            , (long) batchFlowDataList.size()
+                            , remark
+                            , batchId);
+                } catch (Exception ex) {
+                    log.warn(
+                            AlertLog.buildWarnMessage(
+                                    AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                    , ex.getMessage()
+                                    , "埋点异常")
+                            , ex);
+                }
+
             }
         }
     }

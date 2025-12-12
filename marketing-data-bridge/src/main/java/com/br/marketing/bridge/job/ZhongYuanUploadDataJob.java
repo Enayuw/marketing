@@ -94,11 +94,11 @@ public class ZhongYuanUploadDataJob extends AbstractSimpleElasticJob {
             log.warn("{}Job执行成功：已发送MQ消息并缓存id，apiCode: {}, id: {}", TITLE, apiCode, latestId);
 
             try {
-                String remark = String.format("中原消金数据上传，查询最新数据更新字段结构,最新的数据id：%s"
+                String remark = String.format("中原消金上传数据结构变更job，查询最新数据更新字段结构,最新的数据id：%s"
                         , latestId);
                 trackingService.trackPointLog(DataFlowDirection.OUT
                         , apiCode
-                        , "【中原消金数据上传】"
+                        , "中原消金上传数据结构变更job"
                         , 1L
                         , remark
                         , TrackingContext.generateBatchId());

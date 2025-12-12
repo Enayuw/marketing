@@ -60,8 +60,6 @@ public class DataProcessingCommonJob extends AbstractSimpleElasticJob {
 
     @Resource
     DataProcessingConfigMapper dataProcessingConfigMapper;
-    @Resource
-    private TrackingService trackingService;
 
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
@@ -122,7 +120,6 @@ public class DataProcessingCommonJob extends AbstractSimpleElasticJob {
         for (DataProcessingConfig task : tasks) {
             log.warn("数据处理任务开始，apiCode:{}，fileName:{}", task.getApiCode(), task.getLocalFile().getFileName());
             process(task);
-            trackPointLog(task);
             log.warn("数据处理任务结束，apiCode:{}，fileName:{}", task.getApiCode(), task.getLocalFile().getFileName());
         }
     }
@@ -135,26 +132,6 @@ public class DataProcessingCommonJob extends AbstractSimpleElasticJob {
             proxy.doProcess(task);
         } catch (Exception e) {
             log.error("数据处理任务异常,配置表id:{},apiCode:{}", task.getId(), task.getApiCode(), e.getMessage(), e);
-        }
-    }
-
-    private void trackPointLog(DataProcessingConfig task) {
-        try {
-            String remark = String.format("文件数据处理通用流程（客户数据清洗等）,id：%s"
-                    , task.getId());
-            trackingService.trackPointLog(DataFlowDirection.OUT
-                    , task.getApiCode()
-                    , "文件数据处理通用流程（客户数据清洗等）"
-                    , 1L
-                    , remark
-                    , TrackingContext.generateBatchId());
-        } catch (Exception ex) {
-            log.warn(
-                    AlertLog.buildWarnMessage(
-                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
-                            , ex.getMessage()
-                            , "埋点异常")
-                    , ex);
         }
     }
 

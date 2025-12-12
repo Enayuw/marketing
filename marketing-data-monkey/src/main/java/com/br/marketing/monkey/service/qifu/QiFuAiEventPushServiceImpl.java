@@ -34,6 +34,7 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 /**
@@ -71,6 +72,7 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
 
         //分页查找未同步的事件推送数据sync_status = 0
         Long minId = null;
+        AtomicLong total = new AtomicLong(0L);
         while (true) {
             List<DrsCustomizeUploadData> drsCustomizeUploadDataList =
                     qiFuAiEventPushService.getDrsCustomizeUploadDataBySyncStatus(QiFuSyncStatusEnum.UN_SYNC.getCode(), minId, PAGE_SIZE);
@@ -79,6 +81,7 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
             }
 
             minId = drsCustomizeUploadDataList.get(drsCustomizeUploadDataList.size() - 1).getId();
+            total.addAndGet(drsCustomizeUploadDataList.size());
 
             //解析事件推送接口原始数据
             for (DrsCustomizeUploadData drsCustomizeUploadData : drsCustomizeUploadDataList) {
@@ -112,30 +115,28 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
                     //在事务中处理数据库操作：插入数据 + 更新状态
                     qiFuAiEventPushService.processBatchData(queryedtList, drsCustomizeUploadData);
                 }
-
-                JSONObject condition = new JSONObject();
-                condition.put("id", drsCustomizeUploadData.getId());
-                condition.put("tCid", ROBOT_EVENT_PUSH);
-                try {
-                    trackingService.trackBusinessLog(DataFlowDirection.IN
-                            , "3700226"
-                            , "奇富ai事件推送实时数据查询"
-                            , "b_drs_customize_upload_data${tCid}"
-                            , JSON.toJSONString(condition)
-                            , (long) resultList.size()
-                            , TrackingContext.generateBatchId());
-                } catch (Exception ex) {
-                    log.warn(
-                            AlertLog.buildWarnMessage(
-                                    AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
-                                    , ex.getMessage()
-                                    , "埋点异常")
-                            , ex);
-                }
-
-
             }
         }
+
+        try {
+            JSONObject condition = new JSONObject();
+            condition.put("tCid", ROBOT_EVENT_PUSH);
+            trackingService.trackBusinessLog(DataFlowDirection.IN
+                    , "3700226"
+                    , "奇富ai事件推送实时数据查询"
+                    , "b_drs_customize_upload_data${tCid}"
+                    , JSON.toJSONString(condition)
+                    , total.get()
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
+
     }
 
     @Override

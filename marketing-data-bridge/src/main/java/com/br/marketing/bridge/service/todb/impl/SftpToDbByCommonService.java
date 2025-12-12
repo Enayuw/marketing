@@ -2,6 +2,7 @@ package com.br.marketing.bridge.service.todb.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.bridge.common.utils.SftpToDbUtils;
 import com.br.marketing.bridge.model.dto.FileContext;
 import com.br.marketing.client.AlarmApiClient;
@@ -22,6 +23,9 @@ import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import com.google.common.base.Function;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.shaded.com.google.common.base.Splitter;
 import org.springframework.beans.factory.annotation.Value;
@@ -67,6 +71,9 @@ public class SftpToDbByCommonService {
     private String aesKey;
     @Resource
     MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    private TrackingService trackingService;
 
     /**
      * 下载文件
@@ -220,6 +227,26 @@ public class SftpToDbByCommonService {
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
         }
+
+        // 埋点
+        try {
+            String remark = String.format("电销文件入库,文件id：%s,文件名称：%s"
+                    , localFile.getId().toString(),localFile.getFileName());
+            trackingService.trackPointLog(DataFlowDirection.OUT
+                    , localFile.getApiCode()
+                    , "电销文件入库"
+                    , Long.valueOf(localFile.getActualNumber())
+                    , remark
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
+
         return true;
     }
 
@@ -398,6 +425,26 @@ public class SftpToDbByCommonService {
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
         }
+
+        // 埋点
+        try {
+            String remark = String.format("sftp文件通用入库,文件id：%s,文件名称：%s"
+                    , localFile.getId().toString(),localFile.getFileName());
+            trackingService.trackPointLog(DataFlowDirection.OUT
+                    , localFile.getApiCode()
+                    , "sftp文件通用入库"
+                    , Long.valueOf(localFile.getActualNumber())
+                    , remark
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
+
         //endregion
         return true;
     }
