@@ -180,7 +180,7 @@ api:
     channelId: 3140738836439875
     isProxy: true
   marketing:
-    baseUrl: http://marketing-api
+    baseUrl: http://marketing-api-a
     transferUrl: ${api.marketing.baseUrl}/marketingTransferData/receiveTransferDataSync
     uploadUrl: ${api.marketing.baseUrl}/marketingUserPre/receiveMarketingPreUser
   halo:
