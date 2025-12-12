@@ -225,7 +225,6 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
     private Result<MarketingPreUserDTO> buildBatchPushDtoFromOriginal(List<BQifuUploadDataOriginal> dataList,
                                                                       String operateType, String batchNo, String flowNo) {
         Result<MarketingPreUserDTO> res = new Result<>();
-        StringBuilder warnMsg = new StringBuilder();
 
         JSONObject qifuAiCleanConfig = marketingCommonConfig.getQifuAiCleanConfig();
 
@@ -344,18 +343,13 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
                     detailJson.put("eventType", record.getEventType());
                 }
 
-                MarketingPreUserDetailDTO marketingPreUserDetailDTO = buildListDto(detailJson, reserField1, warnMsg, extendJsonObject);
+                MarketingPreUserDetailDTO marketingPreUserDetailDTO = buildListDto(detailJson, reserField1, extendJsonObject);
                 list.add(marketingPreUserDetailDTO);
-            }
-
-            if (StringUtils.isNotBlank(warnMsg.toString())) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
-                        "奇富360ai批量清洗数据字段告警: " + warnMsg.toString()));
             }
 
             marketingPreUserDTO.setDataItems(list);
 
-            return res.setCode(ResultCode.SUCCESS.getValue()).setDate(marketingPreUserDTO).setMessage(warnMsg.toString());
+            return res.setCode(ResultCode.SUCCESS.getValue()).setDate(marketingPreUserDTO);
         } catch (Exception ex) {
             log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
                     "奇富360ai批量构建推送对象异常: " + ex.getMessage()), ex);
@@ -366,8 +360,7 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
     /**
      * 构建列表DTO
      */
-    private MarketingPreUserDetailDTO buildListDto(JSONObject o1, JSONObject reserField1, StringBuilder warnMsg,
-                                                   JSONObject extendJsonObject) {
+    private MarketingPreUserDetailDTO buildListDto(JSONObject o1, JSONObject reserField1, JSONObject extendJsonObject) {
         MarketingPreUserDetailDTO marketingPreUserDetailDTO = new MarketingPreUserDetailDTO();
         for (String s : o1.keySet()) {
             switch (s) {
@@ -389,8 +382,6 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
                         reserField1.put(s, "0");
                     } else if ("M".equals(genderValue)) {
                         reserField1.put(s, "1");
-                    } else if (!"".equals(genderValue)) {
-                        warnMsg.append("异常性别：").append(genderValue);
                     }
                     break;
                 default:
@@ -635,8 +626,6 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
             LocalDate expireDate = LocalDate.parse(dateWithYear, formatter);
 
             if (expireDate.isBefore(today)) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
-                        "奇富AI 额度到期日期小于今天！"));
                 expireDate = expireDate.plusYears(1);
             }
 
