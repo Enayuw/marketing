@@ -273,7 +273,7 @@ public class StringUtils {
 
     public static List<Long> StrsConvertLongs(String strs) {
         if(isBlank(strs)){
-            return null;
+            return Collections.emptyList();
         }
         List<Long> longs = Arrays.stream(strs.split(","))
                 .map(String::trim)

@@ -125,7 +125,7 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
         //4.补充量级为0的数据
         List<TcyrCpaMagnitude> allMagnitudeList = fillMissingData(magnitudeList, releaseTimeList, supplyFailMsgList);
         //5.查询上次勾选的格子
-        List<String> isSupplyList = getIsSupplyData(taskId);
+        List<String> isSupplyList = isSupplyData(taskId);
         //6.按releaseTime分组
         List<TcyrFailMsgSupplyGroupDTO> result = groupByDate(allMagnitudeList, isSupplyList);
         return new Result<List<TcCpaMagnitudeDistDTO>>()
@@ -286,7 +286,7 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
      * 查询上次勾选的格子
      * @param taskId
      */
-    private List<String> getIsSupplyData(Long taskId) {
+    private List<String> isSupplyData(Long taskId) {
         if (taskId == null) {
             return null;
         }
@@ -516,7 +516,7 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
             SupplyGroupData groupData = entry.getValue();
             Integer priority = failMsgToPriority.get(groupData.getFailMsg());
             TcyrSupplyRuleInfo ruleInfo = new TcyrSupplyRuleInfo();
-            ruleInfo.setPriority(priority != null ? 100 + priority : 99);
+            ruleInfo.setPriority(priority != null ? (100 + priority) : 99);
             ruleInfo.setReleaseTimes(groupData.getDates());
             ruleInfo.setFailMsg(groupData.getFailMsg());
             String supplyScript = generateDynamicSql(groupData.getFailMsg(), groupData.getDates());

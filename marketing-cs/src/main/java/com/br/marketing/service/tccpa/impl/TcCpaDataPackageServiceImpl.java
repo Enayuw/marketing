@@ -123,7 +123,7 @@ public class TcCpaDataPackageServiceImpl implements TcCpaDataPackageService {
         TcyrCpaCollidingDataPackageExample dataPackageExample = new TcyrCpaCollidingDataPackageExample();
         dataPackageExample.createCriteria().andIdEqualTo(id);
         TcyrCpaCollidingDataPackage dataPackage = new TcyrCpaCollidingDataPackage();
-        if (collidingDataPackage.getCleanStatus() == TcCpaCleanStatusEnum.CLEAN_VOID.getValue()) {
+        if (Objects.equals(collidingDataPackage.getCleanStatus(), TcCpaCleanStatusEnum.CLEAN_VOID.getValue())) {
             dataPackage.setIsDel(Constants.DATA_DEL);
         } else {
             TcyrCpaCollidingDataCleanTaskExample taskExample = new TcyrCpaCollidingDataCleanTaskExample();

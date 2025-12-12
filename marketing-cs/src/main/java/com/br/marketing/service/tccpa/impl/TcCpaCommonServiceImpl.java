@@ -55,7 +55,7 @@ public class TcCpaCommonServiceImpl implements TcCpaCommonService {
         if (StringUtils.isNotEmpty(collidingTask.getSupplyRuleInfo())) {
             List<TcyrSupplyRuleInfo> supplyRuleInfos =
                     objectMapper.readValue(collidingTask.getSupplyRuleInfo(),
-                            new com.fasterxml.jackson.core.type.TypeReference<List<TcyrSupplyRuleInfo>>() {
+                            new TypeReference<List<TcyrSupplyRuleInfo>>() {
                             });
             for (TcyrSupplyRuleInfo ruleInfo : supplyRuleInfos) {
                 if (TcCpaFailMsgEnum.isLock(ruleInfo.getFailMsg())) {
@@ -215,10 +215,10 @@ public class TcCpaCommonServiceImpl implements TcCpaCommonService {
         Map<Integer, TcCpaDeleteRuleExecuteInfoDTO> commonInfos = new HashMap<>();
         for (TcCpaDeleteRuleExecuteInfoDTO info : infos) {
             //定制的剔除规则，在循环中就可以生成sql片段
-            if (info.getSourceType() == TcCpaDeleteRuleSourceTypeEnum.CUSTOMIZE.getValue()) {
-                joinFrag.concat(" left join " + info.getTableName() +
+            if (Objects.equals(info.getSourceType(), TcCpaDeleteRuleSourceTypeEnum.CUSTOMIZE.getValue())) {
+                joinFrag = joinFrag.concat(" left join " + info.getTableName() +
                         " on " + info.getMappingField() + " = pck.user_key" + " and " + info.getCondition());
-                whereFrag.concat(" and " + info.getMappingField() + " is null");
+                whereFrag = whereFrag.concat(" and " + info.getMappingField() + " is null");
             } else {
                 //通用的剔除规则，相同的sourceType的规则，value值需要做汇总去重
                 TcCpaDeleteRuleExecuteInfoDTO updInfo =

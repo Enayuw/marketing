@@ -58,6 +58,8 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
+    private final Random random = new Random();
+
     @Override
     public void process() {
         //1.查询统计完成撞库任务
@@ -118,7 +120,7 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
         }
         taskPackages.sort(Comparator.comparingInt(TcyrCpaCollidingTaskPackage::getPriority));
         //3.更新撞库任务状态为3-筛选中
-        if (task.getStatus() != TcCpaCollidingTaskStatusEnum.STATUS_FILTERING.getValue()) {
+        if (Objects.equals(task.getStatus(), TcCpaCollidingTaskStatusEnum.STATUS_FILTERING.getValue())) {
             task.setStatus(TcCpaCollidingTaskStatusEnum.STATUS_FILTERING.getValue());
             tcyrCpaCollidingTaskMapper.updateByPrimaryKeySelective(task);
         }
@@ -201,7 +203,7 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
                 break;
             }
             try {
-                if (taskPackage.getPackageType() == TcCpaCollidingTaskPackageTypeEnum.SCORE.getValue()) {
+                if (Objects.equals(taskPackage.getPackageType(), TcCpaCollidingTaskPackageTypeEnum.SCORE.getValue())) {
                     querySql = "select pck.user_key from b_tcyr_cpa_colliding_data pck "
                             .concat(joinFrag)
                             .concat(" and pck.package_id = " + taskPackage.getPackageId());
@@ -280,7 +282,6 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
      */
     private Long genSupplyPackageId(int priority) {
         String dateStr = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        Random random = new Random();
         int fiveDigit = 100 + random.nextInt(900);
         return Long.parseLong(dateStr + fiveDigit + priority);
     }
