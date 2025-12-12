@@ -105,5 +105,6 @@
         and user_type = #{userType}
         and receive_date = #{todayDate}
         and select_status != 0
+        and status is null
     </update>
 </mapper>
