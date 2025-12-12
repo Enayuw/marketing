@@ -10,6 +10,7 @@ import com.br.marketing.dto.tccpa.TcCpDataPackageGenDTO;
 import com.br.marketing.dto.tccpa.TcyrCpaCollidingDataPackageVO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.TcCpaCleanStatusEnum;
+import com.br.marketing.enums.TcCpaCollidingTaskStatusEnum;
 import com.br.marketing.enums.clean.DataCleanStatusEnum;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.TcyrCpaCollidingDataCleanTaskMapper;
@@ -102,8 +103,11 @@ public class TcCpaDataPackageServiceImpl implements TcCpaDataPackageService {
         if (tcyrCpaCollidingDataCleanTaskMapper.countByExample(taskExample) > 0) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("存在待清洗、清洗中、清洗失败或重试的清洗任务，不能修改数据包");
         }
-        TcyrCpaCollidingDataPackage existedPackage = tcyrCpaCollidingDataPackageMapper.selectByPrimaryKey(packageVO.getId());
-        if(packageVO.getEnabled().equals(Constants.ENABLED_FORB) && !Objects.equals(existedPackage.getEnabled(), packageVO.getEnabled())) {
+        TcyrCpaCollidingTaskExample collidingTaskExample = new TcyrCpaCollidingTaskExample();
+        collidingTaskExample.createCriteria().andPackageIdsLike("%" + packageVO.getId() + "%")
+                .andStatusLessThan(TcCpaCollidingTaskStatusEnum.STATUS_PUSH_COMPLETED.getValue())
+                .andIsDelEqualTo(Constants.DATA_VALID);
+        if(packageVO.getEnabled().equals(Constants.ENABLED_FORB) && tcyrCpaCollidingTaskMapper.countByExample(collidingTaskExample) > 0) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("撞库任务中存在的数据包不能禁用");
         }
 
@@ -132,7 +136,9 @@ public class TcCpaDataPackageServiceImpl implements TcCpaDataPackageService {
                 return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("存在待清洗、清洗中、清洗失败或重试的清洗任务，禁止删除数据包");
             }
             TcyrCpaCollidingTaskExample collidingExample = new TcyrCpaCollidingTaskExample();
-            collidingExample.createCriteria().andPackageIdsLike(String.valueOf(id));
+            collidingExample.createCriteria().andPackageIdsLike("%" + id + "%")
+                    .andStatusLessThan(TcCpaCollidingTaskStatusEnum.STATUS_PUSH_COMPLETED.getValue())
+                    .andIsDelEqualTo(Constants.DATA_VALID);
             if (tcyrCpaCollidingTaskMapper.countByExample(collidingExample) > 0) {
                 return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("撞库任务中存在的数据包不能删除");
             }
