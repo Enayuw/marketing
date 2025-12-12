@@ -20,7 +20,8 @@ spring:
 
 server:
   port: 18705
-  maxHttpPostSize: 209715200
+  tomcat:
+    max-http-form-post-size: 209715200
 mybatis:
   mapper-locations: mapper/*.xml
   configuration:

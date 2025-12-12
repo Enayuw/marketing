@@ -58,4 +58,11 @@ public class ZhongYuanCustomizeController {
         return zhongYuanUploadDataService.status(jsonData, request);
     }
 
+    @Operation(summary = "外呼任务场景变量修改接口")
+    @PostMapping("/task/change/sceneVariable")
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
+    public ZhongYuanBaseResponse<?> changeSceneVariable(@RequestBody String jsonData, HttpServletRequest request) {
+        return zhongYuanUploadDataService.changeSceneVariable(jsonData, request);
+    }
+
 }

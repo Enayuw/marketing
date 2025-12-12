@@ -1,101 +1,63 @@
 datasource:
   database:
-    names: shardingmarketing,marketingTikiv,marketingTiFlash,marketingLog
+    names: shardingmarketing,marketing-tikiv,marketing-tiflash,marketing-log
     defaultSource: shardingmarketing
     shardingmarketing:
-      url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
+      name: shardingmarketing
+      jdbc-url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=true&failOverReadOnly=false&useConfigs=maxPerformance
       username: ENC(mysql-prod-ai-marketing-user)
       password: ENC(mysql-prod-ai-marketing-password)
-      type: com.alibaba.druid.pool.DruidDataSource
-      driver-class-name: com.mysql.jdbc.Driver
-      isSharding: true
-      filters: stat
-      maxActive: 300
-      initialSize: 1
-      maxWait: 60000
-      minIdle: 1
-      timeBetweenEvictionRunsMillis: 60000
-      minEvictableIdleTimeMillis: 300000
-      validationQuery: select 'x'
-      testWhileIdle: true
-      testOnBorrow: false
-      testOnReturn: false
-      poolPreparedStatements: true
-      maxOpenPreparedStatements: 20
-    marketingTikiv:
-      name: marketing
-      type: com.alibaba.druid.pool.DruidDataSource
-      driverClassName: com.mysql.jdbc.Driver
-      url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
+      type: com.zaxxer.hikari.HikariDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      minimum-idle: 1 # 最小空闲连接数
+      maximum-pool-size: 300 # 最大连接池数量
+      connection-timeout: 60000 # 获取连接超时时间，单位毫秒
+      idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
+      max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
+      keepalive-time: 30000 # 连接保活时间，单位毫秒
+      connection-test-query: select 1 # 连接测试查询
+    marketing-tikiv:
+      name: marketing-tikiv
+      type: com.zaxxer.hikari.HikariDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=true&failOverReadOnly=false&useConfigs=maxPerformance
       username: ENC(mysql-prod-ai-marketing-user)
       password: ENC(mysql-prod-ai-marketing-password)
-      initialSize: 5 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
-      minIdle: 5 # 最小连接池数量
-      maxActive: 300 # 最大连接池数量
-      maxWait: 60000 # 获取连接时最大等待时间，单位毫秒。配置了maxWait之后，缺省启用公平锁，并发效率会有所下降，如果需要可以通过配置
-      timeBetweenEvictionRunsMillis: 60000 # 关闭空闲连接的检测时间间隔.Destroy线程会检测连接的间隔时间，如果连接空闲时间大于等于minEvictableIdleTimeMillis则关闭物理连接。
-      minEvictableIdleTimeMillis: 300000 # 连接的最小生存时间.连接保持空闲而不被驱逐的最小时间
-      validationQuery: SELECT 1 FROM DUAL # 验证数据库服务可用性的sql.用来检测连接是否有效的sql 因数据库方言而差, 例如 oracle 应该写成 SELECT 1 FROM DUAL
-      testWhileIdle: true # 申请连接时检测空闲时间，根据空闲时间再检测连接是否有效.建议配置为true，不影响性能，并且保证安全性。申请连接的时候检测，如果空闲时间大于timeBetweenEvictionRun
-      testOnBorrow: false # 申请连接时直接检测连接是否有效.申请连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能。
-      testOnReturn: false # 归还连接时检测连接是否有效.归还连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能。
-      poolPreparedStatements: true # 开启PSCache
-      maxPoolPreparedStatementPerConnectionSize: 20 #设置PSCache值
-      connectionErrorRetryAttempts: 5 # 连接出错后再尝试连接三次
-      breakAfterAcquireFailure: true # 数据库服务宕机自动重连机制
-      timeBetweenConnectErrorMillis: 300000 # 连接出错后重试时间间隔
-    #      removeAbandoned: true # 是否自动回收超时连接
-    #      removeAbandonedTimeout: 1800 # 超时时间(以秒数为单位)
-    #      filters: stat,wall,log4j2
-    #      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
-    marketingTiFlash:
-      name: marketing
-      type: com.alibaba.druid.pool.DruidDataSource
-      driverClassName: com.mysql.jdbc.Driver
-      url: jdbc:mysql://tidb-tiflash-marketing.brapp.com:4020/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
+      minimum-idle: 5 # 最小空闲连接数
+      maximum-pool-size: 300 # 最大连接池数量
+      connection-timeout: 60000 # 获取连接超时时间，单位毫秒
+      idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
+      max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
+      keepalive-time: 30000 # 连接保活时间，单位毫秒
+      connection-test-query: select 1 # 连接测试查询
+    marketing-tiflash:
+      name: marketing-tiflash
+      type: com.zaxxer.hikari.HikariDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://tidb-tiflash-marketing.brapp.com:4020/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=true&failOverReadOnly=false&useConfigs=maxPerformance
       username: ENC(mysql-prod-ai-marketing-user)
       password: ENC(mysql-prod-ai-marketing-password)
-      initialSize: 4 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
-      minIdle: 4 # 最小连接池数量
-      maxActive: 4 # 最大连接池数量
-      maxWait: 60000 # 获取连接时最大等待时间，单位毫秒。配置了maxWait之后，缺省启用公平锁，并发效率会有所下降，如果需要可以通过配置
-      timeBetweenEvictionRunsMillis: 60000 # 关闭空闲连接的检测时间间隔.Destroy线程会检测连接的间隔时间，如果连接空闲时间大于等于minEvictableIdleTimeMillis则关闭物理连接。
-      minEvictableIdleTimeMillis: 300000 # 连接的最小生存时间.连接保持空闲而不被驱逐的最小时间
-      validationQuery: SELECT 1 FROM DUAL # 验证数据库服务可用性的sql.用来检测连接是否有效的sql 因数据库方言而差, 例如 oracle 应该写成 SELECT 1 FROM DUAL
-      testWhileIdle: true # 申请连接时检测空闲时间，根据空闲时间再检测连接是否有效.建议配置为true，不影响性能，并且保证安全性。申请连接的时候检测，如果空闲时间大于timeBetweenEvictionRun
-      testOnBorrow: false # 申请连接时直接检测连接是否有效.申请连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能。
-      testOnReturn: false # 归还连接时检测连接是否有效.归还连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能。
-      poolPreparedStatements: true # 开启PSCache
-      maxPoolPreparedStatementPerConnectionSize: 20 #设置PSCache值
-      connectionErrorRetryAttempts: 5 # 连接出错后再尝试连接三次
-      breakAfterAcquireFailure: true # 数据库服务宕机自动重连机制
-      timeBetweenConnectErrorMillis: 300000 # 连接出错后重试时间间隔
-#      removeAbandoned: true # 是否自动回收超时连接
-#      removeAbandonedTimeout: 1800 # 超时时间(以秒数为单位)
-#      filters: stat,wall,log4j2
-#      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
-    marketingLog:
-      name: marketing_log
-      type: com.alibaba.druid.pool.DruidDataSource
-      driverClassName: com.mysql.jdbc.Driver
-      url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing_log?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=true&failOverReadOnly=false&useConfigs=maxPerformance
+      minimum-idle: 4 # 最小空闲连接数
+      maximum-pool-size: 4 # 最大连接池数量
+      connection-timeout: 60000 # 获取连接超时时间，单位毫秒
+      idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
+      max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
+      keepalive-time: 30000 # 连接保活时间，单位毫秒
+      connection-test-query: select 1 # 连接测试查询
+    marketing-log:
+      name: marketing-log
+      type: com.zaxxer.hikari.HikariDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing_log?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=true&failOverReadOnly=false&useConfigs=maxPerformance
       username: ENC(mysql-prod-ai-marketing-log-user)
       password: ENC(mysql-prod-ai-marketing-log-password)
-      initialSize: 5 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
-      minIdle: 5 # 最小连接池数量
-      maxActive: 300 # 最大连接池数量
-      maxWait: 60000 # 获取连接时最大等待时间，单位毫秒。配置了maxWait之后，缺省启用公平锁，并发效率会有所下降，如果需要可以通过配置
-      timeBetweenEvictionRunsMillis: 60000 # 关闭空闲连接的检测时间间隔.Destroy线程会检测连接的间隔时间，如果连接空闲时间大于等于minEvictableIdleTimeMillis则关闭物理连接。
-      minEvictableIdleTimeMillis: 300000 # 连接的最小生存时间.连接保持空闲而不被驱逐的最小时间
-      validationQuery: SELECT 1 FROM DUAL # 验证数据库服务可用性的sql.用来检测连接是否有效的sql 因数据库方言而差, 例如 oracle 应该写成 SELECT 1 FROM DUAL
-      testWhileIdle: true # 申请连接时检测空闲时间，根据空闲时间再检测连接是否有效.建议配置为true，不影响性能，并且保证安全性。申请连接的时候检测，如果空闲时间大于timeBetweenEvictionRun
-      testOnBorrow: false # 申请连接时直接检测连接是否有效.申请连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能。
-      testOnReturn: false # 归还连接时检测连接是否有效.归还连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能。
-      poolPreparedStatements: true # 开启PSCache
-      maxPoolPreparedStatementPerConnectionSize: 20 #设置PSCache值
-      connectionErrorRetryAttempts: 5 # 连接出错后再尝试连接三次
-      breakAfterAcquireFailure: true # 数据库服务宕机自动重连机制
-      timeBetweenConnectErrorMillis: 300000 # 连接出错后重试时间间隔
+      minimum-idle: 5 # 最小空闲连接数
+      maximum-pool-size: 300 # 最大连接池数量
+      connection-timeout: 60000 # 获取连接超时时间，单位毫秒
+      idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
+      max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
+      keepalive-time: 30000 # 连接保活时间，单位毫秒
+      connection-test-query: select 1 # 连接测试查询
 logging:
     level:
         com.br.off.mapper: info
@@ -114,8 +76,11 @@ otherConfig:
         outsideSecretKey: 11e6a1a63c10d2855d662a0265ea91c4
         outsideAppName: marketing-out
   userCenter:
-        appName: loan-strategy
-        appSecretKey: 7357430aa11febfe81d45945c02706b3
+    appName: marketing-api
+    appSecretKey: 77786bf195aa73044af33f8fce6c0441
+  encodeMapping:
+    appName: marketing
+    appSecretKey: d37f90c97204a2ef3fe774fc5f106cf5
   warning:
         pageSize: 5000
         apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
@@ -124,9 +89,6 @@ otherConfig:
         sftpPort: 9999
         sftpUser: BRmarketing
         sftpPwd: gKjTC62qUJMKigEyvn01@_2021.06.07
-  encodeMapping:
-        appName: loan-warning
-        appSecretKey: a938d0e974746651a11ddcdbcea31404
   proxy:
     proxy_host: squid-proxy2.brapp.com
     proxy_port: 3128

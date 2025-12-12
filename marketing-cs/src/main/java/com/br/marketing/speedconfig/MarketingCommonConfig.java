@@ -3570,4 +3570,9 @@ public class MarketingCommonConfig {
      * 同程易融cpa推送文件配置VT
      */
     private JSONObject tcyrCpaPushFileVTConfig;
+
+    /**
+     * 随意记获取黑名单RSA私钥
+     */
+    private String suiyijiBlackBrPrivateKey;
 }

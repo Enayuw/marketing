@@ -351,10 +351,9 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
                         .filter(detail -> serialNo.equals(detail.getSerialNo()))
                         .findFirst()
                         .orElse(null);
-
+                // 将返回信息存在extend里
+                record.setExtend(JSON.toJSONString(callRealTimeDTO));
                 if (callRealTimeDTO != null && hasValidCouponName(callRealTimeDTO)) {
-                    // 将返回信息存在extend里
-                    record.setExtend(JSON.toJSONString(callRealTimeDTO));
                     record.setStatus(QiFuProcessStatusEnum.UNPROCESSED.getCode());
                     record.setSelectStatus(QiFuSelectStatusEnum.QUERY_SUCCESS.getCode());
                 } else {

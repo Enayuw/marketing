@@ -3,12 +3,12 @@ datasource:
     names: shardingmarketing,marketing-tikiv,marketing-tiflash,marketing-log
     defaultSource: shardingmarketing
     shardingmarketing:
+      name: shardingmarketing
       jdbc-url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
       username: ENC(mysql-prod-ai-marketing-user)
       password: ENC(mysql-prod-ai-marketing-password)
       type: com.zaxxer.hikari.HikariDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
-      isSharding: true
       minimum-idle: 1 # 最小空闲连接数
       maximum-pool-size: 300 # 最大连接池数量
       connection-timeout: 60000 # 获取连接超时时间，单位毫秒
@@ -17,7 +17,7 @@ datasource:
       keepalive-time: 30000 # 连接保活时间，单位毫秒
       connection-test-query: select 1 # 连接测试查询
     marketing-tikiv:
-      name: marketing
+      name: marketing-tikiv
       type: com.zaxxer.hikari.HikariDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
       jdbc-url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
@@ -35,7 +35,7 @@ datasource:
     #      filters: stat,wall,log4j2
     #      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
     marketing-tiflash:
-      name: marketing
+      name: marketing-tiflash
       type: com.zaxxer.hikari.HikariDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
       jdbc-url: jdbc:mysql://tidb-tiflash-marketing.brapp.com:4020/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
@@ -53,14 +53,14 @@ datasource:
 #      filters: stat,wall,log4j2
 #      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
     marketing-log:
-      name: marketing_log
+      name: marketing-log
       type: com.zaxxer.hikari.HikariDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
       jdbc-url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing_log?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=true&failOverReadOnly=false&useConfigs=maxPerformance
       username: ENC(mysql-prod-ai-marketing-log-user)
       password: ENC(mysql-prod-ai-marketing-log-password)
       minimum-idle: 5 # 最小空闲连接数
-      maximum-pool-size: 30 # 最大连接池数量
+      maximum-pool-size: 300 # 最大连接池数量
       connection-timeout: 60000 # 获取连接超时时间，单位毫秒
       idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
       max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
@@ -198,6 +198,7 @@ api:
     saveReachDeleteRecordCuDongZhiUrl: ${api.qifu.baseCuDongZhiUri}/api/gws/bps/gateway/agent/operation/agentOperationActSaveReachDeleteRecord
     qrySleepUserRealMessageUrl: ${api.qifu.baseCuDongZhiUri}/api/gws/bps/gateway/operation/batchQrySleepUserRealMessage
     qryUserRealMessageUrl: ${api.qifu.baseCuDongZhiUri}/api/gws/bps/gateway/agent/operation/batchQryUserRealMessage
+    qryCallRealTimeUrl: ${api.qifu.baseCuDongZhiUri}/api/gws/bps/gateway/operation/callRealTimeQuery
     qifuPublicKey: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAklMx0hZ1QqNZ+zavehNklYY8dvhIyg1wN4S8Bg+VZ6a1+dEDyy0b0nhXXZ+TwRc5zbHakE0XMo0Rssfi7KHQiOEhj65lxI/uODIK46yYy5IJKYJePyp9hPNT5vSfujF+R6QQ1/B3moyV5HNSAaFGGTdfxOA0jMg618PyhIfZjFpgXMiTp54bmUPVH34XvPKLnH8Sh1ITNK4ozxdKZg0vkz/Ob5kfYwSzmL8oio7TFEpFhXGdU15ymx5Hd8VCTJ9LEuS4m3FVMc2IVqlm8trEq+ZJQkvAtUVMPW19Ia7mg877pU5FKcBHKv3GL7sahc6nMIC3s+UajvjD65NqPD3DbQIDAQAB"
     appId: "qifu2bairong"
     brPublicKey: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxCYC32ffpgmFXEIIDsRX4S5G1KO+rgGv5dxrmk0SeHKsaiOqvpOP0kVPnC4k4vyf9PmHr/bMmwAFICvOfk3OCZthRHjgMegThwkKrOIkWc5pddnKsu4n8fsIW7HuVSMA87weK+HgWZmg17ygssKVdAWfsgYHMkuAikrdETdeyAUqCMAjUm8OVLyf7Aoc3VJcnezbACYCwUrCW/eGEY+GQQTHkxY+6BUMMG1qjYKTl/LFYOcyGISrhFUKWUoz5BRGhKYk+/0CsVgdZ9gm+JOhO2fNaJUPjSPNfUOWQueNo1ModpERN0Ri4uI9uZGREFVT8vs+nGloq1kPdq9IKwYPxwIDAQAB"
@@ -289,6 +290,14 @@ api:
     appKey: 1845238f517b4bd993438bc821270749
     version: 1
     encryptionType: md5
+  syj:
+    baseUrl: https://partner.yhyunjin.com
+    code: bairong
+    originalUrl: ${api.syj.baseUrl}/yjPart/${api.syj.code}
+    blackUrl: ${api.syj.baseUrl}/yjPart/blackList/insertUnsubscribeData/${api.syj.code}
+    getBlackUrl: https://partner.ppdai.com/blackList/complaint/${api.syj.code}
+    brPrivateKey: "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDGtQkRQD+XHg/EmeXq3URdxR8R4r0aopbwhNNQA321d3lkPoyIpyj+EaqCTAnhy9B60YCi2e/udIDDRfC0F08nKSsRREPMLAFRID4Y33Yh14xZR70Fl8Qj0O6yp8mqkZyyFHfn01W2/9NmTkINUB/vmA2U3aRfSC7GmeVxl4JYTgilqYsfjNl0B7+ZKFrxESdMNwm4BV2l93BiETjkHcSVl7aYn9hzGlUoK4KIeOM+MmKMlrCpkD+lP/ojy+1lcTtKEeA2uDl6+HQx1yLm4fv/t9Hj8/RueYHv05SP3PZFrLbVl697SgDFBsv+cUn+NnfkXprxTBPN49YfkOy7CLejAgMBAAECggEAHS4IntfofrCTcDOJZ+wGVh7UaTP6wSaPM9LNlTpuA3AAC5CD4q1pf6XofCneaaIcg2ywjzmh2kqRfhuPNWMW5JFPGcIEkr8Dkn5BoDVwi5ezrIi0YVXgH8JWyzWIj9vCPwRyd0C5nZ4D1Uo4uOvDRNP3ap0BvlxDQjbnUr8FDSJmMO+x7DQNXZBK7H+AX+h+AsHhOlJuhTxpYZ58yy2K8UskZiKjkr4Vhp+2mLBaLz88YdAM50PHkkWlHtT/oIlQ47so6wzEppwL0ElSbaHuLU7exBwnk4lzAl2cF8a5ymK31Tk3BI5dFdcuZtfzR24SKQtGsK3ghV6A336kUSmlwQKBgQDmYs/2T6Fc5+SdjP1nkXDZTducoQwGR+XHi5voJ/buNYkIyYmg94l4O1cB6rqL8WOToavqofGHuezyPNTF1zi84kXt0UsJANw8hCC82F1/tV9OlnkhBOrRMoM8kIpDiORJl47rWuCl7FgB9CseMY78D7rg+hsc2PO5h+CB9JeUDwKBgQDczJavhX5HF18hSBz9LZhGCJMS9oflUJWiFJmIqEyNoMzFm9PG+v1icGos+X0lulzc70ScIElqgum12seHKz4zk/Od9jFmcE2F38wIPTfGlA22FTj436KFA4WVx35+W9agGnfyyhV3rPHr7Zb6qKenenrgKiRgofirpfWwXcw/LQKBgBr3X+4tve54+ipy0UppHLNiyJzZwOWPTtb/gV04KFATlhmgNWrQ7pdTIskHp5Qvyf8CwnOxRusjGRf1hNYvbeW1+oduowDHx/+RW5+fF7qWCTTSqhTyVWXtKq1RIc3r3QS8J69msLrbIiYAZXegR2M7mB0zSS8kOcrym5W6gm+DAoGAP7kD3BAoy5ehKtfHFgJsqfmbiKOBwNqq9KYBUYFQ5qb7siQw0IJrUlejLOusBJFub4zWPkDLL2Qs0wEbCJWgU/5lFreQtkG+/d4C4nXYfQUJl/0z/g98teq4SOvUQ995Z6d76qQL4ggVocNmCV1XVWxxvfQrn3/fZpp097t6UNkCgYEA4S7Bf0P7K5wfV206W8I2XswC3oRL2D1rupSdUKyZGOt445p+S2KtcuGbeh+ruIufz/Zmbp5amhA9eaO3Vu3E3I5IjfchYokYkHbiAEFDK396Mnfj3hRWh9aulgZGJImrjQFiZzMIMRxaqIg1paMwY/UAUfr4mdJpnnYuhn0Rqzw="
+    isProxy: true
 spring:
   rabbitmq:
     zw:

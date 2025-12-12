@@ -2,6 +2,7 @@ package com.br.marketing.monkey.service.qifu;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson2.JSONObject;
+import com.br.common.util.DateUtils;
 import com.br.marketing.client.qifu.ResponseData;
 import com.br.marketing.client.qifu.callrealtime.CallRealTimeDTO;
 import com.br.marketing.client.qifu.callrealtime.QryCallRealTimeReq;
@@ -141,6 +142,7 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
     @Override
     public void insertRealTimeData(List<BQifuUploadDataOriginal> qifuUploadDataOriginalList) {
         for (BQifuUploadDataOriginal qiFuUploadDataOriginal : qifuUploadDataOriginalList) {
+            qiFuUploadDataOriginal.setReceiveDate(DateUtils.format(new Date(), "yyyy-MM-dd"));
             qiFuUploadDataOriginal.setCreateTime(new Date());
             qiFuUploadDataOriginal.setUpdateTime(new Date());
             qiFuUploadDataOriginal.setIsReal(QiFuDataTypeEnum.REALTIME.getCode());

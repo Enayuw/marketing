@@ -10,6 +10,7 @@ import javax.annotation.Resource;
 
 /**
  * 携程CPS周期撞库数据Job
+ * 2025-11-04 产品在携程钉钉群里通知业务暂停，作业置为永久失效
  * @Author chenh
  * @Date 2025-06-26
  */

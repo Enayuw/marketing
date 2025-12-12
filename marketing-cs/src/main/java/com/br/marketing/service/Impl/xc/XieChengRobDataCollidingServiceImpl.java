@@ -63,8 +63,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataCollidingService {
 
-    public static final ThreadPoolExecutor XIECHENG_ROB_COLLIDING_THREAD = BrExecutors.getThreadPool(20, 20);
-
     @Resource
     private RedisChgService redisChgService;
     @Resource
@@ -77,8 +75,6 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
     private XieChengServiceNew xieChengServiceNew;
     @Resource
     private XieChengCollidingResultHandleService handleService;
-    @Resource
-    private VariableAllocationServiceImpl variableAllocationService;
     @Resource
     private XiechengCollidingDataPackageRuleMapper packageRuleMapper;
     @Resource
@@ -93,74 +89,6 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
     @Resource
     private XieChengCollidingDataRobTaskMapper robTaskMapper;
     public static final ThreadPoolExecutor XIECHENG_ACTIVATE_THREAD_POOL = BrExecutors.getThreadPool(10, 10);
-
-    @Override
-    public void collidingData() {
-        // 周期积压量级
-        Date startDate = Date.from(LocalDate.now().minusDays(1).atTime(23, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
-        Date endDate = new Date();
-        if (loopCycleMapper.selectCycleCountOfStacktiflash_(startDate, endDate) >= 200000) {
-            return;
-        }
-
-        Integer perMinuteCounts = getPerMinuteCounts();
-        Integer todayTrueTotalCounts = xieChengCollidingDataLoopCycleMapper.selectTodayCycleCounttiflash_();
-        Integer totalThreshold = variableAllocationService.getVariableAllocation().getNormalQuantity();
-        int limit = Math.min(perMinuteCounts, totalThreshold - todayTrueTotalCounts);
-        // 强制开关开启强制撞库，强制开关关闭且条件开关打开开始撞库
-        while (limit > 0 && (marketingCommonConfig.getXieChengForceOpenSwitch()
-                || Objects.equals("true", redisChgService.get(RedisKeyConstant.XIECHENG_CONDITIONSWITCH)))) {
-            ThreadPoolAdjustmentUtil.adjustThreadPoolSize(XIECHENG_ROB_COLLIDING_THREAD, marketingCommonConfig.getXiechengRobCollidingThread());
-            int pageSize = Math.min(marketingCommonConfig.getXiechengCollidingPageSize(), limit);
-            // 获取当前待执行规则
-            XiechengCollidingDataPackageRule packageRule = getCurrentPackageRule();
-            // 没有待执行的规则直接跳出
-            if (Objects.isNull(packageRule)) {
-                break;
-            }
-            List<XieChengCollidingDataRob> robDataList = xieChengCollidingDataRobMapper.getRobCollidingDataList(pageSize, packageRule.getId(),
-                    packageRule.getPackageId(), packageRule.getCollidingTimes());
-            if (CollectionUtils.isEmpty(robDataList)) {
-                break;
-            }
-            List<List<XieChengCollidingDataRob>> xieChengCollidingDataListPartition = Lists.partition(robDataList, 50);
-            List<CompletableFuture<Void>> futures = Lists.newArrayList();
-            xieChengCollidingDataListPartition.forEach((List<XieChengCollidingDataRob> robData) -> {
-                CompletableFuture<Void> future = CompletableFuture.runAsync(() -> pushDataAndHandleResult(robData), XIECHENG_ROB_COLLIDING_THREAD);
-                futures.add(future);
-            });
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-            limit -= robDataList.size();
-        }
-    }
-
-    private XiechengCollidingDataPackageRule getCurrentPackageRule() {
-        List<XiechengCollidingDataPackageRule> collidingDataPackageRules = packageRuleMapper.getCollidingPackageRules();
-        for (XiechengCollidingDataPackageRule packageRule : collidingDataPackageRules) {
-            if (!checkPackageRule(packageRule)) {
-                return packageRule;
-            }
-        }
-        return null;
-    }
-
-    private Boolean checkPackageRule(XiechengCollidingDataPackageRule packageRule) {
-        Integer collidingBackNumber = packageRule.getCollidingBackNumber();
-        // 根据撞库次数获取待撞量级
-        int count = xieChengCollidingDataRobMapper.countByCollidingCounttiflash_(packageRule.getPackageId(), packageRule.getCollidingTimes());
-        if (collidingBackNumber == null) {
-            // 如果不需要判断撞得量级，则只需判断是否有满足撞库次数的记录
-            return count == 0;
-        }
-
-        // 查询撞得量级
-        XieChengCollidingDataRobExample example = new XieChengCollidingDataRobExample();
-        example.createCriteria().andPackageRuleIdEqualTo(packageRule.getId()).andDataSourceTypeEqualTo("F").andIsDeleteEqualTo(1)
-                .andPushTimeGreaterThanOrEqualTo(DateUtil.beginOfDay(new Date()));
-        int packageTrueCount = xieChengCollidingDataRobMapper.countByExample(example);
-        // 判断是否满足撞得量级和撞库次数的条件
-        return packageTrueCount >= collidingBackNumber || count == 0;
-    }
 
     /**
      * 推送非周期撞库数据
@@ -187,19 +115,6 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
                     , "携程非周期撞库异常"), e);
         }
 
-    }
-
-    public Integer getPerMinuteCounts() {
-        Integer threshold = marketingCommonConfig.getXiechengPerMinuteThreshold();
-        String today = DateUtil.today();
-        String key = RedisKeyConstant.XIECHENG_RELEASE_TIME + today;
-        Long size = redisChgService.hlen(key);
-        if (size.equals(0L)) {
-            initializeTodayReleaseTime(key);
-        }
-        String minute = DateUtil.format(LocalDateTime.now(), DatePattern.NORM_DATETIME_MINUTE_PATTERN);
-        String perMinuteCounts = redisChgService.hget(key, minute) == null ? "0" : redisChgService.hget(key, minute);
-        return threshold - Integer.parseInt(perMinuteCounts);
     }
 
     public void initializeTodayReleaseTime(String key) {

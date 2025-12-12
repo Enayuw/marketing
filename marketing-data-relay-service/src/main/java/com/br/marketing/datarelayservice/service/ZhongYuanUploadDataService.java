@@ -47,4 +47,13 @@ public interface ZhongYuanUploadDataService {
      * @return 响应结果
      */
     ZhongYuanBaseResponse<?> status(String jsonData, HttpServletRequest request);
+
+    /**
+     * 外呼任务场景变量修改接口
+     *
+     * @param jsonData 请求JSON数据
+     * @param request HTTP请求对象
+     * @return 响应结果
+     */
+    ZhongYuanBaseResponse<?> changeSceneVariable(String jsonData, HttpServletRequest request);
 }

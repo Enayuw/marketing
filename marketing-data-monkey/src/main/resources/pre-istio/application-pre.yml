@@ -3,12 +3,12 @@ datasource:
     names: shardingmarketing,marketing-tikiv,marketing-tiflash,marketing-log
     defaultSource: shardingmarketing
     shardingmarketing:
+      name: shardingmarketing
       jdbc-url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
       username: ENC(mysql-pre-ai-marketing-user)
       password: ENC(mysql-pre-ai-marketing-password)
       type: com.zaxxer.hikari.HikariDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
-      isSharding: true
       minimum-idle: 1 # 最小空闲连接数
       maximum-pool-size: 300 # 最大连接池数量
       connection-timeout: 60000 # 获取连接超时时间，单位毫秒
@@ -17,7 +17,7 @@ datasource:
       keepalive-time: 30000 # 连接保活时间，单位毫秒
       connection-test-query: select 1 # 连接测试查询
     marketing-tikiv:
-      name: marketing
+      name: marketing-tikiv
       type: com.zaxxer.hikari.HikariDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
       jdbc-url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
@@ -35,7 +35,7 @@ datasource:
     #      filters: stat,wall,log4j2
     #      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
     marketing-tiflash:
-      name: marketing
+      name: marketing-tiflash
       type: com.zaxxer.hikari.HikariDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
       jdbc-url: jdbc:mysql://tidb-pre.brapp.com:4020/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
@@ -53,7 +53,7 @@ datasource:
 #      filters: stat,wall,log4j2
 #      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
     marketing-log:
-      name: marketing_log
+      name: marketing-log
       type: com.zaxxer.hikari.HikariDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
       jdbc-url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing_log?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
@@ -193,6 +193,7 @@ api:
     qrySleepUserRealMessageUrl: ${api.qifu.baseCuDongZhiUri}/api/gws/bps/gateway/operation/batchQrySleepUserRealMessage
     qryUserRealMessageUrl: ${api.qifu.baseCuDongZhiUri}/api/gws/bps/gateway/agent/operation/batchQryUserRealMessage
     saveReachDeleteRecordCuDongZhiUrl: ${api.qifu.baseCuDongZhiUri}/api/gws/bps/gateway/agent/operation/agentOperationActSaveReachDeleteRecord
+    qryCallRealTimeUrl: ${api.qifu.baseCuDongZhiUri}/api/gws/bps/gateway/operation/callRealTimeQuery
     qifuPublicKey: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwQAaMvE6+7Wy+rf6jfW8OEKhGSmmg6LaiSLaTui3lBA4V4eqfQEpLfL8dGYYcakiH6CUAMPZ0jqNEN/En3Mtfclhr8903m/xG3IOUxhbqiVZBZmQ8esG6nP8MHsFWK2hMHN20xh0qKN6hg0BHQIIkbbnZjN9FGD/hz1t4NJvwIHxqJC+I3pRkCrC+SPWH5djzQdhYczgpyGwNqrGpg5dPibZJ+/qw15Va0vDBMp8cGad+Njcw5n7QcxBvSpViTYl704+wyohX36bF1CkrtfV6z1JnDqR+9KtEaRpfnUC/eh7gvltDbl/vTfeZLuShLs+/csgVshVIXEpL8g9uC0XOQIDAQAB"
     brPrivateKey: "MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDdAO5CXKe5ugLICKdPeAXE7/4V484BPYdZVMoexCoWN7vwFV1dW8AyjsOYvvMOYSd/MOCqE0sK4CN/Tf857nalMqA5oU+MIEUkbb+KyXFXpNFi/LLi8FGGHQgTQFAS+Tikz1sHtYg3W8G7wQJsTDKXGQ7dEH9pJv3RbGZzQnTlzj/1brJ8uDGXYmKVPr2MbuOmtzCzzd9O0cPO1fEVwpnJbAUfQxZleMUL21OpkmTjqIBQfANf/24DjbJelZjRUA7YIR42XpxGXWeOlXR1D3jzIN0lguacwy+en3JvhbC62E6f04rzqs3TThlKxH4cjFZjOPvoGml2Z43S1k46lPjtAgMBAAECggEBANTyjKFM/iArZ3qvO+eK0qRMSxt0gY8YZk5hMNAsXBFEasaPD4NhYPRWM4n+k9yLKK+ZvSCjrm8wQYPs97wuVgwfl9tv32I5xeWwChwEtj2pBkjHDOc2gJclah6CnaVqlnXXhvMKq9ILi8UJ2PfZA/YrovLHbr03YOJl/OGaa2DxbIyDQsz8LH/4o7QLaRkAkwZw3egd/jepSB9hZwZ8NghkpqbSnRokjH+Rfx9b8uQ/MIqIfDXD8gMCALV+JFjG60mP/yGYS9xb1pHiW07M3QphYo8IV+X1YCnJ1nt7FrAQaPUIe+/zJhFsBM7EN6hX4RdqTacnpKZ0IfEOn/jU9YECgYEA9DLxbNPaAm5HnBA0tD7euFokyP9td8+EVhjeMPCZqPlVnWDm3c9bdrAWQbtwyMA0gvkcELtgFnPf0ICuV2FCKaTPtPa6C73ZR5ElBWkJ/pSbyYw8YGvN98Nh8xbEVqippN5Ypp8vQrZAT5A/qoekq0kYTS7Ymgqj7pq3xIPfHUUCgYEA568H8/qyhmrna84pAQf9gz3ln6EQWm/RfdOi+v42ZdL6sjmpHfT0VYaBuxc54D6OvhvPSoYizhZaHLuDnioaGwkDgducA057EIumDgn2Fvw1mUfcKymGngk4Z5GiWsFqJ66yO5X7ci/4JaD9rG8sKI0JKkhfhL0EyrzgWIykg4kCgYEAvy0eus9EDsEdSL2bNT0/Cd5wi/cEUVbhyLGhSXkjIxlIAHR7aU1L0qhaVE2VJ2Tp91tksGiw+gLvRoFne7sFnCqN/aNm1YhkkVW9QPYRv//B0tD595aOYhjRFwlM3ncekJcNmixnSHf78w3/+dZFgV8xKkOxiS8pVcREeBGxW20CgYBAbLuZbK0YE8ImiD1+u+oTBLNFoFQb0dw/UQqRIP+fcPulc8NDQUpwPeb1T5AYe0zWMIWEA6jKBg0o0DvZT3vS6L7A7YCEqt4ty6dxX/O+kIOXDBR9LB7y8z1sD2NGOWJ7hmipiRtStWQbkpj3yjJNVGqoB1gIYUdj2QHJndJhgQKBgQDTkCUFF0CgiBWUIyI96RkaSW/9/+3PAFojgHrbp93RLsW18j+YVZOyvQshhmNjlhEs2cONLYdNl5kPEi4yt/f8TrFbKBSgBlO0t9u0z0tAo+xfpocTzmYCw1eDnkXWxzZLwBSsB3Vkt7GJb11Uee7HW4MjHOTXuUvdQ8Alg+NXqw=="
     brPublicKey: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3QDuQlynuboCyAinT3gFxO/+FePOAT2HWVTKHsQqFje78BVdXVvAMo7DmL7zDmEnfzDgqhNLCuAjf03/Oe52pTKgOaFPjCBFJG2/islxV6TRYvyy4vBRhh0IE0BQEvk4pM9bB7WIN1vBu8ECbEwylxkO3RB/aSb90Wxmc0J05c4/9W6yfLgxl2JilT69jG7jprcws83fTtHDztXxFcKZyWwFH0MWZXjFC9tTqZJk46iAUHwDX/9uA42yXpWY0VAO2CEeNl6cRl1njpV0dQ948yDdJYLmnMMvnp9yb4WwuthOn9OK86rN004ZSsR+HIxWYzj76BppdmeN0tZOOpT47QIDAQAB"
@@ -287,6 +288,14 @@ api:
     appKey: c2300278153c40e081cfb39462ff8db3
     version: 1
     encryptionType: md5
+  syj:
+    baseUrl: https://partner.yhyunjin.com
+    code: bairong
+    originalUrl: ${api.syj.baseUrl}/yjPart/${api.syj.code}
+    blackUrl: ${api.syj.baseUrl}/yjPart/blackList/insertUnsubscribeData/${api.syj.code}
+    getBlackUrl: https://partner.ppdai.com/blackList/complaint/${api.syj.code}
+    brPrivateKey: "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDGtQkRQD+XHg/EmeXq3URdxR8R4r0aopbwhNNQA321d3lkPoyIpyj+EaqCTAnhy9B60YCi2e/udIDDRfC0F08nKSsRREPMLAFRID4Y33Yh14xZR70Fl8Qj0O6yp8mqkZyyFHfn01W2/9NmTkINUB/vmA2U3aRfSC7GmeVxl4JYTgilqYsfjNl0B7+ZKFrxESdMNwm4BV2l93BiETjkHcSVl7aYn9hzGlUoK4KIeOM+MmKMlrCpkD+lP/ojy+1lcTtKEeA2uDl6+HQx1yLm4fv/t9Hj8/RueYHv05SP3PZFrLbVl697SgDFBsv+cUn+NnfkXprxTBPN49YfkOy7CLejAgMBAAECggEAHS4IntfofrCTcDOJZ+wGVh7UaTP6wSaPM9LNlTpuA3AAC5CD4q1pf6XofCneaaIcg2ywjzmh2kqRfhuPNWMW5JFPGcIEkr8Dkn5BoDVwi5ezrIi0YVXgH8JWyzWIj9vCPwRyd0C5nZ4D1Uo4uOvDRNP3ap0BvlxDQjbnUr8FDSJmMO+x7DQNXZBK7H+AX+h+AsHhOlJuhTxpYZ58yy2K8UskZiKjkr4Vhp+2mLBaLz88YdAM50PHkkWlHtT/oIlQ47so6wzEppwL0ElSbaHuLU7exBwnk4lzAl2cF8a5ymK31Tk3BI5dFdcuZtfzR24SKQtGsK3ghV6A336kUSmlwQKBgQDmYs/2T6Fc5+SdjP1nkXDZTducoQwGR+XHi5voJ/buNYkIyYmg94l4O1cB6rqL8WOToavqofGHuezyPNTF1zi84kXt0UsJANw8hCC82F1/tV9OlnkhBOrRMoM8kIpDiORJl47rWuCl7FgB9CseMY78D7rg+hsc2PO5h+CB9JeUDwKBgQDczJavhX5HF18hSBz9LZhGCJMS9oflUJWiFJmIqEyNoMzFm9PG+v1icGos+X0lulzc70ScIElqgum12seHKz4zk/Od9jFmcE2F38wIPTfGlA22FTj436KFA4WVx35+W9agGnfyyhV3rPHr7Zb6qKenenrgKiRgofirpfWwXcw/LQKBgBr3X+4tve54+ipy0UppHLNiyJzZwOWPTtb/gV04KFATlhmgNWrQ7pdTIskHp5Qvyf8CwnOxRusjGRf1hNYvbeW1+oduowDHx/+RW5+fF7qWCTTSqhTyVWXtKq1RIc3r3QS8J69msLrbIiYAZXegR2M7mB0zSS8kOcrym5W6gm+DAoGAP7kD3BAoy5ehKtfHFgJsqfmbiKOBwNqq9KYBUYFQ5qb7siQw0IJrUlejLOusBJFub4zWPkDLL2Qs0wEbCJWgU/5lFreQtkG+/d4C4nXYfQUJl/0z/g98teq4SOvUQ995Z6d76qQL4ggVocNmCV1XVWxxvfQrn3/fZpp097t6UNkCgYEA4S7Bf0P7K5wfV206W8I2XswC3oRL2D1rupSdUKyZGOt445p+S2KtcuGbeh+ruIufz/Zmbp5amhA9eaO3Vu3E3I5IjfchYokYkHbiAEFDK396Mnfj3hRWh9aulgZGJImrjQFiZzMIMRxaqIg1paMwY/UAUfr4mdJpnnYuhn0Rqzw="
+    isProxy: true
 spring:
   rabbitmq:
     zw:

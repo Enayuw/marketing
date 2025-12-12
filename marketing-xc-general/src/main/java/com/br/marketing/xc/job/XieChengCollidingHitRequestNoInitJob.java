@@ -34,6 +34,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
+ * 2025-11-26 业务暂停
  * @Description 携程撞库一次性初始化撞库流水号作业
  * @Author hong.chen
  * @CreateTime 2024/09/25

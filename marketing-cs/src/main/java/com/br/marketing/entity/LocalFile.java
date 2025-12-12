@@ -1,17 +1,21 @@
 package com.br.marketing.entity;
 
-import java.io.Serializable;
 import java.util.Date;
 
-/**
- * b_local_file
- * @author 
- */
-public class LocalFile implements Serializable {
+public class LocalFile {
+    /**
+     * 
+     */
     private Long id;
 
+    /**
+     * 
+     */
     private String cid;
 
+    /**
+     * 
+     */
     private String apiCode;
 
     /**
@@ -24,6 +28,9 @@ public class LocalFile implements Serializable {
      */
     private String srcPath;
 
+    /**
+     * 
+     */
     private String fileName;
 
     /**
@@ -41,6 +48,9 @@ public class LocalFile implements Serializable {
      */
     private String complete;
 
+    /**
+     * 
+     */
     private Integer actualNumber;
 
     /**
@@ -74,7 +84,7 @@ public class LocalFile implements Serializable {
     private Date pushEndTime;
 
     /**
-     * 推送状态 1 推送中  2 非推送中
+     * 推送状态 0-推送中,1-推送中,2-部分成功,3-推送成功,4-推送失败
      */
     private String pushStatus;
 
@@ -83,7 +93,10 @@ public class LocalFile implements Serializable {
      */
     private String errorMessage;
 
-    private static final long serialVersionUID = 1L;
+    /**
+     * 重试次数
+     */
+    private Integer retryCount;
 
     public Long getId() {
         return id;
@@ -98,7 +111,7 @@ public class LocalFile implements Serializable {
     }
 
     public void setCid(String cid) {
-        this.cid = cid;
+        this.cid = cid == null ? null : cid.trim();
     }
 
     public String getApiCode() {
@@ -106,7 +119,7 @@ public class LocalFile implements Serializable {
     }
 
     public void setApiCode(String apiCode) {
-        this.apiCode = apiCode;
+        this.apiCode = apiCode == null ? null : apiCode.trim();
     }
 
     public String getFileType() {
@@ -114,7 +127,7 @@ public class LocalFile implements Serializable {
     }
 
     public void setFileType(String fileType) {
-        this.fileType = fileType;
+        this.fileType = fileType == null ? null : fileType.trim();
     }
 
     public String getSrcPath() {
@@ -122,7 +135,7 @@ public class LocalFile implements Serializable {
     }
 
     public void setSrcPath(String srcPath) {
-        this.srcPath = srcPath;
+        this.srcPath = srcPath == null ? null : srcPath.trim();
     }
 
     public String getFileName() {
@@ -130,7 +143,7 @@ public class LocalFile implements Serializable {
     }
 
     public void setFileName(String fileName) {
-        this.fileName = fileName;
+        this.fileName = fileName == null ? null : fileName.trim();
     }
 
     public String getLocalPath() {
@@ -138,7 +151,7 @@ public class LocalFile implements Serializable {
     }
 
     public void setLocalPath(String localPath) {
-        this.localPath = localPath;
+        this.localPath = localPath == null ? null : localPath.trim();
     }
 
     public String getStatus() {
@@ -146,7 +159,7 @@ public class LocalFile implements Serializable {
     }
 
     public void setStatus(String status) {
-        this.status = status;
+        this.status = status == null ? null : status.trim();
     }
 
     public String getComplete() {
@@ -154,7 +167,7 @@ public class LocalFile implements Serializable {
     }
 
     public void setComplete(String complete) {
-        this.complete = complete;
+        this.complete = complete == null ? null : complete.trim();
     }
 
     public Integer getActualNumber() {
@@ -218,7 +231,7 @@ public class LocalFile implements Serializable {
     }
 
     public void setPushStatus(String pushStatus) {
-        this.pushStatus = pushStatus;
+        this.pushStatus = pushStatus == null ? null : pushStatus.trim();
     }
 
     public String getErrorMessage() {
@@ -226,6 +239,14 @@ public class LocalFile implements Serializable {
     }
 
     public void setErrorMessage(String errorMessage) {
-        this.errorMessage = errorMessage;
+        this.errorMessage = errorMessage == null ? null : errorMessage.trim();
+    }
+
+    public Integer getRetryCount() {
+        return retryCount;
+    }
+
+    public void setRetryCount(Integer retryCount) {
+        this.retryCount = retryCount;
     }
 }

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.SYJOriginalDataMapper">
+
+    <select id="queryOriginalData" resultType="com.br.marketing.entity.SYJOriginalData">
+        select *
+        from b_syj_original_data
+        where local_id = #{localId}
+        and query_status = #{queryStatus}
+        and status = 1
+        <if test="minId != null and minId >0">
+            and id > #{minId}
+        </if>
+        order by id asc
+        limit #{pageSize}
+    </select>
+
+    <update id="batchUpdateStatus">
+        update b_syj_original_data
+        <trim prefix="set" suffixOverrides=",">
+            <if test="queryStatus != null">
+                query_status = #{queryStatus},
+            </if>
+            <if test="extend != null">
+                extend = #{extend},
+            </if>
+        </trim>
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="queryPushData" resultType="com.br.marketing.entity.SYJOriginalData">
+        select *
+        from b_syj_original_data
+        where local_id = #{localId}
+        and query_status = 2
+        and (push_status = 0 or push_status is null)
+        and status = 1
+        <if test="minId != null and minId >0">
+            and id >=#{minId}
+        </if>
+        order by id asc
+        limit #{pageSize}
+    </select>
+
+    <update id="updateBatchByIds">
+        update b_syj_original_data
+        set push_status = #{pushStatus}
+        where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+</mapper>
