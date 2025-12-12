@@ -57,10 +57,11 @@ public class TemplateServiceImpl implements TemplateService {
         try {
             //新增行业模板
             marketingIndustryTemplateMapper.insertSelective(marketingIndustryTemplate);
+            Long interfaceTemplateId = marketingIndustryTemplate.getId();
             //批量插入json数据
             if (marketingIndustryTemplateJsonParseList != null && !marketingIndustryTemplateJsonParseList.isEmpty()) {
                 marketingIndustryTemplateJsonParseList.forEach(item -> {
-                    item.setInterfaceTemplateId(marketingIndustryTemplate.getId());
+                    item.setInterfaceTemplateId(interfaceTemplateId);
                     item.setCreateTime(new Date());
                     item.setUpdateTime(new Date());
                 });
