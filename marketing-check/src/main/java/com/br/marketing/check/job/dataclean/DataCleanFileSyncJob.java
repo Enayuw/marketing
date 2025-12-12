@@ -160,11 +160,11 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
         marketingCleanDataFileMapper.updateByPrimaryKeySelective(dataFile);
 
         try {
-            String remark = String.format("数据清洗文件同步,文件名称：%s"
+            String remark = String.format("手动清洗-文件样例同步,文件名称：%s"
                     , cleanDataFile.getFileName());
             trackingService.trackPointLog(DataFlowDirection.OUT
                     , cleanDataFile.getApiCode()
-                    , "数据清洗文件同步"
+                    , "手动清洗-文件样例同步,"
                     , (long) batchLines.size()
                     , remark
                     , TrackingContext.generateBatchId());
@@ -220,6 +220,24 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
         dataFile.setReceiveDate(LocalDate.now().toString());
         dataFile.setTestRunData(JSON.toJSONString(jsonList));
         marketingCleanDataFileMapper.insertSelective(dataFile);
+
+        try {
+            String remark = String.format("清洗系统-文件样例同步,文件名称：%s"
+                    , fileStr);
+            trackingService.trackPointLog(DataFlowDirection.OUT
+                    , syncConfig.getApiCode()
+                    , "清洗系统-文件样例同步"
+                    , Long.valueOf(batchLines.size())
+                    , remark
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
 
     }
 }

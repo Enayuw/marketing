@@ -124,6 +124,27 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
 
         // 关闭线程池
         shutdownThreadPool(threadPool);
+
+        try {
+            if(!userTypeList.isEmpty()){
+                String remark = String.format("奇富360ai查询外呼信息,userTypeList：%s,注意：%s"
+                        , userTypeList, "量级不准确!");
+                trackingService.trackPointLog(DataFlowDirection.IN
+                        , "3700226"
+                        , "奇富360定制查询外呼信息"
+                        , 1L
+                        , remark
+                        , TrackingContext.generateBatchId());
+            }
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
+
     }
 
     /**
@@ -285,25 +306,6 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
                 hasMore = false;
             }
         }
-
-        try {
-            String remark = String.format("奇富360ai查询外呼信息,userType：%s"
-                    , userType);
-            trackingService.trackPointLog(DataFlowDirection.IN
-                    , "3700226"
-                    , "奇富360定制查询外呼信息"
-                    , total.get()
-                    , remark
-                    , TrackingContext.generateBatchId());
-        } catch (Exception ex) {
-            log.warn(
-                    AlertLog.buildWarnMessage(
-                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
-                            , ex.getMessage()
-                            , "埋点异常")
-                    , ex);
-        }
-
     }
 
     /**

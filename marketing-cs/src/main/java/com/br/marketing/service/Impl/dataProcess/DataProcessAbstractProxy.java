@@ -95,7 +95,18 @@ public abstract class DataProcessAbstractProxy {
             }
 
             id = customerFileDataList.get(customerFileDataList.size() - 1).getId();
-            total.addAndGet(customerFileDataList.size());
+
+            try {
+                total.addAndGet(customerFileDataList.size());
+            } catch (Exception ex) {
+                log.warn(
+                        AlertLog.buildWarnMessage(
+                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                , ex.getMessage()
+                                , "埋点异常")
+                        , ex);
+            }
+
             pullCustomerFileDataExample.clear();
             buildExample(localFileId, id, pullCustomerFileDataExample);
 
@@ -115,7 +126,7 @@ public abstract class DataProcessAbstractProxy {
                     , config.getId());
             trackingService.trackPointLog(DataFlowDirection.OUT
                     , config.getApiCode()
-                    , "文件数据处理通用流程（客户数据清洗等）"
+                    , "文件数据处理通用流程-"+config.getProxyName()
                     , total.get()
                     , remark
                     , TrackingContext.generateBatchId());

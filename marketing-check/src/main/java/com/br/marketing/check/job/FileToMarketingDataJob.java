@@ -422,11 +422,11 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
         localFileMapper.updateByPrimaryKeySelective(updateFile);
         // 埋点
         try {
-            String remark = String.format("【通用文件清洗】,文件类型：%s"
+            String remark = String.format("通用文件清洗job,文件类型：%s"
                     , "上传");
             trackingService.trackPointLog(DataFlowDirection.OUT
                     , apiCode
-                    , "【通用文件清洗JOB】"
+                    , "通用文件清洗JOB"
                     , Long.valueOf(pushSum)
                     , remark
                     , TrackingContext.generateBatchId());

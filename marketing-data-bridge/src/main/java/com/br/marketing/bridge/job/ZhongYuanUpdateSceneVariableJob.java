@@ -114,14 +114,13 @@ public class ZhongYuanUpdateSceneVariableJob extends AbstractSimpleElasticJob {
 
             try {
                 JSONObject condition = new JSONObject();
-                condition.put("成功条数", successCount);
-                condition.put("失败条数", failCount);
+                condition.put("apiCode", apiCode);
                 trackingService.trackBusinessLog(DataFlowDirection.IN
                         , apiCode
                         , "中原消金场景变量修改"
                         , "b_marketing_scene_variable"
                         , JSON.toJSONString(condition)
-                        , (long) pendingList.size()
+                        , Long.valueOf(pendingList.size())
                         , TrackingContext.generateBatchId());
             } catch (Exception ex) {
                 log.warn(

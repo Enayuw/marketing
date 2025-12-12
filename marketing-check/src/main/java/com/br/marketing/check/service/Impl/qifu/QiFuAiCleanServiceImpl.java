@@ -33,6 +33,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -78,7 +79,8 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
     private void processDataForClean(String todayDate) {
         Long indexId = null;
         boolean hasMore = true;
-
+        AtomicLong total = new AtomicLong(0L);
+        String apiCode = "";
         while (hasMore) {
             // 查询今天需要清洗的数据（status=0 未处理）
             List<BQifuUploadDataOriginal> dataList = bQifuUploadDataOriginalMapper.selectDataForCleanByDate(
@@ -91,6 +93,18 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
 
             indexId = dataList.get(dataList.size() - 1).getId();
 
+            try {
+                total.addAndGet(dataList.size());
+                apiCode = dataList.get(0).getApiCode();
+            } catch (Exception ex) {
+                log.warn(
+                        AlertLog.buildWarnMessage(
+                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                , ex.getMessage()
+                                , "埋点异常")
+                        , ex);
+            }
+
             // 数据清洗：设置 status=处理中,批量更新数据库
             updateStatus(dataList);
 
@@ -101,6 +115,28 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
                 hasMore = false;
             }
         }
+
+        try {
+            if(total.get() > 0){
+                JSONObject condition = new JSONObject();
+                condition.put("todayDate", todayDate);
+                trackingService.trackBusinessLog(DataFlowDirection.OUT
+                        , apiCode
+                        , "奇富ai清洗"
+                        , "b_qifu_upload_data_original"
+                        , JSON.toJSONString(condition)
+                        , total.get()
+                        , TrackingContext.generateBatchId());
+            }
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
+
     }
 
     public void updateStatus(List<BQifuUploadDataOriginal> dataList) {
@@ -147,18 +183,6 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
         Map<String, List<BQifuUploadDataOriginal>> apiCodeGroupMap = dataList.stream()
                 .collect(Collectors.groupingBy(BQifuUploadDataOriginal::getApiCode));
 
-        // 生成 batchId
-        String batchId = "";
-        try {
-            batchId = TrackingContext.generateBatchId();
-        }catch (Exception ex){
-            log.warn(
-                    AlertLog.buildWarnMessage(
-                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
-                            , ex.getMessage()
-                            , "埋点异常")
-                    , ex);
-        }
 
         // 对每个 apiCode 组进行批量推送
         for (Map.Entry<String, List<BQifuUploadDataOriginal>> entry : apiCodeGroupMap.entrySet()) {
@@ -214,25 +238,6 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
                             "奇富360ai批量推送失败，apiCode: " + apiCode + ", batchNo: " + batchNo + ", flowNo: " + flowNo + "，错误信息: " + errorMsg));
                 }
-
-                try {
-                    String remark = String.format("奇富360ai清洗, batchNo：%s, flowNo：%s"
-                            , batchNo, flowNo);
-                    trackingService.trackPointLog(DataFlowDirection.IN
-                            , apiCode
-                            , "奇富ai清洗"
-                            , (long) batchFlowDataList.size()
-                            , remark
-                            , batchId);
-                } catch (Exception ex) {
-                    log.warn(
-                            AlertLog.buildWarnMessage(
-                                    AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
-                                    , ex.getMessage()
-                                    , "埋点异常")
-                            , ex);
-                }
-
             }
         }
     }

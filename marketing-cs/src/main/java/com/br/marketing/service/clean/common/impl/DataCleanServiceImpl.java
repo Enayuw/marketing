@@ -410,9 +410,18 @@ public class DataCleanServiceImpl implements DataCleanService {
                             List<MarketingDataCleanGeneralRuleConfig> ruleList = new ArrayList<>();
                             ruleList.addAll(ruleConfigList);
                             pool.submit(() -> processData(originalData, ruleList));
+                            try {
+                                total.addAndGet(originalData.getActualNum());
+                            } catch (Exception ex) {
+                                log.warn(
+                                        AlertLog.buildWarnMessage(
+                                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                                , ex.getMessage()
+                                                , "埋点异常")
+                                        , ex);
+                            }
                         }
                 );
-                total.addAndGet(pageList.size());
             }
         });
         // 关闭线程池
@@ -763,12 +772,12 @@ public class DataCleanServiceImpl implements DataCleanService {
 
             // 埋点
             try {
-                String remark = String.format("文件上传数据清洗JOB,清洗文件：%s"
+                String remark = String.format("清洗系统-文件清洗作业,清洗文件：%s"
                         , filePath + fileName);
                 trackingService.trackPointLog(DataFlowDirection.OUT
                         , apiCode
-                        , "文件上传数据清洗JOB"
-                        , (long) totalProcessed
+                        , "清洗系统-文件清洗作业"
+                        , Long.valueOf(totalProcessed)
                         , remark
                         , TrackingContext.generateBatchId());
             } catch (Exception ex) {

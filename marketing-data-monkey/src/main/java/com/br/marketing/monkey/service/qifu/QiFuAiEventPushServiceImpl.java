@@ -73,6 +73,7 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
         //分页查找未同步的事件推送数据sync_status = 0
         Long minId = null;
         AtomicLong total = new AtomicLong(0L);
+        String apiCode = "";
         while (true) {
             List<DrsCustomizeUploadData> drsCustomizeUploadDataList =
                     qiFuAiEventPushService.getDrsCustomizeUploadDataBySyncStatus(QiFuSyncStatusEnum.UN_SYNC.getCode(), minId, PAGE_SIZE);
@@ -81,7 +82,18 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
             }
 
             minId = drsCustomizeUploadDataList.get(drsCustomizeUploadDataList.size() - 1).getId();
-            total.addAndGet(drsCustomizeUploadDataList.size());
+
+            try {
+                total.addAndGet(drsCustomizeUploadDataList.size());
+                apiCode = drsCustomizeUploadDataList.get(0).getApiCode();
+            } catch (Exception ex) {
+                log.warn(
+                        AlertLog.buildWarnMessage(
+                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                , ex.getMessage()
+                                , "埋点异常")
+                        , ex);
+            }
 
             //解析事件推送接口原始数据
             for (DrsCustomizeUploadData drsCustomizeUploadData : drsCustomizeUploadDataList) {
@@ -120,11 +132,11 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
 
         try {
             JSONObject condition = new JSONObject();
-            condition.put("tCid", ROBOT_EVENT_PUSH);
+            condition.put("syncStatus", QiFuSyncStatusEnum.UN_SYNC.getCode());
             trackingService.trackBusinessLog(DataFlowDirection.IN
-                    , "3700226"
+                    , apiCode
                     , "奇富ai事件推送实时数据查询"
-                    , "b_drs_customize_upload_data${tCid}"
+                    , "b_drs_customize_upload_data"+ROBOT_EVENT_PUSH
                     , JSON.toJSONString(condition)
                     , total.get()
                     , TrackingContext.generateBatchId());

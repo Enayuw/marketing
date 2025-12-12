@@ -92,7 +92,7 @@ public class ZhongYuanCleanTransferDataJob extends AbstractSimpleElasticJob {
                         , "中原消金转化数据清洗"
                         , "b_marketing_zhongyuan_transfer"
                         , JSON.toJSONString(condition)
-                        , (long) transferList.size()
+                        , Long.valueOf(transferList.size())
                         , TrackingContext.generateBatchId());
             } catch (Exception ex) {
                 log.warn(

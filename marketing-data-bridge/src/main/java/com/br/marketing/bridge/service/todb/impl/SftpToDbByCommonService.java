@@ -230,13 +230,15 @@ public class SftpToDbByCommonService {
 
         // 埋点
         try {
-            String remark = String.format("电销文件入库,文件id：%s,文件名称：%s"
-                    , localFile.getId().toString(),localFile.getFileName());
-            trackingService.trackPointLog(DataFlowDirection.OUT
+            JSONObject condition = new JSONObject();
+            condition.put("文件id", localFile.getId());
+            condition.put("文件名称", localFile.getFileName());
+            trackingService.trackBusinessLog(DataFlowDirection.IN
                     , localFile.getApiCode()
                     , "电销文件入库"
+                    , "b_local_file"
+                    , JSON.toJSONString(condition)
                     , Long.valueOf(localFile.getActualNumber())
-                    , remark
                     , TrackingContext.generateBatchId());
         } catch (Exception ex) {
             log.warn(
@@ -246,6 +248,7 @@ public class SftpToDbByCommonService {
                             , "埋点异常")
                     , ex);
         }
+
 
         return true;
     }
@@ -428,13 +431,15 @@ public class SftpToDbByCommonService {
 
         // 埋点
         try {
-            String remark = String.format("sftp文件通用入库,文件id：%s,文件名称：%s"
-                    , localFile.getId().toString(),localFile.getFileName());
-            trackingService.trackPointLog(DataFlowDirection.OUT
+            JSONObject condition = new JSONObject();
+            condition.put("文件id", localFile.getId());
+            condition.put("文件名称", localFile.getFileName());
+            trackingService.trackBusinessLog(DataFlowDirection.IN
                     , localFile.getApiCode()
                     , "sftp文件通用入库"
+                    , "b_local_file"
+                    , JSON.toJSONString(condition)
                     , Long.valueOf(localFile.getActualNumber())
-                    , remark
                     , TrackingContext.generateBatchId());
         } catch (Exception ex) {
             log.warn(

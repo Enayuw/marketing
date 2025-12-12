@@ -82,24 +82,6 @@ public class QiFuDataFlattenServiceImpl implements QiFuDataFlattenService {
             flattenRealtimeData(tcId, apiCodes);
         }
 
-        try {
-            String remark = String.format("奇富定制前置表数据打平, tcId：%s, date：%s"
-                    , tcId, date);
-            trackingService.trackPointLog(DataFlowDirection.OUT
-                    , JSONObject.toJSONString(apiCodes)
-                    , "奇富定制前置表数据打平"
-                    , 1L
-                    , remark
-                    , TrackingContext.generateBatchId());
-        } catch (Exception ex) {
-            log.warn(
-                    AlertLog.buildWarnMessage(
-                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
-                            , ex.getMessage()
-                            , "埋点异常")
-                    , ex);
-        }
-
     }
 
     /**
@@ -135,6 +117,24 @@ public class QiFuDataFlattenServiceImpl implements QiFuDataFlattenService {
         Long minId = idRange.get("minId");
         Long maxId = idRange.get("maxId");
         log.warn("今日数据id范围：minId={}, maxId={}", minId, maxId);
+
+        try {
+            String remark = String.format("奇富定制前置表数据打平, minId：%d, maxId：%d, 注意：%s"
+                    , minId, maxId, "量级不准确!");
+            trackingService.trackPointLog(DataFlowDirection.OUT
+                    , JSONObject.toJSONString(apiCodes)
+                    , "奇富定制前置表数据打平"
+                    , 1L
+                    , remark
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
 
         // 使用通用方法处理数据打平
         processDataWithMultiThread(tcId, apiCodes, minId, maxId, "今日数据", "qifuFlattenRealtime", "today", todayDate);
