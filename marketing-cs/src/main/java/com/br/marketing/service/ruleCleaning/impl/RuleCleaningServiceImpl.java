@@ -2255,11 +2255,11 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 RuleCleaningResult ruleCleaningResult = new RuleCleaningResult();
                 ruleCleaningResult.setCleanFields(entry.getValue());
                 ruleCleaningResult.setCleanValue(ObjectUtil.isNotEmpty(JsonParseUtils.findFirstValueByKey(item, entry.getValue()))
-                        ? (String)JsonParseUtils.findFirstValueByKey(item, entry.getValue())
+                        ? JsonParseUtils.findFirstValueByKey(item, entry.getValue())
                         : "");
                 ruleCleaningResult.setMappingField(entry.getKey());
                 ruleCleaningResult.setMappingValue(ObjectUtil.isNotEmpty(JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getKey()))
-                        ? (String)JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getKey())
+                        ? JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getKey())
                         : "");
                 cleaningResultItems.add(ruleCleaningResult);
             }
@@ -2402,7 +2402,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 for (Map.Entry<String,String> entry : cleaningToMappingFieldMap.entrySet()) {
                     RuleCleaningResult ruleCleaningResult = new RuleCleaningResult();
                     ruleCleaningResult.setCleanFields(entry.getValue());
-                    ruleCleaningResult.setCleanValue((String)JsonParseUtils.findFirstValueByKey(item, entry.getKey()));
+                    ruleCleaningResult.setCleanValue(JsonParseUtils.findFirstValueByKey(item, entry.getKey()));
                     ruleCleaningResult.setMappingField(entry.getKey());
                     ruleCleaningResult.setMappingValue((String)JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getValue()));
                     cleaningResultItems.add(ruleCleaningResult);
@@ -2416,7 +2416,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             for (Map.Entry<String,String> entry : cleaningToMappingFieldMap.entrySet()) {
                 RuleCleaningResult ruleCleaningResult = new RuleCleaningResult();
                 ruleCleaningResult.setCleanFields(entry.getValue());
-                ruleCleaningResult.setCleanValue((String)JsonParseUtils.findFirstValueByKey(jsonObject, entry.getKey()));
+                ruleCleaningResult.setCleanValue(JsonParseUtils.findFirstValueByKey(jsonObject, entry.getKey()));
                 ruleCleaningResult.setMappingField(entry.getKey());
                 ruleCleaningResult.setMappingValue((String)JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getValue()));
                 cleaningResultItems.add(ruleCleaningResult);

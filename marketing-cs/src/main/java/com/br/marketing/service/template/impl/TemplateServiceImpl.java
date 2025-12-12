@@ -14,6 +14,7 @@ import com.br.marketing.service.template.TemplateService;
 import com.github.pagehelper.page.PageMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -94,6 +95,7 @@ public class TemplateServiceImpl implements TemplateService {
         if (StringUtils.isNotBlank(apiType)) {
             criteria.andApiTypeEqualTo(apiType);
         }
+        example.setOrderByClause("create_time desc");
         try {
             List<MarketingIndustryTemplate> marketingIndustryTemplateList = marketingIndustryTemplateMapper.selectByExample(example);
             if (!marketingIndustryTemplateList.isEmpty()) {
@@ -137,10 +139,14 @@ public class TemplateServiceImpl implements TemplateService {
                 marketingIndustryTemplateJsonParseMapper.batchInsert(marketingIndustryTemplateJsonParseList);
                 logger.warn("修改行业模板成功，行业模板id：{}", marketingIndustryTemplate.getId());
                 return new Result<Boolean>().success().setDate(Boolean.TRUE);
-            }else {
+            } else {
                 logger.warn("行业模板json数据不存在，更新失败");
                 return new Result<>().failure().setDate(Boolean.FALSE);
             }
+        } catch (DuplicateKeyException e) {
+            String errorMsg = "修改行业模板失败，该字段已存在";
+            logger.error(errorMsg, e);
+            return new Result<>().failure().setDate(Boolean.FALSE).setMessage(errorMsg);
         } catch (Exception e) {
             logger.error("修改行业模板失败，行业模板id：{}，error：{}", marketingIndustryTemplate.getId(), e.getMessage());
             throw new RuntimeException("修改行业模板失败：" + e.getMessage(), e);
@@ -194,7 +200,7 @@ public class TemplateServiceImpl implements TemplateService {
         if (marketingIndustryTemplate.getTemplateName() == null || marketingIndustryTemplate.getTemplateName().isEmpty()) {
             stringBuilder.append("【templateName】");
         }
-        if (marketingIndustryTemplate.getSystemType() == null ) {
+        if (marketingIndustryTemplate.getSystemType() == null) {
             stringBuilder.append("【systemType】");
         }
         if (marketingIndustryTemplate.getDataType() == null) {

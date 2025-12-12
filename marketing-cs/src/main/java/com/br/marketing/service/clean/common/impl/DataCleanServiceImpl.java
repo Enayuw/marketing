@@ -1190,7 +1190,7 @@ public class DataCleanServiceImpl implements DataCleanService {
             ruleMap.forEach((mappingField,cleanField)->{
                 RuleCleaningResult ruleCleaningResult = new RuleCleaningResult();
                 ruleCleaningResult.setCleanFields(cleanField);
-                ruleCleaningResult.setCleanValue((String) JsonParseUtils.findFirstValueByKey(item, cleanField));
+                ruleCleaningResult.setCleanValue(JsonParseUtils.findFirstValueByKey(item, cleanField));
                 ruleCleaningResult.setMappingField(mappingField);
                 ruleCleaningResult.setMappingValue((String) JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), mappingField));
                 cleaningResultItems.add(ruleCleaningResult);
