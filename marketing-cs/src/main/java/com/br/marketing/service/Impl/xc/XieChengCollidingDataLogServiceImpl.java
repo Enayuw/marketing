@@ -31,7 +31,6 @@ import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.XieChengCollidingDataLog;
 import com.br.marketing.mapper.XieChengCollidingDataLogMapper;
-import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 
 import lombok.extern.slf4j.Slf4j;
@@ -51,8 +50,6 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
     private XieChengCollidingDataHitRequestNoMappingMapper xieChengCollidingDataHitRequestNoMappingMapper;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
-    @Resource
-    private RabbitMqProducter rabbitMqProducter;
     @Resource
     private RocketMqSwitch rocketMqSwitch;
     @Resource
@@ -168,12 +165,8 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
     @Override
     public void pushLogMessage(List<XieChengCollidingDataLog> collidingLogs) {
         try {
-            if(marketingCommonConfig.getXieChengCallingCpaLogSwitch()){
-                rocketMqSwitch.syncSend(MarketingXieChengConstants.TOPIC_MARKETING_XIECHENG_CPA_COLLIDING_LOG_QUEUE
-                        , MarketingXieChengConstants.TAG_MARKETING_XIECHENG_CPA_COLLIDING_LOG_QUEUE, JSONObject.toJSONString(collidingLogs));
-            } else{
-                rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_LOG, JSONObject.toJSONString(collidingLogs));
-            }
+            rocketMqSwitch.syncSend(MarketingXieChengConstants.TOPIC_MARKETING_XIECHENG_CPA_COLLIDING_LOG_QUEUE
+                    , MarketingXieChengConstants.TAG_MARKETING_XIECHENG_CPA_COLLIDING_LOG_QUEUE, JSONObject.toJSONString(collidingLogs));
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
                     , "推送携程撞库日志消息异常！"), e);

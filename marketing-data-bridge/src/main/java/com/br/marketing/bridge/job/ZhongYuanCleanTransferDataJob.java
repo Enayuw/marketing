@@ -182,16 +182,23 @@ public class ZhongYuanCleanTransferDataJob extends AbstractSimpleElasticJob {
                 }
             }
 
-            // 等待所有推送任务完成
-            pushPool.shutdown();
-            while (!pushPool.awaitTermination(5L, TimeUnit.SECONDS)) {
-                // 等待线程池关闭
-            }
-
             log.warn("{}处理完成，成功: {}, 失败: {}", TITLE, successCount, failCount);
 
         } catch (Exception e) {
             log.error("{}处理数据异常", TITLE, e);
+        } finally {
+            // 等待所有推送任务完成，放在finally中确保线程池被正确关闭
+            pushPool.shutdown();
+            try {
+                if (!pushPool.awaitTermination(60L, TimeUnit.SECONDS)) {
+                    log.warn("{}线程池未在60秒内完成，强制关闭", TITLE);
+                    pushPool.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                log.error("{}-线程池中断异常-", TITLE, e);
+                pushPool.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
         }
     }
 

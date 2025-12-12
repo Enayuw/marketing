@@ -145,6 +145,11 @@ api:
     baseUrl: http://promote-dev.daikuan.360.cn
     batch: ${api.sanliuling.baseUrl}/open_api/v1/apply/batch
     isProxy: false
+  syj:
+    baseUrl: https://partner.yhyunjin.com
+    code: bairong
+    originalUrl: ${api.syj.baseUrl}/yjPart/${api.syj.code}
+    blackUrl: ${api.syj.baseUrl}/yjPart/blackList/insertUnsubscribeData/${api.syj.code}
 innerSftp:
   uploadpath: /UploadFiles/marketing/
 #elastic-job配置

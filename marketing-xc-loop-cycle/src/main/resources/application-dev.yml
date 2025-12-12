@@ -3,24 +3,18 @@ sharding:
     datasource:
       names: ds0
       ds0:
-        url: jdbc:mysql://192.168.162.192:3306/test_loan?useUnicode=true&characterEncoding=UTF-8
+        jdbc-url: jdbc:mysql://192.168.162.192:3306/test_loan?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=true&failOverReadOnly=false&useConfigs=maxPerformance
         username: rule_service
         password: rule_service_2015-09-10
-        type: com.alibaba.druid.pool.DruidDataSource
-        driver-class-name: com.mysql.jdbc.Driver
-        filters: stat
-        maxActive: 300
-        initialSize: 1
-        maxWait: 60000
-        minIdle: 1
-        timeBetweenEvictionRunsMillis: 60000
-        minEvictableIdleTimeMillis: 300000
-        validationQuery: select 'x'
-        testWhileIdle: true
-        testOnBorrow: false
-        testOnReturn: false
-        poolPreparedStatements: true
-        maxOpenPreparedStatements: 20
+        type: com.zaxxer.hikari.HikariDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        minimum-idle: 1 # 最小空闲连接数
+        maximum-pool-size: 300 # 最大连接池数量
+        connection-timeout: 60000 # 获取连接超时时间，单位毫秒
+        idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
+        max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
+        keepalive-time: 30000 # 连接保活时间，单位毫秒
+        connection-test-query: select 1 # 连接测试查询
   config:
     sharding:
       props:
@@ -37,8 +31,11 @@ otherConfig:
     mails: xinke.liu@100credit.com,guang.chen@100credit.com,runtong.yuan@100credit.com
     sendCode: 66618706
   userCenter:
-    appName: loan-strategy
-    appSecretKey: 404be42e9ad8ce59af79f17eb51594cf
+    appName: marketing-api
+    appSecretKey: bd3c18667f8fcbb4985d2be66e70ca1e
+  encodeMapping:
+    appName: marketing
+    appSecretKey: c6acc38a39b0769fa7fb1a95f82d9b33
   warning:
     pageSize: 5000
     apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
@@ -49,9 +46,6 @@ otherConfig:
     ftpPwd: 9PdaRcMRphcNctRy
     email:
       notice: nengwu.qu@100credit.com,chunliu.le@100credit.com,qianqian.cao@100credit.com,xinke.liu@100credit.com
-  encodeMapping:
-    appName: loan-warning
-    appSecretKey: f15a1421ac95a284683688af14688b72
 cluster:
   flag: k8s-prod-a
 api:

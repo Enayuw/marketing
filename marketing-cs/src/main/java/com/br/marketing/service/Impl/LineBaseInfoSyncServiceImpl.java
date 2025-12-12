@@ -60,7 +60,7 @@ public class LineBaseInfoSyncServiceImpl implements LineBaseInfoSyncService {
 
         // db-库表数据组合查询: b_marketing_line_supplier_info_normal 里面 ope_status = 0
         // ---> b_marketing_line_supplier_info_normal 里面 ope_status in(0,2) ,的配置进行比较
-        List<LineBaseFullInfoDTO> lineBaseFullInfoDtoList = lineBaseInfoNormalMapper.selectLineBaeUseInfoList();
+        List<LineBaseFullInfoDTO> lineBaseFullInfoDtoList = lineBaseInfoNormalMapper.selectLineBaseUseInfoList();
 
         // 场景1-差集剔除(库表有,三方接口没有)
         dealSceneOne(ddLineBaseInfoDtoList,lineBaseFullInfoDtoList);
@@ -138,8 +138,6 @@ public class LineBaseInfoSyncServiceImpl implements LineBaseInfoSyncService {
                     //3.1 场景 lineSupplier修改 //3.2 场景 其它字段发生修改
                     if (!ddLineInfoItem.getLineSupplier().equals(dbFullInfoItem.getLineSupplier())) {
                         //3.1场景 lineSupplier修改
-                        //dbFullInfoItem->lineSupplierId 对应记录b_marketing_line_supplier_info_normal记录   修改ope_status = 1
-                        lineSupplierInfoNormalMapper.updateOpeStatusById(dbFullInfoItem.getLineSupplierId(),1);
                         //dbFullInfoItem->gatewayId 对应b_marketing_line_base_info_normal记录  修改ope_status = 1
                         lineBaseInfoNormalMapper.updateBaseInfoById(dbFullInfoItem.getId(),ddLineInfoItem.getCaller(),
                                 ddLineInfoItem.getOutboundNumber(),ddLineInfoItem.getProjectName(),1);

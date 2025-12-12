@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.SmsAccountDetailNormalMapper" >
+
+    <select id="selectCount" resultType="java.lang.Long">
+        SELECT
+            count(*)
+        FROM
+            b_marketing_sms_account_detail_normal
+        WHERE
+            vendor_id = #{vendorId} and channel_id = #{channelId} and is_delete = 0
+    </select>
+
+    <select id="selectChannelIfExist" resultType="java.lang.Long">
+        select channel_id from b_marketing_sms_account_detail_normal
+        where channel_id in
+            <foreach collection="channelIds" item="channelId" open="(" separator="," close=")">
+                #{channelId}
+            </foreach>
+            <if test="groupId != null and groupId !=''">
+                and group_id != #{groupId}
+            </if>
+            and is_delete = 0
+    </select>
+
+    <select id="selectListByGroupId" resultType="com.br.marketing.dto.SmsAccountDetailDTO">
+        SELECT
+            group_id,
+            vendor_id,
+            GROUP_CONCAT(DISTINCT channel_id ORDER BY channel_id SEPARATOR ',') as channel_ids,
+            price,
+            effect_start_date,
+            effect_end_date,
+            create_time,
+            update_time,
+            enabled,
+            is_delete
+        FROM b_marketing_sms_account_detail_normal
+        where
+            is_delete = 0
+          AND group_id = #{groupId}
+        GROUP BY group_id, price, effect_start_date
+        ORDER BY update_time desc
+    </select>
+
+    <select id="selectTotalCount" resultType="java.lang.Long">
+        SELECT  count(*) <include refid="commonListQuery"/>
+    </select>
+
+
+    <select id="selectList" resultType="com.br.marketing.dto.SmsAccountDetailDTO">
+        SELECT
+            group_id,vendor_id,channel_ids,price,effect_start_date,effect_end_date,
+            create_time,update_time,enabled,is_delete
+        <include refid="commonListQuery"/>
+        ORDER BY update_time DESC
+        LIMIT #{limitSize} OFFSET #{offset}
+    </select>
+
+
+    <!-- 提取公共查询条件 -->
+    <sql id="commonListQuery">
+        FROM (
+            SELECT
+                group_id,
+                vendor_id,
+                GROUP_CONCAT(DISTINCT channel_id ORDER BY channel_id SEPARATOR ',') as channel_ids,
+                price,
+                effect_start_date,
+                effect_end_date,
+                create_time,
+                update_time,
+                enabled,
+                is_delete,
+                MAX(CASE WHEN channel_id =#{channelId} THEN 1 ELSE 0 END) as has_target_gateway
+            FROM b_marketing_sms_account_detail_normal
+                <where>
+                    is_delete = 0
+                    <if test="vendorId!=null">AND vendor_id = #{vendorId}</if>
+                    <if test="price != null">AND price = #{price}</if>
+                    <if test="nowDate !=null">AND #{nowDate} BETWEEN effect_start_date AND effect_end_date</if>
+                </where>
+            GROUP BY group_id, price, effect_start_date
+        ) t
+        WHERE 1=1
+        <if test="channelId != null and channelId > 0">
+            AND has_target_gateway = 1
+        </if>
+    </sql>
+</mapper>

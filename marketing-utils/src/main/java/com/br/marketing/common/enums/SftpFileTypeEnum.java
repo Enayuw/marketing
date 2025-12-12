@@ -30,6 +30,8 @@ public enum SftpFileTypeEnum {
     ,XIECHENG_CPS_COLLIDING("xiecheng_cps_colliding")
     ,ZHONGBANG_AI("zhongbang_ai")
     ,ZHONGBANG_AI_VOICE("zhongbang_ai_voice")
+    ,SYJ_ORIGINAL("syj_original")
+    ,SYJ_BLACK("syj_black")
     ;
    private String value;
 }
