@@ -96,15 +96,16 @@ public class SmyUploadDataService {
             }
 
             // 埋点
-            JSONObject condition = new JSONObject();
-            condition.put("request_no", dto.getRequestNo());
             try {
+                JSONObject condition = new JSONObject();
+                condition.put("tCid", tCid);
+                condition.put("request_no", dto.getRequestNo());
                 trackingService.trackBusinessLog(DataFlowDirection.IN
                         , apiCode
                         , "萨摩耶定制上传接口"
                         ,"b_customize_upload_data_${tCid}"
                         , JSON.toJSONString(condition)
-                        , Long.valueOf(dto.getTotal())
+                        , 1L
                         , TrackingContext.generateBatchId());
             } catch (Exception ex) {
                 log.warn(

@@ -126,9 +126,9 @@ public class SanLiuLingUploadDataService {
             }
 
             // 埋点
-            JSONObject condition = new JSONObject();
-            condition.put("taskId", taskId);
             try {
+                JSONObject condition = new JSONObject();
+                condition.put("taskId", taskId);
                 trackingService.trackBusinessLog(DataFlowDirection.IN
                         , apiCode
                         , "360催收定制上传接口"

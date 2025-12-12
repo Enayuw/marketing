@@ -194,9 +194,10 @@ public class QiFuAiUploadDataService {
         }
 
         // 埋点
-        JSONObject condition = new JSONObject();
-        condition.put("requestId", requestId);
         try {
+            JSONObject condition = new JSONObject();
+            condition.put("tCid", uploadData.getTCid());
+            condition.put("requestId", requestId);
             trackingService.trackBusinessLog(DataFlowDirection.IN
                     , uploadData.getApiCode()
                     , "奇富AI语音机器人当月报表数据接入接口"
@@ -262,9 +263,10 @@ public class QiFuAiUploadDataService {
         }
 
         // 埋点
-        JSONObject condition = new JSONObject();
-        condition.put("requestId", requestId);
         try {
+            JSONObject condition = new JSONObject();
+            condition.put("tCid", uploadData.getTCid());
+            condition.put("requestId", requestId);
             trackingService.trackBusinessLog(DataFlowDirection.IN
                     , uploadData.getApiCode()
                     , "奇富AI语音机器人排名报表推送接口"
@@ -333,9 +335,10 @@ public class QiFuAiUploadDataService {
         }
 
         // 埋点
-        JSONObject condition = new JSONObject();
-        condition.put("requestId", requestId);
         try {
+            JSONObject condition = new JSONObject();
+            condition.put("tCid", uploadData.getTCid());
+            condition.put("requestId", requestId);
             trackingService.trackBusinessLog(DataFlowDirection.IN
                     , uploadData.getApiCode()
                     , "奇富AI上传数据接入接口"
@@ -399,9 +402,10 @@ public class QiFuAiUploadDataService {
         }
 
         // 埋点
-        JSONObject condition = new JSONObject();
-        condition.put("requestId", requestId);
         try {
+            JSONObject condition = new JSONObject();
+            condition.put("tCid", uploadData.getTCid());
+            condition.put("requestId", requestId);
             trackingService.trackBusinessLog(DataFlowDirection.IN
                     , uploadData.getApiCode()
                     , "360AI语音机器人事件推送接口"
