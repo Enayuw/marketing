@@ -286,9 +286,9 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
         }
         BR_EXECUTORS.execute(() -> checkField(uploadDataDTO, listInfo, apiCode, requestId));
         // 埋点
-        JSONObject condition = new JSONObject();
-        condition.put("request_id", shuheUploadData.getRequestId());
         try {
+            JSONObject condition = new JSONObject();
+            condition.put("request_id", shuheUploadData.getRequestId());
             trackingService.trackBusinessLog(DataFlowDirection.IN
                     , apiCode
                     , "数禾定制上传接口"

@@ -473,6 +473,28 @@ public class QiFuAiUploadDataService {
                     "jsonData:" + decryptData + ",bizType:" + bizType, "360AI事件推送上传数据入库失败！！！"));
             return new Pair<>(CodeEnum.GWS200, FlagEnum.F);
         }
+
+        // 埋点
+        try {
+            JSONObject condition = new JSONObject();
+            condition.put("tCid", uploadData.getTCid());
+            condition.put("requestId", requestId);
+            trackingService.trackBusinessLog(DataFlowDirection.IN
+                    , uploadData.getApiCode()
+                    , "360AI语音效果上传数据接口"
+                    ,"b_drs_customize_upload_data${tCid}"
+                    , JSON.toJSONString(condition)
+                    , (long) (dataList == null ? 0 : dataList.size())
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
+
         return new Pair<>(CodeEnum.GWS100,FlagEnum.S);
     }
 }

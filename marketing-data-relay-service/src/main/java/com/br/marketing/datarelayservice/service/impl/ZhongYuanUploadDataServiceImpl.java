@@ -210,9 +210,9 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             ZhongYuanBaseResponse<BatchTaskResponse> response = ZhongYuanBaseResponse.success(batchTaskResponse);
 
             // 埋点
-            JSONObject condition = new JSONObject();
-            condition.put("flowId", baseRequest.getFlowId());
             try {
+                JSONObject condition = new JSONObject();
+                condition.put("flowId", baseRequest.getFlowId());
                 trackingService.trackBusinessLog(DataFlowDirection.IN
                         , apiCode
                         , "中原消金-外呼上报接口"
@@ -787,9 +787,9 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             response.setData(responseData);
 
             // 埋点
-            JSONObject condition = new JSONObject();
-            condition.put("flowId", baseRequest.getFlowId());
             try {
+                JSONObject condition = new JSONObject();
+                condition.put("flowId", baseRequest.getFlowId());
                 trackingService.trackBusinessLog(DataFlowDirection.IN
                         , apiCode
                         , "中原消金-批量外呼任务状态修改接口"
@@ -893,9 +893,9 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             responseData.setEw("更新成功");
 
             // 埋点
-            JSONObject condition = new JSONObject();
-            condition.put("flowId", baseRequest.getFlowId());
             try {
+                JSONObject condition = new JSONObject();
+                condition.put("flowId", baseRequest.getFlowId());
                 trackingService.trackBusinessLog(DataFlowDirection.IN
                         , apiCode
                         , "中原消金-外呼任务场景变量修改接口"
