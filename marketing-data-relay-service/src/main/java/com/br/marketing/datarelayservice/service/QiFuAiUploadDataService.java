@@ -13,6 +13,7 @@ import com.br.marketing.datarelayservice.client.*;
 import com.br.marketing.datarelayservice.enums.QiFuAiBizTypeEnum;
 import com.br.marketing.entity.BillReport;
 import com.br.marketing.entity.DrsCustomizeUploadData;
+import com.br.marketing.entity.RobotEffectData;
 import com.br.marketing.entity.EventPushData;
 import com.br.marketing.mapper.DrsCustomizeUploadDataMapper;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
@@ -133,6 +134,11 @@ public class QiFuAiUploadDataService {
                 }
             }else if (classObject instanceof QiFuAiRobotEventPushBizDataDTO){
                 Pair<CodeEnum,FlagEnum> pair = uploadRobotEventPushBiz(decryptData, bizType, uploadData, requestId);
+                if (pair != null) {
+                    return pair;
+                }
+            } else if (classObject instanceof QiFuAiRobotEffectBizDataDTO) {
+                Pair<CodeEnum,FlagEnum> pair = uploadRobotEffectBiz(decryptData, bizType, uploadData, requestId);
                 if (pair != null) {
                     return pair;
                 }
@@ -422,6 +428,51 @@ public class QiFuAiUploadDataService {
                     , ex);
         }
 
+        return new Pair<>(CodeEnum.GWS100,FlagEnum.S);
+    }
+
+    private Pair<CodeEnum, FlagEnum> uploadRobotEffectBiz(String decryptData, String bizType, DrsCustomizeUploadData uploadData, String requestId) {
+        QiFuAiRobotEffectBizDataDTO qiFuAiRobotEffectBizDataDTO;
+        try {
+            qiFuAiRobotEffectBizDataDTO = JSON.parseObject(decryptData, QiFuAiRobotEffectBizDataDTO.class);
+        }catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), decryptData,
+                    "360AI语音效果上传数据,bizType:" + bizType + "，JSON解析失败！！！"));
+            uploadData.setRequestId(requestId);
+            uploadData.setRequestJsonData(decryptData);
+            uploadData.setBizDataNumber(0);
+            uploadData.setReceiveDate(LocalDate.now().toString());
+            uploadData.setCreateTime(new Date());
+            uploadData.setUpdateTime(new Date());
+            uploadData.setResponseCode(CodeEnum.GWS200.getCode());
+            uploadData.setResponseData(null);
+            uploadData.setExtend("JSON解析失败");
+            uploadData.setStatus(0);
+            // 保存前置数据
+            int i = drsCustomizeUploadDataMapper.insertSelective(uploadData);
+            if (i != 1) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                        "jsonData:" + decryptData + ",bizType:" + bizType, "360AI语音效果上传数据数据入库失败！！！"));
+            }
+            return new Pair<>(CodeEnum.GWS200, FlagEnum.F);
+        }
+        List<RobotEffectData> dataList = qiFuAiRobotEffectBizDataDTO.getList();
+        uploadData.setRequestId(requestId);
+        uploadData.setRequestJsonData(decryptData);
+        uploadData.setBizDataNumber(dataList == null ? 0 : dataList.size());
+        uploadData.setReceiveDate(LocalDate.now().toString());
+        uploadData.setCreateTime(new Date());
+        uploadData.setUpdateTime(new Date());
+        uploadData.setResponseCode(CodeEnum.GWS100.getCode());
+        uploadData.setResponseData(null);
+        uploadData.setExtend(null);
+        uploadData.setStatus(1);
+        int i = drsCustomizeUploadDataMapper.insertSelective(uploadData);
+        if (i != 1){
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                    "jsonData:" + decryptData + ",bizType:" + bizType, "360AI事件推送上传数据入库失败！！！"));
+            return new Pair<>(CodeEnum.GWS200, FlagEnum.F);
+        }
         return new Pair<>(CodeEnum.GWS100,FlagEnum.S);
     }
 }

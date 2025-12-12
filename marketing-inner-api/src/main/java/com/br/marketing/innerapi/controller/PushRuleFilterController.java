@@ -185,6 +185,18 @@ public class PushRuleFilterController {
         return new ApiResult<List<ConditionOfScoreVO>>().fromResult(pushRuleService.getConditionByRule(apiCode,name), CODE_1);
     }
 
+    @ApiOperation(value = "获取规则模板列表")
+    @GetMapping("/getConditionList")
+    public ApiResult<List<ConditionVO>> getConditionList(String apiCode,String content) {
+        return new ApiResult<List<ConditionVO>>().fromResult(pushRuleService.getConditionList(apiCode,content), CODE_1);
+    }
+
+    @ApiOperation(value = "根据apiCode和规则模板id获取规则模板详情")
+    @GetMapping("/getConditionById")
+    public ApiResult<ConditionVO> getConditionById(String apiCode,Long conditionId) {
+        return new ApiResult<ConditionVO>().fromResult(pushRuleService.getConditionById(apiCode,conditionId), CODE_1);
+    }
+
     @ApiOperation(value = "修改规则模板")
     @PostMapping("/optCondition")
     public ApiResult optCondition(@RequestBody OptConditionDTO dto) {

@@ -2889,6 +2889,48 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     @Override
+    public Result<List<ConditionVO>> getConditionList(String apiCode, String content) {
+        ScoreSearchConditionMappingExample mappingExample = new ScoreSearchConditionMappingExample();
+        mappingExample.createCriteria().andIsDelEqualTo(Constants.DATA_VALID).andApiCodeEqualTo(apiCode);
+        List<ScoreSearchConditionMapping> scoreSearchConditionMappings = scoreSearchConditionMappingMapper.selectByExample(mappingExample);
+        if (scoreSearchConditionMappings.size() <= 0) {
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("未有符合条件的数据");
+        }
+        List<Long> conditionIds = scoreSearchConditionMappings.stream().map(ScoreSearchConditionMapping::getConditionId).collect(Collectors.toList());
+
+        List<ConditionOfScoreVO> scoreByNameNumberList = scoreSearchConditionMapper.getScoreByNameNumberList(conditionIds, content);
+        if (scoreByNameNumberList.size() <= 0) {
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("无符合条件的数据");
+        }
+        List<ConditionVO> conditionVOS = new ArrayList<>();
+        scoreByNameNumberList.forEach(score -> {
+            ConditionVO conditionVO = new ConditionVO();
+            conditionVO.setId(score.getId());
+            conditionVO.setConditionId(score.getId());
+            conditionVO.setName(score.getName());
+            conditionVO.setSourceType(score.getSourceType());
+            conditionVOS.add(conditionVO);
+        });
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(conditionVOS);
+    }
+
+    @Override
+    public Result<ConditionVO> getConditionById(String apiCode, Long conditionId) {
+        List<ConditionOfScoreVO> scoreByNameNumberList = scoreSearchConditionMapper
+                .getScoreByNameNumberList(
+                        Collections.singletonList(conditionId),
+                        null
+                );
+        if (scoreByNameNumberList.size() <= 0) {
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("无符合条件的数据");
+        }
+        ConditionVO conditionVO = new ConditionVO();
+        BeanUtils.copyProperties(scoreByNameNumberList.get(0), conditionVO);
+        conditionVO.setConditionId(scoreByNameNumberList.get(0).getId());
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(conditionVO);
+    }
+
+    @Override
     public Result<String> queryUploadOverAmt(String custNum, HttpServletRequest request) {
 
         Map<String, String> zhongYuanIdentity = marketingCommonConfig.getZhongYuanIdentity();

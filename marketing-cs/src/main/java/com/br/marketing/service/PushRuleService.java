@@ -23,11 +23,7 @@ import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferInfo;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.enums.CustomerQueueEnum;
-import com.br.marketing.vo.ConditionOfScoreVO;
-import com.br.marketing.vo.MarketingPreUserSyncDetailVO;
-import com.br.marketing.vo.MarketingTransferUserStatusVO;
-import com.br.marketing.vo.PushInfoDetailVO;
-import com.br.marketing.vo.ScoreConditionDetailVO;
+import com.br.marketing.vo.*;
 import com.br.marketing.vo.xiecheng.PushViewVO;
 
 import javax.servlet.http.HttpServletRequest;
@@ -245,4 +241,7 @@ public interface PushRuleService {
 
     Result<String> queryUploadOverAmt(String custNum, HttpServletRequest request);
 
+    Result<List<ConditionVO>> getConditionList(String apiCode, String content);
+
+    Result<ConditionVO> getConditionById(String apiCode, Long conditionId);
 }

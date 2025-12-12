@@ -8,7 +8,7 @@
             create_time, update_time, is_delete
         FROM b_marketing_line_account_log_normal
         WHERE
-            group_id = #{sourceId} and is_delete = 0
+            group_id = #{groupId} and is_delete = 0
         ORDER BY create_time DESC
     </select>
 </mapper>

@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.LineBaseInfoNormalMapper" >
 
-    <select id="selectLineBaeFullInfoList" resultType="com.br.marketing.dto.LineBaseFullInfoDTO">
+    <select id="selectLineBaseFullInfoList" resultType="com.br.marketing.dto.LineBaseFullInfoDTO">
         select
             bb.id,bb.gateway_id,bb.caller,bb.project_name,bb.outbound_number,bb.line_supplier_id,ss.line_supplier
         from
@@ -10,6 +10,16 @@
                 inner join b_marketing_line_supplier_info_normal ss on bb.line_supplier_id = ss.id
         where
             bb.is_delete = 0 and ss.is_delete = 0
+    </select>
+
+    <select id="selectLineBaseUseInfoList" resultType="com.br.marketing.dto.LineBaseFullInfoDTO">
+        select
+            bb.id,bb.gateway_id,bb.caller,bb.project_name,bb.outbound_number,bb.line_supplier_id,ss.line_supplier
+        from
+            b_marketing_line_base_info_normal bb
+                inner join b_marketing_line_supplier_info_normal ss on bb.line_supplier_id = ss.id
+        where
+            bb.ope_status in (0, 2) and bb.is_delete = 0 and ss.ope_status = 0 and ss.is_delete = 0
     </select>
 
     <select id="selectGatewayIdByFiled" resultType="java.lang.Long">
@@ -43,16 +53,27 @@
     </update>
 
 
-    <select id="selectByIdList" resultType="com.br.marketing.entity.LineBaseInfoNormal">
-        SELECT
-            id, gateway_id, caller, line_supplier_id, project_name, outbound_number, create_time,
-               update_time, ope_status, ope_time, is_delete
-        FROM b_marketing_line_base_info_normal
-        WHERE gateway_id in (
-            <foreach collection="gatewayIdList" item="gateway_id" index="index" separator=",">
-                #{gateway_id}
-            </foreach>
-            ) and ope_status in (0,2)
+    <select id="selectByGatewayIdListtikv_" resultType="com.br.marketing.entity.LineBaseInfoNormal">
+        SELECT * FROM (
+            SELECT
+                id, gateway_id, caller, line_supplier_id, project_name, outbound_number,
+                create_time, update_time, ope_status, ope_time, is_delete,
+                -- 分区按gateway_id，排序规则：优先ope_status in (0,2)的记录
+                ROW_NUMBER() OVER (
+                    PARTITION BY gateway_id
+                    ORDER BY
+                    CASE WHEN ope_status IN (0, 2) THEN 0 ELSE 1 END,
+                    create_time DESC
+                ) as rn
+            FROM b_marketing_line_base_info_normal
+            WHERE gateway_id IN (
+                <foreach collection="gatewayIdList" item="gateway_id" index="index" separator=",">
+                    #{gateway_id}
+                </foreach>
+                )
+                AND is_delete = 0
+        ) t
+        WHERE rn = 1
     </select>
 
 

@@ -22,7 +22,7 @@ import java.util.List;
  */
 
 @Data
-public class LineBaseShowInfoDto {
+public class LineBaseShowInfoDTO {
    private String lineSupplier;
    private List<LineBaseInfo> channelDTOList;
 

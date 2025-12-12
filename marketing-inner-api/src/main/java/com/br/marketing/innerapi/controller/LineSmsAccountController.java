@@ -4,14 +4,15 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.LineBaseShowInfoDto;
+import com.br.marketing.dto.LineBaseShowInfoDTO;
+import com.br.marketing.dto.SmsBaseShowInfoDTO;
 import com.br.marketing.dto.account.LineAccountDto;
 import com.br.marketing.dto.account.SmsAccountDto;
 import com.br.marketing.entity.MarketingDict;
 import com.br.marketing.service.LineSmsAccountNormalService;
 import com.br.marketing.service.LineSmsAccountService;
 import com.br.marketing.vo.LineAccountDetailVO;
-import com.br.marketing.vo.MarketingSmsAccountRecordVo;
+import com.br.marketing.vo.SmsAccountDetailVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
@@ -45,7 +46,8 @@ public class LineSmsAccountController {
     @GetMapping("/getSmsAccountBasInfo")
     public ApiResult getSmsAccountBasInfo() {
         try {
-            return lineSmsAccountService.getSmsAccountBasInfo();
+            List<SmsBaseShowInfoDTO> baseShowInfoDtoList = lineSmsAccountNormalService.getSmsAccountBaseInfo();
+            return new ApiResult().success(baseShowInfoDtoList);
         }catch (Exception e) {
             log.error(e.getMessage(), e);
             return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
@@ -56,7 +58,7 @@ public class LineSmsAccountController {
     @PostMapping("/addSmsAccount")
     public ApiResult addSmsAccount(@RequestBody SmsAccountDto dto) {
         try {
-            return new ApiResult().fromResult(lineSmsAccountService.addSmsAccount(dto), CODE_1);
+            return new ApiResult().fromResult(lineSmsAccountNormalService.addSmsAccount(dto), CODE_1);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
@@ -67,7 +69,7 @@ public class LineSmsAccountController {
     @PatchMapping("/updSmsAccount")
     public ApiResult updSmsAccount(@RequestBody SmsAccountDto dto) {
         try {
-            return new ApiResult().fromResult(lineSmsAccountService.updSmsAccount(dto), CODE_1);
+            return new ApiResult().fromResult(lineSmsAccountNormalService.updSmsAccount(dto), CODE_1);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
@@ -76,9 +78,13 @@ public class LineSmsAccountController {
 
     @ApiOperation(value = "短信对账配置禁用")
     @PatchMapping("/forbSmsAccount")
-    public ApiResult forbSmsAccount(@RequestParam Long configId) {
+    public ApiResult forbSmsAccount(@RequestParam String groupIdStr) {
         try {
-            return new ApiResult().fromResult(lineSmsAccountService.forbSmsAccount(configId), CODE_1);
+            if (StringUtils.isEmpty(groupIdStr)) {
+                return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
+            }
+            Long groupId = Long.parseLong(groupIdStr);
+            return new ApiResult().fromResult(lineSmsAccountNormalService.forbSmsAccount(groupId), CODE_1);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
@@ -87,11 +93,31 @@ public class LineSmsAccountController {
 
     @ApiOperation(value = "短信对账配置启用")
     @PatchMapping("/allowSmsAccount")
-    public ApiResult allowSmsAccount(@RequestParam Long configId) {
+    public ApiResult allowSmsAccount(@RequestParam String groupIdStr) {
         try {
-            return new ApiResult().fromResult(lineSmsAccountService.allowSmsAccount(configId), CODE_1);
+            if (StringUtils.isEmpty(groupIdStr)) {
+                return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
+            }
+            Long groupId = Long.parseLong(groupIdStr);
+            return new ApiResult().fromResult(lineSmsAccountNormalService.allowSmsAccount(groupId), CODE_1);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            log.error(e.getMessage(), e);
+            return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
+        }
+    }
+
+    @ApiOperation(value = "短信对账配置删除")
+    @PatchMapping("/deleteSmsAccount")
+    public ApiResult deleteSmsAccount(@RequestParam String groupIdStr) {
+        try {
+            if (StringUtils.isEmpty(groupIdStr)) {
+                return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
+            }
+            Long groupId = Long.parseLong(groupIdStr);
+            return new ApiResult().fromResult(lineSmsAccountNormalService.deleteSmsAccount(groupId), CODE_1);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
         }
     }
 
@@ -99,18 +125,18 @@ public class LineSmsAccountController {
     @GetMapping("/getSmsAccounts")
     public ApiResult getSmsAccounts(@RequestParam(defaultValue = "1") Integer current,
                                     @RequestParam(defaultValue = "10") Integer size,
-                                    @RequestParam(required = false) String vendorName,
-                                    @RequestParam(required = false) String channelsName,
+                                    @RequestParam(required = false) Long vendorId,
+                                    @RequestParam(required = false) Long channelId,
                                     @RequestParam(required = false) Double price,
-                                    @RequestParam(required = false) String configIdStr) {
+                                    @RequestParam(required = false) String groupIdStr) {
         try {
             ApiResult apiResult = new ApiResult();
-            if (StringUtils.isNotEmpty(configIdStr)) {
-                Long configId = Long.parseLong(configIdStr);
-                List<MarketingSmsAccountRecordVo> smsAccountRecordList= lineSmsAccountService.getSmsAccountsByConfigId(configId);
-                apiResult = new ApiResult<List<MarketingSmsAccountRecordVo>>().success(smsAccountRecordList);
+            if (StringUtils.isNotEmpty(groupIdStr)) {
+                Long groupId = Long.parseLong(groupIdStr);
+                List<SmsAccountDetailVO> smsAccountRecordList= lineSmsAccountNormalService.getSmsAccountsByGroupId(groupId);
+                apiResult = new ApiResult<List<SmsAccountDetailVO>>().success(smsAccountRecordList);
             }else{
-                PageResultReturn page = lineSmsAccountService.getSmsAccounts(current,size,vendorName,channelsName,price);
+                PageResultReturn page = lineSmsAccountNormalService.getSmsAccounts(current,size,vendorId,channelId,price);
                 apiResult=  new ApiResult<PageResultReturn>().success(page);
             }
             return apiResult;
@@ -124,13 +150,13 @@ public class LineSmsAccountController {
     @GetMapping("/getSmsAccountLogs")
     public ApiResult getSmsAccountLogs(@RequestParam(defaultValue = "1") Integer current,
                                        @RequestParam(defaultValue = "10") Integer size,
-                                       @RequestParam(name = "configIdStr") String configIdStr) {
+                                       @RequestParam(name = "groupIdStr") String groupIdStr) {
         try {
-            if (StringUtils.isEmpty(configIdStr)) {
+            if (StringUtils.isEmpty(groupIdStr)) {
                 return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
             }
-            Long configId = Long.parseLong(configIdStr);
-            PageResultReturn page = lineSmsAccountService.getSmsAccountLogs(current,size,configId);
+            Long groupId = Long.parseLong(groupIdStr);
+            PageResultReturn page = lineSmsAccountNormalService.getSmsAccountLogs(current,size,groupId);
             return new ApiResult<>().success(page);
         }catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -162,8 +188,12 @@ public class LineSmsAccountController {
 
     @ApiOperation(value = "线路对账配置禁用")
     @PatchMapping("/forbLineAccount")
-    public ApiResult forbLineAccount(@RequestParam Long groupId) {
+    public ApiResult forbLineAccount(@RequestParam String groupIdStr) {
         try {
+            if (StringUtils.isEmpty(groupIdStr)) {
+                return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
+            }
+            Long groupId = Long.parseLong(groupIdStr);
             return new ApiResult().fromResult(lineSmsAccountNormalService.forbLineAccount(groupId), CODE_1);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -173,8 +203,12 @@ public class LineSmsAccountController {
 
     @ApiOperation(value = "线路对账配置启用")
     @PatchMapping("/allowLineAccount")
-    public ApiResult allowLineAccount(@RequestParam Long groupId) {
+    public ApiResult allowLineAccount(@RequestParam String groupIdStr) {
         try {
+            if (StringUtils.isEmpty(groupIdStr)) {
+                return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
+            }
+            Long groupId = Long.parseLong(groupIdStr);
             return new ApiResult().fromResult(lineSmsAccountNormalService.allowLineAccount(groupId), CODE_1);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -186,7 +220,7 @@ public class LineSmsAccountController {
     @GetMapping("/getLineAccountBasInfo")
     public ApiResult getLineAccountBasInfo() {
         try {
-            List<LineBaseShowInfoDto> baseShowInfoDtoList = lineSmsAccountNormalService.getLineAccountBasInfo();
+            List<LineBaseShowInfoDTO> baseShowInfoDtoList = lineSmsAccountNormalService.getLineAccountBasInfo();
             return new ApiResult().success(baseShowInfoDtoList);
         }catch (Exception e) {
             log.error(e.getMessage(), e);

@@ -94,4 +94,19 @@ public class UploadDataController {
         qiFuAiResDTO.setData(new QiFuAiResDTO.DataResult());
         return qiFuAiResDTO;
     }
+
+    @ApiOperation(value = "360AI语音机器人效果推送接口")
+    @PostMapping("/uploadData/effect")
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
+    public QiFuAiResDTO qiFuAiRobotEffectPushUploadData(@RequestBody QiFuAiReqDTO requestBody, HttpServletRequest request) {
+        String testApiCode = request.getHeader(TEST_API_CODE);
+        Pair<CodeEnum,FlagEnum> pair = qiFuAiUploadDataService.handle(requestBody, QiFuAiBizTypeEnum.ROBOT_EFFECT.getType(), testApiCode);
+
+        QiFuAiResDTO qiFuAiResDTO = new QiFuAiResDTO();
+        qiFuAiResDTO.setCode(pair.getKey().getCode());
+        qiFuAiResDTO.setMsg(pair.getKey().getDesc());
+        qiFuAiResDTO.setFlag(pair.getValue().toString());
+        qiFuAiResDTO.setData(new QiFuAiResDTO.DataResult());
+        return qiFuAiResDTO;
+    }
 }
