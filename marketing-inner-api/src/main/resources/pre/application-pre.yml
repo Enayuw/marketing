@@ -354,24 +354,3 @@ rocketmq:
     # 一次拉取消息最大值，注意是拉取消息的最大值而非消费最大值
     pull-batch-size: 5
     # 其他配置参考属性类
-
-# Kafka配置 - 测试用，后续删除
-kafka:
-  bootstrap-servers: 10.100.123.40:9092,10.100.123.41:9092,10.100.123.42:9092
-  consumer:
-    group-id: marketing-inner-api-track-consumer
-    auto-offset-reset: latest
-    enable-auto-commit: true
-    auto-commit-interval-ms: 1000
-    key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-    value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-    properties:
-      session.timeout.ms: 30000
-      heartbeat.interval.ms: 10000
-  producer:
-    key-serializer: org.apache.kafka.common.serialization.StringSerializer
-    value-serializer: org.apache.kafka.common.serialization.StringSerializer
-    retries: 3
-    batch-size: 16384
-    linger-ms: 1
-    buffer-memory: 33554432
