@@ -301,20 +301,6 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="【check】-trackingPerformanceTestJob"
-                class="com.br.marketing.check.job.performance.TrackingPerformanceTestJob"
-                cron="0 0 18 29 9 ? 2050-2050"
-                description="测试埋点方法性能"
-                registry-center-ref="regCenter"
-                sharding-total-count="1"
-                sharding-item-parameters="0=A"
-                monitor-execution="true"
-                failover="false"
-                misfire="false"
-                disabled="true"
-                overwrite="true"
-                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
-    />
 <!--    <job:simple id="【check】-XieChengCallingRecordJob"-->
 <!--                class="com.br.marketing.check.job.XieChengCallingRecordJob"-->
 <!--                cron="0 0 18 29 9 ? 2050-2050"-->

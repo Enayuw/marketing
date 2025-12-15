@@ -292,7 +292,6 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
 
         Long indexId = null;
         boolean hasMore = true;
-        AtomicLong total = new AtomicLong(0L);
         while (hasMore) {
             // 查询当前场景今天的数据
             List<BQifuUploadDataOriginal> dataList = bQifuUploadDataOriginalMapper.selectDataForQueryCallByUserTypeAndDate(
@@ -303,7 +302,6 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
             }
 
             indexId = dataList.get(dataList.size() - 1).getId();
-            total.addAndGet(dataList.size());
 
             // 处理当前场景的数据（单场景调用接口）
             processUserTypeDataList(userType, dataList, todayDate, timeThreshold, cleaningSwitch);
