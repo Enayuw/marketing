@@ -7,7 +7,7 @@
         where is_real = 0
         and user_type = #{userType}
         and receive_date = #{todayDate}
-        and (status is null or status != 2)
+        and status is null
         and select_status in
         <foreach collection="selectStatusList" item="status" open="(" close=")" separator=",">
             #{status}
