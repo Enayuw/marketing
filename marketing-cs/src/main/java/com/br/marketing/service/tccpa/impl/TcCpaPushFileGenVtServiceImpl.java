@@ -275,7 +275,8 @@ public class TcCpaPushFileGenVtServiceImpl implements TcCpaPushFileGenVtService 
                               Map<String, ImmutablePair<BufferedWriter, FilePushTaskFileDTO>> fwMap, List<Long> taskIds) throws Exception {
         // 查询量级
         TcyrCpaPushDataExample example = new TcyrCpaPushDataExample();
-        example.createCriteria().andIsDelEqualTo(Constants.DATA_VALID);
+        example.createCriteria().andIsDelEqualTo(Constants.DATA_VALID).andCollidingDateEqualTo(new Date())
+                .andTaskIdIn(taskIds.stream().map(Long::intValue).collect(Collectors.toList()));
         int pushDataNum = tcyrCpaPushDataMapper.countByExample(example);
 
         //所需配置
