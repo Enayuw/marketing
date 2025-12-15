@@ -27,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
@@ -127,10 +128,11 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
 
         try {
             if(!userTypeList.isEmpty()){
+                List<String> apiCodes = Arrays.asList(getValueOfJson(qifuAiCleanConfig, "cleanApiCode", "3700226").split(","));
                 String remark = String.format("奇富360ai查询外呼信息,userTypeList：%s,注意：%s"
                         , userTypeList, "量级不准确!");
                 trackingService.trackPointLog(DataFlowDirection.IN
-                        , "3700226"
+                        , apiCodes.get(0)
                         , "奇富360定制查询外呼信息"
                         , 1L
                         , remark
@@ -146,6 +148,14 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
         }
 
     }
+
+    private String getValueOfJson(JSONObject jo, String key, String defaultValue) {
+        if (jo == null || ObjectUtils.isEmpty(jo.getString(key))) {
+            return defaultValue;
+        }
+        return jo.getString(key);
+    }
+
 
     /**
      * 检查Redis开关（按user_type维度）

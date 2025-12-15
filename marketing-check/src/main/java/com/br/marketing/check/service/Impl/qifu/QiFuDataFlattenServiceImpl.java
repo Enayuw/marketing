@@ -122,7 +122,7 @@ public class QiFuDataFlattenServiceImpl implements QiFuDataFlattenService {
             String remark = String.format("奇富定制前置表数据打平, minId：%d, maxId：%d, 注意：%s"
                     , minId, maxId, "量级不准确!");
             trackingService.trackPointLog(DataFlowDirection.OUT
-                    , JSONObject.toJSONString(apiCodes)
+                    , apiCodes.get(0)
                     , "奇富定制前置表数据打平"
                     , 1L
                     , remark
