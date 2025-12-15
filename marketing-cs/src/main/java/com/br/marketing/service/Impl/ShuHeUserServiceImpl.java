@@ -290,9 +290,9 @@ public class ShuHeUserServiceImpl {
         saveShuheTransferInfo(apiCode, caseShuheUser, transferSyncUser);
 
         //region 埋点
-        JSONObject condition = new JSONObject();
-        condition.put("request_id", transferSyncUser.getRequestId());
         try {
+            JSONObject condition = new JSONObject();
+            condition.put("request_id", transferSyncUser.getRequestId());
             trackingService.trackBusinessLog(DataFlowDirection.IN
                     , apiCode
                     , "数禾定制转化接口上传数据"
