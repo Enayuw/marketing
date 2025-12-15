@@ -8,6 +8,8 @@ import com.br.marketing.mapper.MarketingBuildInTemplateJsonParseMapper;
 import com.br.marketing.mapper.MarketingIndustryTemplateJsonParseMapper;
 import com.br.marketing.mapper.MarketingIndustryTemplateMapper;
 import com.br.marketing.service.template.TemplateJsonParseService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -22,6 +24,7 @@ import java.util.List;
 @Service
 public class TemplateJsonParseServiceImpl implements TemplateJsonParseService {
 
+    private static final Logger log = LoggerFactory.getLogger(TemplateJsonParseServiceImpl.class);
     @Resource
     private MarketingIndustryTemplateMapper marketingIndustryTemplateMapper;
 
@@ -62,12 +65,17 @@ public class TemplateJsonParseServiceImpl implements TemplateJsonParseService {
                 List<MarketingBuildInTemplateJsonParse> marketingBuildInTemplateJsonParseList = queryBuildInTemplateJsonParses(systemType, dataType);
                 if (!marketingBuildInTemplateJsonParseList.isEmpty()) {
                     return new Result<>().success().setDate(JSON.parseArray(JSON.toJSONString(marketingBuildInTemplateJsonParseList)));
+                } else {
+                    log.warn("未查询到模板json数据，查询条件：firstDepartment:{}，secondDepartment:{},apiType:{},systemType:{},dataType:{}",
+                            firstDepartment, secondDepartment, apiType, systemType, dataType);
+                    return new Result<>().failure().setMessage("模板json数据不存在！");
                 }
             }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            log.error("查询模板json数据异常，errorMsg:{}", e.getMessage());
+            return new Result<>().failure().setDate(new JSONArray());
         }
-        return new Result<>().failure().setDate(new JSONArray());
+
     }
 
     @Override

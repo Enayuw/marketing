@@ -61,6 +61,7 @@ public class TemplateServiceImpl implements TemplateService {
             //批量插入json数据
             if (marketingIndustryTemplateJsonParseList != null && !marketingIndustryTemplateJsonParseList.isEmpty()) {
                 marketingIndustryTemplateJsonParseList.forEach(item -> {
+                    item.setId(null);
                     item.setInterfaceTemplateId(interfaceTemplateId);
                     item.setCreateTime(new Date());
                     item.setUpdateTime(new Date());
@@ -134,6 +135,7 @@ public class TemplateServiceImpl implements TemplateService {
 
                 //jsonParse数据重新入库
                 marketingIndustryTemplateJsonParseList.forEach(marketingIndustryTemplateJsonParse -> {
+                    marketingIndustryTemplateJsonParse.setId(null);
                     marketingIndustryTemplateJsonParse.setCreateTime(new Date());
                     marketingIndustryTemplateJsonParse.setUpdateTime(new Date());
                 });
