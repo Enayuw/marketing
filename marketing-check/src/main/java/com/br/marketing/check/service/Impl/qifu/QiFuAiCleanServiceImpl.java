@@ -218,7 +218,8 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
                 Result<MarketingPreUserDTO> result = buildBatchPushDtoFromOriginal(batchFlowDataList, operateType, batchNo, flowNo);
                 if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
-                            "奇富360ai批量构建推送对象失败，apiCode: " + apiCode + ", batchNo: " + batchNo + ", flowNo: " + flowNo + "，错误信息: " + result.getMessage()));
+                            "奇富360ai批量构建推送对象失败，apiCode: " + apiCode +
+                                    ", batchNo: " + batchNo + ", flowNo: " + flowNo + "，错误信息: " + result.getMessage()));
                     continue;
                 }
 
