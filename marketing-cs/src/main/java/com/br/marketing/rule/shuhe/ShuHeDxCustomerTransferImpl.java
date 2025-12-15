@@ -162,7 +162,7 @@ public class ShuHeDxCustomerTransferImpl implements AssembleData<ConversionData>
             case "轻资产":
                 // 轻资产类型：检查usr_loan_suc_btcash_limt_1st或usr_comp_apl_exclude_api_tm_value
                 String usrLoanSucBtcashLimt1st = reserveFieldObject.getString("usr_loan_suc_btcash_limt_1st");
-                String usrCompAplExcludeApiTmValue = reserveFieldObject.getString("usr_loan_suc_Igt_cash_lend_amount");
+                String usrCompAplExcludeApiTmValue = reserveFieldObject.getString("usr_loan_suc_lgt_cash_lend_amount");
                 return StringUtils.hasText(usrLoanSucBtcashLimt1st) || StringUtils.hasText(usrCompAplExcludeApiTmValue);
             case "促复借":
             case "促首借":
