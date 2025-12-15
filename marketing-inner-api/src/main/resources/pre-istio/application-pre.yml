@@ -1,6 +1,6 @@
 datasource:
   database:
-    names: shardingmarketing,marketingTikiv,marketingTiFlash,marketingDoris,marketingBI,marketingLog
+    names: shardingmarketing,marketingTikiv,marketingTiFlash,marketingDoris,marketingBI,marketingLog,marketingDataMap
     defaultSource: shardingmarketing
     shardingmarketing:
       url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
