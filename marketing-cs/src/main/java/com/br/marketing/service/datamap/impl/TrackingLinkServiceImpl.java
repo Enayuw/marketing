@@ -177,7 +177,7 @@ public class TrackingLinkServiceImpl implements TrackingLinkService {
                     .map(LinkNodeDetailDTO::getId)
                     .collect(Collectors.toList());
 
-            List<MkNodeStatistics> statistics = statisticsMapper.selectByLinkNodeIdsbI_(linkNodeIds, statDate, endDate);
+            List<MkNodeStatistics> statistics = statisticsMapper.selectByLinkNodeIdsDM_(linkNodeIds, statDate, endDate);
 
             // 3. 一次遍历完成：将统计信息合并到节点详情 + 聚合计算链路总统计
             if (!CollectionUtils.isEmpty(statistics)) {

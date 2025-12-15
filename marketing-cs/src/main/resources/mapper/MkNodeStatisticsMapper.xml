@@ -3,7 +3,7 @@
 <mapper namespace="com.br.marketing.mapper.MkNodeStatisticsMapper" >
 
     <!-- 根据链路节点ID列表查询统计信息（按日期范围聚合） -->
-    <select id="selectByLinkNodeIdsbI_" resultType="com.br.marketing.entity.MkNodeStatistics">
+    <select id="selectByLinkNodeIdsDM_" resultType="com.br.marketing.entity.MkNodeStatistics">
         SELECT
             api_code AS apiCode,
             link_id AS linkId,
