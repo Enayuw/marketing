@@ -12,6 +12,7 @@ import com.br.common.encryption.Sha256Util;
 import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
+import com.br.marketing.aspect.MqIdempotent;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
@@ -4298,22 +4299,27 @@ public class PushRuleServiceImpl implements PushRuleService {
                     , AlarmSendCodeEnum.TRANSFER_MUST_ERROR.getMessage()));
         }
 
+        JSONObject pushCustomerMqFact = new JSONObject();
+        pushCustomerMqFact.put("id", id);
+        pushCustomerMqFact.put("idempotentKey", snowflakeRedisGeneratorHandle.nextId());
+        String pushCustomerMessage = JSON.toJSONString(pushCustomerMqFact);
+
         if (pushCustomerApiCodes.contains(apiCode)
                 && (updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success)
                 || updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success_part))) {
             if (transferInfo.getRequestId().startsWith("black_")) {
                 if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_BLACK)) {
                     rocketMqSwitch.syncSend(MarketingOutsideInterfaceConstants.TOPIC
-                            , MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_BLACK, id.toString());
+                            , MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_BLACK, pushCustomerMessage);
                 } else {
-                    producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_BLACK, id.toString());
+                    producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_BLACK, pushCustomerMessage);
                 }
             } else {
                 if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_CUSTOMER)) {
                     rocketMqSwitch.syncSend(MarketingOutsideInterfaceConstants.TOPIC
-                            , MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_CUSTOMER, id.toString());
+                            , MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_CUSTOMER, pushCustomerMessage);
                 } else {
-                    producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER, id.toString());
+                    producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER, pushCustomerMessage);
                 }
             }
         }
@@ -4880,9 +4886,33 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     private final String cidKey = "marketing:innerapi:transfer:cid:";
 
+    @MqIdempotent
     @Override
     @Transactional
-    public synchronized Result<Boolean> pushPersonalTransferData(Long infoId) {
+    public synchronized Result<Boolean> pushPersonalTransferData(String msg) {
+        Long infoId;
+        // 兼容老消息（纯数字字符串）和新消息（JSON格式）
+        if (msg.startsWith("{")) {
+            JSONObject jsonObject = JSON.parseObject(msg);
+            if (jsonObject != null && jsonObject.containsKey("id")) {
+                infoId = jsonObject.getLong("id");
+            } else {
+                log.warn("JSON消息中未找到id字段，msg: {}", msg);
+                throw new RuntimeException("消息格式错误，JSON中未找到id字段");
+            }
+        } else {
+            try {
+                infoId = JSON.parseObject(msg, new TypeReference<Long>() {}.getType());
+            } catch (Exception e) {
+                log.warn("解析数字消息失败，msg: {}", msg, e);
+                throw new RuntimeException("消息格式错误，无法解析为数字", e);
+            }
+        }
+
+        if (infoId == null) {
+            throw new RuntimeException("消息中未找到id字段");
+        }
+
         Result<Boolean> result = new Result<>();
         result.setCode(ResultCode.SUCCESS.getValue());
         try {
@@ -5012,7 +5042,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                                             ids.removeAll(infoIds);
                                             listEnd = null;
                                             for (Long idf : ids) {
-                                                pushPersonalTransferData(idf);
+                                                pushPersonalTransferData(String.valueOf(idf));
                                             }
                                         } else {
                                             listEnd = transferList;

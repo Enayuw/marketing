@@ -169,12 +169,12 @@ public interface PushRuleService {
     /**
      * 异步消费接口转化数据推送至客服 私人订制
      *
-     * @param infoId 客户转化基础信息id
+     * @param msg 客户转化基础信息id
      * @return Result
      * @author Guo Zeqiang
      * @dateTime 2021/10/13 10:53
      */
-    Result<Boolean> pushPersonalTransferData(Long infoId);
+    Result<Boolean> pushPersonalTransferData(String msg);
 
     /**
      * 异步消费接口转化数据推送至客服 通用
