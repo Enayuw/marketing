@@ -20,23 +20,23 @@ import com.br.marketing.service.Impl.qifu.enums.QiFuProcessStatusEnum;
 import com.br.marketing.service.Impl.qifu.enums.QiFuSelectStatusEnum;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 /**
@@ -83,6 +83,9 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
+    @Resource
+    private TrackingService trackingService;
+
     @Override
     public void queryCallMessage() {
         // 获取今天的日期
@@ -118,7 +121,37 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
 
         // 关闭线程池
         shutdownThreadPool(threadPool);
+
+        try {
+            if(!userTypeList.isEmpty()){
+                List<String> apiCodes = Arrays.asList(getValueOfJson(qifuAiCleanConfig, "cleanApiCode", "3700226").split(","));
+                String remark = String.format("奇富360ai查询外呼信息,userTypeList：%s,注意：%s"
+                        , userTypeList, "量级不准确!");
+                trackingService.trackPointLog(DataFlowDirection.IN
+                        , apiCodes.get(0)
+                        , "奇富360定制查询外呼信息"
+                        , 1L
+                        , remark
+                        , TrackingContext.generateBatchId());
+            }
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
+
     }
+
+    private String getValueOfJson(JSONObject jo, String key, String defaultValue) {
+        if (jo == null || ObjectUtils.isEmpty(jo.getString(key))) {
+            return defaultValue;
+        }
+        return jo.getString(key);
+    }
+
 
     /**
      * 检查Redis开关（按user_type维度）
@@ -259,7 +292,6 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
 
         Long indexId = null;
         boolean hasMore = true;
-
         while (hasMore) {
             // 查询当前场景今天的数据
             List<BQifuUploadDataOriginal> dataList = bQifuUploadDataOriginalMapper.selectDataForQueryCallByUserTypeAndDate(

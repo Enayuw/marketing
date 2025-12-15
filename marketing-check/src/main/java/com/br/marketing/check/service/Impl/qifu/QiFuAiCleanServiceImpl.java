@@ -3,6 +3,7 @@ package com.br.marketing.check.service.Impl.qifu;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import com.br.common.log.AlertLog;
 import com.br.marketing.check.service.qifu.QiFuAiCleanService;
 import com.br.marketing.common.commondto.Result;
@@ -17,6 +18,9 @@ import com.br.marketing.mapper.BQifuUploadDataOriginalMapper;
 import com.br.marketing.service.Impl.qifu.enums.QiFuProcessStatusEnum;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.stereotype.Service;
@@ -29,6 +33,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -54,6 +59,9 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
+    @Resource
+    private TrackingService trackingService;
+
     @Override
     public void aiCleanProcessFromOriginal() {
         log.warn("奇富ai清洗开始，查询b_qifu_upload_data_original数据");
@@ -71,7 +79,8 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
     private void processDataForClean(String todayDate) {
         Long indexId = null;
         boolean hasMore = true;
-
+        AtomicLong total = new AtomicLong(0L);
+        String apiCode = "";
         while (hasMore) {
             // 查询今天需要清洗的数据（status=0 未处理）
             List<BQifuUploadDataOriginal> dataList = bQifuUploadDataOriginalMapper.selectDataForCleanByDate(
@@ -84,6 +93,18 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
 
             indexId = dataList.get(dataList.size() - 1).getId();
 
+            try {
+                total.addAndGet(dataList.size());
+                apiCode = dataList.get(0).getApiCode();
+            } catch (Exception ex) {
+                log.warn(
+                        AlertLog.buildWarnMessage(
+                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                , ex.getMessage()
+                                , "埋点异常")
+                        , ex);
+            }
+
             // 数据清洗：设置 status=处理中,批量更新数据库
             updateStatus(dataList);
 
@@ -94,6 +115,28 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
                 hasMore = false;
             }
         }
+
+        try {
+            if(total.get() > 0){
+                JSONObject condition = new JSONObject();
+                condition.put("todayDate", todayDate);
+                trackingService.trackBusinessLog(DataFlowDirection.OUT
+                        , apiCode
+                        , "奇富ai清洗"
+                        , "b_qifu_upload_data_original"
+                        , JSON.toJSONString(condition)
+                        , total.get()
+                        , TrackingContext.generateBatchId());
+            }
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
+
     }
 
     public void updateStatus(List<BQifuUploadDataOriginal> dataList) {
@@ -140,6 +183,7 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
         Map<String, List<BQifuUploadDataOriginal>> apiCodeGroupMap = dataList.stream()
                 .collect(Collectors.groupingBy(BQifuUploadDataOriginal::getApiCode));
 
+
         // 对每个 apiCode 组进行批量推送
         for (Map.Entry<String, List<BQifuUploadDataOriginal>> entry : apiCodeGroupMap.entrySet()) {
             String apiCode = entry.getKey();
@@ -174,7 +218,8 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
                 Result<MarketingPreUserDTO> result = buildBatchPushDtoFromOriginal(batchFlowDataList, operateType, batchNo, flowNo);
                 if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode(),
-                            "奇富360ai批量构建推送对象失败，apiCode: " + apiCode + ", batchNo: " + batchNo + ", flowNo: " + flowNo + "，错误信息: " + result.getMessage()));
+                            "奇富360ai批量构建推送对象失败，apiCode: " + apiCode +
+                                    ", batchNo: " + batchNo + ", flowNo: " + flowNo + "，错误信息: " + result.getMessage()));
                     continue;
                 }
 
