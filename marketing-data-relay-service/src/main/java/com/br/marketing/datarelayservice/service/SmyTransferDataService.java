@@ -1,6 +1,7 @@
 package com.br.marketing.datarelayservice.service;
 
 import cn.hutool.core.lang.UUID;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -14,6 +15,10 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import java.time.LocalDate;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +32,8 @@ public class SmyTransferDataService {
     private CustomizeTransferDataSmyMapper customizeTransferDataSmyMapper;
     @Resource
     private TableCreateServiceImpl tableCreateService;
+    @Resource
+    private TrackingService trackingService;
 
     public SmyResponseDTO receiveSmyTransferData(String jsonData, HttpServletRequest request) {
         SmyResponseDTO smyResponseDTO = new SmyResponseDTO();
@@ -48,7 +55,8 @@ public class SmyTransferDataService {
             }
 
             customizeTransferDataSmy.setApiCode(smyCustomizeDataConfig == null ? null : smyCustomizeDataConfig.getString("transferApiCode"));
-            customizeTransferDataSmy.setRequestId(UUID.fastUUID().toString(true));
+            String requestId = UUID.fastUUID().toString(true);
+            customizeTransferDataSmy.setRequestId(requestId);
             customizeTransferDataSmy.setReceiveDate(LocalDate.now().toString());
             customizeTransferDataSmy.setRequestJsonData(jsonData);
             customizeTransferDataSmy.setStatus(1);
@@ -78,6 +86,27 @@ public class SmyTransferDataService {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SAMOYE_CUSTOMIZE_TRANSFER_SERVICEERROR.getCode(), "jsonData:" + jsonData,
                         "萨摩耶定制转化数据入库失败！！！"));
             }
+
+            // 埋点
+            try {
+                JSONObject condition = new JSONObject();
+                condition.put("requestId", requestId);
+                trackingService.trackBusinessLog(DataFlowDirection.IN
+                        , apiCode
+                        , "萨摩耶定制转化接口"
+                        ,"b_customize_transfer_data_"+tCid
+                        , JSON.toJSONString(condition)
+                        , 1L
+                        , TrackingContext.generateBatchId());
+            } catch (Exception ex) {
+                log.warn(
+                        AlertLog.buildWarnMessage(
+                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                , ex.getMessage()
+                                , "埋点异常")
+                        , ex);
+            }
+
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SAMOYE_CUSTOMIZE_TRANSFER_SERVICEERROR.getCode(), "jsonData:" + jsonData,
                     "萨摩耶定制转化数据接入异常！！！"), e);

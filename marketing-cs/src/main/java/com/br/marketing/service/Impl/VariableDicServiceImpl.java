@@ -34,6 +34,9 @@ import com.br.marketing.webhook.dingding.msgtype.DingDingTextMessage;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import com.github.pagehelper.PageHelper;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,6 +102,9 @@ public class VariableDicServiceImpl implements VariableDicService {
 
     @Resource
     private MarketingCustomerMapper marketingCustomerMapper;
+
+    @Resource
+    TrackingService trackingService;
 
     @Override
     public List<VariableDicSelectVO> findListByCidAndApiCode(String cid, String apiCode) {
@@ -334,6 +340,23 @@ public class VariableDicServiceImpl implements VariableDicService {
                             variableDic.setApiCode(apiCode);
                             variableDic.setFieldValueSource(apiDataInfoDTO.getMsgSource());
                             variableDicMapper.insertSelective(variableDic);
+                            //region 埋点
+                            try{
+                                trackingService.trackPointLog(DataFlowDirection.IN
+                                        , apiCode
+                                        , "添加新的场景"
+                                        , 1L
+                                        , String.format("场景表id：%d",variableDic.getId())
+                                        , TrackingContext.generateBatchId());
+                            }catch (Exception ex){
+                                log.warn(
+                                        AlertLog.buildWarnMessage(
+                                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                                , ex.getMessage()
+                                                , "埋点异常")
+                                        , ex);
+                            }
+                            //endregion
                             return variableDic;
                         }
                         return null;

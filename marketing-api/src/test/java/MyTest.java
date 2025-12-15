@@ -7,7 +7,6 @@ import com.br.marketing.entity.XiechengCollidingDataProcessTask;
 import com.br.marketing.entity.XiechengCollidingDataProcessTaskExample;
 import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.bean.MarketingHistory;
-import com.br.marketing.mapper.XiechengCollidingDataProcessTaskMapper;
 import com.br.marketing.retry.DatabaseOperationService;
 import com.br.marketing.util.GeneScriptUtil;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -43,8 +42,6 @@ public class MyTest {
     final static SimpleDateFormat yyyyMMddHMS = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     private static final String msTimeRegex = "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$|^\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2}:\\d{3}$";
 
-    @Resource
-    private XiechengCollidingDataProcessTaskMapper xiechengCollidingDataProcessTaskMapper;
     @Test
     public void testTime(){
         LocalDate startDate = LocalDate.parse("2021-12-29",DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -82,6 +79,102 @@ public class MyTest {
         }catch (Exception ex){
 
         }
+    }
+
+    @Test
+    public void testaesde256(){
+        try {
+            // 客户提供的AES-256密钥（十六进制）
+            String hexKey = "40999bbc7cdc1a14a1c61a3fb9a74485f196f4a8d205e76966ef44178f0827b5";
+            System.out.println("原始十六进制密钥: " + hexKey);
+            System.out.println("密钥长度: " + hexKey.length() + " 字符");
+            
+            // 将十六进制字符串转换为字节数组
+            byte[] keyBytes = hexStringToByteArray(hexKey);
+            System.out.println("转换后密钥字节长度: " + keyBytes.length + " 字节");
+            
+            // 打印密钥字节数组（用于调试）
+            System.out.print("密钥字节数组: ");
+            for (byte b : keyBytes) {
+                System.out.printf("%02x ", b);
+            }
+            System.out.println();
+            
+            // 先尝试ECB模式
+            try {
+                String s = aesDecryptWithBytes("D9GoyhNjdo+tb4tK9xsuR+ZGekVy8a58k6XehTOmiMs=", keyBytes);
+                System.out.println("ECB模式解密结果: " + s);
+            } catch (Exception e) {
+                System.out.println("ECB模式失败，尝试其他模式:");
+                // 尝试不同的解密模式
+                tryDifferentModes("D9GoyhNjdo+tb4tK9xsuR+ZGekVy8a58k6XehTOmiMs=", keyBytes);
+            }
+        }catch (Exception ex){
+            System.out.println("解密失败，异常信息:");
+            ex.printStackTrace();
+        }
+    }
+    
+    /**
+     * 使用字节数组密钥进行AES解密
+     */
+    private String aesDecryptWithBytes(String encryptedData, byte[] keyBytes) throws Exception {
+        javax.crypto.spec.SecretKeySpec secretKey = new javax.crypto.spec.SecretKeySpec(keyBytes, "AES");
+        javax.crypto.Cipher cipher = javax.crypto.Cipher.getInstance("AES/ECB/PKCS5Padding");
+        cipher.init(javax.crypto.Cipher.DECRYPT_MODE, secretKey);
+        byte[] decryptedBytes = cipher.doFinal(org.apache.commons.codec.binary.Base64.decodeBase64(encryptedData));
+        return new String(decryptedBytes, "UTF-8");
+    }
+    
+    /**
+     * 尝试不同的AES解密模式
+     */
+    private void tryDifferentModes(String encryptedData, byte[] keyBytes) {
+        String[] modes = {
+            "AES/ECB/PKCS5Padding",
+            "AES/ECB/NoPadding", 
+            "AES/CBC/PKCS5Padding",
+            "AES/CBC/NoPadding"
+        };
+        
+        for (String mode : modes) {
+            try {
+                System.out.println("尝试模式: " + mode);
+                javax.crypto.spec.SecretKeySpec secretKey = new javax.crypto.spec.SecretKeySpec(keyBytes, "AES");
+                javax.crypto.Cipher cipher = javax.crypto.Cipher.getInstance(mode);
+                
+                if (mode.contains("CBC")) {
+                    // CBC模式需要IV，使用密钥的前16字节作为IV
+                    byte[] iv = new byte[16];
+                    System.arraycopy(keyBytes, 0, iv, 0, 16);
+                    javax.crypto.spec.IvParameterSpec ivSpec = new javax.crypto.spec.IvParameterSpec(iv);
+                    cipher.init(javax.crypto.Cipher.DECRYPT_MODE, secretKey, ivSpec);
+                } else {
+                    cipher.init(javax.crypto.Cipher.DECRYPT_MODE, secretKey);
+                }
+                
+                byte[] decryptedBytes = cipher.doFinal(org.apache.commons.codec.binary.Base64.decodeBase64(encryptedData));
+                String result = new String(decryptedBytes, "UTF-8");
+                System.out.println("成功! 解密结果: " + result);
+                return;
+            } catch (Exception e) {
+                System.out.println("模式 " + mode + " 失败: " + e.getMessage());
+            }
+        }
+        System.out.println("所有模式都失败了");
+    }
+    
+    /**
+     * 十六进制字符串转字节数组
+     */
+    private byte[] hexStringToByteArray(String hexString) {
+        int len = hexString.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(hexString.charAt(i), 16) << 4)
+                                 + Character.digit(hexString.charAt(i+1), 16));
+        }
+        return data;
     }
 
     @Test
@@ -326,9 +419,6 @@ public class MyTest {
     private boolean isNumeric(String str) {
         return str != null && str.matches("[+-]?(?:\\d+\\.\\d*|\\.\\d+|\\d+)(?:[eE][+-]?\\d+)?");
     }
-
-    @Resource
-    private DatabaseOperationService dbService;
 
 
 }
