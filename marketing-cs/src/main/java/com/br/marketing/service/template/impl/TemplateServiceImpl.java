@@ -71,8 +71,8 @@ public class TemplateServiceImpl implements TemplateService {
             logger.warn("新增行业模板成功，行业模板名称：{}", marketingIndustryTemplate.getTemplateName());
             return new Result<>().success().setDate(Boolean.TRUE);
         } catch (Exception e) {
-            logger.error("新增行业模板失败，行业模板名称：{}，error：{}", marketingIndustryTemplate.getTemplateName(), e.getMessage());
-            throw new RuntimeException("新增行业模板失败：" + e.getMessage(), e);
+            logger.error("新增行业模板异常，行业模板名称：{}，error：{}", marketingIndustryTemplate.getTemplateName(), e.getMessage());
+            return new Result<Boolean>().failure().setDate(Boolean.FALSE);
         }
     }
 
@@ -111,7 +111,7 @@ public class TemplateServiceImpl implements TemplateService {
         } catch (Exception e) {
             logger.error("查询行业模板异常，查询条件：templateName={}，firstDepartment={}，secondDepartment={}，apiType={}，error：{}",
                     templateName, firstDepartment, secondDepartment, apiType, e.getMessage());
-            return new Result<PageResultReturn<MarketingIndustryTemplate>>().failure().setMessage("查询行业模板异常：" + e.getMessage()).setDate(null);
+            return new Result<PageResultReturn<MarketingIndustryTemplate>>().failure().setDate(null);
         }
     }
 
@@ -147,10 +147,10 @@ public class TemplateServiceImpl implements TemplateService {
         } catch (DuplicateKeyException e) {
             String errorMsg = "修改行业模板失败，该字段已存在";
             logger.error(errorMsg, e);
-            return new Result<>().failure().setDate(Boolean.FALSE).setMessage(errorMsg);
+            return new Result<>().failure().setDate(Boolean.FALSE);
         } catch (Exception e) {
-            logger.error("修改行业模板失败，行业模板id：{}，error：{}", marketingIndustryTemplate.getId(), e.getMessage());
-            throw new RuntimeException("修改行业模板失败：" + e.getMessage(), e);
+            logger.error("修改行业模板异常，行业模板id：{}，error：{}", marketingIndustryTemplate.getId(), e.getMessage());
+            return new Result<>().failure().setDate(Boolean.FALSE);
         }
     }
 
@@ -165,8 +165,8 @@ public class TemplateServiceImpl implements TemplateService {
             logger.warn("删除行业模板成功，行业模板id：{}", id);
             return new Result<>().success().setDate(Boolean.TRUE);
         } catch (Exception e) {
-            logger.error("删除行业模板失败，行业模板id：{}，error：{}", id, e.getMessage());
-            throw new RuntimeException("删除行业模板失败：" + e.getMessage(), e);
+            logger.error("删除行业模板异常，行业模板id：{}，error：{}", id, e.getMessage());
+            return new Result<>().failure().setDate(Boolean.FALSE);
         }
     }
 
@@ -192,7 +192,7 @@ public class TemplateServiceImpl implements TemplateService {
             }
         } catch (Exception e) {
             logger.error("行业模板查询异常，行业模板id：{}，error：{}", id, e.getMessage());
-            return new Result<MarketingIndustryTemplateDTO>().failure().setMessage(e.getMessage()).setDate(null);
+            return new Result<MarketingIndustryTemplateDTO>().failure().setDate(null);
         }
     }
 
