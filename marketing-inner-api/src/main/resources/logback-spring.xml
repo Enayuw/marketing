@@ -109,7 +109,8 @@
 
     <appender name="TRACKING_ASYNC_LOG" class="ch.qos.logback.classic.AsyncAppender">
         <appender-ref ref="TRACKING_LOG"/>
-        <queueSize>512</queueSize>
+        <queueSize>1024</queueSize>
+        <neverBlock>true</neverBlock>
     </appender>
     <!--TRACE, DEBUG, INFO, WARN, ERROR, ALL and OFF -->
 
