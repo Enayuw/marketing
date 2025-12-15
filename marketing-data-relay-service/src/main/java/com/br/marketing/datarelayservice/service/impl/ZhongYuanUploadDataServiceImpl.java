@@ -285,6 +285,9 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             originalData.setApiCode(apiCode);
             originalData.setRequestId(requestId);
             originalData.setJsonData(jsonData);
+            if(batchData.getTaskDataList() != null){
+                originalData.setActualNum(batchData.getTaskDataList().size());
+            }
             originalData.setDataType(DataProcessEnum.DataTypeEnum.UPLOAD.getCode());
             originalData.setAcceptType(DataProcessEnum.AcceptTypeEnum.CUSTOM.getCode());
             originalData.setReceiveDate(LocalDate.now().toString());
