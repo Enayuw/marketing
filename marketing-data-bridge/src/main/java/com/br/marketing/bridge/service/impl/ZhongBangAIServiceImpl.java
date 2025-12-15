@@ -145,7 +145,7 @@ public class ZhongBangAIServiceImpl implements ZhongBangAIService {
                             trackingService.trackPointLog(DataFlowDirection.OUT
                                     , apiCode
                                     , "众邦AI文件下载"
-                                    , Long.valueOf(fileDownLoadInfo.getFileSize())
+                                    , Long.valueOf(localFileUpdate.getActualNumber())
                                     , remark
                                     , TrackingContext.generateBatchId());
                         } catch (Exception ex) {
