@@ -1,9 +1,11 @@
 package com.br.marketing.bridge.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.common.util.MD5Utils;
 import com.br.marketing.bridge.service.ZhongBangAIService;
 import com.br.marketing.client.zbank.ZbankClient;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.PullCustomerFileData;
@@ -11,6 +13,9 @@ import com.br.marketing.entity.PullCustomerFileDataExample;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.PullCustomerFileDataMapper;
 import com.br.marketing.mapper.PushCustomerFileInfoMapper;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import com.zbank.file.bean.FileDownLoadInfo;
 import com.zbank.file.bean.FileInfo;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +48,9 @@ public class ZhongBangAIServiceImpl implements ZhongBangAIService {
 
     @Resource
     private PushCustomerFileInfoMapper pushCustomerFileInfoMapper;
+
+    @Resource
+    private TrackingService trackingService;
 
 
     @Override
@@ -130,6 +138,25 @@ public class ZhongBangAIServiceImpl implements ZhongBangAIService {
                         if (!mkdirPath(okFilePath, apiCode, okFile.getFileName())) {
                             zBankClient.downLoadSplitFileMergeInLocal(okFile, okFilePath);
                         }
+
+                        try {
+                            String remark = String.format("众邦AI文件下载,文件名称：%s"
+                                    , fileDownLoadInfo.getFileName());
+                            trackingService.trackPointLog(DataFlowDirection.OUT
+                                    , apiCode
+                                    , "众邦AI文件下载"
+                                    , Long.valueOf(fileDownLoadInfo.getFileSize())
+                                    , remark
+                                    , TrackingContext.generateBatchId());
+                        } catch (Exception ex) {
+                            log.warn(
+                                    AlertLog.buildWarnMessage(
+                                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                            , ex.getMessage()
+                                            , "埋点异常")
+                                    , ex);
+                        }
+
                     }
                 } else {
                     log.warn("众邦AI({})在{}~{}时间段内没有查询到txt文件{}", apiCode, beginDate, endDate, txtFileName);
