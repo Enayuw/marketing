@@ -148,7 +148,7 @@ datasource:
       name: marketing_data_map
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
-      url: jdbc:mysql://192.168.40.200:6030/marketing_data_map
+      url: jdbc:mysql://doris-w-marketing.brapp.com:6030/marketing_data_map
       username: ENC(mysql-prod-marketing-data-map-user)
       password: ENC(mysql-prod-marketing-data-map-pass)
       initialSize: 20 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
