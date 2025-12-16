@@ -87,7 +87,7 @@ public class TemplateServiceImpl implements TemplateService {
         MarketingIndustryTemplateExample.Criteria criteria = example.createCriteria();
         criteria.andIsDelEqualTo(1);
         if (StringUtils.isNotBlank(templateName)) {
-            criteria.andTemplateNameEqualTo(templateName);
+            criteria.andTemplateNameLike("%" + templateName + "%");
         }
         if (StringUtils.isNotBlank(firstDepartment)) {
             criteria.andFirstDepartmentEqualTo(firstDepartment);
