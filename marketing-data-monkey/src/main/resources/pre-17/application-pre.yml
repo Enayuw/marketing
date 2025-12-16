@@ -145,7 +145,7 @@ api:
         info:
           url: ${api.haier.custData.receive.url}/info
   marketing:
-    baseUrl: http://marketing-api
+    baseUrl: http://marketing-api-a
     transferUrl: ${api.marketing.baseUrl}/marketingTransferData/receiveTransferDataSync
     uploadUrl: ${api.marketing.baseUrl}/marketingUserPre/receiveMarketingPreUser
   halo:
@@ -267,7 +267,7 @@ api:
     batch: ${api.sanliuling.baseUrl}/open_api/v1/apply/batch
     isProxy: true
   mock:
-    baseUrl: http://marketing-inner-api
+    baseUrl: http://marketing-inner-api-a
     redisUrl: ${api.mock.baseUrl}/mockRedis/queryMockConfig
   hxCar:
     baseUrl: http://haoyunlailai.cn:6001

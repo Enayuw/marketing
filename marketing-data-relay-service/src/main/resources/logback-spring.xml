@@ -43,6 +43,34 @@
         <queueSize>512</queueSize>
     </appender>
 
+    <!-- 埋点日志配置 -->
+    <appender name="TRACKING_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/${POD_NAME}-sys-track.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/${POD_NAME}-sys-track.%i.log.%d{yyyy-MM-dd}</fileNamePattern>
+            <maxHistory>7</maxHistory>
+            <maxFileSize>50MB</maxFileSize>
+            <totalSizeCap>250MB</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>${ENCODER_PATTERN}</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>WARN</level>
+        </filter>
+    </appender>
+
+    <appender name="TRACKING_ASYNC_LOG" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="TRACKING_LOG"/>
+        <queueSize>1024</queueSize>
+        <neverBlock>true</neverBlock>
+    </appender>
+
+    <logger name="com.marketingkit.tracking" level="WARN" additivity="false">
+        <appender-ref ref="TRACKING_ASYNC_LOG" />
+    </logger>
+
     <!--必填，根据配置的路径进行日志采集-->
     <appender name="MOM_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_HOME}/${POD_NAME}.mom</file>

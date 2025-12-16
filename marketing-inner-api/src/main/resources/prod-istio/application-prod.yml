@@ -1,6 +1,6 @@
 datasource:
   database:
-    names: shardingmarketing,marketing-tikiv,marketing-tiflash,marketing-doris,marketing-bi,marketing-log
+    names: shardingmarketing,marketing-tikiv,marketing-tiflash,marketing-doris,marketing-bi,marketing-log,marketing-datamap
     defaultSource: shardingmarketing
     shardingmarketing:
       name: shardingmarketing
@@ -86,6 +86,22 @@ datasource:
       max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
       keepalive-time: 30000 # 连接保活时间，单位毫秒
       connection-test-query: select 1 # 连接测试查询
+    marketing-datamap:
+      name: marketing-datamap
+      type: com.zaxxer.hikari.HikariDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://doris-w-marketing.brapp.com:6030/marketing_data_map
+      username: ENC(mysql-prod-marketing-data-map-user)
+      password: ENC(mysql-prod-marketing-data-map-pass)
+      minimum-idle: 20 # 最小空闲连接数
+      maximum-pool-size: 20 # 最大连接池数量
+      connection-timeout: 60000 # 获取连接超时时间，单位毫秒
+      idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
+      max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
+      keepalive-time: 30000 # 连接保活时间，单位毫秒
+      connection-test-query: select 1 # 连接测试查询
+      replicationAllocation: tag.location.default:1
+
 eureka:
   client:
     service-url.defaultZone: http://192.168.21.20:18000/eureka/,http://192.168.21.29:18000/eureka/

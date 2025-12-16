@@ -131,7 +131,7 @@ api:
     baseUrl: http://k8s.brapp.com/compass-api/api/robotai-api-service
     robotOutboundUrl: ${api.robotAiApiService.baseUrl}/api/robotOutbound  #转化推送智能客服
   mock:
-    baseUrl: http://marketing-inner-api
+    baseUrl: http://marketing-inner-api-a
     redisUrl: ${api.mock.baseUrl}/mockRedis/queryMockConfig
   zhongAn:
     baseUrl: https://finance-gateway-test.diandian.com.cn

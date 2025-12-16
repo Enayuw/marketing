@@ -14,6 +14,8 @@ import java.util.List;
 @Data
 public class QiFuAiRobotEffectBizDataDTO implements Serializable {
 
+    private static final long serialVersionUID = 1L;
+
     /**
      * 请求流水号
      */

@@ -2,7 +2,9 @@ package com.br.marketing.service.Impl.dataProcess;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.marketingapi.MarketingApiService;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.LocalFile;
@@ -12,6 +14,9 @@ import com.br.marketing.entity.dataProcess.DataProcessingConfig;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.PullCustomerFileDataMapper;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -20,6 +25,7 @@ import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @Description 文件数据处理通用抽象类
@@ -38,6 +44,8 @@ public abstract class DataProcessAbstractProxy {
 
     @Resource
     MarketingSyncInfoMapper marketingSyncInfoMapper;
+    @Resource
+    private TrackingService trackingService;
 
     public final void doProcess(DataProcessingConfig config) {
         if (!canStart(config)) {
@@ -79,6 +87,7 @@ public abstract class DataProcessAbstractProxy {
         PullCustomerFileDataExample pullCustomerFileDataExample = new PullCustomerFileDataExample();
         // 查询b_pull_customer_file_data,条件：local_id且data_status=1
         buildExample(localFileId, id, pullCustomerFileDataExample);
+        AtomicLong total = new AtomicLong(0L);
         while (true) {
             List<PullCustomerFileData> customerFileDataList = customerFileDataMapper.selectPageListByExampletikv_(pullCustomerFileDataExample);
             if (customerFileDataList.isEmpty()) {
@@ -86,6 +95,18 @@ public abstract class DataProcessAbstractProxy {
             }
 
             id = customerFileDataList.get(customerFileDataList.size() - 1).getId();
+
+            try {
+                total.addAndGet(customerFileDataList.size());
+            } catch (Exception ex) {
+                log.warn(
+                        AlertLog.buildWarnMessage(
+                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                , ex.getMessage()
+                                , "埋点异常")
+                        , ex);
+            }
+
             pullCustomerFileDataExample.clear();
             buildExample(localFileId, id, pullCustomerFileDataExample);
 
@@ -98,6 +119,24 @@ public abstract class DataProcessAbstractProxy {
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
+        }
+
+        try {
+            String remark = String.format("文件数据处理通用流程（客户数据清洗等）,配置id：%s"
+                    , config.getId());
+            trackingService.trackPointLog(DataFlowDirection.OUT
+                    , config.getApiCode()
+                    , "文件数据处理通用流程-"+config.getProxyName()
+                    , total.get()
+                    , remark
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
         }
     }
 

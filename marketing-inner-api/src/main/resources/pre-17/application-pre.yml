@@ -1,6 +1,6 @@
 datasource:
   database:
-    names: shardingmarketing,marketing-tikiv,marketing-tiflash,marketing-doris,marketing-bi,marketing-log
+    names: shardingmarketing,marketing-tikiv,marketing-tiflash,marketing-doris,marketing-bi,marketing-log,marketing-datamap
     defaultSource: shardingmarketing
     shardingmarketing:
       name: shardingmarketing
@@ -96,6 +96,21 @@ datasource:
       max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
       keepalive-time: 30000 # 连接保活时间，单位毫秒
       connection-test-query: select 1 # 连接测试查询
+    marketing-datamap:
+      name: marketing-datamap
+      type: com.zaxxer.hikari.HikariDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://tidb-pre.brapp.com:9030/marketing
+      username: ENC(mysql-pre-ai-marketing-user)
+      password: ENC(mysql-pre-ai-marketing-password)
+      minimum-idle: 20 # 最小空闲连接数
+      maximum-pool-size: 20 # 最大连接池数量
+      connection-timeout: 60000 # 获取连接超时时间，单位毫秒
+      idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
+      max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
+      keepalive-time: 30000 # 连接保活时间，单位毫秒
+      connection-test-query: select 1 # 连接测试查询
+      replicationAllocation: tag.location.default:1
 
 spring:
   rabbitmq:
@@ -225,7 +240,7 @@ api:
     baseUrl: https://antaios-process-prec.100credit.cn/api/antaios-app-api-prec
     lineBaseInfoUrl: ${api.imbpApiService.baseUrl}/antaios/third/ibmp/gateway/groupByLineSupplier  #IMBP获取线路基础信息
   mock:
-    baseUrl: http://marketing-inner-api
+    baseUrl: http://marketing-inner-api-a
     redisUrl: ${api.mock.baseUrl}/mockRedis/queryMockConfig
 #elastic-job配置
 SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181

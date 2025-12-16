@@ -16,6 +16,9 @@ import com.br.marketing.service.Impl.qifu.enums.QiFuDataTypeEnum;
 import com.br.marketing.service.Impl.qifu.enums.QiFuSelectStatusEnum;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
@@ -57,6 +60,8 @@ public class QiFuDataFlattenServiceImpl implements QiFuDataFlattenService {
 
     @Resource
     MarketingCommonConfig marketingCommonConfig;
+    @Resource
+    private TrackingService trackingService;
 
     @Override
     public void flattenDataProcess() {
@@ -76,6 +81,7 @@ public class QiFuDataFlattenServiceImpl implements QiFuDataFlattenService {
             log.warn("当前日期 {} 大于上线日 {}，执行实时数据打平", currentDate, onlineDate);
             flattenRealtimeData(tcId, apiCodes);
         }
+
     }
 
     /**
@@ -111,6 +117,24 @@ public class QiFuDataFlattenServiceImpl implements QiFuDataFlattenService {
         Long minId = idRange.get("minId");
         Long maxId = idRange.get("maxId");
         log.warn("今日数据id范围：minId={}, maxId={}", minId, maxId);
+
+        try {
+            String remark = String.format("奇富定制前置表数据打平, minId：%d, maxId：%d, 注意：%s"
+                    , minId, maxId, "量级不准确!");
+            trackingService.trackPointLog(DataFlowDirection.OUT
+                    , apiCodes.get(0)
+                    , "奇富定制前置表数据打平"
+                    , 1L
+                    , remark
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
 
         // 使用通用方法处理数据打平
         processDataWithMultiThread(tcId, apiCodes, minId, maxId, "今日数据", "qifuFlattenRealtime", "today", todayDate);

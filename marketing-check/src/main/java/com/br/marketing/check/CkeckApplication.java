@@ -23,7 +23,7 @@ import org.springframework.context.annotation.ImportResource;
  */
 @SpringBootApplication(
         exclude = {MultipartAutoConfiguration.class,SpringBootConfiguration.class},
-        scanBasePackages = {"com.br.marketing"})
+        scanBasePackages = {"com.br.marketing","com.marketingkit"})
 @EnableAspectJAutoProxy
 @EnableFeignClients(basePackages = {"com.br.marketing"})
 @MapperScan("com.br.marketing.mapper")

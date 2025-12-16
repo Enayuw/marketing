@@ -1,5 +1,6 @@
 package com.br.marketing.datarelayservice.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -13,6 +14,10 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import java.time.LocalDate;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +37,8 @@ public class SmyUploadDataService {
     private CustomizeUploadDataSmyMapper customizeUploadDataSmyMapper;
     @Resource
     private TableCreateServiceImpl tableCreateService;
+    @Resource
+    private TrackingService trackingService;
 
     /**
      * receive smy upload data
@@ -87,6 +94,27 @@ public class SmyUploadDataService {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SAMOYE_CUSTOMIZE_UPLOAD_SERVICEERROR.getCode(), "jsonData:" + jsonData,
                         "萨摩耶定制上传数据入库失败！！！"));
             }
+
+            // 埋点
+            try {
+                JSONObject condition = new JSONObject();
+                condition.put("request_no", dto.getRequestNo());
+                trackingService.trackBusinessLog(DataFlowDirection.IN
+                        , apiCode
+                        , "萨摩耶定制上传接口"
+                        ,"b_customize_upload_data_"+tCid
+                        , JSON.toJSONString(condition)
+                        , 1L
+                        , TrackingContext.generateBatchId());
+            } catch (Exception ex) {
+                log.warn(
+                        AlertLog.buildWarnMessage(
+                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                , ex.getMessage()
+                                , "埋点异常")
+                        , ex);
+            }
+
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SAMOYE_CUSTOMIZE_UPLOAD_SERVICEERROR.getCode(), "jsonData:" + jsonData,
                     "萨摩耶定制上传数据接入异常！！！"), e);
