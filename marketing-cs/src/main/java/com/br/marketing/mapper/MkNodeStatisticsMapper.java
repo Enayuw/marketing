@@ -16,7 +16,7 @@ public interface MkNodeStatisticsMapper extends MkNodeStatisticsMapperBase{
      * @param endDate 结束日期，格式：yyyy-MM-dd
      * @return 每个节点在指定日期范围内的聚合统计信息
      */
-    List<MkNodeStatistics> selectByLinkNodeIdsDM_(@Param("linkNodeIds") java.util.List<Long> linkNodeIds,
+    List<MkNodeStatistics> selectByLinkNodeIdsDM_(@Param("linkNodeIds") List<Long> linkNodeIds,
                                                   @Param("statDate") String statDate,
                                                   @Param("endDate") String endDate);
 
