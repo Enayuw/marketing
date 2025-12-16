@@ -6,10 +6,8 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.datamap.*;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.datamap.TrackingLinkService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -26,17 +24,14 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequestMapping("/dataMap/tracking")
-@Api(value = "数据地图", tags = "标签配置数据地图管理", produces = "application/json", consumes = "application/json", protocols = "http")
+@Tag(name = "数据地图", description = "标签配置数据地图管理")
 public class TrackingLinkController {
     
     @Resource
     private TrackingLinkService trackingLinkService;
 
     @GetMapping("/getNodesByApiCode")
-    @ApiOperation(value = "查询节点列表", notes = "分页获取节点列表信息")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "apiCode", value = "查询参数", required = true, dataType = "apiCode")
-    })
+    @Operation(summary = "查询节点列表", description = "分页获取节点列表信息")
     @AddDataAuthBusiness
     public ApiResult<List<NodeDictVO>> getNodesByApiCode(@RequestParam String apiCode) {
         try {
@@ -48,10 +43,7 @@ public class TrackingLinkController {
     }
 
     @PostMapping("/createLink")
-    @ApiOperation(value = "创建链路", notes = "创建链路")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "request", value = "查询参数", required = true, dataType = "CreateLinkRequest")
-    })
+    @Operation(summary = "创建链路", description = "创建链路")
     @AddDataAuthBusiness
     public ApiResult<CreateLinkResponse> createLink(@RequestBody @Validated CreateLinkRequest request) {
         try {
@@ -63,10 +55,7 @@ public class TrackingLinkController {
     }
 
     @PostMapping("/getLinkDetail")
-    @ApiOperation(value = "获取链路详情信息", notes = "获取链路详情信息，支持按日期查询，日期格式：yyyy-MM-dd，若不传则默认查询当天数据")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "request", value = "查询参数", required = true, dataType = "QueryLinkRequest")
-    })
+    @Operation(summary = "获取链路详情信息", description = "获取链路详情信息，支持按日期查询，日期格式：yyyy-MM-dd，若不传则默认查询当天数据")
     @AddDataAuthBusiness
     public ApiResult<LinkDetailResponse> getLinkDetail(@RequestBody @Validated QueryLinkRequest request) {
         try {
@@ -79,10 +68,7 @@ public class TrackingLinkController {
     }
 
     @PostMapping("/getLinkDetailListByApiCode")
-    @ApiOperation(value = "根据apiCode和日期查询链路详情列表", notes = "根据apiCode和日期查询链路详情列表，支持按日期查询，日期格式：yyyy-MM-dd，若不传则默认查询当天数据")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "request", value = "查询参数", required = true, dataType = "QueryLinkByApiCodeRequest")
-    })
+    @Operation(summary = "根据apiCode和日期查询链路详情列表", description = "根据apiCode和日期查询链路详情列表，支持按日期查询，日期格式：yyyy-MM-dd，若不传则默认查询当天数据")
     @AddDataAuthBusiness
     public ApiResult<List<LinkDetailResponse>> getLinkDetailListByApiCode(@RequestBody @Validated QueryLinkByApiCodeRequest request) {
         try {
@@ -95,10 +81,7 @@ public class TrackingLinkController {
     }
 
     @PostMapping("/updateLink")
-    @ApiOperation(value = "更新链路配置", notes = "更新链路配置")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "request", value = "查询参数", required = true, dataType = "CreateLinkRequest")
-    })
+    @Operation(summary = "更新链路配置", description = "更新链路配置")
     @AddDataAuthBusiness
     public ApiResult<Boolean> updateLink(@RequestBody @Validated CreateLinkRequest request) {
         try {
@@ -110,10 +93,7 @@ public class TrackingLinkController {
     }
 
     @PostMapping("/getLinkList")
-    @ApiOperation(value = "获取链路列表", notes = "获取链路列表信息")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "request", value = "查询参数", required = true, dataType = "LinkListRequest")
-    })
+    @Operation(summary = "获取链路列表", description = "获取链路列表信息")
     @AddDataAuthBusiness
     public ApiResult<PageResultReturn> getLinkList(@RequestBody @Validated LinkListRequest request) {
         try {
@@ -127,10 +107,7 @@ public class TrackingLinkController {
     }
 
     @PostMapping("/updateLinkStatus")
-    @ApiOperation(value = "开启/禁用链路", notes = "开启/禁用链路")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "request", value = "查询参数", required = true, dataType = "UpdateLinkStatusRequest")
-    })
+    @Operation(summary = "开启/禁用链路", description = "开启/禁用链路")
     @AddDataAuthBusiness
     public ApiResult<Boolean> updateLinkStatus(@RequestBody @Validated UpdateLinkStatusRequest request) {
         try {
@@ -142,10 +119,7 @@ public class TrackingLinkController {
     }
 
     @GetMapping("/deleteLink")
-    @ApiOperation(value = "删除链路", notes = "删除链路")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "ids", value = "查询参数", required = true, dataType = "ids")
-    })
+    @Operation(summary = "删除链路", description = "删除链路")
     @AddDataAuthBusiness
     public ApiResult<Boolean> deleteLink(@RequestParam List<Long> ids) {
         try {
