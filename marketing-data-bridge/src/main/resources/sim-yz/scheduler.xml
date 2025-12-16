@@ -662,7 +662,7 @@
 
     <job:simple id="【bridge】-TcCpaCollidingDataCollectJob"
                 class="com.br.marketing.bridge.job.tccpa.TcCpaCollidingDataCollectJob"
-                cron="0 0/10 7-16 * * ?"
+                cron="0 0/10 7-9 * * ?"
                 description="同程CPA撞库数据同步任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -722,7 +722,7 @@
 
     <job:simple id="【bridge】-TcCpaCollidingDataCheckJob"
                 class="com.br.marketing.bridge.job.tccpa.TcCpaCollidingDataMagnitudeJob"
-                cron="0 0/10 7-16 * * ?"
+                cron="0 0/10 10-13 * * ?"
                 description="同程CPA撞库数据同步检查任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -737,7 +737,7 @@
 
     <job:simple id="【bridge】-TcCpaPushFileGenVTJob"
                 class="com.br.marketing.bridge.job.tccpa.TcCpaPushFileGenVTJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 0/10 17-18 * * ?"
                 description="同程CPA自动化撞库推送文件生成VTjob"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -752,7 +752,7 @@
 
     <job:simple id="【bridge】-TcCpaCollidingDataFilterJob"
                 class="com.br.marketing.bridge.job.tccpa.TcCpaCollidingDataFilterJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 0/10 15-16 * * ?"
                 description="同程CPA撞库数据筛选"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"

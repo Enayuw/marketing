@@ -447,7 +447,7 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
                             .map(item -> new TcyrFailMsgSupplyDTO(
                                     item.getFailMsg(),
                                     item.getMagnitude() != null ? item.getMagnitude() : 0L,
-                                    getIsSupply(isSupplyList, entry.getKey() + "-" + item.getFailMsg())
+                                    isSupply(isSupplyList, entry.getKey() + "-" + item.getFailMsg())
                             ))
                             .sorted(Comparator.comparing(TcyrFailMsgSupplyDTO::getFailMsg))
                             .collect(Collectors.toList());
@@ -458,7 +458,7 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
                 .collect(Collectors.toList());
     }
 
-    private boolean getIsSupply(List<String> isSupplyList, String key) {
+    private boolean isSupply(List<String> isSupplyList, String key) {
         if(CollectionUtils.isEmpty(isSupplyList)) {
             return false;
         }

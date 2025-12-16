@@ -69,7 +69,7 @@
     />
     <job:simple id="【sync】-TcCpaPushFileSyncVTJob"
                 class="com.br.marketing.sync.job.TcCpaPushFileSyncVTJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 0/10 18-19 * * ?"
                 description="同程易融cpa自动化VT推送文件同步任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"

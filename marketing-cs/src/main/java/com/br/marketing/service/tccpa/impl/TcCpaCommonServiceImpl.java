@@ -46,7 +46,7 @@ public class TcCpaCommonServiceImpl implements TcCpaCommonService {
                 .concat(joinFrag)
                 .concat(" and pck.package_id in " + packageIdStr);
         //数据包预估
-        int packageEstWithDelNum = tcyrCpaCommonMapper.magnitudeQuerytiflash_(packageEstSql);
+        int packageEstWithDelNum = tcyrCpaCommonMapper.magnitudeQuerytiflash_(packageEstWithDelSql);
         //2.补充包预估
         //补充包全量
         int supplyEstNum = 0;
@@ -233,7 +233,7 @@ public class TcCpaCommonServiceImpl implements TcCpaCommonService {
                     " on " + sourceTypeEnum.getSelect() + " = pck.user_key" +
                     " and " + sourceTypeEnum.getDefaultCondition());
             //lock
-            if (info.getSourceType() != TcCpaDeleteRuleSourceTypeEnum.BLANK_DATA.getValue()) {
+            if (Objects.equals(info.getSourceType(), TcCpaDeleteRuleSourceTypeEnum.BLANK_DATA.getValue())) {
                 joinFrag = joinFrag.concat(" and " + sourceTypeEnum.getField() + " in " + info.join());
             }
             whereFrag = whereFrag.concat(" and " + sourceTypeEnum.getSelect() + " is null");
