@@ -17,6 +17,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.*;
@@ -44,21 +45,6 @@ public class TcCpaCollidingDataMagnitudeServiceImpl implements TcCpaCollidingDat
 
     @Override
     public void process() {
-        calMagnitude();
-
-    }
-
-    // 计算量级
-    private void calMagnitude() {
-        // 判断当日统计任务是否完成
-        TcyrCpaCollectTaskExample example = new TcyrCpaCollectTaskExample();
-        example.createCriteria().andStatusLessThan(TcCpaCollectStatusEnum.DEAL_SUCCESS.getValue())
-                .andSourceTypeIn(Lists.newArrayList(TcCpaCollidingSourceTypeEnum.SUCCESS.getValue(),
-                        TcCpaCollidingSourceTypeEnum.FAIL.getValue()));
-        if (tcyrCpaCollectTaskMapper.countByExample(example) > 0) {
-            return;
-        }
-
         // 更新剔除规则对应量级
         TcyrCpaDeleteRuleExample deleteRuleExample = new TcyrCpaDeleteRuleExample();
         List<TcyrCpaDeleteRule> deleteRules = tcyrCpaDeleteRuleMapper.selectByExample(deleteRuleExample);
@@ -81,7 +67,9 @@ public class TcCpaCollidingDataMagnitudeServiceImpl implements TcCpaCollidingDat
                 .andStatusEqualTo(TcCpaCollidingTaskStatusEnum.STATUS_WAIT_STA.getValue())
                 .andEnabledEqualTo(Constants.ENABLED_ACT).andIsDelEqualTo(Constants.DATA_VALID);
         List<TcyrCpaCollidingTask> collidingTasks = tcyrCpaCollidingTaskMapper.selectByExample(collidingExample);
-
+        if (CollectionUtils.isEmpty(collidingTasks)) {
+            return;
+        }
         for (TcyrCpaCollidingTask collidingTask : collidingTasks) {
             try {
                 tcCpaCommonService.updateVolumeByTask(collidingTask);
@@ -93,5 +81,4 @@ public class TcCpaCollidingDataMagnitudeServiceImpl implements TcCpaCollidingDat
             }
         }
     }
-
 }
