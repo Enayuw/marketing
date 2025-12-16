@@ -1,7 +1,6 @@
 package com.br.marketing.dto.datamap;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 
@@ -15,13 +14,13 @@ import java.util.List;
  */
 @Data
 @Builder
-@ApiModel("链路详情响应")
+@Schema(description = "链路详情响应")
 public class LinkDetailResponse {
 
-    @ApiModelProperty("链路信息")
+    @Schema(description = "链路信息")
     private LinkInfoVO linkInfo;
 
-    @ApiModelProperty("节点列表")
+    @Schema(description = "节点列表")
     private List<LinkNodeDetailVO> nodes;
 }
 

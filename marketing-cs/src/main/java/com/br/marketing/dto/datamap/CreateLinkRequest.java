@@ -1,7 +1,6 @@
 package com.br.marketing.dto.datamap;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import javax.validation.Valid;
@@ -14,28 +13,28 @@ import java.util.List;
  * @since 2025/10/16
  */
 @Data
-@ApiModel("创建链路请求")
+@Schema(description = "创建链路请求")
 public class CreateLinkRequest {
 
-    @ApiModelProperty("apiCode")
+    @Schema(description = "apiCode")
     private String apiCode;
 
-    @ApiModelProperty("链路id")
+    @Schema(description = "链路id")
     private Long linkId;
 
-    @ApiModelProperty("链路名称")
+    @Schema(description = "链路名称")
     private String linkName;
 
-    @ApiModelProperty("业务场景")
+    @Schema(description = "业务场景")
     private String bizScene;
 
-    @ApiModelProperty("链路描述")
+    @Schema(description = "链路描述")
     private String description;
 
-    @ApiModelProperty("链路图结构（JSON格式，包含节点、连线、位置等完整信息）")
+    @Schema(description = "链路图结构（JSON格式，包含节点、连线、位置等完整信息）")
     private String graphJson;
 
-    @ApiModelProperty("节点列表")
+    @Schema(description = "节点列表")
     @Valid
     private List<LinkNodeVO> nodes;
 }

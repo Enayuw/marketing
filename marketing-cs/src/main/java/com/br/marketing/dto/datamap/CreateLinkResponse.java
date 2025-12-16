@@ -1,7 +1,6 @@
 package com.br.marketing.dto.datamap;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 
@@ -13,16 +12,16 @@ import lombok.Data;
  */
 @Data
 @Builder
-@ApiModel("创建链路响应")
+@Schema(description = "创建链路响应")
 public class CreateLinkResponse {
 
-    @ApiModelProperty("链路ID")
+    @Schema(description = "链路ID")
     private Long linkId;
 
-    @ApiModelProperty("链路代码")
+    @Schema(description = "链路代码")
     private String linkCode;
 
-    @ApiModelProperty("节点数量")
+    @Schema(description = "节点数量")
     private Integer nodeCount;
 }
 

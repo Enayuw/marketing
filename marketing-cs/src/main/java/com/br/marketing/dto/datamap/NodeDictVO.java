@@ -1,7 +1,6 @@
 package com.br.marketing.dto.datamap;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 
@@ -16,34 +15,34 @@ import java.util.Date;
  */
 @Data
 @Builder
-@ApiModel("节点字典信息")
+@Schema(description = "节点字典信息")
 public class NodeDictVO {
 
-    @ApiModelProperty("节点字典ID")
+    @Schema(description = "节点字典ID")
     private Long id;
 
-    @ApiModelProperty("API代码")
+    @Schema(description = "API代码")
     private String apiCode;
 
-    @ApiModelProperty("节点代码（类名.方法名）")
+    @Schema(description = "节点代码（类名.方法名）")
     private String nodeCode;
 
-    @ApiModelProperty("节点类型（API/JOB/RabbitMQ/RocketMQ）")
+    @Schema(description = "节点类型（API/JOB/RabbitMQ/RocketMQ）")
     private String nodeType;
 
-    @ApiModelProperty("节点名称")
+    @Schema(description = "节点名称")
     private String nodeName;
 
-    @ApiModelProperty("节点描述")
+    @Schema(description = "节点描述")
     private String nodeDesc;
 
-    @ApiModelProperty("是否活跃（1-是 0-否）")
+    @Schema(description = "是否活跃（1-是 0-否）")
     private Byte isActive;
 
-    @ApiModelProperty("创建时间")
+    @Schema(description = "创建时间")
     private Date createTime;
 
-    @ApiModelProperty("更新时间")
+    @Schema(description = "更新时间")
     private Date updateTime;
 }
 
