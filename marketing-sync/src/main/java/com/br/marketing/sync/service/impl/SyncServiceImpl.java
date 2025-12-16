@@ -15,6 +15,7 @@ import com.br.marketing.entity.MarketingCleanDataFile;
 import com.br.marketing.entity.SyncConfig;
 import com.br.marketing.entity.SyncLog;
 import com.br.marketing.enums.SyncConfigCustomizedTypeEnum;
+import com.br.marketing.enums.file.FileServerType;
 import com.br.marketing.mapper.MarketingCleanDataFileMapper;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.mapper.SyncLogMapper;
@@ -69,6 +70,9 @@ public class SyncServiceImpl implements SyncService {
 
     @Resource
     MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    MinioFileService minioFileService;
 
     private static final String TITLE = "【文件同步】";
 
@@ -371,9 +375,35 @@ public class SyncServiceImpl implements SyncService {
                     if (diskBoll && bean.downloadFileToLocalDisk(syncConfig, srcClient, fileName)) {
                         continue;
                     }
-                    bean.copyFile(syncConfig, fileName, srcClient, targetClient);
+                    //minio的上传
+                    if (FileServerType.MINIO.getServerType().equals(syncConfig.getTargetType())) {
+                        sftpFileUploadToMiNio(syncConfig, fileName, srcClient);
+                    } else {
+                        bean.copyFile(syncConfig, fileName, srcClient, targetClient);
+                    }
                     log.warn(TITLE+ "no_suffix类型-文件同步完成: {}", fileName);
                 }
+            }
+        }
+    }
+
+    private void sftpFileUploadToMiNio(SyncConfig loanSyncConfig, String fileName, BaseFtpClient srcClient) {
+        InputStream inputStream = null;
+        String srcPath = loanSyncConfig.getSrcPath().endsWith("/") ? loanSyncConfig.getSrcPath() : loanSyncConfig.getSrcPath() + "/";
+        String targetPath = loanSyncConfig.getTargetPath().endsWith("/") ? loanSyncConfig.getTargetPath() : loanSyncConfig.getTargetPath() + "/";
+
+        try {
+            inputStream = srcClient.getInputStream(srcPath, fileName);
+            minioFileService.uploadFile(inputStream, targetPath.concat(fileName));
+        } catch (Exception e) {
+            log.error("拷贝文件出错", e);
+        } finally {
+            try {
+                if (inputStream != null) {
+                    inputStream.close();
+                }
+            } catch (Exception e) {
+                log.error("关闭流出错", e);
             }
         }
     }
