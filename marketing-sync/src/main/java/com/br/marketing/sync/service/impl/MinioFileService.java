@@ -139,6 +139,16 @@ public class MinioFileService {
                 log.error(LOG_PREFIX + "Object does not exist, cannot download: {}", objectName);
                 return false;
             }
+
+            // 创建本地目录（如果不存在）
+            File localFile = new File(localFilePath);
+            File parentDir = localFile.getParentFile();
+            if (parentDir != null && !parentDir.exists()) {
+                if (!parentDir.mkdirs()) {
+                    log.error(LOG_PREFIX + "Failed to create directory: {}", parentDir.getAbsolutePath());
+                    return false;
+                }
+            }
             minioClient.downloadObject(
                     DownloadObjectArgs.builder()
                             .bucket(bucketName)
@@ -148,7 +158,6 @@ public class MinioFileService {
                             .build());
             
             // 下载后校验本地文件大小是否与远程一致
-            File localFile = new File(localFilePath);
             if (localFile.exists() && localFile.length() != objectInfo.size()) {
                 log.error(LOG_PREFIX + "Downloaded file size mismatch. Expected: {}, Actual: {}", 
                         objectInfo.size(), localFile.length());
