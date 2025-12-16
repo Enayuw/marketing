@@ -424,7 +424,7 @@ public class QiFuAiUploadDataService {
                     , ex);
         }
 
-        return new Pair<>(CodeEnum.GWS100,FlagEnum.S);
+        return null;
     }
 
     private Pair<CodeEnum, FlagEnum> uploadRobotEffectBiz(String decryptData, String bizType, DrsCustomizeUploadData uploadData, String requestId) {
@@ -490,6 +490,6 @@ public class QiFuAiUploadDataService {
                     , ex);
         }
 
-        return new Pair<>(CodeEnum.GWS100,FlagEnum.S);
+        return null;
     }
 }
