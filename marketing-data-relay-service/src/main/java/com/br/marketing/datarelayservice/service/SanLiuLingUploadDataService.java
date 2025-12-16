@@ -1,6 +1,7 @@
 package com.br.marketing.datarelayservice.service;
 
 import com.alibaba.excel.util.CollectionUtils;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -17,6 +18,9 @@ import com.br.marketing.mapper.MarketingCustomerInitialDataMapper;
 import com.br.marketing.mapper.MarketingSanLiuLingCollectionMapper;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -47,6 +51,8 @@ public class SanLiuLingUploadDataService {
     MarketingSanLiuLingCollectionMapper marketingSanLiuLingCollectionMapper;
     @Resource
     MarketingCustomerInitialDataMapper marketingCustomerInitialDataMapper;
+    @Resource
+    private TrackingService trackingService;
 
     public SanLiuLingResponseDTO receiveCollectionUploadData(String jsonData, HttpServletRequest request) {
         SanLiuLingResponseDTO sanLiuLingResponseDTO = new SanLiuLingResponseDTO();
@@ -118,6 +124,27 @@ public class SanLiuLingUploadDataService {
             if (!successList.isEmpty()) {
                 insertOriginalData(apiCode, taskId, batchNo,0, successList);
             }
+
+            // 埋点
+            try {
+                JSONObject condition = new JSONObject();
+                condition.put("taskId", taskId);
+                trackingService.trackBusinessLog(DataFlowDirection.IN
+                        , apiCode
+                        , "360催收定制上传接口"
+                        ,"b_sanliuling_collection_details"
+                        , JSON.toJSONString(condition)
+                        , Long.valueOf(successList.size())
+                        , TrackingContext.generateBatchId());
+            } catch (Exception ex) {
+                log.warn(
+                        AlertLog.buildWarnMessage(
+                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                , ex.getMessage()
+                                , "埋点异常")
+                        , ex);
+            }
+
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SANLIULINGCOLLECTION_SERVICEERROR.getCode(), "jsonData:" + jsonData,
                     "360催收定制上传数据接入异常！！！"), e);

@@ -1,4 +1,5 @@
 package com.br.marketing.service.Impl;
+
 import java.util.Date;
 
 import cn.hutool.core.date.DatePattern;
@@ -115,9 +116,11 @@ import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import com.github.pagehelper.PageHelper;
+import com.marketingkit.tracking.service.TrackingService;
 import com.github.pagehelper.PageInfo;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import com.marketingkit.tracking.util.TrackingContext;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import lombok.SneakyThrows;
@@ -138,6 +141,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.*;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
@@ -160,6 +164,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
 
 @Service
 public class PushRuleServiceImpl implements PushRuleService {
@@ -184,6 +190,9 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Resource
     CaffeineCache caffeineCache;
+
+    @Resource
+    private TrackingService trackingService;
 
     @Resource
     MarketingTaskMapper marketingTaskMapper;
@@ -702,7 +711,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         try {
             tagDataDetailMapper.refreshbI_("refresh catalog es");
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("refresh catalog es异常");
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("refresh catalog es异常");
         }
@@ -1119,7 +1128,7 @@ public class PushRuleServiceImpl implements PushRuleService {
      * @param querySqls
      */
     public void cycleDataQueryOpt(JSONObject jsonObject, List<String> batchNumberList,
-                                   XieChengCollidingFilterDTO collidingFilterDTO, List<String> querySqls) {
+                                  XieChengCollidingFilterDTO collidingFilterDTO, List<String> querySqls) {
         String cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where release_time>= " +
                 "DATE_ADD(CURDATE(), INTERVAL 1 DAY)  and  release_time< DATE_ADD(CURDATE(), INTERVAL 7 DAY) and is_delete=0";
         //True关联查询
@@ -1650,7 +1659,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         //2.校验releaseTimeBegin是否大于当前时间4h以上
         LocalDateTime releaseTimeBegin = dto.getReleaseTimeBegin();
         LocalDateTime releaseTimeEnd = dto.getReleaseTimeEnd();
-        if(releaseTimeBegin.isBefore(LocalDateTime.now().plusHours(4))){
+        if (releaseTimeBegin.isBefore(LocalDateTime.now().plusHours(4))) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("剔除周期数据的释放时间范围的开始时间必须大于当前时间4h以上！");
         }
         //3.校验releaseTimeRange与存量【b_xiecheng_colliding_data_process_task】是否有交叉周期数据剔除范围
@@ -1659,8 +1668,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                 xiechengCollidingDataProcessTaskMapper.selectReleaseTimeRanges(dto.getApiCode());
         if (stockReleaseTimeRanges.size() != 0) {
             for (XcDeleteMagnitudeDistDTO stockReleaseTimeRange : stockReleaseTimeRanges) {
-                if((!releaseTimeBegin.isAfter(stockReleaseTimeRange.getReleaseTimeEnd())
-                        && !releaseTimeEnd.isBefore(stockReleaseTimeRange.getReleaseTimeBegin()))){
+                if ((!releaseTimeBegin.isAfter(stockReleaseTimeRange.getReleaseTimeEnd())
+                        && !releaseTimeEnd.isBefore(stockReleaseTimeRange.getReleaseTimeBegin()))) {
                     return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("剔除周期数据的施放时间范围与已生成的剔除任务时间有交叉，请检查！");
                 }
             }
@@ -1673,6 +1682,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     /**
      * 计算量级，方法中主要是多线程的处理
+     *
      * @param dto
      * @param conditionJson
      * @param timeRanges
@@ -1729,6 +1739,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     /**
      * 计算量级核心方法
+     *
      * @param timeRange
      * @param batchNumberList
      * @param conditionJson
@@ -2651,7 +2662,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
             // 模拟数据入库成功，但返回异常入Pulsar的场景
             Map<String, Boolean> pushDataSwitch = marketingCommonConfig.getPushDataSwitch();
-            if(pushDataSwitch.get(PushDataEnum.MARKETING_UPLOAD_BASE.getValue())){
+            if (pushDataSwitch.get(PushDataEnum.MARKETING_UPLOAD_BASE.getValue())) {
                 log.warn(String.format("【模拟异常写入Pulsar】通用上传数据infoId infoId:%s", syncInfo.getId()));
                 throw new Exception();
             }
@@ -2699,7 +2710,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (!dbException) {
             boolean intoAiQueue = routeToAiQueue(apiCode, syncInfoId, jsonData);
             // 非ai客户
-            if(Objects.equals(intoAiQueue,false)){
+            if (Objects.equals(intoAiQueue, false)) {
                 if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE)) {
                     sendToRocketMqByConfig(apiCode, MarketingUploadConstants.TOPIC
                             , MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
@@ -2709,11 +2720,33 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             sendJsonParseMq(apiCode, syncInfoId, dataSourceType);
         }
+        try {
+            // 埋点
+            log.warn("开始埋点调用 - apiCode: {}, event: marketing_pre_user_receive, syncInfoId: {}", apiCode, syncInfoId);
+            JSONObject condition = new JSONObject();
+            condition.put("request_batch", dto.getJsonData().getRequestId());
+            trackingService.trackBusinessLog(DataFlowDirection.IN
+                    , apiCode
+                    , "通用上传接口"
+                    , "b_marketing_sync_info"
+                    , JSON.toJSONString(condition)
+                    , Long.valueOf(size)
+                    , TrackingContext.generateBatchId());
+            log.warn("埋点调用成功 - apiCode: {}, event: marketing_pre_user_receive, syncInfoId: {}", apiCode, syncInfoId);
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
 
     /**
      * 批量添加唯一ID
+     *
      * @param jsonData
      */
     private String addUniqueId(String jsonData) {
@@ -2922,6 +2955,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     /**
      * 根据apiCode与operateType，区分AI与非AI客户，AI客户返回true，并发送到AI队列，非AI客户返回false
      * 使用范围：上传数据入库mq队列、pulsar队列
+     *
      * @param apiCode    API代码
      * @param syncInfoId 同步信息ID
      * @param jsonData   JSON数据
@@ -3592,6 +3626,25 @@ public class PushRuleServiceImpl implements PushRuleService {
                 taskApiCodeSet.add(concat);
             }
         }
+        try {
+            JSONObject condition = new JSONObject();
+            condition.put("request_batch", marketingSyncInfo.getRequestBatch());
+            trackingService.trackBusinessLog(DataFlowDirection.IN
+                    , apiCode
+                    , "通用上传接口明细入库"
+                    , String.format("b_marketing_sync_%s", apiCode)
+                    , JSON.toJSONString(condition)
+                    , Long.valueOf(dto.getDataItems().size() - errorSize)
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
+
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
     }
 
@@ -3616,8 +3669,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         return false;
     }
 
-
-    private void addCellReserveFileld1(JSONObject reserveFileld1Json, String cell, Integer isCheck, 
+    private void addCellReserveFileld1(JSONObject reserveFileld1Json, String cell, Integer isCheck,
                                        IUploadCheckService iUploadCheckService, CustomerTagsVO tags) {
         if (StringUtils.isNotEmpty(cell)) {
             //明文规则校验
@@ -3630,35 +3682,35 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
 
         }
-        
+
         // 处理debtorCell1-4字段，传入cell用于去重
         processDebtorCells(reserveFileld1Json, cell, isCheck, iUploadCheckService, tags);
     }
-    
+
     /**
      * 处理debtorCell1-4字段，生成debtorCellList
      * 基于原始值去重，保留顺序：cell → debtorCell1 → debtorCell2 → debtorCell3 → debtorCell4
-     * 
+     *
      * @param reserveFileld1Json 扩展字段JSON对象
      * @param cell 主手机号字段值，用于去重
      * @param isCheck 是否校验
      * @param iUploadCheckService 解密服务
-     * @param tags 客户标签配置
+     * @param tags                客户标签配置
      */
-    private void processDebtorCells(JSONObject reserveFileld1Json, String cell, Integer isCheck, 
-                                   IUploadCheckService iUploadCheckService, CustomerTagsVO tags) {
+    private void processDebtorCells(JSONObject reserveFileld1Json, String cell, Integer isCheck,
+                                    IUploadCheckService iUploadCheckService, CustomerTagsVO tags) {
         String[] debtorCellFields = {"debtorCell1", "debtorCell2", "debtorCell3", "debtorCell4"};
         JSONArray debtorCellList = new JSONArray();
         int order = 1;
-        
+
         // 用于去重的Set，存储已经出现过的原始值
         Set<String> existingValues = new HashSet<>();
-        
+
         // 先将cell的原始值加入去重集合
         if (StringUtils.isNotEmpty(cell)) {
             existingValues.add(cell);
         }
-        
+
         // 遍历debtorCell1-4字段
         for (String fieldName : debtorCellFields) {
             if (reserveFileld1Json.containsKey(fieldName)) {
@@ -3669,65 +3721,65 @@ public class PushRuleServiceImpl implements PushRuleService {
                         // 重复，跳过
                         continue;
                     }
-                    
+
                     // 解密
                     String decryptedValue = decryptDebtorCell(orgDebtorCellValue, isCheck, iUploadCheckService, tags);
-                    
+
                     // 只有解密成功才添加到list中
                     if (StringUtils.isNotEmpty(decryptedValue)) {
                         JSONObject debtorCellItem = new JSONObject();
-                        
+
                         // 设置原值
                         debtorCellItem.put("orgDebtorCell", orgDebtorCellValue);
-                        
+
                         // 设置log加密后的值
                         debtorCellItem.put("logDebtorCell", decryptedValue);
-                        
+
                         // 设置字段名
                         debtorCellItem.put("debtorCell", fieldName);
-                        
+
                         // 设置顺序
                         debtorCellItem.put("order", order);
-                        
+
                         debtorCellList.add(debtorCellItem);
-                        
+
                         // 添加到去重集合
                         existingValues.add(orgDebtorCellValue);
-                        
+
                         order++;
                     }
                 }
             }
         }
-        
+
         // 如果有debtorCell数据，则添加到reserveField1中
         if (!debtorCellList.isEmpty()) {
             reserveFileld1Json.put("debtorCellList", debtorCellList);
         }
     }
-    
+
     /**
      * 解密debtorCell字段值
      * 使用iUploadCheckService.process3keyCheck的解密逻辑
-     * 
+     *
      * @param encryptedValue 加密值
      * @param isCheck 是否校验
      * @param iUploadCheckService 解密服务
-     * @param tags 客户标签配置
+     * @param tags                客户标签配置
      * @return 解密后的明文值，解密失败返回空字符串
      */
-    private String decryptDebtorCell(String encryptedValue, Integer isCheck, 
-                                    IUploadCheckService iUploadCheckService, CustomerTagsVO tags) {
+    private String decryptDebtorCell(String encryptedValue, Integer isCheck,
+                                     IUploadCheckService iUploadCheckService, CustomerTagsVO tags) {
         if (StringUtils.isEmpty(encryptedValue)) {
             return "";
         }
-        
+
         try {
             // 创建临时对象用于解密
             MarketingPreUserDetailDTO tempUser = new MarketingPreUserDetailDTO();
             tempUser.setCell(encryptedValue);
             tempUser.setStatus(MonitorTypeEnum.STATUS_1.getTypeCode());
-            
+
             // 调用解密服务
             iUploadCheckService.process3keyCheck(tempUser, isCheck, tags);
 
@@ -3736,7 +3788,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             if (!Integer.valueOf(MonitorTypeEnum.STATUS_1.getTypeCode()).equals(tempUser.getStatus())) {
                 return "";
             }
-            
+
             // 获取解密后的明文值
             return tempUser.getCell();
 
@@ -3862,7 +3914,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Override
     public Result<Boolean> consumerSyncInfo(String msg) {
         boolean b = pulsarConsumerSkipUtil.shouldSkipBusinessLogic(PulsarSubscription.upLoadSubscription);
-        if(b){
+        if (b) {
             log.warn("【pulsar】标准上传数据执行跳过逻辑");
             return new Result<>().setCode(ResultCode.SUCCESS.getValue());
         }
@@ -3953,7 +4005,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (!dbException) {
             boolean intoAiQueue = routeToAiQueue(apiCode, syncInfoId, jdStr);
             // 非ai客户
-            if(Objects.equals(intoAiQueue,false)){
+            if (Objects.equals(intoAiQueue, false)) {
                 if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE)) {
                     sendToRocketMqByConfig(apiCode, MarketingUploadConstants.TOPIC
                             , MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
@@ -4056,7 +4108,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             marketingTransferInfoMapper.insertSelective(transferInfo);
             // 模拟数据入库成功，但返回异常入Pulsar的场景
             Map<String, Boolean> pushDataSwitch = marketingCommonConfig.getPushDataSwitch();
-            if(pushDataSwitch.get(PushDataEnum.MARKETING_TRANSFER_BASE.getValue())){
+            if (pushDataSwitch.get(PushDataEnum.MARKETING_TRANSFER_BASE.getValue())) {
                 log.warn(String.format("【模拟异常写入Pulsar】通用转化数据infoId infoId:%s", transferInfo.getId()));
                 throw new Exception();
             }
@@ -4097,17 +4149,37 @@ public class PushRuleServiceImpl implements PushRuleService {
                 sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE, transferInfoId, CustomerQueueEnum.ORG_TRANSFER);
             }
         }
+
+        try {
+            // 埋点
+            JSONObject condition = new JSONObject();
+            condition.put("request_id", transferDataDTO.getRequestId());
+            trackingService.trackBusinessLog(DataFlowDirection.IN
+                    , apiCode
+                    , "通用转化接口上传数据"
+                    , "b_marketing_transfer_info"
+                    , JSON.toJSONString(condition)
+                    , Long.valueOf(size)
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
 
     @Override
     public Result<Boolean> consumerTransferInfo(String msg) {
         boolean b = pulsarConsumerSkipUtil.shouldSkipBusinessLogic(PulsarSubscription.transferSubscription);
-        if(b){
-            log.warn("【pulsar】标准转化数据执行跳过逻辑："+PulsarSubscription.transferSubscription);
+        if (b) {
+            log.warn("【pulsar】标准转化数据执行跳过逻辑：" + PulsarSubscription.transferSubscription);
             return new Result<>().setCode(ResultCode.SUCCESS.getValue());
         }
-        
+
         JSONObject jb = JSON.parseObject(msg);
         String apiCode = jb.getString("apiCode");
         String jsonData = jb.getString("jsonData");
@@ -4385,6 +4457,26 @@ public class PushRuleServiceImpl implements PushRuleService {
                 producter.sendToUniversalTransferQueue(mrpMqFact);
             }
         }
+        //region 埋点
+        try {
+            JSONObject condition = new JSONObject();
+            condition.put("request_id", transferInfo.getRequestId());
+            trackingService.trackBusinessLog(DataFlowDirection.IN
+                    , apiCode
+                    , "通用转化接口明细入库"
+                    , String.format("b_marketing_transfer_sync_%s", tcid)
+                    , JSON.toJSONString(condition)
+                    , Long.valueOf(dto.getDataItems().size() - errorSize)
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
+        //endregion
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
     }
 
@@ -4508,6 +4600,24 @@ public class PushRuleServiceImpl implements PushRuleService {
             List<MarketingPreUserErrorDetailVO> o = JSON.parseObject(transferInfo.getErrorInfo(), new TypeReference<List<MarketingPreUserErrorDetailVO>>() {
             }.getType());
             vo.setErrorInfo(o);
+        }
+        try {
+            String remark = String.format("转化数据查询条件：%s，转化明细情况：%s"
+                    , transferInfo.getRequestId()
+                    , StringUtils.isNotBlank(transferInfo.getErrorInfo()) ? "转化数据有错误的数据" : "全部成功");
+            trackingService.trackPointLog(DataFlowDirection.IN
+                    , transferInfo.getApiCode()
+                    , "通用转化查询数据状态接口"
+                    , Optional.ofNullable(transferInfo.getActualNum()).map(Long::valueOf).orElse(0L)
+                    , remark
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(vo).setMessage("成功");
     }
@@ -4848,6 +4958,23 @@ public class PushRuleServiceImpl implements PushRuleService {
                 marketingPreUserSyncDetailVOResult.setMessage("部分成功");
                 break;
             default:
+        }
+        try {
+            JSONObject condition = new JSONObject();
+            condition.put("request_batch", syncInfo.getRequestBatch());
+            trackingService.trackPointLog(DataFlowDirection.IN
+                    , syncInfo.getApiCode()
+                    , "通用上传查询数据状态接口"
+                    , Optional.ofNullable(syncInfo.getActualNum()).map(Long::valueOf).orElse(0L)
+                    , JSON.toJSONString(condition)
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
         }
         return marketingPreUserSyncDetailVOResult.setCode(ResultCode.SUCCESS.getValue()).setDate(vo);
     }

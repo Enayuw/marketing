@@ -16,7 +16,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 @SpringBootApplication(
         exclude = {MultipartAutoConfiguration.class, SpringBootConfiguration.class},
-        scanBasePackages = {"com.br.marketing"})
+        scanBasePackages = {"com.br.marketing","com.marketingkit"})
 @EnableAspectJAutoProxy
 @MapperScan("com.br.marketing.mapper")
 @EnablePrometheusEndpoint

@@ -32,7 +32,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
  */
 @SpringBootApplication(
         exclude = {MultipartAutoConfiguration.class, SpringBootConfiguration.class, GroovyTemplateAutoConfiguration.class},
-        scanBasePackages = {"com.br.marketing"})
+        scanBasePackages = {"com.br.marketing", "com.marketingkit"})
 @EnableAspectJAutoProxy(exposeProxy = true)
 @EnableFeignClients(basePackages = {"com.br.marketing"})
 @MapperScan("com.br.marketing.mapper")
