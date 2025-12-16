@@ -14,7 +14,8 @@ import org.springframework.boot.autoconfigure.web.MultipartAutoConfiguration;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
-@SpringBootApplication(exclude = {MultipartAutoConfiguration.class, SpringBootConfiguration.class}, scanBasePackages = {"com.br.marketing","com.marketingkit"})
+@SpringBootApplication(exclude = {MultipartAutoConfiguration.class, SpringBootConfiguration.class},
+        scanBasePackages = {"com.br.marketing","com.marketingkit"})
 @EnableAspectJAutoProxy
 @MapperScan("com.br.marketing.mapper")
 @EnablePrometheusEndpoint
