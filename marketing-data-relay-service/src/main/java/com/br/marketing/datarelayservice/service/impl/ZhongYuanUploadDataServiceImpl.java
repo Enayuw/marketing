@@ -737,11 +737,9 @@ public class ZhongYuanUploadDataServiceImpl implements ZhongYuanUploadDataServic
             // 由于已按createTime降序排序，同一custNum的第一条记录就是最新的
             Map<String, CallRecordLLMResultV2> taskUidToRecordingMap = new HashMap<>();
             for (CallRecordLLMResultV2 recording : callRecordLLMResultV2s) {
-                if (recording.getCustNum() != null) {
+                if (recording.getCustNum() != null && !taskUidToRecordingMap.containsKey(recording.getCustNum())) {
                     // 如果已存在该custNum的记录，跳过（因为已排序，第一条就是最新的）
-                    if (!taskUidToRecordingMap.containsKey(recording.getCustNum())) {
-                        taskUidToRecordingMap.put(recording.getCustNum(), recording);
-                    }
+                    taskUidToRecordingMap.put(recording.getCustNum(), recording);
                 }
             }
 
