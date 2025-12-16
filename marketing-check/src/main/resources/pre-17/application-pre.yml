@@ -164,7 +164,7 @@ api:
     ibuAk: d87a6e0ab4dc2903
     ibuSk: fbd1478a51d88954
   mock:
-    baseUrl: http://marketing-inner-api
+    baseUrl: http://marketing-inner-api-a
     redisUrl: ${api.mock.baseUrl}/mockRedis/queryMockConfig
   baiying:
     baseUrl: https://cos.byai.com
@@ -205,7 +205,7 @@ api:
     channelId: 3140738836439875
     isProxy: true
   marketing:
-    baseUrl: http://marketing-api
+    baseUrl: http://marketing-api-a
     transferUrl: ${api.marketing.baseUrl}/marketingTransferData/receiveTransferDataSync
     uploadUrl: ${api.marketing.baseUrl}/marketingUserPre/receiveMarketingPreUser
   halo:

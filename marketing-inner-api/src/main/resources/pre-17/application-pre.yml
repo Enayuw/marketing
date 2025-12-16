@@ -225,7 +225,7 @@ api:
     baseUrl: https://antaios-process-prec.100credit.cn/api/antaios-app-api-prec
     lineBaseInfoUrl: ${api.imbpApiService.baseUrl}/antaios/third/ibmp/gateway/groupByLineSupplier  #IMBP获取线路基础信息
   mock:
-    baseUrl: http://marketing-inner-api
+    baseUrl: http://marketing-inner-api-a
     redisUrl: ${api.mock.baseUrl}/mockRedis/queryMockConfig
 #elastic-job配置
 SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181
