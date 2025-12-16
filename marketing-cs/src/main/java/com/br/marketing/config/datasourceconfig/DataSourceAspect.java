@@ -21,7 +21,7 @@ public class DataSourceAspect {
     public static final String MARKETING_DORIS = "marketing-doris";
     public static final String MARKETING_BI = "marketing-bi";
     public static final String MARKETING_LOG = "marketing-log";
-    public static final String MARKETING_DATA_MAP = "marketingDataMap";
+    public static final String MARKETING_DATA_MAP = "marketing-datamap";
 
 
     /**
