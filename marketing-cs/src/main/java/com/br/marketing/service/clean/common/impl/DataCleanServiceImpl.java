@@ -1187,14 +1187,14 @@ public class DataCleanServiceImpl implements DataCleanService {
                 // 直接替换顶层的levelField字段，避免递归查找导致的问题
                 jsonObject.put(levelField, cleanedArray);
                 // 返回完整的JSON对象
-                return new Result().success().setDate(jsonObject);
+                return new Result().success().setDate(jsonObject.toJSONString());
             } else {
                 // 没有层级字段，直接清洗整个对象
                 List<JSONObject> jsonObjectLists = new ArrayList<>();
                 jsonObjectLists.add(jsonObject);
                 dataCleanByRules(jsonObjectLists, marketingDataCleanGeneralRuleConfigList);
                 // 返回清洗后的对象
-                return new Result().success().setDate(jsonObject);
+                return new Result().success().setDate(jsonObject.toJSONString());
             }
         } catch (Exception e) {
             log.error("通用数据清洗异常，message:{}", e.getMessage());

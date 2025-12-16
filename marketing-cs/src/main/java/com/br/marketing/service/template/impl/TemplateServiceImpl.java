@@ -79,7 +79,8 @@ public class TemplateServiceImpl implements TemplateService {
 
     @Override
     public Result<PageResultReturn<MarketingIndustryTemplate>> queryAllTemplate(Integer current, Integer pageSize
-            , String templateName, String firstDepartment, String secondDepartment, String apiType) {
+            , String templateName, String firstDepartment, String secondDepartment, String apiType
+            , Integer systemType, Integer dataType) {
         PageMethod.startPage(current, pageSize);
 
         MarketingIndustryTemplateExample example = new MarketingIndustryTemplateExample();
@@ -96,6 +97,12 @@ public class TemplateServiceImpl implements TemplateService {
         }
         if (StringUtils.isNotBlank(apiType)) {
             criteria.andApiTypeEqualTo(apiType);
+        }
+        if (systemType != null){
+            criteria.andSystemTypeEqualTo(systemType);
+        }
+        if (dataType != null){
+            criteria.andDataTypeEqualTo(dataType);
         }
         example.setOrderByClause("create_time desc");
         try {

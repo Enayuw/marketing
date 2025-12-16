@@ -43,12 +43,12 @@ public class TemplateController {
     public ApiResult<Boolean> saveOrUpdateTemplate(@RequestBody MarketingIndustryTemplateDTO marketingIndustryTemplateDTO) {
         try {
             Result<Boolean> result;
-            if (StringUtils.isNotBlank(String.valueOf(marketingIndustryTemplateDTO.getMarketingIndustryTemplate().getId()))){
+            if (StringUtils.isNotBlank(String.valueOf(marketingIndustryTemplateDTO.getMarketingIndustryTemplate().getId()))) {
                 result = templateService.editTemplate(marketingIndustryTemplateDTO);
-            }else {
+            } else {
                 result = templateService.addTemplate(marketingIndustryTemplateDTO);
             }
-            return new ApiResult<Boolean>().fromResult(result,1);
+            return new ApiResult<Boolean>().fromResult(result, 1);
         } catch (Exception e) {
             logger.error("新增行业模板异常,message:{}", e.getMessage());
             return new ApiResult<Boolean>().fail().setMessage(e.getMessage()).setData(Boolean.FALSE);
@@ -71,10 +71,12 @@ public class TemplateController {
     @Parameters({
             @Parameter(name = "current", description = "页号"),
             @Parameter(name = "pageSize", description = "页大小"),
-            @Parameter(name = "templateName", description = "行业模板名称", required = false),
-            @Parameter(name = "firstDepartment", description = "一级部门", required = false),
-            @Parameter(name = "secondDepartment", description = "二级部门", required = false),
-            @Parameter(name = "apiType", description = "三级部门", required = false)
+            @Parameter(name = "templateName", description = "行业模板名称"),
+            @Parameter(name = "firstDepartment", description = "一级部门"),
+            @Parameter(name = "secondDepartment", description = "二级部门"),
+            @Parameter(name = "apiType", description = "三级部门"),
+            @Parameter(name = "systemType", description = "数据来源"),
+            @Parameter(name = "dataType", description = "接口用途")
     })
     @PostMapping(value = "/queryAllTemplate")
     public ApiResult<PageResultReturn<MarketingIndustryTemplate>> queryAllTemplate(@RequestParam(name = "current") Integer current
@@ -82,10 +84,13 @@ public class TemplateController {
             , @RequestParam(name = "templateName", required = false) String templateName
             , @RequestParam(name = "firstDepartment", required = false) String firstDepartment
             , @RequestParam(name = "secondDepartment", required = false) String secondDepartment
-            , @RequestParam(name = "apiType", required = false) String apiType) {
+            , @RequestParam(name = "apiType", required = false) String apiType
+            , @RequestParam(name = "systemType", required = false) Integer systemType
+            , @RequestParam(name = "dataType", required = false) Integer dataType) {
         try {
-            Result<PageResultReturn<MarketingIndustryTemplate>> result = templateService.queryAllTemplate(current, pageSize, templateName, firstDepartment, secondDepartment, apiType);
-            return new ApiResult<PageResultReturn<MarketingIndustryTemplate>>().fromResult(result,1);
+            Result<PageResultReturn<MarketingIndustryTemplate>> result =
+                    templateService.queryAllTemplate(current, pageSize, templateName, firstDepartment, secondDepartment, apiType, systemType, dataType);
+            return new ApiResult<PageResultReturn<MarketingIndustryTemplate>>().fromResult(result, 1);
         } catch (Exception e) {
             logger.error("查询行业模板异常,message:{}", e.getMessage());
             return new ApiResult<PageResultReturn<MarketingIndustryTemplate>>().fail().setMessage(e.getMessage()).setData(null);
@@ -103,7 +108,7 @@ public class TemplateController {
     public ApiResult<Boolean> editTemplate(@RequestBody MarketingIndustryTemplateDTO marketingIndustryTemplateDTO) {
         try {
             Result<Boolean> result = templateService.editTemplate(marketingIndustryTemplateDTO);
-            return new ApiResult<Boolean>().fromResult(result,1);
+            return new ApiResult<Boolean>().fromResult(result, 1);
         } catch (Exception e) {
             logger.error("修改行业模板异常,message:{}", e.getMessage());
             return new ApiResult<Boolean>().fail().setMessage(e.getMessage()).setData(null);
@@ -121,7 +126,7 @@ public class TemplateController {
     public ApiResult<Boolean> deleteTemplate(@RequestParam(name = "id") Long id) {
         try {
             Result<Boolean> result = templateService.deleteTemplate(id);
-            return new ApiResult<Boolean>().fromResult(result,1);
+            return new ApiResult<Boolean>().fromResult(result, 1);
         } catch (Exception e) {
             logger.error("删除行业模板异常,message:{}", e.getMessage());
             return new ApiResult<Boolean>().fail().setMessage(e.getMessage()).setData(null);
@@ -133,7 +138,7 @@ public class TemplateController {
     public ApiResult<MarketingIndustryTemplateDTO> queryTemplateById(@RequestParam(name = "id") Long id) {
         try {
             Result<MarketingIndustryTemplateDTO> result = templateService.queryTemplateById(id);
-            return new ApiResult<MarketingIndustryTemplateDTO>().fromResult(result,1);
+            return new ApiResult<MarketingIndustryTemplateDTO>().fromResult(result, 1);
         } catch (Exception e) {
             logger.error("根据id查询行业模板异常,message:{}", e.getMessage());
             return new ApiResult<MarketingIndustryTemplateDTO>().fail().setMessage(e.getMessage()).setData(null);
