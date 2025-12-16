@@ -138,10 +138,6 @@ public class TcCpaPushFileGenVtServiceImpl implements TcCpaPushFileGenVtService 
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
                     e.getMessage(), TITLE), e);
         }
-        /*
-
-         */
-        //
         try {
             infoString = objectMapper.writeValueAsString(info);
         } catch (Exception e) {
@@ -202,6 +198,7 @@ public class TcCpaPushFileGenVtServiceImpl implements TcCpaPushFileGenVtService 
                 .sum();
         info.setExtraNumAct(extraNumAct);
         if (extraNumAct != (info.getExtraNumExp())) {
+            info.setMessage("期望提取量级：" + info.getExtraNumExp() + ",实际提取量级：" + extraNumAct + " 不相等");
             logWarnAndinfoRecord("期望提取量级：" + info.getExtraNumExp() + ",实际提取量级：" + extraNumAct + "，请核对！", info);
         }
     }
@@ -278,7 +275,8 @@ public class TcCpaPushFileGenVtServiceImpl implements TcCpaPushFileGenVtService 
                               Map<String, ImmutablePair<BufferedWriter, FilePushTaskFileDTO>> fwMap, List<Long> taskIds) throws Exception {
         // 查询量级
         TcyrCpaPushDataExample example = new TcyrCpaPushDataExample();
-        example.createCriteria().andIsDelEqualTo(Constants.DATA_VALID);
+        example.createCriteria().andIsDelEqualTo(Constants.DATA_VALID).andCollidingDateEqualTo(new Date())
+                .andTaskIdIn(taskIds.stream().map(Long::intValue).collect(Collectors.toList()));
         int pushDataNum = tcyrCpaPushDataMapper.countByExample(example);
 
         //所需配置
