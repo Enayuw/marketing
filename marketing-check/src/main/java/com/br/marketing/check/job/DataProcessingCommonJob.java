@@ -2,6 +2,8 @@ package com.br.marketing.check.job;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.spring.DataProcessingContext;
 import com.br.marketing.entity.LocalFile;
@@ -12,6 +14,9 @@ import com.br.marketing.mapper.dataProcess.DataProcessingConfigMapper;
 import com.br.marketing.service.Impl.dataProcess.DataProcessAbstractProxy;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
@@ -129,4 +134,5 @@ public class DataProcessingCommonJob extends AbstractSimpleElasticJob {
             log.error("数据处理任务异常,配置表id:{},apiCode:{}", task.getId(), task.getApiCode(), e.getMessage(), e);
         }
     }
+
 }

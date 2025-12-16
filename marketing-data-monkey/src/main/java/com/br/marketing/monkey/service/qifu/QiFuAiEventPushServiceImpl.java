@@ -2,6 +2,7 @@ package com.br.marketing.monkey.service.qifu;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson2.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.qifu.ResponseData;
 import com.br.marketing.client.qifu.callrealtime.CallRealTimeDTO;
@@ -9,6 +10,7 @@ import com.br.marketing.client.qifu.callrealtime.QryCallRealTimeReq;
 import com.br.marketing.client.qifu.callrealtime.QryCallRealTimeResp;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.BQifuUploadDataOriginal;
 import com.br.marketing.entity.DrsCustomizeUploadData;
 import com.br.marketing.entity.EventPushData;
@@ -19,6 +21,10 @@ import com.br.marketing.service.Impl.qifu.enums.QiFuProcessStatusEnum;
 import com.br.marketing.service.Impl.qifu.enums.QiFuSelectStatusEnum;
 import com.br.marketing.service.Impl.qifu.enums.QiFuSyncStatusEnum;
 import com.br.marketing.strategy.MethodRetryHandlerService;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +34,7 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 /**
@@ -36,6 +43,7 @@ import java.util.stream.Collectors;
  * @Date 2025/11/17
  */
 @Service
+@Slf4j
 public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
 
     private static final Logger logger = LoggerFactory.getLogger(QiFuAiEventPushServiceImpl.class);
@@ -54,6 +62,9 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
     @Resource
     private QiFuAiEventPushService qiFuAiEventPushService;
 
+    @Resource
+    private TrackingService trackingService;
+
     private static final Integer PAGE_SIZE = 50;
 
     @Override
@@ -61,6 +72,8 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
 
         //分页查找未同步的事件推送数据sync_status = 0
         Long minId = null;
+        AtomicLong total = new AtomicLong(0L);
+        String apiCode = "";
         while (true) {
             List<DrsCustomizeUploadData> drsCustomizeUploadDataList =
                     qiFuAiEventPushService.getDrsCustomizeUploadDataBySyncStatus(QiFuSyncStatusEnum.UN_SYNC.getCode(), minId, PAGE_SIZE);
@@ -69,6 +82,18 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
             }
 
             minId = drsCustomizeUploadDataList.get(drsCustomizeUploadDataList.size() - 1).getId();
+
+            try {
+                total.addAndGet(drsCustomizeUploadDataList.size());
+                apiCode = drsCustomizeUploadDataList.get(0).getApiCode();
+            } catch (Exception ex) {
+                log.warn(
+                        AlertLog.buildWarnMessage(
+                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                , ex.getMessage()
+                                , "埋点异常")
+                        , ex);
+            }
 
             //解析事件推送接口原始数据
             for (DrsCustomizeUploadData drsCustomizeUploadData : drsCustomizeUploadDataList) {
@@ -104,6 +129,26 @@ public class QiFuAiEventPushServiceImpl implements QiFuAiEventPushService {
                 }
             }
         }
+
+        try {
+            JSONObject condition = new JSONObject();
+            condition.put("syncStatus", QiFuSyncStatusEnum.UN_SYNC.getCode());
+            trackingService.trackBusinessLog(DataFlowDirection.IN
+                    , apiCode
+                    , "奇富ai事件推送实时数据查询"
+                    , "b_drs_customize_upload_data"+ROBOT_EVENT_PUSH
+                    , JSON.toJSONString(condition)
+                    , total.get()
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
+
     }
 
     @Override

@@ -2,12 +2,17 @@ package com.br.marketing.monkey.job.zhongbang.ai;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.TransferActionFront;
 import com.br.marketing.monkey.service.zhongbang.ZhongBangAIVoiceService;
 import com.br.marketing.service.Impl.JobManager;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -37,6 +42,8 @@ public class ZhongBangAIPushVoiceFileJob extends AbstractSimpleElasticJob {
 
     @Resource
     private TableCreateServiceImpl tableCreateService;
+    @Resource
+    private TrackingService trackingService;
 
     /**
      * 2025-11-20 10:40
@@ -98,5 +105,9 @@ public class ZhongBangAIPushVoiceFileJob extends AbstractSimpleElasticJob {
                 jobManager.updateFrontDataStatus(actionFront.getId(), okStatus);
             }
         }
+
+
+
+
     }
 }

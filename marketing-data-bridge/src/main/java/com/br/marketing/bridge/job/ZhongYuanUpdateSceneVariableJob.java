@@ -16,6 +16,9 @@ import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -41,6 +44,8 @@ public class ZhongYuanUpdateSceneVariableJob extends AbstractSimpleElasticJob {
     private MarketingSceneVariableMapper marketingSceneVariableMapper;
     @Resource
     private MarketingSyncUserMapper marketingSyncUserMapper;
+    @Resource
+    private TrackingService trackingService;
 
     private static final String TITLE = "【中原消金场景变量修改】";
 
@@ -105,6 +110,25 @@ public class ZhongYuanUpdateSceneVariableJob extends AbstractSimpleElasticJob {
                 String errMsg = String.format("%s存在%d条未找到上传记录的数据，taskUids: %s", 
                         TITLE, notFoundUploadTaskUids.size(), notFoundUploadTaskUids);
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHONGYUAN_XIAOJIN_SERVICEERROR.getCode(), errMsg));
+            }
+
+            try {
+                JSONObject condition = new JSONObject();
+                condition.put("apiCode", apiCode);
+                trackingService.trackBusinessLog(DataFlowDirection.IN
+                        , apiCode
+                        , "中原消金场景变量修改"
+                        , "b_marketing_scene_variable"
+                        , JSON.toJSONString(condition)
+                        , Long.valueOf(pendingList.size())
+                        , TrackingContext.generateBatchId());
+            } catch (Exception ex) {
+                log.warn(
+                        AlertLog.buildWarnMessage(
+                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                , ex.getMessage()
+                                , "埋点异常")
+                        , ex);
             }
 
         } catch (Exception e) {

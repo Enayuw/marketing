@@ -16,6 +16,9 @@ import com.br.marketing.mapper.rulecleaning.MarketingDataCleanGeneralConfigMappe
 import com.br.marketing.service.clean.common.DataCleanService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -28,7 +31,7 @@ import java.util.*;
 @Slf4j
 /**
  * @author zhen.Li1
- * @Classname FileDataCleanTaskJob
+ * @Classname FileUploadDataCleanTaskJob
  * @Description 文件上传数据清洗JOB
  * @Date 2025/06/17
  */
@@ -47,6 +50,9 @@ public class FileUploadDataCleanTaskJob extends AbstractSimpleElasticJob {
 
     @Resource
     private DataCleanService dataCleanService;
+
+    @Resource
+    private TrackingService trackingService;
 
     @Resource
     SyncConfigMapper syncConfigMapper;
@@ -93,6 +99,7 @@ public class FileUploadDataCleanTaskJob extends AbstractSimpleElasticJob {
             update.setId(cleanFile.getId());
             marketingCleanDataFileMapper.updateByPrimaryKeySelective(update);
         });
+
     }
 
     private MarketingCleanDataFile getCleanFileTask(MarketingDataCleanGeneralConfig config, List<String> appletDateList,String localPath) {

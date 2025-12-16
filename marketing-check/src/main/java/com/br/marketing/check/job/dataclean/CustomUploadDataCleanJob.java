@@ -12,6 +12,9 @@ import com.br.marketing.mapper.rulecleaning.MarketingDataCleanGeneralConfigMappe
 import com.br.marketing.service.clean.common.DataCleanService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -46,7 +49,6 @@ public class CustomUploadDataCleanJob extends AbstractSimpleElasticJob {
 
     @Resource
     private DataCleanService dataCleanService;
-
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
