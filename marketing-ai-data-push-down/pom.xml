@@ -36,11 +36,7 @@
         </dependency>
 
         <!--工具依赖-->
-        <dependency>
-            <groupId>org.yaml</groupId>
-            <artifactId>snakeyaml</artifactId>
-            <version>1.17</version>
-        </dependency>
+        <!-- snakeyaml 由 Spring Boot 自动管理版本，不需要显式声明 -->
         <!-- https://mvnrepository.com/artifact/com.squareup.okio/okio -->
         <!--        <dependency>-->
         <!--            <groupId>com.squareup.okio</groupId>-->

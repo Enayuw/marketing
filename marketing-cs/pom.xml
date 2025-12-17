@@ -603,6 +603,12 @@
             <artifactId>mk-tracking</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
+        <!-- 埋点jar包 -->
+        <dependency>
+            <groupId>com.marketingkit</groupId>
+            <artifactId>mk-tracking</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

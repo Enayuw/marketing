@@ -61,7 +61,7 @@ public class ShuHeDxCustomerTransferImpl implements AssembleData<ConversionData>
         JSONObject reserveFieldObject = JSONObject.parseObject(transfer.getReserveField1());
         String usrForbidCallEndTim = reserveFieldObject.getString("usr_forbid_call_end_tim");
         if (StringUtils.hasText(usrForbidCallEndTim)) {
-            // usr_forbid_call_end_tim字段只要有值就赋值已失效
+            // usr_forbid_call_end_tim字段只要有值就赋值已失效（优先级最高）
             conversionData.setInversionStatus(HAS_EXPIRE);
             DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(
                     DateHelper.LINE_DATE_COLON_TIME_FORMAT);
@@ -84,7 +84,18 @@ public class ShuHeDxCustomerTransferImpl implements AssembleData<ConversionData>
                 }
             }
         } else {
-            conversionData.setInversionStatus(HAS_TRANSFER);
+            // 检查是否满足其他转化条件（优先级高于100）
+            boolean hasOtherTransferCondition = checkOtherTransferConditions(transfer, reserveFieldObject);
+            if (hasOtherTransferCondition) {
+                // 满足其他转化条件，设置为已转化（优先级高于100）
+                conversionData.setInversionStatus(HAS_TRANSFER);
+            } else {
+                // 优先级最低：检查新增的两个字段
+                if (hasNewApiFields(reserveFieldObject)) {
+                    // 这两个字段有值时，是否已转化=否，inversionStatus=100
+                    conversionData.setInversionStatus("100");
+                }
+            }
         }
         String cell = reserveFieldObject.getString("cell");
         if (StringUtils.hasText(cell)) {
@@ -101,6 +112,7 @@ public class ShuHeDxCustomerTransferImpl implements AssembleData<ConversionData>
                 return null;
             }
         }
+        conversionData.setCaseNum(transfer.getCustNum());
         TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
         BeanUtils.copyProperties(transfer, vo);
         conversionData.setInversionInfo(JSON.toJSONString(vo));
@@ -120,38 +132,65 @@ public class ShuHeDxCustomerTransferImpl implements AssembleData<ConversionData>
                     if (StringUtils.hasText(usrForbidCallEndTim)) {
                         return true;
                     }
-                    String userType = transfer.getUserType();
-                    switch (userType) {
-                        case "轻资产":
-                        case "促复借":
-                        case "促首借":
-                            String usrLoanSucBtcashLimt1st = reserveFieldObject.getString("usr_loan_suc_btcash_limt_1st");
-                            if (StringUtils.hasText(usrLoanSucBtcashLimt1st)) {
-                                return true;
-                            }
-                            break;
-                        case "促申完":
-                        case "促首登":
-                            /* 2024年5月8日11点14分
-                             * 需求变更：
-                             *【紧急】D20240507数禾电销转化过滤-3710117（营销→外呼）
-                             * https://c.100credit.cn/pages/viewpage.action?pageId=155694316
-                             */
-                        case "重申":
-                            String usrCompAplAiClSpUse = reserveFieldObject.getString("usr_comp_apl_ai_cl_sp_use");
-                            String usrCompAplExcludeApiTmValue = reserveFieldObject.getString("usr_comp_apl_exclude_api_tm_value");
-                            if (StringUtils.hasText(usrCompAplAiClSpUse) || StringUtils.hasText(usrCompAplExcludeApiTmValue)) {
-                                return true;
-                            }
-                            break;
-                        default:
-                            return false;
+
+                    // 检查新增的两个字段：不区分场景，有值就组装
+                    if (hasNewApiFields(reserveFieldObject)) {
+                        return true;
                     }
+
+                    // 检查其他转化条件
+                    return checkOtherTransferConditions(transfer, reserveFieldObject);
                 }
             }
         }
         return false;
     }
+
+    /**
+     * 检查是否满足其他转化条件（userType相关的字段）
+     * @param transfer 转化数据
+     * @param reserveFieldObject reserveField1解析后的JSON对象
+     * @return true表示满足其他转化条件，false表示不满足
+     */
+    private boolean checkOtherTransferConditions(MarketingTransferSyncUser transfer, JSONObject reserveFieldObject) {
+        String userType = transfer.getUserType();
+        if (userType == null) {
+            return false;
+        }
+
+        switch (userType) {
+            case "轻资产":
+                // 轻资产类型：检查usr_loan_suc_btcash_limt_1st或usr_comp_apl_exclude_api_tm_value
+                String usrLoanSucBtcashLimt1st = reserveFieldObject.getString("usr_loan_suc_btcash_limt_1st");
+                String usrCompAplExcludeApiTmValue = reserveFieldObject.getString("usr_loan_suc_lgt_cash_lend_amount");
+                return StringUtils.hasText(usrLoanSucBtcashLimt1st) || StringUtils.hasText(usrCompAplExcludeApiTmValue);
+            case "促复借":
+            case "促首借":
+                String usrLoanSucBtcashLimt1stForOther = reserveFieldObject.getString("usr_loan_suc_btcash_limt_1st");
+                return StringUtils.hasText(usrLoanSucBtcashLimt1stForOther);
+            case "促申完":
+            case "促首登":
+            case "重申":
+                String usrCompAplAiClSpUse = reserveFieldObject.getString("usr_comp_apl_ai_cl_sp_use");
+                String usrCompAplExcludeApiTmValueForApply = reserveFieldObject.getString("usr_comp_apl_exclude_api_tm_value");
+                return StringUtils.hasText(usrCompAplAiClSpUse) || StringUtils.hasText(usrCompAplExcludeApiTmValueForApply);
+            default:
+                return false;
+        }
+    }
+
+
+    /**
+     * 检查新增的两个API字段是否有值
+     * @param reserveFieldObject reserveField1解析后的JSON对象
+     * @return true表示有值，false表示无值
+     */
+    private boolean hasNewApiFields(JSONObject reserveFieldObject) {
+        String rMagicqueryRrtUsrLastApplyStepApi = reserveFieldObject.getString("r_magicquery_r_rt_usr_last_apply_step_API");
+        String rMagicqueryRrtUsrLastLgnChanApi = reserveFieldObject.getString("r_magicquery_r_rt_usr_last_lgn_chan_API");
+        return StringUtils.hasText(rMagicqueryRrtUsrLastApplyStepApi) || StringUtils.hasText(rMagicqueryRrtUsrLastLgnChanApi);
+    }
+
 
     @Override
     public String label() {

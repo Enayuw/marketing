@@ -19,6 +19,9 @@ import com.br.marketing.entity.CustomerInfoPushLog;
 import com.br.marketing.mapper.CustomerInfoPushLogMapper;
 import com.br.marketing.mapper.datasource.log.InterfaceLogMapper;
 import com.br.marketing.monitor.PrometheusMonitorUtils;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,6 +61,9 @@ public class IntelligentCustomerServiceClient {
     @Autowired
     ThreadPoolExecutor interfaceLogDbpool;
 
+    @Resource
+    TrackingService trackingService;
+
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result<Integer> pushRuleCenterToPolicy(PushMarketingUserDTO dto, Long mId, String pushBatch, Integer pushNum) {
         dto.setPlatApiCode(customerServiceApiCode);
@@ -89,13 +95,32 @@ public class IntelligentCustomerServiceClient {
                     //调用数量监控
                     BrCounter.count(PrometheusMonitorUtils.COUNT_POLICY_API_METRIC_NAME, dto.getApiCode(), "policy-api",
                             pushNum);
+                    //region 埋点
+                    try {
+                        trackingService.trackDetailedLog(
+                                DataFlowDirection.OUT
+                                , dto.getApiCode()
+                                , "推送决策"
+                                , s
+                                , Boolean.TRUE
+                                , Long.valueOf(pushNum)
+                                , TrackingContext.generateBatchId());
+                    } catch (Exception ex) {
+                        logger.warn(
+                                AlertLog.buildWarnMessage(
+                                        AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                        , ex.getMessage()
+                                        , "埋点异常")
+                                , ex);
+                    }
+                    //endregion
                 } catch (Exception ex) {
                     logger.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), "推送决策接口统计异常!"), ex);
                 }
             } else {
                 result.setCode(ResultCode.FAIL.getValue()).setMessage(jsonObject.getString("message"));
             }
-        }catch (ResourceAccessException e){
+        } catch (ResourceAccessException e) {
 //            // 这里捕获超时异常
 //            if (e.getCause() instanceof ConnectTimeoutException) {
 //                // 处理连接超时异常
@@ -114,7 +139,7 @@ public class IntelligentCustomerServiceClient {
                 log.setErrorContent(e.getMessage());
                 result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(e.getMessage());
             }
-        }catch (Exception ex) {
+        } catch (Exception ex) {
             log.setErrorContent(ex.getMessage());
             result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(ex.getMessage());
         }
@@ -143,6 +168,25 @@ public class IntelligentCustomerServiceClient {
                     PushMarketingUserTaskInfoDTO taskInfoDTO = (PushMarketingUserTaskInfoDTO) dto.getJsonData();
                     BrCounter.count(PrometheusMonitorUtils.COUNT_POLICY_API_METRIC_NAME, dto.getApiCode(), "policy-api",
                             taskInfoDTO.getData().size());
+                    //region 埋点
+                    try {
+                        trackingService.trackDetailedLog(
+                                DataFlowDirection.OUT
+                                , dto.getApiCode()
+                                , "推送决策"
+                                , JSON.toJSONString(dto.getJsonData())
+                                , Boolean.TRUE
+                                , Long.valueOf(taskInfoDTO.getData().size())
+                                , TrackingContext.generateBatchId());
+                    }catch (Exception ex){
+                        logger.warn(
+                                AlertLog.buildWarnMessage(
+                                        AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                        , ex.getMessage()
+                                        , "埋点异常")
+                                , ex);
+                    }
+                    //endregion
                 } catch (Exception ex) {
                     logger.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), "推送决策接口异常!"), ex);
                 }
@@ -176,7 +220,7 @@ public class IntelligentCustomerServiceClient {
             } else {
                 result.setCode(ResultCode.FAIL.getValue()).setMessage(jsonObject.getString("message"));
             }
-        } catch (Exception e){
+        } catch (Exception e) {
 
         }
         return result;

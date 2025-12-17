@@ -19,6 +19,9 @@ import com.br.marketing.common.utils.net.ThirdApiResultTransfer;
 import com.br.marketing.mapper.datasource.log.InterfaceLogMapper;
 import com.br.marketing.monitor.PrometheusMonitorUtils;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.formula.functions.T;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,28 +63,52 @@ public class RobotaiApiServiceClient {
     @Resource
     MarketingCommonConfig marketingCommonConfig;
 
-    public static final int RETRY_COUNT=2;
+    @Resource
+    TrackingService trackingService;
 
-    public TransferRobotOutboundVO<UnsuccessfulData> pushRobotai(TransferRobotOutboundDTO dto,String requestId){
+    public static final int RETRY_COUNT = 2;
+
+    public TransferRobotOutboundVO<UnsuccessfulData> pushRobotai(TransferRobotOutboundDTO dto, String requestId) {
         dto.getJsonData().setPlatApiCode(customerServiceApiCode);
-        try{
-            ThirdApiResultTransfer transfer = new ApiCallerUtil(restTemplate,interfaceLogMapper,logDbpool).setUrl(robotOutboundUrl)
+        try {
+            ThirdApiResultTransfer transfer = new ApiCallerUtil(restTemplate, interfaceLogMapper, logDbpool).setUrl(robotOutboundUrl)
                     .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
                     .setRequestParam(dto).postTransferStr();
-            if(!Integer.valueOf(200).equals(transfer.getHttpCode())){
+            if (!Integer.valueOf(200).equals(transfer.getHttpCode())) {
                 throw new RuntimeException("客服中心：".concat(String.valueOf(transfer.getHttpCode())));
             }
             TransferRobotOutboundVO<UnsuccessfulData> result = JSON.parseObject(transfer.getResult()
-                    ,new TypeReference<TransferRobotOutboundVO>(){}.getType());
+                    , new TypeReference<TransferRobotOutboundVO>() {
+                    }.getType());
             try {
                 //调用数量监控
                 BrCounter.count(PrometheusMonitorUtils.COUNT_ROBOTAI_TRANSFER_METRIC_NAME, dto.getApiCode(), "transferData-api",
                         dto.getJsonData().getConversionData().size());
+
+                //region 埋点
+                try {
+                    trackingService.trackDetailedLog(
+                            DataFlowDirection.OUT
+                            , dto.getApiCode()
+                            , "推送外呼转化"
+                            , JSON.toJSONString(dto.getJsonData())
+                            , Boolean.TRUE
+                            , Long.valueOf(dto.getJsonData().getConversionData().size())
+                            , TrackingContext.generateBatchId());
+                } catch (Exception ex) {
+                    log.warn(
+                            AlertLog.buildWarnMessage(
+                                    AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                    , ex.getMessage()
+                                    , "埋点异常")
+                            , ex);
+                }
+                //endregion
             } catch (Exception ex) {
                 log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), "推送客服转化接口统计异常！"), ex);
             }
             return result;
-        }catch (Exception ex){
+        } catch (Exception ex) {
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), ex.getMessage()), ex);
             TransferRobotOutboundVO<UnsuccessfulData> result = new TransferRobotOutboundVO();
             result.setCode("9999");
@@ -91,27 +118,47 @@ public class RobotaiApiServiceClient {
     }
 
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
-    public TransferRobotOutboundVO<TransferRobotDataVO> pushRobotai(TransferRobotOutboundDTO dto){
+    public TransferRobotOutboundVO<TransferRobotDataVO> pushRobotai(TransferRobotOutboundDTO dto) {
         dto.getJsonData().setPlatApiCode(customerServiceApiCode);
-        try{
-            ThirdApiResultTransfer transfer = new ApiCallerUtil(restTemplate,interfaceLogMapper,logDbpool)
+        try {
+            ThirdApiResultTransfer transfer = new ApiCallerUtil(restTemplate, interfaceLogMapper, logDbpool)
                     .setUrl(robotOutboundUrl)
                     .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
                     .setRequestParam(dto).postTransferStr();
-            if(!Integer.valueOf(200).equals(transfer.getHttpCode())){
+            if (!Integer.valueOf(200).equals(transfer.getHttpCode())) {
                 throw new RuntimeException("客服中心：".concat(String.valueOf(transfer.getHttpCode())));
             }
             try {
                 //调用数量监控
                 BrCounter.count(PrometheusMonitorUtils.COUNT_ROBOTAI_TRANSFER_METRIC_NAME, dto.getApiCode(), "transferData-api",
                         dto.getJsonData().getConversionData().size());
+                //region 埋点
+                try {
+                    trackingService.trackDetailedLog(
+                            DataFlowDirection.OUT
+                            , dto.getApiCode()
+                            , "推送外呼转化"
+                            , JSON.toJSONString(dto.getJsonData())
+                            , Boolean.TRUE
+                            , Long.valueOf(dto.getJsonData().getConversionData().size())
+                            , TrackingContext.generateBatchId());
+                } catch (Exception ex) {
+                    log.warn(
+                            AlertLog.buildWarnMessage(
+                                    AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                    , ex.getMessage()
+                                    , "埋点异常")
+                            , ex);
+                }
+                //endregion
             } catch (Exception ex) {
                 log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), "推送客服转化接口统计异常！"), ex);
             }
             TransferRobotOutboundVO<TransferRobotDataVO> result = JSON.parseObject(transfer.getResult()
-                    ,new TypeReference<TransferRobotOutboundVO<TransferRobotDataVO>>(){}.getType());
+                    , new TypeReference<TransferRobotOutboundVO<TransferRobotDataVO>>() {
+                    }.getType());
             return result;
-        }catch (Exception ex){
+        } catch (Exception ex) {
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), ex.getMessage()), ex);
             TransferRobotOutboundVO<TransferRobotDataVO> result = new TransferRobotOutboundVO();
             result.setCode("9999");
@@ -121,7 +168,7 @@ public class RobotaiApiServiceClient {
     }
 
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
-    public ReqBlackPhoneVO pushBlack(ReqBlackPhoneParentDTO parentDTO){
+    public ReqBlackPhoneVO pushBlack(ReqBlackPhoneParentDTO parentDTO) {
         ReqBlackPhoneDTO dto = parentDTO.getDto();
         com.br.marketing.entity.InterfaceLog interfaceLog = new com.br.marketing.entity.InterfaceLog();
         interfaceLog.setExtendInfo(null);
@@ -131,7 +178,7 @@ public class RobotaiApiServiceClient {
         interfaceLog.setRequestParam(JSON.toJSONString(dto));
         interfaceLog.setExtendInfo(parentDTO.getExtendInfo());
         Long start = System.currentTimeMillis();
-        try{
+        try {
             ThirdApiResultTransfer transfer = new ApiCaller(restTemplate).setUrl(robotOutboundUrl)
                     .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
                     .setRequestParam(dto).postTransferStr();
@@ -139,11 +186,12 @@ public class RobotaiApiServiceClient {
             interfaceLog.setResult(JSON.toJSONString(transfer));
             interfaceLog.setHttpCode(transfer.getHttpCode());
             interfaceLog.setExpire(String.valueOf(end - start));
-            if(!Integer.valueOf(200).equals(transfer.getHttpCode())){
+            if (!Integer.valueOf(200).equals(transfer.getHttpCode())) {
                 throw new RuntimeException("推送黑名单：".concat(String.valueOf(transfer.getHttpCode())));
             }
             ReqBlackPhoneVO result = JSON.parseObject(transfer.getResult()
-                    ,new TypeReference<ReqBlackPhoneVO>(){}.getType());
+                    , new TypeReference<ReqBlackPhoneVO>() {
+                    }.getType());
             logDbpool.submit(() -> {
                 try {
                     interfaceLogMapper.insertSelective(interfaceLog);
@@ -155,13 +203,32 @@ public class RobotaiApiServiceClient {
                 //调用数量监控
                 BrCounter.count(PrometheusMonitorUtils.COUNT_ROBOTAI_BLACK_METRIC_NAME, dto.getApiCode(), "blackData-api",
                         parentDTO.getBlackDetailDTOList().size());
+                //region 埋点
+                try {
+                    trackingService.trackDetailedLog(
+                            DataFlowDirection.OUT
+                            , dto.getApiCode()
+                            , "推送外呼黑名单"
+                            , JSON.toJSONString(dto.getJsonData())
+                            , Boolean.TRUE
+                            , Long.valueOf(parentDTO.getBlackDetailDTOList().size())
+                            , TrackingContext.generateBatchId());
+                } catch (Exception ex) {
+                    log.warn(
+                            AlertLog.buildWarnMessage(
+                                    AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                    , ex.getMessage()
+                                    , "埋点异常")
+                            , ex);
+                }
+                //endregion
             } catch (Exception ex) {
                 log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), "推送客服黑名单接口统计异常！"), ex);
             }
             return result;
-        }catch (Exception ex){
+        } catch (Exception ex) {
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), ex.getMessage()), ex);
-            interfaceLog.setResult(ex.getMessage().length()>450? ex.getMessage().substring(0,450) : ex.getMessage());
+            interfaceLog.setResult(ex.getMessage().length() > 450 ? ex.getMessage().substring(0, 450) : ex.getMessage());
             Long end = System.currentTimeMillis();
             interfaceLog.setExpire(String.valueOf(end - start));
             logDbpool.submit(() -> {
@@ -180,7 +247,6 @@ public class RobotaiApiServiceClient {
     }
 
 
-
     /**
      * 黑名单查询接口-宜信
      *
@@ -188,7 +254,7 @@ public class RobotaiApiServiceClient {
      * @return RepQueryBlackPhoneVO
      */
     @RetryMethod(retryNowNum = 3)
-    public Result<Map<String,String>> queryBlackPhone(ReqBlackPhoneQueryDTO blackPhoneQueryDTO) {
+    public Result<Map<String, String>> queryBlackPhone(ReqBlackPhoneQueryDTO blackPhoneQueryDTO) {
         Result result = new Result();
         try {
             ReqBlackPhoneDTO reqBlackPhoneDTO = new ReqBlackPhoneDTO();
@@ -236,7 +302,7 @@ public class RobotaiApiServiceClient {
      * @date 2024/12/2 11:38
      **/
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
-    public RobotOutboundVo pushRobotOutbound(RobotOutboundGeneralDTO dto, String method){
+    public RobotOutboundVo pushRobotOutbound(RobotOutboundGeneralDTO dto, String method) {
         RobotOutboundVo result = new RobotOutboundVo();
         HashMap<String, Object> mock = marketingCommonConfig.getThirdPartnerApiMethodMock();
         if (!Objects.isNull(mock)) {
@@ -245,19 +311,20 @@ public class RobotaiApiServiceClient {
                 return result;
             }
         }
-        try{
-            ThirdApiResultTransfer thirdApiResult = new ApiCallerUtil(restTemplate,interfaceLogMapper,logDbpool)
+        try {
+            ThirdApiResultTransfer thirdApiResult = new ApiCallerUtil(restTemplate, interfaceLogMapper, logDbpool)
                     .setUrl(robotOutboundUrl)
                     .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
                     .setRequestParam(dto).postTransferStr();
-            if(!Integer.valueOf(200).equals(thirdApiResult.getHttpCode())){
+            if (!Integer.valueOf(200).equals(thirdApiResult.getHttpCode())) {
                 throw new RuntimeException("客服中心-method：".concat(method).concat("，httpCode：")
                         .concat(String.valueOf(thirdApiResult.getHttpCode())));
             }
             result = JSON.parseObject(thirdApiResult.getResult()
-                    , new TypeReference<RobotOutboundVo>() {}.getType());
+                    , new TypeReference<RobotOutboundVo>() {
+                    }.getType());
             return result;
-        }catch (Exception ex){
+        } catch (Exception ex) {
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), ex.getMessage()), ex);
             result = new RobotOutboundVo();
             result.setCode("9999");
@@ -274,16 +341,17 @@ public class RobotaiApiServiceClient {
     public TransferRobotOutboundVO getSmsBaseInfo(TransferRobotOutboundDTO dto){
         log.warn("getSmsBaseInfo robotOutboundUrl:{}",robotOutboundUrl);
         dto.getJsonData().setPlatApiCode(customerServiceApiCode);
-        try{
-            ThirdApiResultTransfer transfer = new ApiCallerUtil(restTemplate,interfaceLogMapper,logDbpool).setUrl(robotOutboundUrl)
+        try {
+            ThirdApiResultTransfer transfer = new ApiCallerUtil(restTemplate, interfaceLogMapper, logDbpool).setUrl(robotOutboundUrl)
                     .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
                     .setRequestParam(dto).postTransferStr();
-            if(!Integer.valueOf(200).equals(transfer.getHttpCode())){
+            if (!Integer.valueOf(200).equals(transfer.getHttpCode())) {
                 throw new RuntimeException("客服中心：".concat(String.valueOf(transfer.getHttpCode())));
             }
             return JSON.parseObject(transfer.getResult()
-                    ,new TypeReference<TransferRobotOutboundVO>(){}.getType());
-        }catch (Exception ex){
+                    , new TypeReference<TransferRobotOutboundVO>() {
+                    }.getType());
+        } catch (Exception ex) {
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), ex.getMessage()), ex);
             TransferRobotOutboundVO result = new TransferRobotOutboundVO();
             result.setCode("9999");
@@ -291,7 +359,6 @@ public class RobotaiApiServiceClient {
             return result;
         }
     }
-
 
 
 }
