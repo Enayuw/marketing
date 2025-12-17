@@ -9,12 +9,6 @@ spring:
     exclude:
       - com.br.transfer.config.log.Log4j2DynamicAutoConfiguration
       - com.br.transfer.config.log.TempLog4j2DynamicAutoConfiguration
-  main:
-    allow-circular-references: true  # 允许循环依赖
-  autoconfigure:
-    exclude:
-      - com.br.transfer.config.log.Log4j2DynamicAutoConfiguration
-      - com.br.transfer.config.log.TempLog4j2DynamicAutoConfiguration
   aop:
    proxy-target-class: true
    auto: true
