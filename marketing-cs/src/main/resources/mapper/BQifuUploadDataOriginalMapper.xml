@@ -7,6 +7,7 @@
         where is_real = 0
         and user_type = #{userType}
         and receive_date = #{todayDate}
+        and status is null
         and select_status in
         <foreach collection="selectStatusList" item="status" open="(" close=")" separator=",">
             #{status}
@@ -96,5 +97,15 @@
         <foreach collection="records" item="record" open="(" separator="," close=")">
             #{record.id}
         </foreach>
+    </update>
+
+    <update id="updateStatusToUnprocessedForNonRealtime">
+        update b_qifu_upload_data_original
+        set status = 0
+        where is_real = 0
+        and user_type = #{userType}
+        and receive_date = #{todayDate}
+        and select_status != 0
+        and status is null
     </update>
 </mapper>

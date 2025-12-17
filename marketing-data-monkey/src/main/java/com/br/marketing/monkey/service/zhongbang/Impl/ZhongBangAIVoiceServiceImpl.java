@@ -27,6 +27,9 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.jcraft.jsch.SftpException;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import com.zbank.file.bean.UploadInfo;
 import com.zbank.file.common.utils.Md5EncodeUtil;
 import com.zbank.file.exception.SDKException;
@@ -44,6 +47,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -90,6 +94,8 @@ public class ZhongBangAIVoiceServiceImpl implements ZhongBangAIVoiceService {
 
     @Resource
     private MethodRetryHandlerService methodRetryHandlerService;
+    @Resource
+    private TrackingService trackingService;
 
 
     @Override
@@ -170,6 +176,26 @@ public class ZhongBangAIVoiceServiceImpl implements ZhongBangAIVoiceService {
                     if (resultBool) {
                         localFile.setPushStatus(String.valueOf(PushFileStatusEnum.RUNNING.getCode()));
                         localFileMapper.updateByPrimaryKeySelective(localFile);
+                    }
+
+                    try {
+                        if(resultBool){
+                            String remark = "众邦AI录音文件量级与明细量级不匹配，录音文件量级:" + fileInfoCount
+                                    + ",明细量级:" + fileDetailsCount + ",明细文件：" + fileName;
+                            trackingService.trackPointLog(DataFlowDirection.OUT
+                                    , apiCode
+                                    , "众邦AI上传录音文件"
+                                    , Long.valueOf(fileDetailsCount)
+                                    , remark
+                                    , TrackingContext.generateBatchId());
+                        }
+                    } catch (Exception ex) {
+                        log.warn(
+                                AlertLog.buildWarnMessage(
+                                        AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                        , ex.getMessage()
+                                        , "埋点异常")
+                                , ex);
                     }
 
                 }
@@ -527,6 +553,7 @@ public class ZhongBangAIVoiceServiceImpl implements ZhongBangAIVoiceService {
                 marketingCommonConfig.getZhongBangAIPushFileDetailNum(), 30);
         //查询api录音回调
         Long indexId = null;
+        AtomicLong total = new AtomicLong(0L);
         while (true) {
             List<CallRecording> callRecordingList = callRecordingMapper.getCallRecord(apiCode,
                     date, indexId, pageSize);
@@ -534,6 +561,18 @@ public class ZhongBangAIVoiceServiceImpl implements ZhongBangAIVoiceService {
                 break;
             }
             indexId = callRecordingList.get(callRecordingList.size() - 1).getId();
+
+            try {
+                total.addAndGet(callRecordingList.size());
+            } catch (Exception ex) {
+                log.warn(
+                        AlertLog.buildWarnMessage(
+                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                , ex.getMessage()
+                                , "埋点异常")
+                        , ex);
+            }
+
             threadPool.submit(() -> {
                 try {
                     pushVoiceDeatil(callRecordingList, localFile);
@@ -563,6 +602,26 @@ public class ZhongBangAIVoiceServiceImpl implements ZhongBangAIVoiceService {
             localFile.setPushStatus(String.valueOf(PushFileStatusEnum.SUCCESS.getCode()));
         }
         localFileMapper.updateByPrimaryKeySelective(localFile);
+
+        try {
+            String remark = String.format("众邦AI-录音文件明细推送，localFileId：%s，推送是否成功：%s"
+                    , localFile.getId()
+                    , errorNum > 0 ? "推送异常" : "推送成功");
+            trackingService.trackPointLog(DataFlowDirection.OUT
+                    , apiCode
+                    , "众邦AI-录音文件明细推送"
+                    , total.get()
+                    , remark
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
+
     }
 
     private void pushVoiceDeatil(List<CallRecording> callRecordingList, LocalFile localFile) {
