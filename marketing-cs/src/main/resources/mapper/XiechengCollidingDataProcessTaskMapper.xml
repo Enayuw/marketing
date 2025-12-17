@@ -58,7 +58,7 @@
         WHERE task.is_delete = 0
         AND (
         (task.task_type = 1
-        <if test="releaseTimeBegin != null and releaseTimeEnd != ''">
+        <if test="releaseTimeBegin != null and releaseTimeEnd != null">
             AND task.release_time_begin <![CDATA[ >= ]]> #{releaseTimeBegin,jdbcType=TIMESTAMP}
             AND task.release_time_end <![CDATA[ <= ]]> #{releaseTimeEnd,jdbcType=TIMESTAMP}
         </if>)
