@@ -41,6 +41,8 @@ public final class MockConstants {
 
     public static final String TEST_QIFIUQUERY_RETURN = "test_qifuquery_return";
 
+    public static final String TEST_DIDI_V5_COLLIDING_DATA_RETURN = "test_didi_v5_colliding_data_return";
+
     /**
      * 获取所有Mock名称的列表
      *
@@ -48,19 +50,20 @@ public final class MockConstants {
      */
     public static List<String> getAllMockNames() {
         return Arrays.asList(
-            // 基础类型
-            TEST_VOID_RETURN,
-            TEST_OBJECT_RETURN,
-            // 框架封装类型
-            TEST_API_RESULT_RETURN,
-            TEST_RESULT_RETURN,
-            // 复杂对象类型
-            TEST_DTO_RETURN,
-            TEST_LIST_RETURN,
-            TEST_QIFIUQUERY_RETURN,
-            SUIYIJI_QUERY_BLACK,
-            SUIYIJI_ORIGINAL,
-            SUIYIJI_BLACK
+                // 基础类型
+                TEST_VOID_RETURN,
+                TEST_OBJECT_RETURN,
+                // 框架封装类型
+                TEST_API_RESULT_RETURN,
+                TEST_RESULT_RETURN,
+                // 复杂对象类型
+                TEST_DTO_RETURN,
+                TEST_LIST_RETURN,
+                TEST_QIFIUQUERY_RETURN,
+                SUIYIJI_QUERY_BLACK,
+                SUIYIJI_ORIGINAL,
+                SUIYIJI_BLACK,
+                TEST_DIDI_V5_COLLIDING_DATA_RETURN
         );
     }
 

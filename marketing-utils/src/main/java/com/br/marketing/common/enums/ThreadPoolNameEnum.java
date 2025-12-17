@@ -61,7 +61,8 @@ public enum ThreadPoolNameEnum {
     XIECHENG_CYCLE_DELETE_EST(41,"xiecheng_cycle_delete_est", "携程周期剔除量级预估"),
 
     SYJ_ORIGINAL_DEAL(50,"syj_original","随忆记用户撞库"),
-    SYJ_BLACK_DEAL(51,"syj_black","随忆记黑名单")
+    SYJ_BLACK_DEAL(51,"syj_black","随忆记黑名单"),
+    DIDI_V5_COLLIDING(52,"didi_v5_colliding","滴滴v5撞库")
     ;
 
     private final Integer order;

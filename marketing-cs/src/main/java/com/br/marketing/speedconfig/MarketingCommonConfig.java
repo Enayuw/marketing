@@ -3565,4 +3565,10 @@ public class MarketingCommonConfig {
      * 随意记获取黑名单RSA私钥
      */
     private String suiyijiBlackBrPrivateKey;
+
+
+    /**
+     * 滴滴V5相关配置
+     */
+    private JSONObject diDiV5Config;
 }
