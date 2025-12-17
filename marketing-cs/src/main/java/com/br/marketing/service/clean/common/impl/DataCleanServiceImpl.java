@@ -672,177 +672,160 @@ public class DataCleanServiceImpl implements DataCleanService {
     }
 
 
-    public List<JSONObject> dataCleanByRules(List<JSONObject> jsonObjectList, List<MarketingDataCleanGeneralRuleConfig> ruleConfigList) {
-        jsonObjectList.forEach(jsonObject -> {
-            // 按照规则应用清洗逻辑，直接覆盖原字段
-            ruleConfigList.forEach(ruleConfig -> {
-                try {
-                    // 执行数据清洗
-                    Object result = ruleCleaningService.executeCleaningRule(jsonObject, ruleConfig);
+    public List<JSONObject> dataCleanByRules(List<JSONObject> jsonObjectList,
+                                             List<MarketingDataCleanGeneralRuleConfig> ruleConfigList) {
+        if (CollectionUtils.isEmpty(jsonObjectList) || CollectionUtils.isEmpty(ruleConfigList)) {
+            return jsonObjectList;
+        }
 
-                    // 获取清洗字段路径（clean_fields）
-                    String cleanFields = ruleConfig.getCleanFields();
-
-                    if (StringUtils.isNotEmpty(cleanFields)) {
-                        // 根据 clean_fields 解析出字段路径，将清洗后的值赋值回原位置
-                        String cleanedValue = result != null ? result.toString() : null;
-                        setValueByCleanFieldsPath(jsonObject, cleanFields, cleanedValue);
-
-                        log.debug("字段清洗完成: cleanFields={}, cleanedValue={}", cleanFields, cleanedValue);
-                    } else {
-                        log.warn("清洗规则的cleanFields为空，跳过处理: mappingField={}", ruleConfig.getMappingField());
-                    }
-                } catch (Exception e) {
-                    log.error("字段清洗异常: mappingField={}, cleanFields={}",
-                            ruleConfig.getMappingField(), ruleConfig.getCleanFields(), e);
-                }
-            });
-        });
+        jsonObjectList.forEach(jsonObject ->
+                ruleConfigList.forEach(ruleConfig -> applyRuleAndWriteBack(jsonObject, ruleConfig))
+        );
         return jsonObjectList;
     }
 
     /**
-     * 根据 clean_fields 完整路径设置清洗后的值（支持任意类型）
-     * 将清洗后的值赋值回原字段位置
-     * 如果 clean_fields 只是字段名，会递归查找并更新所有匹配的字段
-     *
-     * @param jsonObject  目标JSON对象
-     * @param cleanFields 清洗字段的完整路径，如 "phone"、"variables.userType"、"data.item.name"
-     * @param value       要设置的值（Object类型，可以是String、JSONArray等）
+     * 对单个 JSON 对象应用一条清洗规则，并将结果写回原字段位置
      */
-    private void setValueByCleanFieldsPath(JSONObject jsonObject, String cleanFields, Object value) {
-        if (jsonObject == null || StringUtils.isEmpty(cleanFields)) {
-            return;
-        }
+    private void applyRuleAndWriteBack(JSONObject jsonObject, MarketingDataCleanGeneralRuleConfig ruleConfig) {
 
-        // 解析完整路径
-        String[] pathParts = cleanFields.split("\\.");
+        try {
+            // 执行数据清洗，得到目标字段的新值
+            Object result = ruleCleaningService.executeCleaningRule(jsonObject, ruleConfig);
+            String cleanedValue = result != null ? result.toString() : null;
 
-        // 如果路径只有一层（只有字段名），递归查找并更新该字段
-        if (pathParts.length == 1) {
-            boolean found = findAndUpdateField(jsonObject, cleanFields, value);
-            if (!found) {
-                log.warn("未找到字段: field={}", cleanFields);
+            String cleanFields = ruleConfig.getCleanFields();
+            String parentPath = ruleConfig.getParentPath();
+
+            if (StringUtils.isEmpty(cleanFields)) {
+                log.warn("清洗字段为空，跳过回填");
+                return;
             }
-            return;
-        }
 
-        // 多层路径，按路径设置值
-        setValueByPath(jsonObject, pathParts, value, 0);
+            // 根据父路径信息，递归回填清洗后的值
+            // 1）如果配置了父路径/层级，则按路径精确匹配回填
+            // 2）如果未配置父路径，则回填到第一个匹配字段
+            String expectedPath = processNodePaths(parentPath);
+            boolean updated = updateJsonValueByPath(jsonObject, cleanFields, expectedPath, "", cleanedValue);
+
+            if (!updated) {
+                log.warn("未找到可回填的字段位置: cleanFields={}, parentPath={}", cleanFields, parentPath);
+            }
+
+            log.debug("字段清洗完成: cleanFields={}, cleanedValue={}", cleanFields, cleanedValue);
+        } catch (Exception e) {
+            log.error("字段清洗异常", e);
+        }
     }
 
     /**
-     * 递归查找并更新指定字段名的值
-     * 只更新已存在的字段，不新增字段
+     * 根据字段名与父路径，在 JSON 结构中递归回填清洗后的值
      *
-     * @param jsonObject 目标JSON对象
-     * @param fieldName  字段名
-     * @param value      要设置的值（Object类型）
-     * @return 是否找到并更新了字段
+     * @param node         当前遍历的节点（JSONObject 或 JSONArray）
+     * @param targetKey    需要回填的字段名
+     * @param expectedPath 期望的父路径（已做 dataItems/item 等归一化处理）
+     * @param currentPath  当前遍历到的父路径
+     * @param newValue     清洗后的新值
+     * @return 是否成功回填
      */
-    private boolean findAndUpdateField(JSONObject jsonObject, String fieldName, Object value) {
-        if (jsonObject == null || StringUtils.isEmpty(fieldName)) {
-            return false;
-        }
+    private boolean updateJsonValueByPath(Object node, String targetKey, String expectedPath,
+                                          String currentPath, String newValue) {
+        // 对当前路径做归一化（处理 dataItems / item 等特殊层级）
+        currentPath = processNodePaths(currentPath);
 
-        boolean found = false;
+        if (node instanceof JSONObject) {
+            JSONObject jsonObj = (JSONObject) node;
 
-        // 遍历当前对象的所有键值对
-        for (Map.Entry<String, Object> entry : jsonObject.entrySet()) {
-            String key = entry.getKey();
-            Object val = entry.getValue();
-
-            // 如果键匹配，更新值
-            if (key.equals(fieldName)) {
-                jsonObject.put(fieldName, value);
-                log.debug("找到并更新字段: field={}, value={}", fieldName, value);
-                found = true;
-                // 继续查找，可能有多个同名字段
-            }
-
-            // 递归处理嵌套对象
-            if (val instanceof JSONObject) {
-                boolean foundInNested = findAndUpdateField((JSONObject) val, fieldName, value);
-                found = found || foundInNested;
-            }
-            // 递归处理数组
-            else if (val instanceof JSONArray) {
-                JSONArray array = (JSONArray) val;
-                for (int i = 0; i < array.size(); i++) {
-                    Object arrayItem = array.get(i);
-                    if (arrayItem instanceof JSONObject) {
-                        boolean foundInArray = findAndUpdateField((JSONObject) arrayItem, fieldName, value);
-                        found = found || foundInArray;
-                    }
+            // 当前对象本身是否是待回填字段的父节点
+            if (jsonObj.containsKey(targetKey)) {
+                // expectedPath 为空表示不限制父路径，直接命中第一个
+                if (StringUtils.isEmpty(expectedPath) || currentPath.equals(expectedPath)) {
+                    jsonObj.put(targetKey, newValue);
+                    return true;
                 }
             }
-        }
 
-        return found;
-    }
+            // 继续向下递归遍历
+            for (Map.Entry<String, Object> entry : jsonObj.entrySet()) {
+                String key = entry.getKey();
+                Object value = entry.getValue();
 
-    /**
-     * 按照路径数组设置值
-     *
-     * @param jsonObject 目标JSON对象
-     * @param pathParts  路径数组
-     * @param value      要设置的值（Object类型）
-     * @param index      当前处理的路径索引
-     */
-    private void setValueByPath(JSONObject jsonObject, String[] pathParts, Object value, int index) {
-        if (jsonObject == null || pathParts == null || index >= pathParts.length) {
-            return;
-        }
+                String nextPath = StringUtils.isEmpty(currentPath) ? key : currentPath + "." + key;
 
-        String currentPart = pathParts[index];
-
-        // 如果是最后一个路径部分，设置值
-        if (index == pathParts.length - 1) {
-            jsonObject.put(currentPart, value);
-            log.debug("按路径设置字段: path={}, value={}", String.join(".", pathParts), value);
-            return;
-        }
-
-        // 处理数组情况：如果路径中包含 "item"，说明是数组元素
-        if ("item".equals(currentPart)) {
-            // 查找前一个路径对应的数组
-            if (index > 0) {
-                String arrayFieldName = pathParts[index - 1];
-                Object arrayObj = jsonObject.get(arrayFieldName);
-
-                if (arrayObj instanceof JSONArray) {
-                    JSONArray array = (JSONArray) arrayObj;
-                    // 对数组中的每个对象元素递归设置值
-                    for (int i = 0; i < array.size(); i++) {
-                        Object arrayItem = array.get(i);
-                        if (arrayItem instanceof JSONObject) {
-                            setValueByPath((JSONObject) arrayItem, pathParts, value, index + 1);
+                // 处理嵌套在字符串中的 JSON 结构
+                if (value instanceof String) {
+                    String strVal = (String) value;
+                    if (JsonParseUtils.isJsonObject(strVal)) {
+                        try {
+                            JSONObject nestedJson = JSONObject.parseObject(strVal);
+                            if (updateJsonValueByPath(nestedJson, targetKey, expectedPath, nextPath, newValue)) {
+                                // 回写嵌套 JSON 字符串
+                                jsonObj.put(key, nestedJson.toString());
+                                return true;
+                            }
+                        } catch (Exception ex) {
+                            log.error("字符串JSON解析失败, 按原始字符串处理: {}", ex.getMessage());
                         }
                     }
-                    return;
+                } else if (value instanceof JSONObject || value instanceof JSONArray) {
+                    if (updateJsonValueByPath(value, targetKey, expectedPath, nextPath, newValue)) {
+                        return true;
+                    }
                 }
             }
-            return;
-        }
+        } else if (node instanceof JSONArray) {
+            JSONArray jsonArray = (JSONArray) node;
+            // 数组元素不改变路径语义，沿用当前路径
+            for (int i = 0; i < jsonArray.size(); i++) {
+                Object item = jsonArray.get(i);
 
-        // 获取下一层对象
-        Object nextObj = jsonObject.get(currentPart);
-
-        if (nextObj instanceof JSONObject) {
-            setValueByPath((JSONObject) nextObj, pathParts, value, index + 1);
-        } else if (nextObj instanceof JSONArray) {
-            // 如果是数组，对数组中的每个对象元素递归设置
-            JSONArray array = (JSONArray) nextObj;
-            for (int i = 0; i < array.size(); i++) {
-                Object arrayItem = array.get(i);
-                if (arrayItem instanceof JSONObject) {
-                    setValueByPath((JSONObject) arrayItem, pathParts, value, index + 1);
+                if (item instanceof String) {
+                    String strVal = (String) item;
+                    if (JsonParseUtils.isJsonObject(strVal)) {
+                        try {
+                            JSONObject nestedJson = JSONObject.parseObject(strVal);
+                            if (updateJsonValueByPath(nestedJson, targetKey, expectedPath, currentPath, newValue)) {
+                                jsonArray.set(i, nestedJson.toString());
+                                return true;
+                            }
+                        } catch (Exception ex) {
+                            log.error("数组元素JSON字符串解析失败, 按原始字符串处理: {}", ex.getMessage());
+                        }
+                    }
+                } else if (item instanceof JSONObject || item instanceof JSONArray) {
+                    if (updateJsonValueByPath(item, targetKey, expectedPath, currentPath, newValue)) {
+                        return true;
+                    }
                 }
             }
-        } else {
-            log.warn("路径不存在或类型不匹配: path={}, currentPart={}", String.join(".", pathParts), currentPart);
         }
+
+        return false;
     }
+
+    /**
+     * 处理父节点路径中的 dataItems / item 等特殊层级，使路径与 JsonParseUtils 中的取值逻辑保持一致
+     */
+    private String processNodePaths(String path) {
+        String expectedPath = StringUtils.isNotEmpty(path) ? path : "";
+        if (expectedPath.contains("dataItems.item.")) {
+            expectedPath = expectedPath.replace("dataItems.item.", "");
+        }
+        if (expectedPath.contains("dataItems")) {
+            expectedPath = expectedPath.replace("dataItems", "");
+        }
+        if (expectedPath.contains("item.")) {
+            expectedPath = expectedPath.replace("item.", "");
+        }
+        if (expectedPath.contains("item")) {
+            expectedPath = expectedPath.replace("item", "");
+        }
+        // 去除开头和结尾的点
+        expectedPath = expectedPath.replaceAll("^\\.|\\.$", "");
+        return expectedPath;
+    }
+
+
 
     /**
      * 插入清洗后的数据信息
