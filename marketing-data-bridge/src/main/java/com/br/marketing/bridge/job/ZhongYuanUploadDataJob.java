@@ -11,6 +11,7 @@ import com.br.marketing.dto.dataclean.mq.MqDataJsonParse;
 import com.br.marketing.entity.MarketingCustomerOriginalData;
 import com.br.marketing.entity.MarketingCustomerOriginalDataExample;
 import com.br.marketing.enums.clean.DataProcessEnum;
+import com.br.marketing.handle.SnowflakeRedisGeneratorHandle;
 import com.br.marketing.mapper.rulecleaning.MarketingCustomerOriginalDataMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -45,6 +46,8 @@ public class ZhongYuanUploadDataJob extends AbstractSimpleElasticJob {
     private MarketingCommonConfig marketingCommonConfig;
     private static final int REDIS_EXPIRE_SECONDS = 86400; // 1天过期时间
     private static final String TITLE = "【中原消金数据上传】";
+    @Resource
+    private SnowflakeRedisGeneratorHandle snowflakeRedisGeneratorHandle;
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
@@ -153,6 +156,7 @@ public class ZhongYuanUploadDataJob extends AbstractSimpleElasticJob {
             mqDataJsonParse.setDataId(dataId);
             mqDataJsonParse.setDataType(DataProcessEnum.DataTypeEnum.UPLOAD.getCode());
             mqDataJsonParse.setAcceptType(DataProcessEnum.AcceptTypeEnum.CUSTOM.getCode());
+            mqDataJsonParse.setIdempotentKey(snowflakeRedisGeneratorHandle.nextId());
             
             rocketMqSwitch.sendMessage(apiCode, MarketingAssistConstants.TOPIC,
                     MarketingAssistConstants.TAG_MARKETING_CUSTOMER_DATA_JSON_PARSE,

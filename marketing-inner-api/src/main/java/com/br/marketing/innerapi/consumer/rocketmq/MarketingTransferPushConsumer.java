@@ -45,7 +45,7 @@ public class MarketingTransferPushConsumer extends BaseMqMessageListener impleme
     @Override
     protected void handleMessage(MessageExt messageExt) {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
-        consumerService.consumerRun(messageExt, pushRuleService::pushPersonalTransferData, bodyString);
+        consumerService.consumerRun(messageExt, pushRuleService::pushPersonalTransferDataWrapper, bodyString);
     }
 
     @Override

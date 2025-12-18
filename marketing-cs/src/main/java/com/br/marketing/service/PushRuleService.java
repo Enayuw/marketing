@@ -169,12 +169,14 @@ public interface PushRuleService {
     /**
      * 异步消费接口转化数据推送至客服 私人订制
      *
-     * @param msg 客户转化基础信息id
+     * @param infoId 客户转化基础信息id
      * @return Result
      * @author Guo Zeqiang
      * @dateTime 2021/10/13 10:53
      */
-    Result<Boolean> pushPersonalTransferData(String msg);
+    Result<Boolean> pushPersonalTransferData(Long infoId);
+
+    Result<Boolean> pushPersonalTransferDataWrapper(String msg);
 
     /**
      * 异步消费接口转化数据推送至客服 通用
@@ -204,7 +206,7 @@ public interface PushRuleService {
 
     Result<Boolean> consumerCommonBlack(Long id);
 
-    Result<Boolean> consumerBlack(Long id);
+    Result<Boolean> consumerBlack(String msg);
 
     /**
      * 模拟数据库或者redis异常

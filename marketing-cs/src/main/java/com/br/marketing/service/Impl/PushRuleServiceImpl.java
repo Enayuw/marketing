@@ -53,6 +53,7 @@ import com.br.marketing.common.validators.user.UserValidator;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.commonentity.StatusConstants;
 import com.br.marketing.config.RocketMqSwitch;
+import com.br.marketing.context.MqIdempotentContext;
 import com.br.marketing.context.RuntimeDataContext;
 import com.br.marketing.dto.*;
 import com.br.marketing.dto.customer.PushCustomerRequestDTO;
@@ -2810,6 +2811,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             mqDataJsonParse.setDataId(Long.valueOf(syncInfoId));
             mqDataJsonParse.setDataType(DataProcessEnum.DataTypeEnum.UPLOAD.getCode());
             mqDataJsonParse.setAcceptType(DataProcessEnum.AcceptTypeEnum.GENERAL.getCode());
+            mqDataJsonParse.setIdempotentKey(snowflakeRedisGeneratorHandle.nextId());
+
             rocketMqSwitch.sendMessage(apiCode, MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_MARKETING_CUSTOMER_DATA_JSON_PARSE,
                     JSON.toJSONString(mqDataJsonParse), MQConstants.ROUTING_KEY_MARKETING_CUSTOMER_DATA_JSON_PARSE);
             //存储标识
@@ -4341,6 +4344,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             mrpMqFact.setSourceId(id);
             mrpMqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
             mrpMqFact.setApiCode(apiCode);
+            mrpMqFact.setIdempotentKey(snowflakeRedisGeneratorHandle.nextId());
             if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_MRP_UNIVERSAL_TRANSFER_RECEIVE)) {
                 String message = JSON.toJSONString(mrpMqFact);
                 rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
@@ -4887,9 +4891,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     private final String cidKey = "marketing:innerapi:transfer:cid:";
 
     @MqIdempotent
-    @Override
-    @Transactional
-    public synchronized Result<Boolean> pushPersonalTransferData(String msg) {
+    public synchronized Result<Boolean> pushPersonalTransferDataWrapper(String msg) {
         Long infoId;
         // 兼容老消息（纯数字字符串）和新消息（JSON格式）
         if (msg.startsWith("{")) {
@@ -4913,6 +4915,12 @@ public class PushRuleServiceImpl implements PushRuleService {
             throw new RuntimeException("消息中未找到id字段");
         }
 
+        return pushPersonalTransferData(infoId);
+    }
+
+    @Override
+    @Transactional
+    public synchronized Result<Boolean> pushPersonalTransferData(Long infoId) {
         Result<Boolean> result = new Result<>();
         result.setCode(ResultCode.SUCCESS.getValue());
         try {
@@ -5042,7 +5050,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                                             ids.removeAll(infoIds);
                                             listEnd = null;
                                             for (Long idf : ids) {
-                                                pushPersonalTransferData(String.valueOf(idf));
+                                                pushPersonalTransferData(idf);
                                             }
                                         } else {
                                             listEnd = transferList;
@@ -5587,9 +5595,32 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(isContiue);
     }
 
+    @MqIdempotent
     @Override
-    public Result<Boolean> consumerBlack(Long id) {
-        Integer soleNum = 20;
+    public Result<Boolean> consumerBlack(String msg) {
+        Long id;
+        // 兼容老消息（纯数字字符串）和新消息（JSON格式）
+        if (msg.startsWith("{")) {
+            JSONObject jsonObject = JSON.parseObject(msg);
+            if (jsonObject != null && jsonObject.containsKey("id")) {
+                id = jsonObject.getLong("id");
+            } else {
+                log.warn("JSON消息中未找到id字段，msg: {}", msg);
+                throw new RuntimeException("消息格式错误，JSON中未找到id字段");
+            }
+        } else {
+            try {
+                id = JSON.parseObject(msg, new TypeReference<Long>() {}.getType());
+            } catch (Exception e) {
+                log.warn("解析数字消息失败，msg: {}", msg, e);
+                throw new RuntimeException("消息格式错误，无法解析为数字", e);
+            }
+        }
+
+        if (id == null) {
+            throw new RuntimeException("消息中未找到id字段");
+        }
+
         Boolean isContinue = Boolean.FALSE;
         MarketingTransferInfo transferInfo = marketingTransferInfoMapper.selectByPrimaryKey(id);
         if (transferInfo == null) {
@@ -5598,15 +5629,18 @@ public class PushRuleServiceImpl implements PushRuleService {
                     .setDate(isContinue)
                     .setMessage("数据不存在");
         }
-        String tcId = tableCreateService.getTcId(transferInfo.getApiCode());
+
+        String apiCode = transferInfo.getApiCode();
+        MqIdempotentContext.setApiCode(apiCode);
+        String tcId = tableCreateService.getTcId(apiCode);
         if (tcId == null) {
             return new Result<>()
                     .setCode(ResultCode.SUCCESS.getValue())
                     .setDate(isContinue)
-                    .setMessage(String.format("apiCode:%s 未维护cid信息", transferInfo.getApiCode()));
+                    .setMessage(String.format("apiCode:%s 未维护cid信息", apiCode));
         }
         MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
-        example.createCriteria().andApiCodeEqualTo(transferInfo.getApiCode()).
+        example.createCriteria().andApiCodeEqualTo(apiCode).
                 andRequestIdEqualTo(transferInfo.getRequestId());
         example.settCid(tcId);
         List<MarketingTransferSyncUser> marketingTransferSyncUsers = marketingTransferSyncUserMapper.selectByExample(example);

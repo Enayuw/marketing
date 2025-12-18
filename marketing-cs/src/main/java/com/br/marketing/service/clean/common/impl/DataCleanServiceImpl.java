@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.common.log.AlertLog;
+import com.br.marketing.aspect.MqIdempotent;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.client.rulecleaning.RuleCleaningResult;
@@ -15,6 +16,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.JsonParseUtils;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.context.MqIdempotentContext;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.dto.dataclean.mq.MqDataJsonParse;
@@ -97,6 +99,7 @@ public class DataCleanServiceImpl implements DataCleanService {
 
     private static final String TITLE = "【定制上传数据清洗】";
 
+    @MqIdempotent
     @Override
     public Result<Boolean> customerDataJsonParse(String message) {
         Result<Boolean> result = new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(false);
@@ -125,6 +128,7 @@ public class DataCleanServiceImpl implements DataCleanService {
                         false
                 );
 
+                MqIdempotentContext.setApiCode(apiCode);
             } else {
                 log.warn("数据ID: {} 的JSON数据为空", mqDataJsonParse.getDataId());
             }

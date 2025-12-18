@@ -45,10 +45,7 @@ public class MarketingUniversalTransferReceiveConsumer extends BaseMqMessageList
     @Override
     protected void handleMessage(MessageExt messageExt) {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
-        consumerService.consumerRun(messageExt, interfaceHandlerService::handleDataDirection, bodyString
-                , MarketingDelayedConstants.TOPIC
-                , MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_ERROR_DELAY
-                , 300L);
+        consumerService.consumerRun(messageExt, interfaceHandlerService::handleDataDirection, bodyString);
     }
 
     @Override

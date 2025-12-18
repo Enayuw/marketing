@@ -402,3 +402,8 @@ dingding:
       getUserByUnionId: /topapi/user/getbyunionid
       # 根据userId获取用户详情
       getUserDetail: /topapi/v2/user/get
+
+# 雪花算法数据中心ID
+snowflake:
+  datacenter:
+    id: ${SNOWFLAKE_DATACENTER_ID:0}

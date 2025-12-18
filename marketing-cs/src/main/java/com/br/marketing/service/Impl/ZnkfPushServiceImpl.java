@@ -183,6 +183,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                 mrpMqFact.setSourceId(callRecord.getId());
                 mrpMqFact.setSource(TransferSource.CUSTOMER_CALL_RECORD.getCode());
                 mrpMqFact.setApiCode(callRecord.getApiCode());
+                mrpMqFact.setIdempotentKey(snowflakeRedisGeneratorHandle.nextId());
                 if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_MRP_UNIVERSAL_TRANSFER_RECEIVE)) {
                     String message = JSON.toJSONString(mrpMqFact);
                     rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
