@@ -35,15 +35,18 @@ public class DataCleanApiController {
     @Operation(summary = "数据清洗通用接口", description = "数据清洗通用接口")
     @PostMapping(value = "/commonClean")
     public ApiResult commonClean(@RequestBody DataCleanDTO dataCleanDTO) {
+        ApiResult apiResult;
         logger.warn("数据清洗通用接口接收到请求，params:{}", dataCleanDTO);
         Result result = dataCleanService.commonClean(dataCleanDTO);
-        logger.warn("数据清洗完成，清洗结果:{}", result.getData());
         if (result.isSuccess()) {
-            return new ApiResult().success(result.getData());
+            apiResult = new ApiResult().success(result.getData());
         } else if (Objects.equals(ResultCode.FAIL.getValue(), result.getCode())) {
-            return new ApiResult().fail(result.getMessage()).setData(result.getData());
+            apiResult = new ApiResult().fail(result.getMessage()).setData(result.getData());
+        } else {
+            apiResult = new ApiResult().setCode(String.valueOf(result.getCode())).setData(result.getData()).setMessage(result.getMessage());
         }
-        return new ApiResult().setCode(String.valueOf(result.getCode())).setData(result.getData()).setMessage(result.getMessage());
+        logger.warn("数据清洗完成，code:{},data:{},message:{}", apiResult.getCode(), apiResult.getData(), apiResult.getMessage());
+        return apiResult;
     }
 
 }
