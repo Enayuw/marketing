@@ -3,6 +3,7 @@ package com.br.marketing.innerapi.controller;
 import com.br.marketing.client.rulecleaning.DataCleanDTO;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.service.clean.common.DataCleanService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import java.util.Objects;
 
 /**
  * @ClassName DataCleanCommonController
@@ -35,11 +37,13 @@ public class DataCleanApiController {
     public ApiResult commonClean(@RequestBody DataCleanDTO dataCleanDTO) {
         logger.warn("数据清洗通用接口接收到请求，params:{}", dataCleanDTO);
         Result result = dataCleanService.commonClean(dataCleanDTO);
-        logger.warn("数据清洗完成，清洗结果:{}",result.getData());
+        logger.warn("数据清洗完成，清洗结果:{}", result.getData());
         if (result.isSuccess()) {
             return new ApiResult().success(result.getData());
+        } else if (Objects.equals(ResultCode.FAIL.getValue(), result.getCode())) {
+            return new ApiResult().fail(result.getMessage()).setData(result.getData());
         }
-        return new ApiResult().fail(result.getMessage()).setData(result.getData());
+        return new ApiResult().setCode(String.valueOf(result.getCode())).setData(result.getData()).setMessage(result.getMessage());
     }
 
 }

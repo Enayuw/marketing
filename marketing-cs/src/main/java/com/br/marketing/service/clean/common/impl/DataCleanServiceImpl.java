@@ -11,6 +11,7 @@ import com.br.marketing.client.rulecleaning.DataCleanDTO;
 import com.br.marketing.client.rulecleaning.RuleCleaningResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.auth.CodeEnum;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
@@ -1113,7 +1114,9 @@ public class DataCleanServiceImpl implements DataCleanService {
             Boolean valid = paramsValid(dto);
             if (Boolean.FALSE.equals(valid)) {
                 log.warn("数据清洗通用接口参数错误,params={}", dto);
-                return new Result().failure().setMessage("参数错误").setDate(null);
+                return new Result().setCode(Integer.valueOf(CodeEnum.PARAM_ERROR.getCode()))
+                        .setMessage(CodeEnum.PARAM_ERROR.getMessage())
+                        .setDate(null);
             }
 
             pushRuleService.sendJsonParseMq(dto.getApiCode(), 0, dto.getSystemType()
@@ -1125,7 +1128,9 @@ public class DataCleanServiceImpl implements DataCleanService {
             if (marketingDataCleanGeneralConfigList.isEmpty()) {
                 log.warn("未查询到数据清洗通用配置，apiCode:{},systemType:{},dataType:{},acceptType:{}"
                         , dto.getApiCode(),dto.getSystemType(), dto.getDataType(), dto.getAcceptType());
-                return new Result().failure().setDate(dto.getJsonData()).setMessage("未查询到数据清洗通用配置");
+                return new Result().setCode(Integer.valueOf(CodeEnum.NOT_FOUND_CLEAN_RULE_CONFIG.getCode()))
+                        .setMessage(CodeEnum.NOT_FOUND_CLEAN_RULE_CONFIG.getMessage())
+                        .setDate(dto.getJsonData());
             }
             MarketingDataCleanGeneralConfig marketingDataCleanGeneralConfig = marketingDataCleanGeneralConfigList.get(0);
             Long generalConfigId = marketingDataCleanGeneralConfig.getId();
@@ -1140,7 +1145,9 @@ public class DataCleanServiceImpl implements DataCleanService {
             if (marketingDataCleanGeneralRuleConfigList.isEmpty()) {
                 log.warn("未查询到数据清洗规则，apiCode:{},systemType:{},dataType:{},acceptType:{}"
                         , dto.getApiCode(), dto.getSystemType(), dto.getDataType(), dto.getAcceptType());
-                return new Result().failure().setDate(dto.getJsonData()).setMessage("未查询到数据清洗规则");
+                return new Result().setCode(Integer.valueOf(CodeEnum.NOT_FOUND_CLEAN_RULE_CONFIG.getCode()))
+                        .setMessage(CodeEnum.NOT_FOUND_CLEAN_RULE_CONFIG.getMessage())
+                        .setDate(dto.getJsonData());
             }
 
             //数据清洗
@@ -1182,7 +1189,7 @@ public class DataCleanServiceImpl implements DataCleanService {
             }
         } catch (Exception e) {
             log.error("通用数据清洗异常，message:{}", e.getMessage());
-            return new Result().failure().setMessage(e.getMessage());
+            return new Result().failure().setMessage("通用数据清洗异常").setDate(dto.getJsonData());
         }
     }
 
