@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.AutoCheckSwapMapper" >
+
+    <!-- SenceVO 结果映射 -->
+    <resultMap id="SenceVOResultMap" type="com.br.marketing.vo.autocheck.SenceVO">
+        <result column="id" property="id" jdbcType="BIGINT" />
+        <result column="sence_code" property="senceCode" jdbcType="VARCHAR" />
+        <result column="sence_name" property="senceName" jdbcType="VARCHAR" />
+    </resultMap>
+
+    <!-- 根据参数模糊匹配name和code的查询 -->
+    <select id="searchSenceList" resultMap="SenceVOResultMap" parameterType="java.lang.String">
+        SELECT id,
+               sence_code,
+               sence_name
+        FROM b_auto_check_swap
+        WHERE is_deleted = 0
+          AND (
+            sence_name LIKE CONCAT('%', #{searchContent}, '%')
+                OR sence_code LIKE CONCAT('%', #{searchContent}, '%')
+            )
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 根据场景编码列表查询场景信息 -->
+    <select id="selectBySenceCodes" resultMap="SenceVOResultMap" parameterType="java.util.List">
+        SELECT id,
+        sence_code,
+        sence_name
+        FROM b_auto_check_swap
+        WHERE is_deleted = 0
+        <if test="senceCodeList != null and senceCodeList.size() > 0">
+            AND sence_code IN
+            <foreach collection="senceCodeList" item="senceCode" open="(" close=")" separator=",">
+                #{senceCode}
+            </foreach>
+        </if>
+        ORDER BY create_time DESC
+    </select>
+
+</mapper>
