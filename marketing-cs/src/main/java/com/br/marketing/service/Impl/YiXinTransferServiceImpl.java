@@ -20,6 +20,7 @@ import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.entity.*;
+import com.br.marketing.handle.SnowflakeRedisGeneratorHandle;
 import com.br.marketing.mapper.*;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.TransferSource;
@@ -114,6 +115,9 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
 
     @Resource
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
+    @Resource
+    private SnowflakeRedisGeneratorHandle snowflakeRedisGeneratorHandle;
+
 
     @Resource
     private AlarmApiClient alarmClient;
@@ -382,6 +386,8 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                         mq.setSource(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode());
                         mq.setIncludeRules(rule);
                         mq.setMessage(JSON.toJSONString(jo));
+                        mq.setIdempotentKey(snowflakeRedisGeneratorHandle.nextId());
+
                         String mqStr = JSON.toJSONString(mq);
                         if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
                             rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
@@ -689,6 +695,8 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
         mqFact.setIncludeRules(Sets.newHashSet("YiXin_NonRealTime_CustomerTransfer"));
         mqFact.setSource(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode());
         mqFact.setMessage(JSONObject.toJSONString(paramMessage));
+        mqFact.setIdempotentKey(snowflakeRedisGeneratorHandle.nextId());
+
         if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
             String message = JSON.toJSONString(mqFact);
             rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC

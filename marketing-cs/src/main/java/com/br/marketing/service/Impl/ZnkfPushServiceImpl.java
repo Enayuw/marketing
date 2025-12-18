@@ -157,6 +157,8 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                     final MqFact mqFact = new MqFact();
                     mqFact.setSourceId(callRecord.getId());
                     mqFact.setSource(TransferSource.CUSTOMER_CALL_RECORD.getCode());
+                    mqFact.setIdempotentKey(snowflakeRedisGeneratorHandle.nextId());
+
                     if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
                         String message = JSON.toJSONString(mqFact);
                         rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
@@ -386,6 +388,8 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                 final MqFact mqFact = new MqFact();
                 mqFact.setSourceId(smsCallback.getId());
                 mqFact.setSource(TransferSource.CUSTOMER_SMS_CALLBACK.getCode());
+                mqFact.setIdempotentKey(snowflakeRedisGeneratorHandle.nextId());
+
                 if (rocketMqSwitch.rocketMQSwitchFlag(dto.getApiCode(), MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)) {
                     String message = JSON.toJSONString(mqFact);
                     rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
