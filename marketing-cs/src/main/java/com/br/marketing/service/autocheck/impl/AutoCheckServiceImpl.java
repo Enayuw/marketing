@@ -10,6 +10,7 @@ import com.br.marketing.mapper.AutoCheckSwapMapper;
 import com.br.marketing.service.MarketingCustomerService;
 import com.br.marketing.service.autocheck.AutoCheckService;
 import com.br.marketing.vo.MarketingCustomerVO;
+import com.br.marketing.vo.autocheck.AutoCheckResultVO;
 import com.br.marketing.vo.autocheck.AutoConfigVO;
 import com.br.marketing.vo.autocheck.SenceVO;
 import lombok.extern.slf4j.Slf4j;
@@ -155,5 +156,27 @@ public class AutoCheckServiceImpl implements AutoCheckService {
             result = autoCheckConfigMapper.updateByPrimaryKeySelective(existingConfig);
         }
         return result > 0;
+    }
+
+    @Override
+    public Boolean delAutoCheckConfig(Long id) {
+        if (Objects.isNull(id)) {
+            return true;
+        }
+        AutoCheckConfig existingConfig = autoCheckConfigMapper.selectByPrimaryKey(id);
+        if (Objects.isNull(existingConfig)) {
+            log.warn("要删除的配置不存在，id: {}", id);
+            return true;
+        }
+        // 更新字段
+        existingConfig.setIsDeleted((byte) 1);
+        existingConfig.setUpdateTime(new Date());
+        // 更新数据库
+        return autoCheckConfigMapper.updateByPrimaryKeySelective(existingConfig) > 0;
+    }
+
+    @Override
+    public List<AutoCheckResultVO> getResultList(String apiCodes, String senceCodes) {
+        return List.of();
     }
 }

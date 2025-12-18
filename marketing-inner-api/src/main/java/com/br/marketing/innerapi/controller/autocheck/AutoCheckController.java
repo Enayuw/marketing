@@ -6,6 +6,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.dto.autocheck.SaveAutoCheckConfigDto;
 import com.br.marketing.service.autocheck.AutoCheckService;
+import com.br.marketing.vo.autocheck.AutoCheckResultVO;
 import com.br.marketing.vo.autocheck.AutoConfigVO;
 import com.br.marketing.vo.autocheck.SenceVO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -76,6 +77,37 @@ public class AutoCheckController {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
                     "保存自动化巡检配置接口错误！错误信息：" + ex.getMessage()), ex);
             return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+    @GetMapping("/delete")
+    @Operation(summary = "删除自动化巡检配置接口", description = "删除自动化巡检配置接口")
+    @Parameter(name = "id", description = "配置id")
+    public ApiResult<Boolean> delAutoCheckConfig(@RequestParam(name = "id") Long id) {
+        try {
+            Boolean res = autoCheckService.delAutoCheckConfig(id);
+            return new ApiResult<Boolean>().success(res);
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
+                    "删除自动化巡检配置接口错误！错误信息：" + ex.getMessage()), ex);
+            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+    @GetMapping("/resultList")
+    @Operation(summary = "根据apiCode和场景查询巡检结果", description = "根据apiCode和场景查询巡检结果")
+    @Parameters({@Parameter(name = "apiCodes", description = "多apiCode用逗号分隔"),
+            @Parameter(name = "senceCodes", description = "场景编码，多场景逗号分隔")
+    })
+    public ApiResult<List<AutoCheckResultVO>> getResultList(@RequestParam(name = "apiCodes") String apiCodes,
+                                                            @RequestParam(name = "senceCodes") String senceCodes) {
+        try {
+            List<AutoCheckResultVO> list = autoCheckService.getResultList(apiCodes, senceCodes);
+            return new ApiResult<List<AutoCheckResultVO>>().success(list);
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
+                    "根据指定的apiCode和场景查询已有配置接口错误！错误信息：" + ex.getMessage()), ex);
+            return new ApiResult<List<AutoCheckResultVO>>().fail(ServiceResultEnum.FAILED);
         }
     }
 
