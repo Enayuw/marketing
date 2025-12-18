@@ -1,12 +1,15 @@
 package com.br.marketing.service.autocheck.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import com.br.marketing.dto.autocheck.SaveAutoCheckConfigDto;
 import com.br.marketing.entity.AutoCheckConfig;
 import com.br.marketing.entity.AutoCheckSwap;
 import com.br.marketing.entity.AutoCheckSwapExample;
 import com.br.marketing.mapper.AutoCheckConfigMapper;
 import com.br.marketing.mapper.AutoCheckSwapMapper;
+import com.br.marketing.service.MarketingCustomerService;
 import com.br.marketing.service.autocheck.AutoCheckService;
+import com.br.marketing.vo.MarketingCustomerVO;
 import com.br.marketing.vo.autocheck.AutoConfigVO;
 import com.br.marketing.vo.autocheck.SenceVO;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +34,9 @@ public class AutoCheckServiceImpl implements AutoCheckService {
 
     @Resource
     private AutoCheckConfigMapper autoCheckConfigMapper;
+
+    @Resource
+    private MarketingCustomerService marketingCustomerService;
 
     @Override
     public List<AutoConfigVO> getConfigList(String apiCodes, String senceCodes) {
@@ -64,6 +70,11 @@ public class AutoCheckServiceImpl implements AutoCheckService {
             return result;
         }
 
+        // 查询apiCode信息
+        List<MarketingCustomerVO> apiCodeInfoList = marketingCustomerService.getApiCodeList(apiCodeList);
+        Map<String, MarketingCustomerVO> apiCodeInfoMap = apiCodeInfoList.stream()
+                .collect(Collectors.toMap(MarketingCustomerVO::getApiCode, e -> e));
+
         // 收集所有配置中涉及的场景编码，用于查询场景信息
         List<String> allSenceCodes = new ArrayList<>();
         for (AutoCheckConfig config : configList) {
@@ -76,19 +87,13 @@ public class AutoCheckServiceImpl implements AutoCheckService {
                 allSenceCodes.addAll(configSenceCodes);
             }
         }
-
         // 去重
         allSenceCodes = allSenceCodes.stream().distinct().collect(Collectors.toList());
 
         // 查询场景信息
-        Map<String, SenceVO> senceMap = new HashMap<>();
-        if (!CollUtil.isEmpty(allSenceCodes)) {
-            List<SenceVO> senceVOList = autoCheckSwapMapper.selectBySenceCodes(allSenceCodes);
-            senceMap = senceVOList.stream()
-                    .collect(Collectors.toMap(SenceVO::getSenceCode, sence -> sence));
-        }
-
-        // 按api_code分组配置，用于组装AutoConfigVO
+        List<SenceVO> senceVOList = autoCheckSwapMapper.selectBySenceCodes(allSenceCodes);
+        Map<String, SenceVO> senceMap = senceVOList.stream()
+                .collect(Collectors.toMap(SenceVO::getSenceCode, sence -> sence));
         Map<String, AutoCheckConfig> configMapByApiCode = configList.stream()
                 .collect(Collectors.toMap(AutoCheckConfig::getApiCode, e -> e));
 
@@ -98,11 +103,10 @@ public class AutoCheckServiceImpl implements AutoCheckService {
             AutoCheckConfig apiConfig = configMapByApiCode.get(apiCode);
             vo.setId(apiConfig.getId());
             vo.setApiCode(apiCode);
-            // 注意：这里设置name为apiCode，如果需要从其他地方获取，请调整
-            vo.setName(apiCode);
+            vo.setName(apiCodeInfoMap.get(apiCode).getName());
+
             // 收集该ApiCode下的所有场景信息
             List<SenceVO> senceList = new ArrayList<>();
-
             String simpleConfigSenceCodes = apiConfig.getSenceCode();
             if (StringUtils.isNotBlank(simpleConfigSenceCodes)) {
                 String[] split = simpleConfigSenceCodes.split(",");
@@ -114,7 +118,6 @@ public class AutoCheckServiceImpl implements AutoCheckService {
                 }
             }
             vo.setSence(senceList);
-            // 设置第一个配置的ID作为VO的ID
             result.add(vo);
         }
         return result;
@@ -123,5 +126,34 @@ public class AutoCheckServiceImpl implements AutoCheckService {
     @Override
     public List<SenceVO> searchSenceList(String searchContent) {
         return autoCheckSwapMapper.searchSenceList(searchContent);
+    }
+
+    @Override
+    public Boolean saveAutoCheckConfig(SaveAutoCheckConfigDto dto) {
+        int result;
+        if (Objects.isNull(dto.getId())) {
+            // 新增
+            AutoCheckConfig config = new AutoCheckConfig();
+            config.setApiCode(dto.getApiCode());
+            config.setSenceCode(dto.getSenceCodes());
+            Date now = new Date();
+            config.setCreateTime(now);
+            config.setUpdateTime(now);
+            // 插入数据库
+            result = autoCheckConfigMapper.insertSelective(config);
+        } else {
+            // 编辑
+            AutoCheckConfig existingConfig = autoCheckConfigMapper.selectByPrimaryKey(dto.getId());
+            if (Objects.isNull(existingConfig)) {
+                log.warn("要编辑的配置不存在，id: {}", dto.getId());
+                return false;
+            }
+            // 更新字段
+            existingConfig.setSenceCode(dto.getSenceCodes());
+            existingConfig.setUpdateTime(new Date());
+            // 更新数据库
+            result = autoCheckConfigMapper.updateByPrimaryKeySelective(existingConfig);
+        }
+        return result > 0;
     }
 }

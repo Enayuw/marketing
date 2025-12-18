@@ -4,6 +4,7 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ServiceResultEnum;
+import com.br.marketing.dto.autocheck.SaveAutoCheckConfigDto;
 import com.br.marketing.service.autocheck.AutoCheckService;
 import com.br.marketing.vo.autocheck.AutoConfigVO;
 import com.br.marketing.vo.autocheck.SenceVO;
@@ -16,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -61,6 +63,19 @@ public class AutoCheckController {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
                     "场景下拉列表接口错误！错误信息：" + ex.getMessage()), ex);
             return new ApiResult<List<SenceVO>>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+    @PostMapping("/save")
+    @Operation(summary = "保存自动化巡检配置接口(新增/编辑)", description = "保存自动化巡检配置接口(新增/编辑)")
+    public ApiResult<Boolean> saveAutoCheckConfig(@Valid @RequestBody SaveAutoCheckConfigDto dto) {
+        try {
+            Boolean res = autoCheckService.saveAutoCheckConfig(dto);
+            return new ApiResult<Boolean>().success(res);
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
+                    "保存自动化巡检配置接口错误！错误信息：" + ex.getMessage()), ex);
+            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
         }
     }
 
