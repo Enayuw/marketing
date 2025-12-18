@@ -1151,16 +1151,17 @@ public class DataCleanServiceImpl implements DataCleanService {
             List<MarketingDataCleanGeneralRuleConfig> ruleConfigListTmp = new ArrayList<>(marketingDataCleanGeneralRuleConfigList);
             List<MarketingDataCleanGeneralRuleConfig> dataItemList = ruleConfigListTmp.stream().filter(
                     ruleConfig -> ruleConfig.getMappingField().equals("dataItems")
-            ).collect(Collectors.toList());
+            ).toList();
             if (!CollectionUtils.isEmpty(dataItemList)) {
                 levelField = dataItemList.get(0).getCleanFields();
+                ruleConfigListTmp.removeIf(config -> config.getMappingField().equals("dataItems"));
             }
 
             if (StringUtils.isNotEmpty(levelField)) {
                 // 如果有层级字段，提取该字段对应的数组进行清洗
                 List<JSONObject> jsonObjectLists = JsonParseUtils.parseJsonArrayByName(jsonObject, levelField);
                 // 清洗数组中的数据
-                dataCleanByRules(jsonObjectLists, marketingDataCleanGeneralRuleConfigList);
+                dataCleanByRules(jsonObjectLists, ruleConfigListTmp);
                 // 将清洗后的数组转换为JSONArray并直接替换原JSON对象中的字段
                 JSONArray cleanedArray = new JSONArray();
                 for (JSONObject cleanedJson : jsonObjectLists) {
