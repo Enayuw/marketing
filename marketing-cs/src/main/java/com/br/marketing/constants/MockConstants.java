@@ -30,16 +30,15 @@ public final class MockConstants {
     public static final String TEST_DTO_RETURN = "test_dto_return";
     public static final String TEST_LIST_RETURN = "test_list_return";
     // ==================== 工具方法 ====================
+
+    public static final String TEST_QIFIUQUERY_RETURN = "test_qifuquery_return";
+
     //随意记黑名单获取MOCK
     public static final String SUIYIJI_QUERY_BLACK = "suiyiji_query_black";
     //随忆记用户信息撞库
     public static final String SUIYIJI_ORIGINAL = "suiyiji_original";
     //随忆记黑名单
     public static final String SUIYIJI_BLACK = "suiyiji_black";
-
-
-
-    public static final String TEST_QIFIUQUERY_RETURN = "test_qifuquery_return";
 
     public static final String TEST_DIDI_V5_COLLIDING_DATA_RETURN = "test_didi_v5_colliding_data_return";
 

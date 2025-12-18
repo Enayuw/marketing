@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.MkNodeStatisticsMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MkNodeStatistics" >
+    <result column="stat_date" property="statDate" jdbcType="OTHER" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="link_id" property="linkId" jdbcType="BIGINT" />
+    <result column="link_node_id" property="linkNodeId" jdbcType="BIGINT" />
+    <result column="total_count" property="totalCount" jdbcType="BIGINT" />
+    <result column="total_magnitude" property="totalMagnitude" jdbcType="BIGINT" />
+    <result column="first_update_time" property="firstUpdateTime" jdbcType="OTHER" />
+    <result column="last_update_time" property="lastUpdateTime" jdbcType="OTHER" />
+    <result column="update_count" property="updateCount" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    stat_date, api_code, link_id, link_node_id, total_count, total_magnitude, first_update_time, 
+    last_update_time, update_count
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MkNodeStatisticsExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from mk_node_statistics
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.MkNodeStatisticsExample" >
+    delete from mk_node_statistics
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.MkNodeStatistics" >
+    insert into mk_node_statistics (stat_date, api_code, link_id, 
+      link_node_id, total_count, total_magnitude, 
+      first_update_time, last_update_time, update_count
+      )
+    values (#{statDate,jdbcType=OTHER}, #{apiCode,jdbcType=VARCHAR}, #{linkId,jdbcType=BIGINT}, 
+      #{linkNodeId,jdbcType=BIGINT}, #{totalCount,jdbcType=BIGINT}, #{totalMagnitude,jdbcType=BIGINT}, 
+      #{firstUpdateTime,jdbcType=OTHER}, #{lastUpdateTime,jdbcType=OTHER}, #{updateCount,jdbcType=INTEGER}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.MkNodeStatistics" >
+    insert into mk_node_statistics
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="statDate != null" >
+        stat_date,
+      </if>
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="linkId != null" >
+        link_id,
+      </if>
+      <if test="linkNodeId != null" >
+        link_node_id,
+      </if>
+      <if test="totalCount != null" >
+        total_count,
+      </if>
+      <if test="totalMagnitude != null" >
+        total_magnitude,
+      </if>
+      <if test="firstUpdateTime != null" >
+        first_update_time,
+      </if>
+      <if test="lastUpdateTime != null" >
+        last_update_time,
+      </if>
+      <if test="updateCount != null" >
+        update_count,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="statDate != null" >
+        #{statDate,jdbcType=OTHER},
+      </if>
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="linkId != null" >
+        #{linkId,jdbcType=BIGINT},
+      </if>
+      <if test="linkNodeId != null" >
+        #{linkNodeId,jdbcType=BIGINT},
+      </if>
+      <if test="totalCount != null" >
+        #{totalCount,jdbcType=BIGINT},
+      </if>
+      <if test="totalMagnitude != null" >
+        #{totalMagnitude,jdbcType=BIGINT},
+      </if>
+      <if test="firstUpdateTime != null" >
+        #{firstUpdateTime,jdbcType=OTHER},
+      </if>
+      <if test="lastUpdateTime != null" >
+        #{lastUpdateTime,jdbcType=OTHER},
+      </if>
+      <if test="updateCount != null" >
+        #{updateCount,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.MkNodeStatisticsExample" resultType="java.lang.Integer" >
+    select count(*) from mk_node_statistics
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update mk_node_statistics
+    <set >
+      <if test="record.statDate != null" >
+        stat_date = #{record.statDate,jdbcType=OTHER},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.linkId != null" >
+        link_id = #{record.linkId,jdbcType=BIGINT},
+      </if>
+      <if test="record.linkNodeId != null" >
+        link_node_id = #{record.linkNodeId,jdbcType=BIGINT},
+      </if>
+      <if test="record.totalCount != null" >
+        total_count = #{record.totalCount,jdbcType=BIGINT},
+      </if>
+      <if test="record.totalMagnitude != null" >
+        total_magnitude = #{record.totalMagnitude,jdbcType=BIGINT},
+      </if>
+      <if test="record.firstUpdateTime != null" >
+        first_update_time = #{record.firstUpdateTime,jdbcType=OTHER},
+      </if>
+      <if test="record.lastUpdateTime != null" >
+        last_update_time = #{record.lastUpdateTime,jdbcType=OTHER},
+      </if>
+      <if test="record.updateCount != null" >
+        update_count = #{record.updateCount,jdbcType=INTEGER},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update mk_node_statistics
+    set stat_date = #{record.statDate,jdbcType=OTHER},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      link_id = #{record.linkId,jdbcType=BIGINT},
+      link_node_id = #{record.linkNodeId,jdbcType=BIGINT},
+      total_count = #{record.totalCount,jdbcType=BIGINT},
+      total_magnitude = #{record.totalMagnitude,jdbcType=BIGINT},
+      first_update_time = #{record.firstUpdateTime,jdbcType=OTHER},
+      last_update_time = #{record.lastUpdateTime,jdbcType=OTHER},
+      update_count = #{record.updateCount,jdbcType=INTEGER}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+</mapper>

@@ -34,11 +34,6 @@ mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-  global-config:
-    db-config:
-      logic-delete-field: isDeleted
-      logic-delete-value: 1
-      logic-not-delete-value: 0
 
 # SpringDoc OpenAPI 配置
 springdoc:
@@ -46,8 +41,8 @@ springdoc:
     enabled: false
     path: /v3/api-docs
   swagger-ui:
-    config-url: /compass-api/api/marketing-data-monkey/v3/api-docs/swagger-config
-    url: /compass-api/api/marketing-data-monkey/v3/api-docs
+    config-url:  /api/marketing-data-monkey/v3/api-docs/swagger-config
+    url: /api/marketing-data-monkey/v3/api-docs
     path: /swagger-ui.html
     disable-swagger-default-url: false
 
