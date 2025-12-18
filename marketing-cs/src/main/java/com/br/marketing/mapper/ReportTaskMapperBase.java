@@ -6,7 +6,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
 public interface ReportTaskMapperBase {
-    long countByExample(ReportTaskExample example);
+    int countByExample(ReportTaskExample example);
 
     int deleteByExample(ReportTaskExample example);
 

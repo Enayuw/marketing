@@ -621,7 +621,7 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
             taskExample.createCriteria()
                     .andReportNameEqualTo(reportName)
                     .andIsDelEqualTo(Constants.DATA_VALID);
-            long l = reportTaskMapper.countByExample(taskExample);
+            int l = reportTaskMapper.countByExample(taskExample);
             if(l>0){
                 return new ApiResult<Boolean>().fail(false, "报表名称重复，请重新输入");
             }
