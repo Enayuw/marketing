@@ -6,5 +6,5 @@ import lombok.Data;
 public class DiDiV5CollidingResultResponseDTO {
     private String errorCode;
     private String errorMessage;
-    private DiDiV5CollidingResult result;
+    private DiDiV5CollidingResult data;
 }

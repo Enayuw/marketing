@@ -33,7 +33,7 @@ public class DiDiV5Client {
     @Mockable(mockName = MockConstants.TEST_DIDI_V5_COLLIDING_DATA_RETURN)
     public Result<String> colliding(String mediaName, DiDiV5CollidingRequestDTO requestDTO) {
         collidingUrl = collidingUrl.replace("mediaName", mediaName);
-        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(requestDTO, collidingUrl, isProxy, MediaType.APPLICATION_JSON_VALUE,
+        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(requestDTO, collidingUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE,
                 JSON.toJSONString(requestDTO), true, false);
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(JSONObject.toJSONString(resMap));
     }
