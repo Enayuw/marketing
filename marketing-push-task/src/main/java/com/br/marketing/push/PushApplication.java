@@ -22,7 +22,9 @@ import org.springframework.context.annotation.ImportResource;
  * Created by Bairong on 2019/8/28.
  */
 @ImportResource(locations = {"classpath:scheduler.xml"})
-@SpringBootApplication(exclude = {MultipartAutoConfiguration.class, SpringBootConfiguration.class}, scanBasePackages = {"com.br.marketing"})
+@SpringBootApplication(
+        exclude = {MultipartAutoConfiguration.class, SpringBootConfiguration.class},
+        scanBasePackages = {"com.br.marketing"})
 @EnableAspectJAutoProxy
 @EnableFeignClients(basePackages = {"com.br.marketing"})
 @MapperScan("com.br.marketing.mapper")

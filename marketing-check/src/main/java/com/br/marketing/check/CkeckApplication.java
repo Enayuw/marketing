@@ -21,7 +21,8 @@ import org.springframework.context.annotation.ImportResource;
 /**
  * Created by Bairong on 2019/10/30.
  */
-@SpringBootApplication(exclude = {MultipartAutoConfiguration.class,SpringBootConfiguration.class},
+@SpringBootApplication(
+        exclude = {MultipartAutoConfiguration.class,SpringBootConfiguration.class},
         scanBasePackages = {"com.br.marketing","com.marketingkit"})
 @EnableAspectJAutoProxy
 @EnableFeignClients(basePackages = {"com.br.marketing"})

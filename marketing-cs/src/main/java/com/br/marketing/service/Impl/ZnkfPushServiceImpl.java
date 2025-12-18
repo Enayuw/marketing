@@ -55,18 +55,15 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
@@ -121,6 +118,9 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
 
     @Autowired
     private CallRecordLLMResultV2Mapper callRecordLLMResultV2Mapper;
+
+    @Autowired
+    private CallRecordInsertService callRecordInsertService;
 
 
     @Override
@@ -561,14 +561,13 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public String callbackDataInsert(String jsonData) {
         try {
             // 解析JSON获取vision版本字段
             JSONObject jsonObject = JSONObject.parseObject(jsonData);
             String version = jsonObject.getString("version");
             if (StringUtils.isEmpty(version)) {
-                log.warn("JSON数据中缺少version字段");
+                log.warn("[通用大模型回调]JSON数据中缺少version字段");
                 return "lack version";
             }
 
@@ -578,27 +577,22 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             // 解析数据结构，获取sessionId
             String sessionId = getSessionIdFromJson(jsonObject);
             if (StringUtils.isEmpty(sessionId)) {
-                log.error("JSON数据中缺少sessionId字段");
+                log.error("[通用大模型回调]JSON数据中缺少sessionId字段");
                 return "lack sessionId";
             }
 
-            // 生成insert语句并执行插入
-            String insertSql = buildInsertSqlByJson(tableName, jsonObject);
-            Map<String, Object> resultMap = new HashMap<>();
-            callRecordLLMResultV2Mapper.insertData(insertSql, resultMap);
-            Long versionRecordId = resultMap.get("id") != null ? ((Number) resultMap.get("id")).longValue() : null;
-            log.warn("插入版本明细表成功，tableName={}, sessionId={}, versionRecordId={}", tableName, sessionId, versionRecordId);
+            // 通过独立Service插入数据，方法返回时事务已提交
+            Long versionRecordId = callRecordInsertService.insertData(tableName, jsonObject);
 
             // 判断version版本是不是 LLMResultV2
             if ("LLMResultV2".equals(version)) {
-                // 异步发送mq消息去入库，只发送数据id
                 rocketMqSwitch.syncSend(MarketingCallRecordConstants.TOPIC,
                         MarketingCallRecordConstants.TAG_MARKETING_CALL_RECORD_VERSION_INSERT, versionRecordId);
-                log.warn("发送MQ消息成功，tableName={}, dataId={}", tableName, versionRecordId);
+                log.warn("[通用大模型回调]发送MQ消息成功，tableName={}, dataId={}", tableName, versionRecordId);
             }
             return "success";
         } catch (Exception ex) {
-            log.error("回调数据入库失败，错误信息：{}", ex.getMessage(), ex);
+            log.error("[通用大模型回调]回调数据入库失败，错误信息：{}", ex.getMessage(), ex);
             // 重新抛出异常，确保事务回滚所有DML操作
             throw ex;
         }
@@ -617,134 +611,6 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             }
         }
         return sessionId;
-    }
-
-    /**
-     * 驼峰命名转下划线命名
-     */
-    private String camelToSnake(String camelCase) {
-        if (StringUtils.isEmpty(camelCase)) {
-            return camelCase;
-        }
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < camelCase.length(); i++) {
-            char c = camelCase.charAt(i);
-            if (Character.isUpperCase(c)) {
-                if (i > 0) {
-                    result.append('_');
-                }
-                result.append(Character.toLowerCase(c));
-            } else {
-                result.append(c);
-            }
-        }
-        return result.toString();
-    }
-
-    /**
-     * 根据JSON动态构建插入SQL
-     */
-    private String buildInsertSqlByJson(String tableName, JSONObject jsonObject) {
-        StringBuilder sql = new StringBuilder();
-        StringBuilder columns = new StringBuilder();
-        StringBuilder values = new StringBuilder();
-
-        // 用于记录已添加的列名，避免重复
-        Set<String> addedColumns = new HashSet<>();
-
-        // 遍历JSON中的所有字段，生成INSERT语句
-        for (String key : jsonObject.keySet()) {
-
-            Object value = jsonObject.get(key);
-
-            // 如果detail字段是JSONObject，需要展开其内部字段
-            if ("detail".equals(key) && value instanceof JSONObject) {
-                JSONObject detailObj = (JSONObject) value;
-
-                // 先添加detail字段本身（json类型）
-                String columnName = camelToSnake(key);
-                if (!addedColumns.contains(columnName)) {
-                    columns.append("`").append(columnName).append("`,");
-                    // JSON对象转为JSON字符串
-                    String jsonStr = JSON.toJSONString(value);
-                    jsonStr = jsonStr.replace("\\", "\\\\").replace("'", "\\'");
-                    values.append("'").append(jsonStr).append("',");
-                    addedColumns.add(columnName);
-                }
-
-                // 遍历detail里的所有字段，作为独立列插入
-                for (String detailKey : detailObj.keySet()) {
-                    Object detailValue = detailObj.get(detailKey);
-                    String detailColumnName = camelToSnake(detailKey);
-
-                    // 避免与外层字段冲突，如果冲突则跳过（外层字段优先）
-                    if (!addedColumns.contains(detailColumnName) && detailValue != null) {
-                        columns.append("`").append(detailColumnName).append("`,");
-                        appendValue(values, detailValue);
-                        addedColumns.add(detailColumnName);
-                    }
-                }
-            } else if (value != null) {
-                // 普通字段处理
-                String columnName = camelToSnake(key);
-                if (!addedColumns.contains(columnName)) {
-                    columns.append("`").append(columnName).append("`,");
-                    appendValue(values, value);
-                    addedColumns.add(columnName);
-                }
-            }
-        }
-
-        // 默认增加 receive_date 字段，值为 LocalDate.now()
-        String receiveDateColumn = "receive_date";
-        if (!addedColumns.contains(receiveDateColumn)) {
-            columns.append("`").append(receiveDateColumn).append("`,");
-            String dateValue = LocalDate.now().toString();
-            values.append("'").append(dateValue).append("',");
-            addedColumns.add(receiveDateColumn);
-        }
-
-        // 移除最后的逗号
-        if (columns.length() > 0 && columns.charAt(columns.length() - 1) == ',') {
-            columns.setLength(columns.length() - 1);
-        }
-        if (values.length() > 0 && values.charAt(values.length() - 1) == ',') {
-            values.setLength(values.length() - 1);
-        }
-
-        sql.append("INSERT INTO `")
-                .append(tableName)
-                .append("` (")
-                .append(columns)
-                .append(") VALUES (")
-                .append(values)
-                .append(")");
-
-        return sql.toString();
-    }
-
-    /**
-     * 追加值到values字符串
-     */
-    private void appendValue(StringBuilder values, Object value) {
-        if (value instanceof String) {
-            String strValue = (String) value;
-            // 转义单引号和反斜杠，防止SQL注入
-            strValue = strValue.replace("\\", "\\\\").replace("'", "\\'");
-            values.append("'").append(strValue).append("',");
-        } else if (value instanceof Number || value instanceof Boolean) {
-            values.append(value).append(",");
-        } else if (value instanceof JSONObject || value instanceof Map) {
-            // JSON对象转为JSON字符串
-            String jsonStr = JSON.toJSONString(value);
-            jsonStr = jsonStr.replace("\\", "\\\\").replace("'", "\\'");
-            values.append("'").append(jsonStr).append("',");
-        } else {
-            // 其他类型转为字符串
-            String strValue = String.valueOf(value);
-            strValue = strValue.replace("\\", "\\\\").replace("'", "\\'");
-            values.append("'").append(strValue).append("',");
-        }
     }
 
     /**

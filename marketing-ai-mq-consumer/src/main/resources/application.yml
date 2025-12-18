@@ -3,9 +3,17 @@ spring:
     name: marketing-ai-mq-consumer
   profiles:
     active: pre
+  main:
+    allow-circular-references: true  # 允许循环依赖
+  autoconfigure:
+    exclude:
+      - com.br.transfer.config.log.Log4j2DynamicAutoConfiguration
+      - com.br.transfer.config.log.TempLog4j2DynamicAutoConfiguration
   aop:
-    proxy-target-class: true
-    auto: true
+   proxy-target-class: true
+   auto: true
+  lifecycle:
+    timeout-per-shutdown-phase: 30s  # 优雅关闭超时时间
   threadpool:
     queueCapacity: 50000
     # 线程池所使用的缓冲队列
@@ -22,7 +30,9 @@ server:
   port: 18788
   tomcat:
     max-http-form-post-size: 209715200
-mybatis:
+  shutdown: graceful  # 启用优雅关闭
+
+mybatis-plus:
   mapper-locations: mapper/*.xml
   configuration:
     map-underscore-to-camel-case: true

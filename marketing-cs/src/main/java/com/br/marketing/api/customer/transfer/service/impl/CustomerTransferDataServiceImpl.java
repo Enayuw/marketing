@@ -6,6 +6,7 @@ import com.alibaba.fastjson.TypeReference;
 import com.br.arch.geo.pulsar.ProductPulsarClientManager;
 import com.br.arch.geo.pulsar.ProductPulsarProducer;
 import com.br.common.encryption.Md5Utils;
+import com.br.common.log.AlertLog;
 import com.br.marketing.api.customer.transfer.adapter.CustomerDataAdapter;
 import com.br.marketing.api.customer.transfer.adapter.TransferDataAdaptee;
 import com.br.marketing.api.customer.transfer.handler.CustomerDataHandleSingleton;
@@ -17,6 +18,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.PulsarSubscription;
 import com.br.marketing.common.constants.PulsarTopic;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.utils.PulsarConsumerSkipUtil;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.CustomerResponseDTO;
@@ -28,6 +30,9 @@ import com.br.marketing.mapper.CustomerTransferDataReceiveMapper;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.ApiFieldCheckUtils;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -72,6 +77,9 @@ public class CustomerTransferDataServiceImpl implements CustomerTransferDataServ
 
     @Resource
     private RedisChgService redisChgService;
+
+    @Resource
+    private TrackingService trackingService;
 
     private static final ThreadPoolExecutor BR_EXECUTORS = BrExecutors.getThreadPool(1, 10
             , "订制转化数据接入字段检查");
@@ -147,6 +155,26 @@ public class CustomerTransferDataServiceImpl implements CustomerTransferDataServ
                 log.error(e.getMessage() + jsonData, e);
                 // 6.1 数据库容灾
                 respCustomer = sendMq(customDataHandleImpl, receive, respCustomer);
+            }
+
+            try {
+                // 埋点
+                JSONObject condition = new JSONObject();
+                condition.put("request_id", receive.getRequestId());
+                trackingService.trackBusinessLog(DataFlowDirection.IN
+                        , apiCode
+                        , "定制通用转化接口"
+                        , "b_customer_transfer_data_receive"
+                        , JSON.toJSONString(condition)
+                        , Long.valueOf(receive.getBizDataNumber())
+                        , TrackingContext.generateBatchId());
+            } catch (Exception ex) {
+                log.warn(
+                        AlertLog.buildWarnMessage(
+                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                , ex.getMessage()
+                                , "埋点异常")
+                        , ex);
             }
             // 8. 返回响应
             return respCustomer.getResponseCustomDTO();
