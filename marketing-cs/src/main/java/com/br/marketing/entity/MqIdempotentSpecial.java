@@ -11,7 +11,7 @@ public class MqIdempotentSpecial {
     /**
      * 幂等键
      */
-    private Long idempotentkey;
+    private Long idempotentKey;
 
     /**
      * 客户编号
@@ -56,12 +56,12 @@ public class MqIdempotentSpecial {
         this.id = id;
     }
 
-    public Long getIdempotentkey() {
-        return idempotentkey;
+    public Long getIdempotentKey() {
+        return idempotentKey;
     }
 
-    public void setIdempotentkey(Long idempotentkey) {
-        this.idempotentkey = idempotentkey;
+    public void setIdempotentKey(Long idempotentKey) {
+        this.idempotentKey = idempotentKey;
     }
 
     public String getApiCode() {
