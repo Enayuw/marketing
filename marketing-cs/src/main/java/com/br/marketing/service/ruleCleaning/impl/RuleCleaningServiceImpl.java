@@ -1839,7 +1839,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             String apiType = marketingCustomer.getApiType();
             // 2. 查询行业模板
             Result<JSONArray> jsonArrayResult = templateJsonParseService.queryIndustryTemplateJsonParses(
-                    firstDepartment, secondDepartment, apiType, systemType, dataType);
+                    firstDepartment, secondDepartment, apiType, systemType, dataType, acceptType);
             if (!jsonArrayResult.isSuccess()) {
                 log.warn("查询行业模板失败: {}", JSONObject.toJSONString(jsonArrayResult));
                 return result;

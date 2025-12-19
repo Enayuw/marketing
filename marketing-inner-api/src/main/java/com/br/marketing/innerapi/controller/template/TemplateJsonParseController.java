@@ -35,11 +35,12 @@ public class TemplateJsonParseController {
     public ApiResult<JSONArray> queryTemplateJsonParse(@RequestParam(name = "firstDepartment") String firstDepartment,
                                                        @RequestParam(name = "secondDepartment") String secondDepartment,
                                                        @RequestParam(name = "apiType") String apiType,
+                                                       @RequestParam(name = "systemType") Integer systemType,
                                                        @RequestParam(name = "dataType") Integer dataType,
-                                                       @RequestParam(name = "systemType") Integer systemType) {
+                                                       @RequestParam(name = "acceptType") Integer acceptType) {
         try {
             Result<JSONArray> result =
-                    templateJsonParseService.queryIndustryTemplateJsonParses(firstDepartment, secondDepartment, apiType, systemType, dataType);
+                    templateJsonParseService.queryIndustryTemplateJsonParses(firstDepartment, secondDepartment, apiType, systemType, dataType ,acceptType);
             return new ApiResult<JSONArray>().fromResult(result, 1);
         } catch (Exception e) {
             logger.error("根据三级部门及数据类型查询行业模板异常，message:{}", e.getMessage());
