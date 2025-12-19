@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.MkNodeStatisticsMapper" >
+
+    <!-- 根据链路节点ID列表查询统计信息（按日期范围聚合） -->
+    <select id="selectByLinkNodeIdsDM_" resultType="com.br.marketing.entity.MkNodeStatistics">
+        SELECT
+            api_code AS apiCode,
+            link_id AS linkId,
+            link_node_id AS linkNodeId,
+            total_count AS totalCount,
+            total_magnitude AS totalMagnitude,
+            first_update_time AS firstUpdateTime,
+            last_update_time AS lastUpdateTime,
+            update_count AS updateCount
+        FROM mk_node_statistics
+        <where>
+            <if test="linkNodeIds != null and linkNodeIds.size() > 0">
+                AND link_node_id IN
+                <foreach collection="linkNodeIds" item="id" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+            <if test="statDate != null and statDate != ''">
+                AND stat_date &gt;= #{statDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND stat_date &lt;= #{endDate}
+            </if>
+        </where>
+    </select>
+
+</mapper>

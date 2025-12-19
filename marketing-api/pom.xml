@@ -50,11 +50,11 @@
             <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
         <!--工具依赖-->
-        <dependency>
-            <groupId>org.yaml</groupId>
-            <artifactId>snakeyaml</artifactId>
-            <version>1.17</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.yaml</groupId>-->
+<!--            <artifactId>snakeyaml</artifactId>-->
+<!--            <version>1.17</version>-->
+<!--        </dependency>-->
         <!-- 消息队列 -->
         <dependency>
             <groupId>javax.validation</groupId>

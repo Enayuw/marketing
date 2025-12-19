@@ -2,9 +2,11 @@ package com.br.marketing.check.job.dataclean;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.entity.MarketingCleanDataFile;
@@ -20,6 +22,9 @@ import com.br.marketing.service.clean.common.impl.DataCleanServiceImpl;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.google.common.collect.Lists;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,7 +62,8 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
 
     @Autowired
     MarketingCleanDataFileMapper marketingCleanDataFileMapper;
-
+    @Resource
+    private TrackingService trackingService;
     @Resource
     private DataCleanServiceImpl dataCleanService;
 
@@ -152,6 +158,25 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
         dataFile.setReceiveDate(LocalDate.now().toString());
         dataFile.setTestRunData(JSON.toJSONString(jsonList));
         marketingCleanDataFileMapper.updateByPrimaryKeySelective(dataFile);
+
+        try {
+            String remark = String.format("手动清洗-文件样例同步,文件名称：%s"
+                    , cleanDataFile.getFileName());
+            trackingService.trackPointLog(DataFlowDirection.OUT
+                    , cleanDataFile.getApiCode()
+                    , "手动清洗-文件样例同步,"
+                    , (long) batchLines.size()
+                    , remark
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
+
     }
 
     private void fileSyncTable(SyncConfig syncConfig, String path, String fileName) {
@@ -195,6 +220,24 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
         dataFile.setReceiveDate(LocalDate.now().toString());
         dataFile.setTestRunData(JSON.toJSONString(jsonList));
         marketingCleanDataFileMapper.insertSelective(dataFile);
+
+        try {
+            String remark = String.format("清洗系统-文件样例同步,文件名称：%s"
+                    , fileStr);
+            trackingService.trackPointLog(DataFlowDirection.OUT
+                    , syncConfig.getApiCode()
+                    , "清洗系统-文件样例同步"
+                    , Long.valueOf(batchLines.size())
+                    , remark
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
 
     }
 }

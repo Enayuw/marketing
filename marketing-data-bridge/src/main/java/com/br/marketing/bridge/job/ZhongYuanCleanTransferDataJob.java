@@ -3,7 +3,9 @@ package com.br.marketing.bridge.job;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.marketingapi.input.PushTransferDataDetailDTO;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.TransferDataDTO;
@@ -16,6 +18,9 @@ import com.br.marketing.service.PushInfoService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Component;
@@ -40,13 +45,12 @@ import java.util.concurrent.TimeUnit;
 public class ZhongYuanCleanTransferDataJob extends AbstractSimpleElasticJob {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
-
     @Resource
     private ZhongYuanTransferMapper zhongYuanTransferMapper;
-
     @Resource
     private PushInfoService pushInfoService;
-
+    @Resource
+    private TrackingService trackingService;
     private static final String TITLE = "【中原消金转化数据清洗】";
     private static final Integer PUSH_NUM = 1000; // 单次推送最大数量
 
@@ -80,6 +84,24 @@ public class ZhongYuanCleanTransferDataJob extends AbstractSimpleElasticJob {
             // 3. 处理数据并推送
             processAndPushData(apiCode, transferList);
 
+            try {
+                JSONObject condition = new JSONObject();
+                condition.put("clean_status", 0);
+                trackingService.trackBusinessLog(DataFlowDirection.IN
+                        , apiCode
+                        , "中原消金转化数据清洗"
+                        , "b_marketing_zhongyuan_transfer"
+                        , JSON.toJSONString(condition)
+                        , Long.valueOf(transferList.size())
+                        , TrackingContext.generateBatchId());
+            } catch (Exception ex) {
+                log.warn(
+                        AlertLog.buildWarnMessage(
+                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                , ex.getMessage()
+                                , "埋点异常")
+                        , ex);
+            }
             log.warn("{}执行完成", TITLE);
 
         } catch (Exception e) {

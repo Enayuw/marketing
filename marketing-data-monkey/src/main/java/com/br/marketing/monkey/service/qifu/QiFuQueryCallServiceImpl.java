@@ -20,23 +20,23 @@ import com.br.marketing.service.Impl.qifu.enums.QiFuProcessStatusEnum;
 import com.br.marketing.service.Impl.qifu.enums.QiFuSelectStatusEnum;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 /**
@@ -67,11 +67,6 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
     private static final double COUPON_RATIO_THRESHOLD = 0.75;
 
     /**
-     * 时间阈值（12:00）
-     */
-    private static final LocalTime TIME_THRESHOLD = LocalTime.of(12, 0);
-
-    /**
      * Redis过期时间（秒），24小时
      */
     private static final int REDIS_EXPIRE_SECONDS = 24 * 60 * 60;
@@ -88,6 +83,9 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
+    @Resource
+    private TrackingService trackingService;
+
     @Override
     public void queryCallMessage() {
         // 获取今天的日期
@@ -95,6 +93,7 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
 
         JSONObject qifuAiCleanConfig = marketingCommonConfig.getQifuAiCleanConfig();
         LocalTime timeThreshold = LocalTime.parse(qifuAiCleanConfig.getString("timeThreshold"));
+        String cleaningSwitch = qifuAiCleanConfig.getString("cleaningSwitch");
 
         
         // 查询今天所有不同的user_type
@@ -112,7 +111,7 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
             final String finalTodayDate = todayDate;
             threadPool.submit(() -> {
                 try {
-                    processUserTypeData(finalUserType, finalTodayDate, timeThreshold);
+                    processUserTypeData(finalUserType, finalTodayDate, timeThreshold, cleaningSwitch);
                 } catch (Exception e) {
                     log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode()
                             , "奇富360ai查询外呼信息异常[userType: " + finalUserType + "]" + e.getMessage()), e);
@@ -122,7 +121,37 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
 
         // 关闭线程池
         shutdownThreadPool(threadPool);
+
+        try {
+            if(!userTypeList.isEmpty()){
+                List<String> apiCodes = Arrays.asList(getValueOfJson(qifuAiCleanConfig, "cleanApiCode", "3700226").split(","));
+                String remark = String.format("奇富360ai查询外呼信息,userTypeList：%s,注意：%s"
+                        , userTypeList, "量级不准确!");
+                trackingService.trackPointLog(DataFlowDirection.IN
+                        , apiCodes.get(0)
+                        , "奇富360定制查询外呼信息"
+                        , 1L
+                        , remark
+                        , TrackingContext.generateBatchId());
+            }
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
+
     }
+
+    private String getValueOfJson(JSONObject jo, String key, String defaultValue) {
+        if (jo == null || ObjectUtils.isEmpty(jo.getString(key))) {
+            return defaultValue;
+        }
+        return jo.getString(key);
+    }
+
 
     /**
      * 检查Redis开关（按user_type维度）
@@ -240,7 +269,7 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
     /**
      * 处理某个userType的数据（按场景维度处理，基于今天的数据）
      */
-    private void processUserTypeData(String userType, String todayDate, LocalTime timeThreshold) {
+    private void processUserTypeData(String userType, String todayDate, LocalTime timeThreshold, String cleaningSwitch) {
         // 检查当前场景的Redis开关
         boolean switchOpen = checkRedisSwitch(userType, todayDate);
 
@@ -263,7 +292,6 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
 
         Long indexId = null;
         boolean hasMore = true;
-
         while (hasMore) {
             // 查询当前场景今天的数据
             List<BQifuUploadDataOriginal> dataList = bQifuUploadDataOriginalMapper.selectDataForQueryCallByUserTypeAndDate(
@@ -276,18 +304,52 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
             indexId = dataList.get(dataList.size() - 1).getId();
 
             // 处理当前场景的数据（单场景调用接口）
-            processUserTypeDataList(userType, dataList, todayDate, timeThreshold);
+            processUserTypeDataList(userType, dataList, todayDate, timeThreshold, cleaningSwitch);
 
             if (dataList.size() < PAGE_SIZE) {
                 hasMore = false;
             }
+        }
+
+        // 数据处理完成后，如果当前user_type有卷比例>=75%，需要将所有非实时数据今天的这个场景下的查询状态非0的全部清洗状态置为0
+        resetCleanStatusIfCouponRatioHigh(userType, todayDate);
+    }
+
+    /**
+     * 如果当前user_type有卷比例>=75%，将所有非实时数据今天的这个场景下的查询状态非0的全部清洗状态置为0
+     * 
+     * @param userType 场景标识
+     * @param todayDate 今天的日期 yyyy-MM-dd
+     */
+    private void resetCleanStatusIfCouponRatioHigh(String userType, String todayDate) {
+        try {
+            // 检查当前user_type的有卷比例
+            double ratio = calculateCouponRatio(userType, todayDate);
+            
+            if (ratio >= COUPON_RATIO_THRESHOLD) {
+                log.warn("userType={} 今天 {} 有卷比例 {} >= {}，开始将所有非实时数据查询状态非0的清洗状态置为0", 
+                        userType, todayDate, ratio, COUPON_RATIO_THRESHOLD);
+                
+                // 批量更新符合条件的记录的清洗状态为0
+                int updateCount = bQifuUploadDataOriginalMapper.updateStatusToUnprocessedForNonRealtime(userType, todayDate);
+                
+                log.warn("userType={} 今天 {} 已将 {} 条非实时数据查询状态非0的清洗状态置为0", 
+                        userType, todayDate, updateCount);
+            } else {
+                log.info("userType={} 今天 {} 有卷比例 {} < {}，无需重置清洗状态", 
+                        userType, todayDate, ratio, COUPON_RATIO_THRESHOLD);
+            }
+        } catch (Exception e) {
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFUAI_SERVICEERROR.getCode()
+                    , "奇富360ai查询外呼信息异常[重置清洗状态失败, userType: " + userType + ", todayDate: " + todayDate + "]" + e.getMessage()), e);
         }
     }
 
     /**
      * 处理某个userType的数据列表（单场景调用接口）
      */
-    private void processUserTypeDataList(String userType, List<BQifuUploadDataOriginal> dataList, String todayDate, LocalTime timeThreshold) {
+    private void processUserTypeDataList(String userType, List<BQifuUploadDataOriginal> dataList,
+                                         String todayDate, LocalTime timeThreshold, String cleaningSwitch) {
         // 按serialNo分组，每50个一批调用接口
         List<String> serialNoList = dataList.stream()
                 .map(BQifuUploadDataOriginal::getSerialNo)
@@ -361,7 +423,7 @@ public class QiFuQueryCallServiceImpl implements QiFuQueryCallService {
                     record.setSelectStatus(QiFuSelectStatusEnum.RETRY_NO_COUPON.getCode());
                 }
             }
-            if (LocalTime.now().isAfter(timeThreshold) || LocalTime.now().equals(timeThreshold)) {
+            if (LocalTime.now().isAfter(timeThreshold) || LocalTime.now().equals(timeThreshold) || "true".equals(cleaningSwitch)) {
                 record.setStatus(QiFuProcessStatusEnum.UNPROCESSED.getCode());
             }
             updateRecords.add(record);

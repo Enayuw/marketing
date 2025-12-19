@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.adapter.transfer.TransferSyncAdapter;
 import com.br.marketing.adapter.transfer.adaptee.CaseShuheUserAdaptee;
@@ -34,6 +35,9 @@ import com.br.marketing.service.PushRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.ShuHeAESencUtil;
 import com.google.api.client.util.Lists;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,6 +89,9 @@ public class ShuHeUserServiceImpl {
 
     @Resource
     private SnowflakeRedisGeneratorHandle snowflakeRedisGeneratorHandle;
+
+    @Resource
+    private TrackingService trackingService;
 
     @Transactional(rollbackFor = Exception.class)
     public Long saveShUploadData(CaseShuheUploadData shuheUploadData, JSONObject uploadDataDTO, JSONArray listInfo) {
@@ -139,7 +146,7 @@ public class ShuHeUserServiceImpl {
                 reserveField1.remove("varData");
                 reserveField1.remove("orderId");
                 dto.setReserveField1(
-                    JSON.toJSONString(reserveField1, SerializerFeature.WriteNullStringAsEmpty, SerializerFeature.WriteNullListAsEmpty));
+                        JSON.toJSONString(reserveField1, SerializerFeature.WriteNullStringAsEmpty, SerializerFeature.WriteNullListAsEmpty));
                 try {
                     dto.setFingerprint(snowflakeRedisGeneratorHandle.nextId());
                 } catch (Exception e) {
@@ -166,8 +173,8 @@ public class ShuHeUserServiceImpl {
     /**
      * 2023-12-25 22:27 处理业务字段
      *
-     * @param varData 客户业务字段
-     * @param dto 百融业务字段
+     * @param varData       客户业务字段
+     * @param dto           百融业务字段
      * @param reserveField1 百融扩展字段
      */
     private void varDataHandle(JSONObject varData, MarketingPreUserDetailDTO dto, Map<String, Object> reserveField1) {
@@ -215,7 +222,7 @@ public class ShuHeUserServiceImpl {
         syncInfo.setApiCode(shuheUploadData.getApiCode());
         syncInfo.setCusBatch(userDTO.getTaskId());
         syncInfo.setRequestBatch(userDTO.getRequestId());
-        syncInfo.setLast((byte)0);
+        syncInfo.setLast((byte) 0);
         syncInfo.setTotal(0L);
         syncInfo.setCreateTime(shuheUploadData.getCreateTime());
         syncInfo.setUpdateTime(shuheUploadData.getCreateTime());
@@ -230,7 +237,8 @@ public class ShuHeUserServiceImpl {
 
     public void saveShTransferData(String apiCode, String jsonData, String requestId, Date createTime) {
         String msg = "";
-        ShuheTransferJsonDTO jsonDTO = JSONObject.parseObject(jsonData, new TypeReference<ShuheTransferJsonDTO>() {}.getType());
+        ShuheTransferJsonDTO jsonDTO = JSONObject.parseObject(jsonData, new TypeReference<ShuheTransferJsonDTO>() {
+        }.getType());
         String userType = jsonDTO.getBizType();
         // todo 模拟异常上线后要删除
         pushRuleService.mockDbOrRedisError(1, apiCode);
@@ -254,14 +262,14 @@ public class ShuHeUserServiceImpl {
             if (empty) {
                 msg = "不存在的业务类型电销转化数据，不会触发后续业务流程!";
                 this.sendAlarmMgs("数禾电销全场景数据定制化清洗入库", msg.concat("\napiCode“").concat(apiCode).concat("”\n案件编号“").concat(jsonDTO.getOrderId())
-                    .concat("”\n").concat("请及时跟进或与数禾客户及时沟通^_^"), alarmClient);
+                        .concat("”\n").concat("请及时跟进或与数禾客户及时沟通^_^"), alarmClient);
             }
         } else {
             final BaseUserType baseUserType = UserTypeStrategyFactory.getUserTypeStrategy(userType);
             caseShuheUser = CaseShuheUserFactory.newInstance().getCaseShuheUser(baseUserType, jsonDTO, apiCode, jsonData);
             if (!baseUserType.getApiCodes().contains(apiCode)) {
                 log.warn("场景(".concat(baseUserType.getApiCodes().toString()).concat(")与对应apiCode不匹配\n").concat(userType).concat("\napiCode“")
-                    .concat(apiCode).concat("”\n案件编号“").concat(jsonDTO.getOrderId()).concat("”\n").concat("请及时跟进或与数禾客户及时沟通^_^"));
+                        .concat(apiCode).concat("”\n案件编号“").concat(jsonDTO.getOrderId()).concat("”\n").concat("请及时跟进或与数禾客户及时沟通^_^"));
             }
         }
         // 3、查询db获取相应TaskId
@@ -271,7 +279,7 @@ public class ShuHeUserServiceImpl {
         }
         // 4、客户转化数据适配标准转化数据
         MarketingTransferSyncUser transferSyncUser =
-            new TransferSyncAdapter((CaseShuheUserAdaptee)caseShuheUser).transferSyncUserRequest(taskId, jsonDTO);
+                new TransferSyncAdapter((CaseShuheUserAdaptee) caseShuheUser).transferSyncUserRequest(taskId, jsonDTO);
         caseShuheUser.setReserveField2(requestId);
         transferSyncUser.setRequestId(requestId);
         // 5、数据落前置库
@@ -280,6 +288,27 @@ public class ShuHeUserServiceImpl {
         }
         caseShuheUserMapper.insertSelective(caseShuheUser);
         saveShuheTransferInfo(apiCode, caseShuheUser, transferSyncUser);
+
+        //region 埋点
+        try {
+            JSONObject condition = new JSONObject();
+            condition.put("request_id", transferSyncUser.getRequestId());
+            trackingService.trackBusinessLog(DataFlowDirection.IN
+                    , apiCode
+                    , "数禾定制转化接口上传数据"
+                    , "b_case_shuhe_user"
+                    , JSON.toJSONString(condition)
+                    , 1L
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
+        //endregion
     }
 
     private void saveShuheTransferInfo(String apiCode, CaseShuheUser caseShuheUser, MarketingTransferSyncUser transferSyncUser) {
@@ -305,10 +334,10 @@ public class ShuHeUserServiceImpl {
             transferInfo.setActualNum(1);
             marketingTransferInfoMapper.insertSelective(transferInfo);
             String id = String.valueOf(transferInfo.getId());
-            if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferSmallConstants.TAG_MARKETING_TRANSFER_RECEIVE_SMALL)){
+            if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferSmallConstants.TAG_MARKETING_TRANSFER_RECEIVE_SMALL)) {
                 pushRuleService.sendToRocketMqByConfig(apiCode, MarketingTransferSmallConstants.TOPIC
                         , MarketingTransferSmallConstants.TAG_MARKETING_TRANSFER_RECEIVE_SMALL, id, CustomerQueueEnum.ORG_TRANSFER);
-            }else{
+            } else {
                 pushRuleService.sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE_SMALL, id,
                         CustomerQueueEnum.ORG_TRANSFER);
             }
@@ -317,8 +346,8 @@ public class ShuHeUserServiceImpl {
             caseShuheUserMapper.updateByPrimaryKey(caseShuheUser);
             String msg = "数禾转化数据入标准转化失败!";
             this.sendAlarmMgs("数禾转化数据入标准转化",
-                msg.concat("\napiCode“").concat(apiCode).concat("”\n案件编号“").concat(caseShuheUser.getCustNum()).concat("”\n").concat("请及时跟进^_^"),
-                alarmClient);
+                    msg.concat("\napiCode“").concat(apiCode).concat("”\n案件编号“").concat(caseShuheUser.getCustNum()).concat("”\n").concat("请及时跟进^_^"),
+                    alarmClient);
         }
     }
 
