@@ -427,7 +427,7 @@
     ORDER BY applet_date DESC
   </select>
 
-  <!-- 自动化巡检：上传场景 - 前一天08:00快照（按 update_time <= yesterday 08:00 取每个 api_code 最新一条） -->
+  <!-- 自动化巡检：上传场景 - 前一天08:00快照（严格取 yesterday 08:00:00 ~ 08:01:00 窗口内，每个 api_code 最新一条） -->
   <select id="getLastDay8DataByApiCodes" resultType="com.br.marketing.dto.autocheck.CheckUploadSyncDataDto">
     SELECT
       r.api_code AS apiCode,
@@ -435,28 +435,32 @@
       r.duplicate_removal_num AS duplicateRemovalNum,
       DATE_FORMAT(r.create_time, '%Y-%m-%d %H:%i:%s') AS snapTime
     FROM b_marketing_sync_report r
-    INNER JOIN (
-      SELECT api_code, MAX(id) AS id
-      FROM b_marketing_sync_report
-      WHERE
-      <choose>
-        <when test="apiCodeList != null and apiCodeList.size > 0">
-          api_code IN
-          <foreach collection="apiCodeList" item="apiCode" open="(" close=")" separator=",">
-            #{apiCode}
-          </foreach>
-        </when>
-        <otherwise>
-          1 = 0
-        </otherwise>
-      </choose>
-      AND update_time <![CDATA[ <= ]]> CONCAT(DATE_SUB(CURDATE(), INTERVAL 1 DAY), ' 08:00:00')
-      GROUP BY api_code
-    ) t
-    ON r.api_code = t.api_code AND r.id = t.id
+    WHERE
+    <choose>
+      <when test="apiCodeList != null and apiCodeList.size > 0">
+        r.api_code IN
+        <foreach collection="apiCodeList" item="apiCode" open="(" close=")" separator=",">
+          #{apiCode}
+        </foreach>
+      </when>
+      <otherwise>
+        1 = 0
+      </otherwise>
+    </choose>
+    AND r.update_time <![CDATA[ >= ]]> TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 1 DAY), '08:00:00')
+    AND r.update_time <![CDATA[ < ]]>  TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 1 DAY), '08:01:00')
+    AND r.id = (
+      SELECT r2.id
+      FROM b_marketing_sync_report r2
+      WHERE r2.api_code = r.api_code
+        AND r2.update_time <![CDATA[ >= ]]> TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 1 DAY), '08:00:00')
+        AND r2.update_time <![CDATA[ < ]]>  TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 1 DAY), '08:01:00')
+      ORDER BY r2.update_time DESC, r2.id DESC
+      LIMIT 1
+    )
   </select>
 
-  <!-- 自动化巡检：上传场景 - 最新快照（取每个 api_code 最新一条） -->
+  <!-- 自动化巡检：上传场景 - 最新快照（严格取当前系统时间当天 00:00:00 ~ 24:00:00 内，每个 api_code 最新一条） -->
   <select id="getLatestDataByApiCodes" resultType="com.br.marketing.dto.autocheck.CheckUploadSyncDataDto">
     SELECT
       r.api_code AS apiCode,
@@ -464,24 +468,29 @@
       r.duplicate_removal_num AS duplicateRemovalNum,
       DATE_FORMAT(r.create_time, '%Y-%m-%d %H:%i:%s') AS snapTime
     FROM b_marketing_sync_report r
-    INNER JOIN (
-      SELECT api_code, MAX(id) AS id
-      FROM b_marketing_sync_report
-      WHERE
-      <choose>
-        <when test="apiCodeList != null and apiCodeList.size > 0">
-          api_code IN
-          <foreach collection="apiCodeList" item="apiCode" open="(" close=")" separator=",">
-            #{apiCode}
-          </foreach>
-        </when>
-        <otherwise>
-          1 = 0
-        </otherwise>
-      </choose>
-      GROUP BY api_code
-    ) t
-    ON r.api_code = t.api_code AND r.id = t.id
+    WHERE
+    <choose>
+      <when test="apiCodeList != null and apiCodeList.size > 0">
+        r.api_code IN
+        <foreach collection="apiCodeList" item="apiCode" open="(" close=")" separator=",">
+          #{apiCode}
+        </foreach>
+      </when>
+      <otherwise>
+        1 = 0
+      </otherwise>
+    </choose>
+    AND r.update_time <![CDATA[ >= ]]> CURDATE()
+    AND r.update_time <![CDATA[ < ]]>  DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+    AND r.id = (
+      SELECT r2.id
+      FROM b_marketing_sync_report r2
+      WHERE r2.api_code = r.api_code
+        AND r2.update_time <![CDATA[ >= ]]> CURDATE()
+        AND r2.update_time <![CDATA[ < ]]>  DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+      ORDER BY r2.update_time DESC, r2.id DESC
+      LIMIT 1
+    )
   </select>
 
   <select id="selectByIdList" resultType="com.br.marketing.vo.MarketingSyncReportVO">
