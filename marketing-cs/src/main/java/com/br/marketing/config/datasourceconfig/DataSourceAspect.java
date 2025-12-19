@@ -91,7 +91,7 @@ public class DataSourceAspect {
         DbContextHolder.setDbType(MARKETING_DATA_MAP);
     }
 
-    @After("tiKvOfMarketing()||tiflashOfMarketing()||dorisOfMarketing()||bIOfMarketing()||logOfMarketing()")
+    @After("tiKvOfMarketing()||tiflashOfMarketing()||dorisOfMarketing()||bIOfMarketing()||logOfMarketing()||dataMapOfMarketing()")
     public void afterInterceptor() {
         if(logger.isInfoEnabled()){
             logger.info("释放数据源{}.......................", DbContextHolder.getDbType());
