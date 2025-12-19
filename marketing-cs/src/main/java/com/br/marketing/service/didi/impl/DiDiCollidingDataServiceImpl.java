@@ -69,102 +69,125 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
     @Override
     public void colliding(JobExecutionMultipleShardingContext context) {
         TpDynamicExecutor pushPool = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.DIDI_V5_COLLIDING.getName(), 50, 50);
-        boolean flag = true;
-        while (flag) {
+        while (true) {
             JSONObject collidingConfig = marketingCommonConfig.getDiDiV5Config();
             int limit = collidingConfig.getInteger("limit") != null ? collidingConfig.getInteger("limit") : 2000;
             String mediaName = collidingConfig.getString("mediaName") != null ? collidingConfig.getString("mediaName") : "bairongC";
             String token = collidingConfig.getString("token") != null ? collidingConfig.getString("token") : "9Hqeoi36CJfdA7n4";
-            List<DiDiV5CollidingData> collidingDatas = diDiV5CollidingDataMapper.queryCollidingData(limit, DateUtil.beginOfDay(new Date()),
-                    new Date());
-            if (CollectionUtils.isEmpty(collidingDatas)) {
-                flag = false;
-                continue;
+            List<DiDiV5CollidingData> dataList = diDiV5CollidingDataMapper.queryCollidingData(limit, DateUtil.beginOfDay(new Date()), new Date());
+            if (CollectionUtils.isEmpty(dataList)) {
+                break;
             }
-            List<Long> ids = collidingDatas.stream().map(DiDiV5CollidingData::getId).toList();
-            diDiV5CollidingDataMapper.updatePushStatusByIds(1, ids);
-            collidingDatas.forEach((DiDiV5CollidingData collidingData) -> pushPool.execute(() -> {
-                DiDiV5CollidingRequestDTO requestDTO = new DiDiV5CollidingRequestDTO();
-                requestDTO.setSign(collidingData.getCell());
-                String timestamp = String.valueOf(System.currentTimeMillis());
-                requestDTO.setTimestamp(timestamp);
-                requestDTO.setSignature(MD5Util.encode(collidingData.getCell() + timestamp + token));
-                Result<String> response = diDiV5Client.colliding(mediaName, requestDTO);
-                String returnContent = response.getData();
-                JSONObject jsonObject = JSONObject.parseObject(returnContent);
-                String httpcode = jsonObject.getString("httpcode");
-                String content = jsonObject.getString("content");
-                if ("200".equals(httpcode) || StringUtils.isNotBlank(content)) {
-                    collidingData.setPushStatus(2);
-                }else {
-                    collidingData.setPushStatus(3);
-                }
-                diDiV5CollidingDataMapper.updateByPrimaryKey(collidingData);
-                JSONObject dto = new JSONObject();
-                dto.put("dataId", collidingData.getId());
-                dto.put("apiCode", collidingData.getApiCode());
-                dto.put("cell", collidingData.getCell());
-                dto.put("localId", collidingData.getLocalId());
-                dto.put("returnContent", response.getData());
-                rocketMqSwitch.syncSend(MarketingOutsideInterfaceConstants.TOPIC,
-                        MarketingOutsideInterfaceConstants.MARKETING_DIDI_V5_COLLIDING_DATA, dto.toJSONString());
-            }));
+            markAsPushing(dataList);
+            dataList.forEach((DiDiV5CollidingData data) -> pushPool.execute(() -> collidingData(data, mediaName, token)));
         }
+
         pushPool.shutdownAndAwaitTermination();
     }
 
-    @Override
-    public Result<Boolean> saveDiDiCollidingDataLog(String bodyString) {
-        Result<Boolean> result = new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(false);
-        JSONObject dto = JSONObject.parseObject(bodyString);
-        Long dataId = dto.getLong("dataId");
-        String apiCode = dto.getString("apiCode");
-        String cell = dto.getString("cell");
-        Long localId = dto.getLong("localId");
-        String returnContent = dto.getString("returnContent");
-        JSONObject jsonObject = JSONObject.parseObject(returnContent);
-        String httpcode = jsonObject.getString("httpcode");
-        String content = jsonObject.getString("content");
+    /**
+     * 标记为正在处理状态
+     *
+     * @param dataList 数据列表
+     * @author senyang.zheng
+     * @since 2025/12/19
+     */
+    private void markAsPushing(List<DiDiV5CollidingData> dataList) {
+        List<Long> ids = dataList.stream().map(DiDiV5CollidingData::getId).toList();
+        diDiV5CollidingDataMapper.updatePushStatusByIds(1, ids);
+    }
+
+
+    private void collidingData(DiDiV5CollidingData data, String mediaName, String token) {
+        //单个撞库异常不影响其他撞库
+        try {
+            Result<String> response = diDiV5Client.colliding(mediaName, buildRequest(data.getCell(), token));
+            String resData = response.getData();
+            JSONObject resJson = JSONObject.parseObject(resData);
+            String httpcode = resJson.getString("httpcode");
+            String content = resJson.getString("content");
+            boolean success = "200".equals(httpcode) || StringUtils.isNotBlank(content);
+            data.setPushStatus(success ? 3 : 2);
+            diDiV5CollidingDataMapper.updateByPrimaryKey(data);
+            pushToMq(data, httpcode, content);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(),
+                    "该手机号撞库异常：" + data.getCell() + "id:" + data.getId()), e.getMessage());
+        }
+    }
+
+    private void pushToMq(DiDiV5CollidingData data, String httpcode, String content) {
+        JSONObject mqJson = new JSONObject();
         DiDiV5CollidingDataLog diDiV5CollidingDataLog = new DiDiV5CollidingDataLog();
-        diDiV5CollidingDataLog.setApiCode(apiCode);
-        diDiV5CollidingDataLog.setCell(cell);
+        diDiV5CollidingDataLog.setApiCode(data.getApiCode());
+        diDiV5CollidingDataLog.setCell(data.getCell());
         diDiV5CollidingDataLog.setHttpCode(httpcode);
-        diDiV5CollidingDataLog.setDataId(dataId);
-        diDiV5CollidingDataLog.setLocalId(localId);
-        diDiV5CollidingDataLog.setReturnContent(returnContent);
-        if ("200".equals(httpcode) || StringUtils.isNotBlank(content)) {
-            DiDiV5CollidingResultResponseDTO diDiV5CollidingResultResponseDTO = JSON.parseObject(content, DiDiV5CollidingResultResponseDTO.class);
+        diDiV5CollidingDataLog.setDataId(data.getId());
+        diDiV5CollidingDataLog.setLocalId(data.getLocalId());
+        diDiV5CollidingDataLog.setReturnContent(content);
+        if (StringUtils.isNotBlank(content)) {
+            DiDiV5CollidingResultResponseDTO diDiV5CollidingResultResponseDTO = JSON.parseObject(content,
+                    DiDiV5CollidingResultResponseDTO.class);
             diDiV5CollidingDataLog.setErrorCode(diDiV5CollidingResultResponseDTO.getErrorCode());
             diDiV5CollidingDataLog.setErrorMessage(diDiV5CollidingResultResponseDTO.getErrorMessage());
             diDiV5CollidingDataLog.setResult(String.valueOf(diDiV5CollidingResultResponseDTO.getData().getResult()));
             diDiV5CollidingDataLog.setFailReason(String.valueOf(diDiV5CollidingResultResponseDTO.getData().getFailReason()));
             diDiV5CollidingDataLog.setUserGroup(String.valueOf(diDiV5CollidingResultResponseDTO.getData().getUserGroup()));
             diDiV5CollidingDataLog.setNextTime(String.valueOf(diDiV5CollidingResultResponseDTO.getData().getNextTime()));
-            diDiV5CollidingDataLogMapper.insertSelective(diDiV5CollidingDataLog);
-            if (diDiV5CollidingResultResponseDTO.getData().getResult()) {
-                JSONObject dataCelan = (JSONObject) JSONObject.toJSON(diDiV5CollidingResultResponseDTO.getData());
-                dataCelan.put("cell", cell);
-                List<JSONObject> data = Lists.newArrayList();
-                data.add(dataCelan);
-                try {
-                    Result cleanResult = generalDataCleanService.uploadClean(data, apiCode);
-                    if (cleanResult != null && cleanResult.isSuccess()) {
-                        String batchNo = apiCode + "_" + DateUtil.format(DateUtil.date(), "yyyyMMdd");
-                        String requestId = batchNo + "_" + RandomStringUtils.randomAlphabetic(16) + UUID.randomUUID();
-                        //3.调用定制化上传接口
-                        List<MarketingPreUserDetailDTO> marketingPreUserDetailDTOS = (List<MarketingPreUserDetailDTO>) cleanResult.getData();
-                        UploadDataDTO uploadDataDTO = initUploadData(apiCode, batchNo, marketingPreUserDetailDTOS, requestId);
-                        return pushInfoService.pushUploadByRetry(uploadDataDTO, null);
-                    } else {
-                        log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(),
-                                "数据清洗失败,dataId:" + dataId, TITLE));
-                    }
-                } catch (NoSuchFieldException e) {
-                    throw new RuntimeException(e);
-                }
+            mqJson.put("diDiV5CollidingResultResponseDTO", diDiV5CollidingResultResponseDTO);
+        }
+        mqJson.put("diDiV5CollidingDataLog", diDiV5CollidingDataLog);
+        rocketMqSwitch.syncSend(MarketingOutsideInterfaceConstants.TOPIC, MarketingOutsideInterfaceConstants.MARKETING_DIDI_V5_COLLIDING_DATA,
+                mqJson.toJSONString());
+    }
+
+    private DiDiV5CollidingRequestDTO buildRequest(String cell, String token) {
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        return new DiDiV5CollidingRequestDTO().setSign(cell).setTimestamp(timestamp).setSignature(MD5Util.encode(cell + timestamp + token));
+    }
+
+    @Override
+    public Result<Boolean> saveDiDiCollidingDataLog(String bodyString) {
+        Result<Boolean> result = new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(false);
+        try {
+            JSONObject dto = JSONObject.parseObject(bodyString);
+            String responseStr = dto.getString("diDiV5CollidingResultResponseDTO");
+            DiDiV5CollidingResultResponseDTO diDiV5CollidingResultResponseDTO = JSONObject.parseObject(responseStr,
+                    DiDiV5CollidingResultResponseDTO.class);
+            String dataLogStr = dto.getString("diDiV5CollidingDataLog");
+            DiDiV5CollidingDataLog dataLog = JSONObject.parseObject(dataLogStr, DiDiV5CollidingDataLog.class);
+            diDiV5CollidingDataLogMapper.insertSelective(dataLog);
+            if (!diDiV5CollidingResultResponseDTO.getData().getResult()) {
+                return result;
             }
+            return cleanAndUpload(diDiV5CollidingResultResponseDTO, dataLog);
+        } catch (Exception ex) {
+            log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(), "数据清洗/上传失败,bodyString:" + bodyString,
+                    TITLE), ex);
         }
         return result;
+    }
+
+    private Result<Boolean> cleanAndUpload(DiDiV5CollidingResultResponseDTO responseDTO, DiDiV5CollidingDataLog dataLog) throws NoSuchFieldException {
+        // 数据包装
+        JSONObject cleanJson = (JSONObject) JSONObject.toJSON(responseDTO.getData());
+        cleanJson.put("cell", dataLog.getCell());
+
+        Result cleanResult = generalDataCleanService.uploadClean(
+                Lists.newArrayList(cleanJson),
+                dataLog.getApiCode());
+
+        if (cleanResult == null || !cleanResult.isSuccess()) {
+            log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(), "数据清洗失败,dataId:" + dataLog.getDataId(), TITLE));
+            return cleanResult;
+        }
+        // 生成批次号与请求号
+        String batchNo = dataLog.getApiCode() + "_" + DateUtil.format(DateUtil.date(), "yyyyMMdd");
+        String requestId = batchNo + "_" + RandomStringUtils.randomAlphabetic(16) + UUID.randomUUID();
+        // 转换清洗结果
+        List<MarketingPreUserDetailDTO> userList = (List<MarketingPreUserDetailDTO>) cleanResult.getData();
+        UploadDataDTO uploadDataDTO = initUploadData(dataLog.getApiCode(), batchNo, userList, requestId);
+        return pushInfoService.pushUploadByRetry(uploadDataDTO, null);
     }
 
 
