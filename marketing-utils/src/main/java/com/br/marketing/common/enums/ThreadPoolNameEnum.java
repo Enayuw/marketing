@@ -58,6 +58,7 @@ public enum ThreadPoolNameEnum {
     TCYR_CPA_COLLIDING_DATA_COLLECT(33,"tcyr_cpa_colliding_data_collect_3710208","同程易融cpa_colliding_data_collect流程"),
     TCYR_CPA_PUSH_FILE_GEN_VT(34,"tcyr_cpa_push_file_gen_vt_3710208","同程易融生成推送文件"),
     TCYR_CPA_COLLIDING_DATA_FILTER(35,"tcyr_cpa_colliding_data_filter_3710208","同程CPA撞库数据过滤任务"),
+    TCYR_CPA_COLLIDING_DATA_CLEAN(36,"tcyr_cpa_colliding_data_clean_3710208","同程CPA撞库数据清洗任务"),
 
     HALO_CALLBACK_DATA_3710217(40,"halo_callback_data_3710217","哈啰营销数据回传"),
     XIECHENG_CYCLE_DELETE_EST(41,"xiecheng_cycle_delete_est", "携程周期剔除量级预估"),
