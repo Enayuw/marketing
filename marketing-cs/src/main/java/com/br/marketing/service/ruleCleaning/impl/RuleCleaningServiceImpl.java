@@ -2036,9 +2036,14 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 .andAcceptTypeEqualTo(config.getAcceptType())
                 .andSystemTypeEqualTo(config.getSystemType());
         List<MarketingJsonNodeParse> nodes = jsonNodeParseMapper.selectByExample(nodeExample);
-        // 没有客户数据——行业模板——试跑成功
-        update.setStatus(nodes.isEmpty() ? DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode()
-                : DataProcessEnum.RuleStatusEnum.READY.getCode());
+        // 营销中台
+        if (DataProcessEnum.SystemTypeEnum.MARKETING.getCode().equals(configDTO.getSystemType())) {
+            // 没有客户数据——行业模板——试跑成功
+            update.setStatus(nodes.isEmpty() ? DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode()
+                    : DataProcessEnum.RuleStatusEnum.READY.getCode());
+        }else{
+            update.setStatus(DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode());
+        }
         update.setUpdateTime(new Date());
         cleanGeneralConfigMapper.updateByPrimaryKeySelective(update);
         entityOptService.writeOptLog(update.getId(), update, config);
