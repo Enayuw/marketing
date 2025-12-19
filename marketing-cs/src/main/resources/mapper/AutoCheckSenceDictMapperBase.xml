@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.AutoCheckSwapMapper" >
-  <resultMap id="BaseResultMap" type="com.br.marketing.entity.AutoCheckSwap" >
+<mapper namespace="com.br.marketing.mapper.AutoCheckSenceDictMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.AutoCheckSenceDict" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="sence_code" property="senceCode" jdbcType="VARCHAR" />
     <result column="sence_name" property="senceName" jdbcType="VARCHAR" />
@@ -70,13 +70,13 @@
   <sql id="Base_Column_List" >
     id, sence_code, sence_name, is_deleted, create_time, update_time
   </sql>
-  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.AutoCheckSwapExample" >
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.AutoCheckSenceDictExample" >
     select
     <if test="distinct" >
       distinct
     </if>
     <include refid="Base_Column_List" />
-    from b_auto_check_swap
+    from b_auto_check_sence_dict
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
@@ -87,33 +87,33 @@
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
     select 
     <include refid="Base_Column_List" />
-    from b_auto_check_swap
+    from b_auto_check_sence_dict
     where id = #{id,jdbcType=BIGINT}
   </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
-    delete from b_auto_check_swap
+    delete from b_auto_check_sence_dict
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <delete id="deleteByExample" parameterType="com.br.marketing.entity.AutoCheckSwapExample" >
-    delete from b_auto_check_swap
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.AutoCheckSenceDictExample" >
+    delete from b_auto_check_sence_dict
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" parameterType="com.br.marketing.entity.AutoCheckSwap" >
+  <insert id="insert" parameterType="com.br.marketing.entity.AutoCheckSenceDict" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_auto_check_swap (sence_code, sence_name, is_deleted, 
+    insert into b_auto_check_sence_dict (sence_code, sence_name, is_deleted,
       create_time, update_time)
     values (#{senceCode,jdbcType=VARCHAR}, #{senceName,jdbcType=VARCHAR}, #{isDeleted,jdbcType=TINYINT}, 
       #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
-  <insert id="insertSelective" parameterType="com.br.marketing.entity.AutoCheckSwap" >
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.AutoCheckSenceDict" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_auto_check_swap
+    insert into b_auto_check_sence_dict
     <trim prefix="(" suffix=")" suffixOverrides="," >
       <if test="senceCode != null" >
         sence_code,
@@ -149,14 +149,14 @@
       </if>
     </trim>
   </insert>
-  <select id="countByExample" parameterType="com.br.marketing.entity.AutoCheckSwapExample" resultType="java.lang.Integer" >
-    select count(*) from b_auto_check_swap
+  <select id="countByExample" parameterType="com.br.marketing.entity.AutoCheckSenceDictExample" resultType="java.lang.Integer" >
+    select count(*) from b_auto_check_sence_dict
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </select>
   <update id="updateByExampleSelective" parameterType="map" >
-    update b_auto_check_swap
+    update b_auto_check_sence_dict
     <set >
       <if test="record.id != null" >
         id = #{record.id,jdbcType=BIGINT},
@@ -182,7 +182,7 @@
     </if>
   </update>
   <update id="updateByExample" parameterType="map" >
-    update b_auto_check_swap
+    update b_auto_check_sence_dict
     set id = #{record.id,jdbcType=BIGINT},
       sence_code = #{record.senceCode,jdbcType=VARCHAR},
       sence_name = #{record.senceName,jdbcType=VARCHAR},
@@ -193,8 +193,8 @@
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.AutoCheckSwap" >
-    update b_auto_check_swap
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.AutoCheckSenceDict" >
+    update b_auto_check_sence_dict
     <set >
       <if test="senceCode != null" >
         sence_code = #{senceCode,jdbcType=VARCHAR},
@@ -214,8 +214,8 @@
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.AutoCheckSwap" >
-    update b_auto_check_swap
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.AutoCheckSenceDict" >
+    update b_auto_check_sence_dict
     set sence_code = #{senceCode,jdbcType=VARCHAR},
       sence_name = #{senceName,jdbcType=VARCHAR},
       is_deleted = #{isDeleted,jdbcType=TINYINT},

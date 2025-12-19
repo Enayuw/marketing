@@ -123,4 +123,59 @@
             order by ${orderByClause}
         </if>
     </select>
+
+    <!-- 自动化巡检：转化场景 - 前一天08:00快照（按 update_time <= yesterday 08:00 取每个 api_code 最新一条） -->
+    <select id="getLastDay8DataByApiCodes" resultType="com.br.marketing.dto.autocheck.CheckTransferSyncDataDto">
+        SELECT
+        r.api_code AS apiCode,
+        r.data_count AS dataCount,
+        DATE_FORMAT(r.create_time, '%Y-%m-%d %H:%i:%s') AS snapTime
+        FROM b_marketing_transfer_sync_report r
+        INNER JOIN (
+        SELECT api_code, MAX(id) AS id
+        FROM b_marketing_transfer_sync_report
+        WHERE
+        <choose>
+            <when test="apiCodeList != null and apiCodeList.size > 0">
+                api_code IN
+                <foreach collection="apiCodeList" item="apiCode" open="(" close=")" separator=",">
+                    #{apiCode}
+                </foreach>
+            </when>
+            <otherwise>
+                1 = 0
+            </otherwise>
+        </choose>
+        AND update_time <![CDATA[ <= ]]> CONCAT(DATE_SUB(CURDATE(), INTERVAL 1 DAY), ' 08:00:00')
+        GROUP BY api_code
+        ) t
+        ON r.api_code = t.api_code AND r.id = t.id
+    </select>
+
+    <!-- 自动化巡检：转化场景 - 最新快照（取每个 api_code 最新一条） -->
+    <select id="getLatestDataByApiCodes" resultType="com.br.marketing.dto.autocheck.CheckTransferSyncDataDto">
+        SELECT
+        r.api_code AS apiCode,
+        r.data_count AS dataCount,
+        DATE_FORMAT(r.create_time, '%Y-%m-%d %H:%i:%s') AS snapTime
+        FROM b_marketing_transfer_sync_report r
+        INNER JOIN (
+        SELECT api_code, MAX(id) AS id
+        FROM b_marketing_transfer_sync_report
+        WHERE
+        <choose>
+            <when test="apiCodeList != null and apiCodeList.size > 0">
+                api_code IN
+                <foreach collection="apiCodeList" item="apiCode" open="(" close=")" separator=",">
+                    #{apiCode}
+                </foreach>
+            </when>
+            <otherwise>
+                1 = 0
+            </otherwise>
+        </choose>
+        GROUP BY api_code
+        ) t
+        ON r.api_code = t.api_code AND r.id = t.id
+    </select>
 </mapper>

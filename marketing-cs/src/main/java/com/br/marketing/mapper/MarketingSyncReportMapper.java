@@ -2,6 +2,7 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.dto.SyncOperateTypeDTO;
 import com.br.marketing.dto.SyncUserTypeNumDTO;
+import com.br.marketing.dto.autocheck.CheckUploadSyncDataDto;
 import com.br.marketing.entity.MarketingDataValidConfig;
 import com.br.marketing.entity.MarketingSyncReport;
 import com.br.marketing.entity.MarketingSyncReportExample;
@@ -135,4 +136,19 @@ public interface MarketingSyncReportMapper extends MarketingSyncReportMapperBase
 
     List<MarketingSyncReport> selectByIds(@Param("ids") List<Long> ids);
 
+    /**
+     * 自动化巡检：上传场景 - 前一天08:00快照（按 update_time <= yesterday 08:00 取每个 api_code 最新一条）。
+     *
+     * <p>入参 {@code apiCodeList} 为空/为 null 时，XML 会走兜底条件（{@code 1=0}）返回空集，
+     * 以避免生成 {@code IN ()} 语法错误或误查全表。</p>
+     */
+    List<CheckUploadSyncDataDto> getLastDay8DataByApiCodes(@Param("apiCodeList") List<String> apiCodeList);
+
+    /**
+     * 自动化巡检：上传场景 - 最新快照（取每个 api_code 最新一条）。
+     *
+     * <p>入参 {@code apiCodeList} 为空/为 null 时，XML 会走兜底条件（{@code 1=0}）返回空集，
+     * 以避免生成 {@code IN ()} 语法错误或误查全表。</p>
+     */
+    List<CheckUploadSyncDataDto> getLatestDataByApiCodes(@Param("apiCodeList") List<String> apiCodeList);
 }

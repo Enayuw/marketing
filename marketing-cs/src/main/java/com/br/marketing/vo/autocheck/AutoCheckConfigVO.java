@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class AutoConfigVO {
+public class AutoCheckConfigVO {
 
     private Long id;
 
@@ -14,5 +14,5 @@ public class AutoConfigVO {
 
     private String name;
 
-    private List<SenceVO> sence;
+    private List<AutoCheckSenceVO> sence;
 }

@@ -21,4 +21,15 @@
             )
         </if>
     </select>
+
+    <select id="selectByApiCode" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM b_auto_check_config
+        WHERE is_deleted = 0
+        AND api_code = #{apiCode}
+        ORDER BY create_time DESC
+        LIMIT 1
+    </select>
+
 </mapper>

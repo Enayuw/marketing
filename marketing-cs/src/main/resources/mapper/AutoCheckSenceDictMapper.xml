@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.AutoCheckSwapMapper" >
+<mapper namespace="com.br.marketing.mapper.AutoCheckSenceDictMapper" >
 
     <!-- SenceVO 结果映射 -->
-    <resultMap id="SenceVOResultMap" type="com.br.marketing.vo.autocheck.SenceVO">
+    <resultMap id="SenceVOResultMap" type="com.br.marketing.vo.autocheck.AutoCheckSenceVO">
         <result column="id" property="id" jdbcType="BIGINT" />
         <result column="sence_code" property="senceCode" jdbcType="VARCHAR" />
         <result column="sence_name" property="senceName" jdbcType="VARCHAR" />
@@ -14,7 +14,7 @@
         SELECT id,
                sence_code,
                sence_name
-        FROM b_auto_check_swap
+        FROM b_auto_check_sence_dict
         WHERE is_deleted = 0
           AND (
             sence_name LIKE CONCAT('%', #{searchContent}, '%')
@@ -28,7 +28,7 @@
         SELECT id,
         sence_code,
         sence_name
-        FROM b_auto_check_swap
+        FROM b_auto_check_sence_dict
         WHERE is_deleted = 0
         <if test="senceCodeList != null and senceCodeList.size() > 0">
             AND sence_code IN

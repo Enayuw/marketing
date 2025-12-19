@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class AutoCheckSwapExample {
+public class AutoCheckSenceDictExample {
     protected String orderByClause;
 
     protected boolean distinct;
 
     protected List<Criteria> oredCriteria;
 
-    public AutoCheckSwapExample() {
+    public AutoCheckSenceDictExample() {
         oredCriteria = new ArrayList<Criteria>();
     }
 

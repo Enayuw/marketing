@@ -4,7 +4,7 @@ package com.br.marketing.vo.autocheck;
 import lombok.Data;
 
 @Data
-public class SenceVO {
+public class AutoCheckSenceVO {
 
     private Long id;
 

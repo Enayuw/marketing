@@ -1,5 +1,6 @@
 package com.br.marketing.mapper;
 
+import com.br.marketing.dto.autocheck.CheckTransferSyncDataDto;
 import com.br.marketing.entity.TransferSyncReport;
 import com.br.marketing.entity.TransferSyncReportExample;
 import com.br.marketing.mysqlInterceptor.AddDataAuth;
@@ -75,4 +76,20 @@ public interface TransferSyncReportMapper extends TransferSyncReportMapperBase {
      * @return list
      */
     List<TransferSyncReport> selectNumberByExample(TransferSyncReportExample example);
+
+    /**
+     * 自动化巡检：转化场景 - 前一天08:00快照（按 update_time &lt;= yesterday 08:00 取每个 api_code 最新一条）。
+     *
+     * <p>入参 {@code apiCodeList} 为空/为 null 时，XML 会走兜底条件（{@code 1=0}）返回空集，
+     * 以避免生成 {@code IN ()} 语法错误或误查全表。</p>
+     */
+    List<CheckTransferSyncDataDto> getLastDay8DataByApiCodes(@Param("apiCodeList") List<String> apiCodeList);
+
+    /**
+     * 自动化巡检：转化场景 - 最新快照（取每个 api_code 最新一条）。
+     *
+     * <p>入参 {@code apiCodeList} 为空/为 null 时，XML 会走兜底条件（{@code 1=0}）返回空集，
+     * 以避免生成 {@code IN ()} 语法错误或误查全表。</p>
+     */
+    List<CheckTransferSyncDataDto> getLatestDataByApiCodes(@Param("apiCodeList") List<String> apiCodeList);
 }

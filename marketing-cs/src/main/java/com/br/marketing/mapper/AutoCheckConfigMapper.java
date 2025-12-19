@@ -3,6 +3,7 @@ package com.br.marketing.mapper;
 import com.br.marketing.entity.AutoCheckConfig;
 import org.apache.ibatis.annotations.Param;
 
+import javax.validation.constraints.NotBlank;
 import java.util.List;
 
 public interface AutoCheckConfigMapper extends AutoCheckConfigMapperBase{
@@ -15,4 +16,6 @@ public interface AutoCheckConfigMapper extends AutoCheckConfigMapperBase{
      */
     List<AutoCheckConfig> selectByApiCodesAndSenceCodes(@Param("apiCodeList") List<String> apiCodeList,
                                                         @Param("senceCodeList") List<String> senceCodeList);
+
+    AutoCheckConfig selectByApiCode(@Param("apiCode") String apiCode);
 }
