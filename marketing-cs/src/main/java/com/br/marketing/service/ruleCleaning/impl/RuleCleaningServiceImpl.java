@@ -1985,47 +1985,19 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean saveCleanRule(RuleCleaningConfigDTO configDTO) {
-        List<FieldCleaningConfigDTO> cleaningConfigs = configDTO.getCleaningConfig();
+        // 1. 获取清洗配置
         MarketingDataCleanGeneralConfig config = cleanGeneralConfigMapper.selectByPrimaryKey(configDTO.getConfigId());
-        if (!CollectionUtils.isEmpty(cleaningConfigs)) {
-            List<String> mappingFields = cleaningConfigs.stream().map(FieldCleaningConfigDTO::getMappingField).collect(Collectors.toList());
-            List<String> uploadMustField = Lists.newArrayList("custNum", "cell", "userType");
-            if (DataProcessEnum.SystemTypeEnum.MARKETING.getCode().equals(configDTO.getSystemType())
-                    && DataProcessEnum.DataTypeEnum.UPLOAD.getCode().equals(configDTO.getDataType())) {
-                if (!mappingFields.containsAll(uploadMustField)) {
-                    throw new BusinessException("上传必填字段[custNum,cell,userType]未配置，请检查");
-                }
-            }
-            // 提取所有清洗字段
-            List<String> nonMappingFields = cleaningConfigs.stream()
-                    .map(FieldCleaningConfigDTO::getMappingField)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
 
-            // 删除不在当前配置中的规则
-            boolean deleteResult = deleteRule(config, nonMappingFields);
-            if (!deleteResult) {
-                // 继续处理，不要因为删除失败而中断整个流程
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
-                        "删除不在当前配置中的规则失败！"));
-            }
-            // 保存清洗配置
-            for (FieldCleaningConfigDTO fieldConfig : cleaningConfigs) {
-                if (StringUtils.isEmpty(fieldConfig.getMappingField())) {
-                    continue;
-                }
-                // 设置API编码信息
-                fieldConfig.setApiCode(configDTO.getApiCode());
-                fieldConfig.setDataType(configDTO.getDataType());
-                fieldConfig.setAcceptType(configDTO.getAcceptType());
-                fieldConfig.setSystemType(configDTO.getSystemType());
-                // 2. 保存字段清洗规则
-                saveFieldCleaningRule(configDTO.getConfigId(), fieldConfig);
-            }
+        // 2. 处理清洗配置
+        List<FieldCleaningConfigDTO> cleaningConfigs = configDTO.getCleaningConfig();
+        if (!CollectionUtils.isEmpty(cleaningConfigs)) {
+            processCleaningConfigs(configDTO, config);
         }
+
+        // 3. 清除缓存
         dataCleanService.delConfigRule(configDTO.getApiCode(), configDTO.getDataType(), configDTO.getAcceptType());
 
-        //更新配置表状态
+        // 4. 更新配置表状态
         MarketingDataCleanGeneralConfig update = new MarketingDataCleanGeneralConfig();
         update.setId(configDTO.getConfigId());
         // 判断是否是行业模板
@@ -2042,6 +2014,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             update.setStatus(nodes.isEmpty() ? DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode()
                     : DataProcessEnum.RuleStatusEnum.READY.getCode());
         }else{
+            // 其他系统不需要试跑
             update.setStatus(DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode());
         }
         update.setUpdateTime(new Date());
@@ -2050,6 +2023,43 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         return Boolean.TRUE;
     }
 
+    private void processCleaningConfigs(RuleCleaningConfigDTO configDTO, MarketingDataCleanGeneralConfig config){
+        List<FieldCleaningConfigDTO> cleaningConfigs = configDTO.getCleaningConfig();
+        List<String> mappingFields = cleaningConfigs.stream().map(FieldCleaningConfigDTO::getMappingField).collect(Collectors.toList());
+        List<String> uploadMustField = Lists.newArrayList("custNum", "cell", "userType");
+        if (DataProcessEnum.SystemTypeEnum.MARKETING.getCode().equals(configDTO.getSystemType())
+                && DataProcessEnum.DataTypeEnum.UPLOAD.getCode().equals(configDTO.getDataType())) {
+            if (!mappingFields.containsAll(uploadMustField)) {
+                throw new BusinessException("上传必填字段[custNum,cell,userType]未配置，请检查");
+            }
+        }
+        // 提取所有清洗字段
+        List<String> nonMappingFields = cleaningConfigs.stream()
+                .map(FieldCleaningConfigDTO::getMappingField)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        // 删除不在当前配置中的规则
+        boolean deleteResult = deleteRule(config, nonMappingFields);
+        if (!deleteResult) {
+            // 继续处理，不要因为删除失败而中断整个流程
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
+                    "删除不在当前配置中的规则失败！"));
+        }
+        // 保存清洗配置
+        for (FieldCleaningConfigDTO fieldConfig : cleaningConfigs) {
+            if (StringUtils.isEmpty(fieldConfig.getMappingField())) {
+                continue;
+            }
+            // 设置API编码信息
+            fieldConfig.setApiCode(configDTO.getApiCode());
+            fieldConfig.setDataType(configDTO.getDataType());
+            fieldConfig.setAcceptType(configDTO.getAcceptType());
+            fieldConfig.setSystemType(configDTO.getSystemType());
+            // 2. 保存字段清洗规则
+            saveFieldCleaningRule(configDTO.getConfigId(), fieldConfig);
+        }
+    }
 
     private void getFileField(List<FieldSampleDTO> result, MarketingDataCleanGeneralConfig config, List<MarketingDataCleanGeneralRuleConfig> ruleConfigList) {
         SyncConfigExample syncConfigCycle = new SyncConfigExample();
