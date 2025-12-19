@@ -65,6 +65,7 @@ import com.br.marketing.dto.rulecenter.XcDeleteMagnitudeDistDTO;
 import com.br.marketing.dto.rulecenter.XieChengCollidingFilterDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.entity.common.TimeRange;
+import com.br.marketing.entity.common.TimeRangePlus;
 import com.br.marketing.enums.*;
 import com.br.marketing.enums.clean.DataProcessEnum;
 import com.br.marketing.enums.clean.DataSourceTypeEnum;
@@ -1677,7 +1678,27 @@ public class PushRuleServiceImpl implements PushRuleService {
         //4.按自然日分割releaseTimeRange
         List<TimeRange> timeRanges = TimeUtils.splitByNaturalDays(releaseTimeBegin, releaseTimeEnd);
         //5.计算量级
+        if (marketingCommonConfig.getXcDeleteMagnitudeOptSwitch()) {
+            return getResultOpt(dto.getBatchNumberList(), conditionJson, timeRanges);
+        }
         return getResult(dto, conditionJson, timeRanges);
+    }
+
+    private Result<List<XcDeleteMagnitudeDistDTO>> getResultOpt
+            (List<String> batchNumbers, JSONObject conditionJson, List<TimeRange> timeRanges) {
+        TpDynamicExecutor threadPool = TpDynamicExecutorFactory
+                .getThreadPool(ThreadPoolNameEnum.XIECHENG_CYCLE_DELETE_EST.getName(), 16, 20);
+        String sqlCondition = EsConditionTransferSqlUtil.jsonTransferSql(conditionJson, "");
+        List<TimeRangePlus> timeRangePlusList = new ArrayList<>();
+        int order = 0;
+        for (TimeRange timeRange : timeRanges) {
+            timeRangePlusList.add(new TimeRangePlus(timeRange, order++));
+        }
+        List<Future<XcDeleteMagnitudeDistDTO>> futures = new ArrayList<>();
+        for (String batchNumber : batchNumbers) {
+
+        }
+        return null;
     }
 
     /**
