@@ -1,6 +1,7 @@
 package com.br.marketing.api.service.Impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.common.log.AlertLog;
 import com.br.marketing.api.service.QiFuDataService;
@@ -14,6 +15,9 @@ import com.br.marketing.entity.QifuStrategyReportData;
 import com.br.marketing.mapper.QiFuEffectReportDataMapper;
 import com.br.marketing.mapper.QifuActuationMapper;
 import com.br.marketing.mapper.QifuStrategyReportDataMapper;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.util.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +48,9 @@ public class QiFuDataServiceImpl implements QiFuDataService {
     @Resource
     private QiFuEffectReportDataMapper qifuEffectReportDataMapper;
 
+    @Resource
+    private TrackingService trackingService;
+
     @Override
     public ApiNoDataResult strategyReportData(String apiCode, String jsonData) {
 
@@ -72,6 +79,24 @@ public class QiFuDataServiceImpl implements QiFuDataService {
         reportData.setCreateTime(new Date());
         reportData.setUpdateTime(new Date());
         qifuStrategyReportDataMapper.insertSelective(reportData);
+        try {
+            JSONObject condition = new JSONObject();
+            condition.put("id",reportData.getId());
+            trackingService.trackBusinessLog(DataFlowDirection.IN
+                    , apiCode
+                    , "360策略效果报表接口"
+                    , "b_qifu_strategy_report_data"
+                    , JSON.toJSONString(condition)
+                    , 1L
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
         return new ApiNoDataResult().setCode(SUCCESS.getErrorCode()).setMessage(SUCCESS.getErrorMsg());
     }
 
@@ -92,7 +117,24 @@ public class QiFuDataServiceImpl implements QiFuDataService {
                 qifuActuationMapper.batchInsert(reportDataList);
                 log.warn("奇富促动支定制上传数据接入 数量:{}", reportDataList.size());
             }
-
+            try {
+                JSONObject condition = new JSONObject();
+                condition.put("create_date",LocalDate.now().toString());
+                trackingService.trackBusinessLog(DataFlowDirection.IN
+                        , apiCode
+                        , "360促动分析效果统计数据报表接口"
+                        , "b_marketing_qifu_actuation"
+                        , JSON.toJSONString(condition)
+                        , Long.valueOf(reportDataList.size())
+                        , TrackingContext.generateBatchId());
+            } catch (Exception ex) {
+                log.warn(
+                        AlertLog.buildWarnMessage(
+                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                , ex.getMessage()
+                                , "埋点异常")
+                        , ex);
+            }
             return new ApiNoDataResult().setCode(SUCCESS.getErrorCode()).setMessage(SUCCESS.getErrorMsg());
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.QIFUCUDONGZHIREPORT_SERVICEERROR.getCode(),
@@ -137,6 +179,26 @@ public class QiFuDataServiceImpl implements QiFuDataService {
                 return new ApiNoDataResult().setCode(MarketingErrorInfo.UNKNOWN_ERROR.getErrorCode())
                         .setMessage(MarketingErrorInfo.UNKNOWN_ERROR.getErrorMsg());
             }
+            //region 埋点
+            try {
+                JSONObject condition = new JSONObject();
+                condition.put("id",qiFuEffectReportData.getId());
+                trackingService.trackBusinessLog(DataFlowDirection.IN
+                        , apiCode
+                        , "360促完件效果报表新接口"
+                        , "b_qifu_effect_report_data"
+                        , JSON.toJSONString(condition)
+                        , 1L
+                        , TrackingContext.generateBatchId());
+            } catch (Exception ex) {
+                log.warn(
+                        AlertLog.buildWarnMessage(
+                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                , ex.getMessage()
+                                , "埋点异常")
+                        , ex);
+            }
+            //endregion
         }
         return new ApiNoDataResult().setCode(SUCCESS.getErrorCode()).setMessage(SUCCESS.getErrorMsg());
     }

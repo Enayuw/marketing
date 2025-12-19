@@ -17,7 +17,9 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.mybatis.spring.annotation.MapperScan;
 
-@SpringBootApplication(exclude = {MultipartAutoConfiguration.class, SpringBootConfiguration.class}, scanBasePackages = {"com.br.marketing"})
+@SpringBootApplication(
+        exclude = {MultipartAutoConfiguration.class, SpringBootConfiguration.class},
+        scanBasePackages = {"com.br.marketing"})
 @EnableAspectJAutoProxy
 @MapperScan("com.br.marketing.mapper")
 @EnablePrometheusEndpoint

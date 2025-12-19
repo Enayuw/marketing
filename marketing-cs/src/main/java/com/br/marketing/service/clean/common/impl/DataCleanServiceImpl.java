@@ -33,6 +33,9 @@ import com.br.marketing.service.clean.common.DataCleanService;
 import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.ThreadPoolAdjustmentUtil;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
@@ -47,6 +50,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -95,6 +99,8 @@ public class DataCleanServiceImpl implements DataCleanService {
 
     @Resource
     private SnowflakeRedisGeneratorHandle snowflakeRedisGeneratorHandle;
+    @Resource
+    private TrackingService trackingService;
 
 
     private static final String TITLE = "【定制上传数据清洗】";
@@ -392,6 +398,7 @@ public class DataCleanServiceImpl implements DataCleanService {
         List<MarketingDataCleanGeneralRuleConfig> ruleConfigList = marketingDataCleanGeneralRuleConfigMapper.selectByExample(ruleConfigExample);
         // Pool
         ThreadPoolExecutor pool = BrExecutors.getThreadPool(5, 5, 50);
+        AtomicLong total = new AtomicLong(0L);
         appletDateList.forEach(appletDate -> {
             Long indexId = null;
             while (true) {
@@ -407,6 +414,16 @@ public class DataCleanServiceImpl implements DataCleanService {
                             List<MarketingDataCleanGeneralRuleConfig> ruleList = new ArrayList<>();
                             ruleList.addAll(ruleConfigList);
                             pool.submit(() -> processData(originalData, ruleList));
+                            try {
+                                total.addAndGet(originalData.getActualNum());
+                            } catch (Exception ex) {
+                                log.warn(
+                                        AlertLog.buildWarnMessage(
+                                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                                , ex.getMessage()
+                                                , "埋点异常")
+                                        , ex);
+                            }
                         }
                 );
             }
@@ -421,6 +438,25 @@ public class DataCleanServiceImpl implements DataCleanService {
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "定制上传数据清洗线程池停止异常！"), ex);
             Thread.currentThread().interrupt();
         }
+
+        try {
+            String remark = String.format("定制上传数据清洗job,任务id：%s"
+                    , config.getId());
+            trackingService.trackPointLog(DataFlowDirection.IN
+                    , apiCode
+                    , "定制上传数据清洗job"
+                    , total.get()
+                    , remark
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
+
         log.warn(TITLE + "apiCode={}清洗结束,耗时：{}ms", config.getApiCode(), System.currentTimeMillis() - start);
     }
 
@@ -737,6 +773,26 @@ public class DataCleanServiceImpl implements DataCleanService {
                 processBatchDataSync(batchLines, headers, ruleConfigList, apiCode, fileName, totalProcessed);
                 totalProcessed += batchLines.size();
             }
+
+            // 埋点
+            try {
+                String remark = String.format("清洗系统-文件清洗作业,清洗文件：%s"
+                        , filePath + fileName);
+                trackingService.trackPointLog(DataFlowDirection.OUT
+                        , apiCode
+                        , "清洗系统-文件清洗作业"
+                        , Long.valueOf(totalProcessed)
+                        , remark
+                        , TrackingContext.generateBatchId());
+            } catch (Exception ex) {
+                log.warn(
+                        AlertLog.buildWarnMessage(
+                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                , ex.getMessage()
+                                , "埋点异常")
+                        , ex);
+            }
+
             log.warn("文件处理完成，总共处理数据行数: {}", totalProcessed);
             
         } catch (IOException e) {

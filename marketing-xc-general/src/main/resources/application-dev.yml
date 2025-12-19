@@ -3,7 +3,7 @@ sharding:
     datasource:
       names: ds0
       ds0:
-         jdbc-url: jdbc:mysql://192.168.162.192:3306/test_loan?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=true&failOverReadOnly=false&useConfigs=maxPerformance
+         jdbc-url: jdbc:mysql://192.168.162.192:3306/test_loan?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
          username: rule_service
          password: rule_service_2015-09-10
          type: com.zaxxer.hikari.HikariDataSource

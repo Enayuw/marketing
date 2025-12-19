@@ -61,12 +61,12 @@ otherConfig:
   alarm:
     secretKey: a9c57e4138807a9e18b439cd9dab275b
     appName: marketing
-  encodeMapping:
-    appName: loan-warning
-    appSecretKey: f15a1421ac95a284683688af14688b72
   userCenter:
-    appName: loan-strategy
-    appSecretKey: 404be42e9ad8ce59af79f17eb51594cf
+    appName: marketing-api
+    appSecretKey: bd3c18667f8fcbb4985d2be66e70ca1e
+  encodeMapping:
+    appName: marketing
+    appSecretKey: c6acc38a39b0769fa7fb1a95f82d9b33
 api:
   intelligentCustomerService:
     baseUrl: https://helios-pre.100credit.com/zuul/api/helios-app-api

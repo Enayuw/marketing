@@ -1,30 +1,71 @@
-sharding:
-  jdbc:
-    datasource:
-      names: ds0
-      ds0:
-        url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
-        username: ENC(mysql-prod-ai-marketing-user)
-        password: ENC(mysql-prod-ai-marketing-password)
-        type: com.alibaba.druid.pool.DruidDataSource
-        driver-class-name: com.mysql.jdbc.Driver
-        filters: stat
-        maxActive: 300
-        initialSize: 5
-        maxWait: 30000
-        minIdle: 5
-        timeBetweenEvictionRunsMillis: 60000
-        minEvictableIdleTimeMillis: 300000
-        validationQuery: select 'x'
-        testWhileIdle: true
-        testOnBorrow: false
-        testOnReturn: false
-        poolPreparedStatements: true
-        maxOpenPreparedStatements: 20
-  config:
-    sharding:
-      props:
-        sql.show: true
+datasource:
+  database:
+    names: shardingmarketing,marketing-tikiv,marketing-tiflash,marketing-log
+    defaultSource: shardingmarketing
+    shardingmarketing:
+      name: shardingmarketing
+      jdbc-url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
+      username: ENC(mysql-prod-ai-marketing-user)
+      password: ENC(mysql-prod-ai-marketing-password)
+      type: com.zaxxer.hikari.HikariDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      minimum-idle: 1 # 最小空闲连接数
+      maximum-pool-size: 300 # 最大连接池数量
+      connection-timeout: 60000 # 获取连接超时时间，单位毫秒
+      idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
+      max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
+      keepalive-time: 30000 # 连接保活时间，单位毫秒
+      connection-test-query: select 1 # 连接测试查询
+    marketing-tikiv:
+      name: marketing-tikiv
+      type: com.zaxxer.hikari.HikariDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
+      username: ENC(mysql-prod-ai-marketing-user)
+      password: ENC(mysql-prod-ai-marketing-password)
+      minimum-idle: 5 # 最小空闲连接数
+      maximum-pool-size: 300 # 最大连接池数量
+      connection-timeout: 60000 # 获取连接超时时间，单位毫秒
+      idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
+      max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
+      keepalive-time: 30000 # 连接保活时间，单位毫秒
+      connection-test-query: select 1 # 连接测试查询
+    #      removeAbandoned: true # 是否自动回收超时连接
+    #      removeAbandonedTimeout: 1800 # 超时时间(以秒数为单位)
+    #      filters: stat,wall,log4j2
+    #      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+    marketing-tiflash:
+      name: marketing-tiflash
+      type: com.zaxxer.hikari.HikariDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://tidb-tiflash-marketing.brapp.com:4020/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
+      username: ENC(mysql-prod-ai-marketing-user)
+      password: ENC(mysql-prod-ai-marketing-password)
+      minimum-idle: 4 # 最小空闲连接数
+      maximum-pool-size: 4 # 最大连接池数量
+      connection-timeout: 60000 # 获取连接超时时间，单位毫秒
+      idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
+      max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
+      keepalive-time: 30000 # 连接保活时间，单位毫秒
+      connection-test-query: select 1 # 连接测试查询
+#      removeAbandoned: true # 是否自动回收超时连接
+#      removeAbandonedTimeout: 1800 # 超时时间(以秒数为单位)
+#      filters: stat,wall,log4j2
+#      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+    marketing-log:
+      name: marketing-log
+      type: com.zaxxer.hikari.HikariDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing_log?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
+      username: ENC(mysql-prod-ai-marketing-log-user)
+      password: ENC(mysql-prod-ai-marketing-log-password)
+      minimum-idle: 5 # 最小空闲连接数
+      maximum-pool-size: 30 # 最大连接池数量
+      connection-timeout: 60000 # 获取连接超时时间，单位毫秒
+      idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
+      max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
+      keepalive-time: 30000 # 连接保活时间，单位毫秒
+      connection-test-query: select 1 # 连接测试查询
 spring:
   rabbitmq:
     zw:
@@ -60,12 +101,12 @@ otherConfig:
     appName: marketing
     outsideSecretKey: 11e6a1a63c10d2855d662a0265ea91c4
     outsideAppName: marketing-out
-  encodeMapping:
-    appName: loan-warning
-    appSecretKey: a938d0e974746651a11ddcdbcea31404
   userCenter:
-    appName: loan-strategy
-    appSecretKey: 7357430aa11febfe81d45945c02706b3
+    appName: marketing-api
+    appSecretKey: 77786bf195aa73044af33f8fce6c0441
+  encodeMapping:
+    appName: marketing
+    appSecretKey: d37f90c97204a2ef3fe774fc5f106cf5
   mom:
     appSecretKey: 0eccd42aceae3d2f557fad6e393d7ebe
     appName: marketing_query_producer

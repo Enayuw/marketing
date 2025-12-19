@@ -272,7 +272,7 @@ api:
     commitClue: ${api.hxCar.baseUrl}/open_api/v1/test_commit_clue
     isProxy: false
   mock:
-    baseUrl: http://marketing-inner-api
+    baseUrl: http://k8s.brapp.com/compass-api/api/marketing-inner-api
     redisUrl: ${api.mock.baseUrl}/mockRedis/queryMockConfig
 
 spring:

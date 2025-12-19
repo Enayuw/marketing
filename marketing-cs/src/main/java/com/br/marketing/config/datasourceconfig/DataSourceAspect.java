@@ -21,6 +21,7 @@ public class DataSourceAspect {
     public static final String MARKETING_DORIS = "marketing-doris";
     public static final String MARKETING_BI = "marketing-bi";
     public static final String MARKETING_LOG = "marketing-log";
+    public static final String MARKETING_DATA_MAP = "marketing-datamap";
 
 
     /**
@@ -79,7 +80,18 @@ public class DataSourceAspect {
         DbContextHolder.setDbType(MARKETING_BI);
     }
 
-    @After("tiKvOfMarketing()||tiflashOfMarketing()||dorisOfMarketing()||bIOfMarketing()||logOfMarketing()")
+    /**
+     * 切换Doris dataMap数据源
+     */
+    @Before("dataMapOfMarketing()")
+    public void dataMapOfMarketingInterceptor() {
+        if(logger.isInfoEnabled()){
+            logger.info("切换到数据源{}.......................", "dataMap");
+        }
+        DbContextHolder.setDbType(MARKETING_DATA_MAP);
+    }
+
+    @After("tiKvOfMarketing()||tiflashOfMarketing()||dorisOfMarketing()||bIOfMarketing()||logOfMarketing()||dataMapOfMarketing()")
     public void afterInterceptor() {
         if(logger.isInfoEnabled()){
             logger.info("释放数据源{}.......................", DbContextHolder.getDbType());
@@ -110,6 +122,11 @@ public class DataSourceAspect {
             "||execution(* com.br.marketing.mapper.datasource.log.*.*(..))")
     public void logOfMarketing() {
 
+    }
+
+    @Pointcut(value = "@annotation(com.br.marketing.config.datasourceconfig.datasourceannotion.DbOfDataMapMarketing)||execution(* com.br.marketing" +
+            ".mapper.*.*DM_(..))")
+    public void dataMapOfMarketing() {
     }
 
 }

@@ -3560,4 +3560,9 @@ public class MarketingCommonConfig {
 
 
     private Map<String, Boolean> tcCpaMockConfig;
+
+    /**
+     * 随意记获取黑名单RSA私钥
+     */
+    private String suiyijiBlackBrPrivateKey;
 }

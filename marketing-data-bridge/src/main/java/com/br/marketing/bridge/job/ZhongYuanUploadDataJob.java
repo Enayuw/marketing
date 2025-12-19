@@ -1,9 +1,11 @@
 package com.br.marketing.bridge.job;
 
 import com.alibaba.fastjson2.JSON;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.config.RocketMqSwitch;
@@ -17,6 +19,9 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.github.pagehelper.PageHelper;
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
+import com.marketingkit.tracking.service.TrackingService;
+import com.marketingkit.tracking.util.TrackingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -44,6 +49,8 @@ public class ZhongYuanUploadDataJob extends AbstractSimpleElasticJob {
     private RocketMqSwitch rocketMqSwitch;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+    @Resource
+    private TrackingService trackingService;
     private static final int REDIS_EXPIRE_SECONDS = 86400; // 1天过期时间
     private static final String TITLE = "【中原消金数据上传】";
     @Resource
@@ -88,7 +95,25 @@ public class ZhongYuanUploadDataJob extends AbstractSimpleElasticJob {
             // 6. 缓存最新的id到Redis，过期时间1天
             redisChgService.setex(redisKey, String.valueOf(latestId), REDIS_EXPIRE_SECONDS);
             log.warn("{}Job执行成功：已发送MQ消息并缓存id，apiCode: {}, id: {}", TITLE, apiCode, latestId);
-            
+
+            try {
+                String remark = String.format("中原消金上传数据结构变更job，查询最新数据更新字段结构,最新的数据id：%s"
+                        , latestId);
+                trackingService.trackPointLog(DataFlowDirection.OUT
+                        , apiCode
+                        , "中原消金上传数据结构变更job"
+                        , 1L
+                        , remark
+                        , TrackingContext.generateBatchId());
+            } catch (Exception ex) {
+                log.warn(
+                        AlertLog.buildWarnMessage(
+                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                                , ex.getMessage()
+                                , "埋点异常")
+                        , ex);
+            }
+
         } catch (Exception e) {
             log.error("{}Job执行异常", TITLE, e);
         }
