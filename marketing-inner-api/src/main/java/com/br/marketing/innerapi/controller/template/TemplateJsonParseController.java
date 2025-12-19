@@ -3,6 +3,7 @@ package com.br.marketing.innerapi.controller.template;
 import com.alibaba.fastjson.JSONArray;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.enums.clean.DataProcessEnum;
 import com.br.marketing.service.template.TemplateJsonParseService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,11 +37,11 @@ public class TemplateJsonParseController {
                                                        @RequestParam(name = "secondDepartment") String secondDepartment,
                                                        @RequestParam(name = "apiType") String apiType,
                                                        @RequestParam(name = "systemType") Integer systemType,
-                                                       @RequestParam(name = "dataType") Integer dataType,
-                                                       @RequestParam(name = "acceptType") Integer acceptType) {
+                                                       @RequestParam(name = "dataType") Integer dataType) {
         try {
             Result<JSONArray> result =
-                    templateJsonParseService.queryIndustryTemplateJsonParses(firstDepartment, secondDepartment, apiType, systemType, dataType ,acceptType);
+                    templateJsonParseService.queryIndustryTemplateJsonParses(firstDepartment, secondDepartment, apiType
+                            , systemType, dataType , DataProcessEnum.AcceptTypeEnum.GENERAL.getCode());
             return new ApiResult<JSONArray>().fromResult(result, 1);
         } catch (Exception e) {
             logger.error("根据三级部门及数据类型查询行业模板异常，message:{}", e.getMessage());
