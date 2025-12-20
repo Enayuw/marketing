@@ -95,7 +95,6 @@ import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.service.rulecenter.IEsActionService;
 import com.br.marketing.service.rulecenter.IRuleCenterFilterTemplateService;
 import com.br.marketing.service.rulecenter.RuleCenterBySourceTypeFactory;
-import com.br.marketing.service.rulecenter.enums.RuleCenterPushTargetEnum;
 import com.br.marketing.service.rulecenter.impl.push.UploadRePushPolicyStrategy;
 import com.br.marketing.service.strategy.pushpreview.IPushPreviewStrategy;
 import com.br.marketing.service.strategy.pushpreview.PushPreviewStrategyEnum;
@@ -146,14 +145,12 @@ import org.springframework.web.client.RestTemplate;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
@@ -1689,15 +1686,66 @@ public class PushRuleServiceImpl implements PushRuleService {
         TpDynamicExecutor threadPool = TpDynamicExecutorFactory
                 .getThreadPool(ThreadPoolNameEnum.XIECHENG_CYCLE_DELETE_EST.getName(), 16, 20);
         String sqlCondition = EsConditionTransferSqlUtil.jsonTransferSql(conditionJson, "");
+        //1.获取timeRangePlusList
         List<TimeRangePlus> timeRangePlusList = new ArrayList<>();
         int order = 0;
         for (TimeRange timeRange : timeRanges) {
             timeRangePlusList.add(new TimeRangePlus(timeRange, order++));
         }
+        //2.获取timeRange范围外的量级
+        Map<String, Integer> outCycleMagnitudeMap = getOutCycleMagnitudes(timeRangePlusList);
         List<Future<XcDeleteMagnitudeDistDTO>> futures = new ArrayList<>();
+        //3.获取周期数据与跑分数据的交集量级
         for (String batchNumber : batchNumbers) {
-
+            futures.add(threadPool.submit(() ->
+                    magnitudeDistCalOpt(timeRangePlusList, batchNumber, sqlCondition)
+            ));
         }
+        return null;
+    }
+
+    /**
+     * 获取timeRange范围外的量级
+     * @param timeRangePlusList
+     * @return outCycleMagnitudeMap
+     * @description
+     * @author hedongshuo
+     * @date 2025/12/20 12:47
+     **/
+    private Map<String, Integer> getOutCycleMagnitudes(List<TimeRangePlus> timeRangePlusList) {
+        //1.将timeRangePlusList分为今天的和非今天的
+        List<TimeRangePlus> todayTimeRangePlusList = new ArrayList<>();
+        List<TimeRangePlus> notTodayTimeRangePlusList = new ArrayList<>();
+        for (TimeRangePlus timeRange : timeRangePlusList) {
+            if (timeRange.isToday()) {
+                todayTimeRangePlusList.add(timeRange);
+            } else {
+                notTodayTimeRangePlusList.add(timeRange);
+            }
+        }
+        //2.timeRange范围外量级 <out_order, count>
+        Map<String, Integer> outCycleMagnitudeMap = new HashMap<>();
+        if (!CollectionUtils.isEmpty(todayTimeRangePlusList)) {
+            Map<String, Integer> todayOutMagnitudeMap = xieChengCollidingDataLoopCycleMapper.
+                    selectTimeRangeOutMagnitudeForTodaystiflash_(todayTimeRangePlusList, XcDeletePrefixEnum.OUT.getAlias());
+            outCycleMagnitudeMap.putAll(todayOutMagnitudeMap);
+        }
+        if (CollectionUtils.isEmpty(notTodayTimeRangePlusList)) {
+            LocalDateTime minBegin = notTodayTimeRangePlusList.get(0).getBegin();
+            LocalDateTime maxEnd = notTodayTimeRangePlusList.get(todayTimeRangePlusList.size() - 1).getEnd();
+            Map<String, Integer> notTodayOutMagnitudeMap = xieChengCollidingDataLoopCycleMapper
+                    .selectTimeRangeOutMagnitudeForNotTodaystiflash_(notTodayTimeRangePlusList, minBegin, maxEnd, XcDeletePrefixEnum.OUT.getAlias());
+            outCycleMagnitudeMap.putAll(notTodayOutMagnitudeMap);
+        }
+        return outCycleMagnitudeMap;
+    }
+
+    private XcDeleteMagnitudeDistDTO magnitudeDistCalOpt(List<TimeRangePlus> timeRangePlusList, String batchNumber, String sqlCondition) {
+        //1.获取
+        LocalDateTime minBegin = timeRangePlusList.get(0).getBegin();
+        LocalDateTime maxEnd = timeRangePlusList.get(timeRangePlusList.size() - 1).getEnd();
+
+        //3.周期表与跑分数据交集
         return null;
     }
 
