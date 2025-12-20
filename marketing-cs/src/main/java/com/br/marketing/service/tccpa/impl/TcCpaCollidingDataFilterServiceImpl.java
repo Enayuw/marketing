@@ -343,7 +343,7 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
                 }
                 minUserKey = userKeys.get(userKeys.size() - 1);
                 if (loopCount == 1) {
-                    userKeys = userKeys.subList(0, remaingAbleNum);
+                    userKeys = userKeys.subList(0, Math.min(remaingAbleNum, userKeys.size()));
                 }
                 List<String> finalUserKeys = userKeys;
                 CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {

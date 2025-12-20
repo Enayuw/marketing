@@ -33,7 +33,7 @@ public class TcCpaCollidingRuleController {
         return new ApiResult<TcCpaCollidingRuleInfoDTO>().fromResult(tcCpaCollidingRuleService.info(), CODE_1);
     }
 
-    @Operation(summary = "同程撞库规则基础信息", description = "同程撞库规则基础信息")
+    @Operation(summary = "同程CPAreleaseTime量级分布查询", description = "同程CPAreleaseTime量级分布查询")
     @PostMapping("/magnitudeDist")
     public ApiResult magnitudeDist(@RequestParam("releaseTimes") String releaseTimes,
                                    @RequestParam(name = "taskId", required = false) Long taskId) {

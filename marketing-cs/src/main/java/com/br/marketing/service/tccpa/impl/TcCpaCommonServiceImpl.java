@@ -233,7 +233,7 @@ public class TcCpaCommonServiceImpl implements TcCpaCommonService {
                     " on " + sourceTypeEnum.getSelect() + " = pck.user_key" +
                     " and " + sourceTypeEnum.getDefaultCondition());
             //lock
-            if (Objects.equals(info.getSourceType(), TcCpaDeleteRuleSourceTypeEnum.BLANK_DATA.getValue())) {
+            if (!Objects.equals(info.getSourceType(), TcCpaDeleteRuleSourceTypeEnum.BLANK_DATA.getValue())) {
                 joinFrag = joinFrag.concat(" and " + sourceTypeEnum.getField() + " in " + info.join());
             }
             whereFrag = whereFrag.concat(" and " + sourceTypeEnum.getSelect() + " is null");
