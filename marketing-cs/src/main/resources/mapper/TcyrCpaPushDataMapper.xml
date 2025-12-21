@@ -20,16 +20,13 @@
         select id, user_key, priority
         from b_tcyr_cpa_push_data
         where is_del = 1
-          and colliding_date = curdate()
-          and (
-        priority &lt; #{lastPriority}
-                or (priority = #{lastPriority} and id > #{lastId})
-            )
+        and colliding_date = curdate()
+        and (priority, id) > (#{lastPriority}, #{lastId})
         and task_id in
         <foreach item="taskId" collection="taskIds" open="(" separator="," close=")">
             #{taskId}
         </foreach>
         order by priority asc, id asc
-            limit #{limit}
+        limit #{limit}
     </select>
 </mapper>
