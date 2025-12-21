@@ -29,12 +29,17 @@ public class DidiCallbackDataLog {
     private String cell;
 
     /**
+     * 请求码
+     */
+    private String httpCode;
+
+    /**
      * 业务异常码
      */
     private String errorCode;
 
     /**
-     * 业务异常码
+     * 业务异常信息
      */
     private String errorMessage;
 
@@ -44,9 +49,14 @@ public class DidiCallbackDataLog {
     private String returnContent;
 
     /**
-     * 是否成功:1-触达成功数据,0-触达失败数据,2-通话失败改成功,3-短信失败改成功
+     * 推送类型:1-触达成功数据,0-触达失败数据,2-通话失败改成功,3-短信失败改成功
      */
-    private Byte isSuccess;
+    private Integer pushType;
+
+    /**
+     * 推送状态：1-成功，0-失败
+     */
+    private Integer pushStatus;
 
     /**
      * 创建时间
@@ -98,6 +108,14 @@ public class DidiCallbackDataLog {
         this.cell = cell == null ? null : cell.trim();
     }
 
+    public String getHttpCode() {
+        return httpCode;
+    }
+
+    public void setHttpCode(String httpCode) {
+        this.httpCode = httpCode == null ? null : httpCode.trim();
+    }
+
     public String getErrorCode() {
         return errorCode;
     }
@@ -122,12 +140,20 @@ public class DidiCallbackDataLog {
         this.returnContent = returnContent == null ? null : returnContent.trim();
     }
 
-    public Byte getIsSuccess() {
-        return isSuccess;
+    public Integer getPushType() {
+        return pushType;
     }
 
-    public void setIsSuccess(Byte isSuccess) {
-        this.isSuccess = isSuccess;
+    public void setPushType(Integer pushType) {
+        this.pushType = pushType;
+    }
+
+    public Integer getPushStatus() {
+        return pushStatus;
+    }
+
+    public void setPushStatus(Integer pushStatus) {
+        this.pushStatus = pushStatus;
     }
 
     public Date getCreateTime() {

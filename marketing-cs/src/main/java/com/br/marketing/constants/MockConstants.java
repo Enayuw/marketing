@@ -42,6 +42,10 @@ public final class MockConstants {
 
     public static final String TEST_DIDI_V5_COLLIDING_DATA_RETURN = "test_didi_v5_colliding_data_return";
 
+    public static final String TEST_DIDI_V5_CALLBACK_SUCCESS_DATA_RETURN = "test_didi_v5_callback_success_data_return";
+
+    public static final String TEST_DIDI_V5_CALLBACK_FAIL_DATA_RETURN = "test_didi_v5_callback_fail_data_return";
+
     /**
      * 获取所有Mock名称的列表
      *

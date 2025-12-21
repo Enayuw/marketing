@@ -2,4 +2,20 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.DidiCallbackDataLogMapper">
 
+    <select id="selectPushedCells" resultType="java.lang.String">
+        select cell from b_didi_v5_callback_data_log where create_time > curdate() and cell in
+        <foreach item="item" index="index" collection="cellSet" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="selectSuccessPushedCells" resultType="java.lang.String">
+        SELECT DISTINCT cell FROM b_didi_v5_callback_data_log
+        WHERE create_time > curdate() and cell IN
+        <foreach collection="cellSet" item="cell" open="(" close=")" separator=",">
+            #{cell}
+        </foreach>
+        AND push_type IN (1, 2, 3)
+    </select>
+
 </mapper>

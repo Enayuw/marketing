@@ -119,7 +119,7 @@ public class DidiCallBackData {
     private String tagList;
 
     /**
-     * 0-待上报，1已上报
+     * 0-待上报，1已上报，2-数据错误
      */
     private Integer pushStatus;
 

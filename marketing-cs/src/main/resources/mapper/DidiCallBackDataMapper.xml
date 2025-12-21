@@ -17,4 +17,46 @@
             #{item.intentionGrade},#{item.tagList},#{item.pushStatus},#{item.status},#{item.extend})
         </foreach>
     </insert>
+
+    <select id="queryDidiCellSuccessData" parameterType="map" resultType="com.br.marketing.entity.DidiCallBackData">
+        SELECT * FROM b_didi_v5_callback_data
+        WHERE id > #{lastId}
+          AND create_time > curdate()
+          AND push_status = 0
+          AND status = 0
+          AND is_connect = 1
+        ORDER BY id ASC LIMIT #{pageSize}
+    </select>
+
+    <select id="queryDidiSmsSuccessData" parameterType="map" resultType="com.br.marketing.entity.DidiCallBackData">
+        SELECT * FROM b_didi_v5_callback_data
+        WHERE id > #{lastId}
+          AND create_time > curdate()
+          AND push_status = 0
+          AND status = 0
+          AND (is_connect = 0 or is_connect IS NULL)
+          AND sms_send_status = 1
+        ORDER BY id ASC LIMIT #{pageSize}
+    </select>
+
+    <select id="queryDidiCellConstructData" parameterType="map" resultType="com.br.marketing.entity.DidiCallBackData">
+        SELECT * FROM b_didi_v5_callback_data
+        WHERE id > #{lastId}
+          AND create_time > curdate()
+          AND push_status = 0
+          AND status = 0
+          AND (is_connect = 0 or (is_connect IS NULL and sms_send_status IS NULL))
+        ORDER BY id ASC LIMIT #{pageSize}
+    </select>
+
+    <select id="queryDidiSmsConstructData" parameterType="map" resultType="com.br.marketing.entity.DidiCallBackData">
+        SELECT * FROM b_didi_v5_callback_data
+        WHERE id > #{lastId}
+          AND create_time > curdate()
+          AND push_status = 0
+          AND status = 0
+          AND is_connect IS NULL
+        ORDER BY id ASC LIMIT #{pageSize}
+    </select>
+
 </mapper>

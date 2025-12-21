@@ -20,4 +20,13 @@
         <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
         <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
     </resultMap>
+
+    <select id="queryFailedData" resultType="com.br.marketing.entity.DiDiV5CollidingDataLog">
+        SELECT *
+        FROM b_didi_v5_colliding_data_log
+        WHERE id > #{lastId}
+          AND result = 'true'
+        ORDER BY id ASC
+            LIMIT #{pageSize}
+    </select>
 </mapper>

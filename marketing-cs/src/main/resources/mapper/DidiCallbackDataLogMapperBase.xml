@@ -3,14 +3,16 @@
 <mapper namespace="com.br.marketing.mapper.DidiCallbackDataLogMapper" >
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.DidiCallbackDataLog" >
     <id column="id" property="id" jdbcType="BIGINT" />
-    <result column="callback_id" property="callbackId" jdbcType="INTEGER" />
+    <result column="callback_id" property="callbackId" jdbcType="BIGINT" />
     <result column="cid" property="cid" jdbcType="VARCHAR" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="cell" property="cell" jdbcType="VARCHAR" />
+    <result column="http_code" property="httpCode" jdbcType="VARCHAR" />
     <result column="error_code" property="errorCode" jdbcType="VARCHAR" />
     <result column="error_message" property="errorMessage" jdbcType="VARCHAR" />
     <result column="return_content" property="returnContent" jdbcType="VARCHAR" />
-    <result column="is_success" property="isSuccess" jdbcType="TINYINT" />
+    <result column="push_type" property="pushType" jdbcType="TINYINT" />
+    <result column="push_status" property="pushStatus" jdbcType="TINYINT" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
   </resultMap>
@@ -73,8 +75,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, callback_id, cid, api_code, cell, error_code, error_message, return_content, 
-    is_success, create_time, update_time
+    id, callback_id, cid, api_code, cell, http_code, error_code, error_message, return_content,
+    push_type, push_status, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.DidiCallbackDataLogExample" >
     select
@@ -91,7 +93,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     from b_didi_v5_callback_data_log
     where id = #{id,jdbcType=BIGINT}
@@ -110,14 +112,16 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_didi_v5_callback_data_log (callback_id, cid, api_code, 
-      cell, error_code, error_message, 
-      return_content, is_success, create_time, 
-      update_time)
-    values (#{callbackId,jdbcType=INTEGER}, #{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, 
-      #{cell,jdbcType=VARCHAR}, #{errorCode,jdbcType=VARCHAR}, #{errorMessage,jdbcType=VARCHAR}, 
-      #{returnContent,jdbcType=VARCHAR}, #{isSuccess,jdbcType=TINYINT}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP})
+    insert into b_didi_v5_callback_data_log (callback_id, cid, api_code,
+    cell, http_code, error_code,
+    error_message, return_content, push_type,
+    push_status, create_time, update_time
+    )
+    values (#{callbackId,jdbcType=BIGINT}, #{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR},
+    #{cell,jdbcType=VARCHAR}, #{httpCode,jdbcType=VARCHAR}, #{errorCode,jdbcType=VARCHAR},
+    #{errorMessage,jdbcType=VARCHAR}, #{returnContent,jdbcType=VARCHAR}, #{pushType,jdbcType=TINYINT},
+    #{pushStatus,jdbcType=TINYINT}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+    )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.DidiCallbackDataLog" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -137,6 +141,9 @@
       <if test="cell != null" >
         cell,
       </if>
+      <if test="httpCode != null" >
+        http_code,
+      </if>
       <if test="errorCode != null" >
         error_code,
       </if>
@@ -146,8 +153,11 @@
       <if test="returnContent != null" >
         return_content,
       </if>
-      <if test="isSuccess != null" >
-        is_success,
+      <if test="pushType != null" >
+        push_type,
+      </if>
+      <if test="pushStatus != null" >
+        push_status,
       </if>
       <if test="createTime != null" >
         create_time,
@@ -158,7 +168,7 @@
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="callbackId != null" >
-        #{callbackId,jdbcType=INTEGER},
+        #{callbackId,jdbcType=BIGINT},
       </if>
       <if test="cid != null" >
         #{cid,jdbcType=VARCHAR},
@@ -169,6 +179,9 @@
       <if test="cell != null" >
         #{cell,jdbcType=VARCHAR},
       </if>
+      <if test="httpCode != null" >
+        #{httpCode,jdbcType=VARCHAR},
+      </if>
       <if test="errorCode != null" >
         #{errorCode,jdbcType=VARCHAR},
       </if>
@@ -178,8 +191,11 @@
       <if test="returnContent != null" >
         #{returnContent,jdbcType=VARCHAR},
       </if>
-      <if test="isSuccess != null" >
-        #{isSuccess,jdbcType=TINYINT},
+      <if test="pushType != null" >
+        #{pushType,jdbcType=TINYINT},
+      </if>
+      <if test="pushStatus != null" >
+        #{pushStatus,jdbcType=TINYINT},
       </if>
       <if test="createTime != null" >
         #{createTime,jdbcType=TIMESTAMP},
@@ -202,7 +218,7 @@
         id = #{record.id,jdbcType=BIGINT},
       </if>
       <if test="record.callbackId != null" >
-        callback_id = #{record.callbackId,jdbcType=INTEGER},
+        callback_id = #{record.callbackId,jdbcType=BIGINT},
       </if>
       <if test="record.cid != null" >
         cid = #{record.cid,jdbcType=VARCHAR},
@@ -213,6 +229,9 @@
       <if test="record.cell != null" >
         cell = #{record.cell,jdbcType=VARCHAR},
       </if>
+      <if test="record.httpCode != null" >
+        http_code = #{record.httpCode,jdbcType=VARCHAR},
+      </if>
       <if test="record.errorCode != null" >
         error_code = #{record.errorCode,jdbcType=VARCHAR},
       </if>
@@ -222,8 +241,11 @@
       <if test="record.returnContent != null" >
         return_content = #{record.returnContent,jdbcType=VARCHAR},
       </if>
-      <if test="record.isSuccess != null" >
-        is_success = #{record.isSuccess,jdbcType=TINYINT},
+      <if test="record.pushType != null" >
+        push_type = #{record.pushType,jdbcType=TINYINT},
+      </if>
+      <if test="record.pushStatus != null" >
+        push_status = #{record.pushStatus,jdbcType=TINYINT},
       </if>
       <if test="record.createTime != null" >
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
@@ -239,16 +261,18 @@
   <update id="updateByExample" parameterType="map" >
     update b_didi_v5_callback_data_log
     set id = #{record.id,jdbcType=BIGINT},
-      callback_id = #{record.callbackId,jdbcType=INTEGER},
-      cid = #{record.cid,jdbcType=VARCHAR},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      cell = #{record.cell,jdbcType=VARCHAR},
-      error_code = #{record.errorCode,jdbcType=VARCHAR},
-      error_message = #{record.errorMessage,jdbcType=VARCHAR},
-      return_content = #{record.returnContent,jdbcType=VARCHAR},
-      is_success = #{record.isSuccess,jdbcType=TINYINT},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    callback_id = #{record.callbackId,jdbcType=BIGINT},
+    cid = #{record.cid,jdbcType=VARCHAR},
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    cell = #{record.cell,jdbcType=VARCHAR},
+    http_code = #{record.httpCode,jdbcType=VARCHAR},
+    error_code = #{record.errorCode,jdbcType=VARCHAR},
+    error_message = #{record.errorMessage,jdbcType=VARCHAR},
+    return_content = #{record.returnContent,jdbcType=VARCHAR},
+    push_type = #{record.pushType,jdbcType=TINYINT},
+    push_status = #{record.pushStatus,jdbcType=TINYINT},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -257,7 +281,7 @@
     update b_didi_v5_callback_data_log
     <set >
       <if test="callbackId != null" >
-        callback_id = #{callbackId,jdbcType=INTEGER},
+        callback_id = #{callbackId,jdbcType=BIGINT},
       </if>
       <if test="cid != null" >
         cid = #{cid,jdbcType=VARCHAR},
@@ -268,6 +292,9 @@
       <if test="cell != null" >
         cell = #{cell,jdbcType=VARCHAR},
       </if>
+      <if test="httpCode != null" >
+        http_code = #{httpCode,jdbcType=VARCHAR},
+      </if>
       <if test="errorCode != null" >
         error_code = #{errorCode,jdbcType=VARCHAR},
       </if>
@@ -277,8 +304,11 @@
       <if test="returnContent != null" >
         return_content = #{returnContent,jdbcType=VARCHAR},
       </if>
-      <if test="isSuccess != null" >
-        is_success = #{isSuccess,jdbcType=TINYINT},
+      <if test="pushType != null" >
+        push_type = #{pushType,jdbcType=TINYINT},
+      </if>
+      <if test="pushStatus != null" >
+        push_status = #{pushStatus,jdbcType=TINYINT},
       </if>
       <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
@@ -291,16 +321,18 @@
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.DidiCallbackDataLog" >
     update b_didi_v5_callback_data_log
-    set callback_id = #{callbackId,jdbcType=INTEGER},
-      cid = #{cid,jdbcType=VARCHAR},
-      api_code = #{apiCode,jdbcType=VARCHAR},
-      cell = #{cell,jdbcType=VARCHAR},
-      error_code = #{errorCode,jdbcType=VARCHAR},
-      error_message = #{errorMessage,jdbcType=VARCHAR},
-      return_content = #{returnContent,jdbcType=VARCHAR},
-      is_success = #{isSuccess,jdbcType=TINYINT},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    set callback_id = #{callbackId,jdbcType=BIGINT},
+        cid = #{cid,jdbcType=VARCHAR},
+        api_code = #{apiCode,jdbcType=VARCHAR},
+        cell = #{cell,jdbcType=VARCHAR},
+        http_code = #{httpCode,jdbcType=VARCHAR},
+        error_code = #{errorCode,jdbcType=VARCHAR},
+        error_message = #{errorMessage,jdbcType=VARCHAR},
+        return_content = #{returnContent,jdbcType=VARCHAR},
+        push_type = #{pushType,jdbcType=TINYINT},
+        push_status = #{pushStatus,jdbcType=TINYINT},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>
