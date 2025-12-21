@@ -1,0 +1,678 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.DidiCallBackDataMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.DidiCallBackData" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="callback_type" property="callbackType" jdbcType="INTEGER" />
+    <result column="cid" property="cid" jdbcType="VARCHAR" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="task_name" property="taskName" jdbcType="VARCHAR" />
+    <result column="task_id" property="taskId" jdbcType="VARCHAR" />
+    <result column="cell" property="cell" jdbcType="VARCHAR" />
+    <result column="case_status" property="caseStatus" jdbcType="VARCHAR" />
+    <result column="dial_count" property="dialCount" jdbcType="INTEGER" />
+    <result column="detail" property="detail" jdbcType="VARCHAR" />
+    <result column="call_record_id" property="callRecordId" jdbcType="VARCHAR" />
+    <result column="call_start_time" property="callStartTime" jdbcType="TIMESTAMP" />
+    <result column="call_connect_time" property="callConnectTime" jdbcType="TIMESTAMP" />
+    <result column="call_end_time" property="callEndTime" jdbcType="TIMESTAMP" />
+    <result column="dialog_turn" property="dialogTurn" jdbcType="INTEGER" />
+    <result column="call_status" property="callStatus" jdbcType="VARCHAR" />
+    <result column="is_connect" property="isConnect" jdbcType="INTEGER" />
+    <result column="sms_send_status" property="smsSendStatus" jdbcType="INTEGER" />
+    <result column="user_properties" property="userProperties" jdbcType="VARCHAR" />
+    <result column="dial_rounds" property="dialRounds" jdbcType="INTEGER" />
+    <result column="recording_path" property="recordingPath" jdbcType="VARCHAR" />
+    <result column="intention_grade" property="intentionGrade" jdbcType="VARCHAR" />
+    <result column="tag_list" property="tagList" jdbcType="VARCHAR" />
+    <result column="push_status" property="pushStatus" jdbcType="TINYINT" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="extend" property="extend" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.DidiCallBackData" extends="BaseResultMap" >
+    <result column="call_dialog" property="callDialog" jdbcType="LONGVARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, callback_type, cid, api_code, task_name, task_id, cell, case_status, dial_count, 
+    detail, call_record_id, call_start_time, call_connect_time, call_end_time, dialog_turn, 
+    call_status, is_connect, sms_send_status, user_properties, dial_rounds, recording_path, 
+    intention_grade, tag_list, push_status, `status`, extend, create_time, update_time
+  </sql>
+  <sql id="Blob_Column_List" >
+    call_dialog
+  </sql>
+  <select id="selectByExampleWithBLOBs" resultMap="ResultMapWithBLOBs" parameterType="com.br.marketing.entity.DidiCallBackDataExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from b_didi_v5_callback_data
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.DidiCallBackDataExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_didi_v5_callback_data
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from b_didi_v5_callback_data
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_didi_v5_callback_data
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.DidiCallBackDataExample" >
+    delete from b_didi_v5_callback_data
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.DidiCallBackData" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_didi_v5_callback_data (callback_type, cid, api_code, 
+      task_name, task_id, cell, 
+      case_status, dial_count, detail, 
+      call_record_id, call_start_time, call_connect_time, 
+      call_end_time, dialog_turn, call_status, 
+      is_connect, sms_send_status, user_properties, 
+      dial_rounds, recording_path, intention_grade, 
+      tag_list, push_status, `status`, 
+      extend, create_time, update_time, 
+      call_dialog)
+    values (#{callbackType,jdbcType=INTEGER}, #{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, 
+      #{taskName,jdbcType=VARCHAR}, #{taskId,jdbcType=VARCHAR}, #{cell,jdbcType=VARCHAR}, 
+      #{caseStatus,jdbcType=VARCHAR}, #{dialCount,jdbcType=INTEGER}, #{detail,jdbcType=VARCHAR}, 
+      #{callRecordId,jdbcType=VARCHAR}, #{callStartTime,jdbcType=TIMESTAMP}, #{callConnectTime,jdbcType=TIMESTAMP}, 
+      #{callEndTime,jdbcType=TIMESTAMP}, #{dialogTurn,jdbcType=INTEGER}, #{callStatus,jdbcType=VARCHAR}, 
+      #{isConnect,jdbcType=INTEGER}, #{smsSendStatus,jdbcType=INTEGER}, #{userProperties,jdbcType=VARCHAR}, 
+      #{dialRounds,jdbcType=INTEGER}, #{recordingPath,jdbcType=VARCHAR}, #{intentionGrade,jdbcType=VARCHAR}, 
+      #{tagList,jdbcType=VARCHAR}, #{pushStatus,jdbcType=TINYINT}, #{status,jdbcType=INTEGER}, 
+      #{extend,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
+      #{callDialog,jdbcType=LONGVARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.DidiCallBackData" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_didi_v5_callback_data
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="callbackType != null" >
+        callback_type,
+      </if>
+      <if test="cid != null" >
+        cid,
+      </if>
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="taskName != null" >
+        task_name,
+      </if>
+      <if test="taskId != null" >
+        task_id,
+      </if>
+      <if test="cell != null" >
+        cell,
+      </if>
+      <if test="caseStatus != null" >
+        case_status,
+      </if>
+      <if test="dialCount != null" >
+        dial_count,
+      </if>
+      <if test="detail != null" >
+        detail,
+      </if>
+      <if test="callRecordId != null" >
+        call_record_id,
+      </if>
+      <if test="callStartTime != null" >
+        call_start_time,
+      </if>
+      <if test="callConnectTime != null" >
+        call_connect_time,
+      </if>
+      <if test="callEndTime != null" >
+        call_end_time,
+      </if>
+      <if test="dialogTurn != null" >
+        dialog_turn,
+      </if>
+      <if test="callStatus != null" >
+        call_status,
+      </if>
+      <if test="isConnect != null" >
+        is_connect,
+      </if>
+      <if test="smsSendStatus != null" >
+        sms_send_status,
+      </if>
+      <if test="userProperties != null" >
+        user_properties,
+      </if>
+      <if test="dialRounds != null" >
+        dial_rounds,
+      </if>
+      <if test="recordingPath != null" >
+        recording_path,
+      </if>
+      <if test="intentionGrade != null" >
+        intention_grade,
+      </if>
+      <if test="tagList != null" >
+        tag_list,
+      </if>
+      <if test="pushStatus != null" >
+        push_status,
+      </if>
+      <if test="status != null" >
+        `status`,
+      </if>
+      <if test="extend != null" >
+        extend,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+      <if test="callDialog != null" >
+        call_dialog,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="callbackType != null" >
+        #{callbackType,jdbcType=INTEGER},
+      </if>
+      <if test="cid != null" >
+        #{cid,jdbcType=VARCHAR},
+      </if>
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="taskName != null" >
+        #{taskName,jdbcType=VARCHAR},
+      </if>
+      <if test="taskId != null" >
+        #{taskId,jdbcType=VARCHAR},
+      </if>
+      <if test="cell != null" >
+        #{cell,jdbcType=VARCHAR},
+      </if>
+      <if test="caseStatus != null" >
+        #{caseStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="dialCount != null" >
+        #{dialCount,jdbcType=INTEGER},
+      </if>
+      <if test="detail != null" >
+        #{detail,jdbcType=VARCHAR},
+      </if>
+      <if test="callRecordId != null" >
+        #{callRecordId,jdbcType=VARCHAR},
+      </if>
+      <if test="callStartTime != null" >
+        #{callStartTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="callConnectTime != null" >
+        #{callConnectTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="callEndTime != null" >
+        #{callEndTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="dialogTurn != null" >
+        #{dialogTurn,jdbcType=INTEGER},
+      </if>
+      <if test="callStatus != null" >
+        #{callStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="isConnect != null" >
+        #{isConnect,jdbcType=INTEGER},
+      </if>
+      <if test="smsSendStatus != null" >
+        #{smsSendStatus,jdbcType=INTEGER},
+      </if>
+      <if test="userProperties != null" >
+        #{userProperties,jdbcType=VARCHAR},
+      </if>
+      <if test="dialRounds != null" >
+        #{dialRounds,jdbcType=INTEGER},
+      </if>
+      <if test="recordingPath != null" >
+        #{recordingPath,jdbcType=VARCHAR},
+      </if>
+      <if test="intentionGrade != null" >
+        #{intentionGrade,jdbcType=VARCHAR},
+      </if>
+      <if test="tagList != null" >
+        #{tagList,jdbcType=VARCHAR},
+      </if>
+      <if test="pushStatus != null" >
+        #{pushStatus,jdbcType=TINYINT},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="extend != null" >
+        #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="callDialog != null" >
+        #{callDialog,jdbcType=LONGVARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.DidiCallBackDataExample" resultType="java.lang.Integer" >
+    select count(*) from b_didi_v5_callback_data
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_didi_v5_callback_data
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.callbackType != null" >
+        callback_type = #{record.callbackType,jdbcType=INTEGER},
+      </if>
+      <if test="record.cid != null" >
+        cid = #{record.cid,jdbcType=VARCHAR},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.taskName != null" >
+        task_name = #{record.taskName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.taskId != null" >
+        task_id = #{record.taskId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.cell != null" >
+        cell = #{record.cell,jdbcType=VARCHAR},
+      </if>
+      <if test="record.caseStatus != null" >
+        case_status = #{record.caseStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="record.dialCount != null" >
+        dial_count = #{record.dialCount,jdbcType=INTEGER},
+      </if>
+      <if test="record.detail != null" >
+        detail = #{record.detail,jdbcType=VARCHAR},
+      </if>
+      <if test="record.callRecordId != null" >
+        call_record_id = #{record.callRecordId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.callStartTime != null" >
+        call_start_time = #{record.callStartTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.callConnectTime != null" >
+        call_connect_time = #{record.callConnectTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.callEndTime != null" >
+        call_end_time = #{record.callEndTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.dialogTurn != null" >
+        dialog_turn = #{record.dialogTurn,jdbcType=INTEGER},
+      </if>
+      <if test="record.callStatus != null" >
+        call_status = #{record.callStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isConnect != null" >
+        is_connect = #{record.isConnect,jdbcType=INTEGER},
+      </if>
+      <if test="record.smsSendStatus != null" >
+        sms_send_status = #{record.smsSendStatus,jdbcType=INTEGER},
+      </if>
+      <if test="record.userProperties != null" >
+        user_properties = #{record.userProperties,jdbcType=VARCHAR},
+      </if>
+      <if test="record.dialRounds != null" >
+        dial_rounds = #{record.dialRounds,jdbcType=INTEGER},
+      </if>
+      <if test="record.recordingPath != null" >
+        recording_path = #{record.recordingPath,jdbcType=VARCHAR},
+      </if>
+      <if test="record.intentionGrade != null" >
+        intention_grade = #{record.intentionGrade,jdbcType=VARCHAR},
+      </if>
+      <if test="record.tagList != null" >
+        tag_list = #{record.tagList,jdbcType=VARCHAR},
+      </if>
+      <if test="record.pushStatus != null" >
+        push_status = #{record.pushStatus,jdbcType=TINYINT},
+      </if>
+      <if test="record.status != null" >
+        `status` = #{record.status,jdbcType=INTEGER},
+      </if>
+      <if test="record.extend != null" >
+        extend = #{record.extend,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.callDialog != null" >
+        call_dialog = #{record.callDialog,jdbcType=LONGVARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExampleWithBLOBs" parameterType="map" >
+    update b_didi_v5_callback_data
+    set id = #{record.id,jdbcType=BIGINT},
+      callback_type = #{record.callbackType,jdbcType=INTEGER},
+      cid = #{record.cid,jdbcType=VARCHAR},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      task_name = #{record.taskName,jdbcType=VARCHAR},
+      task_id = #{record.taskId,jdbcType=VARCHAR},
+      cell = #{record.cell,jdbcType=VARCHAR},
+      case_status = #{record.caseStatus,jdbcType=VARCHAR},
+      dial_count = #{record.dialCount,jdbcType=INTEGER},
+      detail = #{record.detail,jdbcType=VARCHAR},
+      call_record_id = #{record.callRecordId,jdbcType=VARCHAR},
+      call_start_time = #{record.callStartTime,jdbcType=TIMESTAMP},
+      call_connect_time = #{record.callConnectTime,jdbcType=TIMESTAMP},
+      call_end_time = #{record.callEndTime,jdbcType=TIMESTAMP},
+      dialog_turn = #{record.dialogTurn,jdbcType=INTEGER},
+      call_status = #{record.callStatus,jdbcType=VARCHAR},
+      is_connect = #{record.isConnect,jdbcType=INTEGER},
+      sms_send_status = #{record.smsSendStatus,jdbcType=INTEGER},
+      user_properties = #{record.userProperties,jdbcType=VARCHAR},
+      dial_rounds = #{record.dialRounds,jdbcType=INTEGER},
+      recording_path = #{record.recordingPath,jdbcType=VARCHAR},
+      intention_grade = #{record.intentionGrade,jdbcType=VARCHAR},
+      tag_list = #{record.tagList,jdbcType=VARCHAR},
+      push_status = #{record.pushStatus,jdbcType=TINYINT},
+      `status` = #{record.status,jdbcType=INTEGER},
+      extend = #{record.extend,jdbcType=VARCHAR},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      call_dialog = #{record.callDialog,jdbcType=LONGVARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_didi_v5_callback_data
+    set id = #{record.id,jdbcType=BIGINT},
+      callback_type = #{record.callbackType,jdbcType=INTEGER},
+      cid = #{record.cid,jdbcType=VARCHAR},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      task_name = #{record.taskName,jdbcType=VARCHAR},
+      task_id = #{record.taskId,jdbcType=VARCHAR},
+      cell = #{record.cell,jdbcType=VARCHAR},
+      case_status = #{record.caseStatus,jdbcType=VARCHAR},
+      dial_count = #{record.dialCount,jdbcType=INTEGER},
+      detail = #{record.detail,jdbcType=VARCHAR},
+      call_record_id = #{record.callRecordId,jdbcType=VARCHAR},
+      call_start_time = #{record.callStartTime,jdbcType=TIMESTAMP},
+      call_connect_time = #{record.callConnectTime,jdbcType=TIMESTAMP},
+      call_end_time = #{record.callEndTime,jdbcType=TIMESTAMP},
+      dialog_turn = #{record.dialogTurn,jdbcType=INTEGER},
+      call_status = #{record.callStatus,jdbcType=VARCHAR},
+      is_connect = #{record.isConnect,jdbcType=INTEGER},
+      sms_send_status = #{record.smsSendStatus,jdbcType=INTEGER},
+      user_properties = #{record.userProperties,jdbcType=VARCHAR},
+      dial_rounds = #{record.dialRounds,jdbcType=INTEGER},
+      recording_path = #{record.recordingPath,jdbcType=VARCHAR},
+      intention_grade = #{record.intentionGrade,jdbcType=VARCHAR},
+      tag_list = #{record.tagList,jdbcType=VARCHAR},
+      push_status = #{record.pushStatus,jdbcType=TINYINT},
+      `status` = #{record.status,jdbcType=INTEGER},
+      extend = #{record.extend,jdbcType=VARCHAR},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.DidiCallBackData" >
+    update b_didi_v5_callback_data
+    <set >
+      <if test="callbackType != null" >
+        callback_type = #{callbackType,jdbcType=INTEGER},
+      </if>
+      <if test="cid != null" >
+        cid = #{cid,jdbcType=VARCHAR},
+      </if>
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="taskName != null" >
+        task_name = #{taskName,jdbcType=VARCHAR},
+      </if>
+      <if test="taskId != null" >
+        task_id = #{taskId,jdbcType=VARCHAR},
+      </if>
+      <if test="cell != null" >
+        cell = #{cell,jdbcType=VARCHAR},
+      </if>
+      <if test="caseStatus != null" >
+        case_status = #{caseStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="dialCount != null" >
+        dial_count = #{dialCount,jdbcType=INTEGER},
+      </if>
+      <if test="detail != null" >
+        detail = #{detail,jdbcType=VARCHAR},
+      </if>
+      <if test="callRecordId != null" >
+        call_record_id = #{callRecordId,jdbcType=VARCHAR},
+      </if>
+      <if test="callStartTime != null" >
+        call_start_time = #{callStartTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="callConnectTime != null" >
+        call_connect_time = #{callConnectTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="callEndTime != null" >
+        call_end_time = #{callEndTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="dialogTurn != null" >
+        dialog_turn = #{dialogTurn,jdbcType=INTEGER},
+      </if>
+      <if test="callStatus != null" >
+        call_status = #{callStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="isConnect != null" >
+        is_connect = #{isConnect,jdbcType=INTEGER},
+      </if>
+      <if test="smsSendStatus != null" >
+        sms_send_status = #{smsSendStatus,jdbcType=INTEGER},
+      </if>
+      <if test="userProperties != null" >
+        user_properties = #{userProperties,jdbcType=VARCHAR},
+      </if>
+      <if test="dialRounds != null" >
+        dial_rounds = #{dialRounds,jdbcType=INTEGER},
+      </if>
+      <if test="recordingPath != null" >
+        recording_path = #{recordingPath,jdbcType=VARCHAR},
+      </if>
+      <if test="intentionGrade != null" >
+        intention_grade = #{intentionGrade,jdbcType=VARCHAR},
+      </if>
+      <if test="tagList != null" >
+        tag_list = #{tagList,jdbcType=VARCHAR},
+      </if>
+      <if test="pushStatus != null" >
+        push_status = #{pushStatus,jdbcType=TINYINT},
+      </if>
+      <if test="status != null" >
+        `status` = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="extend != null" >
+        extend = #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="callDialog != null" >
+        call_dialog = #{callDialog,jdbcType=LONGVARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.br.marketing.entity.DidiCallBackData" >
+    update b_didi_v5_callback_data
+    set callback_type = #{callbackType,jdbcType=INTEGER},
+      cid = #{cid,jdbcType=VARCHAR},
+      api_code = #{apiCode,jdbcType=VARCHAR},
+      task_name = #{taskName,jdbcType=VARCHAR},
+      task_id = #{taskId,jdbcType=VARCHAR},
+      cell = #{cell,jdbcType=VARCHAR},
+      case_status = #{caseStatus,jdbcType=VARCHAR},
+      dial_count = #{dialCount,jdbcType=INTEGER},
+      detail = #{detail,jdbcType=VARCHAR},
+      call_record_id = #{callRecordId,jdbcType=VARCHAR},
+      call_start_time = #{callStartTime,jdbcType=TIMESTAMP},
+      call_connect_time = #{callConnectTime,jdbcType=TIMESTAMP},
+      call_end_time = #{callEndTime,jdbcType=TIMESTAMP},
+      dialog_turn = #{dialogTurn,jdbcType=INTEGER},
+      call_status = #{callStatus,jdbcType=VARCHAR},
+      is_connect = #{isConnect,jdbcType=INTEGER},
+      sms_send_status = #{smsSendStatus,jdbcType=INTEGER},
+      user_properties = #{userProperties,jdbcType=VARCHAR},
+      dial_rounds = #{dialRounds,jdbcType=INTEGER},
+      recording_path = #{recordingPath,jdbcType=VARCHAR},
+      intention_grade = #{intentionGrade,jdbcType=VARCHAR},
+      tag_list = #{tagList,jdbcType=VARCHAR},
+      push_status = #{pushStatus,jdbcType=TINYINT},
+      `status` = #{status,jdbcType=INTEGER},
+      extend = #{extend,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      call_dialog = #{callDialog,jdbcType=LONGVARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.DidiCallBackData" >
+    update b_didi_v5_callback_data
+    set callback_type = #{callbackType,jdbcType=INTEGER},
+      cid = #{cid,jdbcType=VARCHAR},
+      api_code = #{apiCode,jdbcType=VARCHAR},
+      task_name = #{taskName,jdbcType=VARCHAR},
+      task_id = #{taskId,jdbcType=VARCHAR},
+      cell = #{cell,jdbcType=VARCHAR},
+      case_status = #{caseStatus,jdbcType=VARCHAR},
+      dial_count = #{dialCount,jdbcType=INTEGER},
+      detail = #{detail,jdbcType=VARCHAR},
+      call_record_id = #{callRecordId,jdbcType=VARCHAR},
+      call_start_time = #{callStartTime,jdbcType=TIMESTAMP},
+      call_connect_time = #{callConnectTime,jdbcType=TIMESTAMP},
+      call_end_time = #{callEndTime,jdbcType=TIMESTAMP},
+      dialog_turn = #{dialogTurn,jdbcType=INTEGER},
+      call_status = #{callStatus,jdbcType=VARCHAR},
+      is_connect = #{isConnect,jdbcType=INTEGER},
+      sms_send_status = #{smsSendStatus,jdbcType=INTEGER},
+      user_properties = #{userProperties,jdbcType=VARCHAR},
+      dial_rounds = #{dialRounds,jdbcType=INTEGER},
+      recording_path = #{recordingPath,jdbcType=VARCHAR},
+      intention_grade = #{intentionGrade,jdbcType=VARCHAR},
+      tag_list = #{tagList,jdbcType=VARCHAR},
+      push_status = #{pushStatus,jdbcType=TINYINT},
+      `status` = #{status,jdbcType=INTEGER},
+      extend = #{extend,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

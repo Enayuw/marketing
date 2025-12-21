@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.DidiCallbackDataLogMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.DidiCallbackDataLog" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="callback_id" property="callbackId" jdbcType="INTEGER" />
+    <result column="cid" property="cid" jdbcType="VARCHAR" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="cell" property="cell" jdbcType="VARCHAR" />
+    <result column="error_code" property="errorCode" jdbcType="VARCHAR" />
+    <result column="error_message" property="errorMessage" jdbcType="VARCHAR" />
+    <result column="return_content" property="returnContent" jdbcType="VARCHAR" />
+    <result column="is_success" property="isSuccess" jdbcType="TINYINT" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, callback_id, cid, api_code, cell, error_code, error_message, return_content, 
+    is_success, create_time, update_time
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.DidiCallbackDataLogExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_didi_v5_callback_data_log
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from b_didi_v5_callback_data_log
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_didi_v5_callback_data_log
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.DidiCallbackDataLogExample" >
+    delete from b_didi_v5_callback_data_log
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.DidiCallbackDataLog" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_didi_v5_callback_data_log (callback_id, cid, api_code, 
+      cell, error_code, error_message, 
+      return_content, is_success, create_time, 
+      update_time)
+    values (#{callbackId,jdbcType=INTEGER}, #{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, 
+      #{cell,jdbcType=VARCHAR}, #{errorCode,jdbcType=VARCHAR}, #{errorMessage,jdbcType=VARCHAR}, 
+      #{returnContent,jdbcType=VARCHAR}, #{isSuccess,jdbcType=TINYINT}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.DidiCallbackDataLog" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_didi_v5_callback_data_log
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="callbackId != null" >
+        callback_id,
+      </if>
+      <if test="cid != null" >
+        cid,
+      </if>
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="cell != null" >
+        cell,
+      </if>
+      <if test="errorCode != null" >
+        error_code,
+      </if>
+      <if test="errorMessage != null" >
+        error_message,
+      </if>
+      <if test="returnContent != null" >
+        return_content,
+      </if>
+      <if test="isSuccess != null" >
+        is_success,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="callbackId != null" >
+        #{callbackId,jdbcType=INTEGER},
+      </if>
+      <if test="cid != null" >
+        #{cid,jdbcType=VARCHAR},
+      </if>
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="cell != null" >
+        #{cell,jdbcType=VARCHAR},
+      </if>
+      <if test="errorCode != null" >
+        #{errorCode,jdbcType=VARCHAR},
+      </if>
+      <if test="errorMessage != null" >
+        #{errorMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="returnContent != null" >
+        #{returnContent,jdbcType=VARCHAR},
+      </if>
+      <if test="isSuccess != null" >
+        #{isSuccess,jdbcType=TINYINT},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.DidiCallbackDataLogExample" resultType="java.lang.Integer" >
+    select count(*) from b_didi_v5_callback_data_log
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_didi_v5_callback_data_log
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.callbackId != null" >
+        callback_id = #{record.callbackId,jdbcType=INTEGER},
+      </if>
+      <if test="record.cid != null" >
+        cid = #{record.cid,jdbcType=VARCHAR},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.cell != null" >
+        cell = #{record.cell,jdbcType=VARCHAR},
+      </if>
+      <if test="record.errorCode != null" >
+        error_code = #{record.errorCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.errorMessage != null" >
+        error_message = #{record.errorMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="record.returnContent != null" >
+        return_content = #{record.returnContent,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isSuccess != null" >
+        is_success = #{record.isSuccess,jdbcType=TINYINT},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_didi_v5_callback_data_log
+    set id = #{record.id,jdbcType=BIGINT},
+      callback_id = #{record.callbackId,jdbcType=INTEGER},
+      cid = #{record.cid,jdbcType=VARCHAR},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      cell = #{record.cell,jdbcType=VARCHAR},
+      error_code = #{record.errorCode,jdbcType=VARCHAR},
+      error_message = #{record.errorMessage,jdbcType=VARCHAR},
+      return_content = #{record.returnContent,jdbcType=VARCHAR},
+      is_success = #{record.isSuccess,jdbcType=TINYINT},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.DidiCallbackDataLog" >
+    update b_didi_v5_callback_data_log
+    <set >
+      <if test="callbackId != null" >
+        callback_id = #{callbackId,jdbcType=INTEGER},
+      </if>
+      <if test="cid != null" >
+        cid = #{cid,jdbcType=VARCHAR},
+      </if>
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="cell != null" >
+        cell = #{cell,jdbcType=VARCHAR},
+      </if>
+      <if test="errorCode != null" >
+        error_code = #{errorCode,jdbcType=VARCHAR},
+      </if>
+      <if test="errorMessage != null" >
+        error_message = #{errorMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="returnContent != null" >
+        return_content = #{returnContent,jdbcType=VARCHAR},
+      </if>
+      <if test="isSuccess != null" >
+        is_success = #{isSuccess,jdbcType=TINYINT},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.DidiCallbackDataLog" >
+    update b_didi_v5_callback_data_log
+    set callback_id = #{callbackId,jdbcType=INTEGER},
+      cid = #{cid,jdbcType=VARCHAR},
+      api_code = #{apiCode,jdbcType=VARCHAR},
+      cell = #{cell,jdbcType=VARCHAR},
+      error_code = #{errorCode,jdbcType=VARCHAR},
+      error_message = #{errorMessage,jdbcType=VARCHAR},
+      return_content = #{returnContent,jdbcType=VARCHAR},
+      is_success = #{isSuccess,jdbcType=TINYINT},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>
