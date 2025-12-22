@@ -172,7 +172,7 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
         // 数据包装
         JSONObject cleanJson = (JSONObject) JSONObject.toJSON(responseDTO.getData());
         cleanJson.put("cell", dataLog.getCell());
-
+        cleanJson.put("userGroup", dataLog.getUserGroup());
         Result cleanResult = generalDataCleanService.uploadClean(
                 Lists.newArrayList(cleanJson),
                 dataLog.getApiCode());
