@@ -2018,6 +2018,11 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             update.setStatus(DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode());
         }
         update.setUpdateTime(new Date());
+        MarketingUserDetail user = ThreadContextInfo.getUser();
+        Long userId = Long.valueOf(user.getId());
+        String userName = user.getUserName();
+        update.setOptUserId(userId);
+        update.setOptUserName(userName);
         cleanGeneralConfigMapper.updateByPrimaryKeySelective(update);
         entityOptService.writeOptLog(update.getId(), update, config);
         return Boolean.TRUE;
