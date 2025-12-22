@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.dto.autocheck.CheckTransferSyncDataDto;
 import com.br.marketing.dto.autocheck.CheckUploadSyncDataDto;
 import com.br.marketing.dto.autocheck.SaveAutoCheckConfigDto;
@@ -181,7 +182,8 @@ public class AutoCheckServiceImpl implements AutoCheckService {
             AutoCheckConfig existingConfig = autoCheckConfigMapper.selectByApiCode(dto.getApiCode());
             if (Objects.nonNull(existingConfig)) {
                 log.warn("要保存的配置已存在，apiCode: {}", dto.getApiCode());
-                return new ApiResult<Boolean>().success(false)
+                return new ApiResult<Boolean>().fail(ServiceResultEnum.UNKNOWN_ERROR.getCode())
+                        .setData(false)
                         .setMessage("保存失败，apiCode：" + dto.getApiCode() + "已存在");
             }
             AutoCheckConfig config = new AutoCheckConfig();
@@ -197,7 +199,9 @@ public class AutoCheckServiceImpl implements AutoCheckService {
             AutoCheckConfig existingConfig = autoCheckConfigMapper.selectByPrimaryKey(dto.getId());
             if (Objects.isNull(existingConfig)) {
                 log.warn("要编辑的配置不存在，id: {}", dto.getId());
-                return new ApiResult<Boolean>().success(false).setMessage("要编辑的配置不存在");
+                return new ApiResult<Boolean>().fail(ServiceResultEnum.UNKNOWN_ERROR.getCode())
+                        .setData(false)
+                        .setMessage("要编辑的配置不存在");
             }
             // 更新字段
             existingConfig.setSenceCode(dto.getSenceCodes());
