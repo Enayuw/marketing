@@ -177,13 +177,7 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
         if (CollectionUtils.isEmpty(duplicateIds)) {
             return;
         }
-        DidiCallBackDataExample example = new DidiCallBackDataExample();
-        example.createCriteria().andIdIn(duplicateIds);
-
-        DidiCallBackData updateData = new DidiCallBackData();
-        updateData.setPushStatus(2);
-        updateData.setStatus(1);
-        didiCallBackDataMapper.updateByExample(updateData, example);
+        didiCallBackDataMapper.updateStatusByIds(duplicateIds, 1, 2);
     }
 
     /**

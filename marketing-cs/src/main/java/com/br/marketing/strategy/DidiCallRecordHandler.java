@@ -16,15 +16,13 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * 58新客通话明细入库-3710155
  *
- * @Author lixiang
- * @Date 2024-07-23
+ * @Author xiong.luo
+ * @Date 2025-12-18
  */
 @Service
 @Slf4j
 public class DidiCallRecordHandler extends AbstractExternalInterfaceHandler<DidiCallBackDataDTO> {
-    private final static String TITLE = "【58新客通话明细入库-3710155】";
 
     @Autowired
     private DidiCallBackDataMapper didiCallBackDataMapper;

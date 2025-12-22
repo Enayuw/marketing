@@ -26,11 +26,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 滴滴通话明细落库
  *
- * @author GuangChao.Zhang
- * @version 1.0
- * @date 2023/4/26 10:01
+ * @Author xiong.luo
+ * @Date 2025-12-18
  */
 @Service
 @Slf4j
@@ -39,19 +37,35 @@ public class DidiV5CallRecordInsertDbImpl implements AssembleData<DidiCallBackDa
     @Resource
     private CallRecordMapper callRecordMapper;
 
-    @Resource
-    private MarketingCommonConfig marketingCommonConfig;
-
     @Override
     public DidiCallBackDataDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         CallRecordBO cbo = (CallRecordBO) transmitFact;
-        DidiCallBackDataDTO didiCallRecord = new DidiCallBackDataDTO();
-        didiCallRecord.setCell(cbo.getCaseNum());
-        didiCallRecord.setApiCode(cbo.getApiCode());
-        didiCallRecord.setStatus(1);
-        didiCallRecord.setCreateTime(new Date());
-        didiCallRecord.setUpdateTime(didiCallRecord.getCreateTime());
-        return didiCallRecord;
+        DidiCallBackDataDTO callBackData = new DidiCallBackDataDTO();
+        callBackData.setCell(cbo.getCaseNum());
+        callBackData.setApiCode(cbo.getApiCode());
+        callBackData.setCustNum(cbo.getCaseNum());
+        callBackData.setCreateDate(Integer.parseInt(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)));
+        callBackData.setStatus(0);
+        callBackData.setPushStatus(0);
+        callBackData.setCallbackType(1);
+        callBackData.setIsConnect(cbo.getDetail().getIsConnect());
+        callBackData.setCreateDate(Integer.parseInt(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)));
+        callBackData.setExtend(cbo.getDetail().getUserProperties());
+        callBackData.setCreateTime(new Date());
+        callBackData.setUpdateTime(callBackData.getCreateTime());
+        List<CallRecord> callRecordList = callRecordMapper.getLastCallRecordByCustNum(
+                Collections.singletonList(cbo.getCaseNum()), String.valueOf(cbo.getCid()));
+        String key = "scas";
+        CallRecord callRecord = callRecordList.get(0);
+        String userProperties = callRecord.getUserProperties();
+        if (StringUtils.isBlank(userProperties)) {
+            callBackData.setScas(JSON.parseObject(cbo.getDetail().getUserProperties()).getString(key));
+        } else {
+            JSONObject userPropertiesObj = JSON.parseObject(userProperties);
+            callBackData.setScas(userPropertiesObj.containsKey(key) ? userPropertiesObj.getString(key)
+                    : JSON.parseObject(cbo.getDetail().getUserProperties()).getString(key));
+        }
+        return StringUtils.isBlank(callBackData.getScas()) ? null : callBackData;
     }
 
     @Override

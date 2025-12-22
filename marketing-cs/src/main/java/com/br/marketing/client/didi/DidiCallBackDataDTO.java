@@ -15,14 +15,19 @@ public class DidiCallBackDataDTO extends InterfaceParams {
     private Long id;
 
     /**
-     * 回调参数类型:1-拨打结果,2-短信发送结果
+     * 回调类型，1-通话 2-短信
      */
     private Integer callbackType;
 
     /**
-     * 公司ID
+     * log加密电话
      */
-    private String cid;
+    private String cell;
+
+    /**
+     * 上传表中用户为一编号 md5手机号
+     */
+    private String custNum;
 
     /**
      * API代码
@@ -30,114 +35,44 @@ public class DidiCallBackDataDTO extends InterfaceParams {
     private String apiCode;
 
     /**
-     * 任务名称
-     */
-    private String taskName;
-
-    /**
-     * 任务编号
-     */
-    private String taskId;
-
-    /**
-     * 案件编号/客户号码
-     */
-    private String cell;
-
-    /**
-     * 案件状态
-     */
-    private String caseStatus;
-
-    /**
-     * 案件拨打次数
-     */
-    private Integer dialCount;
-
-    /**
-     * 拨打明细详情
-     */
-    private String detail;
-
-    /**
-     * 通话记录编号
-     */
-    private String callRecordId;
-
-    /**
-     * 开始外呼时间
-     */
-    private Date callStartTime;
-
-    /**
-     * 外呼接通时间
-     */
-    private Date callConnectTime;
-
-    /**
-     * 外呼结束时间
-     */
-    private Date callEndTime;
-
-    /**
-     * 对话轮次
-     */
-    private Integer dialogTurn;
-
-    /**
-     * 通话状态
-     */
-    private String callStatus;
-
-    /**
-     * 是否接通:0-否,1-是
-     */
-    private Integer isConnect;
-
-    /**
-     * 短信发送状态:0-否,1-是
-     */
-    private Integer smsSendStatus;
-
-    /**
-     * 用户信息
-     */
-    private String userProperties;
-
-    /**
-     * 第n次拨打
-     */
-    private Integer dialRounds;
-
-    /**
-     * 录音地址
-     */
-    private String recordingPath;
-
-    /**
-     * 意向等级:A级-有明确意向,B级-可能有意向,C级-明确拒绝,D级-用户忙,E级-拨打失败,F级-无效客户
-     */
-    private String intentionGrade;
-
-    /**
-     * 标签列表
-     */
-    private String tagList;
-
-    /**
-     * 0-待上报，1已上报
-     */
-    private Byte pushStatus;
-
-    /**
-     * 0-正常，1-数据重复
+     * 推送状态 0-待推送 1-成功 2-异常
      */
     private Integer status;
 
     /**
-     * 扩展字段，存储其他额外信息
+     * 推送状态 0-待推送 1-成功 2-异常
      */
-    private String extend;
+    private Integer pushStatus;
+
+    /**
+     * 创建日期
+     */
+    private Integer createDate;
+
+    /**
+     * 1-代表TRUE，0-代表FALSE
+     */
+    private Boolean result;
+
+    /**
+     * 是否接通 0-失败 1-成功
+     */
+    private Integer isConnect;
+
+    /**
+     * 短信发送状态 0-失败 1-成功
+     */
+    private Integer smsSendStatus;
+
+    /**
+     * 返回错误码
+     */
+    private String errorCode;
+
+    /**
+     * 返回错误信息
+     */
+    private String errorMessage;
 
     /**
      * 创建时间
@@ -150,7 +85,32 @@ public class DidiCallBackDataDTO extends InterfaceParams {
     private Date updateTime;
 
     /**
-     * 交互文本
+     * 系统逻辑记录，失效或者重复
      */
-    private String callDialog;
+    private String sysMessage;
+
+    /**
+     * 编码
+     */
+    private String scas;
+
+    /**
+     * 媒体名称
+     */
+    private String mediaName;
+
+    /**
+     * 本地文件记录id
+     */
+    private Long localId;
+
+    /**
+     * 数据描述
+     */
+    private String dataMessage;
+
+    /**
+     * 扩展字段
+     */
+    private String extend;
 }

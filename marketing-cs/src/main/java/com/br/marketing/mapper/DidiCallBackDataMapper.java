@@ -22,4 +22,5 @@ public interface DidiCallBackDataMapper extends DidiCallBackDataMapperBase {
                                                       @Param("lastId") Long lastId);
 
 
+    void updateStatusByIds(@Param("ids") List<Long> ids, @Param("status") Integer status, @Param("pushStatus") Integer pushStatus);
 }

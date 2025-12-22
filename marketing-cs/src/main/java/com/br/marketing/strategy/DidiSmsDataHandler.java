@@ -14,10 +14,9 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Zhong A SMS数据处理程序
  *
- * @author senyang.zheng
- * @date 2025/07/16
+ * @Author xiong.luo
+ * @Date 2025-12-18
  */
 @Service
 public class DidiSmsDataHandler extends AbstractExternalInterfaceHandler<DidiCallBackDataDTO> {

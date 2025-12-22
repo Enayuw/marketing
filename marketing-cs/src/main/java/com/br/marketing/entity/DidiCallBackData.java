@@ -14,9 +14,14 @@ public class DidiCallBackData {
     private Integer callbackType;
 
     /**
-     * 公司ID
+     * log加密电话
      */
-    private String cid;
+    private String cell;
+
+    /**
+     * 上传表中用户为一编号 md5手机号
+     */
+    private String custNum;
 
     /**
      * API代码
@@ -24,114 +29,59 @@ public class DidiCallBackData {
     private String apiCode;
 
     /**
-     * 任务名称
-     */
-    private String taskName;
-
-    /**
-     * 任务编号
-     */
-    private String taskId;
-
-    /**
-     * 案件编号/客户号码
-     */
-    private String cell;
-
-    /**
-     * 案件状态
-     */
-    private String caseStatus;
-
-    /**
-     * 案件拨打次数
-     */
-    private Integer dialCount;
-
-    /**
-     * 拨打明细详情
-     */
-    private String detail;
-
-    /**
-     * 通话记录编号
-     */
-    private String callRecordId;
-
-    /**
-     * 开始外呼时间
-     */
-    private Date callStartTime;
-
-    /**
-     * 外呼接通时间
-     */
-    private Date callConnectTime;
-
-    /**
-     * 外呼结束时间
-     */
-    private Date callEndTime;
-
-    /**
-     * 对话轮次
-     */
-    private Integer dialogTurn;
-
-    /**
-     * 通话状态
-     */
-    private String callStatus;
-
-    /**
-     * 是否接通:0-否,1-是
-     */
-    private Integer isConnect;
-
-    /**
-     * 短信发送状态:0-否,1-是
-     */
-    private Integer smsSendStatus;
-
-    /**
-     * 用户信息
-     */
-    private String userProperties;
-
-    /**
-     * 第n次拨打
-     */
-    private Integer dialRounds;
-
-    /**
-     * 录音地址
-     */
-    private String recordingPath;
-
-    /**
-     * 意向等级:A级-有明确意向,B级-可能有意向,C级-明确拒绝,D级-用户忙,E级-拨打失败,F级-无效客户
-     */
-    private String intentionGrade;
-
-    /**
-     * 标签列表
-     */
-    private String tagList;
-
-    /**
-     * 0-待上报，1已上报，2-数据错误
+     * 推送状态，0-未推送，1-推送成功，2-推送失败
      */
     private Integer pushStatus;
 
     /**
-     * 0-正常，1-数据重复
+     * 推送状态 0-待推送 1-成功 2-异常
      */
     private Integer status;
 
     /**
-     * 扩展字段，存储其他额外信息
+     * 创建日期
      */
-    private String extend;
+    private Integer createDate;
+
+    /**
+     * 1-代表TRUE，0-代表FALSE
+     */
+    private Boolean result;
+
+    /**
+     * 返回错误码
+     */
+    private String errorCode;
+
+    /**
+     * 返回错误信息
+     */
+    private String errorMessage;
+
+    /**
+     * 编码
+     */
+    private String scas;
+
+    /**
+     * 媒体名称
+     */
+    private String mediaName;
+
+    /**
+     * 数据描述
+     */
+    private String dataMessage;
+
+    /**
+     * 通话状态
+     */
+    private Integer isConnect;
+
+    /**
+     * 短信状态
+     */
+    private Integer smsSendStatus;
 
     /**
      * 创建时间
@@ -144,9 +94,9 @@ public class DidiCallBackData {
     private Date updateTime;
 
     /**
-     * 交互文本
+     * 扩展字段
      */
-    private String callDialog;
+    private String extend;
 
     public Long getId() {
         return id;
@@ -164,38 +114,6 @@ public class DidiCallBackData {
         this.callbackType = callbackType;
     }
 
-    public String getCid() {
-        return cid;
-    }
-
-    public void setCid(String cid) {
-        this.cid = cid == null ? null : cid.trim();
-    }
-
-    public String getApiCode() {
-        return apiCode;
-    }
-
-    public void setApiCode(String apiCode) {
-        this.apiCode = apiCode == null ? null : apiCode.trim();
-    }
-
-    public String getTaskName() {
-        return taskName;
-    }
-
-    public void setTaskName(String taskName) {
-        this.taskName = taskName == null ? null : taskName.trim();
-    }
-
-    public String getTaskId() {
-        return taskId;
-    }
-
-    public void setTaskId(String taskId) {
-        this.taskId = taskId == null ? null : taskId.trim();
-    }
-
     public String getCell() {
         return cell;
     }
@@ -204,132 +122,20 @@ public class DidiCallBackData {
         this.cell = cell == null ? null : cell.trim();
     }
 
-    public String getCaseStatus() {
-        return caseStatus;
+    public String getCustNum() {
+        return custNum;
     }
 
-    public void setCaseStatus(String caseStatus) {
-        this.caseStatus = caseStatus == null ? null : caseStatus.trim();
+    public void setCustNum(String custNum) {
+        this.custNum = custNum == null ? null : custNum.trim();
     }
 
-    public Integer getDialCount() {
-        return dialCount;
+    public String getApiCode() {
+        return apiCode;
     }
 
-    public void setDialCount(Integer dialCount) {
-        this.dialCount = dialCount;
-    }
-
-    public String getDetail() {
-        return detail;
-    }
-
-    public void setDetail(String detail) {
-        this.detail = detail == null ? null : detail.trim();
-    }
-
-    public String getCallRecordId() {
-        return callRecordId;
-    }
-
-    public void setCallRecordId(String callRecordId) {
-        this.callRecordId = callRecordId == null ? null : callRecordId.trim();
-    }
-
-    public Date getCallStartTime() {
-        return callStartTime;
-    }
-
-    public void setCallStartTime(Date callStartTime) {
-        this.callStartTime = callStartTime;
-    }
-
-    public Date getCallConnectTime() {
-        return callConnectTime;
-    }
-
-    public void setCallConnectTime(Date callConnectTime) {
-        this.callConnectTime = callConnectTime;
-    }
-
-    public Date getCallEndTime() {
-        return callEndTime;
-    }
-
-    public void setCallEndTime(Date callEndTime) {
-        this.callEndTime = callEndTime;
-    }
-
-    public Integer getDialogTurn() {
-        return dialogTurn;
-    }
-
-    public void setDialogTurn(Integer dialogTurn) {
-        this.dialogTurn = dialogTurn;
-    }
-
-    public String getCallStatus() {
-        return callStatus;
-    }
-
-    public void setCallStatus(String callStatus) {
-        this.callStatus = callStatus == null ? null : callStatus.trim();
-    }
-
-    public Integer getIsConnect() {
-        return isConnect;
-    }
-
-    public void setIsConnect(Integer isConnect) {
-        this.isConnect = isConnect;
-    }
-
-    public Integer getSmsSendStatus() {
-        return smsSendStatus;
-    }
-
-    public void setSmsSendStatus(Integer smsSendStatus) {
-        this.smsSendStatus = smsSendStatus;
-    }
-
-    public String getUserProperties() {
-        return userProperties;
-    }
-
-    public void setUserProperties(String userProperties) {
-        this.userProperties = userProperties == null ? null : userProperties.trim();
-    }
-
-    public Integer getDialRounds() {
-        return dialRounds;
-    }
-
-    public void setDialRounds(Integer dialRounds) {
-        this.dialRounds = dialRounds;
-    }
-
-    public String getRecordingPath() {
-        return recordingPath;
-    }
-
-    public void setRecordingPath(String recordingPath) {
-        this.recordingPath = recordingPath == null ? null : recordingPath.trim();
-    }
-
-    public String getIntentionGrade() {
-        return intentionGrade;
-    }
-
-    public void setIntentionGrade(String intentionGrade) {
-        this.intentionGrade = intentionGrade == null ? null : intentionGrade.trim();
-    }
-
-    public String getTagList() {
-        return tagList;
-    }
-
-    public void setTagList(String tagList) {
-        this.tagList = tagList == null ? null : tagList.trim();
+    public void setApiCode(String apiCode) {
+        this.apiCode = apiCode == null ? null : apiCode.trim();
     }
 
     public Integer getPushStatus() {
@@ -348,12 +154,76 @@ public class DidiCallBackData {
         this.status = status;
     }
 
-    public String getExtend() {
-        return extend;
+    public Integer getCreateDate() {
+        return createDate;
     }
 
-    public void setExtend(String extend) {
-        this.extend = extend == null ? null : extend.trim();
+    public void setCreateDate(Integer createDate) {
+        this.createDate = createDate;
+    }
+
+    public Boolean getResult() {
+        return result;
+    }
+
+    public void setResult(Boolean result) {
+        this.result = result;
+    }
+
+    public String getErrorCode() {
+        return errorCode;
+    }
+
+    public void setErrorCode(String errorCode) {
+        this.errorCode = errorCode == null ? null : errorCode.trim();
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage == null ? null : errorMessage.trim();
+    }
+
+    public String getScas() {
+        return scas;
+    }
+
+    public void setScas(String scas) {
+        this.scas = scas == null ? null : scas.trim();
+    }
+
+    public String getMediaName() {
+        return mediaName;
+    }
+
+    public void setMediaName(String mediaName) {
+        this.mediaName = mediaName == null ? null : mediaName.trim();
+    }
+
+    public String getDataMessage() {
+        return dataMessage;
+    }
+
+    public void setDataMessage(String dataMessage) {
+        this.dataMessage = dataMessage == null ? null : dataMessage.trim();
+    }
+
+    public Integer getIsConnect() {
+        return isConnect;
+    }
+
+    public void setIsConnect(Integer isConnect) {
+        this.isConnect = isConnect;
+    }
+
+    public Integer getSmsSendStatus() {
+        return smsSendStatus;
+    }
+
+    public void setSmsSendStatus(Integer smsSendStatus) {
+        this.smsSendStatus = smsSendStatus;
     }
 
     public Date getCreateTime() {
@@ -372,11 +242,11 @@ public class DidiCallBackData {
         this.updateTime = updateTime;
     }
 
-    public String getCallDialog() {
-        return callDialog;
+    public String getExtend() {
+        return extend;
     }
 
-    public void setCallDialog(String callDialog) {
-        this.callDialog = callDialog == null ? null : callDialog.trim();
+    public void setExtend(String extend) {
+        this.extend = extend == null ? null : extend.trim();
     }
 }

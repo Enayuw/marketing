@@ -4,17 +4,15 @@
 
     <insert id="batchAdd" parameterType="java.util.List">
         INSERT INTO `b_didi_v5_callback_data` (
-        `callback_type`,`cid`,`api_code`,`task_name`,`task_id`,`cell`,`case_status`,`dial_count`,`detail`,
-        `call_record_id`,`call_start_time`,`call_connect_time`,`call_end_time`,`dialog_turn`,`call_status`,
-        `is_connect`,`sms_send_status`,`call_dialog`,`user_properties`,`dial_rounds`,`recording_path`,
-        `intention_grade`,`tag_list`,`push_status`,`status`,`extend`
+        `callback_type`, `cell`, `cust_num`, `api_code`, `push_status`, `status`,
+        `create_date`, `result`, `error_code`, `error_message`, `scas`, `media_name`,
+        `data_message`, `is_connect`, `sms_send_status`, `extend`
         ) VALUES
         <foreach collection="list" item="item" separator=",">
-            (#{item.callbackType},#{item.cid},#{item.apiCode},#{item.taskName}, #{item.taskId}, #{item.cell},
-            #{item.caseStatus},#{item.dialCount},#{item.detail},#{item.callRecordId},#{item.callStartTime},
-            #{item.callConnectTime},#{item.callEndTime},#{item.dialogTurn},#{item.callStatus},#{item.isConnect},
-            #{item.smsSendStatus},#{item.callDialog},#{item.userProperties},#{item.dialRounds},#{item.recordingPath},
-            #{item.intentionGrade},#{item.tagList},#{item.pushStatus},#{item.status},#{item.extend})
+            (#{item.callbackType}, #{item.cell}, #{item.custNum}, #{item.apiCode},
+            #{item.pushStatus}, #{item.status}, #{item.createDate}, #{item.result},
+            #{item.errorCode}, #{item.errorMessage}, #{item.scas}, #{item.mediaName},
+            #{item.dataMessage}, #{item.isConnect}, #{item.smsSendStatus}, #{item.extend})
         </foreach>
     </insert>
 
@@ -58,5 +56,14 @@
           AND is_connect IS NULL
         ORDER BY id ASC LIMIT #{pageSize}
     </select>
+
+    <update id="updateStatusByIds">
+        UPDATE b_didi_v5_callback_data
+        SET status = #{status}, push_status = #{pushStatus}, update_time = NOW()
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </update>
 
 </mapper>

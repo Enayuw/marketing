@@ -1,12 +1,8 @@
 package com.br.marketing.rule.didi;
 
-import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.didi.DidiCallBackDataDTO;
 import com.br.marketing.context.ProcessHandlerContext;
-import com.br.marketing.dto.customer.CallRecordBO;
-import com.br.marketing.dto.customer.CallRecordDetailBO;
 import com.br.marketing.dto.customer.SmsCallBackBO;
-import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.TransferDataValidityPeriodService;
@@ -16,7 +12,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 /**
  * 滴滴通话明细落库
@@ -44,8 +42,11 @@ public class DidiV5SmsInsertDbImpl implements AssembleData<DidiCallBackDataDTO> 
         DidiCallBackDataDTO didiCallRecord = new DidiCallBackDataDTO();
         didiCallRecord.setCell(cbo.getCaseNum());
         didiCallRecord.setApiCode(cbo.getApiCode());
-        didiCallRecord.setStatus(1);
+        didiCallRecord.setStatus(0);
+        didiCallRecord.setPushStatus(0);
         didiCallRecord.setCallbackType(2);
+        didiCallRecord.setSmsSendStatus(cbo.getSmsSendStatus());
+        didiCallRecord.setCreateDate(Integer.parseInt(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)));
         didiCallRecord.setCreateTime(new Date());
         didiCallRecord.setUpdateTime(didiCallRecord.getCreateTime());
         return didiCallRecord;
@@ -53,28 +54,11 @@ public class DidiV5SmsInsertDbImpl implements AssembleData<DidiCallBackDataDTO> 
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
-        if (!(transmitFact instanceof SmsCallBackBO)) {
-            return false;
+        if (transmitFact instanceof SmsCallBackBO cbo) {
+            Integer smsSendStatus = cbo.getSmsSendStatus();
+            return smsSendStatus != null && smsSendStatus == 1;
         }
-
-        SmsCallBackBO bo = (SmsCallBackBO) transmitFact;
-        Set<String> custNums = new HashSet<>();
-        custNums.add(bo.getCaseNum());
-
-        Map<String, SyncUserValidityPeriodsBO> keyToSyncUserBO = transferDataValidityPeriodService
-                .getValidityPeriodsByCustNumAndUserType(custNums, bo.getUserType(), bo.getApiCode(), new Date());
-
-        SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = keyToSyncUserBO.get(bo.getCaseNum());
-//        if (syncUserValidityPeriodsBO == null) {
-//            log.warn("滴滴短信明细回调, 未匹配到上传数据, caseNum: {}, userType: {}", bo.getCaseNum(), bo.getUserType());
-//            return false;
-//        }
-//        List<MarketingSyncUser> syncUsers = syncUserValidityPeriodsBO.getSyncUsers();
-//        if (syncUsers == null || syncUsers.isEmpty()) {
-//            log.warn("滴滴短信明细回调, 未匹配到上传数据, caseNum: {}, userType: {}", bo.getCaseNum(), bo.getUserType());
-//            return false;
-//        }
-        return true;
+        return false;
     }
 
     @Override
