@@ -41,6 +41,7 @@
         update `b_marketing_industry_template_json_parse`
         set is_del = 9
         where interfaceTemplateId = #{templateId}
+        and is_del = 1
     </update>
 
 </mapper>
