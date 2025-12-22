@@ -419,9 +419,13 @@ public class DataCleanServiceImpl implements DataCleanService {
     }
 
 
-    public Long delConfigRule(String apiCode, Integer dataType, Integer acceptType) {
+    public Long delConfigRule(Integer systemType, String apiCode,
+                              Integer dataType, Integer acceptType) {
 
-        String redisKey = RedisKeyConstant.DATA_CLEAN_CONFIG_RULE.concat(apiCode).concat(":").concat(dataType.toString()).concat(":").concat(acceptType.toString());
+        String redisKey = RedisKeyConstant.DATA_CLEAN_CONFIG_RULE.concat(apiCode)
+                .concat(":").concat(systemType.toString())
+                .concat(":").concat(dataType.toString())
+                .concat(":").concat(acceptType.toString());
         if (redisChgService.exists(redisKey)) {
             return redisChgService.del(redisKey);
         }

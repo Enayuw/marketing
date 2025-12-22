@@ -1985,10 +1985,9 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             processCleaningConfigs(configDTO, config);
         }
 
-        // 3. 营销中台系统需要清除缓存
-        if(config.getSystemType().equals(DataProcessEnum.SystemTypeEnum.MARKETING.getCode())){
-            dataCleanService.delConfigRule(configDTO.getApiCode(), configDTO.getDataType(), configDTO.getAcceptType());
-        }
+        // 3. 清除缓存
+        dataCleanService.delConfigRule(configDTO.getSystemType(), configDTO.getApiCode(),
+                configDTO.getDataType(), configDTO.getAcceptType());
 
         // 4. 更新配置表状态
         MarketingDataCleanGeneralConfig update = new MarketingDataCleanGeneralConfig();
@@ -2210,7 +2209,10 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         MarketingDataCleanGeneralRuleConfigExample ruleConfigExample = new MarketingDataCleanGeneralRuleConfigExample();
         ruleConfigExample.createCriteria().andCleanConfigIdEqualTo(ruleId).andIsDelEqualTo(1);
         marketingDataCleanGeneralRuleConfigMapper.deleteByExample(ruleConfigExample);
-        dataCleanService.delConfigRule(marketingCommonConfig.getDatacleanTestRunApiCode(), ruleTrialConfigDTO.getDataType(), ruleTrialConfigDTO.getAcceptType());
+        dataCleanService.delConfigRule(
+                DataProcessEnum.SystemTypeEnum.MARKETING.getCode(),
+                marketingCommonConfig.getDatacleanTestRunApiCode(),
+                ruleTrialConfigDTO.getDataType(), ruleTrialConfigDTO.getAcceptType());
     }
 
     private Long insertRuleToTest(Map<String, MarketingDataCleanGeneralRuleConfig> ruleConfigMap, String testApiCode,RuleTrialConfigDTO ruleTrialConfigDTO) {
@@ -2229,7 +2231,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             ruleField.setApiCode(testApiCode);
             marketingDataCleanGeneralRuleConfigMapper.insertSelective(ruleField);
         });
-        dataCleanService.delConfigRule(testApiCode, ruleTrialConfigDTO.getDataType(), ruleTrialConfigDTO.getAcceptType());
+        dataCleanService.delConfigRule(DataProcessEnum.SystemTypeEnum.MARKETING.getCode(), testApiCode,
+                ruleTrialConfigDTO.getDataType(), ruleTrialConfigDTO.getAcceptType());
         return config.getId();
     }
 
