@@ -120,7 +120,7 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
         }
         taskPackages.sort(Comparator.comparingInt(TcyrCpaCollidingTaskPackage::getPriority));
         //3.更新撞库任务状态为3-筛选中
-        if (Objects.equals(task.getStatus(), TcCpaCollidingTaskStatusEnum.STATUS_FILTERING.getValue())) {
+        if (!Objects.equals(task.getStatus(), TcCpaCollidingTaskStatusEnum.STATUS_FILTERING.getValue())) {
             task.setStatus(TcCpaCollidingTaskStatusEnum.STATUS_FILTERING.getValue());
             tcyrCpaCollidingTaskMapper.updateByPrimaryKeySelective(task);
         }
