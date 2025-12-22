@@ -12,16 +12,11 @@ import com.br.marketing.mapper.TransferSyncReportMapper;
 import com.br.marketing.service.MarketingCustomerService;
 import com.br.marketing.service.autocheck.AutoCheckService;
 import com.br.marketing.utils.CheckObjectSameUtil;
+import com.br.marketing.utils.JsonFilterUtil;
 import com.br.marketing.vo.MarketingCustomerVO;
 import com.br.marketing.vo.autocheck.AutoCheckResultVO;
 import com.br.marketing.vo.autocheck.AutoCheckConfigVO;
 import com.br.marketing.vo.autocheck.AutoCheckSenceVO;
-import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ser.FilterProvider;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -42,13 +37,6 @@ public class AutoCheckServiceImpl implements AutoCheckService {
 
     private static final String SCENE_UPLOAD = "TY-SCJK";
     private static final String SCENE_TRANSFER = "TY-ZHJK";
-
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    private static final String JSON_DYNAMIC_FILTER_ID = "autoCheckDynamicFieldFilter";
-
-    @JsonFilter(JSON_DYNAMIC_FILTER_ID)
-    private interface DynamicFieldFilterMixIn {
-    }
 
     @Resource
     private AutoCheckSenceDictMapper autoCheckSenceDictMapper;
@@ -339,8 +327,8 @@ public class AutoCheckServiceImpl implements AutoCheckService {
                 continue;
             }
             AutoCheckResultVO vo = baseVO(apiCode, SCENE_UPLOAD, apiInfoMap, senceMap);
-            vo.setLastDayData(toJsonSafe(lastDay8, "snapTime","apiCode"));
-            vo.setThisData(toJsonSafe(latest, "snapTime","apiCode"));
+            vo.setLastDayData(toJsonExcludeSafe(lastDay8, "snapTime", "apiCode"));
+            vo.setThisData(toJsonExcludeSafe(latest, "snapTime", "apiCode"));
             vo.setTime(latest.getSnapTime());
             vo.setCompareResult(compareUpload(lastDay8, latest));
             voList.add(vo);
@@ -370,8 +358,8 @@ public class AutoCheckServiceImpl implements AutoCheckService {
                 continue;
             }
             AutoCheckResultVO vo = baseVO(apiCode, SCENE_TRANSFER, apiInfoMap, senceMap);
-            vo.setLastDayData(toJsonSafe(lastDay8, "snapTime","apiCode"));
-            vo.setThisData(toJsonSafe(latest, "snapTime","apiCode"));
+            vo.setLastDayData(toJsonExcludeSafe(lastDay8, "snapTime", "apiCode"));
+            vo.setThisData(toJsonExcludeSafe(latest, "snapTime", "apiCode"));
             vo.setTime(latest.getSnapTime());
             vo.setCompareResult(compareTransfer(lastDay8, latest));
             voList.add(vo);
@@ -401,34 +389,8 @@ public class AutoCheckServiceImpl implements AutoCheckService {
         return same ? "一致" : "不一致";
     }
 
-    /**
-     * 对象转 JSON 字符串，并按需排除字段（仅对“对象属性”生效；如果传入的是 List/Map 需要按元素/值类型做过滤）。
-     *
-     * <p>示例：{@code toJsonSafe(latest, "id", "createTime")}</p>
-     */
-    @SuppressWarnings("unused")
-    private String toJsonSafe(Object obj, String... excludeFields) {
-        if (obj == null) return "";
-        try {
-            if (excludeFields == null || excludeFields.length == 0) {
-                return OBJECT_MAPPER.writeValueAsString(obj);
-            }
-
-            // 注意：不要在共享的 OBJECT_MAPPER 上做 addMixIn / setFilterProvider（配置变更非线程安全），这里用 copy()
-            ObjectMapper mapper = OBJECT_MAPPER.copy();
-            mapper.addMixIn(obj.getClass(), DynamicFieldFilterMixIn.class);
-
-            Set<String> excludeSet = Arrays.stream(excludeFields)
-                    .filter(StringUtils::isNotBlank)
-                    .collect(Collectors.toSet());
-            FilterProvider filters = new SimpleFilterProvider()
-                    .addFilter(JSON_DYNAMIC_FILTER_ID,
-                            SimpleBeanPropertyFilter.serializeAllExcept(excludeSet));
-
-            return mapper.writer(filters).writeValueAsString(obj);
-        } catch (JsonProcessingException e) {
-            return String.valueOf(obj);
-        }
+    private String toJsonExcludeSafe(Object obj, String... excludeFields) {
+        return JsonFilterUtil.toJsonExcludeSafe(obj, excludeFields);
     }
 
     private <T> Map<String, T> toMapByApiCode(List<T> list, java.util.function.Function<T, String> apiCodeFn) {

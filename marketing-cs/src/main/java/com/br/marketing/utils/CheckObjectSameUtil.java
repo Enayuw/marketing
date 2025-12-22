@@ -2,14 +2,16 @@ package com.br.marketing.utils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class CheckObjectSameUtil {
+public final class CheckObjectSameUtil {
 
     /**
      * 字段缓存：按 Class 缓存 “字段名 -> Field”，避免频繁反射扫描
@@ -17,7 +19,16 @@ public class CheckObjectSameUtil {
     private static final ConcurrentHashMap<Class<?>, Map<String, Field>> FIELD_CACHE = new ConcurrentHashMap<>();
 
     /**
-     * 通用方法：比较两个对象的所有非静态字段值是否完全相同
+     * 字段缓存：按 Class 缓存 “所有实例字段 Field[]（包含父类字段，且保留同名隐藏字段）”。
+     * <p>注意：与 {@link #FIELD_CACHE} 不同，这里不能用 fieldName 去重，否则会改变同名隐藏字段的比较行为。</p>
+     */
+    private static final ConcurrentHashMap<Class<?>, Field[]> ALL_INSTANCE_FIELDS_CACHE = new ConcurrentHashMap<>();
+
+    private CheckObjectSameUtil() {
+    }
+
+    /**
+     * 通用方法：比较两个对象的所有非静态字段值是否完全相同（包含父类字段）。
      *
      * @param obj1 第一个对象
      * @param obj2 第二个对象
@@ -27,44 +38,19 @@ public class CheckObjectSameUtil {
      */
 
     public static <T> boolean isAllFieldsEqual(T obj1, T obj2) throws IllegalAccessException {
-        // 1. 处理空值情况
-        if (obj1 == null && obj2 == null) {
-            return true;
-        }
-        if (obj1 == null || obj2 == null) {
-            return false;
+        Class<?> clazz = strictSameClassOrNull(obj1, obj2);
+        if (clazz == null) {
+            return obj1 == null && obj2 == null;
         }
 
-        // 2. 检查两个对象是否为同一类型（严格类型匹配）
-        Class<?> clazz1 = obj1.getClass();
-        Class<?> clazz2 = obj2.getClass();
-        if (!clazz1.equals(clazz2)) {
-            return false;
-        }
-
-        // 3. 获取所有字段（包括父类的非静态字段）
-        Field[] allFields = getAllDeclaredFields(clazz1);
-
-        // 4. 遍历所有字段逐一比较
+        Field[] allFields = getAllInstanceFields(clazz);
         for (Field field : allFields) {
-            // 跳过静态字段
-            if (Modifier.isStatic(field.getModifiers())) {
-                continue;
-            }
-
-            // 设置字段可访问（突破private/protected限制）
-            field.setAccessible(true);
-
-            // 获取两个对象的字段值
             Object value1 = field.get(obj1);
             Object value2 = field.get(obj2);
-
-            // 比较字段值（处理null和数组的特殊情况）
             if (!isFieldValueEqual(value1, value2)) {
                 return false;
             }
         }
-
         return true;
     }
 
@@ -79,22 +65,12 @@ public class CheckObjectSameUtil {
      * </ul>
      */
     public static <T> boolean isFieldsEqual(T obj1, T obj2, String... fieldNames) {
-        // 1. 空值处理
-        if (obj1 == null && obj2 == null) {
-            return true;
-        }
-        if (obj1 == null || obj2 == null) {
-            return false;
+        Class<?> clazz1 = strictSameClassOrNull(obj1, obj2);
+        if (clazz1 == null) {
+            return obj1 == null && obj2 == null;
         }
 
-        // 2. 严格类型匹配（与 isAllFieldsEqual 行为保持一致）
-        Class<?> clazz1 = obj1.getClass();
-        Class<?> clazz2 = obj2.getClass();
-        if (!clazz1.equals(clazz2)) {
-            return false;
-        }
-
-        // 3. 未指定字段：兼容老逻辑
+        // 未指定字段：兼容老逻辑
         if (fieldNames == null || fieldNames.length == 0) {
             try {
                 return isAllFieldsEqual(obj1, obj2);
@@ -127,22 +103,17 @@ public class CheckObjectSameUtil {
     }
 
     /**
-     * 递归获取类及其所有父类的声明字段（排除Object类）
-     *
-     * @param clazz 目标类
-     * @return 所有声明字段
+     * 严格类型匹配：仅当 obj1/obj2 都非空且 getClass() 相等时返回该 Class，否则返回 null。
      */
-    private static Field[] getAllDeclaredFields(Class<?> clazz) {
-        Field[] fields = clazz.getDeclaredFields();
-        Class<?> superClass = clazz.getSuperclass();
-
-        // 递归获取父类字段（直到Object类为止）
-        if (superClass != null && !superClass.equals(Object.class)) {
-            Field[] superFields = getAllDeclaredFields(superClass);
-            fields = concatArrays(fields, superFields);
+    private static Class<?> strictSameClassOrNull(Object obj1, Object obj2) {
+        if (obj1 == null || obj2 == null) {
+            return null;
         }
-
-        return fields;
+        Class<?> clazz1 = obj1.getClass();
+        if (!clazz1.equals(obj2.getClass())) {
+            return null;
+        }
+        return clazz1;
     }
 
     /**
@@ -150,6 +121,30 @@ public class CheckObjectSameUtil {
      */
     private static Map<String, Field> getFieldMap(Class<?> clazz) {
         return FIELD_CACHE.computeIfAbsent(clazz, CheckObjectSameUtil::buildFieldMap);
+    }
+
+    /**
+     * 获取（并缓存）类的所有实例字段数组（包含父类字段，且保留同名隐藏字段）。
+     * <p>顺序：子类在前、父类在后。</p>
+     */
+    private static Field[] getAllInstanceFields(Class<?> clazz) {
+        return ALL_INSTANCE_FIELDS_CACHE.computeIfAbsent(clazz, CheckObjectSameUtil::buildAllInstanceFields);
+    }
+
+    private static Field[] buildAllInstanceFields(Class<?> clazz) {
+        List<Field> result = new ArrayList<>();
+        Class<?> current = clazz;
+        while (current != null && !current.equals(Object.class)) {
+            Field[] fields = current.getDeclaredFields();
+            for (Field field : fields) {
+                if (Modifier.isStatic(field.getModifiers())) {
+                    continue;
+                }
+                result.add(makeAccessible(field));
+            }
+            current = current.getSuperclass();
+        }
+        return result.toArray(new Field[0]);
     }
 
     private static Map<String, Field> buildFieldMap(Class<?> clazz) {
@@ -179,16 +174,6 @@ public class CheckObjectSameUtil {
     }
 
     /**
-     * 合并两个数组
-     */
-    private static Field[] concatArrays(Field[] arr1, Field[] arr2) {
-        Field[] result = new Field[arr1.length + arr2.length];
-        System.arraycopy(arr1, 0, result, 0, arr1.length);
-        System.arraycopy(arr2, 0, result, arr1.length, arr2.length);
-        return result;
-    }
-
-    /**
      * 比较单个字段的值（处理null、数组、普通对象）
      */
     private static boolean isFieldValueEqual(Object value1, Object value2) {
@@ -214,6 +199,10 @@ public class CheckObjectSameUtil {
      * 比较两个数组的值
      */
     private static boolean isArrayEqual(Object arr1, Object arr2) {
+        // 数组类型不同，直接不相等
+        if (!arr1.getClass().equals(arr2.getClass())) {
+            return false;
+        }
         // 基本类型数组
         if (arr1 instanceof boolean[]) return Arrays.equals((boolean[]) arr1, (boolean[]) arr2);
         if (arr1 instanceof byte[]) return Arrays.equals((byte[]) arr1, (byte[]) arr2);
