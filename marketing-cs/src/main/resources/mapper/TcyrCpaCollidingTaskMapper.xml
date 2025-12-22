@@ -15,7 +15,7 @@
             AND colliding_time <![CDATA[ >= ]]> #{collidingDateBegin}
             AND colliding_time <![CDATA[ <= ]]> #{collidingDateEnd}
         </if>
-        order by colliding_date desc, colliding_time asc
+        order by colliding_date desc, colliding_time asc, create_time asc
     </select>
 
     <select id="querysupplyRuleInfo" resultType="java.lang.String">
