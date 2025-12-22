@@ -26,10 +26,10 @@ public class DiDiV5Client {
     @Value("${api.didi.collidingUrl:https://admarketing-manhattan.xiaojukeji.com/crow/collision/mediaName}")
     private String collidingUrl;
 
-    @Value("${api.didi.collidingUrl:https://admarketing-manhattan.xiaojukeji.com/crow/user/success/mediaName}")
+    @Value("${api.didi.callbackSuccessUrl:https://admarketing-manhattan.xiaojukeji.com/crow/user/success/mediaName}")
     private String callbackSuccessUrl;
 
-    @Value("${api.didi.collidingUrl:https://admarketing-manhattan.xiaojukeji.com/crow/user/faileduser/mediaName}")
+    @Value("${api.didi.failedUrl:https://admarketing-manhattan.xiaojukeji.com/crow/user/faileduser/mediaName}")
     private String callbackFailUrl;
 
     @Value("${api.didi.isProxy:false}")
@@ -52,7 +52,7 @@ public class DiDiV5Client {
     @Mockable(mockName = MockConstants.DIDI_V5_CALLBACK_SUCCESS_DATA_RETURN)
     public Result<String> callbackSuccess(String mediaName, DiDiSmsRequestTO smsRequestTO) {
         callbackSuccessUrl = callbackSuccessUrl.replace("mediaName", mediaName);
-        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(smsRequestTO, collidingUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE,
+        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(smsRequestTO, callbackSuccessUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE,
                 JSON.toJSONString(smsRequestTO), true, false);
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(JSONObject.toJSONString(resMap));
     }
@@ -63,7 +63,7 @@ public class DiDiV5Client {
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     @Mockable(mockName = MockConstants.DIDI_V5_CALLBACK_FAIL_DATA_RETURN)
     public Result<String> callbackFailed(String mediaName, DiDiSmsRequestTO smsRequestTO) {
-        callbackFailUrl = callbackSuccessUrl.replace("mediaName", mediaName);
+        callbackFailUrl = callbackFailUrl.replace("mediaName", mediaName);
         HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(smsRequestTO, callbackFailUrl, isProxy,
                 MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(smsRequestTO), true, false);
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(JSONObject.toJSONString(resMap));

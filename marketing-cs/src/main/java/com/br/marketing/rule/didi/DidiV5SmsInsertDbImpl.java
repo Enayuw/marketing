@@ -6,12 +6,11 @@ import com.br.marketing.client.didi.DidiCallBackDataDTO;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.dto.customer.SmsCallBackBO;
 import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.TransferDataValidityPeriodService;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -59,7 +58,7 @@ public class DidiV5SmsInsertDbImpl implements AssembleData<DidiCallBackDataDTO> 
             List<MarketingSyncUser> syncUsers = bo.getSyncUsers();
             didiCallRecord.setCell(syncUsers.get(0).getCell());
         }
-        return didiCallRecord;
+        return StringUtils.isBlank(didiCallRecord.getCell()) ? null : didiCallRecord;
     }
 
     @Override

@@ -325,18 +325,38 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
                 break;
             }
             // 过滤已成功推送的数据（push_type in (1,2,3)）
-            Set<String> cellSet = pageData.stream()
+            Set<String> succeedCellSet = pageData.stream()
                     .map(DiDiV5CollidingDataLog::getCell)
                     .collect(Collectors.toSet());
-            List<String> successPushedCells = didiCallBackDataLogMapper.selectSuccessPushedCells(cellSet);
+            List<String> successPushedCells = didiCallBackDataLogMapper.selectSuccessPushedCells(succeedCellSet);
 
             List<DiDiV5CollidingDataLog> filteredData = pageData.stream()
                     .filter(data -> !successPushedCells.contains(data.getCell()))
                     .collect(Collectors.toList());
 
-            if (!CollectionUtils.isEmpty(filteredData)) {
+            // 过滤已推送的cell
+            Set<String> cellSet = filteredData.stream().map(DiDiV5CollidingDataLog::getCell).collect(Collectors.toSet());
+            List<String> pushedCells = didiCallBackDataLogMapper.selectPushedCells(cellSet);
+            filteredData = filteredData.stream()
+                    .filter(data -> !pushedCells.contains(data.getCell()))
+                    .collect(Collectors.toList());
+
+            if (CollectionUtils.isEmpty(filteredData)) {
+                lastId = pageData.get(pageData.size() - 1).getId();
+                continue;
+            }
+            // 按cell分组，每个cell只取一条
+            Map<String, List<DiDiV5CollidingDataLog>> cellGroupMap = filteredData.stream()
+                    .collect(Collectors.groupingBy(DiDiV5CollidingDataLog::getCell));
+
+            List<DiDiV5CollidingDataLog> uniqueData = new ArrayList<>();
+            for (List<DiDiV5CollidingDataLog> cellDataList : cellGroupMap.values()) {
+                DiDiV5CollidingDataLog selectedData = cellDataList.get(0);
+                uniqueData.add(selectedData);
+            }
+            if (!CollectionUtils.isEmpty(uniqueData)) {
                 // 推送失败数据
-                filteredData.forEach(data ->
+                uniqueData.forEach(data ->
                         pushPool.execute(() -> pushSingleFailedData(data, mediaName, token))
                 );
             }

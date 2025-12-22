@@ -53,7 +53,6 @@ public class DidiV5CallRecordInsertDbImpl implements AssembleData<DidiCallBackDa
     public DidiCallBackDataDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         CallRecordBO cbo = (CallRecordBO) transmitFact;
         DidiCallBackDataDTO callBackData = new DidiCallBackDataDTO();
-        callBackData.setCell(cbo.getCaseNum());
         callBackData.setApiCode(cbo.getApiCode());
         callBackData.setCustNum(cbo.getCaseNum());
         callBackData.setCreateDate(Integer.parseInt(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)));
@@ -87,7 +86,7 @@ public class DidiV5CallRecordInsertDbImpl implements AssembleData<DidiCallBackDa
             List<MarketingSyncUser> syncUsers = bo.getSyncUsers();
             callBackData.setCell(syncUsers.get(0).getCell());
         }
-        return StringUtils.isBlank(callBackData.getScas()) ? null : callBackData;
+        return StringUtils.isBlank(callBackData.getCell()) ? null : callBackData;
     }
 
     @Override
