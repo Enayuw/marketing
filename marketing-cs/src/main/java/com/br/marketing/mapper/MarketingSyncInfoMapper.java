@@ -1,6 +1,7 @@
 package com.br.marketing.mapper;
 
 
+import com.br.marketing.dto.autocheck.CheckUploadSyncDataDto;
 import com.br.marketing.entity.*;
 import com.br.marketing.vo.TodayIdTimeBySoleVo;
 import com.br.marketing.vo.TransferUserVO;
@@ -309,4 +310,20 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
 
     List<String> getBatchNameByUsertikv_(@Param("apiCode") String apiCode,@Param("syncReportList") List<MarketingSyncReport> syncReportList,
                                                               @Param("filterCondition") String filterCondition);
+
+    /**
+     * 自动化巡检：上传场景 - 前一天08:00快照（按 create_time <= yesterday 08:01 取每个 api_code 最新一条）。
+     *
+     * <p>入参 {@code apiCodeList} 为空/为 null 时，XML 会走兜底条件（{@code 1=0}）返回空集，
+     * 以避免生成 {@code IN ()} 语法错误或误查全表。</p>
+     */
+    List<CheckUploadSyncDataDto> getLastDay8DataByApiCodes(List<String> apiCodeList);
+
+    /**
+     * 自动化巡检：上传场景 - 最新快照（取每个 api_code 最新一条）。
+     *
+     * <p>入参 {@code apiCodeList} 为空/为 null 时，XML 会走兜底条件（{@code 1=0}）返回空集，
+     * 以避免生成 {@code IN ()} 语法错误或误查全表。</p>
+     */
+    List<CheckUploadSyncDataDto> getLatestDataByApiCodes(List<String> apiCodeList);
 }

@@ -2,17 +2,12 @@ package com.br.marketing.service.autocheck.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import com.br.marketing.common.commondto.ApiResult;
-import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.dto.autocheck.CheckTransferSyncDataDto;
 import com.br.marketing.dto.autocheck.CheckUploadSyncDataDto;
 import com.br.marketing.dto.autocheck.SaveAutoCheckConfigDto;
 import com.br.marketing.entity.AutoCheckConfig;
-import com.br.marketing.mapper.AutoCheckConfigMapper;
-import com.br.marketing.mapper.AutoCheckSenceDictMapper;
-import com.br.marketing.mapper.MarketingSyncReportMapper;
-import com.br.marketing.mapper.TransferSyncReportMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.service.MarketingCustomerService;
 import com.br.marketing.service.autocheck.AutoCheckService;
 import com.br.marketing.utils.CheckObjectSameUtil;
@@ -52,10 +47,10 @@ public class AutoCheckServiceImpl implements AutoCheckService {
     private MarketingCustomerService marketingCustomerService;
 
     @Resource
-    private MarketingSyncReportMapper marketingSyncReportMapper;
+    private MarketingSyncInfoMapper marketingSyncInfoMapper;
 
     @Resource
-    private TransferSyncReportMapper transferSyncReportMapper;
+    private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
 
     @Override
     public List<AutoCheckConfigVO> getAutoCheckConfigList(String apiCodes, String senceCodes) {
@@ -320,8 +315,8 @@ public class AutoCheckServiceImpl implements AutoCheckService {
             return Collections.emptyList();
         }
 
-        List<CheckUploadSyncDataDto> lastDay8List = marketingSyncReportMapper.getLastDay8DataByApiCodes(apiCodeList);
-        List<CheckUploadSyncDataDto> latestList = marketingSyncReportMapper.getLatestDataByApiCodes(apiCodeList);
+        List<CheckUploadSyncDataDto> lastDay8List = marketingSyncInfoMapper.getLastDay8DataByApiCodes(apiCodeList);
+        List<CheckUploadSyncDataDto> latestList = marketingSyncInfoMapper.getLatestDataByApiCodes(apiCodeList);
 
         Map<String, CheckUploadSyncDataDto> lastDay8Map = toMapByApiCode(lastDay8List, CheckUploadSyncDataDto::getApiCode);
         Map<String, CheckUploadSyncDataDto> latestMap = toMapByApiCode(latestList, CheckUploadSyncDataDto::getApiCode);
@@ -335,8 +330,12 @@ public class AutoCheckServiceImpl implements AutoCheckService {
                 continue;
             }
             AutoCheckResultVO vo = baseVO(apiCode, SCENE_UPLOAD, apiInfoMap, senceMap);
-            vo.setLastDayData(toJsonExcludeSafe(lastDay8, "snapTime", "apiCode"));
-            vo.setThisData(toJsonExcludeSafe(latest, "snapTime", "apiCode"));
+            vo.setLastDayData(toJsonExcludeSafe(lastDay8, "snapTime", "cusBatch",
+                    "requestBatch", "custNum", "registerDate", "createTime", "updateTime",
+                    "appletDate", "appletTime", "taskTime", "fingerprint"));
+            vo.setThisData(toJsonExcludeSafe(latest, "snapTime", "cusBatch",
+                    "requestBatch", "custNum", "registerDate", "createTime", "updateTime",
+                    "appletDate", "appletTime", "taskTime", "fingerprint"));
             vo.setTime(latest.getSnapTime());
             vo.setCompareResult(compareUpload(lastDay8, latest));
             voList.add(vo);
@@ -351,8 +350,15 @@ public class AutoCheckServiceImpl implements AutoCheckService {
             return Collections.emptyList();
         }
 
-        List<CheckTransferSyncDataDto> lastDay8List = transferSyncReportMapper.getLastDay8DataByApiCodes(apiCodeList);
-        List<CheckTransferSyncDataDto> latestList = transferSyncReportMapper.getLatestDataByApiCodes(apiCodeList);
+        // 查出cid
+        List<String> cidList = new ArrayList<>();
+        for (String apiCode : apiCodeList) {
+            MarketingCustomerVO apiInfo = apiInfoMap.get(apiCode);
+            cidList.add(apiInfo.getCid().replaceFirst("-", ""));
+        }
+
+        List<CheckTransferSyncDataDto> lastDay8List = marketingTransferSyncUserMapper.getLastDay8DataByCids(cidList, apiCodeList);
+        List<CheckTransferSyncDataDto> latestList = marketingTransferSyncUserMapper.getLatestDataByCids(cidList, apiCodeList);
 
         Map<String, CheckTransferSyncDataDto> lastDay8Map = toMapByApiCode(lastDay8List, CheckTransferSyncDataDto::getApiCode);
         Map<String, CheckTransferSyncDataDto> latestMap = toMapByApiCode(latestList, CheckTransferSyncDataDto::getApiCode);
@@ -366,8 +372,14 @@ public class AutoCheckServiceImpl implements AutoCheckService {
                 continue;
             }
             AutoCheckResultVO vo = baseVO(apiCode, SCENE_TRANSFER, apiInfoMap, senceMap);
-            vo.setLastDayData(toJsonExcludeSafe(lastDay8, "snapTime", "apiCode"));
-            vo.setThisData(toJsonExcludeSafe(latest, "snapTime", "apiCode"));
+            vo.setLastDayData(toJsonExcludeSafe(lastDay8, "snapTime", "cid", "tCid",
+                    "requestId", "registerTime", "loginTime", "applyDt", "applyTime", "refuseTime",
+                    "auditTime", "lentTime", "settleTime", "transformTime", "insertTime", "createTime",
+                    "updateTime", "requestTime", "fingerprint"));
+            vo.setThisData(toJsonExcludeSafe(latest, "snapTime", "cid", "tCid",
+                    "requestId", "registerTime", "loginTime", "applyDt", "applyTime", "refuseTime",
+                    "auditTime", "lentTime", "settleTime", "transformTime", "insertTime", "createTime",
+                    "updateTime", "requestTime", "fingerprint"));
             vo.setTime(latest.getSnapTime());
             vo.setCompareResult(compareTransfer(lastDay8, latest));
             voList.add(vo);
@@ -388,12 +400,17 @@ public class AutoCheckServiceImpl implements AutoCheckService {
     }
 
     private String compareUpload(CheckUploadSyncDataDto lastDay8, CheckUploadSyncDataDto latest) {
-        boolean same = CheckObjectSameUtil.isAllFieldsEqualExclude(lastDay8, latest, "snapTime");
+        boolean same = CheckObjectSameUtil.isAllFieldsEqualExclude(lastDay8, latest, "snapTime", "cusBatch",
+                "requestBatch", "custNum", "registerDate", "createTime", "updateTime",
+                "appletDate", "appletTime", "taskTime", "fingerprint");
         return same ? "一致" : "不一致";
     }
 
     private String compareTransfer(CheckTransferSyncDataDto lastDay8, CheckTransferSyncDataDto latest) {
-        boolean same = CheckObjectSameUtil.isAllFieldsEqualExclude(lastDay8, latest, "snapTime");
+        boolean same = CheckObjectSameUtil.isAllFieldsEqualExclude(lastDay8, latest, "snapTime", "cid", "tCid",
+                "requestId", "registerTime", "loginTime", "applyDt", "applyTime", "refuseTime",
+                "auditTime", "lentTime", "settleTime", "transformTime", "insertTime", "createTime",
+                "updateTime", "requestTime", "fingerprint");
         return same ? "一致" : "不一致";
     }
 

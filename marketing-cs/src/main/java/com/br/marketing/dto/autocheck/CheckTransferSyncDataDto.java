@@ -2,36 +2,209 @@ package com.br.marketing.dto.autocheck;
 
 import lombok.Data;
 
+import java.util.Date;
+
 @Data
 public class CheckTransferSyncDataDto {
-
-    private String apiCode;
-
     /**
-     * 客户编号
+     * cid
      */
     private String cid;
 
     /**
-     * 公司名称
+     * 分表cid
      */
-    private String shortName;
+    private String tCid;
 
     /**
-     * 场景
+     * 商户编号
+     */
+    private String apiCode;
+
+    /**
+     * 请求批次号
+     */
+    private String requestId;
+
+    /**
+     * 机构名称
+     */
+    private String orgName;
+
+    /**
+     * 客户案件编号
+     */
+    private String custNum;
+
+    /**
+     * 数据源
+     */
+    private String source;
+
+    /**
+     * 机构运营场景
      */
     private String userType;
 
     /**
-     * 备注
+     * 转化节点
      */
-    private String remark;
+    private String type;
 
     /**
-     * 转化数据量
+     * 客群名称
      */
+    private String customName;
 
-    private Integer dataCount;
+    /**
+     * 是否注册 1是0否
+     */
+    private String ifRegister;
+
+    /**
+     * 注册时间 yyyy-mm-dd hh:mm:ss:SSS
+     */
+    private String registerTime;
+
+    /**
+     * 是否登录 1是0否
+     */
+    private String ifLogin;
+
+    /**
+     * 登录时间yyyy-mm-dd hh:mm:ss:SSS
+     */
+    private String loginTime;
+
+    /**
+     * 是否进件 1是0否
+     */
+    private String ifApply;
+
+    /**
+     * 进件时间yyyy-mm-dd hh:mm:ss:SSS
+     */
+    private String applyDt;
+
+    /**
+     * 审批时间yyyy-mm-dd hh:mm:ss:SSS
+     */
+    private String applyTime;
+
+    /**
+     * 审批结果 1是0否
+     */
+    private String applyResult;
+
+    /**
+     * 拒绝时间yyyy-mm-dd hh:mm:ss:SSS
+     */
+    private String refuseTime;
+
+    /**
+     * 授信时间yyyy-mm-dd hh:mm:ss:SSS
+     */
+    private String auditTime;
+
+    /**
+     * 授信总金额
+     */
+    private String auditAmount;
+
+    /**
+     * 是否提现 1是0否
+     */
+    private String ifLent;
+
+    /**
+     * 提现时间yyyy-mm-dd hh:mm:ss:SSS
+     */
+    private String lentTime;
+
+    /**
+     * 提现金额
+     */
+    private String lentAmount;
+
+    /**
+     * 未提现额度
+     */
+    private String unlentAmount;
+
+    /**
+     * 是否结清 1是0否
+     */
+    private String ifSettle;
+
+    /**
+     * 结清时间yyyy-mm-dd hh:mm:ss:SSS
+     */
+    private String settleTime;
+
+    /**
+     * 活动类型
+     */
+    private String activity;
+
+    /**
+     * 结案状态 0未结案1已结案
+     */
+    private String caseStatus;
+
+    /**
+     * 案件有效性 0无效1有效
+     */
+    private String caseEffective;
+
+    /**
+     * 是否转化 1是0否
+     */
+    private String ifTransform;
+
+    /**
+     * 转化时间yyyy-mm-dd hh:mm:ss:SSS
+     */
+    private String transformTime;
+
+    /**
+     * 创建时间yyyy-mm-dd hh:mm:ss:SSS
+     */
+    private String insertTime;
+
+    /**
+     * 业务保留字段1
+     */
+    private String reserveField1;
+
+    /**
+     * 业务保留字段2
+     */
+    private String reserveField2;
+
+    /**
+     * 创建时间
+     */
+    private Date createTime;
+
+    /**
+     * 修改时间
+     */
+    private Date updateTime;
+
+    /**
+     * 客户请求日期
+     */
+    private String requestData;
+
+    /**
+     * 客户请求时间
+     */
+    private String requestTime;
+
+    /**
+     * 数据指纹，数据唯一标识
+     */
+    private Long fingerprint;
 
     /**
      * 快照时间：前一天08:00快照/最新快照的生成时间

@@ -2,6 +2,7 @@ package com.br.marketing.mapper;
 
 
 import com.alibaba.fastjson.JSONArray;
+import com.br.marketing.dto.autocheck.CheckTransferSyncDataDto;
 import com.br.marketing.entity.*;
 import com.br.marketing.vo.TransferOfCnIdVO;
 import com.br.marketing.vo.TransferOfRdRFVO;
@@ -714,5 +715,27 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
     List<MarketingTransferSyncUser> getYXMarketingTransferByLiveTypetikv_
             (@Param("tCid") String tCid, @Param("apiCode")String apiCode, @Param("requestDate")String requestDate, @Param("indexId")Long indexId,
              @Param("liveType")String liveType, @Param("pageSize")Integer yiXinSearchPageSize);
+
+    /**
+     * 自动化巡检：转化场景 - 前一天08:00快照。
+     *
+     * <p>口径：仅统计“昨天 08:00:00（含）~ 08:01:00（不含）”窗口内的数据，
+     * 且按入参 {@code apiCodeList} 过滤；对每个 {@code api_code} 取最新一条（按 {@code create_time desc, id desc}）。</p>
+     *
+     * <p>注意：{@code cidList} 可能对应多张分表（{@code b_marketing_transfer_sync_${cid}}），实现会先在每张分表内对每个
+     * {@code api_code} 取最新一条，再跨分表合并后再次按 {@code api_code} 去重，保证最终“每个 apiCode 只返回一条记录”。</p>
+     *
+     * <p>入参 {@code cidList} 为空/为 null 时，XML 会走兜底条件（{@code 1=0}）返回空集，
+     * 以避免生成 {@code IN ()} 语法错误或误查全表。</p>
+     */
+    List<CheckTransferSyncDataDto> getLastDay8DataByCids(@Param("cidList") List<String> cidList, @Param("apiCodeList") List<String> apiCodeList);
+
+    /**
+     * 自动化巡检：转化场景 - 最新快照（取每个 cid和指定apiCode的最新一条）。
+     *
+     * <p>入参 {@code cidList} 为空/为 null 时，XML 会走兜底条件（{@code 1=0}）返回空集，
+     * 以避免生成 {@code IN ()} 语法错误或误查全表。</p>
+     */
+    List<CheckTransferSyncDataDto> getLatestDataByCids(@Param("cidList") List<String> cidList, @Param("apiCodeList") List<String> apiCodeList);
 
 }

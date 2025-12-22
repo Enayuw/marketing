@@ -632,4 +632,107 @@
         AND status = 1 AND is_repeat in (1, 2)
     </select>
 
+    <!-- 自动化巡检：上传场景 - 前一天08:00快照（按 create_time <= yesterday 08:01 取每个 apiCode 最新一条） -->
+    <select id="getLastDay8DataByApiCodes" resultType="com.br.marketing.dto.autocheck.CheckUploadSyncDataDto">
+        <choose>
+            <when test="list != null and list.size() > 0">
+                <foreach collection="list" item="apiCode" separator=" union all ">
+                    select *
+                    from (
+                        select
+                            api_code,
+                            cus_batch,
+                            request_batch,
+                            cust_num,
+                            id_card,
+                            name,
+                            cell,
+                            cell_md5,
+                            cell_sha256,
+                            cell_original,
+                            id_card_original,
+                            name_original,
+                            group_type,
+                            user_type,
+                            operate_type,
+                            register_date,
+                            reserve_field1,
+                            reserve_field2,
+                            create_time,
+                            update_time,
+                            applet_date,
+                            status,
+                            fail_type,
+                            applet_time,
+                            is_task,
+                            task_time,
+                            is_repeat,
+                            fingerprint,
+                            DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') as snap_time
+                        from b_marketing_sync_${apiCode}
+                        where create_time <![CDATA[>=]]> DATE_ADD(DATE_SUB(CURDATE(), INTERVAL 1 DAY), INTERVAL 8 HOUR)
+                          and create_time <![CDATA[<]]> DATE_ADD(
+                              DATE_ADD(DATE_SUB(CURDATE(), INTERVAL 1 DAY), INTERVAL 8 HOUR),
+                              INTERVAL 1 MINUTE
+                          )
+                        order by create_time desc, id desc
+                        limit 1
+                    ) t
+                </foreach>
+            </when>
+            <otherwise>
+                select 1 where 1 = 0
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 自动化巡检：上传场景 - 最新快照（取每个 apiCode 最新一条） -->
+    <select id="getLatestDataByApiCodes" resultType="com.br.marketing.dto.autocheck.CheckUploadSyncDataDto">
+        <choose>
+            <when test="list != null and list.size() > 0">
+                <foreach collection="list" item="apiCode" separator=" union all ">
+                    select *
+                    from (
+                        select
+                            api_code,
+                            cus_batch,
+                            request_batch,
+                            cust_num,
+                            id_card,
+                            name,
+                            cell,
+                            cell_md5,
+                            cell_sha256,
+                            cell_original,
+                            id_card_original,
+                            name_original,
+                            group_type,
+                            user_type,
+                            operate_type,
+                            register_date,
+                            reserve_field1,
+                            reserve_field2,
+                            create_time,
+                            update_time,
+                            applet_date,
+                            status,
+                            fail_type,
+                            applet_time,
+                            is_task,
+                            task_time,
+                            is_repeat,
+                            fingerprint,
+                            DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') as snap_time
+                        from b_marketing_sync_${apiCode}
+                        order by create_time desc, id desc
+                        limit 1
+                    ) t
+                </foreach>
+            </when>
+            <otherwise>
+                select 1 where 1 = 0
+            </otherwise>
+        </choose>
+    </select>
+
 </mapper>
