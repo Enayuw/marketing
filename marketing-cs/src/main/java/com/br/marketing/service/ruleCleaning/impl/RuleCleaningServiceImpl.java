@@ -1923,13 +1923,13 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             return;
         }
         MarketingCleanDataFile cleanDataFile = cleanDataFiles.get(0);
+        List<String> mappingFields = ruleConfigList.stream().map(MarketingDataCleanGeneralRuleConfig::getMappingField).collect(Collectors.toList());
         List<String> fileHeader = Arrays.asList(cleanDataFile.getFileHeader().split(","));
-        List<String> fileData = Arrays.asList(cleanDataFile.getFileData().split(",", -1));
-        for (int i = 0; i < fileHeader.size(); i++) {
+        List<String> resultFields = mergeCollection(mappingFields, fileHeader);
+        for (int i = 0; i < resultFields.size(); i++) {
             FieldSampleDTO dto = new FieldSampleDTO();
             // 设置字段名称
-            dto.setFieldName(fileHeader.get(i));
-            dto.setFieldSample(fileData.get(i));
+            dto.setFieldName(resultFields.get(i));
             dto.setFirstUploadTime(cleanDataFile.getCreateTime());
             dto.setFieldType(0);
             dto.setNeedCleaning(false);
@@ -1941,11 +1941,25 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 dto.setResultPreview(ruleConfig.getResultPreview());
                 dto.setNeedCleaning(ruleConfig.getIsMapping());
                 dto.setFieldType(ruleConfig.getIsDerived());
+                dto.setFieldSample(ruleConfig.getResultPreview());
             }
             // 添加到结果列表
             result.add(dto);
         }
     }
+
+        /**
+         * 合并集合，去重
+         * @param collection1 集合1
+         * @param collection2 集合2
+         * @return 合并后的集合
+         */
+        private List<String> mergeCollection(Collection<String> collection1, Collection<String> collection2) {
+            Set<String> set = new HashSet<>();
+            set.addAll(collection1);
+            set.addAll(collection2);
+            return new ArrayList<>(set);
+        }
 
     @Override
     public Result<List<List<RuleCleaningResult>>> trialProcess(RuleTrialConfigDTO ruleTrialConfigDTO) {
