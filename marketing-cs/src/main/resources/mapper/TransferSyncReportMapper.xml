@@ -129,6 +129,10 @@
         SELECT
         r.api_code AS apiCode,
         r.data_count AS dataCount,
+        r.cid AS cid,
+        r.short_name AS shortName,
+        r.user_type AS userType,
+        r.remark AS remark,
         DATE_FORMAT(r.applet_begin_time, '%Y-%m-%d %H:%i:%s') AS snapTime
         FROM b_marketing_transfer_sync_report r
         WHERE
@@ -161,6 +165,10 @@
         SELECT
         r.api_code AS apiCode,
         r.data_count AS dataCount,
+        r.cid AS cid,
+        r.short_name AS shortName,
+        r.user_type AS userType,
+        r.remark AS remark,
         DATE_FORMAT(r.applet_begin_time, '%Y-%m-%d %H:%i:%s') AS snapTime
         FROM b_marketing_transfer_sync_report r
         WHERE

@@ -8,6 +8,26 @@ public class CheckTransferSyncDataDto {
     private String apiCode;
 
     /**
+     * 客户编号
+     */
+    private String cid;
+
+    /**
+     * 公司名称
+     */
+    private String shortName;
+
+    /**
+     * 场景
+     */
+    private String userType;
+
+    /**
+     * 备注
+     */
+    private String remark;
+
+    /**
      * 转化数据量
      */
 

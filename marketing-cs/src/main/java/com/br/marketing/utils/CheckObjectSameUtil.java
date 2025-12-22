@@ -6,9 +6,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class CheckObjectSameUtil {
@@ -34,10 +36,9 @@ public final class CheckObjectSameUtil {
      * @param obj2 第二个对象
      * @param <T>  对象类型
      * @return true=所有字段值相同，false=存在不同字段
-     * @throws IllegalAccessException 反射访问字段失败时抛出
      */
 
-    public static <T> boolean isAllFieldsEqual(T obj1, T obj2) throws IllegalAccessException {
+    public static <T> boolean isAllFieldsEqual(T obj1, T obj2) {
         Class<?> clazz = strictSameClassOrNull(obj1, obj2);
         if (clazz == null) {
             return obj1 == null && obj2 == null;
@@ -45,10 +46,14 @@ public final class CheckObjectSameUtil {
 
         Field[] allFields = getAllInstanceFields(clazz);
         for (Field field : allFields) {
-            Object value1 = field.get(obj1);
-            Object value2 = field.get(obj2);
-            if (!isFieldValueEqual(value1, value2)) {
-                return false;
+            try {
+                Object value1 = field.get(obj1);
+                Object value2 = field.get(obj2);
+                if (!isFieldValueEqual(value1, value2)) {
+                    return false;
+                }
+            } catch (IllegalAccessException e) {
+                throw new IllegalStateException("反射读取字段失败: " + clazz.getName(), e);
             }
         }
         return true;
@@ -64,29 +69,25 @@ public final class CheckObjectSameUtil {
      *     <li>若字段名不存在，将抛出 {@link IllegalArgumentException}（避免“字段写错”导致误判）</li>
      * </ul>
      */
-    public static <T> boolean isFieldsEqual(T obj1, T obj2, String... fieldNames) {
-        Class<?> clazz1 = strictSameClassOrNull(obj1, obj2);
-        if (clazz1 == null) {
+    public static <T> boolean isAllFieldsEqualInclude(T obj1, T obj2, String... fieldNames) {
+        Class<?> clazz = strictSameClassOrNull(obj1, obj2);
+        if (clazz == null) {
             return obj1 == null && obj2 == null;
         }
 
         // 未指定字段：兼容老逻辑
         if (fieldNames == null || fieldNames.length == 0) {
-            try {
-                return isAllFieldsEqual(obj1, obj2);
-            } catch (IllegalAccessException e) {
-                throw new IllegalStateException("反射比较字段失败", e);
-            }
+            return isAllFieldsEqual(obj1, obj2);
         }
 
-        Map<String, Field> fieldMap = getFieldMap(clazz1);
+        Map<String, Field> fieldMap = getFieldMap(clazz);
         for (String fieldName : fieldNames) {
             if (fieldName == null || fieldName.trim().isEmpty()) {
                 continue;
             }
             Field field = fieldMap.get(fieldName);
             if (field == null) {
-                throw new IllegalArgumentException("字段不存在或不可用: " + clazz1.getName() + "#" + fieldName);
+                throw new IllegalArgumentException("字段不存在或不可用: " + clazz.getName() + "#" + fieldName);
             }
             try {
                 Object value1 = field.get(obj1);
@@ -95,10 +96,63 @@ public final class CheckObjectSameUtil {
                     return false;
                 }
             } catch (IllegalAccessException e) {
-                throw new IllegalStateException("反射读取字段失败: " + clazz1.getName() + "#" + fieldName, e);
+                throw new IllegalStateException("反射读取字段失败: " + clazz.getName() + "#" + fieldName, e);
             }
         }
 
+        return true;
+    }
+
+    /**
+     * 按排除字段名比较：除排除字段外，其余所有非静态字段值都相同则返回 true（包含父类字段）。
+     *
+     * <p>说明：</p>
+     * <ul>
+     *     <li>排除字段名支持父类字段；static 字段天然不参与比较</li>
+     *     <li>若 excludeFieldNames 为空/未传，则退化为 {@link #isAllFieldsEqual(Object, Object)}</li>
+     *     <li>若排除字段名不存在，将抛出 {@link IllegalArgumentException}（避免“字段写错”导致误判）</li>
+     * </ul>
+     */
+    public static <T> boolean isAllFieldsEqualExclude(T obj1, T obj2, String... excludeFieldNames) {
+        Class<?> clazz = strictSameClassOrNull(obj1, obj2);
+        if (clazz == null) {
+            return obj1 == null && obj2 == null;
+        }
+
+        // 未指定排除字段：兼容老逻辑
+        if (excludeFieldNames == null || excludeFieldNames.length == 0) {
+            return isAllFieldsEqual(obj1, obj2);
+        }
+
+        // 校验排除字段名是否存在（防止字段写错导致没有排除成功）
+        Map<String, Field> fieldMap = getFieldMap(clazz);
+        Set<String> excludeSet = new HashSet<>();
+        for (String fieldName : excludeFieldNames) {
+            if (fieldName == null || fieldName.trim().isEmpty()) {
+                continue;
+            }
+            Field field = fieldMap.get(fieldName);
+            if (field == null) {
+                throw new IllegalArgumentException("字段不存在或不可用: " + clazz.getName() + "#" + fieldName);
+            }
+            excludeSet.add(fieldName);
+        }
+
+        Field[] allFields = getAllInstanceFields(clazz);
+        for (Field field : allFields) {
+            if (excludeSet.contains(field.getName())) {
+                continue;
+            }
+            try {
+                Object value1 = field.get(obj1);
+                Object value2 = field.get(obj2);
+                if (!isFieldValueEqual(value1, value2)) {
+                    return false;
+                }
+            } catch (IllegalAccessException e) {
+                throw new IllegalStateException("反射比较字段失败: " + clazz.getName() + "#" + field.getName(), e);
+            }
+        }
         return true;
     }
 

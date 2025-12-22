@@ -8,6 +8,36 @@ public class CheckUploadSyncDataDto {
     private String apiCode;
 
     /**
+     * 客户编号
+     */
+    private String cid;
+
+    /**
+     * 公司名称
+     */
+    private String shortName;
+
+    /**
+     * 场景
+     */
+    private String userType;
+
+    /**
+     * 扩展字段中key的集合
+     */
+    private String reserveField1Key;
+
+    /**
+     * 备注
+     */
+    private String remark;
+
+    /**
+     * 标签信息json结构
+     */
+    private String labelMessage;
+
+    /**
      * 数据正常入库条数
      */
     private Integer normalNum;

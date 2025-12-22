@@ -433,6 +433,12 @@
       r.api_code AS apiCode,
       r.normal_num AS normalNum,
       r.duplicate_removal_num AS duplicateRemovalNum,
+      r.cid AS cid,
+      r.short_name AS shortName,
+      r.user_type AS userType,
+      r.reserve_field1_key AS reserveField1Key,
+      r.remark AS remark,
+      r.label_message AS labelMessage,
       DATE_FORMAT(r.applet_begin_time, '%Y-%m-%d %H:%i:%s') AS snapTime
     FROM b_marketing_sync_report r
     WHERE
@@ -466,6 +472,12 @@
       r.api_code AS apiCode,
       r.normal_num AS normalNum,
       r.duplicate_removal_num AS duplicateRemovalNum,
+      r.cid AS cid,
+      r.short_name AS shortName,
+      r.user_type AS userType,
+      r.reserve_field1_key AS reserveField1Key,
+      r.remark AS remark,
+      r.label_message AS labelMessage,
       DATE_FORMAT(r.applet_begin_time, '%Y-%m-%d %H:%i:%s') AS snapTime
     FROM b_marketing_sync_report r
     WHERE

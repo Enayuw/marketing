@@ -388,12 +388,12 @@ public class AutoCheckServiceImpl implements AutoCheckService {
     }
 
     private String compareUpload(CheckUploadSyncDataDto lastDay8, CheckUploadSyncDataDto latest) {
-        boolean same = CheckObjectSameUtil.isFieldsEqual(lastDay8, latest, "normalNum", "duplicateRemovalNum");
+        boolean same = CheckObjectSameUtil.isAllFieldsEqualExclude(lastDay8, latest, "snapTime");
         return same ? "一致" : "不一致";
     }
 
     private String compareTransfer(CheckTransferSyncDataDto lastDay8, CheckTransferSyncDataDto latest) {
-        boolean same = CheckObjectSameUtil.isFieldsEqual(lastDay8, latest, "dataCount");
+        boolean same = CheckObjectSameUtil.isAllFieldsEqualExclude(lastDay8, latest, "snapTime");
         return same ? "一致" : "不一致";
     }
 
