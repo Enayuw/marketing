@@ -71,7 +71,10 @@ public enum CodeEnum {
     API_ALL_FAIL("200010", "全部策略失败"),
     API_FLAT_ERROR("200006", "数据打平错误"),
     TASK_PRIORITY_EXIST("100401", "当前当前排序数字已存在"),
-    NOT_FOUND_CLEAN_RULE_CONFIG("100004","未配置清洗规则");
+
+    NOT_FOUND_CLEAN_RULE_CONFIG("100004","未配置清洗规则"),
+    NOT_FOUND_DATA_ITEMS_CONFIG("100005","未配置dataItems字段");
+
 
     private final String code;
     private final String message;

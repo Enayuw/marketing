@@ -1119,7 +1119,7 @@ public class DataCleanServiceImpl implements DataCleanService {
                 log.warn("未查询到数据清洗通用配置，apiCode:{},systemType:{},dataType:{},acceptType:{}"
                         , dto.getApiCode(),dto.getSystemType(), dto.getDataType(), dto.getAcceptType());
                 return new Result().setCode(Integer.valueOf(CodeEnum.NOT_FOUND_CLEAN_RULE_CONFIG.getCode()))
-                        .setMessage(CodeEnum.NOT_FOUND_CLEAN_RULE_CONFIG.getMessage())
+                        .setMessage(CodeEnum.NOT_FOUND_CLEAN_RULE_CONFIG.getMessage() + "，返回原值")
                         .setDate(dto.getJsonData());
             }
 
@@ -1136,13 +1136,13 @@ public class DataCleanServiceImpl implements DataCleanService {
                 log.warn("未查询到数据清洗规则，apiCode:{},systemType:{},dataType:{},acceptType:{}"
                         , dto.getApiCode(), dto.getSystemType(), dto.getDataType(), dto.getAcceptType());
                 return new Result().setCode(Integer.valueOf(CodeEnum.NOT_FOUND_CLEAN_RULE_CONFIG.getCode()))
-                        .setMessage(CodeEnum.NOT_FOUND_CLEAN_RULE_CONFIG.getMessage())
+                        .setMessage(CodeEnum.NOT_FOUND_CLEAN_RULE_CONFIG.getMessage() + "，返回原值")
                         .setDate(dto.getJsonData());
             }
 
             //数据清洗
-            JSONObject jsonObject = JSON.parseObject(dto.getJsonData());
-
+            String jsonData = dto.getJsonData();
+            
             //层级字段处理
             String levelField = null;
             List<MarketingDataCleanGeneralRuleConfig> ruleConfigListTmp = new ArrayList<>(marketingDataCleanGeneralRuleConfigList);
@@ -1152,6 +1152,22 @@ public class DataCleanServiceImpl implements DataCleanService {
             if (!CollectionUtils.isEmpty(dataItemList)) {
                 levelField = dataItemList.get(0).getCleanFields();
                 ruleConfigListTmp.removeIf(config -> config.getMappingField().equals("dataItems"));
+            }
+            
+            // 解析JSON对象
+            JSONObject jsonObject = JSON.parseObject(jsonData);
+            
+            // 如果没有配置层级字段，检查JSON对象中是否有值为数组的key
+            if (StringUtils.isEmpty(levelField)) {
+                for (String key : jsonObject.keySet()) {
+                    Object value = jsonObject.get(key);
+                    if (value instanceof JSONArray) {
+                        log.warn("未配置层级字段，但JSON中存在值为数组的字段[{}]，直接返回原值，apiCode:{}", key, dto.getApiCode());
+                        return new Result().setCode(Integer.valueOf(CodeEnum.NOT_FOUND_DATA_ITEMS_CONFIG.getCode()))
+                                .setMessage(CodeEnum.NOT_FOUND_DATA_ITEMS_CONFIG.getMessage() + "，返回原值")
+                                .setDate(dto.getJsonData());
+                    }
+                }
             }
 
             if (StringUtils.isNotEmpty(levelField)) {
@@ -1179,7 +1195,7 @@ public class DataCleanServiceImpl implements DataCleanService {
             }
         } catch (Exception e) {
             log.error("通用数据清洗异常，message:{}", e.getMessage());
-            return new Result().failure().setMessage("通用数据清洗异常").setDate(dto.getJsonData());
+            return new Result().failure().setMessage("通用数据清洗异常，返回原值").setDate(dto.getJsonData());
         }
     }
 
