@@ -1933,7 +1933,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             dto.setFirstUploadTime(cleanDataFile.getCreateTime());
             dto.setFieldType(0);
             dto.setNeedCleaning(false);
-            MarketingDataCleanGeneralRuleConfig ruleConfig = ruleConfigList.stream().filter(rule -> rule.getCleanFields().equals(dto.getFieldName()))
+            MarketingDataCleanGeneralRuleConfig ruleConfig =
+                    ruleConfigList.stream().filter(rule -> rule.getMappingField().equals(dto.getFieldName()))
                     .findFirst().orElse(null);
             if (!Objects.isNull(ruleConfig)) {
                 dto.setMappingRule(ruleConfig.getMappingRule());
