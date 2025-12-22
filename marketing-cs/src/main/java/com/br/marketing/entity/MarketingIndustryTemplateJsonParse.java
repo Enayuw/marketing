@@ -64,6 +64,11 @@ public class MarketingIndustryTemplateJsonParse {
     private Integer level;
 
     /**
+     * 删除标志；1-正常；9-删除
+     */
+    private Integer isDel;
+
+    /**
      * 创建时间
      */
     private Date createTime;
@@ -167,6 +172,14 @@ public class MarketingIndustryTemplateJsonParse {
 
     public void setLevel(Integer level) {
         this.level = level;
+    }
+
+    public Integer getIsDel() {
+        return isDel;
+    }
+
+    public void setIsDel(Integer isDel) {
+        this.isDel = isDel;
     }
 
     public Date getCreateTime() {

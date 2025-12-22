@@ -1,6 +1,7 @@
 package com.br.marketing.service.template.impl;
 
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.template.MarketingIndustryTemplateDTO;
@@ -135,10 +136,8 @@ public class TemplateServiceImpl implements TemplateService {
                 marketingIndustryTemplate.setUpdateTime(new Date());
                 marketingIndustryTemplateMapper.updateByPrimaryKey(marketingIndustryTemplate);
 
-                //先全量删除jsonParse数据
-                MarketingIndustryTemplateJsonParseExample jsonParseExample = new MarketingIndustryTemplateJsonParseExample();
-                jsonParseExample.createCriteria().andInterfaceTemplateIdEqualTo(marketingIndustryTemplate.getId());
-                marketingIndustryTemplateJsonParseMapper.deleteByExample(jsonParseExample);
+                //先全量逻辑删除jsonParse数据
+                marketingIndustryTemplateJsonParseMapper.deleteJsonParseList(marketingIndustryTemplate.getId());
 
                 //jsonParse数据重新入库
                 marketingIndustryTemplateJsonParseList.forEach(marketingIndustryTemplateJsonParse -> {
@@ -167,10 +166,16 @@ public class TemplateServiceImpl implements TemplateService {
     @Transactional(rollbackFor = Exception.class)
     public Result<Boolean> deleteTemplate(Long id) {
         try {
-            marketingIndustryTemplateMapper.deleteByPrimaryKey(id);
+            MarketingIndustryTemplate marketingIndustryTemplate = marketingIndustryTemplateMapper.selectByPrimaryKey(id);
+            if (marketingIndustryTemplate != null) {
+                marketingIndustryTemplate.setIsDel(Constants.DATA_DEL);
+                marketingIndustryTemplate.setUpdateTime(new Date());
+            }
+
             MarketingIndustryTemplateJsonParseExample example = new MarketingIndustryTemplateJsonParseExample();
             example.createCriteria().andInterfaceTemplateIdEqualTo(id);
-            marketingIndustryTemplateJsonParseMapper.deleteByExample(example);
+            marketingIndustryTemplateJsonParseMapper.deleteJsonParseList(id);
+
             logger.warn("删除行业模板成功，行业模板id：{}", id);
             return new Result<>().success().setDate(Boolean.TRUE);
         } catch (Exception e) {
@@ -218,6 +223,12 @@ public class TemplateServiceImpl implements TemplateService {
         }
         if (marketingIndustryTemplate.getFirstDepartment() == null || marketingIndustryTemplate.getFirstDepartment().isEmpty()) {
             stringBuilder.append("【firstDepartment】");
+        }
+        if (marketingIndustryTemplate.getSecondDepartment() == null || marketingIndustryTemplate.getSecondDepartment().isEmpty()){
+            stringBuilder.append("【secondDepartment】");
+        }
+        if (marketingIndustryTemplate.getApiType() == null || marketingIndustryTemplate.getApiType().isEmpty()) {
+            stringBuilder.append("【apiType】");
         }
         return stringBuilder.toString();
     }

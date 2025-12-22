@@ -97,23 +97,7 @@ public class TemplateController {
         }
     }
 
-    /**
-     * 修改行业模板接口
-     *
-     * @param marketingIndustryTemplateDTO 行业模板信息
-     * @return 修改结果
-     */
-    @Operation(summary = "修改行业模板", description = "修改行业模板接口")
-    @PostMapping(value = "/editTemplate")
-    public ApiResult<Boolean> editTemplate(@RequestBody MarketingIndustryTemplateDTO marketingIndustryTemplateDTO) {
-        try {
-            Result<Boolean> result = templateService.editTemplate(marketingIndustryTemplateDTO);
-            return new ApiResult<Boolean>().fromResult(result, 1);
-        } catch (Exception e) {
-            logger.error("修改行业模板异常,message:{}", e.getMessage());
-            return new ApiResult<Boolean>().fail().setMessage(e.getMessage()).setData(null);
-        }
-    }
+
 
     /**
      * 删除行业模板接口

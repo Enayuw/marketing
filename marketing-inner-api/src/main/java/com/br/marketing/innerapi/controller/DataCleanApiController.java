@@ -3,8 +3,9 @@ package com.br.marketing.innerapi.controller;
 import com.br.marketing.client.rulecleaning.DataCleanDTO;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.service.clean.common.DataCleanService;
+import com.br.marketing.vo.dataclean.CommonCleanResponseVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
@@ -34,19 +35,19 @@ public class DataCleanApiController {
 
     @Operation(summary = "数据清洗通用接口", description = "数据清洗通用接口")
     @PostMapping(value = "/commonClean")
-    public ApiResult commonClean(@RequestBody DataCleanDTO dataCleanDTO) {
-        ApiResult apiResult;
+    public ApiResult<String> commonClean(@RequestBody DataCleanDTO dataCleanDTO) {
+        ApiResult<String> apiResult;
         logger.warn("数据清洗通用接口接收到请求，params:{}", dataCleanDTO);
         Result result = dataCleanService.commonClean(dataCleanDTO);
+        CommonCleanResponseVO responseVO = (CommonCleanResponseVO) result.getData();
         if (result.isSuccess()) {
-            apiResult = new ApiResult().success(result.getData());
-        } else if (Objects.equals(ResultCode.FAIL.getValue(), result.getCode())) {
-            apiResult = new ApiResult().fail(result.getMessage()).setData(result.getData());
+            apiResult = new ApiResult<String>().setCode(ServiceResultEnum.SUCCESS.getCode())
+                    .setMessage(ServiceResultEnum.SUCCESS.getMessage())
+                    .setData(responseVO.getData());
         } else {
-            apiResult = new ApiResult().setCode(String.valueOf(result.getCode())).setData(result.getData()).setMessage(result.getMessage());
+            apiResult = new ApiResult<String>().setCode(responseVO.getCode()).setData(responseVO.getData());
         }
         logger.warn("数据清洗完成，code:{},data:{},message:{}", apiResult.getCode(), apiResult.getData(), apiResult.getMessage());
         return apiResult;
     }
-
 }

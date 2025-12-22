@@ -35,6 +35,7 @@ import com.br.marketing.service.clean.common.DataCleanService;
 import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.ThreadPoolAdjustmentUtil;
+import com.br.marketing.vo.dataclean.CommonCleanResponseVO;
 import com.marketingkit.tracking.model.indicator.DataFlowDirection;
 import com.marketingkit.tracking.service.TrackingService;
 import com.marketingkit.tracking.util.TrackingContext;
@@ -103,6 +104,9 @@ public class DataCleanServiceImpl implements DataCleanService {
     private SnowflakeRedisGeneratorHandle snowflakeRedisGeneratorHandle;
     @Resource
     private TrackingService trackingService;
+
+    @Resource
+    private DataCleanService dataCleanService;
 
 
     private static final String TITLE = "【定制上传数据清洗】";
@@ -342,11 +346,11 @@ public class DataCleanServiceImpl implements DataCleanService {
     private void saveNodeData(String apiCode, Integer systemType, Integer dataType, Integer acceptType, String nodeName,
                               Integer level, String parentPath, String nodeType,
                               boolean isArrayItem, String nodeValue) {
-        String redisKey = RedisKeyConstant.ORIGINAL_DATA_JSON_PARSE.concat(apiCode)
-                .concat(":").concat(systemType.toString()).concat(":")
+        String redisKey = RedisKeyConstant.ORIGINAL_DATA_JSON_PARSE.concat(apiCode).concat(":")
+                .concat(systemType.toString()).concat(":")
                 .concat(dataType.toString()).concat(":")
-                .concat(acceptType.toString())
-                .concat(":").concat(level.toString());
+                .concat(acceptType.toString()).concat(":")
+                .concat(level.toString());
         if (redisChgService.sismember(redisKey, nodeName)) {
             return;
         }
@@ -388,8 +392,11 @@ public class DataCleanServiceImpl implements DataCleanService {
 
 
     @Override
-    public Map<String, MarketingDataCleanGeneralRuleConfig> getConfigRule(String apiCode, Integer dataType, Integer acceptType,Integer status) {
-        String redisKey = RedisKeyConstant.DATA_CLEAN_CONFIG_RULE.concat(apiCode).concat(":").concat(dataType.toString()).concat(":").concat(acceptType.toString());
+    public Map<String, MarketingDataCleanGeneralRuleConfig> getConfigRule(String apiCode, Integer systemType, Integer dataType, Integer acceptType,Integer status) {
+        String redisKey = RedisKeyConstant.DATA_CLEAN_CONFIG_RULE.concat(apiCode)
+                .concat(":").concat(systemType.toString())
+                .concat(":").concat(dataType.toString())
+                .concat(":").concat(acceptType.toString());
         Map<String, Object> ruleMap = redisChgService.hgetall(redisKey);
         if (!CollectionUtils.isEmpty(ruleMap)) {
             Map<String, MarketingDataCleanGeneralRuleConfig> resultMap = new HashMap<>();
@@ -1108,48 +1115,30 @@ public class DataCleanServiceImpl implements DataCleanService {
             String errorMsg = paramsValid(dto);
             if (!StringUtils.isEmpty(errorMsg)) {
                 log.warn("数据清洗通用接口参数错误,params={}", dto);
-                return new Result().setCode(Integer.valueOf(CodeEnum.PARAM_ERROR.getCode()))
-                        .setMessage(CodeEnum.PARAM_ERROR.getMessage() + ":" + errorMsg)
-                        .setDate(null);
+                return new Result().failure().setDate(new CommonCleanResponseVO(CodeEnum.PARAM_ERROR,null));
             }
 
             pushRuleService.sendJsonParseMq(dto.getApiCode(), 0, dto.getSystemType()
                     , dto.getDataType(), dto.getAcceptType(), String.valueOf(dto.getJsonData()));
 
-            List<MarketingDataCleanGeneralConfig> marketingDataCleanGeneralConfigList =
-                    ruleCleaningService.queryCleanConfigCommon(dto.getApiCode(), dto.getSystemType(), dto.getDataType(), dto.getAcceptType());
+            Map<String, MarketingDataCleanGeneralRuleConfig> configRule = dataCleanService.getConfigRule(
+                    dto.getApiCode(),
+                    dto.getSystemType(),
+                    dto.getDataType(),
+                    dto.getAcceptType(),
+                    DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode());
 
-            if (marketingDataCleanGeneralConfigList.isEmpty()) {
-                log.warn("未查询到数据清洗通用配置，apiCode:{},systemType:{},dataType:{},acceptType:{}"
-                        , dto.getApiCode(),dto.getSystemType(), dto.getDataType(), dto.getAcceptType());
-                return new Result().setCode(Integer.valueOf(CodeEnum.NOT_FOUND_CLEAN_RULE_CONFIG.getCode()))
-                        .setMessage(CodeEnum.NOT_FOUND_CLEAN_RULE_CONFIG.getMessage() + "，返回原值")
-                        .setDate(dto.getJsonData());
+            if (configRule.isEmpty()) {
+                return new Result().failure().setDate(new CommonCleanResponseVO(CodeEnum.NOT_FOUND_CLEAN_RULE_CONFIG,dto.getJsonData()));
             }
-
-            MarketingDataCleanGeneralConfig marketingDataCleanGeneralConfig = marketingDataCleanGeneralConfigList.get(0);
-            Long generalConfigId = marketingDataCleanGeneralConfig.getId();
-            //查询清洗规则表
-            MarketingDataCleanGeneralRuleConfigExample ruleConfigExample = new MarketingDataCleanGeneralRuleConfigExample();
-            ruleConfigExample.createCriteria()
-                    .andCleanConfigIdEqualTo(generalConfigId)
-                    .andIsDelEqualTo(1);
-            List<MarketingDataCleanGeneralRuleConfig> marketingDataCleanGeneralRuleConfigList =
-                    marketingDataCleanGeneralRuleConfigMapper.selectByExample(ruleConfigExample);
-            if (marketingDataCleanGeneralRuleConfigList.isEmpty()) {
-                log.warn("未查询到数据清洗规则，apiCode:{},systemType:{},dataType:{},acceptType:{}"
-                        , dto.getApiCode(), dto.getSystemType(), dto.getDataType(), dto.getAcceptType());
-                return new Result().setCode(Integer.valueOf(CodeEnum.NOT_FOUND_CLEAN_RULE_CONFIG.getCode()))
-                        .setMessage(CodeEnum.NOT_FOUND_CLEAN_RULE_CONFIG.getMessage() + "，返回原值")
-                        .setDate(dto.getJsonData());
-            }
+            List<MarketingDataCleanGeneralRuleConfig> ruleConfigListTmp = new ArrayList<>(configRule.values());
 
             //数据清洗
             String jsonData = dto.getJsonData();
 
             //层级字段处理
             String levelField = null;
-            List<MarketingDataCleanGeneralRuleConfig> ruleConfigListTmp = new ArrayList<>(marketingDataCleanGeneralRuleConfigList);
+
             List<MarketingDataCleanGeneralRuleConfig> dataItemList = ruleConfigListTmp.stream().filter(
                     ruleConfig -> ruleConfig.getMappingField().equals("dataItems")
             ).toList();
@@ -1167,9 +1156,7 @@ public class DataCleanServiceImpl implements DataCleanService {
                     Object value = jsonObject.get(key);
                     if (value instanceof JSONArray) {
                         log.warn("未配置层级字段，但JSON中存在值为数组的字段[{}]，直接返回原值，apiCode:{}", key, dto.getApiCode());
-                        return new Result().setCode(Integer.valueOf(CodeEnum.NOT_FOUND_DATA_ITEMS_CONFIG.getCode()))
-                                .setMessage(CodeEnum.NOT_FOUND_DATA_ITEMS_CONFIG.getMessage() + "，返回原值")
-                                .setDate(dto.getJsonData());
+                        return new Result().failure().setDate(new CommonCleanResponseVO(CodeEnum.NOT_FOUND_DATA_ITEMS_CONFIG,dto.getJsonData()));
                     }
                 }
             }
@@ -1188,18 +1175,18 @@ public class DataCleanServiceImpl implements DataCleanService {
                 }
 
                 jsonObject.put(levelField, cleanedArray);
-                return new Result().success().setDate(jsonObject.toJSONString());
+                return new Result().success().setDate(new CommonCleanResponseVO(CodeEnum.SUCC,jsonObject.toJSONString()));
             } else {
                 // 没有层级字段，直接清洗整个对象
                 List<JSONObject> jsonObjectLists = new ArrayList<>();
                 jsonObjectLists.add(jsonObject);
-                dataCleanByRules(jsonObjectLists, marketingDataCleanGeneralRuleConfigList);
+                dataCleanByRules(jsonObjectLists, ruleConfigListTmp);
                 // 返回清洗后的对象
-                return new Result().success().setDate(jsonObject.toJSONString());
+                return new Result().success().setDate(new CommonCleanResponseVO(CodeEnum.SUCC,jsonObject.toJSONString()));
             }
         } catch (Exception e) {
             log.error("通用数据清洗异常，message:{}", e.getMessage());
-            return new Result().failure().setMessage("通用数据清洗异常，返回原值").setDate(dto.getJsonData());
+            return new Result().failure().setMessage("通用数据清洗异常，返回原值").setDate(new CommonCleanResponseVO(CodeEnum.ERROR,dto.getJsonData()));
         }
     }
 

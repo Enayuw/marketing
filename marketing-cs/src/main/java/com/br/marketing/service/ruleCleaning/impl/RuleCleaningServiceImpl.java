@@ -10,6 +10,7 @@ import com.br.marketing.client.rulecleaning.*;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.DataTypeEnum;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.JsonParseUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.common.exception.BusinessException;
@@ -2114,7 +2115,9 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             if (Objects.isNull(marketingSyncInfo)) {
                 marketingSyncInfo = marketingSyncInfoMapper.getMarketingSyncInfoByDate(apiCode, appletDate, null);
             }
-            Map<String, MarketingDataCleanGeneralRuleConfig> ruleConfigMap = dataCleanService.getConfigRule(apiCode, dataType, acceptType,DataProcessEnum.RuleStatusEnum.READY.getCode());
+            Map<String, MarketingDataCleanGeneralRuleConfig> ruleConfigMap = dataCleanService.getConfigRule(apiCode,
+                    DataProcessEnum.SystemTypeEnum.MARKETING.getCode(),
+                    dataType, acceptType,DataProcessEnum.RuleStatusEnum.READY.getCode());
             if (Objects.isNull(marketingSyncInfo)||CollectionUtils.isEmpty(ruleConfigMap)) {
                 throw new BusinessException("未找到符合条件的通用上传数据");
             }
@@ -2145,7 +2148,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
             }
             // 查询规则
-            Map<String, MarketingDataCleanGeneralRuleConfig> ruleConfigMap = dataCleanService.getConfigRule(apiCode, dataType, acceptType,DataProcessEnum.RuleStatusEnum.READY.getCode());
+            Map<String, MarketingDataCleanGeneralRuleConfig> ruleConfigMap = dataCleanService.getConfigRule(apiCode, DataProcessEnum.SystemTypeEnum.MARKETING.getCode(), dataType, acceptType,DataProcessEnum.RuleStatusEnum.READY.getCode());
             List<MarketingDataCleanGeneralRuleConfig> ruleConfigList = ruleConfigMap.values().stream().collect(Collectors.toList());
             //定制清洗
             String jsonData = marketingCustomerOriginalData.getJsonData();
@@ -2542,7 +2545,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 .andSystemTypeEqualTo(systemType)
                 .andDataTypeEqualTo(dataType)
                 .andAcceptTypeEqualTo(acceptType)
-                .andIsDelEqualTo(1);
+                .andIsDelEqualTo(Constants.DATA_VALID);
         return cleanGeneralConfigMapper.selectByExample(example);
     }
 
