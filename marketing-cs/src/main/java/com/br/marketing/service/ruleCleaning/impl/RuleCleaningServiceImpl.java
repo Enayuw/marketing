@@ -2148,7 +2148,9 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
             }
             // 查询规则
-            Map<String, MarketingDataCleanGeneralRuleConfig> ruleConfigMap = dataCleanService.getConfigRule(apiCode, DataProcessEnum.SystemTypeEnum.MARKETING.getCode(), dataType, acceptType,DataProcessEnum.RuleStatusEnum.READY.getCode());
+            Map<String, MarketingDataCleanGeneralRuleConfig> ruleConfigMap =
+                    dataCleanService.getConfigRule(apiCode, DataProcessEnum.SystemTypeEnum.MARKETING.getCode(),
+                            dataType, acceptType,DataProcessEnum.RuleStatusEnum.READY.getCode());
             List<MarketingDataCleanGeneralRuleConfig> ruleConfigList = ruleConfigMap.values().stream().collect(Collectors.toList());
             //定制清洗
             String jsonData = marketingCustomerOriginalData.getJsonData();

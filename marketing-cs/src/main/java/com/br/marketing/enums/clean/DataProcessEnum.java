@@ -10,10 +10,22 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum DataProcessEnum {
 
-    UPLOAD_DATA_GENERAL(SystemTypeEnum.MARKETING.getCode(), DataTypeEnum.UPLOAD.getCode(), AcceptTypeEnum.GENERAL.getCode(), "b_marketing_sync_info"),
-    UPLOAD_DATA_CUSTOM(SystemTypeEnum.MARKETING.getCode(), DataTypeEnum.UPLOAD.getCode(), AcceptTypeEnum.CUSTOM.getCode(), "b_marketing_customer_original_data"),
-    TRANSFORM_DATA_GENERAL(SystemTypeEnum.MARKETING.getCode(), DataTypeEnum.TRANSFORM.getCode(), AcceptTypeEnum.GENERAL.getCode(), "b_marketing_transfer_info"),
-    TRANSFORM_DATA_CUSTOM(SystemTypeEnum.MARKETING.getCode(), DataTypeEnum.TRANSFORM.getCode(), AcceptTypeEnum.CUSTOM.getCode(), "b_marketing_customer_original_data");
+    UPLOAD_DATA_GENERAL(SystemTypeEnum.MARKETING.getCode(),
+            DataTypeEnum.UPLOAD.getCode(),
+            AcceptTypeEnum.GENERAL.getCode(),
+            "b_marketing_sync_info"),
+    UPLOAD_DATA_CUSTOM(SystemTypeEnum.MARKETING.getCode(),
+            DataTypeEnum.UPLOAD.getCode(),
+            AcceptTypeEnum.CUSTOM.getCode(),
+            "b_marketing_customer_original_data"),
+    TRANSFORM_DATA_GENERAL(SystemTypeEnum.MARKETING.getCode(),
+            DataTypeEnum.TRANSFORM.getCode(),
+            AcceptTypeEnum.GENERAL.getCode(),
+            "b_marketing_transfer_info"),
+    TRANSFORM_DATA_CUSTOM(SystemTypeEnum.MARKETING.getCode(),
+            DataTypeEnum.TRANSFORM.getCode(),
+            AcceptTypeEnum.CUSTOM.getCode(),
+            "b_marketing_customer_original_data");
 
     /**
      * System type

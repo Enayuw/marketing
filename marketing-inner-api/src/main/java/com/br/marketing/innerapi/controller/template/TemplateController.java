@@ -89,7 +89,8 @@ public class TemplateController {
             , @RequestParam(name = "dataType", required = false) Integer dataType) {
         try {
             Result<PageResultReturn<MarketingIndustryTemplate>> result =
-                    templateService.queryAllTemplate(current, pageSize, templateName, firstDepartment, secondDepartment, apiType, systemType, dataType);
+                    templateService.queryAllTemplate(current, pageSize, templateName,
+                            firstDepartment, secondDepartment, apiType, systemType, dataType);
             return new ApiResult<PageResultReturn<MarketingIndustryTemplate>>().fromResult(result, 1);
         } catch (Exception e) {
             logger.error("查询行业模板异常,message:{}", e.getMessage());

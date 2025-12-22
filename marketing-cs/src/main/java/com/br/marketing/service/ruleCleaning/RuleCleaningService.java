@@ -63,7 +63,8 @@ public interface RuleCleaningService {
      * @param acceptType 接口类型：0通用,1定制,2FTP
      * @return 字段样例列表
      */
-    List<FieldSampleDTO> getFieldSamples(@Validated String apiCode, @Validated Integer systemType, @Validated Integer dataType, @Validated Integer acceptType);
+    List<FieldSampleDTO> getFieldSamples(@Validated String apiCode, @Validated Integer systemType,
+                                         @Validated Integer dataType, @Validated Integer acceptType);
 
     /**
      * 字段样例查询

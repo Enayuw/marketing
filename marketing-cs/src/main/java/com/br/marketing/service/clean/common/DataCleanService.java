@@ -20,7 +20,8 @@ public interface DataCleanService {
 
     Result<Boolean> commonDataJsonParse(String message);
 
-    Map<String, MarketingDataCleanGeneralRuleConfig> getConfigRule(String apiCode, Integer systemType, Integer dataType, Integer acceptType,Integer status);
+    Map<String, MarketingDataCleanGeneralRuleConfig> getConfigRule(String apiCode, Integer systemType,
+                                                                   Integer dataType, Integer acceptType,Integer status);
 
 
     Object getCleanResult(JSONObject jsonObject, MarketingDataCleanGeneralRuleConfig rule);

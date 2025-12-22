@@ -392,7 +392,8 @@ public class DataCleanServiceImpl implements DataCleanService {
 
 
     @Override
-    public Map<String, MarketingDataCleanGeneralRuleConfig> getConfigRule(String apiCode, Integer systemType, Integer dataType, Integer acceptType,Integer status) {
+    public Map<String, MarketingDataCleanGeneralRuleConfig> getConfigRule(String apiCode, Integer systemType,
+                                                                          Integer dataType, Integer acceptType,Integer status) {
         String redisKey = RedisKeyConstant.DATA_CLEAN_CONFIG_RULE.concat(apiCode)
                 .concat(":").concat(systemType.toString())
                 .concat(":").concat(dataType.toString())
@@ -755,20 +756,19 @@ public class DataCleanServiceImpl implements DataCleanService {
         if (node instanceof JSONObject) {
             JSONObject jsonObj = (JSONObject) node;
 
+            // expectedPath 为空表示不限制父路径，直接命中第一个
+            Boolean isParentNode = StringUtils.isEmpty(expectedPath) || currentPath.equals(expectedPath);
             // 当前对象本身是否是待回填字段的父节点
-            if (jsonObj.containsKey(oldKey)) {
-                // expectedPath 为空表示不限制父路径，直接命中第一个
-                if (StringUtils.isEmpty(expectedPath) || currentPath.equals(expectedPath)) {
-                    if (needRename) {
-                        // 需要替换字段名：删除原字段，添加新字段
-                        jsonObj.remove(oldKey);
-                        jsonObj.put(newKey, newValue);
-                    } else {
-                        // 只更新值
-                        jsonObj.put(oldKey, newValue);
-                    }
-                    return true;
+            if (jsonObj.containsKey(oldKey) && isParentNode) {
+                if (needRename) {
+                    // 需要替换字段名：删除原字段，添加新字段
+                    jsonObj.remove(oldKey);
+                    jsonObj.put(newKey, newValue);
+                } else {
+                    // 只更新值
+                    jsonObj.put(oldKey, newValue);
                 }
+                return true;
             }
 
             // 继续向下递归遍历
@@ -776,7 +776,7 @@ public class DataCleanServiceImpl implements DataCleanService {
                 String key = entry.getKey();
                 Object value = entry.getValue();
 
-                String nextPath = StringUtils.isEmpty(currentPath) ? key : currentPath + "." + key;
+                String nextPath = StringUtils.isEmpty(currentPath) ? key : (currentPath + "." + key);
 
                 // 处理嵌套在字符串中的 JSON 结构
                 if (value instanceof String) {
@@ -794,9 +794,7 @@ public class DataCleanServiceImpl implements DataCleanService {
                         }
                     }
                 } else if (value instanceof JSONObject || value instanceof JSONArray) {
-                    if (updateJsonValueByPath(value, oldKey, newKey, expectedPath, nextPath, newValue, needRename)) {
-                        return true;
-                    }
+                    return updateJsonValueByPath(value, oldKey, newKey, expectedPath, nextPath, newValue, needRename);
                 }
             }
         } else if (node instanceof JSONArray) {
@@ -819,9 +817,7 @@ public class DataCleanServiceImpl implements DataCleanService {
                         }
                     }
                 } else if (item instanceof JSONObject || item instanceof JSONArray) {
-                    if (updateJsonValueByPath(item, oldKey, newKey, expectedPath, currentPath, newValue, needRename)) {
-                        return true;
-                    }
+                    return updateJsonValueByPath(item, oldKey, newKey, expectedPath, currentPath, newValue, needRename);
                 }
             }
         }
