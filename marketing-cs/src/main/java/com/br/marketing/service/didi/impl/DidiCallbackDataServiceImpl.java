@@ -82,7 +82,7 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
             // 处理触达失败数据
             processFailedData(pushPool, mediaName, token);
         } catch (Exception e) {
-            log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(),
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(),
                     "触达回推job执行异常", TITLE), e);
         } finally {
             pushPool.shutdownAndAwaitTermination();
@@ -97,7 +97,7 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
         int pageSize = marketingCommonConfig.getDiDiV5Config().getInteger("limit");
         while (true) {
             if (marketingCommonConfig.getDiDiV5Config().getBooleanValue("callbackSwitch")) {
-                log.info("检测到中断信号，停止处理阶段{}的数据", stage);
+                log.warn("检测到中断信号，停止处理阶段{}的数据", stage);
                 break;
             }
 
@@ -216,7 +216,7 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
             }
             saveCallbackDataLog(data, httpcode, content, pushType, pushStatus);
         } catch (Exception e) {
-            log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(),
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(),
                     "触达成功数据回推异常，cell:" + data.getCell() + " id:" + data.getId(), TITLE), e);
             updateCallbackDataPushStatus(data.getId(), 2);
             saveCallbackDataLog(data, "500", e.getMessage(), 0, 0);
@@ -315,7 +315,7 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
 
         while (true) {
             if (marketingCommonConfig.getDiDiV5Config().getBooleanValue("callbackSwitch")) {
-                log.info("检测到中断信号，停止处理触达失败数据");
+                log.warn("检测到中断信号，停止处理触达失败数据");
                 break;
             }
 
@@ -381,7 +381,7 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
             saveFailedCallbackDataLog(data, httpcode, content, success);
 
         } catch (Exception e) {
-            log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(),
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(),
                     "触达失败数据回推异常，cell:" + data.getCell() + " id:" + data.getId(), TITLE), e);
 
             saveFailedCallbackDataLog(data, "500", e.getMessage(), false);
