@@ -96,7 +96,7 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
         Long lastId = 0L;
         int pageSize = marketingCommonConfig.getDiDiV5Config().getInteger("limit");
         while (true) {
-            if (marketingCommonConfig.getDiDiV5Config().getBooleanValue("interrupt")) {
+            if (marketingCommonConfig.getDiDiV5Config().getBooleanValue("callbackSwitch")) {
                 log.info("检测到中断信号，停止处理阶段{}的数据", stage);
                 break;
             }
@@ -314,7 +314,7 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
         int pageSize = marketingCommonConfig.getDiDiV5Config().getInteger("limit");
 
         while (true) {
-            if (marketingCommonConfig.getDiDiV5Config().getBooleanValue("interrupt")) {
+            if (marketingCommonConfig.getDiDiV5Config().getBooleanValue("callbackSwitch")) {
                 log.info("检测到中断信号，停止处理触达失败数据");
                 break;
             }
