@@ -10,10 +10,15 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum DataProcessEnum {
 
-    UPLOAD_DATA_GENERAL(DataTypeEnum.UPLOAD.getCode(), AcceptTypeEnum.GENERAL.getCode(), "b_marketing_sync_info"),
-    UPLOAD_DATA_CUSTOM(DataTypeEnum.UPLOAD.getCode(), AcceptTypeEnum.CUSTOM.getCode(), "b_marketing_customer_original_data"),
-    TRANSFORM_DATA_GENERAL(DataTypeEnum.TRANSFORM.getCode(), AcceptTypeEnum.GENERAL.getCode(), "b_marketing_transfer_info"),
-    TRANSFORM_DATA_CUSTOM(DataTypeEnum.TRANSFORM.getCode(), AcceptTypeEnum.CUSTOM.getCode(), "b_marketing_customer_original_data");
+    UPLOAD_DATA_GENERAL(SystemTypeEnum.MARKETING.getCode(), DataTypeEnum.UPLOAD.getCode(), AcceptTypeEnum.GENERAL.getCode(), "b_marketing_sync_info"),
+    UPLOAD_DATA_CUSTOM(SystemTypeEnum.MARKETING.getCode(), DataTypeEnum.UPLOAD.getCode(), AcceptTypeEnum.CUSTOM.getCode(), "b_marketing_customer_original_data"),
+    TRANSFORM_DATA_GENERAL(SystemTypeEnum.MARKETING.getCode(), DataTypeEnum.TRANSFORM.getCode(), AcceptTypeEnum.GENERAL.getCode(), "b_marketing_transfer_info"),
+    TRANSFORM_DATA_CUSTOM(SystemTypeEnum.MARKETING.getCode(), DataTypeEnum.TRANSFORM.getCode(), AcceptTypeEnum.CUSTOM.getCode(), "b_marketing_customer_original_data");
+
+    /**
+     * System type
+     */
+    private Integer systemType;
 
     /**
      * Data type
@@ -34,9 +39,9 @@ public enum DataProcessEnum {
     /**
      * Get enum by dataType and acceptType
      */
-    public static DataProcessEnum getByTypes(Integer dataType, Integer acceptType) {
+    public static DataProcessEnum getByTypes(Integer systemType, Integer dataType, Integer acceptType) {
         for (DataProcessEnum value : values()) {
-            if (value.getDataType().equals(dataType) && value.getAcceptType().equals(acceptType)) {
+            if (value.getSystemType().equals(systemType) && value.getDataType().equals(dataType) && value.getAcceptType().equals(acceptType)) {
                 return value;
             }
         }

@@ -171,6 +171,7 @@ public class TestSre {
         }
         MqDataJsonParse mqDataJsonParse = new MqDataJsonParse();
         mqDataJsonParse.setDataId(originalData.getId());
+        mqDataJsonParse.setSystemType(DataProcessEnum.SystemTypeEnum.MARKETING.getCode());
         mqDataJsonParse.setDataType(DataProcessEnum.DataTypeEnum.UPLOAD.getCode());
         mqDataJsonParse.setAcceptType(DataProcessEnum.AcceptTypeEnum.CUSTOM.getCode());
 //        producter.send(MQConstants.ROUTING_KEY_MARKETING_CUSTOMER_DATA_JSON_PARSE, JSON.toJSONString(mqDataJsonParse));
