@@ -129,7 +129,7 @@
         SELECT
         r.api_code AS apiCode,
         r.data_count AS dataCount,
-        DATE_FORMAT(r.create_time, '%Y-%m-%d %H:%i:%s') AS snapTime
+        DATE_FORMAT(r.applet_begin_time, '%Y-%m-%d %H:%i:%s') AS snapTime
         FROM b_marketing_transfer_sync_report r
         WHERE
         <choose>
@@ -143,15 +143,15 @@
                 1 = 0
             </otherwise>
         </choose>
-        AND r.update_time <![CDATA[ >= ]]> TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 1 DAY), '08:00:00')
-        AND r.update_time <![CDATA[ < ]]>  TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 1 DAY), '08:01:00')
+        AND r.applet_begin_time <![CDATA[ >= ]]> TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 1 DAY), '08:00:00')
+        AND r.applet_begin_time <![CDATA[ < ]]>  TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 1 DAY), '08:01:00')
         AND r.id = (
             SELECT r2.id
             FROM b_marketing_transfer_sync_report r2
             WHERE r2.api_code = r.api_code
-              AND r2.update_time <![CDATA[ >= ]]> TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 1 DAY), '08:00:00')
-              AND r2.update_time <![CDATA[ < ]]>  TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 1 DAY), '08:01:00')
-            ORDER BY r2.update_time DESC, r2.id DESC
+              AND r2.applet_begin_time <![CDATA[ >= ]]> TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 1 DAY), '08:00:00')
+              AND r2.applet_begin_time <![CDATA[ < ]]>  TIMESTAMP(DATE_SUB(CURDATE(), INTERVAL 1 DAY), '08:01:00')
+            ORDER BY r2.applet_begin_time DESC, r2.id DESC
             LIMIT 1
         )
     </select>
@@ -161,7 +161,7 @@
         SELECT
         r.api_code AS apiCode,
         r.data_count AS dataCount,
-        DATE_FORMAT(r.create_time, '%Y-%m-%d %H:%i:%s') AS snapTime
+        DATE_FORMAT(r.applet_begin_time, '%Y-%m-%d %H:%i:%s') AS snapTime
         FROM b_marketing_transfer_sync_report r
         WHERE
         <choose>
@@ -175,15 +175,15 @@
                 1 = 0
             </otherwise>
         </choose>
-        AND r.update_time <![CDATA[ >= ]]> CURDATE()
-        AND r.update_time <![CDATA[ < ]]>  DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+        AND r.applet_begin_time <![CDATA[ >= ]]> CURDATE()
+        AND r.applet_begin_time <![CDATA[ < ]]>  DATE_ADD(CURDATE(), INTERVAL 1 DAY)
         AND r.id = (
             SELECT r2.id
             FROM b_marketing_transfer_sync_report r2
             WHERE r2.api_code = r.api_code
-              AND r2.update_time <![CDATA[ >= ]]> CURDATE()
-              AND r2.update_time <![CDATA[ < ]]>  DATE_ADD(CURDATE(), INTERVAL 1 DAY)
-            ORDER BY r2.update_time DESC, r2.id DESC
+              AND r2.applet_begin_time <![CDATA[ >= ]]> CURDATE()
+              AND r2.applet_begin_time <![CDATA[ < ]]>  DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+            ORDER BY r2.applet_begin_time DESC, r2.id DESC
             LIMIT 1
         )
     </select>
