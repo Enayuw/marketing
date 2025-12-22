@@ -137,7 +137,7 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
             mqJson.put("diDiV5CollidingResultResponseDTO", diDiV5CollidingResultResponseDTO);
         }
         mqJson.put("diDiV5CollidingDataLog", diDiV5CollidingDataLog);
-        rocketMqSwitch.syncSend(MarketingOutsideInterfaceConstants.TOPIC, MarketingOutsideInterfaceConstants.MARKETING_DIDI_V5_COLLIDING_DATA,
+        rocketMqSwitch.syncSend(MarketingOutsideInterfaceConstants.TOPIC, MarketingOutsideInterfaceConstants.TAG_MARKETING_DIDI_V5_COLLIDING_DATA,
                 mqJson.toJSONString());
     }
 
