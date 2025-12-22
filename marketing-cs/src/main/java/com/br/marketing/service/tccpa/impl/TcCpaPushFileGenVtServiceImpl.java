@@ -185,9 +185,6 @@ public class TcCpaPushFileGenVtServiceImpl implements TcCpaPushFileGenVtService 
         if (!isOk) {
             logWarnAndinfoRecord("未生成标识文件！", info);
         }
-        if (info.getOnlyOk()) {
-            return;
-        }
         //2.核对量级
         int extraNumAct = info.getFiles().stream()
                 .filter(Objects::nonNull)  // 过滤空对象
@@ -225,16 +222,10 @@ public class TcCpaPushFileGenVtServiceImpl implements TcCpaPushFileGenVtService 
                     return false;
                 }
             }
-
-            //判断是否生成数据文件
-            Boolean onlyOk = marketingCommonConfig.getTcyrCpaPushFileConfig().getBoolean("onlyOk");
-            info.setOnlyOk(onlyOk);
-            if(!onlyOk){
-                //2.生成数据文件
-                Boolean writeSuccess = writeFile(localPath, yyyyMMdd, info, fwMap, taskIds);
-                if (!writeSuccess) {
-                    return false;
-                }
+            //2.生成数据文件
+            Boolean writeSuccess = writeFile(localPath, yyyyMMdd, info, fwMap, taskIds);
+            if (!writeSuccess) {
+                return false;
             }
             //3.生成标识文件
             List<String> countResult = new ArrayList<>();
