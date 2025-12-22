@@ -16,10 +16,12 @@
                sence_name
         FROM b_auto_check_sence_dict
         WHERE is_deleted = 0
+          <if test="searchContent != null and searchContent != ''">
           AND (
             sence_name LIKE CONCAT('%', #{searchContent}, '%')
                 OR sence_code LIKE CONCAT('%', #{searchContent}, '%')
             )
+        </if>
         ORDER BY create_time DESC
     </select>
 

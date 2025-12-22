@@ -41,8 +41,8 @@ public class AutoCheckController {
     @Parameters({@Parameter(name = "apiCodes", description = "多apiCode用逗号分隔"),
             @Parameter(name = "senceCodes", description = "场景编码，多场景逗号分隔")
     })
-    public ApiResult<List<AutoCheckConfigVO>> getAutoCheckConfigList(@RequestParam(name = "apiCodes") String apiCodes,
-                                                            @RequestParam(name = "senceCodes") String senceCodes) {
+    public ApiResult<List<AutoCheckConfigVO>> getAutoCheckConfigList(@RequestParam(name = "apiCodes", required = false) String apiCodes,
+                                                                     @RequestParam(name = "senceCodes", required = false) String senceCodes) {
         try {
             List<AutoCheckConfigVO> list = autoCheckService.getAutoCheckConfigList(apiCodes, senceCodes);
             return new ApiResult<List<AutoCheckConfigVO>>().success(list);
@@ -56,7 +56,7 @@ public class AutoCheckController {
     @GetMapping("/senceList")
     @Operation(summary = "场景下拉列表", description = "场景下拉列表")
     @Parameter(name = "searchContent", description = "场景编码或场景名称")
-    public ApiResult<List<AutoCheckSenceVO>> getAutoCheckSenceList(@RequestParam(name = "searchContent") String searchContent) {
+    public ApiResult<List<AutoCheckSenceVO>> getAutoCheckSenceList(@RequestParam(name = "searchContent", required = false) String searchContent) {
         try {
             List<AutoCheckSenceVO> list = autoCheckService.getAutoCheckSenceList(searchContent);
             return new ApiResult<List<AutoCheckSenceVO>>().success(list);
@@ -99,8 +99,8 @@ public class AutoCheckController {
     @Parameters({@Parameter(name = "apiCodes", description = "多apiCode用逗号分隔"),
             @Parameter(name = "senceCodes", description = "场景编码，多场景逗号分隔")
     })
-    public ApiResult<List<AutoCheckResultVO>> getResultList(@RequestParam(name = "apiCodes") String apiCodes,
-                                                            @RequestParam(name = "senceCodes") String senceCodes) {
+    public ApiResult<List<AutoCheckResultVO>> getResultList(@RequestParam(name = "apiCodes", required = false) String apiCodes,
+                                                            @RequestParam(name = "senceCodes", required = false) String senceCodes) {
         try {
             List<AutoCheckResultVO> list = autoCheckService.getResultList(apiCodes, senceCodes);
             return new ApiResult<List<AutoCheckResultVO>>().success(list);
