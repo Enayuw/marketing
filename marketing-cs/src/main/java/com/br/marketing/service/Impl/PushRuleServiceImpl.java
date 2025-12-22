@@ -2879,6 +2879,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             MqDataJsonParse mqDataJsonParse = new MqDataJsonParse();
             mqDataJsonParse.setDataId(id);
+            mqDataJsonParse.setSystemType(DataProcessEnum.SystemTypeEnum.MARKETING.getCode());
             mqDataJsonParse.setDataType(dataType);
             mqDataJsonParse.setAcceptType(acceptType);
             rocketMqSwitch.sendMessage(apiCode, MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_MARKETING_CUSTOMER_DATA_JSON_PARSE,
