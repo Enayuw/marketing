@@ -40,7 +40,7 @@ public class DiDiV5Client {
 
 
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
-    @Mockable(mockName = MockConstants.TEST_DIDI_V5_COLLIDING_DATA_RETURN)
+    @Mockable(mockName = MockConstants.DIDI_V5_COLLIDING_DATA_RETURN)
     public Result<String> colliding(String mediaName, DiDiV5CollidingRequestDTO requestDTO) {
         collidingUrl = collidingUrl.replace("mediaName", mediaName);
         HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(requestDTO, collidingUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE,
@@ -49,7 +49,7 @@ public class DiDiV5Client {
     }
 
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
-    @Mockable(mockName = MockConstants.TEST_DIDI_V5_CALLBACK_SUCCESS_DATA_RETURN)
+    @Mockable(mockName = MockConstants.DIDI_V5_CALLBACK_SUCCESS_DATA_RETURN)
     public Result<String> callbackSuccess(String mediaName, DiDiSmsRequestTO smsRequestTO) {
         callbackSuccessUrl = callbackSuccessUrl.replace("mediaName", mediaName);
         HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(smsRequestTO, collidingUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE,
@@ -61,7 +61,7 @@ public class DiDiV5Client {
      * 触达失败数据回调
      */
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
-    @Mockable(mockName = MockConstants.TEST_DIDI_V5_CALLBACK_FAIL_DATA_RETURN)
+    @Mockable(mockName = MockConstants.DIDI_V5_CALLBACK_FAIL_DATA_RETURN)
     public Result<String> callbackFailed(String mediaName, DiDiSmsRequestTO smsRequestTO) {
         callbackFailUrl = callbackSuccessUrl.replace("mediaName", mediaName);
         HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(smsRequestTO, callbackFailUrl, isProxy,
