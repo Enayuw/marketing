@@ -71,8 +71,7 @@ public class AutoCheckController {
     @Operation(summary = "保存自动化巡检配置接口(新增/编辑)", description = "保存自动化巡检配置接口(新增/编辑)")
     public ApiResult<Boolean> saveAutoCheckConfig(@Valid @RequestBody SaveAutoCheckConfigDto dto) {
         try {
-            Boolean res = autoCheckService.saveAutoCheckConfig(dto);
-            return new ApiResult<Boolean>().success(res);
+            return autoCheckService.saveAutoCheckConfig(dto);
         } catch (Exception ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
                     "保存自动化巡检配置接口错误！错误信息：" + ex.getMessage()), ex);

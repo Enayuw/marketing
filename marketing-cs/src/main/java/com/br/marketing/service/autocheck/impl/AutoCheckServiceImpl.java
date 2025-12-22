@@ -1,6 +1,9 @@
 package com.br.marketing.service.autocheck.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.dto.autocheck.CheckTransferSyncDataDto;
 import com.br.marketing.dto.autocheck.CheckUploadSyncDataDto;
 import com.br.marketing.dto.autocheck.SaveAutoCheckConfigDto;
@@ -170,7 +173,7 @@ public class AutoCheckServiceImpl implements AutoCheckService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Boolean saveAutoCheckConfig(SaveAutoCheckConfigDto dto) {
+    public ApiResult<Boolean> saveAutoCheckConfig(SaveAutoCheckConfigDto dto) {
         int result;
         if (Objects.isNull(dto.getId())) {
             // 新增
@@ -178,7 +181,8 @@ public class AutoCheckServiceImpl implements AutoCheckService {
             AutoCheckConfig existingConfig = autoCheckConfigMapper.selectByApiCode(dto.getApiCode());
             if (Objects.nonNull(existingConfig)) {
                 log.warn("要保存的配置已存在，apiCode: {}", dto.getApiCode());
-                return false;
+                return new ApiResult<Boolean>().success(false)
+                        .setMessage("保存失败，apiCode：" + dto.getApiCode() + "已存在");
             }
             AutoCheckConfig config = new AutoCheckConfig();
             config.setApiCode(dto.getApiCode());
@@ -193,7 +197,7 @@ public class AutoCheckServiceImpl implements AutoCheckService {
             AutoCheckConfig existingConfig = autoCheckConfigMapper.selectByPrimaryKey(dto.getId());
             if (Objects.isNull(existingConfig)) {
                 log.warn("要编辑的配置不存在，id: {}", dto.getId());
-                return false;
+                return new ApiResult<Boolean>().success(false).setMessage("要编辑的配置不存在");
             }
             // 更新字段
             existingConfig.setSenceCode(dto.getSenceCodes());
@@ -201,7 +205,7 @@ public class AutoCheckServiceImpl implements AutoCheckService {
             // 更新数据库
             result = autoCheckConfigMapper.updateByPrimaryKeySelective(existingConfig);
         }
-        return result > 0;
+        return new ApiResult<Boolean>().success(result > 0);
     }
 
     @Override
