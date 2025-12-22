@@ -96,7 +96,7 @@ public class MqIdempotentServiceImpl implements MqIdempotentService {
      */
     private MqIdempotentCommon createCommonRecord(Long idempotentKey, String apiCode, String tag, Date now) {
         MqIdempotentCommon record = new MqIdempotentCommon();
-        record.setIdempotentkey(idempotentKey);
+        record.setIdempotentKey(idempotentKey);
         record.setApiCode(apiCode);
         record.setTag(tag);
         record.setIsDeleted(NOT_DELETED);
@@ -112,7 +112,7 @@ public class MqIdempotentServiceImpl implements MqIdempotentService {
      */
     private MqIdempotentSpecial createSpecialRecord(Long idempotentKey, String apiCode, String tag, Date now) {
         MqIdempotentSpecial record = new MqIdempotentSpecial();
-        record.setIdempotentkey(idempotentKey);
+        record.setIdempotentKey(idempotentKey);
         record.setApiCode(apiCode);
         record.setTag(tag);
         record.setIsDeleted(NOT_DELETED);
