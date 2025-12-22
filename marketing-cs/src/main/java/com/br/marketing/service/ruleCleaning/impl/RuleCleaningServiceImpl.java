@@ -94,15 +94,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     private MarketingCustomerMapper marketingCustomerMapper;
 
     @Resource
-    private MarketingIndustryTemplateMapper marketingIndustryTemplateMapper;
-
-    @Resource
-    private MarketingIndustryTemplateJsonParseMapper marketingIndustryTemplateJsonParseMapper;
-
-    @Resource
-    private MarketingBuildInTemplateJsonParseMapper marketingBuildInTemplateJsonParseMapper;
-
-    @Resource
     private DataCleanServiceImpl dataCleanService;
 
     @Resource
