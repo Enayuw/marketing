@@ -1,8 +1,11 @@
 package com.br.marketing.rule.didi;
 
+import com.alibaba.fastjson.JSON;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.didi.DidiCallBackDataDTO;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.dto.customer.SmsCallBackBO;
+import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.TransferDataValidityPeriodService;
@@ -14,7 +17,10 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 滴滴通话明细落库
@@ -26,12 +32,6 @@ import java.util.Date;
 @Service
 @Slf4j
 public class DidiV5SmsInsertDbImpl implements AssembleData<DidiCallBackDataDTO> {
-
-    @Resource
-    private CallRecordMapper callRecordMapper;
-
-    @Resource
-    private MarketingCommonConfig marketingCommonConfig;
 
     @Resource
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
@@ -49,6 +49,16 @@ public class DidiV5SmsInsertDbImpl implements AssembleData<DidiCallBackDataDTO> 
         didiCallRecord.setCreateDate(Integer.parseInt(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)));
         didiCallRecord.setCreateTime(new Date());
         didiCallRecord.setUpdateTime(didiCallRecord.getCreateTime());
+        didiCallRecord.setExtend(JSON.toJSONString(cbo));
+        String custNum = didiCallRecord.getCustNum();
+        String apiCode = didiCallRecord.getApiCode();
+        Map<String, SyncUserValidityPeriodsBO> validityPeriodsBOMap = transferDataValidityPeriodService
+                .getValidityPeriodsByCustNum(Collections.singleton(custNum), apiCode, null);
+        SyncUserValidityPeriodsBO bo = validityPeriodsBOMap.get(custNum);
+        if (bo != null) {
+            List<MarketingSyncUser> syncUsers = bo.getSyncUsers();
+            didiCallRecord.setCell(syncUsers.get(0).getCell());
+        }
         return didiCallRecord;
     }
 

@@ -11,7 +11,6 @@ import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.DiDiV5CollidingDataLog;
 import com.br.marketing.entity.DidiCallBackData;
-import com.br.marketing.entity.DidiCallBackDataExample;
 import com.br.marketing.entity.DidiCallbackDataLog;
 import com.br.marketing.mapper.DiDiV5CollidingDataLogMapper;
 import com.br.marketing.mapper.DidiCallBackDataMapper;
@@ -73,13 +72,13 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
                     pushConfig.getDouble("samplingSmsRate") : 0;
 
             // 推送拨打成功的数据
-            processStageData(pushPool, mediaName, token, samplingCallRate, samplingSmsRate, 1);
+            processStageData(pushPool, mediaName, token, null, 1);
             // 推送短信成功的数据
-            processStageData(pushPool, mediaName, token, samplingCallRate, samplingSmsRate, 2);
+            processStageData(pushPool, mediaName, token, null, 2);
             // 构造拨打成功的数据
-            processStageData(pushPool, mediaName, token, samplingCallRate, samplingSmsRate, 3);
+            processStageData(pushPool, mediaName, token, samplingCallRate, 3);
             // 构造短信成功的数据
-            processStageData(pushPool, mediaName, token, samplingCallRate, samplingSmsRate, 4);
+            processStageData(pushPool, mediaName, token, samplingSmsRate, 4);
             // 处理触达失败数据
             processFailedData(pushPool, mediaName, token);
         } catch (Exception e) {
@@ -93,8 +92,7 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
     /**
      * 分阶段处理数据
      */
-    private void processStageData(TpDynamicExecutor pushPool, String mediaName, String token, Double samplingCallRate,
-                                  Double samplingSmsRate, int stage) {
+    private void processStageData(TpDynamicExecutor pushPool, String mediaName, String token, Double samplingRate, int stage) {
         Long lastId = 0L;
         int pageSize = marketingCommonConfig.getDiDiV5Config().getInteger("limit");
         while (true) {
@@ -139,12 +137,9 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
             List<DidiCallBackData> dataToPush;
             if (stage == 1 || stage == 2) {
                 dataToPush = uniqueData;
-            } else if (stage == 3) {
-                // 抽样并构造通话数据
-                dataToPush = samplingData(uniqueData, samplingCallRate);
             } else {
-                // 抽样并构造短信数据
-                dataToPush = samplingData(uniqueData, samplingSmsRate);
+                // 抽样并构造拨打/短信数据
+                dataToPush = samplingData(uniqueData, samplingRate);
             }
 
             // 推送数据
