@@ -1991,16 +1991,18 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         // 4. 更新配置表状态
         MarketingDataCleanGeneralConfig update = new MarketingDataCleanGeneralConfig();
         update.setId(configDTO.getConfigId());
-        // 判断是否是行业模板
-        MarketingJsonNodeParseExample nodeExample = new MarketingJsonNodeParseExample();
-        nodeExample.createCriteria()
-                .andApiCodeEqualTo(config.getApiCode())
-                .andDataTypeEqualTo(config.getDataType())
-                .andAcceptTypeEqualTo(config.getAcceptType())
-                .andSystemTypeEqualTo(config.getSystemType());
-        List<MarketingJsonNodeParse> nodes = jsonNodeParseMapper.selectByExample(nodeExample);
+
         // 营销中台
         if (DataProcessEnum.SystemTypeEnum.MARKETING.getCode().equals(configDTO.getSystemType())) {
+            // 获取客户传的字段结构
+            MarketingJsonNodeParseExample nodeExample = new MarketingJsonNodeParseExample();
+            nodeExample.createCriteria()
+                    .andApiCodeEqualTo(config.getApiCode())
+                    .andDataTypeEqualTo(config.getDataType())
+                    .andAcceptTypeEqualTo(config.getAcceptType())
+                    .andSystemTypeEqualTo(config.getSystemType());
+            List<MarketingJsonNodeParse> nodes = jsonNodeParseMapper.selectByExample(nodeExample);
+
             // 没有客户数据——行业模板——试跑成功
             update.setStatus(nodes.isEmpty() ? DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode()
                     : DataProcessEnum.RuleStatusEnum.READY.getCode());
