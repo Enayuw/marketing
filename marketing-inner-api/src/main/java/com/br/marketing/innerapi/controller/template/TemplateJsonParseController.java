@@ -41,7 +41,7 @@ public class TemplateJsonParseController {
         try {
             Result<JSONArray> result =
                     templateJsonParseService.queryIndustryTemplateJsonParses(firstDepartment, secondDepartment, apiType
-                            , systemType, dataType , DataProcessEnum.AcceptTypeEnum.GENERAL.getCode());
+                            , systemType, dataType, DataProcessEnum.AcceptTypeEnum.GENERAL.getCode(), true);
             return new ApiResult<JSONArray>().fromResult(result, 1);
         } catch (Exception e) {
             logger.error("根据三级部门及数据类型查询行业模板异常，message:{}", e.getMessage());

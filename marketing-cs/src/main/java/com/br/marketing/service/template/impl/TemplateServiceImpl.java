@@ -172,6 +172,7 @@ public class TemplateServiceImpl implements TemplateService {
             if (marketingIndustryTemplate != null) {
                 marketingIndustryTemplate.setIsDel(Constants.DATA_DEL);
                 marketingIndustryTemplate.setUpdateTime(new Date());
+                marketingIndustryTemplateMapper.updateByPrimaryKey(marketingIndustryTemplate);
             }
 
             MarketingIndustryTemplateJsonParseExample example = new MarketingIndustryTemplateJsonParseExample();

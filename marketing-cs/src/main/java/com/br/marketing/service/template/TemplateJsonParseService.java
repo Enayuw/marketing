@@ -11,7 +11,7 @@ import java.util.List;
 public interface TemplateJsonParseService {
 
     Result<JSONArray> queryIndustryTemplateJsonParses(String firstDepartment, String secondDepartment
-            , String apiType, Integer systemType, Integer dataType, Integer acceptType);
+            , String apiType, Integer systemType, Integer dataType, Integer acceptType, Boolean needBuildInTemplate);
 
     List<MarketingBuildInTemplateJsonParse> queryBuildInTemplateJsonParses(Integer systemType, Integer dataType, Integer acceptType);
 

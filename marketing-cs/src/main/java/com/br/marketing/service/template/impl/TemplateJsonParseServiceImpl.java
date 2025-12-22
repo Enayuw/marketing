@@ -37,7 +37,7 @@ public class TemplateJsonParseServiceImpl implements TemplateJsonParseService {
 
     @Override
     public Result<JSONArray> queryIndustryTemplateJsonParses(String firstDepartment, String secondDepartment
-            , String apiType, Integer systemType, Integer dataType, Integer acceptType) {
+            , String apiType, Integer systemType, Integer dataType, Integer acceptType, Boolean needBuildInTemplate) {
         try {
             //根据apiType和dataType查询行业模板id
             MarketingIndustryTemplateExample templateExample = new MarketingIndustryTemplateExample();
@@ -65,21 +65,25 @@ public class TemplateJsonParseServiceImpl implements TemplateJsonParseService {
             if (!marketingIndustryTemplateJsonParseList.isEmpty()) {
                 return new Result<>().success().setDate(JSON.parseArray(JSON.toJSONString(marketingIndustryTemplateJsonParseList)));
             } else {
-                //若不存在行业模板，返回内置模板
-                List<MarketingBuildInTemplateJsonParse> marketingBuildInTemplateJsonParseList = queryBuildInTemplateJsonParses(systemType, dataType, acceptType);
-                if (!marketingBuildInTemplateJsonParseList.isEmpty()) {
-                    return new Result<>().success().setDate(JSON.parseArray(JSON.toJSONString(marketingBuildInTemplateJsonParseList)));
+                if (needBuildInTemplate) {
+                    //若不存在行业模板，返回内置模板
+                    List<MarketingBuildInTemplateJsonParse> marketingBuildInTemplateJsonParseList = queryBuildInTemplateJsonParses(systemType, dataType, acceptType);
+                    if (!marketingBuildInTemplateJsonParseList.isEmpty()) {
+                        return new Result<>().success().setDate(JSON.parseArray(JSON.toJSONString(marketingBuildInTemplateJsonParseList)));
+                    } else {
+                        log.warn("未查询到模板json数据，查询条件：firstDepartment:{}，secondDepartment:{},apiType:{},systemType:{},dataType:{}",
+                                firstDepartment, secondDepartment, apiType, systemType, dataType);
+                        return new Result<>().failure().setMessage("模板json数据不存在！");
+                    }
                 } else {
-                    log.warn("未查询到模板json数据，查询条件：firstDepartment:{}，secondDepartment:{},apiType:{},systemType:{},dataType:{}",
-                            firstDepartment, secondDepartment, apiType, systemType, dataType);
                     return new Result<>().failure().setMessage("模板json数据不存在！");
                 }
+                
             }
         } catch (Exception e) {
             log.error("查询模板json数据异常，errorMsg:{}", e.getMessage());
             return new Result<>().failure().setDate(new JSONArray());
         }
-
     }
 
     @Override
