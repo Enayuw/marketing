@@ -40,7 +40,7 @@
     <update id="deleteJsonParseList">
         update `b_marketing_industry_template_json_parse`
         set is_del = 9
-        where item.interfaceTemplateId = #{templateId}
+        where interfaceTemplateId = #{templateId}
     </update>
 
 </mapper>
