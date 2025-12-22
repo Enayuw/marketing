@@ -1,6 +1,5 @@
 package com.br.marketing.client.rulecleaning;
 
-import com.alibaba.fastjson.JSONObject;
 import lombok.Data;
 
 /**

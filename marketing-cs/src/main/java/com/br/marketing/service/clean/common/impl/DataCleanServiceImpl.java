@@ -1100,12 +1100,12 @@ public class DataCleanServiceImpl implements DataCleanService {
     public Result commonClean(DataCleanDTO dto) {
 
         try {
-            //参数校验，填充默认值
-            Boolean valid = paramsValid(dto);
-            if (Boolean.FALSE.equals(valid)) {
+            //参数空值校验
+            String errorMsg = paramsValid(dto);
+            if (!StringUtils.isEmpty(errorMsg)) {
                 log.warn("数据清洗通用接口参数错误,params={}", dto);
                 return new Result().setCode(Integer.valueOf(CodeEnum.PARAM_ERROR.getCode()))
-                        .setMessage(CodeEnum.PARAM_ERROR.getMessage())
+                        .setMessage(CodeEnum.PARAM_ERROR.getMessage() + ":" + errorMsg)
                         .setDate(null);
             }
 
@@ -1142,7 +1142,7 @@ public class DataCleanServiceImpl implements DataCleanService {
 
             //数据清洗
             String jsonData = dto.getJsonData();
-            
+
             //层级字段处理
             String levelField = null;
             List<MarketingDataCleanGeneralRuleConfig> ruleConfigListTmp = new ArrayList<>(marketingDataCleanGeneralRuleConfigList);
@@ -1153,10 +1153,10 @@ public class DataCleanServiceImpl implements DataCleanService {
                 levelField = dataItemList.get(0).getCleanFields();
                 ruleConfigListTmp.removeIf(config -> config.getMappingField().equals("dataItems"));
             }
-            
+
             // 解析JSON对象
             JSONObject jsonObject = JSON.parseObject(jsonData);
-            
+
             // 如果没有配置层级字段，检查JSON对象中是否有值为数组的key
             if (StringUtils.isEmpty(levelField)) {
                 for (String key : jsonObject.keySet()) {
@@ -1199,25 +1199,24 @@ public class DataCleanServiceImpl implements DataCleanService {
         }
     }
 
-    public Boolean paramsValid(DataCleanDTO dto) {
+    public String paramsValid(DataCleanDTO dto) {
+        StringBuilder errorMsg = new StringBuilder();
         if (StringUtils.isEmpty(dto.getApiCode())) {
-            return false;
+            errorMsg.append("apiCode为空");
         }
-        Integer systemType = dto.getSystemType();
-        if (StringUtils.isEmpty(systemType)){
-            return false;
+        if (StringUtils.isEmpty(dto.getSystemType())){
+            errorMsg.append("，systemType为空");
         }
-        if (systemType == 0) {
-            return !StringUtils.isEmpty(dto.getDataType()) && !StringUtils.isEmpty(dto.getAcceptType());
-        } else if (systemType == 1) {
-            if (StringUtils.isEmpty(dto.getDataType())){
-                dto.setDataType(0);
-            }
-            if (StringUtils.isEmpty(dto.getAcceptType())){
-                dto.setAcceptType(0);
-            }
+        if (StringUtils.isEmpty(dto.getDataType())){
+            errorMsg.append("，dataType为空");
         }
-        return true;
+        if (StringUtils.isEmpty(dto.getAcceptType())){
+            errorMsg.append("，acceptType为空");
+        }
+        if (StringUtils.isEmpty(dto.getJsonData())){
+            errorMsg.append("，jsonData为空");
+        }
+        return errorMsg.toString();
     }
 
     @Override
