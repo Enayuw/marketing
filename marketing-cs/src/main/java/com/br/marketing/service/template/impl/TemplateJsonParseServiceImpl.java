@@ -3,6 +3,7 @@ package com.br.marketing.service.template.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingBuildInTemplateJsonParseMapper;
 import com.br.marketing.mapper.MarketingIndustryTemplateJsonParseMapper;
@@ -45,7 +46,8 @@ public class TemplateJsonParseServiceImpl implements TemplateJsonParseService {
                     .andApiTypeEqualTo(apiType)
                     .andSystemTypeEqualTo(systemType)
                     .andDataTypeEqualTo(dataType)
-                    .andAcceptTypeEqualTo(acceptType);
+                    .andAcceptTypeEqualTo(acceptType)
+                    .andIsDelEqualTo(Constants.DATA_VALID);
             List<MarketingIndustryTemplate> marketingIndustryTemplateList = marketingIndustryTemplateMapper
                     .selectByExample(templateExample);
             Long templateId = 0L;
@@ -56,7 +58,7 @@ public class TemplateJsonParseServiceImpl implements TemplateJsonParseService {
 
             //根据模板id查询模板json数据
             MarketingIndustryTemplateJsonParseExample jsonParseExample = new MarketingIndustryTemplateJsonParseExample();
-            jsonParseExample.createCriteria().andInterfaceTemplateIdEqualTo(templateId);
+            jsonParseExample.createCriteria().andInterfaceTemplateIdEqualTo(templateId).andIsDelEqualTo(Constants.DATA_VALID);
 
             List<MarketingIndustryTemplateJsonParse> marketingIndustryTemplateJsonParseList =
                     marketingIndustryTemplateJsonParseMapper.selectByExample(jsonParseExample);

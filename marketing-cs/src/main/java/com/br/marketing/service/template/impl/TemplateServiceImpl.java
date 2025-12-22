@@ -64,6 +64,7 @@ public class TemplateServiceImpl implements TemplateService {
                 marketingIndustryTemplateJsonParseList.forEach(item -> {
                     item.setId(null);
                     item.setInterfaceTemplateId(interfaceTemplateId);
+                    item.setIsDel(Constants.DATA_VALID);
                     item.setCreateTime(new Date());
                     item.setUpdateTime(new Date());
                 });
@@ -86,7 +87,7 @@ public class TemplateServiceImpl implements TemplateService {
 
         MarketingIndustryTemplateExample example = new MarketingIndustryTemplateExample();
         MarketingIndustryTemplateExample.Criteria criteria = example.createCriteria();
-        criteria.andIsDelEqualTo(1);
+        criteria.andIsDelEqualTo(Constants.DATA_VALID);
         if (StringUtils.isNotBlank(templateName)) {
             criteria.andTemplateNameLike("%" + templateName + "%");
         }
@@ -142,6 +143,7 @@ public class TemplateServiceImpl implements TemplateService {
                 //jsonParse数据重新入库
                 marketingIndustryTemplateJsonParseList.forEach(marketingIndustryTemplateJsonParse -> {
                     marketingIndustryTemplateJsonParse.setId(null);
+                    marketingIndustryTemplateJsonParse.setIsDel(Constants.DATA_VALID);
                     marketingIndustryTemplateJsonParse.setCreateTime(new Date());
                     marketingIndustryTemplateJsonParse.setUpdateTime(new Date());
                 });
@@ -191,7 +193,7 @@ public class TemplateServiceImpl implements TemplateService {
             MarketingIndustryTemplate marketingIndustryTemplate = marketingIndustryTemplateMapper.selectByPrimaryKey(id);
 
             MarketingIndustryTemplateJsonParseExample example = new MarketingIndustryTemplateJsonParseExample();
-            example.createCriteria().andInterfaceTemplateIdEqualTo(id);
+            example.createCriteria().andInterfaceTemplateIdEqualTo(id).andIsDelEqualTo(Constants.DATA_VALID);
             List<MarketingIndustryTemplateJsonParse> marketingIndustryTemplateJsonParseList =
                     marketingIndustryTemplateJsonParseMapper.selectByExample(example);
 
