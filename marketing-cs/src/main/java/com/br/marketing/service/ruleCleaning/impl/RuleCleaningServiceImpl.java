@@ -1985,8 +1985,10 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             processCleaningConfigs(configDTO, config);
         }
 
-        // 3. 清除缓存
-        dataCleanService.delConfigRule(configDTO.getApiCode(), configDTO.getDataType(), configDTO.getAcceptType());
+        // 3. 营销中台系统需要清除缓存
+        if(config.getSystemType().equals(DataProcessEnum.SystemTypeEnum.MARKETING.getCode())){
+            dataCleanService.delConfigRule(configDTO.getApiCode(), configDTO.getDataType(), configDTO.getAcceptType());
+        }
 
         // 4. 更新配置表状态
         MarketingDataCleanGeneralConfig update = new MarketingDataCleanGeneralConfig();
