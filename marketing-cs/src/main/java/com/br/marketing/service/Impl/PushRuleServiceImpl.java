@@ -126,6 +126,8 @@ import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1694,14 +1696,107 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         //2.获取timeRange范围外的量级
         Map<String, Integer> outCycleMagnitudeMap = getOutCycleMagnitudes(timeRangePlusList);
-        List<Future<XcDeleteMagnitudeDistDTO>> futures = new ArrayList<>();
+        List<Future<ImmutablePair<Map<String, Integer>, Map<String, Integer>>>> futures = new ArrayList<>();
         //3.获取周期数据与跑分数据的交集量级
-        for (String batchNumber : batchNumbers) {
-            futures.add(threadPool.submit(() ->
-                    magnitudeDistCalOpt(timeRangePlusList, batchNumber, sqlCondition)
-            ));
+        try {
+            for (String batchNumber : batchNumbers) {
+                futures.add(threadPool.submit(() ->
+                        magnitudeDistCalOpt(timeRangePlusList, batchNumber, sqlCondition)
+                ));
+            }
+            List<Pair<Map<String, Integer>, Map<String, Integer>>> futureResults = new ArrayList<>();
+            long globalStart = System.currentTimeMillis();
+            long globalTimeout = TimeUnit.MINUTES.toMillis(2); // 总超时时间2分钟
+            for (Future<ImmutablePair<Map<String, Integer>, Map<String, Integer>>> future : futures) {
+                long timeLeft = globalTimeout - (System.currentTimeMillis() - globalStart);
+                if (timeLeft <= 0) {
+                    log.error("规则中心-周期数据剔除量级查询整体处理超时");
+                    return new Result<List<XcDeleteMagnitudeDistDTO>>()
+                            .setCode(ResultCode.FAIL.getValue())
+                            .setMessage("服务异常");
+                }
+                try {
+                    // 单任务超时限制
+                    futureResults.add(future.get(timeLeft, TimeUnit.MILLISECONDS));
+                } catch (Exception e) {
+                    // 只要有一个异常，取消所有任务
+                    futures.forEach(fu -> fu.cancel(true));
+                    log.error("规则中心-周期数据剔除量级查询异常，{}", e.getMessage(), e);
+                    return new Result<List<XcDeleteMagnitudeDistDTO>>()
+                            .setCode(ResultCode.FAIL.getValue())
+                            .setMessage("服务异常");
+                }
+            }
+            //4.并行聚合结果
+            Pair<Map<String, Integer>, Map<String, Integer>> aggregateResult = aggregateResultsParallel(futureResults);
+            //5.汇总量级
+            return calculateMagnitudeOpt(timeRangePlusList, outCycleMagnitudeMap, aggregateResult);
+        } catch (Exception e) {
+            log.error("规则中心-周期数据剔除量级查询异常，{}", e.getMessage(), e);
+            return new Result<List<XcDeleteMagnitudeDistDTO>>()
+                    .setCode(ResultCode.FAIL.getValue())
+                    .setMessage("服务异常");
+        } finally {
+            threadPool.shutdownAndAwaitTermination();
         }
-        return null;
+    }
+
+    /**
+     * 汇总量级
+     * @param timeRangePlusList
+     * @param outCycleMagnitudeMap
+     * @param aggregateResult
+     * @return
+     */
+    private Result<List<XcDeleteMagnitudeDistDTO>> calculateMagnitudeOpt(List<TimeRangePlus> timeRangePlusList, 
+                                                                         Map<String, Integer> outCycleMagnitudeMap, 
+                                                                         Pair<Map<String, Integer>, Map<String, Integer>> aggregateResult) {
+        List<XcDeleteMagnitudeDistDTO> dtos = new ArrayList<>();
+        //撞得量级阈值
+        int totalThreshold = variableAllocationService.getVariableAllocation().getNormalQuantity();
+        Map<String, Integer> interWithoutConMagnitudeMap = aggregateResult.getLeft();
+        Map<String, Integer> interWithConMagnitudeMap = aggregateResult.getRight();
+        for (TimeRangePlus timeRangePlus : timeRangePlusList) {
+            //T日timeRange范围外量级
+            int outMagnitude = outCycleMagnitudeMap.get(XcDeletePrefixEnum.OUT + "_" + timeRangePlus.getOrder());
+            //timeRange范围内，与跑分数据的交集量级
+            int interWithoutConMagnitude = interWithoutConMagnitudeMap.get(XcDeletePrefixEnum.INTER_WITHOUT_CON + "_" + timeRangePlus.getOrder());
+            //timeRange范围内，与符合条件的跑分数据的交集量级
+            int interWithConMagnitude = interWithoutConMagnitudeMap.get(XcDeletePrefixEnum.INTER_WITH_CON + "_" + timeRangePlus.getOrder());
+            //timeRange范围内的剔除量级
+            int deleteNum = interWithoutConMagnitude - interWithConMagnitude;
+            //空挡量级
+            int freeNum = totalThreshold - outMagnitude - interWithConMagnitude;
+            dtos.add(new XcDeleteMagnitudeDistDTO(timeRangePlus.getBegin(), timeRangePlus.getEnd(), deleteNum, interWithConMagnitude, freeNum));
+        }
+        return new Result<List<XcDeleteMagnitudeDistDTO>>()
+                .setCode(ResultCode.SUCCESS.getValue())
+                .setDate(dtos);
+    }
+
+    /**
+     * 并行聚合结果
+     */
+    private static Pair<Map<String, Integer>, Map<String, Integer>> aggregateResultsParallel(
+            List<Pair<Map<String, Integer>, Map<String, Integer>>> results) {
+        // 使用并行流合并左 Map
+        Map<String, Integer> leftResult = results.parallelStream()
+                .flatMap(pair -> pair.getLeft().entrySet().stream())
+                .collect(Collectors.toConcurrentMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        Integer::sum
+                ));
+
+        // 使用并行流合并右 Map
+        Map<String, Integer> rightResult = results.parallelStream()
+                .flatMap(pair -> pair.getRight().entrySet().stream())
+                .collect(Collectors.toConcurrentMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        Integer::sum
+                ));
+        return new ImmutablePair<>(leftResult, rightResult);
     }
 
     /**
@@ -1740,13 +1835,16 @@ public class PushRuleServiceImpl implements PushRuleService {
         return outCycleMagnitudeMap;
     }
 
-    private XcDeleteMagnitudeDistDTO magnitudeDistCalOpt(List<TimeRangePlus> timeRangePlusList, String batchNumber, String sqlCondition) {
+    private ImmutablePair<Map<String, Integer>, Map<String, Integer>> magnitudeDistCalOpt(List<TimeRangePlus> timeRangePlusList, String batchNumber, String sqlCondition) {
         //1.获取
         LocalDateTime minBegin = timeRangePlusList.get(0).getBegin();
         LocalDateTime maxEnd = timeRangePlusList.get(timeRangePlusList.size() - 1).getEnd();
-
         //3.周期表与跑分数据交集
-        return null;
+        Map<String, Integer> interWithoutConMagnitudes = xieChengCollidingDataLoopCycleMapper.selectTimeRangeBetweenWithScoreMagnitudestiflash_(
+                timeRangePlusList, minBegin, maxEnd, null, sqlCondition, XcDeletePrefixEnum.INTER_WITHOUT_CON.getAlias());
+        Map<String, Integer> interWithConMagnitudes = xieChengCollidingDataLoopCycleMapper.selectTimeRangeBetweenWithScoreMagnitudestiflash_(
+                timeRangePlusList, minBegin, maxEnd, null, sqlCondition, XcDeletePrefixEnum.INTER_WITH_CON.getAlias());
+        return ImmutablePair.of(interWithoutConMagnitudes, interWithConMagnitudes);
     }
 
     /**

@@ -308,7 +308,7 @@
             COUNT(CASE
             WHEN cycle.release_time BETWEEN #{timeRangePlus.begin,jdbcType=TIMESTAMP} AND #{timeRangePlus.end,jdbcType=TIMESTAMP}
             THEN cycle.cell_sha256_code_list
-            END) as ${params.fieldPrefix}_${period.periodName},
+            END) as ${params.fieldPrefix}_${timeRangePlus.order},
         </foreach>
     </sql>
 
@@ -340,7 +340,19 @@
     </select>
 
     <select id="selectTimeRangeBetweenWithScoreMagnitudestiflash_" resultType="java.util.Map">
-
+        SELECT
+            <include refid="timeRangePlusCases"/>
+        FROM
+            b_xiecheng_colliding_data_loop_cycle cycle
+        INNER JOIN b_xiecheng_colliding_${batchNumber} sc
+            on cycle.cell_sha256_code_list = sc.cell
+            and sc.is_delete = 0
+            <if test="sqlCondition != null and sqlCondition != ''">
+                and ${sqlCondition}
+            </if>
+        where
+            <![CDATA[ cycle.release_time >= #{minBegin,jdbcType=TIMESTAMP} AND cycle.release_time <= #{maxEnd,jdbcType=TIMESTAMP} ]]>
+            and cycle.is_delete = 0
     </select>
 
 </mapper>

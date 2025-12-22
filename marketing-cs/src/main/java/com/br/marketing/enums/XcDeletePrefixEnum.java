@@ -7,7 +7,7 @@ public enum XcDeletePrefixEnum {
 
     OUT(1,  "out", "timeRange范围外量级"),
     INTER_WITHOUT_CON(2, "interWithoutCon", "无条件求交量级"),
-    INTER_WIT_CON(3, "interWithCon", "有条件求交量级");
+    INTER_WITH_CON(3, "interWithCon", "有条件求交量级");
 
     private Integer value;
 
