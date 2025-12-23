@@ -35,4 +35,22 @@
             #{id}
         </foreach>
     </update>
+
+    <select id="queryCollidingFileIds" resultType="java.lang.Long">
+        SELECT local_id
+        FROM b_didi_v5_colliding_data
+        WHERE push_status = 0
+        AND status = 1
+        AND colliding_time BETWEEN #{startTime} AND #{endTime}
+        group by local_id
+    </select>
+
+    <select id="getPushStatusCountByLocalId" resultType="int">
+        SELECT count(*)
+        FROM b_didi_v5_colliding_data
+        WHERE push_status = 0
+          AND status = 1
+          AND colliding_time BETWEEN #{startTime} AND #{endTime}
+        group by local_id
+    </select>
 </mapper>

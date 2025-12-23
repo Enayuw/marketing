@@ -20,8 +20,10 @@ import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.entity.DiDiV5CollidingData;
 import com.br.marketing.entity.DiDiV5CollidingDataLog;
+import com.br.marketing.entity.LocalFile;
 import com.br.marketing.mapper.DiDiV5CollidingDataLogMapper;
 import com.br.marketing.mapper.DiDiV5CollidingDataMapper;
+import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.service.clean.common.GeneralDataCleanService;
 import com.br.marketing.service.didi.DiDiCollidingDataService;
@@ -64,25 +66,46 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
     private GeneralDataCleanService generalDataCleanService;
     @Resource
     private PushInfoService pushInfoService;
+    @Resource
+    private LocalFileMapper localFileMapper;
 
 
     @Override
     public void colliding(JobExecutionMultipleShardingContext context) {
         TpDynamicExecutor pushPool = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.DIDI_V5_COLLIDING.getName(), 50, 50);
+        List<Long> fileIds = diDiV5CollidingDataMapper.queryCollidingFileIds(DateUtil.beginOfDay(new Date()), new Date());
+        localFileMapper.updateUploadStartTimeById(fileIds, new Date());
+        JSONObject collidingConfig = marketingCommonConfig.getDiDiV5Config();
+        int limit = collidingConfig.getInteger("limit") != null ? collidingConfig.getInteger("limit") : 2000;
+        String mediaName = collidingConfig.getString("mediaName") != null ? collidingConfig.getString("mediaName") : "bairongC";
+        String token = collidingConfig.getString("token") != null ? collidingConfig.getString("token") : "9Hqeoi36CJfdA7n4";
         while (true) {
-            JSONObject collidingConfig = marketingCommonConfig.getDiDiV5Config();
-            int limit = collidingConfig.getInteger("limit") != null ? collidingConfig.getInteger("limit") : 2000;
-            String mediaName = collidingConfig.getString("mediaName") != null ? collidingConfig.getString("mediaName") : "bairongC";
-            String token = collidingConfig.getString("token") != null ? collidingConfig.getString("token") : "9Hqeoi36CJfdA7n4";
+            long start = System.currentTimeMillis();
             List<DiDiV5CollidingData> dataList = diDiV5CollidingDataMapper.queryCollidingData(limit, DateUtil.beginOfDay(new Date()), new Date());
             if (CollectionUtils.isEmpty(dataList)) {
                 break;
             }
             markAsPushing(dataList);
             dataList.forEach((DiDiV5CollidingData data) -> pushPool.execute(() -> collidingData(data, mediaName, token)));
+            log.warn("滴滴短信流量数据撞库任务，单次运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);
         }
-
+        updateLocalFiles(fileIds);
         pushPool.shutdownAndAwaitTermination();
+    }
+
+    private void updateLocalFiles(List<Long> fileIds) {
+        for (Long fileId : fileIds) {
+            int count = diDiV5CollidingDataMapper.getPushStatusCountByLocalId(fileId, 0, DateUtil.beginOfDay(new Date()), new Date());
+            if (count > 0) {
+                continue;
+            }
+            int successCount = diDiV5CollidingDataMapper.getPushStatusCountByLocalId(fileId, 3, DateUtil.beginOfDay(new Date()), new Date());
+            LocalFile localFile = new LocalFile();
+            localFile.setPushNumber(successCount);
+            localFile.setPushEndTime(new Date());
+            localFile.setId(fileId);
+            localFileMapper.updateByPrimaryKeySelective(localFile);
+        }
     }
 
     /**

@@ -33,7 +33,7 @@ public class DidiV5CollidingJob extends AbstractSimpleElasticJob {
             String title = "滴滴短信流量数据撞库任务，单次运行异常";
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(), e.getMessage(), title));
         }
-        log.warn("滴滴短信流量数据撞库任务，单次运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);
+        log.warn("滴滴短信流量数据撞库任务，运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);
     }
 }
 
