@@ -104,8 +104,8 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
             Result<String> response = diDiV5Client.colliding(mediaName, buildRequest(data.getCell(), token));
             String resData = response.getData();
             JSONObject resJson = JSONObject.parseObject(resData);
-            String httpcode = resJson.getString("code");
-            String content = resJson.getString("data");
+            String httpcode = resJson.getString("httpcode");
+            String content = resJson.getString("content");
             boolean success = "200".equals(httpcode) || StringUtils.isNotBlank(content);
             data.setPushStatus(success ? 3 : 2);
             diDiV5CollidingDataMapper.updateByPrimaryKey(data);
@@ -117,6 +117,7 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
     }
 
     private void pushToMq(DiDiV5CollidingData data, String httpcode, String content) {
+        log.warn("滴滴V5推送撞库日志消息content:{}", content);
         JSONObject mqJson = new JSONObject();
         DiDiV5CollidingDataLog diDiV5CollidingDataLog = new DiDiV5CollidingDataLog();
         diDiV5CollidingDataLog.setApiCode(data.getApiCode());
@@ -137,6 +138,7 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
             mqJson.put("diDiV5CollidingResultResponseDTO", diDiV5CollidingResultResponseDTO);
         }
         mqJson.put("diDiV5CollidingDataLog", diDiV5CollidingDataLog);
+        log.warn("滴滴V5推送撞库日志消息体:{}", mqJson.toJSONString());
         rocketMqSwitch.syncSend(MarketingOutsideInterfaceConstants.TOPIC, MarketingOutsideInterfaceConstants.TAG_MARKETING_DIDI_V5_COLLIDING_DATA,
                 mqJson.toJSONString());
     }
