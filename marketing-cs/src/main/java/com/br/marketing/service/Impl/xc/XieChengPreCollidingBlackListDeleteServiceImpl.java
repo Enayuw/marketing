@@ -16,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -114,6 +113,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                     "b_xiecheng_colliding_data_rob", today, threadPool, futures);
         }
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        threadPool.shutdownAndAwaitTermination();
     }
 
     /**
@@ -135,15 +135,31 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
         Long minId = null;
         List<Long> ids;
         for (; ; ) {
-            ids = blackListMapper.selectIdsByBatchNumberAndConditiontikv_
-                    (tableName, xieChengBlackListEnum.getValue(), batchNumber, condition, minId);
+            try {
+                ids = blackListMapper.selectIdsByBatchNumberAndConditiontikv_
+                        (tableName, xieChengBlackListEnum.getValue(), batchNumber, condition, minId);
+            } catch (Exception e) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
+                        , "携程黑名单剔除-查询异常"), e);
+                break;
+            }
             if(CollectionUtils.isEmpty(ids)){
                 break;
             }
             minId = ids.get(ids.size() - 1);
             List<Long> finalIds = ids;
             futures.add(CompletableFuture.runAsync(() -> {
-                blackListMapper.updateIsDeleteByIds(tableName, finalIds, extend);
+                try {
+                    blackListMapper.updateIsDeleteByIds(tableName, finalIds, extend);
+                } catch (Exception e) {
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage(),
+                            String.format("携程黑名单剔除-更新异常, 参数: tableName=%s, ids=%s, extend=%s",
+                                    tableName,
+                                    finalIds,
+                                    extend
+                            )
+                    ), e);
+                }
             }, threadPool));
         }
     }
