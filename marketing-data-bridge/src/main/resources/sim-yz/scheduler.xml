@@ -313,21 +313,6 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="【bridge】-TcSyncDataFileToDbShardJob"
-                class="com.br.marketing.bridge.job.tc.TcSyncDataFileToDbShardJob"
-                cron="0 0 18 29 9 ? 2050-2050"
-                description="同城易融TxtToDB_Shard数据入库任务"
-                registry-center-ref="regCenter"
-                sharding-total-count="5"
-                sharding-item-parameters="0=A"
-                monitor-execution="true"
-                failover="false"
-                misfire="false"
-                disabled="true"
-                overwrite="true"
-                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
-    />
-
     <job:simple id="【bridge】-MailStatisticsInfoJob"
                 class="com.br.marketing.bridge.job.MailStatisticsInfoJob"
                 cron="0 */10 10-23 * * ?"
@@ -336,22 +321,6 @@
                 sharding-total-count="1"
                 sharding-item-parameters="0=A"
                 job-parameter="{}"
-                monitor-execution="true"
-                failover="false"
-                misfire="false"
-                disabled="true"
-                overwrite="true"
-                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
-    />
-
-
-    <job:simple id="【bridge】-TcSyncDataMatchShardJob"
-                class="com.br.marketing.bridge.job.tc.TcSyncDataMatchShardJob"
-                cron="0 0 18 29 9 ? 2050-2050"
-                description="同城易融Match_Shard数据匹配任务"
-                registry-center-ref="regCenter"
-                sharding-total-count="5"
-                sharding-item-parameters="0=A"
                 monitor-execution="true"
                 failover="false"
                 misfire="false"
