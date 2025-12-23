@@ -40,7 +40,7 @@ public class DidiV5SmsInsertDbImpl implements AssembleData<DidiCallBackDataDTO> 
     public DidiCallBackDataDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         SmsCallBackBO cbo = (SmsCallBackBO) transmitFact;
         DidiCallBackDataDTO didiCallRecord = new DidiCallBackDataDTO();
-        didiCallRecord.setCell(cbo.getCaseNum());
+        didiCallRecord.setCustNum(cbo.getCaseNum());
         didiCallRecord.setApiCode(cbo.getApiCode());
         didiCallRecord.setStatus(0);
         didiCallRecord.setPushStatus(0);
