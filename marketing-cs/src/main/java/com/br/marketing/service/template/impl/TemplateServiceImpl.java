@@ -11,8 +11,11 @@ import com.br.marketing.entity.MarketingIndustryTemplateJsonParse;
 import com.br.marketing.entity.MarketingIndustryTemplateJsonParseExample;
 import com.br.marketing.mapper.MarketingIndustryTemplateJsonParseMapper;
 import com.br.marketing.mapper.MarketingIndustryTemplateMapper;
+import com.br.marketing.service.EntityOptService;
+import com.br.marketing.service.Impl.EntityOptServiceImpl;
 import com.br.marketing.service.template.TemplateService;
 import com.github.pagehelper.page.PageMethod;
+import org.apache.commons.beanutils.BeanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DuplicateKeyException;
@@ -20,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
 import java.util.List;
 
@@ -38,6 +42,9 @@ public class TemplateServiceImpl implements TemplateService {
 
     @Resource
     private MarketingIndustryTemplateJsonParseMapper marketingIndustryTemplateJsonParseMapper;
+
+    @Resource
+    private EntityOptServiceImpl entityOptService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -59,6 +66,9 @@ public class TemplateServiceImpl implements TemplateService {
             //新增行业模板
             marketingIndustryTemplateMapper.insertSelective(marketingIndustryTemplate);
             Long interfaceTemplateId = marketingIndustryTemplate.getId();
+
+            entityOptService.writeOptLog(interfaceTemplateId, marketingIndustryTemplate, null);
+
             //批量插入json数据
             if (marketingIndustryTemplateJsonParseList != null && !marketingIndustryTemplateJsonParseList.isEmpty()) {
                 marketingIndustryTemplateJsonParseList.forEach(item -> {
@@ -100,10 +110,10 @@ public class TemplateServiceImpl implements TemplateService {
         if (StringUtils.isNotBlank(apiType)) {
             criteria.andApiTypeEqualTo(apiType);
         }
-        if (systemType != null){
+        if (systemType != null) {
             criteria.andSystemTypeEqualTo(systemType);
         }
-        if (dataType != null){
+        if (dataType != null) {
             criteria.andDataTypeEqualTo(dataType);
         }
         example.setOrderByClause("create_time desc");
@@ -133,11 +143,18 @@ public class TemplateServiceImpl implements TemplateService {
                 marketingIndustryTemplateDTO.getMarketingIndustryTemplateJsonParseList();
         try {
             if (marketingIndustryTemplateJsonParseList != null && !marketingIndustryTemplateJsonParseList.isEmpty()) {
+                Long templateId = marketingIndustryTemplate.getId();
+                MarketingIndustryTemplate marketingIndustryTemplateOld =
+                        marketingIndustryTemplateMapper.selectByPrimaryKey(templateId);
                 //更新模板信息
                 marketingIndustryTemplate.setUpdateTime(new Date());
+
+                entityOptService.writeOptLog(templateId, marketingIndustryTemplate, marketingIndustryTemplateOld);
+
                 marketingIndustryTemplateMapper.updateByPrimaryKey(marketingIndustryTemplate);
 
                 //先全量逻辑删除jsonParse数据
+                writeOptLog(templateId);
                 marketingIndustryTemplateJsonParseMapper.deleteJsonParseList(marketingIndustryTemplate.getId());
 
                 //jsonParse数据重新入库
@@ -168,15 +185,17 @@ public class TemplateServiceImpl implements TemplateService {
     @Transactional(rollbackFor = Exception.class)
     public Result<Boolean> deleteTemplate(Long id) {
         try {
-            MarketingIndustryTemplate marketingIndustryTemplate = marketingIndustryTemplateMapper.selectByPrimaryKey(id);
-            if (marketingIndustryTemplate != null) {
-                marketingIndustryTemplate.setIsDel(Constants.DATA_DEL);
-                marketingIndustryTemplate.setUpdateTime(new Date());
-                marketingIndustryTemplateMapper.updateByPrimaryKey(marketingIndustryTemplate);
+            MarketingIndustryTemplate marketingIndustryTemplateOld = marketingIndustryTemplateMapper.selectByPrimaryKey(id);
+            if (marketingIndustryTemplateOld != null) {
+                MarketingIndustryTemplate marketingIndustryTemplateNew = marketingIndustryTemplateOld;
+                marketingIndustryTemplateNew.setIsDel(Constants.DATA_DEL);
+                marketingIndustryTemplateNew.setUpdateTime(new Date());
+                marketingIndustryTemplateMapper.updateByPrimaryKey(marketingIndustryTemplateNew);
+                entityOptService.writeOptLog(marketingIndustryTemplateOld.getId(), marketingIndustryTemplateNew, marketingIndustryTemplateOld);
             }
 
-            MarketingIndustryTemplateJsonParseExample example = new MarketingIndustryTemplateJsonParseExample();
-            example.createCriteria().andInterfaceTemplateIdEqualTo(id);
+            writeOptLog(id);
+
             marketingIndustryTemplateJsonParseMapper.deleteJsonParseList(id);
 
             logger.warn("删除行业模板成功，行业模板id：{}", id);
@@ -184,6 +203,22 @@ public class TemplateServiceImpl implements TemplateService {
         } catch (Exception e) {
             logger.error("删除行业模板异常，行业模板id：{}，error：{}", id, e.getMessage());
             return new Result<>().failure().setDate(Boolean.FALSE);
+        }
+    }
+
+    private void writeOptLog(Long id) {
+        try {
+            MarketingIndustryTemplateJsonParseExample example = new MarketingIndustryTemplateJsonParseExample();
+            example.createCriteria().andInterfaceTemplateIdEqualTo(id).andIsDelEqualTo(Constants.DATA_VALID);
+            List<MarketingIndustryTemplateJsonParse> marketingIndustryTemplateJsonParseListOld = marketingIndustryTemplateJsonParseMapper.selectByExample(example);
+            for (MarketingIndustryTemplateJsonParse oldValue : marketingIndustryTemplateJsonParseListOld) {
+                MarketingIndustryTemplateJsonParse newValue = new MarketingIndustryTemplateJsonParse();
+                BeanUtils.copyProperties(oldValue, newValue);
+                newValue.setIsDel(Constants.DATA_DEL);
+                entityOptService.writeOptLog(oldValue.getId(), newValue, oldValue);
+            }
+        } catch (InvocationTargetException | IllegalAccessException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -227,7 +262,7 @@ public class TemplateServiceImpl implements TemplateService {
         if (marketingIndustryTemplate.getFirstDepartment() == null || marketingIndustryTemplate.getFirstDepartment().isEmpty()) {
             stringBuilder.append("【firstDepartment】");
         }
-        if (marketingIndustryTemplate.getSecondDepartment() == null || marketingIndustryTemplate.getSecondDepartment().isEmpty()){
+        if (marketingIndustryTemplate.getSecondDepartment() == null || marketingIndustryTemplate.getSecondDepartment().isEmpty()) {
             stringBuilder.append("【secondDepartment】");
         }
         if (marketingIndustryTemplate.getApiType() == null || marketingIndustryTemplate.getApiType().isEmpty()) {
