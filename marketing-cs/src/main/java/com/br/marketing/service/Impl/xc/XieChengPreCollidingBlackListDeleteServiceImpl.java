@@ -3,12 +3,15 @@ package com.br.marketing.service.Impl.xc;
 import com.br.common.log.AlertLog;
 import com.br.common.util.DateUtils;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.XcProcessTaskEnum;
 import com.br.marketing.enums.XieChengBlackListEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
+import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -17,6 +20,7 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -75,6 +79,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                 //2.公共黑名单剔除
                 deletePublicBlackList();
                 //3.自研AI业务黑名单/百应业务黑名单剔除
+                deleteNoPublicBlackList(task);
                 batchUpdateNoPublicBlackList(task);
                 //4.更新task状态
                 processAfterDeleteForBatch(task);
@@ -83,6 +88,50 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                         "携程黑名单剔除流程出现异常，taskId=" + task.getId() + "errorMessage=" + e.getMessage()), e);
                 return;
             }
+        }
+    }
+
+    private void deleteNoPublicBlackList(XiechengCollidingDataProcessTask task) {
+        String conditions = task.getTaskExecutionConditions();
+        if (StringUtils.isBlank(conditions)) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
+                    "携程批量更新分组黑名单剔除，条件为空"));
+            return;
+        }
+        List<String> batchNumbers = Arrays.asList(task.getBatchNumber().split(","));
+        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        TpDynamicExecutor threadPool = TpDynamicExecutorFactory
+                .getThreadPool(ThreadPoolNameEnum.XIECHENG_BLACK_DELETE.getName(), 50, 100);
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+        for (String batchNumber : batchNumbers) {
+            deleteWithBatchNumber(batchNumber, conditions, XieChengBlackListEnum.SELF_DEVELOPED_AI_BUSINESS_BLACKLIST,
+                    "b_xiecheng_colliding_data_loop_cycle", today, threadPool);
+            deleteWithBatchNumber(batchNumber, conditions, XieChengBlackListEnum.SELF_DEVELOPED_AI_BUSINESS_BLACKLIST,
+                    "b_xiecheng_colliding_data_rob", today, threadPool);
+            deleteWithBatchNumber(batchNumber, conditions, XieChengBlackListEnum.BAIYING_BUSINESS_BLACKLIST,
+                    "b_xiecheng_colliding_data_loop_cycle", today, threadPool);
+            deleteWithBatchNumber(batchNumber, conditions, XieChengBlackListEnum.BAIYING_BUSINESS_BLACKLIST,
+                    "b_xiecheng_colliding_data_rob", today, threadPool);
+        }
+    }
+
+    /**
+     * 与跑分文件相关的黑名单剔除
+     *
+     * @param batchNumber
+     * @param conditions
+     * @param xieChengBlackListEnum
+     * @param tableName
+     * @param today
+     * @param threadPool
+     */
+    private void deleteWithBatchNumber(String batchNumber, String conditions, XieChengBlackListEnum xieChengBlackListEnum,
+                                       String tableName, String today, TpDynamicExecutor threadPool) {
+        String extend = today + "-" + xieChengBlackListEnum.getDesc();
+        Long minId = null;
+        List<Long> idList = null;
+        for (; ; ) {
+
         }
     }
 

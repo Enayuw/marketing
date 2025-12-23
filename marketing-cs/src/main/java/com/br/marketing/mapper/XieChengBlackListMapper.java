@@ -35,5 +35,10 @@ public interface XieChengBlackListMapper {
 
     List<String> selectByBlackListIdsFromScoreFiletikv_(@Param("querySql") String querySql);
 
+    List<Long> selectIdsByBatchNumberAndConditiontikv_(@Param("delTableName") String delTableName,
+                                                       @Param("labelType") Integer labelType,
+                                                       @Param("batchNumber") String batchNumber,
+                                                       @Param("condition") String condition,
+                                                       @Param("pageSize") Integer pageSize);
 
 }
