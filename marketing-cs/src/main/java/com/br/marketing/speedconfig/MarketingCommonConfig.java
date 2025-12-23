@@ -340,6 +340,11 @@ public class MarketingCommonConfig {
     private Boolean xcLoopCycleJobOnlineSwitch;
 
     /**
+     * #sync服务job的上线开关
+     */
+    private Boolean syncJobOnlineSwitch;
+
+    /**
      * 离线跑批入es文件 线程数
      */
     private Integer OffLineInserEsThreadNum;
