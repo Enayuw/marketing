@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.TcyrCpaDeleteRuleMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.TcyrCpaDeleteRule" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="rule_name" property="ruleName" jdbcType="VARCHAR" />
+    <result column="rule_type" property="ruleType" jdbcType="INTEGER" />
+    <result column="fail_msgs" property="failMsgs" jdbcType="VARCHAR" />
+    <result column="execute_info" property="executeInfo" jdbcType="VARCHAR" />
+    <result column="delete_num" property="deleteNum" jdbcType="INTEGER" />
+    <result column="enabled" property="enabled" jdbcType="INTEGER" />
+    <result column="is_del" property="isDel" jdbcType="INTEGER" />
+    <result column="extend" property="extend" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, api_code, rule_name, rule_type, fail_msgs, execute_info, delete_num, enabled, 
+    is_del, extend, create_time, update_time
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.TcyrCpaDeleteRuleExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_tcyr_cpa_delete_rule
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from b_tcyr_cpa_delete_rule
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_tcyr_cpa_delete_rule
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.TcyrCpaDeleteRuleExample" >
+    delete from b_tcyr_cpa_delete_rule
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.TcyrCpaDeleteRule" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_tcyr_cpa_delete_rule (api_code, rule_name, rule_type, 
+      fail_msgs, execute_info, delete_num, 
+      enabled, is_del, extend, 
+      create_time, update_time)
+    values (#{apiCode,jdbcType=VARCHAR}, #{ruleName,jdbcType=VARCHAR}, #{ruleType,jdbcType=INTEGER}, 
+      #{failMsgs,jdbcType=VARCHAR}, #{executeInfo,jdbcType=VARCHAR}, #{deleteNum,jdbcType=INTEGER}, 
+      #{enabled,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.TcyrCpaDeleteRule" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_tcyr_cpa_delete_rule
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="ruleName != null" >
+        rule_name,
+      </if>
+      <if test="ruleType != null" >
+        rule_type,
+      </if>
+      <if test="failMsgs != null" >
+        fail_msgs,
+      </if>
+      <if test="executeInfo != null" >
+        execute_info,
+      </if>
+      <if test="deleteNum != null" >
+        delete_num,
+      </if>
+      <if test="enabled != null" >
+        enabled,
+      </if>
+      <if test="isDel != null" >
+        is_del,
+      </if>
+      <if test="extend != null" >
+        extend,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="ruleName != null" >
+        #{ruleName,jdbcType=VARCHAR},
+      </if>
+      <if test="ruleType != null" >
+        #{ruleType,jdbcType=INTEGER},
+      </if>
+      <if test="failMsgs != null" >
+        #{failMsgs,jdbcType=VARCHAR},
+      </if>
+      <if test="executeInfo != null" >
+        #{executeInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="deleteNum != null" >
+        #{deleteNum,jdbcType=INTEGER},
+      </if>
+      <if test="enabled != null" >
+        #{enabled,jdbcType=INTEGER},
+      </if>
+      <if test="isDel != null" >
+        #{isDel,jdbcType=INTEGER},
+      </if>
+      <if test="extend != null" >
+        #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.TcyrCpaDeleteRuleExample" resultType="java.lang.Integer" >
+    select count(*) from b_tcyr_cpa_delete_rule
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_tcyr_cpa_delete_rule
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.ruleName != null" >
+        rule_name = #{record.ruleName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.ruleType != null" >
+        rule_type = #{record.ruleType,jdbcType=INTEGER},
+      </if>
+      <if test="record.failMsgs != null" >
+        fail_msgs = #{record.failMsgs,jdbcType=VARCHAR},
+      </if>
+      <if test="record.executeInfo != null" >
+        execute_info = #{record.executeInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="record.deleteNum != null" >
+        delete_num = #{record.deleteNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.enabled != null" >
+        enabled = #{record.enabled,jdbcType=INTEGER},
+      </if>
+      <if test="record.isDel != null" >
+        is_del = #{record.isDel,jdbcType=INTEGER},
+      </if>
+      <if test="record.extend != null" >
+        extend = #{record.extend,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_tcyr_cpa_delete_rule
+    set id = #{record.id,jdbcType=BIGINT},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      rule_name = #{record.ruleName,jdbcType=VARCHAR},
+      rule_type = #{record.ruleType,jdbcType=INTEGER},
+      fail_msgs = #{record.failMsgs,jdbcType=VARCHAR},
+      execute_info = #{record.executeInfo,jdbcType=VARCHAR},
+      delete_num = #{record.deleteNum,jdbcType=INTEGER},
+      enabled = #{record.enabled,jdbcType=INTEGER},
+      is_del = #{record.isDel,jdbcType=INTEGER},
+      extend = #{record.extend,jdbcType=VARCHAR},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.TcyrCpaDeleteRule" >
+    update b_tcyr_cpa_delete_rule
+    <set >
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="ruleName != null" >
+        rule_name = #{ruleName,jdbcType=VARCHAR},
+      </if>
+      <if test="ruleType != null" >
+        rule_type = #{ruleType,jdbcType=INTEGER},
+      </if>
+      <if test="failMsgs != null" >
+        fail_msgs = #{failMsgs,jdbcType=VARCHAR},
+      </if>
+      <if test="executeInfo != null" >
+        execute_info = #{executeInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="deleteNum != null" >
+        delete_num = #{deleteNum,jdbcType=INTEGER},
+      </if>
+      <if test="enabled != null" >
+        enabled = #{enabled,jdbcType=INTEGER},
+      </if>
+      <if test="isDel != null" >
+        is_del = #{isDel,jdbcType=INTEGER},
+      </if>
+      <if test="extend != null" >
+        extend = #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.TcyrCpaDeleteRule" >
+    update b_tcyr_cpa_delete_rule
+    set api_code = #{apiCode,jdbcType=VARCHAR},
+      rule_name = #{ruleName,jdbcType=VARCHAR},
+      rule_type = #{ruleType,jdbcType=INTEGER},
+      fail_msgs = #{failMsgs,jdbcType=VARCHAR},
+      execute_info = #{executeInfo,jdbcType=VARCHAR},
+      delete_num = #{deleteNum,jdbcType=INTEGER},
+      enabled = #{enabled,jdbcType=INTEGER},
+      is_del = #{isDel,jdbcType=INTEGER},
+      extend = #{extend,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>
