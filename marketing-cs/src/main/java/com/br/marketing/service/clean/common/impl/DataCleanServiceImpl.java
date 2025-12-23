@@ -1124,7 +1124,7 @@ public class DataCleanServiceImpl implements DataCleanService {
                     dto.getAcceptType(),
                     DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode());
 
-            if (configRule.isEmpty()) {
+            if (configRule == null || configRule.isEmpty()) {
                 return new Result().failure().setDate(new CommonCleanResponseVO(CodeEnum.NOT_FOUND_CLEAN_RULE_CONFIG,dto.getJsonData()));
             }
             List<MarketingDataCleanGeneralRuleConfig> ruleConfigListTmp = new ArrayList<>(configRule.values());

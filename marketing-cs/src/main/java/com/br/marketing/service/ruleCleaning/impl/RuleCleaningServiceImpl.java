@@ -230,11 +230,13 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     public List<FieldSampleDTO> getPreviewFieldSamples(String apiCode, Integer systemType, Integer dataType, Integer acceptType) {
         List<FieldSampleDTO> result = new ArrayList<>();
         // 参数验证
-        if (!DataProcessEnum.SystemTypeEnum.MARKETING.getCode().equals(systemType) && !DataProcessEnum.SystemTypeEnum.CALL.getCode().equals(systemType)){
+        if (!DataProcessEnum.SystemTypeEnum.MARKETING.getCode().equals(systemType)
+                && !DataProcessEnum.SystemTypeEnum.CALL.getCode().equals(systemType)){
             throw new BusinessException("数据来源无效，应为0(营销中台)或1(外呼系统)");
         }
 
-        if (!DataProcessEnum.DataTypeEnum.UPLOAD.getCode().equals(dataType) && !DataProcessEnum.DataTypeEnum.TRANSFORM.getCode().equals(dataType)) {
+        if (!DataProcessEnum.DataTypeEnum.UPLOAD.getCode().equals(dataType)
+                && !DataProcessEnum.DataTypeEnum.TRANSFORM.getCode().equals(dataType)) {
             throw new BusinessException("数据类型无效，应为0(上传)或1(转化)");
         }
 
