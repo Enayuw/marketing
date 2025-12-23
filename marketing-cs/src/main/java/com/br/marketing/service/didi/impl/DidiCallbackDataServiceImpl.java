@@ -139,7 +139,7 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
                 dataToPush = uniqueData;
             } else {
                 // 抽样并构造拨打/短信数据
-                dataToPush = samplingData(uniqueData, samplingRate);
+                dataToPush = samplingData(uniqueData, samplingRate, stage);
             }
 
             // 推送数据
@@ -203,7 +203,9 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
 
             boolean success = "200".equals(httpcode);
             int pushStatus = success ? 1 : 2;
-
+            JSONObject contentJson = JSONObject.parseObject(content);
+            data.setErrorCode(contentJson.getString("errorCode"));
+            data.setErrorMessage(contentJson.getString("errorMessage"));
             // 更新推送状态
             updateCallbackDataPushStatus(data.getId(), pushStatus);
             int pushType;
@@ -227,28 +229,26 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
      * 构建成功请求参数
      */
     private DiDiSmsRequestTO buildSuccessRequest(DidiCallBackData data, String token, String mediaName) {
-        String timestamp = String.valueOf(System.currentTimeMillis());
-        String cell = data.getCell();
-
-        // 从扩展字段获取scas
-        String scas = "";
-        if (StringUtils.isNotBlank(data.getExtend())) {
-            JSONObject extendJson = JSONObject.parseObject(data.getExtend());
-            scas = extendJson.getString("scas");
+        String timestamp;
+        if (1 == data.getCallbackType()) {
+            JSONObject dataJson = JSONObject.parseObject(data.getExtend());
+            timestamp = dataJson.getString("callStartTime");
+        } else {
+            timestamp = data.getCreateTime().toString();
         }
-
+        String cell = data.getCell();
         return new DiDiSmsRequestTO()
                 .setSign(cell)
                 .setTimestamp(timestamp)
                 .setSignature(MD5Util.encode(cell + timestamp + token))
-                .setScas(scas)
+                .setScas(data.getScas())
                 .setChannelId(mediaName);
     }
 
     /**
      * 蓄水池抽样
      */
-    private List<DidiCallBackData> samplingData(List<DidiCallBackData> dataList, Double samplingRate) {
+    private List<DidiCallBackData> samplingData(List<DidiCallBackData> dataList, Double samplingRate, int stage) {
         if (CollectionUtils.isEmpty(dataList) || samplingRate >= 1.0) {
             return dataList;
         }
@@ -260,26 +260,31 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
                 .multiply(BigDecimal.valueOf(samplingRate))
                 .setScale(0, RoundingMode.UP)
                 .intValue();
-
-        if (sampleSize >= dataList.size()) {
-            return dataList;
-        }
-
-        List<DidiCallBackData> reservoir = new ArrayList<>(sampleSize);
-
+        List<DidiCallBackData> reservoirs = new ArrayList<>(sampleSize);
         // 前k个元素直接放入蓄水池
         for (int i = 0; i < sampleSize; i++) {
-            reservoir.add(dataList.get(i));
+            addSample(dataList, stage, i, reservoirs);
         }
-
         // 处理剩余元素
         for (int i = sampleSize; i < dataList.size(); i++) {
             int j = RandomUtils.nextInt(0, i + 1);
             if (j < sampleSize) {
-                reservoir.set(j, dataList.get(i));
+                addSample(dataList, stage, j, reservoirs);
             }
         }
-        return reservoir;
+        return reservoirs;
+    }
+
+    private void addSample(List<DidiCallBackData> dataList, int stage, int j, List<DidiCallBackData> reservoirs) {
+        DidiCallBackData reservoir = dataList.get(j);
+        if (3 == stage) {
+            reservoir.setIsConnect(1);
+            reservoir.setCallbackType(1);
+        } else {
+            reservoir.setSmsSendStatus(1);
+            reservoir.setCallbackType(2);
+        }
+        reservoirs.add(reservoir);
     }
 
     /**
@@ -305,6 +310,7 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
         logEntity.setReturnContent(content);
         logEntity.setPushType(pushType);
         logEntity.setPushStatus(pushStatus);
+        logEntity.setApiCode(data.getApiCode());
         logEntity.setCreateTime(new Date());
         didiCallBackDataLogMapper.insertSelective(logEntity);
     }
@@ -324,20 +330,10 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
             if (CollectionUtils.isEmpty(pageData)) {
                 break;
             }
-            // 过滤已成功推送的数据（push_type in (1,2,3)）
-            Set<String> succeedCellSet = pageData.stream()
-                    .map(DiDiV5CollidingDataLog::getCell)
-                    .collect(Collectors.toSet());
-            List<String> successPushedCells = didiCallBackDataLogMapper.selectSuccessPushedCells(succeedCellSet);
-
-            List<DiDiV5CollidingDataLog> filteredData = pageData.stream()
-                    .filter(data -> !successPushedCells.contains(data.getCell()))
-                    .collect(Collectors.toList());
-
             // 过滤已推送的cell
-            Set<String> cellSet = filteredData.stream().map(DiDiV5CollidingDataLog::getCell).collect(Collectors.toSet());
+            Set<String> cellSet = pageData.stream().map(DiDiV5CollidingDataLog::getCell).collect(Collectors.toSet());
             List<String> pushedCells = didiCallBackDataLogMapper.selectPushedCells(cellSet);
-            filteredData = filteredData.stream()
+            List<DiDiV5CollidingDataLog> filteredData = pageData.stream()
                     .filter(data -> !pushedCells.contains(data.getCell()))
                     .collect(Collectors.toList());
 
@@ -376,15 +372,18 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
             JSONObject resJson = JSONObject.parseObject(resData);
             String httpcode = resJson.getString("httpcode");
             String content = resJson.getString("content");
+            JSONObject contentJson = JSONObject.parseObject(content);
+            String errorCode = contentJson.getString("errorCode");
+            String errorMessage = contentJson.getString("errorMessage");
 
             boolean success = "200".equals(httpcode);
-            saveFailedCallbackDataLog(data, httpcode, content, success);
+            saveFailedCallbackDataLog(data, httpcode, content, success, errorCode, errorMessage);
 
         } catch (Exception e) {
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(),
                     "触达失败数据回推异常，cell:" + data.getCell() + " id:" + data.getId(), TITLE), e);
 
-            saveFailedCallbackDataLog(data, "500", e.getMessage(), false);
+            saveFailedCallbackDataLog(data, "500", e.getMessage(), false, null, null);
         }
     }
 
@@ -405,15 +404,18 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
      * 保存失败数据回调日志
      */
     private void saveFailedCallbackDataLog(DiDiV5CollidingDataLog data, String httpcode,
-                                           String content, boolean success) {
+                                           String content, boolean success, String errorCode, String errorMessage) {
         DidiCallbackDataLog logEntity = new DidiCallbackDataLog();
         logEntity.setCallbackId(data.getId());
         logEntity.setCell(data.getCell());
         logEntity.setHttpCode(httpcode);
         logEntity.setReturnContent(content);
         logEntity.setPushType(0);
+        logEntity.setApiCode(data.getApiCode());
         logEntity.setPushStatus(success ? 1 : 0);
         logEntity.setCreateTime(new Date());
+        logEntity.setErrorCode(errorCode);
+        logEntity.setErrorMessage(errorMessage);
         didiCallBackDataLogMapper.insertSelective(logEntity);
     }
 }

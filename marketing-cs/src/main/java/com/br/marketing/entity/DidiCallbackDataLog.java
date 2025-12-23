@@ -14,11 +14,6 @@ public class DidiCallbackDataLog {
     private Long callbackId;
 
     /**
-     * 公司ID
-     */
-    private String cid;
-
-    /**
      * API代码
      */
     private String apiCode;
@@ -82,14 +77,6 @@ public class DidiCallbackDataLog {
 
     public void setCallbackId(Long callbackId) {
         this.callbackId = callbackId;
-    }
-
-    public String getCid() {
-        return cid;
-    }
-
-    public void setCid(String cid) {
-        this.cid = cid == null ? null : cid.trim();
     }
 
     public String getApiCode() {

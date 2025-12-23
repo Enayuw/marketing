@@ -26,6 +26,7 @@
         FROM b_didi_v5_colliding_data_log
         WHERE id > #{lastId}
           AND result = 'true'
+          AND create_time >= curdate()
         ORDER BY id ASC
             LIMIT #{pageSize}
     </select>

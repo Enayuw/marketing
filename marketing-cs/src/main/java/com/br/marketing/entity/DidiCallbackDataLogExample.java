@@ -225,76 +225,6 @@ public class DidiCallbackDataLogExample {
             return (Criteria) this;
         }
 
-        public Criteria andCidIsNull() {
-            addCriterion("cid is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andCidIsNotNull() {
-            addCriterion("cid is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andCidEqualTo(String value) {
-            addCriterion("cid =", value, "cid");
-            return (Criteria) this;
-        }
-
-        public Criteria andCidNotEqualTo(String value) {
-            addCriterion("cid <>", value, "cid");
-            return (Criteria) this;
-        }
-
-        public Criteria andCidGreaterThan(String value) {
-            addCriterion("cid >", value, "cid");
-            return (Criteria) this;
-        }
-
-        public Criteria andCidGreaterThanOrEqualTo(String value) {
-            addCriterion("cid >=", value, "cid");
-            return (Criteria) this;
-        }
-
-        public Criteria andCidLessThan(String value) {
-            addCriterion("cid <", value, "cid");
-            return (Criteria) this;
-        }
-
-        public Criteria andCidLessThanOrEqualTo(String value) {
-            addCriterion("cid <=", value, "cid");
-            return (Criteria) this;
-        }
-
-        public Criteria andCidLike(String value) {
-            addCriterion("cid like", value, "cid");
-            return (Criteria) this;
-        }
-
-        public Criteria andCidNotLike(String value) {
-            addCriterion("cid not like", value, "cid");
-            return (Criteria) this;
-        }
-
-        public Criteria andCidIn(List<String> values) {
-            addCriterion("cid in", values, "cid");
-            return (Criteria) this;
-        }
-
-        public Criteria andCidNotIn(List<String> values) {
-            addCriterion("cid not in", values, "cid");
-            return (Criteria) this;
-        }
-
-        public Criteria andCidBetween(String value1, String value2) {
-            addCriterion("cid between", value1, value2, "cid");
-            return (Criteria) this;
-        }
-
-        public Criteria andCidNotBetween(String value1, String value2) {
-            addCriterion("cid not between", value1, value2, "cid");
-            return (Criteria) this;
-        }
-
         public Criteria andApiCodeIsNull() {
             addCriterion("api_code is null");
             return (Criteria) this;
@@ -725,52 +655,52 @@ public class DidiCallbackDataLogExample {
             return (Criteria) this;
         }
 
-        public Criteria andPushTypeEqualTo(Byte value) {
+        public Criteria andPushTypeEqualTo(Integer value) {
             addCriterion("push_type =", value, "pushType");
             return (Criteria) this;
         }
 
-        public Criteria andPushTypeNotEqualTo(Byte value) {
+        public Criteria andPushTypeNotEqualTo(Integer value) {
             addCriterion("push_type <>", value, "pushType");
             return (Criteria) this;
         }
 
-        public Criteria andPushTypeGreaterThan(Byte value) {
+        public Criteria andPushTypeGreaterThan(Integer value) {
             addCriterion("push_type >", value, "pushType");
             return (Criteria) this;
         }
 
-        public Criteria andPushTypeGreaterThanOrEqualTo(Byte value) {
+        public Criteria andPushTypeGreaterThanOrEqualTo(Integer value) {
             addCriterion("push_type >=", value, "pushType");
             return (Criteria) this;
         }
 
-        public Criteria andPushTypeLessThan(Byte value) {
+        public Criteria andPushTypeLessThan(Integer value) {
             addCriterion("push_type <", value, "pushType");
             return (Criteria) this;
         }
 
-        public Criteria andPushTypeLessThanOrEqualTo(Byte value) {
+        public Criteria andPushTypeLessThanOrEqualTo(Integer value) {
             addCriterion("push_type <=", value, "pushType");
             return (Criteria) this;
         }
 
-        public Criteria andPushTypeIn(List<Byte> values) {
+        public Criteria andPushTypeIn(List<Integer> values) {
             addCriterion("push_type in", values, "pushType");
             return (Criteria) this;
         }
 
-        public Criteria andPushTypeNotIn(List<Byte> values) {
+        public Criteria andPushTypeNotIn(List<Integer> values) {
             addCriterion("push_type not in", values, "pushType");
             return (Criteria) this;
         }
 
-        public Criteria andPushTypeBetween(Byte value1, Byte value2) {
+        public Criteria andPushTypeBetween(Integer value1, Integer value2) {
             addCriterion("push_type between", value1, value2, "pushType");
             return (Criteria) this;
         }
 
-        public Criteria andPushTypeNotBetween(Byte value1, Byte value2) {
+        public Criteria andPushTypeNotBetween(Integer value1, Integer value2) {
             addCriterion("push_type not between", value1, value2, "pushType");
             return (Criteria) this;
         }
@@ -785,52 +715,52 @@ public class DidiCallbackDataLogExample {
             return (Criteria) this;
         }
 
-        public Criteria andPushStatusEqualTo(Byte value) {
+        public Criteria andPushStatusEqualTo(Integer value) {
             addCriterion("push_status =", value, "pushStatus");
             return (Criteria) this;
         }
 
-        public Criteria andPushStatusNotEqualTo(Byte value) {
+        public Criteria andPushStatusNotEqualTo(Integer value) {
             addCriterion("push_status <>", value, "pushStatus");
             return (Criteria) this;
         }
 
-        public Criteria andPushStatusGreaterThan(Byte value) {
+        public Criteria andPushStatusGreaterThan(Integer value) {
             addCriterion("push_status >", value, "pushStatus");
             return (Criteria) this;
         }
 
-        public Criteria andPushStatusGreaterThanOrEqualTo(Byte value) {
+        public Criteria andPushStatusGreaterThanOrEqualTo(Integer value) {
             addCriterion("push_status >=", value, "pushStatus");
             return (Criteria) this;
         }
 
-        public Criteria andPushStatusLessThan(Byte value) {
+        public Criteria andPushStatusLessThan(Integer value) {
             addCriterion("push_status <", value, "pushStatus");
             return (Criteria) this;
         }
 
-        public Criteria andPushStatusLessThanOrEqualTo(Byte value) {
+        public Criteria andPushStatusLessThanOrEqualTo(Integer value) {
             addCriterion("push_status <=", value, "pushStatus");
             return (Criteria) this;
         }
 
-        public Criteria andPushStatusIn(List<Byte> values) {
+        public Criteria andPushStatusIn(List<Integer> values) {
             addCriterion("push_status in", values, "pushStatus");
             return (Criteria) this;
         }
 
-        public Criteria andPushStatusNotIn(List<Byte> values) {
+        public Criteria andPushStatusNotIn(List<Integer> values) {
             addCriterion("push_status not in", values, "pushStatus");
             return (Criteria) this;
         }
 
-        public Criteria andPushStatusBetween(Byte value1, Byte value2) {
+        public Criteria andPushStatusBetween(Integer value1, Integer value2) {
             addCriterion("push_status between", value1, value2, "pushStatus");
             return (Criteria) this;
         }
 
-        public Criteria andPushStatusNotBetween(Byte value1, Byte value2) {
+        public Criteria andPushStatusNotBetween(Integer value1, Integer value2) {
             addCriterion("push_status not between", value1, value2, "pushStatus");
             return (Criteria) this;
         }

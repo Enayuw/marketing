@@ -69,14 +69,13 @@ public class DidiV5CallRecordInsertDbImpl implements AssembleData<DidiCallBackDa
         CallRecord callRecord = callRecordList.get(0);
         String userProperties = callRecord.getUserProperties();
         if (StringUtils.isBlank(userProperties)) {
-            callBackData.setExtend(cbo.getDetail().getUserProperties());
             callBackData.setScas(JSON.parseObject(cbo.getDetail().getUserProperties()).getString(key));
         } else {
-            callBackData.setExtend(userProperties);
             JSONObject userPropertiesObj = JSON.parseObject(userProperties);
             callBackData.setScas(userPropertiesObj.containsKey(key) ? userPropertiesObj.getString(key)
                     : JSON.parseObject(cbo.getDetail().getUserProperties()).getString(key));
         }
+        callBackData.setExtend(JSON.toJSONString(cbo.getDetail()));
         String custNum = callBackData.getCustNum();
         String apiCode = callBackData.getApiCode();
         Map<String, SyncUserValidityPeriodsBO> validityPeriodsBOMap = transferDataValidityPeriodService
@@ -91,13 +90,7 @@ public class DidiV5CallRecordInsertDbImpl implements AssembleData<DidiCallBackDa
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
-        if (transmitFact instanceof CallRecordBO) {
-            CallRecordBO cbo = (CallRecordBO) transmitFact;
-            CallRecordDetailBO detail;
-            Integer isConnect;
-            return (detail = cbo.getDetail()) != null && (isConnect = detail.getIsConnect()) != null && isConnect == 1;
-        }
-        return false;
+        return transmitFact instanceof CallRecordBO;
     }
 
     @Override

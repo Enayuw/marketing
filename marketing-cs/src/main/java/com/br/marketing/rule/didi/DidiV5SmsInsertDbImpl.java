@@ -1,6 +1,7 @@
 package com.br.marketing.rule.didi;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.didi.DidiCallBackDataDTO;
 import com.br.marketing.context.ProcessHandlerContext;
@@ -57,17 +58,15 @@ public class DidiV5SmsInsertDbImpl implements AssembleData<DidiCallBackDataDTO> 
         if (bo != null) {
             List<MarketingSyncUser> syncUsers = bo.getSyncUsers();
             didiCallRecord.setCell(syncUsers.get(0).getCell());
+            JSONObject jsonObject = JSON.parseObject(syncUsers.get(0).getReserveField1());
+            didiCallRecord.setScas(jsonObject.getString("scas"));
         }
         return StringUtils.isBlank(didiCallRecord.getCell()) ? null : didiCallRecord;
     }
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
-        if (transmitFact instanceof SmsCallBackBO cbo) {
-            Integer smsSendStatus = cbo.getSmsSendStatus();
-            return smsSendStatus != null && smsSendStatus == 1;
-        }
-        return false;
+        return transmitFact instanceof SmsCallBackBO;
     }
 
     @Override
