@@ -119,8 +119,14 @@ public class DataCleanServiceImpl implements DataCleanService {
 
         try {
             MqDataJsonParse mqDataJsonParse = JSON.parseObject(message, MqDataJsonParse.class);
+
+            Integer systemType = DataProcessEnum.SystemTypeEnum.MARKETING.getCode();
+            if (mqDataJsonParse.getSystemType() != null){
+                systemType = mqDataJsonParse.getSystemType();
+            }
+
             //获取表名
-            String tableName = DataProcessEnum.getByTypes(mqDataJsonParse.getSystemType(), mqDataJsonParse.getDataType()
+            String tableName = DataProcessEnum.getByTypes(systemType, mqDataJsonParse.getDataType()
                     , mqDataJsonParse.getAcceptType()).getTableName();
 
             Map<String, Object> originalData = marketingJsonNodeParseMapper.getOriginalData(mqDataJsonParse.getDataId(), tableName);
@@ -133,7 +139,7 @@ public class DataCleanServiceImpl implements DataCleanService {
                 // 记录节点路径并递归遍历JSON结构
                 processJsonNode(
                         apiCode,
-                        mqDataJsonParse.getSystemType(),
+                        systemType,
                         mqDataJsonParse.getDataType(),
                         mqDataJsonParse.getAcceptType(),
                         "",
