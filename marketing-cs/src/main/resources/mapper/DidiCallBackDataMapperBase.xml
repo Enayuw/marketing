@@ -9,13 +9,8 @@
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="push_status" property="pushStatus" jdbcType="INTEGER" />
     <result column="status" property="status" jdbcType="INTEGER" />
-    <result column="create_date" property="createDate" jdbcType="INTEGER" />
-    <result column="result" property="result" jdbcType="BIT" />
-    <result column="error_code" property="errorCode" jdbcType="VARCHAR" />
-    <result column="error_message" property="errorMessage" jdbcType="VARCHAR" />
+    <result column="create_date" property="createDate" jdbcType="VARCHAR" />
     <result column="scas" property="scas" jdbcType="VARCHAR" />
-    <result column="media_name" property="mediaName" jdbcType="VARCHAR" />
-    <result column="data_message" property="dataMessage" jdbcType="VARCHAR" />
     <result column="is_connect" property="isConnect" jdbcType="INTEGER" />
     <result column="sms_send_status" property="smsSendStatus" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
@@ -82,8 +77,7 @@
   </sql>
   <sql id="Base_Column_List" >
     id, callback_type, cell, cust_num, api_code, push_status, `status`, create_date, 
-    `result`, error_code, error_message, scas, media_name, data_message, is_connect, 
-    sms_send_status, create_time, update_time, extend
+    scas, is_connect, sms_send_status, create_time, update_time, extend
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.DidiCallBackDataExample" >
     select
@@ -121,18 +115,14 @@
     </selectKey>
     insert into b_didi_v5_callback_data (callback_type, cell, cust_num,
     api_code, push_status, `status`,
-    create_date, `result`, error_code,
-    error_message, scas, media_name,
-    data_message, is_connect, sms_send_status,
-    create_time, update_time, extend
-    )
+    create_date, scas, is_connect,
+    sms_send_status, create_time, update_time,
+    extend)
     values (#{callbackType,jdbcType=INTEGER}, #{cell,jdbcType=VARCHAR}, #{custNum,jdbcType=VARCHAR},
     #{apiCode,jdbcType=VARCHAR}, #{pushStatus,jdbcType=INTEGER}, #{status,jdbcType=INTEGER},
-    #{createDate,jdbcType=INTEGER}, #{result,jdbcType=BIT}, #{errorCode,jdbcType=VARCHAR},
-    #{errorMessage,jdbcType=VARCHAR}, #{scas,jdbcType=VARCHAR}, #{mediaName,jdbcType=VARCHAR},
-    #{dataMessage,jdbcType=VARCHAR}, #{isConnect,jdbcType=INTEGER}, #{smsSendStatus,jdbcType=INTEGER},
-    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{extend,jdbcType=VARCHAR}
-    )
+    #{createDate,jdbcType=VARCHAR}, #{scas,jdbcType=VARCHAR}, #{isConnect,jdbcType=INTEGER},
+    #{smsSendStatus,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
+    #{extend,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.DidiCallBackData" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -161,23 +151,8 @@
       <if test="createDate != null" >
         create_date,
       </if>
-      <if test="result != null" >
-        `result`,
-      </if>
-      <if test="errorCode != null" >
-        error_code,
-      </if>
-      <if test="errorMessage != null" >
-        error_message,
-      </if>
       <if test="scas != null" >
         scas,
-      </if>
-      <if test="mediaName != null" >
-        media_name,
-      </if>
-      <if test="dataMessage != null" >
-        data_message,
       </if>
       <if test="isConnect != null" >
         is_connect,
@@ -215,25 +190,10 @@
         #{status,jdbcType=INTEGER},
       </if>
       <if test="createDate != null" >
-        #{createDate,jdbcType=INTEGER},
-      </if>
-      <if test="result != null" >
-        #{result,jdbcType=BIT},
-      </if>
-      <if test="errorCode != null" >
-        #{errorCode,jdbcType=VARCHAR},
-      </if>
-      <if test="errorMessage != null" >
-        #{errorMessage,jdbcType=VARCHAR},
+        #{createDate,jdbcType=VARCHAR},
       </if>
       <if test="scas != null" >
         #{scas,jdbcType=VARCHAR},
-      </if>
-      <if test="mediaName != null" >
-        #{mediaName,jdbcType=VARCHAR},
-      </if>
-      <if test="dataMessage != null" >
-        #{dataMessage,jdbcType=VARCHAR},
       </if>
       <if test="isConnect != null" >
         #{isConnect,jdbcType=INTEGER},
@@ -283,25 +243,10 @@
         `status` = #{record.status,jdbcType=INTEGER},
       </if>
       <if test="record.createDate != null" >
-        create_date = #{record.createDate,jdbcType=INTEGER},
-      </if>
-      <if test="record.result != null" >
-        `result` = #{record.result,jdbcType=BIT},
-      </if>
-      <if test="record.errorCode != null" >
-        error_code = #{record.errorCode,jdbcType=VARCHAR},
-      </if>
-      <if test="record.errorMessage != null" >
-        error_message = #{record.errorMessage,jdbcType=VARCHAR},
+        create_date = #{record.createDate,jdbcType=VARCHAR},
       </if>
       <if test="record.scas != null" >
         scas = #{record.scas,jdbcType=VARCHAR},
-      </if>
-      <if test="record.mediaName != null" >
-        media_name = #{record.mediaName,jdbcType=VARCHAR},
-      </if>
-      <if test="record.dataMessage != null" >
-        data_message = #{record.dataMessage,jdbcType=VARCHAR},
       </if>
       <if test="record.isConnect != null" >
         is_connect = #{record.isConnect,jdbcType=INTEGER},
@@ -332,13 +277,8 @@
     api_code = #{record.apiCode,jdbcType=VARCHAR},
     push_status = #{record.pushStatus,jdbcType=INTEGER},
     `status` = #{record.status,jdbcType=INTEGER},
-    create_date = #{record.createDate,jdbcType=INTEGER},
-    `result` = #{record.result,jdbcType=BIT},
-    error_code = #{record.errorCode,jdbcType=VARCHAR},
-    error_message = #{record.errorMessage,jdbcType=VARCHAR},
+    create_date = #{record.createDate,jdbcType=VARCHAR},
     scas = #{record.scas,jdbcType=VARCHAR},
-    media_name = #{record.mediaName,jdbcType=VARCHAR},
-    data_message = #{record.dataMessage,jdbcType=VARCHAR},
     is_connect = #{record.isConnect,jdbcType=INTEGER},
     sms_send_status = #{record.smsSendStatus,jdbcType=INTEGER},
     create_time = #{record.createTime,jdbcType=TIMESTAMP},
@@ -370,25 +310,10 @@
         `status` = #{status,jdbcType=INTEGER},
       </if>
       <if test="createDate != null" >
-        create_date = #{createDate,jdbcType=INTEGER},
-      </if>
-      <if test="result != null" >
-        `result` = #{result,jdbcType=BIT},
-      </if>
-      <if test="errorCode != null" >
-        error_code = #{errorCode,jdbcType=VARCHAR},
-      </if>
-      <if test="errorMessage != null" >
-        error_message = #{errorMessage,jdbcType=VARCHAR},
+        create_date = #{createDate,jdbcType=VARCHAR},
       </if>
       <if test="scas != null" >
         scas = #{scas,jdbcType=VARCHAR},
-      </if>
-      <if test="mediaName != null" >
-        media_name = #{mediaName,jdbcType=VARCHAR},
-      </if>
-      <if test="dataMessage != null" >
-        data_message = #{dataMessage,jdbcType=VARCHAR},
       </if>
       <if test="isConnect != null" >
         is_connect = #{isConnect,jdbcType=INTEGER},
@@ -416,13 +341,8 @@
         api_code = #{apiCode,jdbcType=VARCHAR},
         push_status = #{pushStatus,jdbcType=INTEGER},
         `status` = #{status,jdbcType=INTEGER},
-        create_date = #{createDate,jdbcType=INTEGER},
-        `result` = #{result,jdbcType=BIT},
-        error_code = #{errorCode,jdbcType=VARCHAR},
-        error_message = #{errorMessage,jdbcType=VARCHAR},
+        create_date = #{createDate,jdbcType=VARCHAR},
         scas = #{scas,jdbcType=VARCHAR},
-        media_name = #{mediaName,jdbcType=VARCHAR},
-        data_message = #{dataMessage,jdbcType=VARCHAR},
         is_connect = #{isConnect,jdbcType=INTEGER},
         sms_send_status = #{smsSendStatus,jdbcType=INTEGER},
         create_time = #{createTime,jdbcType=TIMESTAMP},

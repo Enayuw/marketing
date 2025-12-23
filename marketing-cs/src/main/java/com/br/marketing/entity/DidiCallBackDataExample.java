@@ -565,253 +565,63 @@ public class DidiCallBackDataExample {
             return (Criteria) this;
         }
 
-        public Criteria andCreateDateEqualTo(Integer value) {
+        public Criteria andCreateDateEqualTo(String value) {
             addCriterion("create_date =", value, "createDate");
             return (Criteria) this;
         }
 
-        public Criteria andCreateDateNotEqualTo(Integer value) {
+        public Criteria andCreateDateNotEqualTo(String value) {
             addCriterion("create_date <>", value, "createDate");
             return (Criteria) this;
         }
 
-        public Criteria andCreateDateGreaterThan(Integer value) {
+        public Criteria andCreateDateGreaterThan(String value) {
             addCriterion("create_date >", value, "createDate");
             return (Criteria) this;
         }
 
-        public Criteria andCreateDateGreaterThanOrEqualTo(Integer value) {
+        public Criteria andCreateDateGreaterThanOrEqualTo(String value) {
             addCriterion("create_date >=", value, "createDate");
             return (Criteria) this;
         }
 
-        public Criteria andCreateDateLessThan(Integer value) {
+        public Criteria andCreateDateLessThan(String value) {
             addCriterion("create_date <", value, "createDate");
             return (Criteria) this;
         }
 
-        public Criteria andCreateDateLessThanOrEqualTo(Integer value) {
+        public Criteria andCreateDateLessThanOrEqualTo(String value) {
             addCriterion("create_date <=", value, "createDate");
             return (Criteria) this;
         }
 
-        public Criteria andCreateDateIn(List<Integer> values) {
+        public Criteria andCreateDateLike(String value) {
+            addCriterion("create_date like", value, "createDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateDateNotLike(String value) {
+            addCriterion("create_date not like", value, "createDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreateDateIn(List<String> values) {
             addCriterion("create_date in", values, "createDate");
             return (Criteria) this;
         }
 
-        public Criteria andCreateDateNotIn(List<Integer> values) {
+        public Criteria andCreateDateNotIn(List<String> values) {
             addCriterion("create_date not in", values, "createDate");
             return (Criteria) this;
         }
 
-        public Criteria andCreateDateBetween(Integer value1, Integer value2) {
+        public Criteria andCreateDateBetween(String value1, String value2) {
             addCriterion("create_date between", value1, value2, "createDate");
             return (Criteria) this;
         }
 
-        public Criteria andCreateDateNotBetween(Integer value1, Integer value2) {
+        public Criteria andCreateDateNotBetween(String value1, String value2) {
             addCriterion("create_date not between", value1, value2, "createDate");
-            return (Criteria) this;
-        }
-
-        public Criteria andResultIsNull() {
-            addCriterion("`result` is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andResultIsNotNull() {
-            addCriterion("`result` is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andResultEqualTo(Boolean value) {
-            addCriterion("`result` =", value, "result");
-            return (Criteria) this;
-        }
-
-        public Criteria andResultNotEqualTo(Boolean value) {
-            addCriterion("`result` <>", value, "result");
-            return (Criteria) this;
-        }
-
-        public Criteria andResultGreaterThan(Boolean value) {
-            addCriterion("`result` >", value, "result");
-            return (Criteria) this;
-        }
-
-        public Criteria andResultGreaterThanOrEqualTo(Boolean value) {
-            addCriterion("`result` >=", value, "result");
-            return (Criteria) this;
-        }
-
-        public Criteria andResultLessThan(Boolean value) {
-            addCriterion("`result` <", value, "result");
-            return (Criteria) this;
-        }
-
-        public Criteria andResultLessThanOrEqualTo(Boolean value) {
-            addCriterion("`result` <=", value, "result");
-            return (Criteria) this;
-        }
-
-        public Criteria andResultIn(List<Boolean> values) {
-            addCriterion("`result` in", values, "result");
-            return (Criteria) this;
-        }
-
-        public Criteria andResultNotIn(List<Boolean> values) {
-            addCriterion("`result` not in", values, "result");
-            return (Criteria) this;
-        }
-
-        public Criteria andResultBetween(Boolean value1, Boolean value2) {
-            addCriterion("`result` between", value1, value2, "result");
-            return (Criteria) this;
-        }
-
-        public Criteria andResultNotBetween(Boolean value1, Boolean value2) {
-            addCriterion("`result` not between", value1, value2, "result");
-            return (Criteria) this;
-        }
-
-        public Criteria andErrorCodeIsNull() {
-            addCriterion("error_code is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andErrorCodeIsNotNull() {
-            addCriterion("error_code is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andErrorCodeEqualTo(String value) {
-            addCriterion("error_code =", value, "errorCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andErrorCodeNotEqualTo(String value) {
-            addCriterion("error_code <>", value, "errorCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andErrorCodeGreaterThan(String value) {
-            addCriterion("error_code >", value, "errorCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andErrorCodeGreaterThanOrEqualTo(String value) {
-            addCriterion("error_code >=", value, "errorCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andErrorCodeLessThan(String value) {
-            addCriterion("error_code <", value, "errorCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andErrorCodeLessThanOrEqualTo(String value) {
-            addCriterion("error_code <=", value, "errorCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andErrorCodeLike(String value) {
-            addCriterion("error_code like", value, "errorCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andErrorCodeNotLike(String value) {
-            addCriterion("error_code not like", value, "errorCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andErrorCodeIn(List<String> values) {
-            addCriterion("error_code in", values, "errorCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andErrorCodeNotIn(List<String> values) {
-            addCriterion("error_code not in", values, "errorCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andErrorCodeBetween(String value1, String value2) {
-            addCriterion("error_code between", value1, value2, "errorCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andErrorCodeNotBetween(String value1, String value2) {
-            addCriterion("error_code not between", value1, value2, "errorCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andErrorMessageIsNull() {
-            addCriterion("error_message is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andErrorMessageIsNotNull() {
-            addCriterion("error_message is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andErrorMessageEqualTo(String value) {
-            addCriterion("error_message =", value, "errorMessage");
-            return (Criteria) this;
-        }
-
-        public Criteria andErrorMessageNotEqualTo(String value) {
-            addCriterion("error_message <>", value, "errorMessage");
-            return (Criteria) this;
-        }
-
-        public Criteria andErrorMessageGreaterThan(String value) {
-            addCriterion("error_message >", value, "errorMessage");
-            return (Criteria) this;
-        }
-
-        public Criteria andErrorMessageGreaterThanOrEqualTo(String value) {
-            addCriterion("error_message >=", value, "errorMessage");
-            return (Criteria) this;
-        }
-
-        public Criteria andErrorMessageLessThan(String value) {
-            addCriterion("error_message <", value, "errorMessage");
-            return (Criteria) this;
-        }
-
-        public Criteria andErrorMessageLessThanOrEqualTo(String value) {
-            addCriterion("error_message <=", value, "errorMessage");
-            return (Criteria) this;
-        }
-
-        public Criteria andErrorMessageLike(String value) {
-            addCriterion("error_message like", value, "errorMessage");
-            return (Criteria) this;
-        }
-
-        public Criteria andErrorMessageNotLike(String value) {
-            addCriterion("error_message not like", value, "errorMessage");
-            return (Criteria) this;
-        }
-
-        public Criteria andErrorMessageIn(List<String> values) {
-            addCriterion("error_message in", values, "errorMessage");
-            return (Criteria) this;
-        }
-
-        public Criteria andErrorMessageNotIn(List<String> values) {
-            addCriterion("error_message not in", values, "errorMessage");
-            return (Criteria) this;
-        }
-
-        public Criteria andErrorMessageBetween(String value1, String value2) {
-            addCriterion("error_message between", value1, value2, "errorMessage");
-            return (Criteria) this;
-        }
-
-        public Criteria andErrorMessageNotBetween(String value1, String value2) {
-            addCriterion("error_message not between", value1, value2, "errorMessage");
             return (Criteria) this;
         }
 
@@ -882,146 +692,6 @@ public class DidiCallBackDataExample {
 
         public Criteria andScasNotBetween(String value1, String value2) {
             addCriterion("scas not between", value1, value2, "scas");
-            return (Criteria) this;
-        }
-
-        public Criteria andMediaNameIsNull() {
-            addCriterion("media_name is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andMediaNameIsNotNull() {
-            addCriterion("media_name is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andMediaNameEqualTo(String value) {
-            addCriterion("media_name =", value, "mediaName");
-            return (Criteria) this;
-        }
-
-        public Criteria andMediaNameNotEqualTo(String value) {
-            addCriterion("media_name <>", value, "mediaName");
-            return (Criteria) this;
-        }
-
-        public Criteria andMediaNameGreaterThan(String value) {
-            addCriterion("media_name >", value, "mediaName");
-            return (Criteria) this;
-        }
-
-        public Criteria andMediaNameGreaterThanOrEqualTo(String value) {
-            addCriterion("media_name >=", value, "mediaName");
-            return (Criteria) this;
-        }
-
-        public Criteria andMediaNameLessThan(String value) {
-            addCriterion("media_name <", value, "mediaName");
-            return (Criteria) this;
-        }
-
-        public Criteria andMediaNameLessThanOrEqualTo(String value) {
-            addCriterion("media_name <=", value, "mediaName");
-            return (Criteria) this;
-        }
-
-        public Criteria andMediaNameLike(String value) {
-            addCriterion("media_name like", value, "mediaName");
-            return (Criteria) this;
-        }
-
-        public Criteria andMediaNameNotLike(String value) {
-            addCriterion("media_name not like", value, "mediaName");
-            return (Criteria) this;
-        }
-
-        public Criteria andMediaNameIn(List<String> values) {
-            addCriterion("media_name in", values, "mediaName");
-            return (Criteria) this;
-        }
-
-        public Criteria andMediaNameNotIn(List<String> values) {
-            addCriterion("media_name not in", values, "mediaName");
-            return (Criteria) this;
-        }
-
-        public Criteria andMediaNameBetween(String value1, String value2) {
-            addCriterion("media_name between", value1, value2, "mediaName");
-            return (Criteria) this;
-        }
-
-        public Criteria andMediaNameNotBetween(String value1, String value2) {
-            addCriterion("media_name not between", value1, value2, "mediaName");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataMessageIsNull() {
-            addCriterion("data_message is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataMessageIsNotNull() {
-            addCriterion("data_message is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataMessageEqualTo(String value) {
-            addCriterion("data_message =", value, "dataMessage");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataMessageNotEqualTo(String value) {
-            addCriterion("data_message <>", value, "dataMessage");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataMessageGreaterThan(String value) {
-            addCriterion("data_message >", value, "dataMessage");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataMessageGreaterThanOrEqualTo(String value) {
-            addCriterion("data_message >=", value, "dataMessage");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataMessageLessThan(String value) {
-            addCriterion("data_message <", value, "dataMessage");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataMessageLessThanOrEqualTo(String value) {
-            addCriterion("data_message <=", value, "dataMessage");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataMessageLike(String value) {
-            addCriterion("data_message like", value, "dataMessage");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataMessageNotLike(String value) {
-            addCriterion("data_message not like", value, "dataMessage");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataMessageIn(List<String> values) {
-            addCriterion("data_message in", values, "dataMessage");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataMessageNotIn(List<String> values) {
-            addCriterion("data_message not in", values, "dataMessage");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataMessageBetween(String value1, String value2) {
-            addCriterion("data_message between", value1, value2, "dataMessage");
-            return (Criteria) this;
-        }
-
-        public Criteria andDataMessageNotBetween(String value1, String value2) {
-            addCriterion("data_message not between", value1, value2, "dataMessage");
             return (Criteria) this;
         }
 

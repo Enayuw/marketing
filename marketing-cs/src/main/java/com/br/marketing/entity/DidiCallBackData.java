@@ -34,44 +34,19 @@ public class DidiCallBackData {
     private Integer pushStatus;
 
     /**
-     * 推送状态 0-待推送 1-成功 2-异常
+     * 推送状态 0-正常，1-重复
      */
     private Integer status;
 
     /**
      * 创建日期
      */
-    private Integer createDate;
-
-    /**
-     * 1-代表TRUE，0-代表FALSE
-     */
-    private Boolean result;
-
-    /**
-     * 返回错误码
-     */
-    private String errorCode;
-
-    /**
-     * 返回错误信息
-     */
-    private String errorMessage;
+    private String createDate;
 
     /**
      * 编码
      */
     private String scas;
-
-    /**
-     * 媒体名称
-     */
-    private String mediaName;
-
-    /**
-     * 数据描述
-     */
-    private String dataMessage;
 
     /**
      * 通话状态
@@ -154,36 +129,12 @@ public class DidiCallBackData {
         this.status = status;
     }
 
-    public Integer getCreateDate() {
+    public String getCreateDate() {
         return createDate;
     }
 
-    public void setCreateDate(Integer createDate) {
-        this.createDate = createDate;
-    }
-
-    public Boolean getResult() {
-        return result;
-    }
-
-    public void setResult(Boolean result) {
-        this.result = result;
-    }
-
-    public String getErrorCode() {
-        return errorCode;
-    }
-
-    public void setErrorCode(String errorCode) {
-        this.errorCode = errorCode == null ? null : errorCode.trim();
-    }
-
-    public String getErrorMessage() {
-        return errorMessage;
-    }
-
-    public void setErrorMessage(String errorMessage) {
-        this.errorMessage = errorMessage == null ? null : errorMessage.trim();
+    public void setCreateDate(String createDate) {
+        this.createDate = createDate == null ? null : createDate.trim();
     }
 
     public String getScas() {
@@ -192,22 +143,6 @@ public class DidiCallBackData {
 
     public void setScas(String scas) {
         this.scas = scas == null ? null : scas.trim();
-    }
-
-    public String getMediaName() {
-        return mediaName;
-    }
-
-    public void setMediaName(String mediaName) {
-        this.mediaName = mediaName == null ? null : mediaName.trim();
-    }
-
-    public String getDataMessage() {
-        return dataMessage;
-    }
-
-    public void setDataMessage(String dataMessage) {
-        this.dataMessage = dataMessage == null ? null : dataMessage.trim();
     }
 
     public Integer getIsConnect() {

@@ -10,6 +10,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.entity.DiDiV5CollidingDataLog;
 import com.br.marketing.entity.DidiCallBackData;
+import com.br.marketing.entity.DidiCallBackDataExample;
 import com.br.marketing.entity.DidiCallbackDataLog;
 import com.br.marketing.mapper.DiDiV5CollidingDataLogMapper;
 import com.br.marketing.mapper.DidiCallBackDataMapper;
@@ -219,9 +220,6 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
 
             boolean success = "200".equals(httpcode);
             int pushStatus = success ? 1 : 2;
-            JSONObject contentJson = JSONObject.parseObject(content);
-            data.setErrorCode(contentJson.getString("errorCode"));
-            data.setErrorMessage(contentJson.getString("errorMessage"));
             // 更新推送状态
             updateCallbackDataPushStatus(data.getId(), pushStatus);
             int pushType;
@@ -232,12 +230,14 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
             } else {
                 pushType = 1;
             }
-            saveCallbackDataLog(data, httpcode, content, pushType, pushStatus, requestTO);
+            JSONObject contentJson = JSONObject.parseObject(content);
+            saveCallbackDataLog(data, httpcode, content, contentJson.getString("errorCode"), contentJson.getString("errorMessage"),
+                    pushType, pushStatus, requestTO);
         } catch (Exception e) {
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(),
                     "触达成功数据回推异常，cell:" + data.getCell() + " id:" + data.getId(), TITLE), e);
             updateCallbackDataPushStatus(data.getId(), 2);
-            saveCallbackDataLog(data, "500", e.getMessage(), null, 0, null);
+            saveCallbackDataLog(data, "500", e.getMessage(), null, null, null, 0, null);
         }
     }
 
@@ -284,6 +284,7 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
         for (int i = sampleSize; i < dataList.size(); i++) {
             int j = RandomUtils.nextInt(0, i + 1);
             if (j < sampleSize) {
+                reservoirs.remove(j);
                 addSample(dataList, stage, j, reservoirs);
             }
         }
@@ -316,7 +317,7 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
     /**
      * 保存回调数据日志
      */
-    private void saveCallbackDataLog(DidiCallBackData data, String httpcode,
+    private void saveCallbackDataLog(DidiCallBackData data, String httpcode, String errorCode, String errorMessage,
                                      String content, Integer pushType, int pushStatus, DiDiSmsRequestTO requestTO) {
         DidiCallbackDataLog logEntity = new DidiCallbackDataLog();
         logEntity.setCallbackId(data.getId());
@@ -328,8 +329,8 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
         logEntity.setApiCode(data.getApiCode());
         logEntity.setCreateTime(new Date());
         logEntity.setScas(data.getScas());
-        logEntity.setErrorCode(data.getErrorCode());
-        logEntity.setErrorMessage(data.getErrorMessage());
+        logEntity.setErrorCode(errorCode);
+        logEntity.setErrorMessage(errorMessage);
         if(Objects.nonNull(requestTO)) {
             logEntity.setSignature(requestTO.getSignature());
             logEntity.setTimestamp(requestTO.getTimestamp());
@@ -387,6 +388,13 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
                 });
                 CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
             }
+            // 将【didi_v5_callback_data】中的数据标记为已推送
+            DidiCallBackDataExample example = new DidiCallBackDataExample();
+            example.createCriteria().andCustNumIn(pageData.stream().map(DiDiV5CollidingDataLog::getCell).collect(Collectors.toList()));
+            DidiCallBackData updateData = new DidiCallBackData();
+            updateData.setPushStatus(1);
+            didiCallBackDataMapper.updateByExampleSelective(updateData, example);
+
             lastId = pageData.get(pageData.size() - 1).getId();
         }
     }

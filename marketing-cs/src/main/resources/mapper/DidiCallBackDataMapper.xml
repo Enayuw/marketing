@@ -77,6 +77,7 @@
         <foreach collection="custNums" item="custNum" open="(" close=")" separator=",">
             #{custNum}
         </foreach>
+        and push_status = 0
     </update>
 
 </mapper>
