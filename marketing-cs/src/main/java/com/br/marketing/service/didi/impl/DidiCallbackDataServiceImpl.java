@@ -311,6 +311,7 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
         logEntity.setPushStatus(pushStatus);
         logEntity.setApiCode(data.getApiCode());
         logEntity.setCreateTime(new Date());
+        logEntity.setScas(data.getScas());
         if(Objects.nonNull(requestTO)) {
             logEntity.setSignature(requestTO.getSignature());
             logEntity.setTimestamp(requestTO.getTimestamp());
