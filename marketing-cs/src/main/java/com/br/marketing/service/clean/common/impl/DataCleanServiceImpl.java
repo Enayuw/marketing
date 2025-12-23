@@ -1231,7 +1231,7 @@ public class DataCleanServiceImpl implements DataCleanService {
                 ruleCleaningResult.setCleanFields(cleanField);
                 ruleCleaningResult.setCleanValue(JsonParseUtils.findFirstValueByKey(item, cleanField));
                 ruleCleaningResult.setMappingField(mappingField);
-                ruleCleaningResult.setMappingValue((String) JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), mappingField));
+                ruleCleaningResult.setMappingValue(JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), mappingField));
                 cleaningResultItems.add(ruleCleaningResult);
             });
             resultList.add(cleaningResultItems);
