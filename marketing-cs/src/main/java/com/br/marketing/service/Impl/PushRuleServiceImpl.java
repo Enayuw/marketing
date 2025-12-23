@@ -1825,9 +1825,9 @@ public class PushRuleServiceImpl implements PushRuleService {
                     selectTimeRangeOutMagnitudeForTodaystiflash_(todayTimeRangePlusList, XcDeletePrefixEnum.OUT.getAlias());
             outCycleMagnitudeMap.putAll(todayOutMagnitudeMap);
         }
-        if (CollectionUtils.isEmpty(notTodayTimeRangePlusList)) {
+        if (!CollectionUtils.isEmpty(notTodayTimeRangePlusList)) {
             LocalDateTime minBegin = notTodayTimeRangePlusList.get(0).getBegin();
-            LocalDateTime maxEnd = notTodayTimeRangePlusList.get(todayTimeRangePlusList.size() - 1).getEnd();
+            LocalDateTime maxEnd = notTodayTimeRangePlusList.get(notTodayTimeRangePlusList.size() - 1).getEnd();
             Map<String, Integer> notTodayOutMagnitudeMap = xieChengCollidingDataLoopCycleMapper
                     .selectTimeRangeOutMagnitudeForNotTodaystiflash_(notTodayTimeRangePlusList, minBegin, maxEnd, XcDeletePrefixEnum.OUT.getAlias());
             outCycleMagnitudeMap.putAll(notTodayOutMagnitudeMap);
