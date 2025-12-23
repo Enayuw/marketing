@@ -267,6 +267,16 @@
           <if test="minId != null and minId>0">
               and dt.id > #{minId}
           </if>
-        order by dt.id limit #{pageSize};
+        order by dt.id limit 2000;
     </select>
+
+    <update id="updateIsDeleteByIds">
+        update ${delTableName}
+        set is_delete = 1, update_time = now(), extend = #{extend}
+        where is_delete = 0
+        and id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
 </mapper>

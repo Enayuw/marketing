@@ -39,6 +39,8 @@ public interface XieChengBlackListMapper {
                                                        @Param("labelType") Integer labelType,
                                                        @Param("batchNumber") String batchNumber,
                                                        @Param("condition") String condition,
-                                                       @Param("pageSize") Integer pageSize);
+                                                       @Param("minId") Long minId);
+
+    int updateIsDeleteByIds(@Param("delTableName") String delTableName, @Param("ids") List<Long> ids, @Param("extend") String extend);
 
 }

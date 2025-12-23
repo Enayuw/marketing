@@ -80,7 +80,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                 deletePublicBlackList();
                 //3.自研AI业务黑名单/百应业务黑名单剔除
                 deleteNoPublicBlackList(task);
-                batchUpdateNoPublicBlackList(task);
+//                batchUpdateNoPublicBlackList(task);
                 //4.更新task状态
                 processAfterDeleteForBatch(task);
             } catch (Exception e) {
@@ -92,8 +92,8 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
     }
 
     private void deleteNoPublicBlackList(XiechengCollidingDataProcessTask task) {
-        String conditions = task.getTaskExecutionConditions();
-        if (StringUtils.isBlank(conditions)) {
+        String condition = task.getTaskExecutionConditions();
+        if (StringUtils.isBlank(condition)) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
                     "携程批量更新分组黑名单剔除，条件为空"));
             return;
@@ -104,34 +104,47 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                 .getThreadPool(ThreadPoolNameEnum.XIECHENG_BLACK_DELETE.getName(), 50, 100);
         List<CompletableFuture<Void>> futures = new ArrayList<>();
         for (String batchNumber : batchNumbers) {
-            deleteWithBatchNumber(batchNumber, conditions, XieChengBlackListEnum.SELF_DEVELOPED_AI_BUSINESS_BLACKLIST,
-                    "b_xiecheng_colliding_data_loop_cycle", today, threadPool);
-            deleteWithBatchNumber(batchNumber, conditions, XieChengBlackListEnum.SELF_DEVELOPED_AI_BUSINESS_BLACKLIST,
-                    "b_xiecheng_colliding_data_rob", today, threadPool);
-            deleteWithBatchNumber(batchNumber, conditions, XieChengBlackListEnum.BAIYING_BUSINESS_BLACKLIST,
-                    "b_xiecheng_colliding_data_loop_cycle", today, threadPool);
-            deleteWithBatchNumber(batchNumber, conditions, XieChengBlackListEnum.BAIYING_BUSINESS_BLACKLIST,
-                    "b_xiecheng_colliding_data_rob", today, threadPool);
+            deleteWithBatchNumber(batchNumber, condition, XieChengBlackListEnum.SELF_DEVELOPED_AI_BUSINESS_BLACKLIST,
+                    "b_xiecheng_colliding_data_loop_cycle", today, threadPool, futures);
+            deleteWithBatchNumber(batchNumber, condition, XieChengBlackListEnum.SELF_DEVELOPED_AI_BUSINESS_BLACKLIST,
+                    "b_xiecheng_colliding_data_rob", today, threadPool, futures);
+            deleteWithBatchNumber(batchNumber, condition, XieChengBlackListEnum.BAIYING_BUSINESS_BLACKLIST,
+                    "b_xiecheng_colliding_data_loop_cycle", today, threadPool, futures);
+            deleteWithBatchNumber(batchNumber, condition, XieChengBlackListEnum.BAIYING_BUSINESS_BLACKLIST,
+                    "b_xiecheng_colliding_data_rob", today, threadPool, futures);
         }
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
     }
 
     /**
      * 与跑分文件相关的黑名单剔除
      *
      * @param batchNumber
-     * @param conditions
+     * @param condition
      * @param xieChengBlackListEnum
      * @param tableName
      * @param today
      * @param threadPool
+     * @param futures
      */
-    private void deleteWithBatchNumber(String batchNumber, String conditions, XieChengBlackListEnum xieChengBlackListEnum,
-                                       String tableName, String today, TpDynamicExecutor threadPool) {
+    private void deleteWithBatchNumber(String batchNumber, String condition,
+                                       XieChengBlackListEnum xieChengBlackListEnum,
+                                       String tableName, String today,
+                                       TpDynamicExecutor threadPool, List<CompletableFuture<Void>> futures) {
         String extend = today + "-" + xieChengBlackListEnum.getDesc();
         Long minId = null;
-        List<Long> idList = null;
+        List<Long> ids;
         for (; ; ) {
-
+            ids = blackListMapper.selectIdsByBatchNumberAndConditiontikv_
+                    (tableName, xieChengBlackListEnum.getValue(), batchNumber, condition, minId);
+            if(CollectionUtils.isEmpty(ids)){
+                break;
+            }
+            minId = ids.get(ids.size() - 1);
+            List<Long> finalIds = ids;
+            futures.add(CompletableFuture.runAsync(() -> {
+                blackListMapper.updateIsDeleteByIds(tableName, finalIds, extend);
+            }, threadPool));
         }
     }
 
