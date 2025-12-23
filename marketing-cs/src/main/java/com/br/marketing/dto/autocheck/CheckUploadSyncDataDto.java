@@ -9,6 +9,11 @@ import java.util.Date;
 public class CheckUploadSyncDataDto {
 
     /**
+     * id
+     */
+    private Long id;
+
+    /**
      * 商户编号
      */
     private String apiCode;
@@ -84,11 +89,6 @@ public class CheckUploadSyncDataDto {
     private String operateType;
 
     /**
-     * 日期
-     */
-    private String registerDate;
-
-    /**
      * 预留字段1
      */
     private String reserveField1;
@@ -97,23 +97,6 @@ public class CheckUploadSyncDataDto {
      * 预留字段2
      */
     private String reserveField2;
-
-    /**
-     * 创建时间
-     */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date createTime;
-
-    /**
-     * 修改时间
-     */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date updateTime;
-
-    /**
-     * 执行日期
-     */
-    private String appletDate;
 
     /**
      * 预留剔除状态字段 1：正常，2：剔除
@@ -126,21 +109,9 @@ public class CheckUploadSyncDataDto {
     private String failType;
 
     /**
-     * 用户上传时间
-     */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date appletTime;
-
-    /**
      * 是否导入任务数据 1-未导入;2-导入
      */
     private Integer isTask;
-
-    /**
-     * 导入任务用户表时间
-     */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date taskTime;
 
     /**
      * 是否重复 1-未去重; 2-不重复;3-重复;

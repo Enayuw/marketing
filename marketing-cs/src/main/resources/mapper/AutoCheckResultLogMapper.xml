@@ -2,5 +2,61 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.AutoCheckResultLogMapper" >
 
+    <!-- 查询指定日期（yyyy-MM-dd）的比对结果；compare_time 为 VARCHAR，按前缀匹配当天 -->
+    <select id="selectByCompareTime" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM b_auto_check_result_log
+        WHERE is_deleted = 0
+        <if test="today != null and today != ''">
+            AND compare_time LIKE CONCAT(#{today}, '%')
+        </if>
+        ORDER BY compare_time DESC, id DESC
+    </select>
+
+    <!-- 批量保存 -->
+    <insert id="batchInsert">
+        INSERT INTO b_auto_check_result_log (
+            api_code,
+            scene_code,
+            last_data,
+            today_data,
+            today_data_id,
+            compare_time,
+            `result`,
+            is_deleted,
+            create_time,
+            update_time
+        )
+        VALUES
+        <foreach collection="saveList" item="item" separator=",">
+            (
+                #{item.apiCode, jdbcType=VARCHAR},
+                #{item.sceneCode, jdbcType=VARCHAR},
+                #{item.lastData, jdbcType=VARCHAR},
+                #{item.todayData, jdbcType=VARCHAR},
+                #{item.todayDataId, jdbcType=BIGINT},
+                <choose>
+                    <when test="item.compareTime != null and item.compareTime != ''">
+                        #{item.compareTime, jdbcType=VARCHAR}
+                    </when>
+                    <otherwise>
+                        DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s')
+                    </otherwise>
+                </choose>,
+                #{item.result, jdbcType=VARCHAR},
+                <choose>
+                    <when test="item.isDeleted != null">
+                        #{item.isDeleted, jdbcType=TINYINT}
+                    </when>
+                    <otherwise>
+                        0
+                    </otherwise>
+                </choose>,
+                NOW(),
+                NOW()
+            )
+        </foreach>
+    </insert>
 
 </mapper>

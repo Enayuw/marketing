@@ -445,6 +445,66 @@ public class AutoCheckResultLogExample {
             return (Criteria) this;
         }
 
+        public Criteria andTodayDataIdIsNull() {
+            addCriterion("today_data_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTodayDataIdIsNotNull() {
+            addCriterion("today_data_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTodayDataIdEqualTo(Long value) {
+            addCriterion("today_data_id =", value, "todayDataId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTodayDataIdNotEqualTo(Long value) {
+            addCriterion("today_data_id <>", value, "todayDataId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTodayDataIdGreaterThan(Long value) {
+            addCriterion("today_data_id >", value, "todayDataId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTodayDataIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("today_data_id >=", value, "todayDataId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTodayDataIdLessThan(Long value) {
+            addCriterion("today_data_id <", value, "todayDataId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTodayDataIdLessThanOrEqualTo(Long value) {
+            addCriterion("today_data_id <=", value, "todayDataId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTodayDataIdIn(List<Long> values) {
+            addCriterion("today_data_id in", values, "todayDataId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTodayDataIdNotIn(List<Long> values) {
+            addCriterion("today_data_id not in", values, "todayDataId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTodayDataIdBetween(Long value1, Long value2) {
+            addCriterion("today_data_id between", value1, value2, "todayDataId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTodayDataIdNotBetween(Long value1, Long value2) {
+            addCriterion("today_data_id not between", value1, value2, "todayDataId");
+            return (Criteria) this;
+        }
+
         public Criteria andCompareTimeIsNull() {
             addCriterion("compare_time is null");
             return (Criteria) this;

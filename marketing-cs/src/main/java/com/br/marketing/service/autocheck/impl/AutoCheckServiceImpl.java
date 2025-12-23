@@ -1,12 +1,14 @@
 package com.br.marketing.service.autocheck.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.DateUtil;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.dto.autocheck.CheckTransferSyncDataDto;
 import com.br.marketing.dto.autocheck.CheckUploadSyncDataDto;
 import com.br.marketing.dto.autocheck.SaveAutoCheckConfigDto;
 import com.br.marketing.entity.AutoCheckConfig;
+import com.br.marketing.entity.AutoCheckResultLog;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.MarketingCustomerService;
 import com.br.marketing.service.autocheck.AutoCheckService;
@@ -22,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -52,15 +55,23 @@ public class AutoCheckServiceImpl implements AutoCheckService {
     @Resource
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
 
+    @Resource
+    private AutoCheckResultLogMapper autoCheckResultLogMapper;
+
+
     @Override
     public List<AutoCheckConfigVO> getAutoCheckConfigList(String apiCodes, String sceneCodes) {
-        List<AutoCheckConfigVO> result = new ArrayList<>();
-
         // 处理apiCodes参数，用逗号分隔
         List<String> apiCodeList = handleApiCodeParam(apiCodes);
 
         // 处理sceneCodes参数，用逗号分隔
         List<String> sceneCodeList = handleSceneCodeParam(sceneCodes);
+
+        return getAutoCheckConfigList(apiCodeList, sceneCodeList);
+    }
+
+    private List<AutoCheckConfigVO> getAutoCheckConfigList(List<String> apiCodeList, List<String> sceneCodeList) {
+        List<AutoCheckConfigVO> result = new ArrayList<>();
 
         // 根据apiCodes和sceneCodes查询配置信息
         List<AutoCheckConfig> configList = autoCheckConfigMapper.
@@ -225,18 +236,64 @@ public class AutoCheckServiceImpl implements AutoCheckService {
     }
 
     @Override
+    public void autoCheck() {
+        // 1、获取所有配置
+        List<String> apiCodeList = handleApiCodeParam(null);
+        List<String> sceneCodeList = handleSceneCodeParam(null);
+
+        // 获取apiCode对应的场景配置
+        List<AutoCheckConfigVO> configList = getAutoCheckConfigList(apiCodeList, sceneCodeList);
+        Map<String, AutoCheckConfigVO> configMap = configList.stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(AutoCheckConfigVO::getApiCode, e -> e, (a, b) -> a));
+
+        // apiCode 基础信息（名称）
+        Map<String, MarketingCustomerVO> apiInfoMap = marketingCustomerService.getApiCodeList(apiCodeList)
+                .stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(MarketingCustomerVO::getApiCode, e -> e, (a, b) -> a));
+
+        // 获取今天已经比对过的id
+        String today = DateUtil.today();
+        List<AutoCheckResultLog> resultList = autoCheckResultLogMapper.selectByCompareTime(today);
+        Map<String, Long> comparedIdMap = new HashMap<>();
+        for (AutoCheckResultLog result : resultList) {
+            String key = buildKey(result.getApiCode(), result.getSceneCode());
+            comparedIdMap.put(key, result.getTodayDataId());
+        }
+
+        List<AutoCheckResultLog> saveList = new ArrayList<>();
+        // 针对每一个场景，查询apiCode对应的结果
+        for (String sceneCode : sceneCodeList) {
+            switch (sceneCode) {
+                case SCENE_UPLOAD:
+                    // 过滤掉没有配置该场景的apiCode
+                    saveList.addAll(checkUploadScene(
+                            filterApiCodesByScene(apiCodeList, SCENE_UPLOAD, configMap),
+                            comparedIdMap));
+                    break;
+                case SCENE_TRANSFER:
+                    // 过滤掉没有配置该场景的apiCode
+                    saveList.addAll(checkTransferScene(
+                            filterApiCodesByScene(apiCodeList, SCENE_TRANSFER, configMap),
+                            apiInfoMap, comparedIdMap));
+                    break;
+                default:
+                    log.warn("未知场景编码: {}", sceneCode);
+            }
+        }
+        if (CollUtil.isNotEmpty(saveList)) {
+            autoCheckResultLogMapper.batchInsert(saveList);
+        }
+    }
+
+    @Override
     public List<AutoCheckResultVO> getResultList(String apiCodes, String sceneCodes) {
         // 处理apiCodes参数，用逗号分隔
         List<String> apiCodeList = handleApiCodeParam(apiCodes);
 
         // 处理sceneCodes参数，用逗号分隔
         List<String> sceneCodeList = handleSceneCodeParam(sceneCodes);
-
-        // 获取apiCode对应的场景配置
-        List<AutoCheckConfigVO> configList = getAutoCheckConfigList(apiCodes, null);
-        Map<String, AutoCheckConfigVO> configMap = configList.stream()
-                .filter(Objects::nonNull)
-                .collect(Collectors.toMap(AutoCheckConfigVO::getApiCode, e -> e, (a, b) -> a));
 
         // apiCode 基础信息（名称）
         Map<String, MarketingCustomerVO> apiInfoMap = marketingCustomerService.getApiCodeList(apiCodeList)
@@ -251,27 +308,23 @@ public class AutoCheckServiceImpl implements AutoCheckService {
                 .collect(Collectors.toMap(AutoCheckSceneVO::getSceneCode, e -> e, (a, b) -> a));
 
         List<AutoCheckResultVO> result = new ArrayList<>();
-
-        // 针对每一个场景，查询apiCode对应的结果
-        for (String sceneCode : sceneCodeList) {
-            switch (sceneCode) {
-                case SCENE_UPLOAD:
-                    // 过滤掉没有配置该场景的apiCode
-                    result.addAll(checkUploadScene(
-                            filterApiCodesByScene(apiCodeList, SCENE_UPLOAD, configMap),
-                            apiInfoMap, sceneMap));
-                    break;
-                case SCENE_TRANSFER:
-                    // 过滤掉没有配置该场景的apiCode
-                    result.addAll(checkTransferScene(
-                            filterApiCodesByScene(apiCodeList, SCENE_TRANSFER, configMap),
-                            apiInfoMap, sceneMap));
-                    break;
-                default:
-                    log.warn("未知场景编码: {}", sceneCode);
-            }
+        // 找出当天的比对结果，用于前端展示
+        String today = DateUtil.today();
+        List<AutoCheckResultLog> resultList = autoCheckResultLogMapper.selectByCompareTime(today);
+        for (AutoCheckResultLog log : resultList) {
+            AutoCheckResultVO autoCheckResultVO = new AutoCheckResultVO();
+            autoCheckResultVO.setTime(log.getCompareTime());
+            autoCheckResultVO.setApiCode(log.getApiCode());
+            autoCheckResultVO.setName(Optional.ofNullable(apiInfoMap.get(log.getApiCode()))
+                    .map(MarketingCustomerVO::getName).orElse(""));
+            autoCheckResultVO.setSceneCode(log.getSceneCode());
+            autoCheckResultVO.setSceneName(Optional.ofNullable(sceneMap.get(log.getSceneCode()))
+                    .map(AutoCheckSceneVO::getSceneName).orElse(""));
+            autoCheckResultVO.setLastDayData(log.getLastData());
+            autoCheckResultVO.setThisData(log.getTodayData());
+            autoCheckResultVO.setCompareResult(log.getResult());
+            result.add(autoCheckResultVO);
         }
-
         // 按时间倒序（time 为 yyyy-MM-dd HH:mm:ss 字符串，字典序=时间序）；空值/空串放最后
         result.sort(Comparator.comparing(
                 vo -> StringUtils.isBlank(vo.getTime()) ? null : vo.getTime().trim(),
@@ -308,112 +361,156 @@ public class AutoCheckServiceImpl implements AutoCheckService {
                 .collect(Collectors.toList());
     }
 
-    private List<AutoCheckResultVO> checkUploadScene(List<String> apiCodeList,
-                                                     Map<String, MarketingCustomerVO> apiInfoMap,
-                                                     Map<String, AutoCheckSceneVO> sceneMap) {
-        if (CollUtil.isEmpty(apiCodeList)) {
-            return Collections.emptyList();
-        }
-
-        List<CheckUploadSyncDataDto> lastDay8List = marketingSyncInfoMapper.getLastDay8DataByApiCodes(apiCodeList);
-        List<CheckUploadSyncDataDto> latestList = marketingSyncInfoMapper.getLatestDataByApiCodes(apiCodeList);
-
-        Map<String, CheckUploadSyncDataDto> lastDay8Map = toMapByApiCode(lastDay8List, CheckUploadSyncDataDto::getApiCode);
-        Map<String, CheckUploadSyncDataDto> latestMap = toMapByApiCode(latestList, CheckUploadSyncDataDto::getApiCode);
-
-        List<AutoCheckResultVO> voList = new ArrayList<>();
+    private List<AutoCheckResultLog> checkUploadScene(List<String> apiCodeList,
+                                                      Map<String, Long> comparedIdMap) {
+        List<AutoCheckResultLog> resultLogList = new ArrayList<>();
         for (String apiCode : apiCodeList) {
-            CheckUploadSyncDataDto lastDay8 = lastDay8Map.get(apiCode);
-            CheckUploadSyncDataDto latest = latestMap.get(apiCode);
+            CheckUploadSyncDataDto lastDay8;
+            CheckUploadSyncDataDto latest;
+            try {
+                lastDay8 = marketingSyncInfoMapper.getLastDay8DataByApiCode(apiCode);
+                latest = marketingSyncInfoMapper.getLatestDataByApiCode(apiCode);
+            } catch (Exception ex) {
+                if (isUploadSyncTableNotExist(ex, apiCode)) {
+                    // 分表不存在：跳过该 apiCode（不影响其他 apiCode 的查询）
+                    log.warn("自动化巡检-上传场景：跳过 apiCode={}，分表不存在：b_marketing_sync_{}", apiCode, apiCode);
+                    continue;
+                }
+                throw ex;
+            }
             // 若前一天八点的数据不存在，或者当前数据不存在，则跳过
-            if (Objects.isNull(lastDay8) || Objects.isNull(latest)) {
+            if (lastDay8 == null || latest == null) {
                 continue;
             }
-            AutoCheckResultVO vo = baseVO(apiCode, SCENE_UPLOAD, apiInfoMap, sceneMap);
-            vo.setLastDayData(toJsonExcludeSafe(lastDay8, "snapTime", "cusBatch",
-                    "requestBatch", "custNum", "registerDate", "createTime", "updateTime",
-                    "appletDate", "appletTime", "taskTime", "fingerprint"));
-            vo.setThisData(toJsonExcludeSafe(latest, "snapTime", "cusBatch",
-                    "requestBatch", "custNum", "registerDate", "createTime", "updateTime",
-                    "appletDate", "appletTime", "taskTime", "fingerprint"));
-            vo.setTime(latest.getSnapTime());
-            vo.setCompareResult(compareUpload(lastDay8, latest));
-            voList.add(vo);
+            // 若当天本条数据已经比对过，则跳过
+            String key = buildKey(apiCode, SCENE_UPLOAD);
+            if (Objects.equals(comparedIdMap.get(key), latest.getId())) {
+                continue;
+            }
+            AutoCheckResultLog log = new AutoCheckResultLog();
+            log.setApiCode(apiCode);
+            log.setSceneCode(SCENE_UPLOAD);
+            log.setCompareTime(latest.getSnapTime());
+            log.setTodayDataId(latest.getId());
+            log.setLastData(toJsonExcludeSafe(lastDay8, "id", "snapTime", "cusBatch",
+                    "requestBatch", "custNum", "fingerprint"));
+            log.setTodayData(toJsonExcludeSafe(latest, "id", "snapTime", "cusBatch",
+                    "requestBatch", "custNum", "fingerprint"));
+            log.setResult(compareUpload(lastDay8, latest));
+            Date now = new Date();
+            log.setCreateTime(now);
+            log.setUpdateTime(now);
+            resultLogList.add(log);
         }
-        return voList;
+
+        return resultLogList;
     }
 
-    private List<AutoCheckResultVO> checkTransferScene(List<String> apiCodeList,
-                                                       Map<String, MarketingCustomerVO> apiInfoMap,
-                                                       Map<String, AutoCheckSceneVO> sceneMap) {
-        if (CollUtil.isEmpty(apiCodeList)) {
-            return Collections.emptyList();
+    /**
+     * 判断是否为“上传同步分表不存在”的异常（MySQL error code: 1146）。
+     */
+    private boolean isUploadSyncTableNotExist(Throwable ex, String apiCode) {
+        String tableName = "b_marketing_sync_" + apiCode;
+        Throwable t = ex;
+        while (t != null) {
+            if (t instanceof SQLException) {
+                SQLException sqlEx = (SQLException) t;
+                if (sqlEx.getErrorCode() == 1146) {
+                    return true;
+                }
+            }
+            String msg = t.getMessage();
+            if (StringUtils.isNotBlank(msg)
+                    && msg.contains("doesn't exist")
+                    && msg.contains(tableName)) {
+                return true;
+            }
+            t = t.getCause();
         }
+        return false;
+    }
 
-        // 查出cid
-        List<String> cidList = new ArrayList<>();
+    private List<AutoCheckResultLog> checkTransferScene(List<String> apiCodeList,
+                                                        Map<String, MarketingCustomerVO> apiInfoMap,
+                                                        Map<String, Long> comparedIdMap) {
+        List<AutoCheckResultLog> resultLogList = new ArrayList<>();
         for (String apiCode : apiCodeList) {
             MarketingCustomerVO apiInfo = apiInfoMap.get(apiCode);
             if (apiInfo == null || StringUtils.isBlank(apiInfo.getCid())) {
+                log.warn("自动化巡检-转化场景：跳过 apiCode={}，cid为空", apiCode);
                 continue;
             }
-            cidList.add(apiInfo.getCid().replaceFirst("-", ""));
-        }
+            String tCid = apiInfo.getCid().replaceFirst("-", "");
 
-        List<CheckTransferSyncDataDto> lastDay8List = marketingTransferSyncUserMapper.getLastDay8DataByCids(cidList, apiCodeList);
-        List<CheckTransferSyncDataDto> latestList = marketingTransferSyncUserMapper.getLatestDataByCids(cidList, apiCodeList);
-
-        Map<String, CheckTransferSyncDataDto> lastDay8Map = toMapByApiCode(lastDay8List, CheckTransferSyncDataDto::getApiCode);
-        Map<String, CheckTransferSyncDataDto> latestMap = toMapByApiCode(latestList, CheckTransferSyncDataDto::getApiCode);
-
-        List<AutoCheckResultVO> voList = new ArrayList<>();
-        for (String apiCode : apiCodeList) {
-            CheckTransferSyncDataDto lastDay8 = lastDay8Map.get(apiCode);
-            CheckTransferSyncDataDto latest = latestMap.get(apiCode);
+            CheckTransferSyncDataDto lastDay8;
+            CheckTransferSyncDataDto latest;
+            try {
+                lastDay8 = marketingTransferSyncUserMapper.getLastDay8DataByCidAndApiCode(tCid, apiCode);
+                latest = marketingTransferSyncUserMapper.getLatestDataByCidAndApiCode(tCid, apiCode);
+            } catch (Exception ex) {
+                if (isTransferSyncTableNotExist(ex, tCid)) {
+                    log.warn("自动化巡检-转化场景：跳过 apiCode={}，分表不存在：b_marketing_transfer_sync_{}", apiCode, tCid);
+                    continue;
+                }
+                throw ex;
+            }
             // 若前一天八点的数据不存在，或者当前数据不存在，则跳过
             if (Objects.isNull(lastDay8) || Objects.isNull(latest)) {
                 continue;
             }
-            AutoCheckResultVO vo = baseVO(apiCode, SCENE_TRANSFER, apiInfoMap, sceneMap);
-            vo.setLastDayData(toJsonExcludeSafe(lastDay8, "snapTime", "cid", "tCid",
-                    "requestId", "registerTime", "loginTime", "applyDt", "applyTime", "refuseTime",
-                    "auditTime", "lentTime", "settleTime", "transformTime", "insertTime", "createTime",
-                    "updateTime", "requestTime", "fingerprint"));
-            vo.setThisData(toJsonExcludeSafe(latest, "snapTime", "cid", "tCid",
-                    "requestId", "registerTime", "loginTime", "applyDt", "applyTime", "refuseTime",
-                    "auditTime", "lentTime", "settleTime", "transformTime", "insertTime", "createTime",
-                    "updateTime", "requestTime", "fingerprint"));
-            vo.setTime(latest.getSnapTime());
-            vo.setCompareResult(compareTransfer(lastDay8, latest));
-            voList.add(vo);
+            // 若当天本条数据已经比对过，则跳过
+            String key = buildKey(apiCode, SCENE_TRANSFER);
+            if (Objects.equals(latest.getId(), comparedIdMap.get(key))) {
+                continue;
+            }
+            AutoCheckResultLog log = new AutoCheckResultLog();
+            log.setApiCode(apiCode);
+            log.setSceneCode(SCENE_TRANSFER);
+            log.setCompareTime(latest.getSnapTime());
+            log.setTodayDataId(latest.getId());
+            log.setLastData(toJsonExcludeSafe(lastDay8, "id", "snapTime", "cid", "tCid", "fingerprint"));
+            log.setTodayData(toJsonExcludeSafe(latest, "id", "snapTime", "cid", "tCid", "fingerprint"));
+            log.setResult(compareTransfer(lastDay8, latest));
+            Date now = new Date();
+            log.setCreateTime(now);
+            log.setUpdateTime(now);
+            resultLogList.add(log);
         }
-        return voList;
+        return resultLogList;
     }
 
-    private AutoCheckResultVO baseVO(String apiCode,
-                                     String sceneCode,
-                                     Map<String, MarketingCustomerVO> apiInfoMap,
-                                     Map<String, AutoCheckSceneVO> sceneMap) {
-        AutoCheckResultVO vo = new AutoCheckResultVO();
-        vo.setApiCode(apiCode);
-        vo.setName(Optional.ofNullable(apiInfoMap.get(apiCode)).map(MarketingCustomerVO::getName).orElse(""));
-        vo.setSceneCode(sceneCode);
-        vo.setSceneName(Optional.ofNullable(sceneMap.get(sceneCode)).map(AutoCheckSceneVO::getSceneName).orElse(""));
-        return vo;
+    /**
+     * 判断是否为“转化同步分表不存在”的异常（MySQL error code: 1146）。
+     */
+    private boolean isTransferSyncTableNotExist(Throwable ex, String tCid) {
+        String tableName = "b_marketing_transfer_sync_" + tCid;
+        Throwable t = ex;
+        while (t != null) {
+            if (t instanceof SQLException) {
+                SQLException sqlEx = (SQLException) t;
+                if (sqlEx.getErrorCode() == 1146) {
+                    return true;
+                }
+            }
+            String msg = t.getMessage();
+            if (StringUtils.isNotBlank(msg)
+                    && msg.contains("doesn't exist")
+                    && msg.contains(tableName)) {
+                return true;
+            }
+            t = t.getCause();
+        }
+        return false;
     }
 
     private String compareUpload(CheckUploadSyncDataDto lastDay8, CheckUploadSyncDataDto latest) {
-        boolean same = CheckObjectSameUtil.isAllFieldsEqualExclude(lastDay8, latest, "snapTime", "cusBatch",
-                "requestBatch", "custNum", "registerDate", "createTime", "updateTime",
-                "appletDate", "appletTime", "taskTime", "fingerprint");
+        boolean same = CheckObjectSameUtil.isAllFieldsEqualExclude(lastDay8, latest, "id", "snapTime", "cusBatch",
+                "requestBatch", "custNum", "fingerprint");
         return same ? "一致" : "不一致";
     }
 
     private String compareTransfer(CheckTransferSyncDataDto lastDay8, CheckTransferSyncDataDto latest) {
-        boolean same = CheckObjectSameUtil.isAllFieldsEqualExclude(lastDay8, latest, "snapTime", "cid", "tCid",
-                "requestId", "registerTime", "loginTime", "applyDt", "applyTime", "refuseTime",
-                "auditTime", "lentTime", "settleTime", "transformTime", "insertTime", "createTime",
-                "updateTime", "requestTime", "fingerprint");
+        boolean same = CheckObjectSameUtil.isAllFieldsEqualExclude(lastDay8, latest, "id", "snapTime", "cid", "tCid", "fingerprint");
         return same ? "一致" : "不一致";
     }
 
@@ -421,11 +518,7 @@ public class AutoCheckServiceImpl implements AutoCheckService {
         return JsonFilterUtil.toJsonExcludeSafe(obj, excludeFields);
     }
 
-    private <T> Map<String, T> toMapByApiCode(List<T> list, java.util.function.Function<T, String> apiCodeFn) {
-        if (CollUtil.isEmpty(list)) return Collections.emptyMap();
-        return list.stream()
-                .filter(Objects::nonNull)
-                .filter(x -> StringUtils.isNotBlank(apiCodeFn.apply(x)))
-                .collect(Collectors.toMap(apiCodeFn, e -> e, (a, b) -> a));
+    private String buildKey(String apiCode, String sceneCode) {
+        return apiCode + "_" + sceneCode;
     }
 }

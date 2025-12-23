@@ -29,6 +29,11 @@ public class AutoCheckResultLog {
     private String todayData;
 
     /**
+     * 本次数据id
+     */
+    private Long todayDataId;
+
+    /**
      * 比对时间
      */
     private String compareTime;
@@ -91,6 +96,14 @@ public class AutoCheckResultLog {
 
     public void setTodayData(String todayData) {
         this.todayData = todayData == null ? null : todayData.trim();
+    }
+
+    public Long getTodayDataId() {
+        return todayDataId;
+    }
+
+    public void setTodayDataId(Long todayDataId) {
+        this.todayDataId = todayDataId;
     }
 
     public String getCompareTime() {

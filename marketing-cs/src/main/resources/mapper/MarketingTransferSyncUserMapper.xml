@@ -1366,72 +1366,82 @@
         and b.json_extract(reserve_field1, '$.liveType')= #{liveType} order by b.id asc limit #{pageSize};
     </select>
 
-    <!-- 自动化巡检：转化场景 - 前一天08:00快照（按 create_time 在昨天 08:00~08:01 窗口内，取每个 api_code 最新一条）。 -->
-    <select id="getLastDay8DataByCids" resultType="com.br.marketing.dto.autocheck.CheckTransferSyncDataDto">
-        <choose>
-            <when test="cidList != null and cidList.size() > 0 and apiCodeList != null and apiCodeList.size() > 0">
-                select * from (
-                    select u.*,
-                           row_number() over (partition by u.api_code order by u.create_time desc, u.id desc) as rn2
-                    from (
-                        <foreach collection="cidList" item="cid" separator=" union all ">
-                            select * from (
-                                select
-                                    <include refid="Base_Column_List" />,
-                                    DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') as snap_time,
-                                    row_number() over (partition by api_code order by create_time desc, id desc) as rn
-                                from b_marketing_transfer_sync_${cid}
-                                where api_code in
-                                <foreach collection="apiCodeList" item="apiCode" open="(" close=")" separator=",">
-                                    #{apiCode}
-                                </foreach>
-                                  and create_time <![CDATA[>=]]> DATE_ADD(DATE_SUB(CURDATE(), INTERVAL 1 DAY), INTERVAL 8 HOUR)
-                                  and create_time <![CDATA[<]]> DATE_ADD(
-                                      DATE_ADD(DATE_SUB(CURDATE(), INTERVAL 1 DAY), INTERVAL 8 HOUR),
-                                      INTERVAL 1 MINUTE
-                                  )
-                            ) t
-                            where t.rn = 1
-                        </foreach>
-                    ) u
-                ) x
-                where x.rn2 = 1
-            </when>
-            <otherwise>
-                select 1 where 1 = 0
-            </otherwise>
-        </choose>
+    <!-- 自动化巡检：转化场景 - 前一天08:00快照（单表：按 api_code 取最新一条）。 -->
+    <select id="getLastDay8DataByCidAndApiCode" resultType="com.br.marketing.dto.autocheck.CheckTransferSyncDataDto">
+        select
+            id,
+            cid,
+            t_cid as tCid,
+            api_code as apiCode,
+            org_name as orgName,
+            cust_num as custNum,
+            source,
+            user_type as userType,
+            type,
+            custom_name as customName,
+            if_register as ifRegister,
+            if_login as ifLogin,
+            if_apply as ifApply,
+            apply_result as applyResult,
+            audit_amount as auditAmount,
+            if_lent as ifLent,
+            lent_amount as lentAmount,
+            unlent_amount as unlentAmount,
+            if_settle as ifSettle,
+            activity,
+            case_status as caseStatus,
+            case_effective as caseEffective,
+            if_transform as ifTransform,
+            reserve_field1 as reserveField1,
+            reserve_field2 as reserveField2,
+            fingerprint,
+            DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') as snapTime
+        from b_marketing_transfer_sync_${cid}
+        where api_code = #{apiCode}
+          and create_time <![CDATA[>=]]> DATE_ADD(DATE_SUB(CURDATE(), INTERVAL 1 DAY), INTERVAL 8 HOUR)
+          and create_time <![CDATA[<]]> DATE_ADD(
+              DATE_ADD(DATE_SUB(CURDATE(), INTERVAL 1 DAY), INTERVAL 8 HOUR),
+              INTERVAL 1 MINUTE
+          )
+        order by create_time desc, id desc
+        limit 1
     </select>
 
-    <!-- 自动化巡检：转化场景 - 最新快照（按 api_code 过滤，取每个 api_code 最新一条）。 -->
-    <select id="getLatestDataByCids" resultType="com.br.marketing.dto.autocheck.CheckTransferSyncDataDto">
-        <choose>
-            <when test="cidList != null and cidList.size() > 0 and apiCodeList != null and apiCodeList.size() > 0">
-                select * from (
-                    select u.*,
-                           row_number() over (partition by u.api_code order by u.create_time desc, u.id desc) as rn2
-                    from (
-                        <foreach collection="cidList" item="cid" separator=" union all ">
-                            select * from (
-                                select
-                                    <include refid="Base_Column_List" />,
-                                    DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') as snap_time,
-                                    row_number() over (partition by api_code order by create_time desc, id desc) as rn
-                                from b_marketing_transfer_sync_${cid}
-                                where api_code in
-                                <foreach collection="apiCodeList" item="apiCode" open="(" close=")" separator=",">
-                                    #{apiCode}
-                                </foreach>
-                            ) t
-                            where t.rn = 1
-                        </foreach>
-                    ) u
-                ) x
-                where x.rn2 = 1
-            </when>
-            <otherwise>
-                select 1 where 1 = 0
-            </otherwise>
-        </choose>
+    <!-- 自动化巡检：转化场景 - 最新快照（单表：按 api_code 取最新一条）。 -->
+    <select id="getLatestDataByCidAndApiCode" resultType="com.br.marketing.dto.autocheck.CheckTransferSyncDataDto">
+        select
+            id,
+            cid,
+            t_cid as tCid,
+            api_code as apiCode,
+            org_name as orgName,
+            cust_num as custNum,
+            source,
+            user_type as userType,
+            type,
+            custom_name as customName,
+            if_register as ifRegister,
+            if_login as ifLogin,
+            if_apply as ifApply,
+            apply_result as applyResult,
+            audit_amount as auditAmount,
+            if_lent as ifLent,
+            lent_amount as lentAmount,
+            unlent_amount as unlentAmount,
+            if_settle as ifSettle,
+            activity,
+            case_status as caseStatus,
+            case_effective as caseEffective,
+            if_transform as ifTransform,
+            reserve_field1 as reserveField1,
+            reserve_field2 as reserveField2,
+            fingerprint,
+            DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') as snapTime
+        from b_marketing_transfer_sync_${cid}
+        where api_code = #{apiCode}
+          and create_time <![CDATA[>=]]> CURDATE()
+          and create_time <![CDATA[<]]> DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+        order by create_time desc, id desc
+        limit 1
     </select>
 </mapper>

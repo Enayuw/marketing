@@ -17,5 +17,7 @@ public interface AutoCheckService {
 
     Boolean delAutoCheckConfig(Long id);
 
+    void autoCheck();
+
     List<AutoCheckResultVO> getResultList(String apiCodes, String sceneCodes);
 }

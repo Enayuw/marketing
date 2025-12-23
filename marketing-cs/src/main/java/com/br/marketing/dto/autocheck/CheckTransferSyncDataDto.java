@@ -6,6 +6,12 @@ import java.util.Date;
 
 @Data
 public class CheckTransferSyncDataDto {
+
+    /**
+     * id
+     */
+    private Long id;
+
     /**
      * cid
      */
@@ -20,11 +26,6 @@ public class CheckTransferSyncDataDto {
      * 商户编号
      */
     private String apiCode;
-
-    /**
-     * 请求批次号
-     */
-    private String requestId;
 
     /**
      * 机构名称
@@ -62,19 +63,9 @@ public class CheckTransferSyncDataDto {
     private String ifRegister;
 
     /**
-     * 注册时间 yyyy-mm-dd hh:mm:ss:SSS
-     */
-    private String registerTime;
-
-    /**
      * 是否登录 1是0否
      */
     private String ifLogin;
-
-    /**
-     * 登录时间yyyy-mm-dd hh:mm:ss:SSS
-     */
-    private String loginTime;
 
     /**
      * 是否进件 1是0否
@@ -82,29 +73,9 @@ public class CheckTransferSyncDataDto {
     private String ifApply;
 
     /**
-     * 进件时间yyyy-mm-dd hh:mm:ss:SSS
-     */
-    private String applyDt;
-
-    /**
-     * 审批时间yyyy-mm-dd hh:mm:ss:SSS
-     */
-    private String applyTime;
-
-    /**
      * 审批结果 1是0否
      */
     private String applyResult;
-
-    /**
-     * 拒绝时间yyyy-mm-dd hh:mm:ss:SSS
-     */
-    private String refuseTime;
-
-    /**
-     * 授信时间yyyy-mm-dd hh:mm:ss:SSS
-     */
-    private String auditTime;
 
     /**
      * 授信总金额
@@ -115,11 +86,6 @@ public class CheckTransferSyncDataDto {
      * 是否提现 1是0否
      */
     private String ifLent;
-
-    /**
-     * 提现时间yyyy-mm-dd hh:mm:ss:SSS
-     */
-    private String lentTime;
 
     /**
      * 提现金额
@@ -136,10 +102,6 @@ public class CheckTransferSyncDataDto {
      */
     private String ifSettle;
 
-    /**
-     * 结清时间yyyy-mm-dd hh:mm:ss:SSS
-     */
-    private String settleTime;
 
     /**
      * 活动类型
@@ -162,16 +124,6 @@ public class CheckTransferSyncDataDto {
     private String ifTransform;
 
     /**
-     * 转化时间yyyy-mm-dd hh:mm:ss:SSS
-     */
-    private String transformTime;
-
-    /**
-     * 创建时间yyyy-mm-dd hh:mm:ss:SSS
-     */
-    private String insertTime;
-
-    /**
      * 业务保留字段1
      */
     private String reserveField1;
@@ -180,26 +132,6 @@ public class CheckTransferSyncDataDto {
      * 业务保留字段2
      */
     private String reserveField2;
-
-    /**
-     * 创建时间
-     */
-    private Date createTime;
-
-    /**
-     * 修改时间
-     */
-    private Date updateTime;
-
-    /**
-     * 客户请求日期
-     */
-    private String requestData;
-
-    /**
-     * 客户请求时间
-     */
-    private String requestTime;
 
     /**
      * 数据指纹，数据唯一标识

@@ -312,18 +312,16 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
                                                               @Param("filterCondition") String filterCondition);
 
     /**
-     * 自动化巡检：上传场景 - 前一天08:00快照（按 create_time <= yesterday 08:01 取每个 api_code 最新一条）。
+     * 自动化巡检：上传场景 - 前一天08:00快照（单表）。
      *
-     * <p>入参 {@code apiCodeList} 为空/为 null 时，XML 会走兜底条件（{@code 1=0}）返回空集，
-     * 以避免生成 {@code IN ()} 语法错误或误查全表。</p>
+     * <p>说明：当分表不存在时，MySQL 会抛错（1146）。上层按需 try/catch 处理。</p>
      */
-    List<CheckUploadSyncDataDto> getLastDay8DataByApiCodes(List<String> apiCodeList);
+    CheckUploadSyncDataDto getLastDay8DataByApiCode(@Param("apiCode") String apiCode);
 
     /**
-     * 自动化巡检：上传场景 - 最新快照（取每个 api_code 最新一条）。
+     * 自动化巡检：上传场景 - 当天最新快照（单表）。
      *
-     * <p>入参 {@code apiCodeList} 为空/为 null 时，XML 会走兜底条件（{@code 1=0}）返回空集，
-     * 以避免生成 {@code IN ()} 语法错误或误查全表。</p>
+     * <p>说明：当分表不存在时，MySQL 会抛错（1146）。上层按需 try/catch 处理。</p>
      */
-    List<CheckUploadSyncDataDto> getLatestDataByApiCodes(List<String> apiCodeList);
+    CheckUploadSyncDataDto getLatestDataByApiCode(@Param("apiCode") String apiCode);
 }
