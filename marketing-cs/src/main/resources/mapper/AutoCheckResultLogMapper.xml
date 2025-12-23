@@ -3,13 +3,25 @@
 <mapper namespace="com.br.marketing.mapper.AutoCheckResultLogMapper" >
 
     <!-- 查询指定日期（yyyy-MM-dd）的比对结果；compare_time 为 VARCHAR，按前缀匹配当天 -->
-    <select id="selectByCompareTime" resultMap="BaseResultMap">
+    <select id="selectByCodeListAndTime" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List"/>
         FROM b_auto_check_result_log
         WHERE is_deleted = 0
-        <if test="today != null and today != ''">
-            AND compare_time LIKE CONCAT(#{today}, '%')
+        <if test="apiCodeList != null and apiCodeList.size > 0">
+            AND api_code IN
+            <foreach collection="apiCodeList" item="code" open="(" separator="," close=")">
+                #{code}
+            </foreach>
+        </if>
+        <if test="sceneCodeList != null and sceneCodeList.size > 0">
+            AND scene_code IN
+            <foreach collection="sceneCodeList" item="code" open="(" separator="," close=")">
+                #{code}
+            </foreach>
+        </if>
+        <if test="startTime != null and startTime != ''">
+            AND compare_time LIKE CONCAT(#{startTime}, '%')
         </if>
         ORDER BY compare_time DESC, id DESC
     </select>

@@ -17,5 +17,7 @@ public interface AutoCheckResultLogMapper extends AutoCheckResultLogMapperBase {
      * <p>
      * compare_time 为 VARCHAR，通常保存为 yyyy-MM-dd HH:mm:ss；此处用前缀匹配当天。
      */
-    List<AutoCheckResultLog> selectByCompareTime(@Param("today") String today);
+    List<AutoCheckResultLog> selectByCodeListAndTime(@Param("startTime") String startTime,
+                                                     @Param("apiCodeList") List<String> apiCodeList,
+                                                     @Param("sceneCodeList") List<String> sceneCodeList);
 }

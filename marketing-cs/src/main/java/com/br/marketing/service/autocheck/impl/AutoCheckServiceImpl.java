@@ -255,7 +255,7 @@ public class AutoCheckServiceImpl implements AutoCheckService {
 
         // 获取今天已经比对过的id
         String today = DateUtil.today();
-        List<AutoCheckResultLog> resultList = autoCheckResultLogMapper.selectByCompareTime(today);
+        List<AutoCheckResultLog> resultList = autoCheckResultLogMapper.selectByCodeListAndTime(today, null, null);
         Map<String, Long> comparedIdMap = new HashMap<>();
         for (AutoCheckResultLog result : resultList) {
             String key = buildKey(result.getApiCode(), result.getSceneCode());
@@ -310,7 +310,7 @@ public class AutoCheckServiceImpl implements AutoCheckService {
         List<AutoCheckResultVO> result = new ArrayList<>();
         // 找出当天的比对结果，用于前端展示
         String today = DateUtil.today();
-        List<AutoCheckResultLog> resultList = autoCheckResultLogMapper.selectByCompareTime(today);
+        List<AutoCheckResultLog> resultList = autoCheckResultLogMapper.selectByCodeListAndTime(today, apiCodeList, sceneCodeList);
         for (AutoCheckResultLog log : resultList) {
             AutoCheckResultVO autoCheckResultVO = new AutoCheckResultVO();
             autoCheckResultVO.setTime(log.getCompareTime());
