@@ -229,7 +229,8 @@ public class TemplateServiceImpl implements TemplateService {
     private void writeOptLog(Long id) {
         MarketingIndustryTemplateJsonParseExample example = new MarketingIndustryTemplateJsonParseExample();
         example.createCriteria().andInterfaceTemplateIdEqualTo(id).andIsDelEqualTo(Constants.DATA_VALID);
-        List<MarketingIndustryTemplateJsonParse> marketingIndustryTemplateJsonParseListOld = marketingIndustryTemplateJsonParseMapper.selectByExample(example);
+        List<MarketingIndustryTemplateJsonParse> marketingIndustryTemplateJsonParseListOld =
+                marketingIndustryTemplateJsonParseMapper.selectByExample(example);
         for (MarketingIndustryTemplateJsonParse oldValue : marketingIndustryTemplateJsonParseListOld) {
             MarketingIndustryTemplateJsonParse newValue = new MarketingIndustryTemplateJsonParse();
             newValue.setIsDel(Constants.DATA_DEL);
