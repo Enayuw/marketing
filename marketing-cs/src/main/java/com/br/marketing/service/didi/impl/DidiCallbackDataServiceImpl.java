@@ -216,12 +216,12 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
             } else {
                 pushType = 1;
             }
-            saveCallbackDataLog(data, httpcode, content, pushType, pushStatus);
+            saveCallbackDataLog(data, httpcode, content, pushType, pushStatus, requestTO);
         } catch (Exception e) {
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(),
                     "触达成功数据回推异常，cell:" + data.getCell() + " id:" + data.getId(), TITLE), e);
             updateCallbackDataPushStatus(data.getId(), 2);
-            saveCallbackDataLog(data, "500", e.getMessage(), 0, 0);
+            saveCallbackDataLog(data, "500", e.getMessage(), null, 0, null);
         }
     }
 
@@ -238,11 +238,10 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
         }
         String cell = data.getCell();
         return new DiDiSmsRequestTO()
-                .setSign(cell)
+                .setMediaName(mediaName).setChannelId("3140744898058385-bairongC")
                 .setTimestamp(timestamp)
                 .setSignature(MD5Util.encode(cell + timestamp + token))
-                .setScas(data.getScas())
-                .setChannelId(mediaName);
+                .setScas(data.getScas());
     }
 
     /**
@@ -302,7 +301,7 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
      * 保存回调数据日志
      */
     private void saveCallbackDataLog(DidiCallBackData data, String httpcode,
-                                     String content, int pushType, int pushStatus) {
+                                     String content, Integer pushType, int pushStatus, DiDiSmsRequestTO requestTO) {
         DidiCallbackDataLog logEntity = new DidiCallbackDataLog();
         logEntity.setCallbackId(data.getId());
         logEntity.setCell(data.getCell());
@@ -312,6 +311,12 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
         logEntity.setPushStatus(pushStatus);
         logEntity.setApiCode(data.getApiCode());
         logEntity.setCreateTime(new Date());
+        if(Objects.nonNull(requestTO)) {
+            logEntity.setSignature(requestTO.getSignature());
+            logEntity.setTimestamp(requestTO.getTimestamp());
+            logEntity.setChannelId(requestTO.getChannelId());
+            logEntity.setMeidaName(requestTO.getMediaName());
+        }
         didiCallBackDataLogMapper.insertSelective(logEntity);
     }
 
@@ -365,7 +370,7 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
      */
     private void pushSingleFailedData(DiDiV5CollidingDataLog data, String mediaName, String token) {
         try {
-            DiDiSmsRequestTO requestTO = buildFailedRequest(data, token);
+            DiDiSmsRequestTO requestTO = buildFailedRequest(data, token, mediaName);
             Result<String> response = diDiV5Client.callbackFailed(mediaName, requestTO);
 
             String resData = response.getData();
@@ -377,25 +382,25 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
             String errorMessage = contentJson.getString("errorMessage");
 
             boolean success = "200".equals(httpcode);
-            saveFailedCallbackDataLog(data, httpcode, content, success, errorCode, errorMessage);
+            saveFailedCallbackDataLog(data, httpcode, content, success, errorCode, errorMessage, requestTO);
 
         } catch (Exception e) {
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(),
                     "触达失败数据回推异常，cell:" + data.getCell() + " id:" + data.getId(), TITLE), e);
 
-            saveFailedCallbackDataLog(data, "500", e.getMessage(), false, null, null);
+            saveFailedCallbackDataLog(data, "500", e.getMessage(), false, null, null, null);
         }
     }
 
     /**
      * 构建失败请求参数
      */
-    private DiDiSmsRequestTO buildFailedRequest(DiDiV5CollidingDataLog data, String token) {
+    private DiDiSmsRequestTO buildFailedRequest(DiDiV5CollidingDataLog data, String token, String mediaName) {
         String timestamp = String.valueOf(System.currentTimeMillis());
         String cell = data.getCell();
 
         return new DiDiSmsRequestTO()
-                .setSign(cell)
+                .setSign(cell).setMediaName(mediaName).setChannelId("3140744898058385-bairongC")
                 .setTimestamp(timestamp)
                 .setSignature(MD5Util.encode(cell + timestamp + token));
     }
@@ -404,7 +409,8 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
      * 保存失败数据回调日志
      */
     private void saveFailedCallbackDataLog(DiDiV5CollidingDataLog data, String httpcode,
-                                           String content, boolean success, String errorCode, String errorMessage) {
+                                           String content, boolean success, String errorCode, String errorMessage,
+                                           DiDiSmsRequestTO requestTO) {
         DidiCallbackDataLog logEntity = new DidiCallbackDataLog();
         logEntity.setCallbackId(data.getId());
         logEntity.setCell(data.getCell());
@@ -416,6 +422,12 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
         logEntity.setCreateTime(new Date());
         logEntity.setErrorCode(errorCode);
         logEntity.setErrorMessage(errorMessage);
+        if(Objects.nonNull(requestTO)) {
+            logEntity.setSignature(requestTO.getSignature());
+            logEntity.setTimestamp(requestTO.getTimestamp());
+            logEntity.setChannelId(requestTO.getChannelId());
+            logEntity.setMeidaName(requestTO.getMediaName());
+        }
         didiCallBackDataLogMapper.insertSelective(logEntity);
     }
 }

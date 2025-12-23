@@ -16,4 +16,5 @@ public class DiDiSmsRequestTO {
     private String signature;
     private String scas;
     private String channelId;
+    private String mediaName;
 }

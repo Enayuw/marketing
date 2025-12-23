@@ -79,8 +79,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, callback_id, api_code, cell, http_code, error_code, error_message, return_content,
-    push_type, push_status, meida_name, scas, `timestamp`, signature, channel_id, create_time,
+    id, callback_id, api_code, cell, http_code, error_code, error_message, return_content, 
+    push_type, push_status, meida_name, scas, `timestamp`, signature, channel_id, create_time, 
     update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.DidiCallbackDataLogExample" >
@@ -98,7 +98,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select
+    select 
     <include refid="Base_Column_List" />
     from b_didi_v5_callback_data_log
     where id = #{id,jdbcType=BIGINT}
@@ -117,18 +117,18 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_didi_v5_callback_data_log (callback_id, api_code, cell,
-    http_code, error_code, error_message,
-    return_content, push_type, push_status,
-    meida_name, scas, `timestamp`,
-    signature, channel_id, create_time,
-    update_time)
-    values (#{callbackId,jdbcType=BIGINT}, #{apiCode,jdbcType=VARCHAR}, #{cell,jdbcType=VARCHAR},
-    #{httpCode,jdbcType=VARCHAR}, #{errorCode,jdbcType=VARCHAR}, #{errorMessage,jdbcType=VARCHAR},
-    #{returnContent,jdbcType=VARCHAR}, #{pushType,jdbcType=TINYINT}, #{pushStatus,jdbcType=TINYINT},
-    #{meidaName,jdbcType=VARCHAR}, #{scas,jdbcType=VARCHAR}, #{timestamp,jdbcType=VARCHAR},
-    #{signature,jdbcType=VARCHAR}, #{channelId,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP},
-    #{updateTime,jdbcType=TIMESTAMP})
+    insert into b_didi_v5_callback_data_log (callback_id, api_code, cell, 
+      http_code, error_code, error_message, 
+      return_content, push_type, push_status, 
+      meida_name, scas, `timestamp`, 
+      signature, channel_id, create_time, 
+      update_time)
+    values (#{callbackId,jdbcType=BIGINT}, #{apiCode,jdbcType=VARCHAR}, #{cell,jdbcType=VARCHAR}, 
+      #{httpCode,jdbcType=VARCHAR}, #{errorCode,jdbcType=VARCHAR}, #{errorMessage,jdbcType=VARCHAR}, 
+      #{returnContent,jdbcType=VARCHAR}, #{pushType,jdbcType=TINYINT}, #{pushStatus,jdbcType=TINYINT}, 
+      #{meidaName,jdbcType=VARCHAR}, #{scas,jdbcType=VARCHAR}, #{timestamp,jdbcType=VARCHAR}, 
+      #{signature,jdbcType=VARCHAR}, #{channelId,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.DidiCallbackDataLog" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -304,22 +304,22 @@
   <update id="updateByExample" parameterType="map" >
     update b_didi_v5_callback_data_log
     set id = #{record.id,jdbcType=BIGINT},
-    callback_id = #{record.callbackId,jdbcType=BIGINT},
-    api_code = #{record.apiCode,jdbcType=VARCHAR},
-    cell = #{record.cell,jdbcType=VARCHAR},
-    http_code = #{record.httpCode,jdbcType=VARCHAR},
-    error_code = #{record.errorCode,jdbcType=VARCHAR},
-    error_message = #{record.errorMessage,jdbcType=VARCHAR},
-    return_content = #{record.returnContent,jdbcType=VARCHAR},
-    push_type = #{record.pushType,jdbcType=TINYINT},
-    push_status = #{record.pushStatus,jdbcType=TINYINT},
-    meida_name = #{record.meidaName,jdbcType=VARCHAR},
-    scas = #{record.scas,jdbcType=VARCHAR},
-    `timestamp` = #{record.timestamp,jdbcType=VARCHAR},
-    signature = #{record.signature,jdbcType=VARCHAR},
-    channel_id = #{record.channelId,jdbcType=VARCHAR},
-    create_time = #{record.createTime,jdbcType=TIMESTAMP},
-    update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+      callback_id = #{record.callbackId,jdbcType=BIGINT},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      cell = #{record.cell,jdbcType=VARCHAR},
+      http_code = #{record.httpCode,jdbcType=VARCHAR},
+      error_code = #{record.errorCode,jdbcType=VARCHAR},
+      error_message = #{record.errorMessage,jdbcType=VARCHAR},
+      return_content = #{record.returnContent,jdbcType=VARCHAR},
+      push_type = #{record.pushType,jdbcType=TINYINT},
+      push_status = #{record.pushStatus,jdbcType=TINYINT},
+      meida_name = #{record.meidaName,jdbcType=VARCHAR},
+      scas = #{record.scas,jdbcType=VARCHAR},
+      `timestamp` = #{record.timestamp,jdbcType=VARCHAR},
+      signature = #{record.signature,jdbcType=VARCHAR},
+      channel_id = #{record.channelId,jdbcType=VARCHAR},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -381,21 +381,21 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.DidiCallbackDataLog" >
     update b_didi_v5_callback_data_log
     set callback_id = #{callbackId,jdbcType=BIGINT},
-        api_code = #{apiCode,jdbcType=VARCHAR},
-        cell = #{cell,jdbcType=VARCHAR},
-        http_code = #{httpCode,jdbcType=VARCHAR},
-        error_code = #{errorCode,jdbcType=VARCHAR},
-        error_message = #{errorMessage,jdbcType=VARCHAR},
-        return_content = #{returnContent,jdbcType=VARCHAR},
-        push_type = #{pushType,jdbcType=TINYINT},
-        push_status = #{pushStatus,jdbcType=TINYINT},
-        meida_name = #{meidaName,jdbcType=VARCHAR},
-        scas = #{scas,jdbcType=VARCHAR},
-        `timestamp` = #{timestamp,jdbcType=VARCHAR},
-        signature = #{signature,jdbcType=VARCHAR},
-        channel_id = #{channelId,jdbcType=VARCHAR},
-        create_time = #{createTime,jdbcType=TIMESTAMP},
-        update_time = #{updateTime,jdbcType=TIMESTAMP}
+      api_code = #{apiCode,jdbcType=VARCHAR},
+      cell = #{cell,jdbcType=VARCHAR},
+      http_code = #{httpCode,jdbcType=VARCHAR},
+      error_code = #{errorCode,jdbcType=VARCHAR},
+      error_message = #{errorMessage,jdbcType=VARCHAR},
+      return_content = #{returnContent,jdbcType=VARCHAR},
+      push_type = #{pushType,jdbcType=TINYINT},
+      push_status = #{pushStatus,jdbcType=TINYINT},
+      meida_name = #{meidaName,jdbcType=VARCHAR},
+      scas = #{scas,jdbcType=VARCHAR},
+      `timestamp` = #{timestamp,jdbcType=VARCHAR},
+      signature = #{signature,jdbcType=VARCHAR},
+      channel_id = #{channelId,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

@@ -46,12 +46,12 @@ public class DidiCallbackDataLog {
     /**
      * 推送类型:1-触达成功数据,0-触达失败数据,2-通话失败改成功,3-短信失败改成功
      */
-    private Integer pushType;
+    private Byte pushType;
 
     /**
      * 推送状态：1-成功，0-失败
      */
-    private Integer pushStatus;
+    private Byte pushStatus;
 
     /**
      * meidaName
@@ -152,19 +152,19 @@ public class DidiCallbackDataLog {
         this.returnContent = returnContent == null ? null : returnContent.trim();
     }
 
-    public Integer getPushType() {
+    public Byte getPushType() {
         return pushType;
     }
 
-    public void setPushType(Integer pushType) {
+    public void setPushType(Byte pushType) {
         this.pushType = pushType;
     }
 
-    public Integer getPushStatus() {
+    public Byte getPushStatus() {
         return pushStatus;
     }
 
-    public void setPushStatus(Integer pushStatus) {
+    public void setPushStatus(Byte pushStatus) {
         this.pushStatus = pushStatus;
     }
 
