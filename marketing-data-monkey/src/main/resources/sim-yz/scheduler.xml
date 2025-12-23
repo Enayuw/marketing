@@ -712,7 +712,7 @@
 
     <job:simple id="【monkey】-MarketingHaloCallBackDataJob"
                 class="com.br.marketing.monkey.job.halo.MarketingHaloCallBackDataJob"
-                cron="0 0 18 29 9 ? 2099-2099"
+                cron="0 0/30 * * * ?"
                 description="哈啰-三方营销数据回传"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
