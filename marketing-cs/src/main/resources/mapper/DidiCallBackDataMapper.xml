@@ -63,10 +63,19 @@
 
     <update id="updateStatusByIds">
         UPDATE b_didi_v5_callback_data
-        SET status = #{status}, push_status = #{pushStatus}, update_time = NOW()
+        SET status = #{status}, update_time = NOW()
         WHERE id IN
         <foreach collection="ids" item="id" open="(" close=")" separator=",">
             #{id}
+        </foreach>
+    </update>
+
+    <update id="updateStatusByCells">
+        UPDATE b_didi_v5_callback_data
+        SET status = #{status}, update_time = NOW()
+        WHERE cust_num IN
+        <foreach collection="custNums" item="custNum" open="(" close=")" separator=",">
+            #{custNum}
         </foreach>
     </update>
 

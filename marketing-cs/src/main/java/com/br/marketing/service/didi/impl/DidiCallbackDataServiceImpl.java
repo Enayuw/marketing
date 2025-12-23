@@ -8,7 +8,6 @@ import com.br.marketing.client.didi.utils.MD5Util;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
-import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.DiDiV5CollidingDataLog;
 import com.br.marketing.entity.DidiCallBackData;
 import com.br.marketing.entity.DidiCallbackDataLog;
@@ -29,6 +28,7 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -110,12 +110,19 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
                 break;
             }
 
-            Set<String> cellSet = pageData.stream().map(DidiCallBackData::getCell).collect(Collectors.toSet());
+            Set<String> cellSet = pageData.stream().map(DidiCallBackData::getCustNum).collect(Collectors.toSet());
             List<String> pushedCells = didiCallBackDataLogMapper.selectPushedCells(cellSet);
+            if(CollectionUtils.isNotEmpty(pushedCells)) {
+                List<Long> duplicateIds = pageData.stream()
+                        .filter(data -> pushedCells.contains(data.getCustNum()))
+                        .map(DidiCallBackData::getId)
+                        .collect(Collectors.toList());
+                didiCallBackDataMapper.updateStatusByIds(duplicateIds, 1);
+            }
 
             // 过滤已推送的cell
             List<DidiCallBackData> filteredData = pageData.stream()
-                    .filter(data -> !pushedCells.contains(data.getCell()))
+                    .filter(data -> !pushedCells.contains(data.getCustNum()))
                     .collect(Collectors.toList());
 
             if (CollectionUtils.isEmpty(filteredData)) {
@@ -125,7 +132,7 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
 
             // 按cell分组，每个cell只取一条
             Map<String, List<DidiCallBackData>> cellGroupMap = filteredData.stream()
-                    .collect(Collectors.groupingBy(DidiCallBackData::getCell));
+                    .collect(Collectors.groupingBy(DidiCallBackData::getCustNum));
 
             List<DidiCallBackData> uniqueData = new ArrayList<>();
             for (List<DidiCallBackData> cellDataList : cellGroupMap.values()) {
@@ -176,7 +183,7 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
         if (CollectionUtils.isEmpty(duplicateIds)) {
             return;
         }
-        didiCallBackDataMapper.updateStatusByIds(duplicateIds, 1, 2);
+        didiCallBackDataMapper.updateStatusByIds(duplicateIds, 1);
     }
 
     /**
@@ -187,8 +194,13 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
         if (CollectionUtils.isEmpty(dataList)) {
             return;
         }
-        dataList.forEach(data -> pushPool.execute(() -> pushSingleSuccessData(data, mediaName, token, stage)
-        ));
+        List<CompletableFuture<Void>> futures = Lists.newArrayList();
+        dataList.forEach(data -> {
+            CompletableFuture<Void> future = CompletableFuture.runAsync(() ->
+                    pushSingleSuccessData(data, mediaName, token, stage), pushPool);
+            futures.add(future);
+        });
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
     }
 
     /**
@@ -240,11 +252,11 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
         } else {
             timestamp = String.valueOf(data.getCreateTime().getTime());
         }
-        String cell = data.getCell();
-        return new DiDiSmsRequestTO()
+        String custNum = data.getCustNum();
+        return new DiDiSmsRequestTO().setSign(custNum)
                 .setMediaName(mediaName).setChannelId("3140744898058385-bairongC")
                 .setTimestamp(timestamp)
-                .setSignature(MD5Util.encode(cell + timestamp + token))
+                .setSignature(MD5Util.encode(custNum + timestamp + token))
                 .setScas(data.getScas());
     }
 
@@ -308,7 +320,7 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
                                      String content, Integer pushType, int pushStatus, DiDiSmsRequestTO requestTO) {
         DidiCallbackDataLog logEntity = new DidiCallbackDataLog();
         logEntity.setCallbackId(data.getId());
-        logEntity.setCell(data.getCell());
+        logEntity.setCell(data.getCustNum());
         logEntity.setHttpCode(httpcode);
         logEntity.setReturnContent(content);
         logEntity.setPushType(pushType);
@@ -316,6 +328,8 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
         logEntity.setApiCode(data.getApiCode());
         logEntity.setCreateTime(new Date());
         logEntity.setScas(data.getScas());
+        logEntity.setErrorCode(data.getErrorCode());
+        logEntity.setErrorMessage(data.getErrorMessage());
         if(Objects.nonNull(requestTO)) {
             logEntity.setSignature(requestTO.getSignature());
             logEntity.setTimestamp(requestTO.getTimestamp());
@@ -330,7 +344,7 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
         int pageSize = marketingCommonConfig.getDiDiV5Config().getInteger("limit");
 
         while (true) {
-            if (marketingCommonConfig.getDiDiV5Config().getBooleanValue("callbackSwitch")) {
+            if (marketingCommonConfig.getDiDiV5Config().getBooleanValue("callbackFailSwitch")) {
                 log.warn("检测到中断信号，停止处理触达失败数据");
                 break;
             }
@@ -343,6 +357,9 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
             // 过滤已推送的cell
             Set<String> cellSet = pageData.stream().map(DiDiV5CollidingDataLog::getCell).collect(Collectors.toSet());
             List<String> pushedCells = didiCallBackDataLogMapper.selectPushedCells(cellSet);
+            if(CollectionUtils.isNotEmpty(pushedCells)) {
+                didiCallBackDataMapper.updateStatusByCells(1, pushedCells);
+            }
             List<DiDiV5CollidingDataLog> filteredData = pageData.stream()
                     .filter(data -> !pushedCells.contains(data.getCell()))
                     .collect(Collectors.toList());
@@ -362,9 +379,13 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
             }
             if (!CollectionUtils.isEmpty(uniqueData)) {
                 // 推送失败数据
-                uniqueData.forEach(data ->
-                        pushPool.execute(() -> pushSingleFailedData(data, mediaName, token))
-                );
+                List<CompletableFuture<Void>> futures = Lists.newArrayList();
+                uniqueData.forEach(data -> {
+                    CompletableFuture<Void> future = CompletableFuture.runAsync(() ->
+                            pushSingleFailedData(data, mediaName, token), pushPool);
+                    futures.add(future);
+                });
+                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
             }
             lastId = pageData.get(pageData.size() - 1).getId();
         }
@@ -402,12 +423,12 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
      */
     private DiDiSmsRequestTO buildFailedRequest(DiDiV5CollidingDataLog data, String token, String mediaName) {
         String timestamp = generateRandomTimestampToday();
-        String cell = data.getCell();
+        String custNum = data.getCell();
 
         return new DiDiSmsRequestTO()
-                .setSign(cell).setMediaName(mediaName)
+                .setSign(custNum).setMediaName(mediaName)
                 .setTimestamp(timestamp)
-                .setSignature(MD5Util.encode(cell + timestamp + token));
+                .setSignature(MD5Util.encode(custNum + timestamp + token));
     }
 
     private String generateRandomTimestampToday() {

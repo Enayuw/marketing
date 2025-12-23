@@ -26,5 +26,8 @@ public interface DidiCallBackDataMapper extends DidiCallBackDataMapperBase {
                                                      @Param("apiCode") String apiCode);
 
 
-    void updateStatusByIds(@Param("ids") List<Long> ids, @Param("status") Integer status, @Param("pushStatus") Integer pushStatus);
+    void updateStatusByIds(@Param("ids") List<Long> ids, @Param("status") Integer status);
+
+    void updateStatusByCells(@Param("status") Integer status, @Param("custNums") List<String> custNums);
+
 }
