@@ -31,7 +31,9 @@ public class JsonFilterUtil {
      * <p>示例：{@code JsonFilterUtil.toJsonSafe(latest, "id", "createTime")}</p>
      */
     public static String toJsonExcludeSafe(Object obj, String... excludeFields) {
-        if (obj == null) return "";
+        if (obj == null) {
+            return "";
+        }
         try {
             if (excludeFields == null || excludeFields.length == 0) {
                 return OBJECT_MAPPER.writeValueAsString(obj);
@@ -60,7 +62,9 @@ public class JsonFilterUtil {
      * <p>示例：{@code JsonFilterUtil.toJsonIncludeSafe(latest, "apiCode", "snapTime")}</p>
      */
     public static String toJsonIncludeSafe(Object obj, String... includeFields) {
-        if (obj == null) return "";
+        if (obj == null) {
+            return "";
+        }
         try {
             if (includeFields == null || includeFields.length == 0) {
                 return OBJECT_MAPPER.writeValueAsString(obj);

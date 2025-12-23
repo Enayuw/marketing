@@ -1,6 +1,15 @@
 package com.br.marketing.utils;
 
+import com.br.marketing.vo.autocheck.AutoCheckResultVO;
+import org.apache.commons.lang3.StringUtils;
+
+import java.beans.BeanInfo;
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,6 +28,11 @@ public final class CheckObjectSameUtil {
      * 字段缓存：按 Class 缓存 “字段名 -> Field”，避免频繁反射扫描
      */
     private static final ConcurrentHashMap<Class<?>, Map<String, Field>> FIELD_CACHE = new ConcurrentHashMap<>();
+
+    /**
+     * Getter 缓存：按 Class 缓存 “属性名 -> public getter Method”
+     */
+    private static final ConcurrentHashMap<Class<?>, Map<String, Method>> GETTER_CACHE = new ConcurrentHashMap<>();
 
     /**
      * 字段缓存：按 Class 缓存 “所有实例字段 Field[]（包含父类字段，且保留同名隐藏字段）”。
@@ -44,16 +58,13 @@ public final class CheckObjectSameUtil {
             return obj1 == null && obj2 == null;
         }
 
+        Map<String, Method> getterMap = getGetterMap(clazz);
         Field[] allFields = getAllInstanceFields(clazz);
         for (Field field : allFields) {
-            try {
-                Object value1 = field.get(obj1);
-                Object value2 = field.get(obj2);
-                if (!isFieldValueEqual(value1, value2)) {
-                    return false;
-                }
-            } catch (IllegalAccessException e) {
-                throw new IllegalStateException("反射读取字段失败: " + clazz.getName(), e);
+            Object value1 = readFieldOrGetterValue(obj1, field, getterMap);
+            Object value2 = readFieldOrGetterValue(obj2, field, getterMap);
+            if (!isFieldValueEqual(value1, value2)) {
+                return false;
             }
         }
         return true;
@@ -81,22 +92,19 @@ public final class CheckObjectSameUtil {
         }
 
         Map<String, Field> fieldMap = getFieldMap(clazz);
+        Map<String, Method> getterMap = getGetterMap(clazz);
         for (String fieldName : fieldNames) {
-            if (fieldName == null || fieldName.trim().isEmpty()) {
+            if (StringUtils.isBlank(fieldName)) {
                 continue;
             }
             Field field = fieldMap.get(fieldName);
             if (field == null) {
                 throw new IllegalArgumentException("字段不存在或不可用: " + clazz.getName() + "#" + fieldName);
             }
-            try {
-                Object value1 = field.get(obj1);
-                Object value2 = field.get(obj2);
-                if (!isFieldValueEqual(value1, value2)) {
-                    return false;
-                }
-            } catch (IllegalAccessException e) {
-                throw new IllegalStateException("反射读取字段失败: " + clazz.getName() + "#" + fieldName, e);
+            Object value1 = readFieldOrGetterValue(obj1, field, getterMap);
+            Object value2 = readFieldOrGetterValue(obj2, field, getterMap);
+            if (!isFieldValueEqual(value1, value2)) {
+                return false;
             }
         }
 
@@ -128,7 +136,7 @@ public final class CheckObjectSameUtil {
         Map<String, Field> fieldMap = getFieldMap(clazz);
         Set<String> excludeSet = new HashSet<>();
         for (String fieldName : excludeFieldNames) {
-            if (fieldName == null || fieldName.trim().isEmpty()) {
+            if (StringUtils.isBlank(fieldName)) {
                 continue;
             }
             Field field = fieldMap.get(fieldName);
@@ -138,19 +146,16 @@ public final class CheckObjectSameUtil {
             excludeSet.add(fieldName);
         }
 
+        Map<String, Method> getterMap = getGetterMap(clazz);
         Field[] allFields = getAllInstanceFields(clazz);
         for (Field field : allFields) {
             if (excludeSet.contains(field.getName())) {
                 continue;
             }
-            try {
-                Object value1 = field.get(obj1);
-                Object value2 = field.get(obj2);
-                if (!isFieldValueEqual(value1, value2)) {
-                    return false;
-                }
-            } catch (IllegalAccessException e) {
-                throw new IllegalStateException("反射比较字段失败: " + clazz.getName() + "#" + field.getName(), e);
+            Object value1 = readFieldOrGetterValue(obj1, field, getterMap);
+            Object value2 = readFieldOrGetterValue(obj2, field, getterMap);
+            if (!isFieldValueEqual(value1, value2)) {
+                return false;
             }
         }
         return true;
@@ -194,7 +199,7 @@ public final class CheckObjectSameUtil {
                 if (Modifier.isStatic(field.getModifiers())) {
                     continue;
                 }
-                result.add(makeAccessible(field));
+                result.add(field);
             }
             current = current.getSuperclass();
         }
@@ -211,20 +216,59 @@ public final class CheckObjectSameUtil {
                     continue;
                 }
                 // 子类字段优先：如果同名覆盖，保持先放入的（子类）不被父类覆盖
-                map.putIfAbsent(field.getName(), makeAccessible(field));
+                map.putIfAbsent(field.getName(), field);
             }
             current = current.getSuperclass();
         }
         return Collections.unmodifiableMap(map);
     }
 
-    private static Field makeAccessible(Field field) {
+    private static Map<String, Method> getGetterMap(Class<?> clazz) {
+        return GETTER_CACHE.computeIfAbsent(clazz, CheckObjectSameUtil::buildGetterMap);
+    }
+
+    private static Map<String, Method> buildGetterMap(Class<?> clazz) {
         try {
-            field.setAccessible(true);
-        } catch (Exception ignored) {
-            // 在强封装环境下可能失败；失败时后续 get 可能抛 IllegalAccessException
+            BeanInfo beanInfo = Introspector.getBeanInfo(clazz);
+            Map<String, Method> map = new HashMap<>();
+            for (PropertyDescriptor pd : beanInfo.getPropertyDescriptors()) {
+                if (pd == null) {
+                    continue;
+                }
+                String name = pd.getName();
+                if ("class".equals(name)) {
+                    continue;
+                }
+                Method read = pd.getReadMethod();
+                if (read != null) {
+                    map.put(name, read);
+                }
+            }
+            return Collections.unmodifiableMap(map);
+        } catch (IntrospectionException e) {
+            return Collections.emptyMap();
         }
-        return field;
+    }
+
+    /**
+     * 不修改可见性地读取字段值：优先 Field#get（仅对本来就可访问的字段生效），失败再尝试 public getter。
+     */
+    private static Object readFieldOrGetterValue(Object target, Field field, Map<String, Method> getterMap) {
+        try {
+            return field.get(target);
+        } catch (IllegalAccessException e) {
+            Method getter = getterMap.get(field.getName());
+            if (getter == null) {
+                throw new IllegalStateException("字段不可访问且未找到 getter: "
+                        + field.getDeclaringClass().getName() + "#" + field.getName(), e);
+            }
+            try {
+                return getter.invoke(target);
+            } catch (IllegalAccessException | InvocationTargetException ex) {
+                throw new IllegalStateException("getter 调用失败: "
+                        + getter.getDeclaringClass().getName() + "#" + getter.getName(), ex);
+            }
+        }
     }
 
     /**
@@ -258,18 +302,34 @@ public final class CheckObjectSameUtil {
             return false;
         }
         // 基本类型数组
-        if (arr1 instanceof boolean[]) return Arrays.equals((boolean[]) arr1, (boolean[]) arr2);
-        if (arr1 instanceof byte[]) return Arrays.equals((byte[]) arr1, (byte[]) arr2);
-        if (arr1 instanceof char[]) return Arrays.equals((char[]) arr1, (char[]) arr2);
-        if (arr1 instanceof short[]) return Arrays.equals((short[]) arr1, (short[]) arr2);
-        if (arr1 instanceof int[]) return Arrays.equals((int[]) arr1, (int[]) arr2);
-        if (arr1 instanceof long[]) return Arrays.equals((long[]) arr1, (long[]) arr2);
-        if (arr1 instanceof float[]) return Arrays.equals((float[]) arr1, (float[]) arr2);
-        if (arr1 instanceof double[]) return Arrays.equals((double[]) arr1, (double[]) arr2);
-
+        if (arr1 instanceof boolean[]) {
+            return Arrays.equals((boolean[]) arr1, (boolean[]) arr2);
+        }
+        if (arr1 instanceof byte[]) {
+            return Arrays.equals((byte[]) arr1, (byte[]) arr2);
+        }
+        if (arr1 instanceof char[]) {
+            return Arrays.equals((char[]) arr1, (char[]) arr2);
+        }
+        if (arr1 instanceof short[]) {
+            return Arrays.equals((short[]) arr1, (short[]) arr2);
+        }
+        if (arr1 instanceof int[]) {
+            return Arrays.equals((int[]) arr1, (int[]) arr2);
+        }
+        if (arr1 instanceof long[]) {
+            return Arrays.equals((long[]) arr1, (long[]) arr2);
+        }
+        if (arr1 instanceof float[]) {
+            return Arrays.equals((float[]) arr1, (float[]) arr2);
+        }
+        if (arr1 instanceof double[]) {
+            return Arrays.equals((double[]) arr1, (double[]) arr2);
+        }
         // 对象数组
-        if (arr1 instanceof Object[]) return Arrays.equals((Object[]) arr1, (Object[]) arr2);
-
+        if (arr1 instanceof Object[]) {
+            return Arrays.equals((Object[]) arr1, (Object[]) arr2);
+        }
         // 未知数组类型
         return false;
     }
