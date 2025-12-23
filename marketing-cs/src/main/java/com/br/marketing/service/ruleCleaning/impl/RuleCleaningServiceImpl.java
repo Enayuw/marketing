@@ -1925,42 +1925,72 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         MarketingCleanDataFile cleanDataFile = cleanDataFiles.get(0);
         List<String> mappingFields = ruleConfigList.stream().map(MarketingDataCleanGeneralRuleConfig::getMappingField).collect(Collectors.toList());
         List<String> fileHeader = Arrays.asList(cleanDataFile.getFileHeader().split(","));
-        List<String> resultFields = mergeCollection(mappingFields, fileHeader);
-        for (int i = 0; i < resultFields.size(); i++) {
-            FieldSampleDTO dto = new FieldSampleDTO();
-            // 设置字段名称
-            dto.setFieldName(resultFields.get(i));
-            dto.setFirstUploadTime(cleanDataFile.getCreateTime());
-            dto.setFieldType(0);
-            dto.setNeedCleaning(false);
-            MarketingDataCleanGeneralRuleConfig ruleConfig =
-                    ruleConfigList.stream().filter(rule -> rule.getMappingField().equals(dto.getFieldName()))
-                    .findFirst().orElse(null);
-            if (!Objects.isNull(ruleConfig)) {
-                dto.setMappingRule(ruleConfig.getMappingRule());
-                dto.setRelatedField(ruleConfig.getMappingField());
-                dto.setResultPreview(ruleConfig.getResultPreview());
-                dto.setNeedCleaning(ruleConfig.getIsMapping());
-                dto.setFieldType(ruleConfig.getIsDerived());
-                dto.setFieldSample(ruleConfig.getResultPreview());
+        List<String> fileData = Arrays.asList(cleanDataFile.getFileData().split(",", -1));
+        List<String> resultFields = mergeCollection(fileHeader, mappingFields);
+
+        for (String resultField : resultFields) {
+            if (fileHeader.contains(resultField)) {
+                FieldSampleDTO dto = new FieldSampleDTO();
+                // 设置字段名称
+                dto.setFieldName(resultField);
+                dto.setFieldSample(fileData.get(fileHeader.indexOf(resultField)));
+                dto.setFirstUploadTime(cleanDataFile.getCreateTime());
+                dto.setFieldType(0);
+                dto.setNeedCleaning(false);
+                MarketingDataCleanGeneralRuleConfig ruleConfig = ruleConfigList.stream().filter(rule -> rule.getCleanFields().equals(dto.getFieldName()))
+                        .findFirst().orElse(null);
+                if (!Objects.isNull(ruleConfig)) {
+                    dto.setMappingRule(ruleConfig.getMappingRule());
+                    dto.setRelatedField(ruleConfig.getCleanFields());
+                    dto.setResultPreview(ruleConfig.getResultPreview());
+                    dto.setNeedCleaning(ruleConfig.getIsMapping());
+                    dto.setFieldType(ruleConfig.getIsDerived());
+                }
+                // 添加到结果列表
+                result.add(dto);
+            } else  {
+                FieldSampleDTO dto = new FieldSampleDTO();
+                dto.setFieldName(resultField);
+                MarketingDataCleanGeneralRuleConfig ruleConfig =
+                        ruleConfigList.stream().filter(rule -> rule.getMappingField().equals(dto.getFieldName()))
+                        .findFirst().orElse(null);
+                dto.setFieldSample(fileData.get(fileHeader.indexOf(ruleConfig.getCleanFields())));
+                dto.setFirstUploadTime(cleanDataFile.getCreateTime());
+                dto.setFieldType(1);
+                dto.setNeedCleaning(true);
+                if (!Objects.isNull(ruleConfig)) {
+                    dto.setMappingRule(ruleConfig.getMappingRule());
+                    dto.setRelatedField(ruleConfig.getCleanFields());
+                    dto.setResultPreview(ruleConfig.getResultPreview());
+                    dto.setNeedCleaning(ruleConfig.getIsMapping());
+                    dto.setFieldType(ruleConfig.getIsDerived());
+                }
+                result.add(dto);
             }
-            // 添加到结果列表
-            result.add(dto);
         }
     }
 
-        /**
-         * 合并集合，去重
-         * @param collection1 集合1
-         * @param collection2 集合2
-         * @return 合并后的集合
-         */
-        private List<String> mergeCollection(Collection<String> collection1, Collection<String> collection2) {
-            Set<String> set = new HashSet<>();
-            set.addAll(collection1);
-            set.addAll(collection2);
-            return new ArrayList<>(set);
+
+    private List<String> mergeCollection(List<String> fileHeader, List<String> mappingFields) {
+        if (CollectionUtils.isEmpty(fileHeader)) {
+            return CollectionUtils.isEmpty(mappingFields) ? new ArrayList<>() : new ArrayList<>(mappingFields);
         }
+        if (CollectionUtils.isEmpty(mappingFields)) {
+            return new ArrayList<>(fileHeader);
+        }
+        
+        List<String> result = new ArrayList<>(fileHeader);
+        
+        Set<String> fileHeaderSet = new HashSet<>(fileHeader);
+        
+        for (String mappingField : mappingFields) {
+            if (!fileHeaderSet.contains(mappingField)) {
+                result.add(mappingField);
+            }
+        }
+        
+        return result;
+    }
 
     @Override
     public Result<List<List<RuleCleaningResult>>> trialProcess(RuleTrialConfigDTO ruleTrialConfigDTO) {
