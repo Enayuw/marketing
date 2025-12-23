@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.TcyrCpaCollidingTaskPackageMapper" >
+
+    <insert id="insertBatch" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO b_tcyr_cpa_colliding_task_package (
+        colliding_task_id,
+        package_type,
+        package_id,
+        priority,
+        fail_msg,
+        supply_rule_info
+        )values
+        <foreach collection="list" item="data" separator=",">
+            (
+            #{data.collidingTaskId,jdbcType=BIGINT},
+            #{data.packageType,jdbcType=INTEGER},
+            #{data.packageId,jdbcType=BIGINT},
+            #{data.priority,jdbcType=INTEGER},
+            #{data.failMsg,jdbcType=VARCHAR},
+            #{data.supplyRuleInfo,jdbcType=VARCHAR}
+            )
+        </foreach>
+    </insert>
+</mapper>
