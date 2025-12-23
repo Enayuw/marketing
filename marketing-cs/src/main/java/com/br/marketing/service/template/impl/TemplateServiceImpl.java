@@ -80,6 +80,15 @@ public class TemplateServiceImpl implements TemplateService {
                 });
                 marketingIndustryTemplateJsonParseMapper.batchInsert(marketingIndustryTemplateJsonParseList);
             }
+            //添加操作日志
+            MarketingIndustryTemplateJsonParseExample example = new MarketingIndustryTemplateJsonParseExample();
+            example.createCriteria().andInterfaceTemplateIdEqualTo(interfaceTemplateId).andIsDelEqualTo(Constants.DATA_VALID);
+            List<MarketingIndustryTemplateJsonParse> marketingIndustryTemplateJsonParseListOld =
+                    marketingIndustryTemplateJsonParseMapper.selectByExample(example);
+
+            marketingIndustryTemplateJsonParseListOld.forEach(item -> {
+                entityOptService.writeOptLog(item.getId(), item ,null);
+            });
 
             logger.warn("新增行业模板成功，行业模板名称：{}", marketingIndustryTemplate.getTemplateName());
             return new Result<>().success().setDate(Boolean.TRUE);
@@ -165,6 +174,17 @@ public class TemplateServiceImpl implements TemplateService {
                     marketingIndustryTemplateJsonParse.setUpdateTime(new Date());
                 });
                 marketingIndustryTemplateJsonParseMapper.batchInsert(marketingIndustryTemplateJsonParseList);
+
+                //添加操作日志
+                MarketingIndustryTemplateJsonParseExample example = new MarketingIndustryTemplateJsonParseExample();
+                example.createCriteria().andInterfaceTemplateIdEqualTo(templateId).andIsDelEqualTo(Constants.DATA_VALID);
+                List<MarketingIndustryTemplateJsonParse> marketingIndustryTemplateJsonParseListOld =
+                        marketingIndustryTemplateJsonParseMapper.selectByExample(example);
+
+                marketingIndustryTemplateJsonParseListOld.forEach(item -> {
+                    entityOptService.writeOptLog(item.getId(), item ,null);
+                });
+
                 logger.warn("修改行业模板成功，行业模板id：{}", marketingIndustryTemplate.getId());
                 return new Result<Boolean>().success().setDate(Boolean.TRUE);
             } else {
