@@ -64,23 +64,26 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
             JSONObject pushConfig = marketingCommonConfig.getDiDiV5Config();
             String mediaName = pushConfig.getString("mediaName") != null ?
                     pushConfig.getString("mediaName") : "bairongC";
-            String token = pushConfig.getString("token") != null ?
-                    pushConfig.getString("token") : "9Hqeoi36CJfdA7n4";
+            String successToken = pushConfig.getString("successToken") != null ?
+                    pushConfig.getString("successToken") : "DK&SgWl!fZ%WVSXe";
+            String failToken = pushConfig.getString("failToken") != null ?
+                    pushConfig.getString("failToken") : "ZRR%Z1iQtppsHYay";
             Double samplingCallRate = pushConfig.getDouble("samplingCallRate") != null ?
                     pushConfig.getDouble("samplingCallRate") : 0;
             Double samplingSmsRate = pushConfig.getDouble("samplingSmsRate") != null ?
                     pushConfig.getDouble("samplingSmsRate") : 0;
+            String apiCode = pushConfig.getString("apiCode");
 
             // 推送拨打成功的数据
-            processStageData(pushPool, mediaName, token, null, 1);
+            processStageData(pushPool, mediaName, successToken, null, 1, apiCode);
             // 推送短信成功的数据
-            processStageData(pushPool, mediaName, token, null, 2);
+            processStageData(pushPool, mediaName, successToken, null, 2, apiCode);
             // 构造拨打成功的数据
-            processStageData(pushPool, mediaName, token, samplingCallRate, 3);
+            processStageData(pushPool, mediaName, successToken, samplingCallRate, 3, apiCode);
             // 构造短信成功的数据
-            processStageData(pushPool, mediaName, token, samplingSmsRate, 4);
+            processStageData(pushPool, mediaName, successToken, samplingSmsRate, 4, apiCode);
             // 处理触达失败数据
-            processFailedData(pushPool, mediaName, token);
+            processFailedData(pushPool, mediaName, failToken, apiCode);
         } catch (Exception e) {
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(),
                     "触达回推job执行异常", TITLE), e);
@@ -92,7 +95,8 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
     /**
      * 分阶段处理数据
      */
-    private void processStageData(TpDynamicExecutor pushPool, String mediaName, String token, Double samplingRate, int stage) {
+    private void processStageData(TpDynamicExecutor pushPool, String mediaName, String token, Double samplingRate, int stage,
+                                  String apiCode) {
         Long lastId = 0L;
         int pageSize = marketingCommonConfig.getDiDiV5Config().getInteger("limit");
         while (true) {
@@ -101,7 +105,7 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
                 break;
             }
 
-            List<DidiCallBackData> pageData = queryData(lastId, stage, pageSize);
+            List<DidiCallBackData> pageData = queryData(lastId, stage, pageSize, apiCode);
             if (CollectionUtils.isEmpty(pageData)) {
                 break;
             }
@@ -151,12 +155,12 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
     /**
      * 游标分页查询数据
      */
-    private List<DidiCallBackData> queryData(Long lastId, int stage, int pageSize) {
+    private List<DidiCallBackData> queryData(Long lastId, int stage, int pageSize, String  apiCode) {
         return switch (stage) {
-            case 1 -> didiCallBackDataMapper.queryDidiCellSuccessData(pageSize, lastId);
-            case 2 -> didiCallBackDataMapper.queryDidiSmsSuccessData(pageSize, lastId);
-            case 3 -> didiCallBackDataMapper.queryDidiCellConstructData(pageSize, lastId);
-            case 4 -> didiCallBackDataMapper.queryDidiSmsConstructData(pageSize, lastId);
+            case 1 -> didiCallBackDataMapper.queryDidiCellSuccessData(pageSize, lastId, apiCode);
+            case 2 -> didiCallBackDataMapper.queryDidiSmsSuccessData(pageSize, lastId, apiCode);
+            case 3 -> didiCallBackDataMapper.queryDidiCellConstructData(pageSize, lastId, apiCode);
+            case 4 -> didiCallBackDataMapper.queryDidiSmsConstructData(pageSize, lastId, apiCode);
             default -> Lists.newArrayList();
         };
     }
@@ -234,7 +238,7 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
             JSONObject dataJson = JSONObject.parseObject(data.getExtend());
             timestamp = dataJson.getString("callStartTime");
         } else {
-            timestamp = data.getCreateTime().toString();
+            timestamp = String.valueOf(data.getCreateTime().getTime());
         }
         String cell = data.getCell();
         return new DiDiSmsRequestTO()
@@ -321,7 +325,7 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
         didiCallBackDataLogMapper.insertSelective(logEntity);
     }
 
-    private void processFailedData(TpDynamicExecutor pushPool, String mediaName, String token) {
+    private void processFailedData(TpDynamicExecutor pushPool, String mediaName, String token, String apiCode) {
         Long lastId = 0L;
         int pageSize = marketingCommonConfig.getDiDiV5Config().getInteger("limit");
 
@@ -332,7 +336,7 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
             }
 
             // 分页查询触达失败数据
-            List<DiDiV5CollidingDataLog> pageData = didiV5CollidingDataLogMapper.queryFailedData(lastId, pageSize);
+            List<DiDiV5CollidingDataLog> pageData = didiV5CollidingDataLogMapper.queryFailedData(lastId, pageSize, apiCode);
             if (CollectionUtils.isEmpty(pageData)) {
                 break;
             }
@@ -397,13 +401,24 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
      * 构建失败请求参数
      */
     private DiDiSmsRequestTO buildFailedRequest(DiDiV5CollidingDataLog data, String token, String mediaName) {
-        String timestamp = String.valueOf(System.currentTimeMillis());
+        String timestamp = generateRandomTimestampToday();
         String cell = data.getCell();
 
         return new DiDiSmsRequestTO()
-                .setSign(cell).setMediaName(mediaName).setChannelId("3140744898058385-bairongC")
+                .setSign(cell).setMediaName(mediaName)
                 .setTimestamp(timestamp)
                 .setSignature(MD5Util.encode(cell + timestamp + token));
+    }
+
+    private String generateRandomTimestampToday() {
+        Random random = new Random();
+        Date today = new Date();
+        long todayStart = today.getTime() / (1000 * 60 * 60 * 24) * (1000 * 60 * 60 * 24);
+        long startTime = todayStart + (14 * 60 * 60 * 1000);
+        long endTime = todayStart + (18 * 60 * 60 * 1000);
+        // 生成14:00-18:00之间的随机时间戳
+        long randomTime = startTime + (long)(random.nextDouble() * (endTime - startTime));
+        return String.valueOf(randomTime);
     }
 
     /**
@@ -426,7 +441,6 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
         if(Objects.nonNull(requestTO)) {
             logEntity.setSignature(requestTO.getSignature());
             logEntity.setTimestamp(requestTO.getTimestamp());
-            logEntity.setChannelId(requestTO.getChannelId());
             logEntity.setMeidaName(requestTO.getMediaName());
         }
         didiCallBackDataLogMapper.insertSelective(logEntity);

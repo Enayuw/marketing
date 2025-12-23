@@ -8,5 +8,6 @@ import java.util.List;
 public interface DiDiV5CollidingDataLogMapper extends DiDiV5CollidingDataLogMapperBase {
 
     List<DiDiV5CollidingDataLog> queryFailedData(@Param("lastId") Long lastId,
-                                                 @Param("pageSize") int pageSize);
+                                                 @Param("pageSize") int pageSize,
+                                                 @Param("apiCode") String apiCode);
 }

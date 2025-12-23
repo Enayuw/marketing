@@ -23,6 +23,7 @@
           AND push_status = 0
           AND status = 0
           AND is_connect = 1
+          AND api_code = #{apiCode}
         ORDER BY id ASC LIMIT #{pageSize}
     </select>
 
@@ -34,6 +35,7 @@
           AND status = 0
           AND (is_connect = 0 or is_connect IS NULL)
           AND sms_send_status = 1
+          AND api_code = #{apiCode}
         ORDER BY id ASC LIMIT #{pageSize}
     </select>
 
@@ -44,6 +46,7 @@
           AND push_status = 0
           AND status = 0
           AND is_connect = 0
+          AND api_code = #{apiCode}
         ORDER BY id ASC LIMIT #{pageSize}
     </select>
 
@@ -54,6 +57,7 @@
           AND push_status = 0
           AND status = 0
           AND sms_send_status = 0
+          AND api_code = #{apiCode}
         ORDER BY id ASC LIMIT #{pageSize}
     </select>
 

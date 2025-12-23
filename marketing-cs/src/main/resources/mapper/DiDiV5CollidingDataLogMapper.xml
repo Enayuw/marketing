@@ -27,6 +27,7 @@
         WHERE id > #{lastId}
           AND result = 'true'
           AND create_time >= curdate()
+          AND api_code = #{apiCode}
         ORDER BY id ASC
             LIMIT #{pageSize}
     </select>
