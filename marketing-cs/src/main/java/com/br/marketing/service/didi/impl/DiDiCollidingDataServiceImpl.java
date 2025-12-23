@@ -104,8 +104,8 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
             Result<String> response = diDiV5Client.colliding(mediaName, buildRequest(data.getCell(), token));
             String resData = response.getData();
             JSONObject resJson = JSONObject.parseObject(resData);
-            String httpcode = resJson.getString("httpcode");
-            String content = resJson.getString("content");
+            String httpcode = resJson.getString("code");
+            String content = resJson.getString("data");
             boolean success = "200".equals(httpcode) || StringUtils.isNotBlank(content);
             data.setPushStatus(success ? 3 : 2);
             diDiV5CollidingDataMapper.updateByPrimaryKey(data);
