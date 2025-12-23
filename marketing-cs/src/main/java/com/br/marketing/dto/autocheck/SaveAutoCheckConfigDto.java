@@ -12,5 +12,5 @@ public class SaveAutoCheckConfigDto {
     @NotBlank(message = "apiCode不能为空")
     private String apiCode;
 
-    private String senceCodes;
+    private String sceneCodes;
 }

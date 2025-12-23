@@ -14,5 +14,5 @@ public class AutoCheckConfigVO {
 
     private String name;
 
-    private List<AutoCheckSenceVO> sence;
+    private List<AutoCheckSceneVO> sceneList;
 }

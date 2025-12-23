@@ -2,7 +2,7 @@ package com.br.marketing.entity;
 
 import java.util.Date;
 
-public class AutoCheckSenceDict {
+public class AutoCheckSceneDict {
     /**
      * 
      */
@@ -11,12 +11,12 @@ public class AutoCheckSenceDict {
     /**
      * 场景编码
      */
-    private String senceCode;
+    private String sceneCode;
 
     /**
      * 场景名称
      */
-    private String senceName;
+    private String sceneName;
 
     /**
      * 0-未删除 1-删除
@@ -41,20 +41,20 @@ public class AutoCheckSenceDict {
         this.id = id;
     }
 
-    public String getSenceCode() {
-        return senceCode;
+    public String getSceneCode() {
+        return sceneCode;
     }
 
-    public void setSenceCode(String senceCode) {
-        this.senceCode = senceCode == null ? null : senceCode.trim();
+    public void setSceneCode(String sceneCode) {
+        this.sceneCode = sceneCode == null ? null : sceneCode.trim();
     }
 
-    public String getSenceName() {
-        return senceName;
+    public String getSceneName() {
+        return sceneName;
     }
 
-    public void setSenceName(String senceName) {
-        this.senceName = senceName == null ? null : senceName.trim();
+    public void setSceneName(String sceneName) {
+        this.sceneName = sceneName == null ? null : sceneName.trim();
     }
 
     public Byte getIsDeleted() {

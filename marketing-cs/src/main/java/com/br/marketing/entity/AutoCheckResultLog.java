@@ -2,7 +2,7 @@ package com.br.marketing.entity;
 
 import java.util.Date;
 
-public class AutoCheckConfig {
+public class AutoCheckResultLog {
     /**
      * 
      */
@@ -14,9 +14,29 @@ public class AutoCheckConfig {
     private String apiCode;
 
     /**
-     * 场景编码(多场景用逗号分隔)
+     * 场景编码(单场景)
      */
     private String sceneCode;
+
+    /**
+     * 前一天八点数据
+     */
+    private String lastData;
+
+    /**
+     * 本次数据
+     */
+    private String todayData;
+
+    /**
+     * 比对时间
+     */
+    private String compareTime;
+
+    /**
+     * 对比结果 0-不一致 1-有差异 2-一致
+     */
+    private String result;
 
     /**
      * 0-未删除 1-删除
@@ -55,6 +75,38 @@ public class AutoCheckConfig {
 
     public void setSceneCode(String sceneCode) {
         this.sceneCode = sceneCode == null ? null : sceneCode.trim();
+    }
+
+    public String getLastData() {
+        return lastData;
+    }
+
+    public void setLastData(String lastData) {
+        this.lastData = lastData == null ? null : lastData.trim();
+    }
+
+    public String getTodayData() {
+        return todayData;
+    }
+
+    public void setTodayData(String todayData) {
+        this.todayData = todayData == null ? null : todayData.trim();
+    }
+
+    public String getCompareTime() {
+        return compareTime;
+    }
+
+    public void setCompareTime(String compareTime) {
+        this.compareTime = compareTime == null ? null : compareTime.trim();
+    }
+
+    public String getResult() {
+        return result;
+    }
+
+    public void setResult(String result) {
+        this.result = result == null ? null : result.trim();
     }
 
     public Byte getIsDeleted() {

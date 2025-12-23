@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.AutoCheckConfigMapper" >
     <!-- 根据API编码和场景编码查询配置信息 -->
-    <select id="selectByApiCodesAndSenceCodes" resultMap="BaseResultMap">
+    <select id="selectByApiCodesAndSceneCodes" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List" />
         FROM b_auto_check_config
@@ -13,10 +13,10 @@
                 #{apiCode}
             </foreach>
         </if>
-        <if test="senceCodeList != null and senceCodeList.size() > 0">
+        <if test="sceneCodeList != null and sceneCodeList.size() > 0">
             AND (
-            <foreach collection="senceCodeList" item="senceCode" separator=" OR ">
-                sence_code LIKE CONCAT('%', #{senceCode}, '%')
+            <foreach collection="sceneCodeList" item="sceneCode" separator=" OR ">
+                scene_code LIKE CONCAT('%', #{sceneCode}, '%')
             </foreach>
             )
         </if>

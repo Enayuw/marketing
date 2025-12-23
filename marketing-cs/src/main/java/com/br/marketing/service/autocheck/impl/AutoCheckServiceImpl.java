@@ -15,7 +15,7 @@ import com.br.marketing.utils.JsonFilterUtil;
 import com.br.marketing.vo.MarketingCustomerVO;
 import com.br.marketing.vo.autocheck.AutoCheckResultVO;
 import com.br.marketing.vo.autocheck.AutoCheckConfigVO;
-import com.br.marketing.vo.autocheck.AutoCheckSenceVO;
+import com.br.marketing.vo.autocheck.AutoCheckSceneVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -38,7 +38,7 @@ public class AutoCheckServiceImpl implements AutoCheckService {
     private static final String SCENE_TRANSFER = "TY-ZHJK";
 
     @Resource
-    private AutoCheckSenceDictMapper autoCheckSenceDictMapper;
+    private AutoCheckSceneDictMapper autoCheckSceneDictMapper;
 
     @Resource
     private AutoCheckConfigMapper autoCheckConfigMapper;
@@ -53,18 +53,18 @@ public class AutoCheckServiceImpl implements AutoCheckService {
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
 
     @Override
-    public List<AutoCheckConfigVO> getAutoCheckConfigList(String apiCodes, String senceCodes) {
+    public List<AutoCheckConfigVO> getAutoCheckConfigList(String apiCodes, String sceneCodes) {
         List<AutoCheckConfigVO> result = new ArrayList<>();
 
         // 处理apiCodes参数，用逗号分隔
         List<String> apiCodeList = handleApiCodeParam(apiCodes);
 
-        // 处理senceCodes参数，用逗号分隔
-        List<String> senceCodeList = handleSenceCodeParam(senceCodes);
+        // 处理sceneCodes参数，用逗号分隔
+        List<String> sceneCodeList = handleSceneCodeParam(sceneCodes);
 
-        // 根据apiCodes和senceCodes查询配置信息
+        // 根据apiCodes和sceneCodes查询配置信息
         List<AutoCheckConfig> configList = autoCheckConfigMapper.
-                selectByApiCodesAndSenceCodes(apiCodeList, senceCodeList);
+                selectByApiCodesAndSceneCodes(apiCodeList, sceneCodeList);
 
         if (CollUtil.isEmpty(configList)) {
             return result;
@@ -76,24 +76,24 @@ public class AutoCheckServiceImpl implements AutoCheckService {
                 .collect(Collectors.toMap(MarketingCustomerVO::getApiCode, e -> e));
 
         // 收集所有配置中涉及的场景编码，用于查询场景信息
-        List<String> allSenceCodes = new ArrayList<>();
+        List<String> allSceneCodes = new ArrayList<>();
         for (AutoCheckConfig config : configList) {
-            if (StringUtils.isNotBlank(config.getSenceCode())) {
-                // 配置中的sence_code字段可能包含逗号分隔的多个场景
-                List<String> configSenceCodes = Arrays.stream(config.getSenceCode().split(","))
+            if (StringUtils.isNotBlank(config.getSceneCode())) {
+                // 配置中的scene_code字段可能包含逗号分隔的多个场景
+                List<String> configSceneCodes = Arrays.stream(config.getSceneCode().split(","))
                         .map(String::trim)
                         .filter(StringUtils::isNotBlank)
                         .collect(Collectors.toList());
-                allSenceCodes.addAll(configSenceCodes);
+                allSceneCodes.addAll(configSceneCodes);
             }
         }
         // 去重
-        allSenceCodes = allSenceCodes.stream().distinct().collect(Collectors.toList());
+        allSceneCodes = allSceneCodes.stream().distinct().collect(Collectors.toList());
 
         // 查询场景信息
-        List<AutoCheckSenceVO> autoCheckSenceVOList = autoCheckSenceDictMapper.selectBySenceCodes(allSenceCodes);
-        Map<String, AutoCheckSenceVO> senceMap = autoCheckSenceVOList.stream()
-                .collect(Collectors.toMap(AutoCheckSenceVO::getSenceCode, sence -> sence));
+        List<AutoCheckSceneVO> autoCheckSceneVOList = autoCheckSceneDictMapper.selectBySceneCodes(allSceneCodes);
+        Map<String, AutoCheckSceneVO> sceneMap = autoCheckSceneVOList.stream()
+                .collect(Collectors.toMap(AutoCheckSceneVO::getSceneCode, scene -> scene));
         Map<String, AutoCheckConfig> configMapByApiCode = configList.stream()
                 .collect(Collectors.toMap(AutoCheckConfig::getApiCode, e -> e));
 
@@ -103,21 +103,21 @@ public class AutoCheckServiceImpl implements AutoCheckService {
             AutoCheckConfig apiConfig = configMapByApiCode.get(apiCode);
             vo.setId(apiConfig.getId());
             vo.setApiCode(apiCode);
-            vo.setName(apiCodeInfoMap.get(apiCode).getName());
+            vo.setName(Optional.ofNullable(apiCodeInfoMap.get(apiCode)).map(MarketingCustomerVO::getName).orElse(""));
 
             // 收集该ApiCode下的所有场景信息
-            List<AutoCheckSenceVO> senceList = new ArrayList<>();
-            String simpleConfigSenceCodes = apiConfig.getSenceCode();
-            if (StringUtils.isNotBlank(simpleConfigSenceCodes)) {
-                String[] split = simpleConfigSenceCodes.split(",");
-                for (String senceCode : split) {
-                    AutoCheckSenceVO autoCheckSenceVO = senceMap.get(senceCode);
-                    if (autoCheckSenceVO != null) {
-                        senceList.add(autoCheckSenceVO);
+            List<AutoCheckSceneVO> sceneList = new ArrayList<>();
+            String configSceneCodes = apiConfig.getSceneCode();
+            if (StringUtils.isNotBlank(configSceneCodes)) {
+                String[] split = configSceneCodes.split(",");
+                for (String sceneCode : split) {
+                    AutoCheckSceneVO autoCheckSceneVO = sceneMap.get(StringUtils.trimToEmpty(sceneCode));
+                    if (autoCheckSceneVO != null) {
+                        sceneList.add(autoCheckSceneVO);
                     }
                 }
             }
-            vo.setSence(senceList);
+            vo.setSceneList(sceneList);
             result.add(vo);
         }
         return result;
@@ -133,7 +133,7 @@ public class AutoCheckServiceImpl implements AutoCheckService {
                     .collect(Collectors.toList());
         } else {
             // 获取所有apiCode
-            List<AutoCheckConfig> autoCheckConfigs = autoCheckConfigMapper.selectByApiCodesAndSenceCodes(null, null);
+            List<AutoCheckConfig> autoCheckConfigs = autoCheckConfigMapper.selectByApiCodesAndSceneCodes(null, null);
             for (AutoCheckConfig autoCheckConfig : autoCheckConfigs) {
                 apiCodeList.add(autoCheckConfig.getApiCode());
             }
@@ -143,28 +143,28 @@ public class AutoCheckServiceImpl implements AutoCheckService {
 
     }
 
-    private List<String> handleSenceCodeParam(String senceCodes) {
-        List<String> senceCodeList = new ArrayList<>();
-        if (StringUtils.isNotBlank(senceCodes)) {
-            senceCodeList = Arrays.stream(senceCodes.split(","))
+    private List<String> handleSceneCodeParam(String sceneCodes) {
+        List<String> sceneCodeList = new ArrayList<>();
+        if (StringUtils.isNotBlank(sceneCodes)) {
+            sceneCodeList = Arrays.stream(sceneCodes.split(","))
                     .map(String::trim)
                     .filter(StringUtils::isNotBlank)
                     .distinct()
                     .collect(Collectors.toList());
         } else {
             // 获取所有场景编码
-            List<AutoCheckSenceVO> allSenceList = autoCheckSenceDictMapper.selectBySenceCodes(null);
-            for (AutoCheckSenceVO autoCheckSenceVO : allSenceList) {
-                senceCodeList.add(autoCheckSenceVO.getSenceCode());
+            List<AutoCheckSceneVO> allSceneList = autoCheckSceneDictMapper.selectBySceneCodes(null);
+            for (AutoCheckSceneVO autoCheckSceneVO : allSceneList) {
+                sceneCodeList.add(autoCheckSceneVO.getSceneCode());
             }
-            senceCodeList = senceCodeList.stream().filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
+            sceneCodeList = sceneCodeList.stream().filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
         }
-        return senceCodeList;
+        return sceneCodeList;
     }
 
     @Override
-    public List<AutoCheckSenceVO> getAutoCheckSenceList(String searchContent) {
-        return autoCheckSenceDictMapper.searchSenceList(searchContent);
+    public List<AutoCheckSceneVO> getAutoCheckSceneList(String searchContent) {
+        return autoCheckSceneDictMapper.searchSceneList(searchContent);
     }
 
     @Override
@@ -183,7 +183,7 @@ public class AutoCheckServiceImpl implements AutoCheckService {
             }
             AutoCheckConfig config = new AutoCheckConfig();
             config.setApiCode(dto.getApiCode());
-            config.setSenceCode(dto.getSenceCodes());
+            config.setSceneCode(dto.getSceneCodes());
             Date now = new Date();
             config.setCreateTime(now);
             config.setUpdateTime(now);
@@ -199,7 +199,7 @@ public class AutoCheckServiceImpl implements AutoCheckService {
                         .setMessage("要编辑的配置不存在");
             }
             // 更新字段
-            existingConfig.setSenceCode(dto.getSenceCodes());
+            existingConfig.setSceneCode(dto.getSceneCodes());
             existingConfig.setUpdateTime(new Date());
             // 更新数据库
             result = autoCheckConfigMapper.updateByPrimaryKeySelective(existingConfig);
@@ -225,12 +225,12 @@ public class AutoCheckServiceImpl implements AutoCheckService {
     }
 
     @Override
-    public List<AutoCheckResultVO> getResultList(String apiCodes, String senceCodes) {
+    public List<AutoCheckResultVO> getResultList(String apiCodes, String sceneCodes) {
         // 处理apiCodes参数，用逗号分隔
         List<String> apiCodeList = handleApiCodeParam(apiCodes);
 
-        // 处理senceCodes参数，用逗号分隔
-        List<String> senceCodeList = handleSenceCodeParam(senceCodes);
+        // 处理sceneCodes参数，用逗号分隔
+        List<String> sceneCodeList = handleSceneCodeParam(sceneCodes);
 
         // 获取apiCode对应的场景配置
         List<AutoCheckConfigVO> configList = getAutoCheckConfigList(apiCodes, null);
@@ -245,30 +245,30 @@ public class AutoCheckServiceImpl implements AutoCheckService {
                 .collect(Collectors.toMap(MarketingCustomerVO::getApiCode, e -> e, (a, b) -> a));
 
         // 场景信息（名称）
-        Map<String, AutoCheckSenceVO> senceMap = autoCheckSenceDictMapper.selectBySenceCodes(senceCodeList)
+        Map<String, AutoCheckSceneVO> sceneMap = autoCheckSceneDictMapper.selectBySceneCodes(sceneCodeList)
                 .stream()
                 .filter(Objects::nonNull)
-                .collect(Collectors.toMap(AutoCheckSenceVO::getSenceCode, e -> e, (a, b) -> a));
+                .collect(Collectors.toMap(AutoCheckSceneVO::getSceneCode, e -> e, (a, b) -> a));
 
         List<AutoCheckResultVO> result = new ArrayList<>();
 
         // 针对每一个场景，查询apiCode对应的结果
-        for (String senceCode : senceCodeList) {
-            switch (senceCode) {
+        for (String sceneCode : sceneCodeList) {
+            switch (sceneCode) {
                 case SCENE_UPLOAD:
                     // 过滤掉没有配置该场景的apiCode
                     result.addAll(checkUploadScene(
                             filterApiCodesByScene(apiCodeList, SCENE_UPLOAD, configMap),
-                            apiInfoMap, senceMap));
+                            apiInfoMap, sceneMap));
                     break;
                 case SCENE_TRANSFER:
                     // 过滤掉没有配置该场景的apiCode
                     result.addAll(checkTransferScene(
                             filterApiCodesByScene(apiCodeList, SCENE_TRANSFER, configMap),
-                            apiInfoMap, senceMap));
+                            apiInfoMap, sceneMap));
                     break;
                 default:
-                    log.warn("未知场景编码: {}", senceCode);
+                    log.warn("未知场景编码: {}", sceneCode);
             }
         }
 
@@ -284,25 +284,25 @@ public class AutoCheckServiceImpl implements AutoCheckService {
     /**
      * 过滤出“配置了指定场景”的 apiCode。
      *
-     * <p>规则：configMap 中存在该 apiCode，且其配置的场景列表包含指定 senceCode。</p>
+     * <p>规则：configMap 中存在该 apiCode，且其配置的场景列表包含指定 sceneCode。</p>
      */
     private List<String> filterApiCodesByScene(List<String> apiCodeList,
-                                               String senceCode,
+                                               String sceneCode,
                                                Map<String, AutoCheckConfigVO> configMap) {
-        if (CollUtil.isEmpty(apiCodeList) || StringUtils.isBlank(senceCode) || configMap == null || configMap.isEmpty()) {
+        if (CollUtil.isEmpty(apiCodeList) || StringUtils.isBlank(sceneCode) || configMap == null || configMap.isEmpty()) {
             return Collections.emptyList();
         }
         return apiCodeList.stream()
                 .filter(StringUtils::isNotBlank)
                 .filter(apiCode -> {
                     AutoCheckConfigVO cfg = configMap.get(apiCode);
-                    if (cfg == null || CollUtil.isEmpty(cfg.getSence())) {
+                    if (cfg == null || CollUtil.isEmpty(cfg.getSceneList())) {
                         return false;
                     }
-                    return cfg.getSence().stream()
+                    return cfg.getSceneList().stream()
                             .filter(Objects::nonNull)
-                            .map(AutoCheckSenceVO::getSenceCode)
-                            .anyMatch(code -> StringUtils.equals(code, senceCode));
+                            .map(AutoCheckSceneVO::getSceneCode)
+                            .anyMatch(code -> StringUtils.equals(code, sceneCode));
                 })
                 .distinct()
                 .collect(Collectors.toList());
@@ -310,7 +310,7 @@ public class AutoCheckServiceImpl implements AutoCheckService {
 
     private List<AutoCheckResultVO> checkUploadScene(List<String> apiCodeList,
                                                      Map<String, MarketingCustomerVO> apiInfoMap,
-                                                     Map<String, AutoCheckSenceVO> senceMap) {
+                                                     Map<String, AutoCheckSceneVO> sceneMap) {
         if (CollUtil.isEmpty(apiCodeList)) {
             return Collections.emptyList();
         }
@@ -329,7 +329,7 @@ public class AutoCheckServiceImpl implements AutoCheckService {
             if (Objects.isNull(lastDay8) || Objects.isNull(latest)) {
                 continue;
             }
-            AutoCheckResultVO vo = baseVO(apiCode, SCENE_UPLOAD, apiInfoMap, senceMap);
+            AutoCheckResultVO vo = baseVO(apiCode, SCENE_UPLOAD, apiInfoMap, sceneMap);
             vo.setLastDayData(toJsonExcludeSafe(lastDay8, "snapTime", "cusBatch",
                     "requestBatch", "custNum", "registerDate", "createTime", "updateTime",
                     "appletDate", "appletTime", "taskTime", "fingerprint"));
@@ -345,7 +345,7 @@ public class AutoCheckServiceImpl implements AutoCheckService {
 
     private List<AutoCheckResultVO> checkTransferScene(List<String> apiCodeList,
                                                        Map<String, MarketingCustomerVO> apiInfoMap,
-                                                       Map<String, AutoCheckSenceVO> senceMap) {
+                                                       Map<String, AutoCheckSceneVO> sceneMap) {
         if (CollUtil.isEmpty(apiCodeList)) {
             return Collections.emptyList();
         }
@@ -354,6 +354,9 @@ public class AutoCheckServiceImpl implements AutoCheckService {
         List<String> cidList = new ArrayList<>();
         for (String apiCode : apiCodeList) {
             MarketingCustomerVO apiInfo = apiInfoMap.get(apiCode);
+            if (apiInfo == null || StringUtils.isBlank(apiInfo.getCid())) {
+                continue;
+            }
             cidList.add(apiInfo.getCid().replaceFirst("-", ""));
         }
 
@@ -371,7 +374,7 @@ public class AutoCheckServiceImpl implements AutoCheckService {
             if (Objects.isNull(lastDay8) || Objects.isNull(latest)) {
                 continue;
             }
-            AutoCheckResultVO vo = baseVO(apiCode, SCENE_TRANSFER, apiInfoMap, senceMap);
+            AutoCheckResultVO vo = baseVO(apiCode, SCENE_TRANSFER, apiInfoMap, sceneMap);
             vo.setLastDayData(toJsonExcludeSafe(lastDay8, "snapTime", "cid", "tCid",
                     "requestId", "registerTime", "loginTime", "applyDt", "applyTime", "refuseTime",
                     "auditTime", "lentTime", "settleTime", "transformTime", "insertTime", "createTime",
@@ -388,14 +391,14 @@ public class AutoCheckServiceImpl implements AutoCheckService {
     }
 
     private AutoCheckResultVO baseVO(String apiCode,
-                                     String senceCode,
+                                     String sceneCode,
                                      Map<String, MarketingCustomerVO> apiInfoMap,
-                                     Map<String, AutoCheckSenceVO> senceMap) {
+                                     Map<String, AutoCheckSceneVO> sceneMap) {
         AutoCheckResultVO vo = new AutoCheckResultVO();
         vo.setApiCode(apiCode);
         vo.setName(Optional.ofNullable(apiInfoMap.get(apiCode)).map(MarketingCustomerVO::getName).orElse(""));
-        vo.setSenceCode(senceCode);
-        vo.setSenceName(Optional.ofNullable(senceMap.get(senceCode)).map(AutoCheckSenceVO::getSenceName).orElse(""));
+        vo.setSceneCode(sceneCode);
+        vo.setSceneName(Optional.ofNullable(sceneMap.get(sceneCode)).map(AutoCheckSceneVO::getSceneName).orElse(""));
         return vo;
     }
 

@@ -4,11 +4,11 @@ package com.br.marketing.vo.autocheck;
 import lombok.Data;
 
 @Data
-public class AutoCheckSenceVO {
+public class AutoCheckSceneVO {
 
     private Long id;
 
-    private String senceCode;
+    private String sceneCode;
 
-    private String senceName;
+    private String sceneName;
 }

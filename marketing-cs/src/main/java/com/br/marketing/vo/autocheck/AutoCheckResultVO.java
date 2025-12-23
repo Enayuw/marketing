@@ -11,9 +11,9 @@ public class AutoCheckResultVO {
 
     private String name;
 
-    private String senceCode;
+    private String sceneCode;
 
-    private String senceName;
+    private String sceneName;
 
     private String lastDayData;
 

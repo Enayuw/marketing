@@ -8,7 +8,7 @@ import com.br.marketing.dto.autocheck.SaveAutoCheckConfigDto;
 import com.br.marketing.service.autocheck.AutoCheckService;
 import com.br.marketing.vo.autocheck.AutoCheckResultVO;
 import com.br.marketing.vo.autocheck.AutoCheckConfigVO;
-import com.br.marketing.vo.autocheck.AutoCheckSenceVO;
+import com.br.marketing.vo.autocheck.AutoCheckSceneVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -39,12 +39,12 @@ public class AutoCheckController {
     @GetMapping("/configList")
     @Operation(summary = "根据指定的apiCode和场景查询已有配置", description = "根据指定的apiCode和场景查询已有配置")
     @Parameters({@Parameter(name = "apiCodes", description = "多apiCode用逗号分隔"),
-            @Parameter(name = "senceCodes", description = "场景编码，多场景逗号分隔")
+            @Parameter(name = "sceneCodes", description = "场景编码，多场景逗号分隔")
     })
     public ApiResult<List<AutoCheckConfigVO>> getAutoCheckConfigList(@RequestParam(name = "apiCodes", required = false) String apiCodes,
-                                                                     @RequestParam(name = "senceCodes", required = false) String senceCodes) {
+                                                                     @RequestParam(name = "sceneCodes", required = false) String sceneCodes) {
         try {
-            List<AutoCheckConfigVO> list = autoCheckService.getAutoCheckConfigList(apiCodes, senceCodes);
+            List<AutoCheckConfigVO> list = autoCheckService.getAutoCheckConfigList(apiCodes, sceneCodes);
             return new ApiResult<List<AutoCheckConfigVO>>().success(list);
         } catch (Exception ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
@@ -53,17 +53,17 @@ public class AutoCheckController {
         }
     }
 
-    @GetMapping("/senceList")
+    @GetMapping("/sceneList")
     @Operation(summary = "场景下拉列表", description = "场景下拉列表")
     @Parameter(name = "searchContent", description = "场景编码或场景名称")
-    public ApiResult<List<AutoCheckSenceVO>> getAutoCheckSenceList(@RequestParam(name = "searchContent", required = false) String searchContent) {
+    public ApiResult<List<AutoCheckSceneVO>> getAutoCheckSceneList(@RequestParam(name = "searchContent", required = false) String searchContent) {
         try {
-            List<AutoCheckSenceVO> list = autoCheckService.getAutoCheckSenceList(searchContent);
-            return new ApiResult<List<AutoCheckSenceVO>>().success(list);
+            List<AutoCheckSceneVO> list = autoCheckService.getAutoCheckSceneList(searchContent);
+            return new ApiResult<List<AutoCheckSceneVO>>().success(list);
         } catch (Exception ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
                     "场景下拉列表接口错误！错误信息：" + ex.getMessage()), ex);
-            return new ApiResult<List<AutoCheckSenceVO>>().fail(ServiceResultEnum.FAILED);
+            return new ApiResult<List<AutoCheckSceneVO>>().fail(ServiceResultEnum.FAILED);
         }
     }
 
@@ -96,12 +96,12 @@ public class AutoCheckController {
     @GetMapping("/resultList")
     @Operation(summary = "根据apiCode和场景查询巡检结果", description = "根据apiCode和场景查询巡检结果")
     @Parameters({@Parameter(name = "apiCodes", description = "多apiCode用逗号分隔"),
-            @Parameter(name = "senceCodes", description = "场景编码，多场景逗号分隔")
+            @Parameter(name = "sceneCodes", description = "场景编码，多场景逗号分隔")
     })
     public ApiResult<List<AutoCheckResultVO>> getResultList(@RequestParam(name = "apiCodes", required = false) String apiCodes,
-                                                            @RequestParam(name = "senceCodes", required = false) String senceCodes) {
+                                                            @RequestParam(name = "sceneCodes", required = false) String sceneCodes) {
         try {
-            List<AutoCheckResultVO> list = autoCheckService.getResultList(apiCodes, senceCodes);
+            List<AutoCheckResultVO> list = autoCheckService.getResultList(apiCodes, sceneCodes);
             return new ApiResult<List<AutoCheckResultVO>>().success(list);
         } catch (Exception ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
