@@ -230,17 +230,17 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     public List<FieldSampleDTO> getPreviewFieldSamples(String apiCode, Integer systemType, Integer dataType, Integer acceptType) {
         List<FieldSampleDTO> result = new ArrayList<>();
         // 参数验证
-        if (systemType != DataProcessEnum.SystemTypeEnum.MARKETING.getCode() && systemType != DataProcessEnum.SystemTypeEnum.CALL.getCode()){
+        if (!DataProcessEnum.SystemTypeEnum.MARKETING.getCode().equals(systemType) && !DataProcessEnum.SystemTypeEnum.CALL.getCode().equals(systemType)){
             throw new BusinessException("数据来源无效，应为0(营销中台)或1(外呼系统)");
         }
 
-        if (dataType != DataProcessEnum.DataTypeEnum.UPLOAD.getCode() && dataType != DataProcessEnum.DataTypeEnum.TRANSFORM.getCode()) {
+        if (!DataProcessEnum.DataTypeEnum.UPLOAD.getCode().equals(dataType) && !DataProcessEnum.DataTypeEnum.TRANSFORM.getCode().equals(dataType)) {
             throw new BusinessException("数据类型无效，应为0(上传)或1(转化)");
         }
 
-        if (acceptType != DataProcessEnum.AcceptTypeEnum.GENERAL.getCode()
-                && acceptType != DataProcessEnum.AcceptTypeEnum.CUSTOM.getCode()
-                && acceptType != DataProcessEnum.AcceptTypeEnum.FTP.getCode()) {
+        if ( !DataProcessEnum.AcceptTypeEnum.GENERAL.getCode().equals(acceptType)
+                && !DataProcessEnum.AcceptTypeEnum.CUSTOM.getCode().equals(acceptType)
+                && !DataProcessEnum.AcceptTypeEnum.FTP.getCode().equals(acceptType)) {
             throw new BusinessException("接口类型无效，应为0(通用)、1(定制)或2(FTP)");
         }
 
