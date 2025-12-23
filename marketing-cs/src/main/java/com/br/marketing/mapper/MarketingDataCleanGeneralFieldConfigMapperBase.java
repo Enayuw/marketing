@@ -2,11 +2,12 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.entity.MarketingDataCleanGeneralFieldConfig;
 import com.br.marketing.entity.MarketingDataCleanGeneralFieldConfigExample;
-import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 public interface MarketingDataCleanGeneralFieldConfigMapperBase {
-    long countByExample(MarketingDataCleanGeneralFieldConfigExample example);
+    int countByExample(MarketingDataCleanGeneralFieldConfigExample example);
 
     int deleteByExample(MarketingDataCleanGeneralFieldConfigExample example);
 

@@ -176,6 +176,7 @@ public class ZhongYuanUploadDataJob extends AbstractSimpleElasticJob {
         try {
             MqDataJsonParse mqDataJsonParse = new MqDataJsonParse();
             mqDataJsonParse.setDataId(dataId);
+            mqDataJsonParse.setSystemType(DataProcessEnum.SystemTypeEnum.MARKETING.getCode());
             mqDataJsonParse.setDataType(DataProcessEnum.DataTypeEnum.UPLOAD.getCode());
             mqDataJsonParse.setAcceptType(DataProcessEnum.AcceptTypeEnum.CUSTOM.getCode());
             

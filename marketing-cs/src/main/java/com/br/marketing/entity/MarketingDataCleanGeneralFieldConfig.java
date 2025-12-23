@@ -1,19 +1,17 @@
 package com.br.marketing.entity;
 
-import java.io.Serializable;
 import java.util.Date;
-import lombok.Data;
 
-/**
- * b_marketing_data_clean_general_field_config
- * @author 
- */
-@Data
-public class MarketingDataCleanGeneralFieldConfig implements Serializable {
+public class MarketingDataCleanGeneralFieldConfig {
     /**
      * 主键ID
      */
     private Long id;
+
+    /**
+     * 数据来源,0-营销中台 1-外呼系统
+     */
+    private Integer systemType;
 
     /**
      * 数据类型：0:上传，1:转化
@@ -50,5 +48,75 @@ public class MarketingDataCleanGeneralFieldConfig implements Serializable {
      */
     private Date updateTime;
 
-    private static final long serialVersionUID = 1L;
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Integer getSystemType() {
+        return systemType;
+    }
+
+    public void setSystemType(Integer systemType) {
+        this.systemType = systemType;
+    }
+
+    public Integer getDataType() {
+        return dataType;
+    }
+
+    public void setDataType(Integer dataType) {
+        this.dataType = dataType;
+    }
+
+    public String getFieldCollect() {
+        return fieldCollect;
+    }
+
+    public void setFieldCollect(String fieldCollect) {
+        this.fieldCollect = fieldCollect == null ? null : fieldCollect.trim();
+    }
+
+    public Integer getIsDel() {
+        return isDel;
+    }
+
+    public void setIsDel(Integer isDel) {
+        this.isDel = isDel;
+    }
+
+    public Long getOptUserId() {
+        return optUserId;
+    }
+
+    public void setOptUserId(Long optUserId) {
+        this.optUserId = optUserId;
+    }
+
+    public String getOptUserName() {
+        return optUserName;
+    }
+
+    public void setOptUserName(String optUserName) {
+        this.optUserName = optUserName == null ? null : optUserName.trim();
+    }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
+    }
 }

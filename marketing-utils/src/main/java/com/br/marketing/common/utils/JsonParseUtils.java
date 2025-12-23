@@ -381,11 +381,10 @@ public class JsonParseUtils {
     /**
      * 检查JSON对象或数组是否包含指定名称的数组
      *
-     * @param obj JSON对象或数组
      * @param arrayName 要查找的数组名称
      * @return 是否包含指定数组
      */
-    private static String processNodePaths(String arrayName) {
+    public static String processNodePaths(String arrayName) {
         // 处理特殊的父节点路径
         String expectedPath = StringUtils.isNotBlank(arrayName) ? arrayName : "";
         if (expectedPath.contains("dataItems.item.")) {
