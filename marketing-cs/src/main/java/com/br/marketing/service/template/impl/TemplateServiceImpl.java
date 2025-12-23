@@ -87,7 +87,7 @@ public class TemplateServiceImpl implements TemplateService {
                     marketingIndustryTemplateJsonParseMapper.selectByExample(example);
 
             marketingIndustryTemplateJsonParseListOld.forEach(item -> {
-                entityOptService.writeOptLog(item.getId(), item ,null);
+                entityOptService.writeOptLog(item.getId(), item, null);
             });
 
             logger.warn("新增行业模板成功，行业模板名称：{}", marketingIndustryTemplate.getTemplateName());
@@ -182,7 +182,7 @@ public class TemplateServiceImpl implements TemplateService {
                         marketingIndustryTemplateJsonParseMapper.selectByExample(example);
 
                 marketingIndustryTemplateJsonParseListOld.forEach(item -> {
-                    entityOptService.writeOptLog(item.getId(), item ,null);
+                    entityOptService.writeOptLog(item.getId(), item, null);
                 });
 
                 logger.warn("修改行业模板成功，行业模板id：{}", marketingIndustryTemplate.getId());
@@ -227,18 +227,13 @@ public class TemplateServiceImpl implements TemplateService {
     }
 
     private void writeOptLog(Long id) {
-        try {
-            MarketingIndustryTemplateJsonParseExample example = new MarketingIndustryTemplateJsonParseExample();
-            example.createCriteria().andInterfaceTemplateIdEqualTo(id).andIsDelEqualTo(Constants.DATA_VALID);
-            List<MarketingIndustryTemplateJsonParse> marketingIndustryTemplateJsonParseListOld = marketingIndustryTemplateJsonParseMapper.selectByExample(example);
-            for (MarketingIndustryTemplateJsonParse oldValue : marketingIndustryTemplateJsonParseListOld) {
-                MarketingIndustryTemplateJsonParse newValue = new MarketingIndustryTemplateJsonParse();
-                BeanUtils.copyProperties(oldValue, newValue);
-                newValue.setIsDel(Constants.DATA_DEL);
-                entityOptService.writeOptLog(oldValue.getId(), newValue, oldValue);
-            }
-        } catch (InvocationTargetException | IllegalAccessException e) {
-            throw new RuntimeException(e);
+        MarketingIndustryTemplateJsonParseExample example = new MarketingIndustryTemplateJsonParseExample();
+        example.createCriteria().andInterfaceTemplateIdEqualTo(id).andIsDelEqualTo(Constants.DATA_VALID);
+        List<MarketingIndustryTemplateJsonParse> marketingIndustryTemplateJsonParseListOld = marketingIndustryTemplateJsonParseMapper.selectByExample(example);
+        for (MarketingIndustryTemplateJsonParse oldValue : marketingIndustryTemplateJsonParseListOld) {
+            MarketingIndustryTemplateJsonParse newValue = new MarketingIndustryTemplateJsonParse();
+            newValue.setIsDel(Constants.DATA_DEL);
+            entityOptService.writeOptLog(oldValue.getId(), newValue, oldValue);
         }
     }
 

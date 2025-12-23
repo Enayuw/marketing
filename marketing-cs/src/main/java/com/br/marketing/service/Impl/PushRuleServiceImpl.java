@@ -2836,7 +2836,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         try {
             //使用caffeineCache存储 mq发送标识
-            String cacheKey = CaffeineCacheKeyConstant.JSON_PARSE.concat(apiCode).concat(":").concat(DataProcessEnum.DataTypeEnum.UPLOAD.getCode().toString())
+            String cacheKey = CaffeineCacheKeyConstant.JSON_PARSE.concat(apiCode)
+                    .concat(":").concat(DataProcessEnum.SystemTypeEnum.MARKETING.getCode().toString())
+                    .concat(":").concat(DataProcessEnum.DataTypeEnum.UPLOAD.getCode().toString())
                     .concat(":").concat(DataProcessEnum.AcceptTypeEnum.GENERAL.getCode().toString());
             boolean exists = caffeineCache.hasIdentifier(cacheKey);
             if (exists) {
