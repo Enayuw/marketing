@@ -56,6 +56,7 @@ import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.context.RuntimeDataContext;
 import com.br.marketing.dto.*;
 import com.br.marketing.dto.customer.PushCustomerRequestDTO;
+import com.br.marketing.dto.dataclean.mq.CommonMqDataJsonParse;
 import com.br.marketing.dto.dataclean.mq.MqDataJsonParse;
 import com.br.marketing.dto.msg.mq.ApiDataInfoDTO;
 import com.br.marketing.dto.msg.mq.UserTypeCollectionDTO;
@@ -2835,7 +2836,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         try {
             //使用caffeineCache存储 mq发送标识
-            String cacheKey = CaffeineCacheKeyConstant.JSON_PARSE.concat(apiCode).concat(":").concat(DataProcessEnum.DataTypeEnum.UPLOAD.getCode().toString())
+            String cacheKey = CaffeineCacheKeyConstant.JSON_PARSE.concat(apiCode)
+                    .concat(":").concat(DataProcessEnum.SystemTypeEnum.MARKETING.getCode().toString())
+                    .concat(":").concat(DataProcessEnum.DataTypeEnum.UPLOAD.getCode().toString())
                     .concat(":").concat(DataProcessEnum.AcceptTypeEnum.GENERAL.getCode().toString());
             boolean exists = caffeineCache.hasIdentifier(cacheKey);
             if (exists) {
@@ -2843,6 +2846,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             MqDataJsonParse mqDataJsonParse = new MqDataJsonParse();
             mqDataJsonParse.setDataId(Long.valueOf(syncInfoId));
+            mqDataJsonParse.setSystemType(DataProcessEnum.SystemTypeEnum.MARKETING.getCode());
             mqDataJsonParse.setDataType(DataProcessEnum.DataTypeEnum.UPLOAD.getCode());
             mqDataJsonParse.setAcceptType(DataProcessEnum.AcceptTypeEnum.GENERAL.getCode());
             rocketMqSwitch.sendMessage(apiCode, MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_MARKETING_CUSTOMER_DATA_JSON_PARSE,
@@ -2877,6 +2881,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             MqDataJsonParse mqDataJsonParse = new MqDataJsonParse();
             mqDataJsonParse.setDataId(id);
+            mqDataJsonParse.setSystemType(DataProcessEnum.SystemTypeEnum.MARKETING.getCode());
             mqDataJsonParse.setDataType(dataType);
             mqDataJsonParse.setAcceptType(acceptType);
             rocketMqSwitch.sendMessage(apiCode, MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_MARKETING_CUSTOMER_DATA_JSON_PARSE,
@@ -2950,6 +2955,38 @@ public class PushRuleServiceImpl implements PushRuleService {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("overAmt字段不存在！");
         }
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(overAmt);
+    }
+
+    public void sendJsonParseMq(String apiCode,Integer dataSourceType,Integer systemType,Integer dataType,Integer acceptType,String jsonData){
+        //发送Json解析消息,定制清洗不在发送MQ
+        if (dataSourceType != null && 1 == dataSourceType) {
+            return;
+        }
+
+        try {
+            //使用caffeineCache存储 mq发送标识
+            String cacheKey = CaffeineCacheKeyConstant.JSON_PARSE.concat(apiCode)
+                    .concat(":").concat(systemType.toString())
+                    .concat(":").concat(DataProcessEnum.DataTypeEnum.UPLOAD.getCode().toString())
+                    .concat(":").concat(DataProcessEnum.AcceptTypeEnum.GENERAL.getCode().toString());
+            boolean exists = caffeineCache.hasIdentifier(cacheKey);
+            if (exists) {
+                return;
+            }
+            CommonMqDataJsonParse commonMqDataJsonParse = new CommonMqDataJsonParse();
+            commonMqDataJsonParse.setApiCode(apiCode);
+            commonMqDataJsonParse.setSystemType(systemType);
+            commonMqDataJsonParse.setDataType(dataType);
+            commonMqDataJsonParse.setAcceptType(acceptType);
+            commonMqDataJsonParse.setJsonData(jsonData);
+            rocketMqSwitch.sendMessage(apiCode, MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_MARKETING_COMMON_DATA_JSON_PARSE,
+                    JSON.toJSONString(commonMqDataJsonParse), MQConstants.ROUTING_KEY_MARKETING_COMMON_DATA_JSON_PARSE);
+            //存储标识
+            caffeineCache.storeIdentifier(cacheKey, Boolean.TRUE.toString());
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -3315,8 +3352,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         //通用调用,查询清洗规则配置
         Map<String, MarketingDataCleanGeneralRuleConfig> configRule = new HashMap<>();
         if (Objects.nonNull(marketingSyncInfo.getDataSourceType()) && (0 == marketingSyncInfo.getDataSourceType())) {
-            configRule = dataCleanService.getConfigRule(apiCode, DataProcessEnum.DataTypeEnum.UPLOAD.getCode(),
-                    DataProcessEnum.AcceptTypeEnum.GENERAL.getCode(), DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode());
+            configRule = dataCleanService.getConfigRule(apiCode, DataProcessEnum.SystemTypeEnum.MARKETING.getCode(),
+                    DataProcessEnum.DataTypeEnum.UPLOAD.getCode(), DataProcessEnum.AcceptTypeEnum.GENERAL.getCode(),
+                    DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode());
             if (!CollectionUtils.isEmpty(configRule)) {
                 //剔除规则中的基础字段
                 List<String> generalFields = Lists.newArrayList("dataItems", "item", "reserveField1", "reserveField2");
@@ -3668,6 +3706,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         return false;
     }
+
 
     private void addCellReserveFileld1(JSONObject reserveFileld1Json, String cell, Integer isCheck,
                                        IUploadCheckService iUploadCheckService, CustomerTagsVO tags) {
