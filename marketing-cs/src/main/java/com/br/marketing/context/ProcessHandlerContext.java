@@ -37,15 +37,6 @@ public class ProcessHandlerContext {
      * 客户apiCode
      */
     private String apiCode;
-    
-    /**
-     * 设置apiCode时，同步到ThreadLocal供切面使用
-     */
-    public void setApiCode(String apiCode) {
-        this.apiCode = apiCode;
-        // 同步到ThreadLocal，供幂等性切面使用
-        MqIdempotentContext.setApiCode(apiCode);
-    }
 
     /**
      * 转化表id
