@@ -266,10 +266,10 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             for (MarketingJsonNodeParse node : nodes) {
                 String nodeName = node.getNodeName();
                 Integer level = node.getLevel();
-                if (level == 0) {
+                if (Integer.valueOf(0).equals(level)) {
                     continue;
                 }
-                if (acceptType == DataProcessEnum.AcceptTypeEnum.GENERAL.getCode()){
+                if (DataProcessEnum.AcceptTypeEnum.GENERAL.getCode().equals(acceptType)){
                     if (("requestId".equals(nodeName)) || "taskId".equals(nodeName)) {
                         continue;
                     }
