@@ -20,7 +20,7 @@
         SELECT *
         FROM b_didi_v5_colliding_data
         WHERE push_status = 0
-        AND status = 0
+        AND status = 1
         AND colliding_time BETWEEN #{startTime} AND #{endTime}
         <if test="limit != null">
             LIMIT #{limit}
