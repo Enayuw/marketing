@@ -647,7 +647,7 @@
 
     <job:simple id="【bridge】-TcCpaCollidingDataCleanJob"
                 class="com.br.marketing.bridge.job.tccpa.TcCpaCollidingDataCleanJob"
-                cron="0 0 18 29 9 ? 2050-2050"
+                cron="0 0/30 * * * ?"
                 description="同城易融CPA-撞库数据清洗"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"

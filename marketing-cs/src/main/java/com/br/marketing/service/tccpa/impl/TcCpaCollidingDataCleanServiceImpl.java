@@ -309,9 +309,6 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
         String minCusNum = null;
         for (; ; ) {
             try {
-                if (marketingCommonConfig.getTcCpaMockConfig().get("query")) {
-                    throw new IllegalArgumentException();
-                }
                 cusNums = tcyrCpaCollidingDataMapper.queryScoreDataWithPagebI_(querySql, minCusNum);
             } catch (Exception e) {
                 log.warn("同程CPA撞库数据清洗，跑分数据查询异常，packageId：{}，batchNumber：{}", cleanPackage.getId(), batchNumber);
@@ -329,9 +326,6 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
             List<String> finalCusNums = cusNums;
             CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                 try {
-                    if (marketingCommonConfig.getTcCpaMockConfig().get("insert")) {
-                        throw new IllegalArgumentException();
-                    }
                     insertData(finalCusNums, cleanPackage.getId(), cleanPackage.getPriority());
                 } catch (Exception e) {
                     log.warn("同程CPA撞库数据清洗，子线程跑分数据插入异常，packageId：{}，batchNumber：{}", cleanPackage.getId(), batchNumber);
@@ -376,9 +370,6 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
                     minId = ids.get(ids.size() - 1);
                     CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                         try {
-                            if (marketingCommonConfig.getTcCpaMockConfig().get("delete")) {
-                                throw new IllegalArgumentException();
-                            }
                             tcyrCpaCollidingDataMapper.updateIsDelByIds(ids);
                         } catch (Exception e) {
                             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),

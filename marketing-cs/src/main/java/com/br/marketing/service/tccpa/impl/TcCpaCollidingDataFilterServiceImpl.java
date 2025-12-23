@@ -326,9 +326,6 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
                 }
                 //1.查询数据
                 try {
-                    if (marketingCommonConfig.getTcCpaMockConfig().get("query")) {
-                        throw new IllegalArgumentException();
-                    }
                     pageSize = marketingCommonConfig.getTcyrCpaPushFileVTConfig().getInteger("filterPageSize");
                     userKeys = tcyrCpaCollidingDataMapper.queryUserKeyWithPagetikv_(querySql, fieldName, minUserKey, pageSize);
                 } catch (Exception e) {
@@ -348,9 +345,6 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
                 List<String> finalUserKeys = userKeys;
                 CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                     try {
-                        if (marketingCommonConfig.getTcCpaMockConfig().get("insert")) {
-                            throw new IllegalArgumentException();
-                        }
                         insertData(finalUserKeys, taskId, colldingDate, packageId, priority);
                     } catch (Exception e) {
                         log.warn("同程CPA撞库数据筛选，子线程数据插入异常，packageId：{}，batchNumber：{}", packageId);
