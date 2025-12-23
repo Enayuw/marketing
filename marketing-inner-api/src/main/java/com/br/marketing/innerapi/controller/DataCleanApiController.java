@@ -45,7 +45,7 @@ public class DataCleanApiController {
                     .setMessage(ServiceResultEnum.SUCCESS.getMessage())
                     .setData(responseVO.getData());
         } else {
-            apiResult = new ApiResult<String>().setCode(responseVO.getCode()).setData(responseVO.getData());
+            apiResult = new ApiResult<String>().setCode(responseVO.getCode()).setData(responseVO.getData()).setMessage(responseVO.getMessage());
         }
         logger.warn("数据清洗完成，code:{},data:{},message:{}", apiResult.getCode(), apiResult.getData(), apiResult.getMessage());
         return apiResult;

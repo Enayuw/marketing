@@ -2028,10 +2028,9 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         List<String> mappingFields = cleaningConfigs.stream().map(FieldCleaningConfigDTO::getMappingField).collect(Collectors.toList());
         List<String> uploadMustField = Lists.newArrayList("custNum", "cell", "userType");
         if (DataProcessEnum.SystemTypeEnum.MARKETING.getCode().equals(configDTO.getSystemType())
-                && DataProcessEnum.DataTypeEnum.UPLOAD.getCode().equals(configDTO.getDataType())) {
-            if (!mappingFields.containsAll(uploadMustField)) {
-                throw new BusinessException("上传必填字段[custNum,cell,userType]未配置，请检查");
-            }
+                && DataProcessEnum.DataTypeEnum.UPLOAD.getCode().equals(configDTO.getDataType())
+                && !mappingFields.containsAll(uploadMustField)) {
+            throw new BusinessException("上传必填字段[custNum,cell,userType]未配置，请检查");
         }
         // 提取所有清洗字段
         List<String> nonMappingFields = cleaningConfigs.stream()
