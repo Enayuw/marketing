@@ -7,10 +7,10 @@ public class RuleCleaningResult {
 
     private String cleanFields;
 
-    private String cleanValue;
+    private Object cleanValue;
 
     private String mappingField;
 
-    private String mappingValue;
+    private Object mappingValue;
 
 }

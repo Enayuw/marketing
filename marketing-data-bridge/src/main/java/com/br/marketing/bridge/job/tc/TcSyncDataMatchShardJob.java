@@ -15,7 +15,9 @@ import javax.annotation.Resource;
  * Tc***ShardJob 同程优化速率新增的job
  * @Author zhiyong.zhang
  * @CreateTime 2025/06/13
+ * 已下线 2025/12/19
  */
+@Deprecated
 @Component
 @Slf4j
 public class TcSyncDataMatchShardJob extends AbstractSimpleElasticJob {

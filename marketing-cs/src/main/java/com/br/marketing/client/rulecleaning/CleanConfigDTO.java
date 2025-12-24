@@ -8,6 +8,7 @@ import java.io.Serializable;
 
 /**
  * 清洗配置DTO
+ *
  * @author zhen.Li1
  * @date 2025/06/12
  */
@@ -30,9 +31,12 @@ public class CleanConfigDTO implements Serializable {
     @Schema(description = "文件类型：13:上传清洗周期文件,14:转化清洗周期文件")
     private Integer fileType;
 
+    @Schema(description = "数据来源：0营销中台,1外呼系统")
+    @NotNull(message = "数据来源不能为空")
+    private Integer systemType;
+
     @Schema(description = "文件路径")
     private String sftpPath;
-
 
 
 }

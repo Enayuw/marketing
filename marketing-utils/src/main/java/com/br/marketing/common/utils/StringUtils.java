@@ -7,6 +7,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * 字符串工具类
@@ -269,4 +270,34 @@ public class StringUtils {
         if (str == null || str.isEmpty()) return false;
         return CHINESE_CHAR_PATTERN.matcher(str).find();
     }
+
+    public static List<Long> StrsConvertLongs(String strs) {
+        if(isBlank(strs)){
+            return Collections.emptyList();
+        }
+        List<Long> longs = Arrays.stream(strs.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .map(Long::valueOf)
+                .collect(Collectors.toList());
+        return longs;
+    }
+
+    public static String LongsConvertStr(List<Long> longs) {
+        if (longs == null || longs.isEmpty()) {
+            return "";
+        }
+        return longs.stream()
+                .map(String::valueOf)
+                .collect(Collectors.joining(","));
+    }
+
+    public static String join(List<Long> longs) {
+        StringJoiner joiner = new StringJoiner(",", "(", ")");
+        for (Long num : longs) {
+            joiner.add(num.toString());
+        }
+        return joiner.toString();
+    }
+
 }

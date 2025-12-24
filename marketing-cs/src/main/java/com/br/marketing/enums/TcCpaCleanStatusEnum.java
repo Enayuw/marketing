@@ -1,7 +1,7 @@
 package com.br.marketing.enums;
 
 /**
- * down_status枚举
+ * clean_status枚举
  */
 public enum TcCpaCleanStatusEnum {
 
