@@ -332,8 +332,8 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
     /**
      * 保存回调数据日志
      */
-    private void saveCallbackDataLog(DidiCallBackData data, String httpcode, String errorCode, String errorMessage,
-                                     String content, Integer pushType, int pushStatus, DiDiSmsRequestTO requestTO) {
+    private void saveCallbackDataLog(DidiCallBackData data, String httpcode, String content, String errorCode,
+                                     String errorMessage, Integer pushType, int pushStatus, DiDiSmsRequestTO requestTO) {
         DidiCallbackDataLog logEntity = new DidiCallbackDataLog();
         logEntity.setCallbackId(data.getId());
         logEntity.setCell(data.getCustNum());
