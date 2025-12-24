@@ -52,8 +52,8 @@ public class DiDiV5Client {
     @Mockable(mockName = MockConstants.DIDI_V5_CALLBACK_SUCCESS_DATA_RETURN)
     public Result<String> callbackSuccess(String mediaName, DiDiSmsRequestTO smsRequestTO) {
         callbackSuccessUrl = callbackSuccessUrl.replace("mediaName", mediaName);
-        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(smsRequestTO, callbackSuccessUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE,
-                JSON.toJSONString(smsRequestTO), true, false);
+        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(smsRequestTO, callbackSuccessUrl, isProxy,
+                MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(smsRequestTO), true, false);
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(JSONObject.toJSONString(resMap));
     }
 
