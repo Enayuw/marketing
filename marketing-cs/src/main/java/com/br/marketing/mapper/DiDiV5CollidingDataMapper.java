@@ -13,6 +13,6 @@ public interface DiDiV5CollidingDataMapper extends DiDiV5CollidingDataMapperBase
 
     List<Long> queryCollidingFileIds(@Param("startTime") Date startTime, @Param("endTime") Date endTime);
 
-    int getPushStatusCountByLocalId(@Param("fileId") Long fileId, @Param("startTime") int pushStatus, @Param("startTime") Date startTime, @Param(
+    int getPushStatusCountByLocalId(@Param("fileId") Long fileId, @Param("pushStatus") int pushStatus, @Param("startTime") Date startTime, @Param(
             "endTime") Date endTime);
 }

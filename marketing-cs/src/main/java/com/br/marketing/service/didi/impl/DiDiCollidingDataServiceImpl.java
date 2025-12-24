@@ -74,6 +74,9 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
     public void colliding(JobExecutionMultipleShardingContext context) {
         TpDynamicExecutor pushPool = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.DIDI_V5_COLLIDING.getName(), 50, 50);
         List<Long> fileIds = diDiV5CollidingDataMapper.queryCollidingFileIds(DateUtil.beginOfDay(new Date()), new Date());
+        if (CollectionUtils.isEmpty(fileIds)) {
+            return;
+        }
         localFileMapper.updateUploadStartTimeById(fileIds, new Date());
         JSONObject collidingConfig = marketingCommonConfig.getDiDiV5Config();
         int limit = collidingConfig.getInteger("limit") != null ? collidingConfig.getInteger("limit") : 2000;
