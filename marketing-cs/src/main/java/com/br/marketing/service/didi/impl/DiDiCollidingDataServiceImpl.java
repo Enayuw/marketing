@@ -145,6 +145,7 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
             String content = resJson.getString("content");
             boolean success = "200".equals(httpcode) || StringUtils.isNotBlank(content);
             data.setPushStatus(success ? 3 : 2);
+            data.setUpdateTime(new Date());
             diDiV5CollidingDataMapper.updateByPrimaryKey(data);
             pushToMq(data, httpcode, content);
         } catch (Exception e) {
