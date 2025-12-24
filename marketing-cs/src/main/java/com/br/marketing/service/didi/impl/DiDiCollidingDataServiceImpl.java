@@ -33,16 +33,17 @@ import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.google.common.collect.Lists;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import javax.annotation.Resource;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 @Service
 @Slf4j
@@ -219,8 +220,10 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
 
     private Result<Boolean> cleanAndUpload(DiDiV5CollidingResultResponseDTO responseDTO, DiDiV5CollidingDataLog dataLog) throws NoSuchFieldException {
         JSONObject collidingConfig = marketingCommonConfig.getDiDiV5Config();
-        String firstBatchStartTime = collidingConfig.getString("firstBatchStartTime") != null ? collidingConfig.getString("firstBatchStartTime") : "00:00:00";
-        String firstBatchEndTime = collidingConfig.getString("firstBatchEndTime") != null ? collidingConfig.getString("firstBatchEndTime") : "02:00:00";
+        String firstBatchStartTime = collidingConfig.getString("firstBatchStartTime") != null ?
+                collidingConfig.getString("firstBatchStartTime") : "00:00:00";
+        String firstBatchEndTime = collidingConfig.getString("firstBatchEndTime") != null ?
+                collidingConfig.getString("firstBatchEndTime") : "02:00:00";
         DateTime startTime = DateUtil.parseTimeToday(firstBatchStartTime);
         DateTime endTime = DateUtil.parseTimeToday(firstBatchEndTime);
         DateTime now = DateUtil.date();
