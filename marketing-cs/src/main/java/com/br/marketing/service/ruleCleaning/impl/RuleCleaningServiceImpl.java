@@ -2078,73 +2078,43 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             return;
         }
         MarketingCleanDataFile cleanDataFile = cleanDataFiles.get(0);
-        List<String> mappingFields = ruleConfigList.stream().map(MarketingDataCleanGeneralRuleConfig::getMappingField).collect(Collectors.toList());
         List<String> fileHeader = Arrays.asList(cleanDataFile.getFileHeader().split(","));
         List<String> fileData = Arrays.asList(cleanDataFile.getFileData().split(",", -1));
-        List<String> resultFields = mergeCollection(fileHeader, mappingFields);
-
-        for (String resultField : resultFields) {
-            if (fileHeader.contains(resultField)) {
-                FieldSampleDTO dto = new FieldSampleDTO();
-                // 设置字段名称
-                dto.setFieldName(resultField);
-                dto.setFieldSample(fileData.get(fileHeader.indexOf(resultField)));
-                dto.setFirstUploadTime(cleanDataFile.getCreateTime());
-                dto.setFieldType(0);
-                dto.setNeedCleaning(false);
-                MarketingDataCleanGeneralRuleConfig ruleConfig = ruleConfigList.stream().filter(rule -> rule.getCleanFields().equals(dto.getFieldName()))
-                        .findFirst().orElse(null);
-                if (!Objects.isNull(ruleConfig)) {
-                    dto.setMappingRule(ruleConfig.getMappingRule());
-                    dto.setRelatedField(ruleConfig.getCleanFields());
-                    dto.setResultPreview(ruleConfig.getResultPreview());
-                    dto.setNeedCleaning(ruleConfig.getIsMapping());
-                    dto.setFieldType(ruleConfig.getIsDerived());
-                }
-                // 添加到结果列表
-                result.add(dto);
-            } else  {
-                FieldSampleDTO dto = new FieldSampleDTO();
-                dto.setFieldName(resultField);
-                MarketingDataCleanGeneralRuleConfig ruleConfig =
-                        ruleConfigList.stream().filter(rule -> rule.getMappingField().equals(dto.getFieldName()))
-                        .findFirst().orElse(null);
-                dto.setFieldSample(fileData.get(fileHeader.indexOf(ruleConfig.getCleanFields())));
-                dto.setFirstUploadTime(cleanDataFile.getCreateTime());
-                dto.setFieldType(1);
-                dto.setNeedCleaning(true);
-                if (!Objects.isNull(ruleConfig)) {
-                    dto.setMappingRule(ruleConfig.getMappingRule());
-                    dto.setRelatedField(ruleConfig.getCleanFields());
-                    dto.setResultPreview(ruleConfig.getResultPreview());
-                    dto.setNeedCleaning(ruleConfig.getIsMapping());
-                    dto.setFieldType(ruleConfig.getIsDerived());
-                }
-                result.add(dto);
+        for (int i = 0; i < fileHeader.size(); i++) {
+            FieldSampleDTO dto = new FieldSampleDTO();
+            // 设置字段名称
+            dto.setFieldName(fileHeader.get(i));
+            dto.setFieldSample(fileData.get(i));
+            dto.setFirstUploadTime(cleanDataFile.getCreateTime());
+            dto.setFieldType(0);
+            dto.setNeedCleaning(false);
+            MarketingDataCleanGeneralRuleConfig ruleConfig = ruleConfigList.stream().filter(rule -> rule.getCleanFields().equals(dto.getFieldName()))
+                    .findFirst().orElse(null);
+            if (!Objects.isNull(ruleConfig)) {
+                dto.setMappingRule(ruleConfig.getMappingRule());
+                dto.setRelatedField(ruleConfig.getMappingField());
+                dto.setResultPreview(ruleConfig.getResultPreview());
+                dto.setNeedCleaning(ruleConfig.getIsMapping());
+                dto.setFieldType(ruleConfig.getIsDerived());
             }
+            // 添加到结果列表
+            result.add(dto);
         }
-    }
-
-
-    private List<String> mergeCollection(List<String> fileHeader, List<String> mappingFields) {
-        if (CollectionUtils.isEmpty(fileHeader)) {
-            return CollectionUtils.isEmpty(mappingFields) ? new ArrayList<>() : new ArrayList<>(mappingFields);
+        List<MarketingDataCleanGeneralRuleConfig> filteredConfigs = ruleConfigList.stream()
+                .filter(cfg -> Boolean.TRUE.equals(cfg.getIsMapping()))
+                .collect(Collectors.toList());
+        for (MarketingDataCleanGeneralRuleConfig ruleConfig : filteredConfigs) {
+            FieldSampleDTO dto = new FieldSampleDTO();
+            // 设置字段名称
+            dto.setFieldName(ruleConfig.getMappingField());
+            dto.setFieldType(ruleConfig.getIsDerived());
+            dto.setNeedCleaning(ruleConfig.getIsMapping());
+            dto.setMappingRule(ruleConfig.getMappingRule());
+            dto.setRelatedField(ruleConfig.getMappingField());
+            dto.setResultPreview(ruleConfig.getResultPreview());
+            // 添加到结果列表
+            result.add(dto);
         }
-        if (CollectionUtils.isEmpty(mappingFields)) {
-            return new ArrayList<>(fileHeader);
-        }
-        
-        List<String> result = new ArrayList<>(fileHeader);
-        
-        Set<String> fileHeaderSet = new HashSet<>(fileHeader);
-        
-        for (String mappingField : mappingFields) {
-            if (!fileHeaderSet.contains(mappingField)) {
-                result.add(mappingField);
-            }
-        }
-        
-        return result;
     }
 
     @Override
