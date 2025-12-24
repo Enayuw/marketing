@@ -55,6 +55,7 @@
           AND push_status = 0
           AND status = 0
           AND sms_send_status = 0
+          AND is_connect IS NULL
           AND api_code = #{apiCode}
         ORDER BY id ASC LIMIT #{pageSize}
     </select>
