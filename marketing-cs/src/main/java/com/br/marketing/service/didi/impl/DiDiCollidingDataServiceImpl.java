@@ -1,5 +1,7 @@
 package com.br.marketing.service.didi.impl;
 
+import cn.hutool.core.date.DatePattern;
+import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -36,7 +38,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -74,9 +75,15 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
 
     @Override
     public void colliding(JobExecutionMultipleShardingContext context) {
+        // 获取分片信息
+        List<Integer> shardingItems = context.getShardingItems();
+        int shardingTotalCount = context.getShardingTotalCount();
+        log.warn("滴滴短信流量数据撞库任务开始执行，总分片数：{}，当前分片：{}", shardingTotalCount, shardingItems);
+        
         TpDynamicExecutor pushPool = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.DIDI_V5_COLLIDING.getName(), 50, 50);
         List<Long> fileIds = diDiV5CollidingDataMapper.queryCollidingFileIds(DateUtil.beginOfDay(new Date()), new Date());
         if (CollectionUtils.isEmpty(fileIds)) {
+            log.warn("滴滴短信流量数据撞库任务，分片{}未查询到待处理文件", shardingItems);
             return;
         }
         localFileMapper.updateUploadStartTimeById(fileIds, new Date());
@@ -84,13 +91,16 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
         int limit = collidingConfig.getInteger("limit") != null ? collidingConfig.getInteger("limit") : 2000;
         String mediaName = collidingConfig.getString("mediaName") != null ? collidingConfig.getString("mediaName") : "bairongC";
         String token = collidingConfig.getString("token") != null ? collidingConfig.getString("token") : "9Hqeoi36CJfdA7n4";
+        // 收集所有异步任务的Future，用于等待所有任务完成
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
         while (true) {
-            List<DiDiV5CollidingData> dataList = diDiV5CollidingDataMapper.queryCollidingData(limit, DateUtil.beginOfDay(new Date()), new Date());
+            // 使用分片查询，只处理属于当前分片的数据
+            List<DiDiV5CollidingData> dataList = diDiV5CollidingDataMapper.queryCollidingDataBySharding(
+                    limit, DateUtil.beginOfDay(new Date()), new Date(), shardingTotalCount, shardingItems);
             if (CollectionUtils.isEmpty(dataList)) {
                 break;
             }
             markAsPushing(dataList);
-            List<CompletableFuture<Void>> batchFutures = new ArrayList<>();
             // 使用CompletableFuture包装异步任务，收集所有Future
             dataList.forEach((DiDiV5CollidingData data) -> {
                 CompletableFuture<Void> future = new CompletableFuture<>();
@@ -98,20 +108,11 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
                     collidingData(data, mediaName, token);
                     future.complete(null);
                 });
-                batchFutures.add(future);
+                futures.add(future);
             });
-            // 等待当前批次的所有线程执行完成
-            CompletableFuture.allOf(batchFutures.toArray(new CompletableFuture[0])).join();
-            dataList.stream()
-                    .filter((DiDiV5CollidingData d) -> d.getPushStatus() == 2 || d.getPushStatus() == 3)
-                    .collect(Collectors.groupingBy(DiDiV5CollidingData::getPushStatus))
-                    .forEach((Integer status, List<DiDiV5CollidingData> list) -> {
-                        List<Long> ids = list.stream()
-                                .map(DiDiV5CollidingData::getId)
-                                .toList();
-                        diDiV5CollidingDataMapper.updatePushStatusByIds(status, ids);
-                    });
         }
+        log.warn("分片{}等待所有撞库任务完成，共{}个任务", shardingItems, futures.size());
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         // 所有任务完成后，再更新本地文件状态
         updateLocalFiles(fileIds);
         pushPool.shutdownAndAwaitTermination();
@@ -154,13 +155,11 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
             boolean success = "200".equals(httpcode) || StringUtils.isNotBlank(content);
             data.setPushStatus(success ? 3 : 2);
             data.setUpdateTime(new Date());
+            diDiV5CollidingDataMapper.updateByPrimaryKey(data);
             pushToMq(data, httpcode, content);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(),
                     "该手机号撞库异常：" + data.getCell() + "id:" + data.getId()), e.getMessage());
-            // 异常情况下设置为失败状态
-            data.setPushStatus(2);
-            data.setUpdateTime(new Date());
         }
     }
 
@@ -219,10 +218,21 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
     }
 
     private Result<Boolean> cleanAndUpload(DiDiV5CollidingResultResponseDTO responseDTO, DiDiV5CollidingDataLog dataLog) throws NoSuchFieldException {
+        JSONObject collidingConfig = marketingCommonConfig.getDiDiV5Config();
+        String firstBatchStartTime = collidingConfig.getString("firstBatchStartTime") != null ? collidingConfig.getString("firstBatchStartTime") : "00:00:00";
+        String firstBatchEndTime = collidingConfig.getString("firstBatchEndTime") != null ? collidingConfig.getString("firstBatchEndTime") : "02:00:00";
+        DateTime startTime = DateUtil.parseTimeToday(firstBatchStartTime);
+        DateTime endTime = DateUtil.parseTimeToday(firstBatchEndTime);
+        DateTime now = DateUtil.date();
+        boolean inRange = !now.isBefore(startTime) && !now.isAfter(endTime);
+        String userType = inRange ? "1" : "0";
         // 数据包装
         JSONObject cleanJson = (JSONObject) JSONObject.toJSON(responseDTO.getData());
         cleanJson.put("cell", dataLog.getCell());
         cleanJson.put("userGroup", dataLog.getUserGroup());
+        cleanJson.put("userType",userType);
+        String today = DateUtil.format(new Date(), DatePattern.PURE_DATE_FORMAT);
+        cleanJson.put("scas", today + userType);
         Result cleanResult = generalDataCleanService.uploadClean(
                 Lists.newArrayList(cleanJson),
                 dataLog.getApiCode());
