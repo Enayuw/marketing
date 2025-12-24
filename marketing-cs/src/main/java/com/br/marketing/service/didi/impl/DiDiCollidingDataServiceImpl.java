@@ -96,12 +96,8 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
             dataList.forEach((DiDiV5CollidingData data) -> {
                 CompletableFuture<Void> future = new CompletableFuture<>();
                 pushPool.execute(() -> {
-                    try {
-                        collidingData(data, mediaName, token);
-                        future.complete(null);
-                    } catch (Exception e) {
-                        future.completeExceptionally(e);
-                    }
+                    collidingData(data, mediaName, token);
+                    future.complete(null);
                 });
                 futures.add(future);
             });
