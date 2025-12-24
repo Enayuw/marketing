@@ -36,6 +36,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -83,14 +84,13 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
         int limit = collidingConfig.getInteger("limit") != null ? collidingConfig.getInteger("limit") : 2000;
         String mediaName = collidingConfig.getString("mediaName") != null ? collidingConfig.getString("mediaName") : "bairongC";
         String token = collidingConfig.getString("token") != null ? collidingConfig.getString("token") : "9Hqeoi36CJfdA7n4";
-        // 收集所有异步任务的Future，用于等待所有任务完成
-        List<CompletableFuture<Void>> futures = new ArrayList<>();
         while (true) {
             List<DiDiV5CollidingData> dataList = diDiV5CollidingDataMapper.queryCollidingData(limit, DateUtil.beginOfDay(new Date()), new Date());
             if (CollectionUtils.isEmpty(dataList)) {
                 break;
             }
             markAsPushing(dataList);
+            List<CompletableFuture<Void>> batchFutures = new ArrayList<>();
             // 使用CompletableFuture包装异步任务，收集所有Future
             dataList.forEach((DiDiV5CollidingData data) -> {
                 CompletableFuture<Void> future = new CompletableFuture<>();
@@ -98,11 +98,20 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
                     collidingData(data, mediaName, token);
                     future.complete(null);
                 });
-                futures.add(future);
+                batchFutures.add(future);
             });
+            // 等待当前批次的所有线程执行完成
+            CompletableFuture.allOf(batchFutures.toArray(new CompletableFuture[0])).join();
+            dataList.stream()
+                    .filter((DiDiV5CollidingData d) -> d.getPushStatus() == 2 || d.getPushStatus() == 3)
+                    .collect(Collectors.groupingBy(DiDiV5CollidingData::getPushStatus))
+                    .forEach((Integer status, List<DiDiV5CollidingData> list) -> {
+                        List<Long> ids = list.stream()
+                                .map(DiDiV5CollidingData::getId)
+                                .toList();
+                        diDiV5CollidingDataMapper.updatePushStatusByIds(status, ids);
+                    });
         }
-        log.warn("等待所有撞库任务完成，共{}个任务", futures.size());
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         // 所有任务完成后，再更新本地文件状态
         updateLocalFiles(fileIds);
         pushPool.shutdownAndAwaitTermination();
@@ -145,11 +154,13 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
             boolean success = "200".equals(httpcode) || StringUtils.isNotBlank(content);
             data.setPushStatus(success ? 3 : 2);
             data.setUpdateTime(new Date());
-            diDiV5CollidingDataMapper.updateByPrimaryKey(data);
             pushToMq(data, httpcode, content);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(),
                     "该手机号撞库异常：" + data.getCell() + "id:" + data.getId()), e.getMessage());
+            // 异常情况下设置为失败状态
+            data.setPushStatus(2);
+            data.setUpdateTime(new Date());
         }
     }
 
