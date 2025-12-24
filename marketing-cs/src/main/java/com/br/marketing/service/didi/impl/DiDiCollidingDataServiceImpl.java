@@ -116,11 +116,7 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
                 continue;
             }
             int successCount = diDiV5CollidingDataMapper.getPushStatusCountByLocalId(fileId, 3, DateUtil.beginOfDay(new Date()), new Date());
-            LocalFile localFile = new LocalFile();
-            localFile.setPushNumber(successCount);
-            localFile.setPushEndTime(new Date());
-            localFile.setId(fileId);
-            localFileMapper.updateByPrimaryKeySelective(localFile);
+            localFileMapper.updatePushEndTimeById(fileId, successCount, new Date());
         }
     }
 
