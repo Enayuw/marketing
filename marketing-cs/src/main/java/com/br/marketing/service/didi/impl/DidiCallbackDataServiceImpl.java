@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -401,7 +402,7 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
             }
             // 将【didi_v5_callback_data】中的数据标记为已推送
             DidiCallBackDataExample example = new DidiCallBackDataExample();
-            example.createCriteria().andCreateTimeGreaterThan(new Date())
+            example.createCriteria().andCreateTimeGreaterThan(java.sql.Date.valueOf(LocalDate.now()))
                     .andCustNumIn(pageData.stream().map(DiDiV5CollidingDataLog::getCell).collect(Collectors.toList()));
             DidiCallBackData updateData = new DidiCallBackData();
             updateData.setPushStatus(1);
