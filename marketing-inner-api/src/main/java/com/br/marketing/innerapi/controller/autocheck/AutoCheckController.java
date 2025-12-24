@@ -5,6 +5,7 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.dto.autocheck.SaveAutoCheckConfigDto;
+import com.br.marketing.dto.autocheck.SaveAutoCheckConfigResDto;
 import com.br.marketing.service.autocheck.AutoCheckService;
 import com.br.marketing.vo.autocheck.AutoCheckResultVO;
 import com.br.marketing.vo.autocheck.AutoCheckConfigVO;
@@ -71,7 +72,13 @@ public class AutoCheckController {
     @Operation(summary = "保存自动化巡检配置接口(新增/编辑)", description = "保存自动化巡检配置接口(新增/编辑)")
     public ApiResult<Boolean> saveAutoCheckConfig(@Valid @RequestBody SaveAutoCheckConfigDto dto) {
         try {
-            return autoCheckService.saveAutoCheckConfig(dto);
+            SaveAutoCheckConfigResDto resDto = autoCheckService.saveAutoCheckConfig(dto);
+            if (resDto.getRes()) {
+                return new ApiResult<Boolean>().success(true);
+            } else {
+                return new ApiResult<Boolean>().fail(resDto.getCode()).
+                        setData(resDto.getRes()).setMessage(resDto.getMessage());
+            }
         } catch (Exception ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
                     "保存自动化巡检配置接口错误！错误信息：" + ex.getMessage()), ex);

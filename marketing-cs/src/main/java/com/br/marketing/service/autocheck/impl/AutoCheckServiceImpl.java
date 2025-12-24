@@ -2,11 +2,11 @@ package com.br.marketing.service.autocheck.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
-import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.dto.autocheck.CheckTransferSyncDataDto;
 import com.br.marketing.dto.autocheck.CheckUploadSyncDataDto;
 import com.br.marketing.dto.autocheck.SaveAutoCheckConfigDto;
+import com.br.marketing.dto.autocheck.SaveAutoCheckConfigResDto;
 import com.br.marketing.entity.AutoCheckConfig;
 import com.br.marketing.entity.AutoCheckResultLog;
 import com.br.marketing.mapper.*;
@@ -180,17 +180,18 @@ public class AutoCheckServiceImpl implements AutoCheckService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ApiResult<Boolean> saveAutoCheckConfig(SaveAutoCheckConfigDto dto) {
-        int result;
+    public SaveAutoCheckConfigResDto saveAutoCheckConfig(SaveAutoCheckConfigDto dto) {
+        SaveAutoCheckConfigResDto result = new SaveAutoCheckConfigResDto();
         if (Objects.isNull(dto.getId())) {
             // 新增
             // 新增前做防止重复的处理
             AutoCheckConfig existingConfig = autoCheckConfigMapper.selectByApiCode(dto.getApiCode());
             if (Objects.nonNull(existingConfig)) {
-                log.warn("要保存的配置已存在，apiCode: {}", dto.getApiCode());
-                return new ApiResult<Boolean>().fail(ServiceResultEnum.UNKNOWN_ERROR.getCode())
-                        .setData(false)
-                        .setMessage("保存失败，apiCode：" + dto.getApiCode() + "已存在");
+                log.warn("QA自动化巡检,要保存的配置已存在，apiCode: {}", dto.getApiCode());
+                result.setRes(false);
+                result.setCode(ServiceResultEnum.UNKNOWN_ERROR.getCode());
+                result.setMessage("保存失败，apiCode：" + dto.getApiCode() + "已存在");
+                return result;
             }
             AutoCheckConfig config = new AutoCheckConfig();
             config.setApiCode(dto.getApiCode());
@@ -199,23 +200,24 @@ public class AutoCheckServiceImpl implements AutoCheckService {
             config.setCreateTime(now);
             config.setUpdateTime(now);
             // 插入数据库
-            result = autoCheckConfigMapper.insertSelective(config);
+            result.setRes(autoCheckConfigMapper.insertSelective(config) > 0);
         } else {
             // 编辑
             AutoCheckConfig existingConfig = autoCheckConfigMapper.selectByPrimaryKey(dto.getId());
             if (Objects.isNull(existingConfig)) {
-                log.warn("要编辑的配置不存在，id: {}", dto.getId());
-                return new ApiResult<Boolean>().fail(ServiceResultEnum.UNKNOWN_ERROR.getCode())
-                        .setData(false)
-                        .setMessage("要编辑的配置不存在");
+                log.warn("QA自动化巡检,要编辑的配置不存在，id: {}", dto.getId());
+                result.setRes(false);
+                result.setCode(ServiceResultEnum.UNKNOWN_ERROR.getCode());
+                result.setMessage("要编辑的配置不存在");
+                return result;
             }
             // 更新字段
             existingConfig.setSceneCode(dto.getSceneCodes());
             existingConfig.setUpdateTime(new Date());
             // 更新数据库
-            result = autoCheckConfigMapper.updateByPrimaryKeySelective(existingConfig);
+            result.setRes(autoCheckConfigMapper.updateByPrimaryKeySelective(existingConfig) > 0);
         }
-        return new ApiResult<Boolean>().success(result > 0);
+        return result;
     }
 
     @Override
@@ -225,7 +227,7 @@ public class AutoCheckServiceImpl implements AutoCheckService {
         }
         AutoCheckConfig existingConfig = autoCheckConfigMapper.selectByPrimaryKey(id);
         if (Objects.isNull(existingConfig)) {
-            log.warn("要删除的配置不存在，id: {}", id);
+            log.warn("QA自动化巡检,要删除的配置不存在，id: {}", id);
             return true;
         }
         // 更新字段
@@ -373,13 +375,14 @@ public class AutoCheckServiceImpl implements AutoCheckService {
             } catch (Exception ex) {
                 if (isUploadSyncTableNotExist(ex, apiCode)) {
                     // 分表不存在：跳过该 apiCode（不影响其他 apiCode 的查询）
-                    log.warn("自动化巡检-上传场景：跳过 apiCode={}，分表不存在：b_marketing_sync_{}", apiCode, apiCode);
+                    log.warn("QA自动化巡检-上传场景：跳过 apiCode={}，分表不存在：b_marketing_sync_{}", apiCode, apiCode);
                     continue;
                 }
                 throw ex;
             }
             // 若前一天八点的数据不存在，或者当前数据不存在，则跳过
             if (lastDay8 == null || latest == null) {
+                log.warn("QA自动化巡检-上传场景：跳过 apiCode={}，数据不存在", apiCode);
                 continue;
             }
             // 若当天本条数据已经比对过，则跳过
@@ -437,7 +440,7 @@ public class AutoCheckServiceImpl implements AutoCheckService {
         for (String apiCode : apiCodeList) {
             MarketingCustomerVO apiInfo = apiInfoMap.get(apiCode);
             if (apiInfo == null || StringUtils.isBlank(apiInfo.getCid())) {
-                log.warn("自动化巡检-转化场景：跳过 apiCode={}，cid为空", apiCode);
+                log.warn("QA自动化巡检-转化场景：跳过 apiCode={}，cid为空", apiCode);
                 continue;
             }
             String tCid = apiInfo.getCid().replaceFirst("-", "");
@@ -449,13 +452,14 @@ public class AutoCheckServiceImpl implements AutoCheckService {
                 latest = marketingTransferSyncUserMapper.getLatestDataByCidAndApiCode(tCid, apiCode);
             } catch (Exception ex) {
                 if (isTransferSyncTableNotExist(ex, tCid)) {
-                    log.warn("自动化巡检-转化场景：跳过 apiCode={}，分表不存在：b_marketing_transfer_sync_{}", apiCode, tCid);
+                    log.warn("QA自动化巡检-转化场景：跳过 apiCode={}，分表不存在：b_marketing_transfer_sync_{}", apiCode, tCid);
                     continue;
                 }
                 throw ex;
             }
             // 若前一天八点的数据不存在，或者当前数据不存在，则跳过
             if (Objects.isNull(lastDay8) || Objects.isNull(latest)) {
+                log.warn("QA自动化巡检-转化场景：跳过 apiCode={}，数据不存在", apiCode);
                 continue;
             }
             // 若当天本条数据已经比对过，则跳过

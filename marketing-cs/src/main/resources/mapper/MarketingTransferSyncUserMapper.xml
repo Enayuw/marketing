@@ -1401,7 +1401,7 @@
           and create_time <![CDATA[>=]]> DATE_ADD(DATE_SUB(CURDATE(), INTERVAL 1 DAY), INTERVAL 8 HOUR)
           and create_time <![CDATA[<]]> DATE_ADD(
               DATE_ADD(DATE_SUB(CURDATE(), INTERVAL 1 DAY), INTERVAL 8 HOUR),
-              INTERVAL 1 MINUTE
+              INTERVAL 5 MINUTE
           )
         order by create_time desc, id desc
         limit 1
