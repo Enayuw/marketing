@@ -28,9 +28,14 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -453,22 +458,16 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
     }
 
     private String generateRandomTimestampToday() {
-        Random random = new Random();
-        // 获取东八区当天开始时间
-        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
-        long todayStart = calendar.getTimeInMillis();
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime start = now.withHour(14).withMinute(0).withSecond(0).withNano(0);
+        LocalDateTime end = now.withHour(18).withMinute(0).withSecond(0).withNano(0);
 
-        // 生成14:00-18:00之间的随机时间戳
-        long startTime = todayStart + (14 * 60 * 60 * 1000);  // 14:00
-        long endTime = todayStart + (18 * 60 * 60 * 1000);    // 18:00
+        long totalMillis = Duration.between(start, end).toMillis();
+        long randomOffset = ThreadLocalRandom.current().nextLong(totalMillis);
+        LocalDateTime randomTime = start.plus(randomOffset, ChronoUnit.MILLIS);
+        long timestamp = randomTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 
-        // 生成随机时间戳
-        long randomTime = startTime + (long)(random.nextDouble() * (endTime - startTime));
-        return String.valueOf(randomTime);
+        return String.valueOf(timestamp);
     }
 
     /**
