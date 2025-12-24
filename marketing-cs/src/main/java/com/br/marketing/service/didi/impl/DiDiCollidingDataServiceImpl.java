@@ -32,9 +32,11 @@ import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.google.common.collect.Lists;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -82,16 +84,31 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
         int limit = collidingConfig.getInteger("limit") != null ? collidingConfig.getInteger("limit") : 2000;
         String mediaName = collidingConfig.getString("mediaName") != null ? collidingConfig.getString("mediaName") : "bairongC";
         String token = collidingConfig.getString("token") != null ? collidingConfig.getString("token") : "9Hqeoi36CJfdA7n4";
+        // 收集所有异步任务的Future，用于等待所有任务完成
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
         while (true) {
-            long start = System.currentTimeMillis();
             List<DiDiV5CollidingData> dataList = diDiV5CollidingDataMapper.queryCollidingData(limit, DateUtil.beginOfDay(new Date()), new Date());
             if (CollectionUtils.isEmpty(dataList)) {
                 break;
             }
             markAsPushing(dataList);
-            dataList.forEach((DiDiV5CollidingData data) -> pushPool.execute(() -> collidingData(data, mediaName, token)));
-            log.warn("滴滴短信流量数据撞库任务，单次运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);
+            // 使用CompletableFuture包装异步任务，收集所有Future
+            dataList.forEach((DiDiV5CollidingData data) -> {
+                CompletableFuture<Void> future = new CompletableFuture<>();
+                pushPool.execute(() -> {
+                    try {
+                        collidingData(data, mediaName, token);
+                        future.complete(null);
+                    } catch (Exception e) {
+                        future.completeExceptionally(e);
+                    }
+                });
+                futures.add(future);
+            });
         }
+        log.warn("等待所有撞库任务完成，共{}个任务", futures.size());
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        // 所有任务完成后，再更新本地文件状态
         updateLocalFiles(fileIds);
         pushPool.shutdownAndAwaitTermination();
     }

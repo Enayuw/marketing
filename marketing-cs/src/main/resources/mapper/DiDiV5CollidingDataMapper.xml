@@ -49,6 +49,7 @@
         FROM b_didi_v5_colliding_data
         WHERE push_status = #{pushStatus,jdbcType=INTEGER}
           AND status = 1
+          AND local_id = #{fileId,jdbcType=BIGINT}
           AND colliding_time BETWEEN #{startTime} AND #{endTime}
     </select>
 </mapper>
