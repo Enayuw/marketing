@@ -20,7 +20,6 @@ import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.entity.DiDiV5CollidingData;
 import com.br.marketing.entity.DiDiV5CollidingDataLog;
-import com.br.marketing.entity.LocalFile;
 import com.br.marketing.mapper.DiDiV5CollidingDataLogMapper;
 import com.br.marketing.mapper.DiDiV5CollidingDataMapper;
 import com.br.marketing.mapper.LocalFileMapper;
