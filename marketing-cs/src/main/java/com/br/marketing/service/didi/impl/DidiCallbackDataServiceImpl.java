@@ -278,29 +278,40 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
         List<DidiCallBackData> reservoirs = new ArrayList<>(sampleSize);
         // 前k个元素直接放入蓄水池
         for (int i = 0; i < sampleSize; i++) {
-            addSample(dataList, stage, i, reservoirs);
+            DidiCallBackData sample = prepareSample(dataList.get(i), stage);
+            reservoirs.add(sample);
         }
         // 处理剩余元素
         for (int i = sampleSize; i < dataList.size(); i++) {
+            // 生成[0, i]的随机数
             int j = RandomUtils.nextInt(0, i + 1);
             if (j < sampleSize) {
-                reservoirs.remove(j);
-                addSample(dataList, stage, j, reservoirs);
+                DidiCallBackData sample = prepareSample(dataList.get(i), stage);
+                reservoirs.set(j, sample);
             }
         }
         return reservoirs;
     }
 
-    private void addSample(List<DidiCallBackData> dataList, int stage, int j, List<DidiCallBackData> reservoirs) {
-        DidiCallBackData reservoir = dataList.get(j);
-        if (3 == stage) {
-            reservoir.setIsConnect(1);
-            reservoir.setCallbackType(1);
+    private DidiCallBackData prepareSample(DidiCallBackData data, int stage) {
+        DidiCallBackData sample = new DidiCallBackData();
+        sample.setId(data.getId());
+        sample.setCustNum(data.getCustNum());
+        sample.setCell(data.getCell());
+        sample.setScas(data.getScas());
+        sample.setApiCode(data.getApiCode());
+        sample.setCreateTime(data.getCreateTime());
+        sample.setExtend(data.getExtend());
+
+        // 根据阶段设置特定字段
+        if (stage == 3) {
+            sample.setIsConnect(1);
+            sample.setCallbackType(1);
         } else {
-            reservoir.setSmsSendStatus(1);
-            reservoir.setCallbackType(2);
+            sample.setSmsSendStatus(1);
+            sample.setCallbackType(2);
         }
-        reservoirs.add(reservoir);
+        return sample;
     }
 
     /**
