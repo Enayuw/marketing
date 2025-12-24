@@ -266,13 +266,11 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             for (MarketingJsonNodeParse node : nodes) {
                 String nodeName = node.getNodeName();
                 Integer level = node.getLevel();
-                if (Integer.valueOf(0).equals(level)) {
+                if (Integer.valueOf(0).equals(level)
+                        || DataProcessEnum.AcceptTypeEnum.GENERAL.getCode().equals(acceptType)
+                        || ("requestId".equals(nodeName))
+                        || "taskId".equals(nodeName)) {
                     continue;
-                }
-                if (DataProcessEnum.AcceptTypeEnum.GENERAL.getCode().equals(acceptType)){
-                    if (("requestId".equals(nodeName)) || "taskId".equals(nodeName)) {
-                        continue;
-                    }
                 }
                 FieldSampleDTO dto = new FieldSampleDTO();
                 String nodeValue = node.getNodeValue();
