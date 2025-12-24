@@ -945,13 +945,14 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
     @Override
     public void exportData(String cidOrName, String appletTimeStart, String appletTimeEnd, String apiCodes,
                            String userTypes,Integer selectType,String selectExportIds, HttpServletResponse response){
+        OutputStreamWriter writer = null;
         try {
             String yyyyMMdd = new SimpleDateFormat(DateHelper.SHORT_DATE_FORMAT).format(new Date());
             String encodeFileName  = URLEncoder.encode("数据导出"+ yyyyMMdd +".txt",StandardCharsets.UTF_8.toString());
             response.setContentType("text/plain; charset=UTF-8");
             response.setHeader("Content-Disposition", "attachment; filename=" + encodeFileName);
             ServletOutputStream out = response.getOutputStream();
-            OutputStreamWriter writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);
+            writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);
             // 写入UTF-8 BOM，确保Excel等软件正确识别编码
             out.write(0xEF);
             out.write(0xBB);
@@ -964,6 +965,14 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             fillExportData(cidOrName,appletTimeStart,appletTimeEnd,apiCodes,userTypes,selectType,selectExportIds,writer,out);
         } catch (IOException e) {
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SYNC_REPORT_EXPORT_SERVICEERROR.getCode(), e.getMessage()), e);
+        }finally {
+            if (writer != null) {
+                try {
+                    writer.close();
+                }catch (Exception e) {
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SYNC_REPORT_EXPORT_SERVICEERROR.getCode(), e.getMessage()), e);
+                }
+            }
         }
     }
 

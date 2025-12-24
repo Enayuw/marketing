@@ -21,6 +21,13 @@ public class OpenAPIConfig {
     @Resource
     Environment environment;
 
+    /**
+     * 自定义 OpenAPI 配置
+     * 配置 Swagger/OpenAPI 文档的基本信息，包括安全方案、API 信息、许可证等
+     * 根据当前激活的环境配置（非开发环境）添加服务器 URL
+     *
+     * @return OpenAPI 配置对象
+     */
     @Bean
     public OpenAPI customOpenAPI() {
 

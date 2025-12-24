@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.TcyrCpaPushFileTaskVtMapper" >
+
+    <update id="updateStatusByTaskId">
+        update tcyr_cpa_push_file_task_vt set status = #{status} where id = #{taskId}
+    </update>
+
+    <select id="selectLatestTaskIdByStatus" resultType="java.lang.Integer">
+        select max(id) from tcyr_cpa_push_file_task_vt where status = #{status}
+    </select>
+</mapper>

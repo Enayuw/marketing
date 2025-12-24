@@ -14,7 +14,7 @@ public interface TcyrCpaCollidingDataMapper extends TcyrCpaCollidingDataMapperBa
             @Param("pageSize")Integer pageSize,
             @Param("offset")Integer offset);
 
-    List<String> queryScoreDataWithPagedoris_(@Param("querySql") String querySql, @Param("minCusNum") String minCusNum);
+    List<String> queryScoreDataWithPagebI_(@Param("querySql") String querySql, @Param("minCusNum") String minCusNum);
 
     void insertBatchWithPriority(@Param("dataList") List<TcyrCpaCollidingData> dataList);
 
@@ -25,4 +25,9 @@ public interface TcyrCpaCollidingDataMapper extends TcyrCpaCollidingDataMapperBa
     int updateIsDelByIds(@Param("ids") List<Long> ids);
 
     Long queryUnDeleteCounttiflash_(@Param("packageId")Long packageId);
+
+    List<String> queryUserKeyWithPagetikv_(@Param("querySql") String querySql,
+                                           @Param("fieldName") String fieldName,
+                                           @Param("minUserKey") String minUserKey,
+                                           @Param("pageSize") int pageSize);
 }

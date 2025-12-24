@@ -32,4 +32,7 @@ public class RuleCleaningConfigDTO implements Serializable {
     @Schema(description = "配置ID")
     private Long configId;
 
+    @Schema(description = "数据源类型：0:营销中台，1:外呼系统")
+    private Integer systemType;
+
 } 

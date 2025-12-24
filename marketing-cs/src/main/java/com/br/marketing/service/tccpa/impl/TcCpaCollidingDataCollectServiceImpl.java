@@ -3,12 +3,13 @@ package com.br.marketing.service.tccpa.impl;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.TcCpaCollectStatusEnum;
 import com.br.marketing.enums.TcCpaCollidingSourceTypeEnum;
-import com.br.marketing.enums.TcCpaSyncDealStatusEnum;
+import com.br.marketing.enums.TcCpaLockBelongEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.tccpa.TcCpaCollidingDataCollectService;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
@@ -19,13 +20,10 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -33,9 +31,6 @@ import java.util.stream.Collectors;
 public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataCollectService {
 
     private final static String TITLE = "【同程易融CPA-colliding data collect任务】";
-
-    @Resource
-    private MarketingCommonConfig marketingCommonConfig;
 
     @Resource
     private TcyrCpaLockDataMapper tcyrCpaLockDataMapper;
@@ -55,14 +50,15 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
     @Override
     public void process() {
         TcyrCpaCollectTaskExample example = new TcyrCpaCollectTaskExample();
-        example.createCriteria().andStatusEqualTo(TcCpaSyncDealStatusEnum.DEAL_NO.getValue());
+        example.createCriteria().andStatusEqualTo(TcCpaCollectStatusEnum.DEAL_NO.getValue()).andIsDelEqualTo(Constants.DATA_VALID);
         List<TcyrCpaCollectTask> tcyrCpaCollectTasks = tcyrCpaCollectTaskMapper.selectByExample(example);
         if (CollectionUtils.isEmpty(tcyrCpaCollectTasks)) {
             return;
         }
-        // todo 更新【b_tcyr_cpa_colliding_task】和【b_tcyr_cpa_delete_rule】
+
+        // 进行数据收集任务
         for (TcyrCpaCollectTask tcyrCpaCollectTask : tcyrCpaCollectTasks) {
-            tcyrCpaCollectTask.setStatus(TcCpaSyncDealStatusEnum.DEAL_MIDDLE.getValue());
+            tcyrCpaCollectTask.setStatus(TcCpaCollectStatusEnum.DEAL_MIDDLE.getValue());
             tcyrCpaCollectTaskMapper.updateByPrimaryKey(tcyrCpaCollectTask);
 
             Long syncFileId = tcyrCpaCollectTask.getSourceId();
@@ -78,6 +74,8 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
         }
     }
 
+
+
     private void successProcess(TcyrCpaCollectTask tcyrCpaCollectTask, Long syncFileId,
                                 TpDynamicExecutor actionPool, int threadCount) {
         try {
@@ -86,7 +84,7 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
 
             if (minId == null || maxId == null) {
                 log.warn("没有找到需要处理的成功数据，syncFileId: {}", syncFileId);
-                tcyrCpaCollectTask.setStatus(TcCpaSyncDealStatusEnum.DEAL_SUCCESS.getValue());
+                tcyrCpaCollectTask.setStatus(TcCpaCollectStatusEnum.DEAL_SUCCESS.getValue());
                 tcyrCpaCollectTaskMapper.updateByPrimaryKey(tcyrCpaCollectTask);
                 return;
             }
@@ -116,12 +114,14 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
 
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
-            tcyrCpaCollectTask.setStatus(TcCpaSyncDealStatusEnum.DEAL_SUCCESS.getValue());
+            tcyrCpaCollectTask.setUpdateTime(new Date());
+            tcyrCpaCollectTask.setStatus(TcCpaCollectStatusEnum.DEAL_SUCCESS.getValue());
             tcyrCpaCollectTaskMapper.updateByPrimaryKey(tcyrCpaCollectTask);
 
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(), e.getMessage(), TITLE), e);
-            tcyrCpaCollectTask.setStatus(TcCpaSyncDealStatusEnum.DEAL_FAIL.getValue());
+            tcyrCpaCollectTask.setUpdateTime(new Date());
+            tcyrCpaCollectTask.setStatus(TcCpaCollectStatusEnum.DEAL_FAIL.getValue());
             tcyrCpaCollectTaskMapper.updateByPrimaryKey(tcyrCpaCollectTask);
         } finally {
             actionPool.shutdownAndAwaitTermination();
@@ -160,7 +160,7 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
             TcyrCpaLockData lockData = new TcyrCpaLockData();
             BeanUtils.copyProperties(successData, lockData);
             lockData.setReleaseTime(successData.getEndDate());
-            lockData.setLockBelong(1);
+            lockData.setLockBelong(TcCpaLockBelongEnum.BELONG_BR.getValue());
             lockData.setTaskId(taskId);
             lockData.setIsDel(1);
             lockData.setExtend(successData.getExtend());
@@ -182,7 +182,7 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
 
             if (minId == null || maxId == null) {
                 log.warn("没有找到需要处理的失败数据，syncFileId: {}", syncFileId);
-                tcyrCpaCollectTask.setStatus(TcCpaSyncDealStatusEnum.DEAL_SUCCESS.getValue());
+                tcyrCpaCollectTask.setStatus(TcCpaCollectStatusEnum.DEAL_SUCCESS.getValue());
                 tcyrCpaCollectTaskMapper.updateByPrimaryKey(tcyrCpaCollectTask);
                 return;
             }
@@ -210,12 +210,14 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
 
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
-            tcyrCpaCollectTask.setStatus(TcCpaSyncDealStatusEnum.DEAL_SUCCESS.getValue());
+            tcyrCpaCollectTask.setUpdateTime(new Date());
+            tcyrCpaCollectTask.setStatus(TcCpaCollectStatusEnum.DEAL_SUCCESS.getValue());
             tcyrCpaCollectTaskMapper.updateByPrimaryKey(tcyrCpaCollectTask);
 
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(), e.getMessage(), TITLE), e);
-            tcyrCpaCollectTask.setStatus(TcCpaSyncDealStatusEnum.DEAL_FAIL.getValue());
+            tcyrCpaCollectTask.setStatus(TcCpaCollectStatusEnum.DEAL_FAIL.getValue());
+            tcyrCpaCollectTask.setUpdateTime(new Date());
             tcyrCpaCollectTaskMapper.updateByPrimaryKey(tcyrCpaCollectTask);
         } finally {
             actionPool.shutdownAndAwaitTermination();
@@ -249,25 +251,25 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
     private void processBatchData(List<MarketingTcyrCpaFailData> batch, Long taskId) {
         List<TcyrCpaLockData> batchLockData = batch.stream()
                 .filter(failData -> StringUtils.equals(failData.getFailMsg(), "2"))
-                .map(failData -> {
-                    TcyrCpaLockData lockData = new TcyrCpaLockData();
-                    BeanUtils.copyProperties(failData, lockData);
-                    lockData.setReleaseTime(failData.getReleaseTime());
-                    lockData.setTaskId(taskId);
-                    lockData.setLockBelong(2);
-                    lockData.setIsDel(1);
-                    lockData.setExtend(failData.getExtend());
-                    lockData.setCreateTime(new Date());
-                    lockData.setUpdateTime(new Date());
-                    return lockData;
-                }).collect(Collectors.toList());
+                .map(failData -> getTcyrCpaLockData(failData, taskId, TcCpaLockBelongEnum.BELONG_OTR))
+                .collect(Collectors.toList());
 
         if (CollectionUtils.isNotEmpty(batchLockData)) {
             tcyrCpaLockDataMapper.batchSave(batchLockData);
         }
 
+        List<TcyrCpaLockData> batchBlankData = batch.stream()
+                .filter(failData -> StringUtils.equals(failData.getFailMsg(), "6"))
+                .map(failData -> getTcyrCpaLockData(failData, taskId, TcCpaLockBelongEnum.BELON_BLANK))
+                .collect(Collectors.toList());
+
+        if (CollectionUtils.isNotEmpty(batchBlankData)) {
+            tcyrCpaLockDataMapper.batchSave(batchBlankData);
+        }
+
         List<TcyrCpaInvalueData> invalueData = batch.stream()
                 .filter(failData -> !StringUtils.equals(failData.getFailMsg(), "2"))
+                .filter(failData -> !StringUtils.equals(failData.getFailMsg(), "6"))
                 .map(failData -> {
                     TcyrCpaInvalueData invalue = new TcyrCpaInvalueData();
                     BeanUtils.copyProperties(failData, invalue);
@@ -283,5 +285,19 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
         if (CollectionUtils.isNotEmpty(invalueData)) {
             tcyrCpaInvalueDataMapper.batchSave(invalueData);
         }
+    }
+
+    private static TcyrCpaLockData getTcyrCpaLockData(MarketingTcyrCpaFailData failData, Long taskId,
+                                                      TcCpaLockBelongEnum lockBelongEnum) {
+        TcyrCpaLockData lockData = new TcyrCpaLockData();
+        BeanUtils.copyProperties(failData, lockData);
+        lockData.setReleaseTime(failData.getReleaseTime());
+        lockData.setTaskId(taskId);
+        lockData.setLockBelong(lockBelongEnum.getValue());
+        lockData.setIsDel(Constants.DATA_VALID);
+        lockData.setExtend(failData.getExtend());
+        lockData.setCreateTime(new Date());
+        lockData.setUpdateTime(new Date());
+        return lockData;
     }
 }
