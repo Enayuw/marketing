@@ -27,6 +27,20 @@
         </if>
     </select>
 
+    <select id="queryCollidingDataBySharding" resultMap="BaseResultMap">
+        SELECT *
+        FROM b_didi_v5_colliding_data
+        WHERE push_status = 0
+        AND status = 1
+        AND colliding_time BETWEEN #{startTime} AND #{endTime}
+        AND mod(id, #{shardingTotalCount}) in
+        <foreach collection="shardingItems" item="sharding" open="(" separator="," close=")">
+            #{sharding}
+        </foreach>
+        ORDER BY id ASC
+        LIMIT #{limit}
+    </select>
+
     <update id="updatePushStatusByIds">
         update b_didi_v5_colliding_data
         set push_status = #{pushStatus,jdbcType=INTEGER}
