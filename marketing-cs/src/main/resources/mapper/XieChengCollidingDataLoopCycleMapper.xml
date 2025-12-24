@@ -304,12 +304,14 @@
 
     <!-- 基础：构建时间段条件 -->
     <sql id="timeRangePlusCases">
-        <foreach collection="timeRangePlusList" item="timeRangePlus" index="index">
-            COUNT(CASE
-            WHEN cycle.release_time BETWEEN #{timeRangePlus.begin,jdbcType=TIMESTAMP} AND #{timeRangePlus.end,jdbcType=TIMESTAMP}
-            THEN cycle.cell_sha256_code_list
-            END) as ${params.fieldPrefix}_${timeRangePlus.order},
-        </foreach>
+        <trim suffixOverrides=",">
+            <foreach collection="timeRangePlusList" item="timeRangePlus" index="index">
+                COUNT(CASE
+                WHEN cycle.release_time BETWEEN #{timeRangePlus.begin,jdbcType=TIMESTAMP} AND #{timeRangePlus.end,jdbcType=TIMESTAMP}
+                THEN cycle.cell_sha256_code_list
+                END) as ${prefix}_${timeRangePlus.order},
+            </foreach>
+        </trim>
     </sql>
 
     <select id="selectTimeRangeOutMagnitudeForTodaystiflash_" resultType="java.util.Map">
@@ -330,9 +332,9 @@
         SELECT
             <include refid="timeRangePlusCases"/>
         FROM
-            b_xiecheng_colliding_data_loop_cycle
+            b_xiecheng_colliding_data_loop_cycle cycle
         <![CDATA[
-        WHERE cycle.release_time >= date(#{begin,jdbcType=TIMESTAMP})
+        WHERE cycle.release_time >= date(#{minBegin,jdbcType=TIMESTAMP})
           AND cycle.release_time < DATE_ADD(date(#{minBegin,jdbcType=TIMESTAMP}), INTERVAL 1 DAY)
           AND (cycle.release_time < #{minBegin,jdbcType=TIMESTAMP} OR cycle.release_time > #{maxEnd,jdbcType=TIMESTAMP})
           AND cycle.is_delete = 0
