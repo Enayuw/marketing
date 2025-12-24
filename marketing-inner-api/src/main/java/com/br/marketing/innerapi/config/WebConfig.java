@@ -48,7 +48,8 @@ public class WebConfig extends WebMvcConfigurerAdapter {
                 .addPathPatterns("/tag/**")
                 .addPathPatterns("/mock/**")
                 .addPathPatterns("/account/**")
-                .addPathPatterns("/tcCpa/customize/dataPackage/**");
+                .addPathPatterns("/tcCpa/customize/dataPackage/**")
+                .addPathPatterns("/auto/check/**");
         registry.addInterceptor(authInterceptor)
                 .addPathPatterns("/rule/**")
                 .addPathPatterns("/pushrulefilter/**")
@@ -68,6 +69,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
                 .addPathPatterns("/account/**")
                 .addPathPatterns("/mock/**")
                 .addPathPatterns("/tcCpa/customize/dataPackage/**")
+                .addPathPatterns("/auto/check/**")
         ;
         super.addInterceptors(registry);
     }
