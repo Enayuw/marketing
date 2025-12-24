@@ -454,11 +454,19 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
 
     private String generateRandomTimestampToday() {
         Random random = new Random();
-        Date today = new Date();
-        long todayStart = today.getTime() / (1000 * 60 * 60 * 24) * (1000 * 60 * 60 * 24);
-        long startTime = todayStart + (14 * 60 * 60 * 1000);
-        long endTime = todayStart + (18 * 60 * 60 * 1000);
+        // 获取东八区当天开始时间
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        long todayStart = calendar.getTimeInMillis();
+
         // 生成14:00-18:00之间的随机时间戳
+        long startTime = todayStart + (14 * 60 * 60 * 1000);  // 14:00
+        long endTime = todayStart + (18 * 60 * 60 * 1000);    // 18:00
+
+        // 生成随机时间戳
         long randomTime = startTime + (long)(random.nextDouble() * (endTime - startTime));
         return String.valueOf(randomTime);
     }
