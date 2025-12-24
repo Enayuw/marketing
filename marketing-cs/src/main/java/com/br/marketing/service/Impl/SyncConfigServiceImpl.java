@@ -84,7 +84,8 @@ public class SyncConfigServiceImpl implements SyncConfigService {
     public ApiResult<Boolean> copySftp(String id, String apiCode, String srcPath, String targePath
         , Integer type, Integer dataType,
                                        String suffix, String srcSftpHost, Integer srcSftpPort, String srcSftpUser, String srcSftpPwd,
-                                       String targetSftpHost, Integer targetSftpPort, String targetSftpUser, String targetSftpPwd) {
+                                       String targetSftpHost, Integer targetSftpPort, String targetSftpUser, String targetSftpPwd,String srcType,
+                                       String targetType) {
         SyncConfig syncConfig = syncConfigMapper.selectByPrimaryKey(Long.parseLong(id));
         syncConfig.setId(null);
         syncConfig.setCreateTime(null);
@@ -115,6 +116,8 @@ public class SyncConfigServiceImpl implements SyncConfigService {
             syncConfigNew.setTargetSftpPort(targetSftpPort);
             syncConfigNew.setTargetSftpUser(targetSftpUser);
             syncConfigNew.setTargetSftpPwd(targetSftpPwd);
+            syncConfigNew.setSrcType(srcType);
+            syncConfigNew.setTargetType(targetType);
             syncConfigNew.setCreateTime(new Date());
             syncConfigNew.setUpdateTime(new Date());
         } catch (Exception e) {

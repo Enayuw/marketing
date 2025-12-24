@@ -11,6 +11,7 @@ import com.br.marketing.entity.SyncConfig;
 import com.br.marketing.entity.SyncConfigExample;
 import com.br.marketing.entity.SyncLog;
 import com.br.marketing.enums.clean.DataProcessEnum;
+import com.br.marketing.enums.file.FileServerType;
 import com.br.marketing.mapper.FileSyncTaskMapper;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.mapper.SyncLogMapper;
@@ -45,6 +46,9 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
     @Resource
     private SyncLogMapper loanSyncLogMapper;
 
+    @Resource
+    private MinioFileService minioFileService;
+
 
     @Override
     public void processUploadTask(FileSyncTask uploadTask) {
@@ -57,14 +61,17 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
         //文件上传
         Boolean uploadResult = uploadSftp(uploadTask, syncConfig);
         //后置sql处理
-        Boolean postExecute = executePostSqlProcess(uploadTask.getPostSqlProcess());
-        // 根据上传结果更新任务状态
-        if (uploadResult && postExecute) {
-            updateTaskStatus(uploadTask.getId(), DataProcessEnum.FileStatusEnum.SUCCESS.getCode());
-            log.warn("文件上传成功，taskId: {}, fileName: {}", uploadTask.getId(), uploadTask.getFileName());
+        if (uploadResult) {
+            Boolean postExecute = executePostSqlProcess(uploadTask.getPostSqlProcess());
+            // 根据上传结果更新任务状态
+            if (postExecute) {
+                updateTaskStatus(uploadTask.getId(), DataProcessEnum.FileStatusEnum.SUCCESS.getCode());
+                log.warn("文件上传成功，taskId: {}, fileName: {}", uploadTask.getId(), uploadTask.getFileName());
+            } else {
+                updateTaskStatus(uploadTask.getId(), DataProcessEnum.FileStatusEnum.FAIL.getCode());
+            }
         } else {
             updateTaskStatus(uploadTask.getId(), DataProcessEnum.FileStatusEnum.FAIL.getCode());
-            log.warn("文件上传失败，taskId: {}, fileName: {}", uploadTask.getId(), uploadTask.getFileName());
         }
     }
 
@@ -193,7 +200,7 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
         List<SyncConfig> syncConfigs = syncConfigMapper.selectByExample(syncConfigExample);
 
         if (CollectionUtils.isEmpty(syncConfigs)) {
-            log.error("未找到匹配的同步配置，apiCode: {}, dataType: {}",
+            log.error("文件上传未找到匹配的同步配置，apiCode: {}, dataType: {}",
                     task.getApiCode(), DataTypeEnum.fromDescByValue(task.getDataType()));
             return null;
         }
@@ -244,6 +251,49 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
         criteriaCycle.andStatusEqualTo(1).andDataTypeEqualTo(DataTypeEnum.SYNC_FILES.getValue()).andTypeEqualTo(type);
         List<SyncConfig> syncCycleConfigs = syncConfigMapper.selectByExample(syncConfigCycle);
         syncServiceImpl.sync(syncCycleConfigs);
+    }
+
+    @Override
+    public void processUploadMiNioTask(FileSyncTask uploadTask) {
+        SyncConfig syncConfig = getSyncConfigByTask(uploadTask);
+        if (Objects.isNull(syncConfig)) {
+            // 配置不存在，更新为失败状态
+            updateTaskStatus(uploadTask.getId(), DataProcessEnum.FileStatusEnum.FAIL.getCode());
+            return;
+        }
+        //文件上传
+        Boolean uploadResult = uploadFile(uploadTask, syncConfig);
+        //后置sql处理
+        if (uploadResult) {
+            Boolean postExecute = executePostSqlProcess(uploadTask.getPostSqlProcess());
+            // 根据上传结果更新任务状态
+            if (postExecute) {
+                updateTaskStatus(uploadTask.getId(), DataProcessEnum.FileStatusEnum.SUCCESS.getCode());
+                log.warn("文件上传成功，taskId: {}, fileName: {}", uploadTask.getId(), uploadTask.getFileName());
+            } else {
+                updateTaskStatus(uploadTask.getId(), DataProcessEnum.FileStatusEnum.FAIL.getCode());
+            }
+        } else {
+            updateTaskStatus(uploadTask.getId(), DataProcessEnum.FileStatusEnum.FAIL.getCode());
+        }
+
+    }
+
+    private Boolean uploadFile(FileSyncTask uploadTask, SyncConfig syncConfig) {
+        //minio的上传
+        if (FileServerType.MINIO.getServerType().equals(syncConfig.getTargetType())) {
+            String localFilePath = uploadTask.getLocalPath().concat(uploadTask.getFileName());
+            String targetPath = replaceDateInPath(syncConfig.getTargetPath()).concat(uploadTask.getFileName());
+            Boolean uploadStatus = minioFileService.uploadFile(localFilePath, targetPath);
+            if (uploadStatus) {
+                insertSyncLog(uploadTask, syncConfig, targetPath);
+            }
+            return uploadStatus;
+        } else {
+            return uploadSftp(uploadTask, syncConfig);
+
+        }
+
     }
 
 

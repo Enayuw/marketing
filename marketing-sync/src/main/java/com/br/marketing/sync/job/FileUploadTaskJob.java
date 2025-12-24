@@ -12,6 +12,7 @@ import com.br.marketing.mapper.FileSyncTaskMapper;
 import com.br.marketing.sync.service.FileUploadDownloadService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -49,6 +50,8 @@ public class FileUploadTaskJob extends AbstractSimpleElasticJob {
         if (StringUtils.isNotEmpty(parameter)) {
             apiCode = parameter;
         }
+        //处理文件同步
+        fileUploadDownloadService.processFileSync(2);
         try {
             // 获取多个待上传的任务
             List<FileSyncTask> uploadTasks = getUploadFileTasks(apiCode);
@@ -73,8 +76,6 @@ public class FileUploadTaskJob extends AbstractSimpleElasticJob {
                     // 单个任务失败不影响其他任务继续处理
                 }
             }
-            //处理文件同步
-            fileUploadDownloadService.processFileSync(2);
         } catch (Exception e) {
             log.error("执行文件上传任务JOB异常，error: {}", e.getMessage(), e);
         }
@@ -85,10 +86,10 @@ public class FileUploadTaskJob extends AbstractSimpleElasticJob {
      */
     private List<FileSyncTask> getUploadFileTasks(String apiCode) {
         try {
-            // 查询待上传的任务（状态为0-待上传），获取多个
+            // 查询待上传和失败的任务，获取多个
             FileSyncTaskExample taskExample = new FileSyncTaskExample();
             FileSyncTaskExample.Criteria criteria = taskExample.createCriteria();
-            criteria.andStatusEqualTo(DataProcessEnum.FileStatusEnum.READY.getCode()); // 0-待上传
+            criteria.andStatusIn(Lists.newArrayList(DataProcessEnum.FileStatusEnum.READY.getCode(),DataProcessEnum.FileStatusEnum.FAIL.getCode()));
 
             if (StringUtils.isNotEmpty(apiCode)) {
                 criteria.andApiCodeEqualTo(apiCode);
