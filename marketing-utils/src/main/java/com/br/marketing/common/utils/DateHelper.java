@@ -6,14 +6,10 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
+import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -610,6 +606,40 @@ public class DateHelper {
             log.error("时间戳转化为日期错误，timestamp={}", timestamp);
             return String.valueOf(timestamp);
         }
+    }
+
+    /**
+     * Date转日期
+     * @param date
+     * @return
+     */
+    public static String formatDate(Date date) {
+        if (date == null) {
+            return null;
+        }
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat(LINE_DATE_FORMAT);
+            return sdf.format(date);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("日期格式错误: " + LINE_DATE_FORMAT, e);
+        }
+    }
+
+    /**
+     * Date转时分秒
+     * @param date
+     * @return
+     */
+    public static String formatHMS(Date date) {
+        if (date == null) {
+            return null;
+        }
+        LocalTime localTime = date.toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalTime();
+        java.time.format.DateTimeFormatter formatter =
+                java.time.format.DateTimeFormatter.ofPattern(COLON_TIME_FORMAT);
+        return localTime.format(formatter);
     }
 
 

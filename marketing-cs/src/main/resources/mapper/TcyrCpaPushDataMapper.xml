@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.TcyrCpaPushDataMapper" >
+    <insert id="insertBatchWithCollidingDate">
+        INSERT IGNORE INTO b_tcyr_cpa_push_data
+        (task_id, colliding_date, package_id, priority, user_key)
+        VALUES
+        <foreach collection="dataList" item="item" separator=",">
+            (#{item.taskId}, #{item.collidingDate}, #{item.packageId}, #{item.priority}, #{item.userKey})
+        </foreach>
+    </insert>
+
+    <select id="countByTaskId" resultType="java.lang.Integer">
+        select count(1)
+        from b_tcyr_cpa_push_data
+        where task_id = #{taskId}
+    </select>
+
+    <select id="selectWithPagination" resultType="com.br.marketing.entity.TcyrCpaPushData">
+        select id, user_key, priority
+        from b_tcyr_cpa_push_data
+        where is_del = 1
+        and colliding_date = curdate()
+        and (priority, id) > (#{lastPriority}, #{lastId})
+        and task_id in
+        <foreach item="taskId" collection="taskIds" open="(" separator="," close=")">
+            #{taskId}
+        </foreach>
+        order by priority asc, id asc
+        limit #{limit}
+    </select>
+</mapper>

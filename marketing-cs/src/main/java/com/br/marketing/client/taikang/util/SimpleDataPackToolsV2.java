@@ -194,8 +194,9 @@ public class SimpleDataPackToolsV2 {
 //            jsonObject.put("browseDate","2025-11-20 12:04:00");
 //            SimpleDataPackToolsV2 simpleDataPackToolsV2 = new SimpleDataPackToolsV2();
 //            ChannelRequest channelRequest = simpleDataPackToolsV2.clientPacking(
-//                    "MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEs9zja+l2Fd9B664O1q1Oy4fsiEoLhNiBS9zhKPuUI075vZ/dADBdE2zMbCP5oVDFBOter9IH/C1iX8C2HFrl0w==",
-//                    "MIGTAgEAMBMGByqGSM49AgEGCCqBHM9VAYItBHkwdwIBAQQgaOxhL7Oj8kLi8zpgXaGJIyfBOjxzqVf68ITblLXsYIOgCgYIKoEcz1UBgi2hRANCAATjyRdmnS4msSglH4Vv9QdLyC7Bl1Em8myRlzVqKmU9+pSYIPAqv8F4sIn9eYz9XHObW1aIcH4uqHeK6TYtSoQj\n" +
+//             "MFkwEwYHKoZIzj0CAQYIKoEcz1UBgi0DQgAEs9zja+l2Fd9B664O1q1Oy4fsiEoLhNiBS9zhKPuUI075vZ/dADBdE2zMbCP5oVDFBOter9IH/C1iX8C2HFrl0w==",
+//             "MIGTAgEAMBMGByqGSM49AgEGCCqBHM9VAYItBHkwdwIBAQQgaOxhL7Oj8kLi8zpgXaGJIyfBOjxzq" +
+//             "Vf68ITblLXsYIOgCgYIKoEcz1UBgi2hRANCAATjyRdmnS4msSglH4Vv9QdLyC7Bl1Em8myRlzVqKmU9+pSYIPAqv8F4sIn9eYz9XHObW1aIcH4uqHeK6TYtSoQj\n" +
 //                            "\n",
 //                    jsonObject);
 //            String send = httpProxyClient.send(channelRequest.toString(), "http://49.233.178.183/e/channel/dataReplay", false);

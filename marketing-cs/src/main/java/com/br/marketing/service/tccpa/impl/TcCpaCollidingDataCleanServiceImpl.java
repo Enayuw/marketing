@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCleanService {
-
+    
     @Resource
     TcyrCpaCollidingDataCleanTaskMapper tcyrCpaCollidingDataCleanTaskMapper;
 
@@ -128,7 +128,7 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
             tcyrCpaCollidingDataCleanTaskMapper.updateByPrimaryKeySelective(cleanTask);
             //5.开启线程池
             threadPool = TpDynamicExecutorFactory
-                    .getThreadPool(ThreadPoolNameEnum.XIECHENG_CYCLE_DELETE_EST.getName(), 50, 100);
+                    .getThreadPool(ThreadPoolNameEnum.TCYR_CPA_COLLIDING_DATA_CLEAN.getName(), 50, 100);
             List<CompletableFuture<Void>> futures = new ArrayList<>();
             //6.删除数据包
             if (CollectionUtils.isNotEmpty(deletePackages)) {
@@ -309,10 +309,7 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
         String minCusNum = null;
         for (; ; ) {
             try {
-                if (marketingCommonConfig.getTcCpaMockConfig().get("query")) {
-                    throw new IllegalArgumentException();
-                }
-                cusNums = tcyrCpaCollidingDataMapper.queryScoreDataWithPagedoris_(querySql, minCusNum);
+                cusNums = tcyrCpaCollidingDataMapper.queryScoreDataWithPagebI_(querySql, minCusNum);
             } catch (Exception e) {
                 log.warn("同程CPA撞库数据清洗，跑分数据查询异常，packageId：{}，batchNumber：{}", cleanPackage.getId(), batchNumber);
                 tcyrCpaBatchCleanInfos.add(new TcyrCpaBatchCleanInfo(batchNumber, true, isInner.get(), e.getMessage()));
@@ -329,9 +326,6 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
             List<String> finalCusNums = cusNums;
             CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                 try {
-                    if (marketingCommonConfig.getTcCpaMockConfig().get("insert")) {
-                        throw new IllegalArgumentException();
-                    }
                     insertData(finalCusNums, cleanPackage.getId(), cleanPackage.getPriority());
                 } catch (Exception e) {
                     log.warn("同程CPA撞库数据清洗，子线程跑分数据插入异常，packageId：{}，batchNumber：{}", cleanPackage.getId(), batchNumber);
@@ -348,14 +342,14 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
 
     private void insertData(List<String> cusNums, Long packageId, Integer priority) {
 
-        List<TcyrCpaCollidingData> dataList = cusNums.stream().map(cusNum -> {
-            TcyrCpaCollidingData data = new TcyrCpaCollidingData();
-            data.setPackageId(packageId);
-            data.setPriority(priority);
-            data.setUserKey(cusNum);
-            return data;
-        }).collect(Collectors.toList());
-        tcyrCpaCollidingDataMapper.insertBatchWithPriority(dataList);
+       List<TcyrCpaCollidingData> dataList = cusNums.stream().map(cusNum -> {
+           TcyrCpaCollidingData data = new TcyrCpaCollidingData();
+           data.setPackageId(packageId);
+           data.setPriority(priority);
+           data.setUserKey(cusNum);
+           return data;
+       }).collect(Collectors.toList());
+       tcyrCpaCollidingDataMapper.insertBatchWithPriority(dataList);
     }
 
     /**
@@ -376,9 +370,6 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
                     minId = ids.get(ids.size() - 1);
                     CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                         try {
-                            if (marketingCommonConfig.getTcCpaMockConfig().get("delete")) {
-                                throw new IllegalArgumentException();
-                            }
                             tcyrCpaCollidingDataMapper.updateIsDelByIds(ids);
                         } catch (Exception e) {
                             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
