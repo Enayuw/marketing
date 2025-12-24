@@ -2101,7 +2101,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             result.add(dto);
         }
         List<MarketingDataCleanGeneralRuleConfig> filteredConfigs = ruleConfigList.stream()
-                .filter(cfg -> Boolean.TRUE.equals(cfg.getIsMapping()))
+                .filter((MarketingDataCleanGeneralRuleConfig cfg) -> Boolean.TRUE.equals(cfg.getIsMapping()))
                 .collect(Collectors.toList());
         for (MarketingDataCleanGeneralRuleConfig ruleConfig : filteredConfigs) {
             FieldSampleDTO dto = new FieldSampleDTO();
