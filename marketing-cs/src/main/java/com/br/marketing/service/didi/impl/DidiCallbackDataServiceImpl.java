@@ -67,9 +67,9 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
             String mediaName = pushConfig.getString("mediaName") != null ?
                     pushConfig.getString("mediaName") : "bairongC";
             String successToken = pushConfig.getString("successToken") != null ?
-                    pushConfig.getString("successToken") : "DK&SgWl!fZ%WVSXe";
+                    pushConfig.getString("successToken") : "9Hqeoi36CJfdA7n4";
             String failToken = pushConfig.getString("failToken") != null ?
-                    pushConfig.getString("failToken") : "ZRR%Z1iQtppsHYay";
+                    pushConfig.getString("failToken") : "9Hqeoi36CJfdA7n4";
             Double samplingCallRate = pushConfig.getDouble("samplingCallRate") != null ?
                     pushConfig.getDouble("samplingCallRate") : 0;
             Double samplingSmsRate = pushConfig.getDouble("samplingSmsRate") != null ?
