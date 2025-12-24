@@ -63,6 +63,13 @@ public interface MarketingCustomerService {
     List<MarketingCustomerVO> getApiCodeList(String apiCode);
 
     /**
+     * ApiCode列表
+     * @param apiCodeList
+     * @return
+     */
+    List<MarketingCustomerVO> getApiCodeList(List<String> apiCodeList);
+
+    /**
      * 客户名称/客户编号,支持联想输入
      *
      * @param search
