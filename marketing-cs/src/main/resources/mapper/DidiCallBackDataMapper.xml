@@ -5,14 +5,12 @@
     <insert id="batchAdd" parameterType="java.util.List">
         INSERT INTO `b_didi_v5_callback_data` (
         `callback_type`, `cell`, `cust_num`, `api_code`, `push_status`, `status`,
-        `create_date`, `result`, `error_code`, `error_message`, `scas`, `media_name`,
-        `data_message`, `is_connect`, `sms_send_status`, `extend`
+        `create_date`, `scas`, `is_connect`, `sms_send_status`, `extend`
         ) VALUES
         <foreach collection="list" item="item" separator=",">
             (#{item.callbackType}, #{item.cell}, #{item.custNum}, #{item.apiCode},
-            #{item.pushStatus}, #{item.status}, #{item.createDate}, #{item.result},
-            #{item.errorCode}, #{item.errorMessage}, #{item.scas}, #{item.mediaName},
-            #{item.dataMessage}, #{item.isConnect}, #{item.smsSendStatus}, #{item.extend})
+            #{item.pushStatus}, #{item.status}, #{item.createDate}, #{item.scas},
+            #{item.isConnect}, #{item.smsSendStatus}, #{item.extend})
         </foreach>
     </insert>
 
