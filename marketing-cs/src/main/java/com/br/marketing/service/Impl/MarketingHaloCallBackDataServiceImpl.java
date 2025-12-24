@@ -26,9 +26,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
@@ -146,7 +144,9 @@ public class MarketingHaloCallBackDataServiceImpl implements MarketingHaloCallBa
                 dataItemObj.put("batchNo",batchNo);
                 dataItemObj.put("customerNo",item.getCustNum());
                 dataItemObj.put("userType","1");
-                dataItemObj.put("modelCode",item.getModelCode());
+                Map<Object,Object> extra = new HashMap<>();
+                extra.put("modelCode",item.getModelCode());
+                dataItemObj.put("extra",extra);
                 dataItmes.add(dataItemObj);
             }
             dataObj.put("dataItems", dataItmes);
