@@ -2080,38 +2080,53 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         MarketingCleanDataFile cleanDataFile = cleanDataFiles.get(0);
         List<String> fileHeader = Arrays.asList(cleanDataFile.getFileHeader().split(","));
         List<String> fileData = Arrays.asList(cleanDataFile.getFileData().split(",", -1));
-        for (int i = 0; i < fileHeader.size(); i++) {
-            FieldSampleDTO dto = new FieldSampleDTO();
-            // 设置字段名称
-            dto.setFieldName(fileHeader.get(i));
-            dto.setFieldSample(fileData.get(i));
-            dto.setFirstUploadTime(cleanDataFile.getCreateTime());
-            dto.setFieldType(0);
-            dto.setNeedCleaning(false);
-            MarketingDataCleanGeneralRuleConfig ruleConfig = ruleConfigList.stream().filter(rule -> rule.getCleanFields().equals(dto.getFieldName()))
-                    .findFirst().orElse(null);
-            if (!Objects.isNull(ruleConfig)) {
-                dto.setMappingRule(ruleConfig.getMappingRule());
-                dto.setRelatedField(ruleConfig.getMappingField());
-                dto.setResultPreview(ruleConfig.getResultPreview());
-                dto.setNeedCleaning(ruleConfig.getIsMapping());
-                dto.setFieldType(ruleConfig.getIsDerived());
-            }
-            // 添加到结果列表
-            result.add(dto);
+
+        if (fileHeader.size() != fileData.size()) {
+            throw new BusinessException("文件表头与文件数据不匹配");
         }
         List<MarketingDataCleanGeneralRuleConfig> filteredConfigs = ruleConfigList.stream()
-                .filter((MarketingDataCleanGeneralRuleConfig cfg) -> Boolean.TRUE.equals(cfg.getIsMapping()))
+                .filter((MarketingDataCleanGeneralRuleConfig cfg) -> Constants.DATA_VALID.equals(cfg.getIsDel()))
                 .collect(Collectors.toList());
+
+        if (CollectionUtils.isEmpty(filteredConfigs)) {
+            for (int i = 0; i < fileHeader.size(); i++) {
+                FieldSampleDTO dto = new FieldSampleDTO();
+                // 设置字段名称
+                dto.setFieldName(fileHeader.get(i));
+                dto.setFieldSample(fileData.get(i));
+                dto.setFirstUploadTime(cleanDataFile.getCreateTime());
+                dto.setFieldType(0);
+                dto.setNeedCleaning(false);
+                MarketingDataCleanGeneralRuleConfig ruleConfig = ruleConfigList.stream().filter(rule -> rule.getCleanFields().equals(dto.getFieldName()))
+                        .findFirst().orElse(null);
+                if (!Objects.isNull(ruleConfig)) {
+                    dto.setMappingRule(ruleConfig.getMappingRule());
+                    dto.setRelatedField(ruleConfig.getMappingField());
+                    dto.setResultPreview(ruleConfig.getResultPreview());
+                    dto.setNeedCleaning(ruleConfig.getIsMapping());
+                    dto.setFieldType(ruleConfig.getIsDerived());
+                }
+                // 添加到结果列表
+                result.add(dto);
+            }
+        }
         for (MarketingDataCleanGeneralRuleConfig ruleConfig : filteredConfigs) {
+            String cleanField = ruleConfig.getCleanFields();
+            String fieldSample;
+            try {
+                fieldSample  = fileData.get(fileHeader.indexOf(cleanField));
+            } catch (Exception e) {
+                fieldSample = "";
+            }
             FieldSampleDTO dto = new FieldSampleDTO();
-            // 设置字段名称
-            dto.setFieldName(ruleConfig.getCleanFields());
-            dto.setFieldType(ruleConfig.getIsDerived());
-            dto.setNeedCleaning(ruleConfig.getIsMapping());
+            dto.setFieldName(cleanField);
+            dto.setFieldSample(fieldSample);
+            dto.setFirstUploadTime(cleanDataFile.getCreateTime());
             dto.setMappingRule(ruleConfig.getMappingRule());
             dto.setRelatedField(ruleConfig.getMappingField());
             dto.setResultPreview(ruleConfig.getResultPreview());
+            dto.setNeedCleaning(ruleConfig.getIsMapping());
+            dto.setFieldType(ruleConfig.getIsDerived());
             // 添加到结果列表
             result.add(dto);
         }
