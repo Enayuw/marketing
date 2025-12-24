@@ -390,7 +390,8 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
             }
             // 将【didi_v5_callback_data】中的数据标记为已推送
             DidiCallBackDataExample example = new DidiCallBackDataExample();
-            example.createCriteria().andCustNumIn(pageData.stream().map(DiDiV5CollidingDataLog::getCell).collect(Collectors.toList()));
+            example.createCriteria().andCreateTimeGreaterThan(new Date())
+                    .andCustNumIn(pageData.stream().map(DiDiV5CollidingDataLog::getCell).collect(Collectors.toList()));
             DidiCallBackData updateData = new DidiCallBackData();
             updateData.setPushStatus(1);
             didiCallBackDataMapper.updateByExampleSelective(updateData, example);
