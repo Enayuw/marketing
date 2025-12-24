@@ -1,9 +1,5 @@
 package com.br.marketing.sync.job;
 
-import com.br.common.log.AlertLog;
-import com.br.marketing.client.RedisChgService;
-import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.FileSyncTask;
 import com.br.marketing.entity.FileSyncTaskExample;
@@ -19,18 +15,16 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
 
 @Component
 @Slf4j
 /**
  * @author:zhen.Li1
- * @Classname FileUploadTaskJob
- * @Description 文件上传任务JOB
- * @Date 2025/09/18
+ * @Classname FileUploadTaskMiNiOJob
+ * @Description 文件上传MiNio任务JOB
+ * @Date 2025/12/15
  */
-public class FileUploadTaskJob extends AbstractSimpleElasticJob {
+public class FileUploadTaskMiNiOJob extends AbstractSimpleElasticJob {
 
     @Resource
     private FileSyncTaskMapper fileSyncTaskMapper;
@@ -38,12 +32,9 @@ public class FileUploadTaskJob extends AbstractSimpleElasticJob {
     @Resource
     private FileUploadDownloadService fileUploadDownloadService;
 
-
-    @Resource
-    private RedisChgService redisChgService;
-
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
+
         String parameter = context.getJobParameter();
         String apiCode = null;
 
@@ -68,18 +59,19 @@ public class FileUploadTaskJob extends AbstractSimpleElasticJob {
                     // 将任务状态设置为上传中，防止重复处理
                     fileUploadDownloadService.updateTaskStatus(uploadTask.getId(), DataProcessEnum.FileStatusEnum.RUNNING.getCode());
                     // 处理这个上传任务
-                    fileUploadDownloadService.processUploadTask(uploadTask);
+                    fileUploadDownloadService.processUploadMiNioTask(uploadTask);
 
                 } catch (Exception e) {
+                    // 单个任务失败不影响其他任务继续处理
                     log.error("处理单个上传任务异常，taskId: {}, fileName: {}, error: {}",
                             uploadTask.getId(), uploadTask.getFileName(), e.getMessage(), e);
-                    // 单个任务失败不影响其他任务继续处理
                 }
             }
         } catch (Exception e) {
             log.error("执行文件上传任务JOB异常，error: {}", e.getMessage(), e);
         }
     }
+
 
     /**
      * 获取待上传的文件任务（获取多个）
@@ -103,5 +95,6 @@ public class FileUploadTaskJob extends AbstractSimpleElasticJob {
             return null;
         }
     }
+
 
 }

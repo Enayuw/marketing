@@ -13,4 +13,8 @@ public interface FileUploadDownloadService {
     void processDownloadTask(List<SyncConfig> loanSyncConfigs);
 
     void processFileSync(int type);
+
+    void processUploadMiNioTask(FileSyncTask uploadTask);
+
+
 }
