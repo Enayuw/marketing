@@ -2106,7 +2106,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         for (MarketingDataCleanGeneralRuleConfig ruleConfig : filteredConfigs) {
             FieldSampleDTO dto = new FieldSampleDTO();
             // 设置字段名称
-            dto.setFieldName(ruleConfig.getMappingField());
+            dto.setFieldName(ruleConfig.getCleanFields());
             dto.setFieldType(ruleConfig.getIsDerived());
             dto.setNeedCleaning(ruleConfig.getIsMapping());
             dto.setMappingRule(ruleConfig.getMappingRule());
