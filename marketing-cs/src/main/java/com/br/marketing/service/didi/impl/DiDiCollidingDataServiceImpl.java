@@ -228,7 +228,7 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
         DateTime endTime = DateUtil.parseTimeToday(firstBatchEndTime);
         DateTime now = DateUtil.date();
         boolean inRange = !now.isBefore(startTime) && !now.isAfter(endTime);
-        String userType = inRange ? "1" : "0";
+        String userType = inRange ? "1" : "2";
         // 数据包装
         JSONObject cleanJson = (JSONObject) JSONObject.toJSON(responseDTO.getData());
         cleanJson.put("cell", dataLog.getCell());
