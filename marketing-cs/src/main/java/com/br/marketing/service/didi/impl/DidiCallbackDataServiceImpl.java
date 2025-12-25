@@ -32,6 +32,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -71,10 +72,8 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
             JSONObject pushConfig = marketingCommonConfig.getDiDiV5Config();
             String mediaName = pushConfig.getString("mediaName") != null ?
                     pushConfig.getString("mediaName") : "bairongC";
-            String successToken = pushConfig.getString("successToken") != null ?
-                    pushConfig.getString("successToken") : "9Hqeoi36CJfdA7n4";
-            String failToken = pushConfig.getString("failToken") != null ?
-                    pushConfig.getString("failToken") : "9Hqeoi36CJfdA7n4";
+            String token = pushConfig.getString("token") != null ?
+                    pushConfig.getString("token") : "9Hqeoi36CJfdA7n4";
             Double samplingCallRate = pushConfig.getDouble("samplingCallRate") != null ?
                     pushConfig.getDouble("samplingCallRate") : 0;
             Double samplingSmsRate = pushConfig.getDouble("samplingSmsRate") != null ?
@@ -82,15 +81,15 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
             String apiCode = pushConfig.getString("apiCode");
 
             // 推送拨打成功的数据
-            processStageData(pushPool, mediaName, successToken, null, 1, apiCode);
+            processStageData(pushPool, mediaName, token, null, 1, apiCode);
             // 推送短信成功的数据
-            processStageData(pushPool, mediaName, successToken, null, 2, apiCode);
+            processStageData(pushPool, mediaName, token, null, 2, apiCode);
             // 构造拨打成功的数据
-            processStageData(pushPool, mediaName, successToken, samplingCallRate, 3, apiCode);
+            processStageData(pushPool, mediaName, token, samplingCallRate, 3, apiCode);
             // 构造短信成功的数据
-            processStageData(pushPool, mediaName, successToken, samplingSmsRate, 4, apiCode);
+            processStageData(pushPool, mediaName, token, samplingSmsRate, 4, apiCode);
             // 处理触达失败数据
-            processFailedData(pushPool, mediaName, failToken, apiCode);
+            processFailedData(pushPool, mediaName, token, apiCode);
         } catch (Exception e) {
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(),
                     "触达回推job执行异常", TITLE), e);
@@ -289,7 +288,6 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
         }
         // 处理剩余元素
         for (int i = sampleSize; i < dataList.size(); i++) {
-            // 生成[0, i]的随机数
             int j = RandomUtils.nextInt(0, i + 1);
             if (j < sampleSize) {
                 DidiCallBackData sample = prepareSample(dataList.get(i), stage);
@@ -448,7 +446,7 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
      * 构建失败请求参数
      */
     private DiDiSmsRequestTO buildFailedRequest(DiDiV5CollidingDataLog data, String token, String mediaName) {
-        String timestamp = generateRandomTimestampToday();
+        String timestamp = generateRandomTimestampToday(data);
         String custNum = data.getCell();
 
         return new DiDiSmsRequestTO()
@@ -457,16 +455,32 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
                 .setSignature(MD5Util.encode(custNum + timestamp + token));
     }
 
-    private String generateRandomTimestampToday() {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime start = now.withHour(14).withMinute(0).withSecond(0).withNano(0);
-        LocalDateTime end = now.withHour(18).withMinute(0).withSecond(0).withNano(0);
-
+    private String generateRandomTimestampToday(DiDiV5CollidingDataLog data) {
+        String startTimeStr = marketingCommonConfig.getDiDiV5Config().getString("callbackStartTime");
+        String endTimeStr = marketingCommonConfig.getDiDiV5Config().getString("callbackEndTime");
+        LocalDateTime createTime = data.getCreateTime().toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime();
+        LocalDateTime miniStart = LocalDateTime.parse(
+                LocalDateTime.now().toLocalDate().toString() + " " + startTimeStr,
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+        );
+        LocalDateTime start = createTime.plusHours(1).isBefore(miniStart) ? miniStart : createTime.plusHours(1);
+        LocalDateTime end = LocalDateTime.parse(
+                LocalDateTime.now().toLocalDate().toString() + " " + endTimeStr,
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+        );
+        if (end.isBefore(start)) {
+            end = start.plusHours(1);
+        }
         long totalMillis = Duration.between(start, end).toMillis();
+        if (totalMillis <= 0) {
+            long timestamp = start.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+            return String.valueOf(timestamp);
+        }
         long randomOffset = ThreadLocalRandom.current().nextLong(totalMillis);
         LocalDateTime randomTime = start.plus(randomOffset, ChronoUnit.MILLIS);
         long timestamp = randomTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-
         return String.valueOf(timestamp);
     }
 
