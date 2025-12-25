@@ -105,7 +105,6 @@ public class DataCleanServiceImpl implements DataCleanService {
 
     private static final String TITLE = "【定制上传数据清洗】";
 
-    @MqIdempotent
     @Override
     public Result<Boolean> customerDataJsonParse(String message) {
         Result<Boolean> result = new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(false);
