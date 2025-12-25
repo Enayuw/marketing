@@ -55,12 +55,11 @@ public class DidiV5CallRecordInsertDbImpl implements AssembleData<DidiCallBackDa
         DidiCallBackDataDTO callBackData = new DidiCallBackDataDTO();
         callBackData.setApiCode(cbo.getApiCode());
         callBackData.setCustNum(cbo.getCaseNum());
-        callBackData.setCreateDate(Integer.parseInt(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)));
+        callBackData.setCreateDate(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE));
         callBackData.setStatus(0);
         callBackData.setPushStatus(0);
         callBackData.setCallbackType(1);
         callBackData.setIsConnect(cbo.getDetail().getIsConnect());
-        callBackData.setCreateDate(Integer.parseInt(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)));
         callBackData.setCreateTime(new Date());
         callBackData.setUpdateTime(callBackData.getCreateTime());
         List<CallRecord> callRecordList = callRecordMapper.getLastCallRecordByCustNum(
