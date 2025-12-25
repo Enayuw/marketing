@@ -1,7 +1,6 @@
 package com.br.marketing.service.tccpa.impl;
 
 import com.br.common.log.AlertLog;
-import com.br.marketing.client.qifu.util.StringUtil;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.Constants;
@@ -13,7 +12,6 @@ import com.br.marketing.mapper.TcyrCpaCollidingDataCleanTaskMapper;
 import com.br.marketing.mapper.TcyrCpaCollidingDataMapper;
 import com.br.marketing.mapper.TcyrCpaCollidingDataPackageMapper;
 import com.br.marketing.service.tccpa.TcCpaCollidingDataCleanService;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -41,9 +39,6 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
 
     @Resource
     TcyrCpaCollidingDataMapper tcyrCpaCollidingDataMapper;
-
-    @Resource
-    private MarketingCommonConfig marketingCommonConfig;
 
     private final static String TITLE = "【同程易融CPA-数据包清洗Job】";
 
@@ -133,7 +128,7 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
             //6.删除数据包
             if (CollectionUtils.isNotEmpty(deletePackages)) {
                 //删除流程
-                boolean hasErrorForDelete = deletePackageData(deletePackages, threadPool, futures, marketingCommonConfig);
+                boolean hasErrorForDelete = deletePackageData(deletePackages, threadPool, futures);
                 if (hasErrorForDelete) {
                     cleanTask.setCleanStatus(TcCpaCleanStatusEnum.CLEAN_FAIL.getValue());
                     cleanTask.setExtend("delete-fail");
@@ -157,7 +152,7 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
                     }
                 }
                 //清洗流程
-                boolean hasErrorForClean = cleanPackageData(cleanPackages, threadPool, futures, ifRetry, marketingCommonConfig);
+                boolean hasErrorForClean = cleanPackageData(cleanPackages, threadPool, futures, ifRetry);
                 if (hasErrorForClean) {
                     cleanTask.setCleanStatus(TcCpaCleanStatusEnum.CLEAN_FAIL.getValue());
                     cleanTask.setExtend("clean-fail");
@@ -229,14 +224,12 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
      * @param threadPool
      * @param futures
      * @param ifRetry
-     * @param marketingCommonConfig
      * @return
      */
     private boolean cleanPackageData(List<TcyrCpaCollidingDataPackage> cleanPackages,
                                      TpDynamicExecutor threadPool,
                                      List<CompletableFuture<Void>> futures,
-                                     boolean ifRetry,
-                                     MarketingCommonConfig marketingCommonConfig) {
+                                     boolean ifRetry) {
         boolean hasError = false;
         for (TcyrCpaCollidingDataPackage cleanPackage : cleanPackages) {
             try {
@@ -263,8 +256,7 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
                 String conditions = cleanPackage.getConditions();
                 List<TcyrCpaBatchCleanInfo> tcyrCpaBatchCleanInfos = new ArrayList<>();
                 for (String batchNumber : batchNumbers) {
-                    batchClean(threadPool, futures, marketingCommonConfig,
-                            cleanPackage, conditions, tcyrCpaBatchCleanInfos, batchNumber);
+                    batchClean(threadPool, futures, cleanPackage, conditions, tcyrCpaBatchCleanInfos, batchNumber);
                 }
                 CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
                 if (tcyrCpaBatchCleanInfos.size() > 0) {
@@ -296,7 +288,6 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
 
     private void batchClean(TpDynamicExecutor threadPool,
                             List<CompletableFuture<Void>> futures,
-                            MarketingCommonConfig marketingCommonConfig,
                             TcyrCpaCollidingDataPackage cleanPackage,
                             String conditions,
                             List<TcyrCpaBatchCleanInfo> tcyrCpaBatchCleanInfos,
@@ -356,8 +347,7 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
      * 删除页面选中要删除的数据包
      */
     private boolean deletePackageData(List<TcyrCpaCollidingDataPackage> deletePackages,
-                                      TpDynamicExecutor threadPool, List<CompletableFuture<Void>> futures,
-                                      MarketingCommonConfig marketingCommonConfig) {
+                                      TpDynamicExecutor threadPool, List<CompletableFuture<Void>> futures) {
         boolean hasError = false;
         for (TcyrCpaCollidingDataPackage deletePackage : deletePackages) {
             try {
