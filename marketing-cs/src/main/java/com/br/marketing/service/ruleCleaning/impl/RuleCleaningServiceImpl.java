@@ -20,6 +20,7 @@ import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.enums.clean.DataProcessEnum;
+import com.br.marketing.enums.clean.DerivedTypeEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.mapper.rulecleaning.MarketingCustomerOriginalDataMapper;
 import com.br.marketing.mapper.rulecleaning.MarketingDataCleanGeneralConfigMapper;
@@ -2104,7 +2105,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             result.add(dto);
         }
         List<String> fileFields =
-                result.stream().filter((FieldSampleDTO file) -> !Constants.DATA_VALID.equals(file.getFieldType()))
+                result.stream().filter((FieldSampleDTO file) ->  DerivedTypeEnum.NORMAL.getCode().equals(file.getFieldType()))
                         .map(FieldSampleDTO::getFieldName).collect(Collectors.toList());
 
         for (int i = 0; i < fileHeader.size(); i++) {
