@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
  * @Description 友盟设备注册job
  * @Author zhiyong.zhang
  * @CreateTime 2025/05/
- * 业务下线  2025/12/23
+ * @deprecated 业务下线  2025/12/23
  */
 @Deprecated
 @Component
