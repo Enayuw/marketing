@@ -47,6 +47,12 @@ otherConfig:
   warning:
         pageSize: 5000
         apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
+minio:
+  endpoint: http://10.100.123.246:9000
+  accessKey: dA1IO0IMNKqmJYqOlEWv
+  secretKey: oDvwsAeIah122STixfF0OXZHMQhHsKzWvQMk7FbO
+  bucketName: brmarketing-pre
+
 cluster:
   flag: ${CONF_CLUSTER}
 #elastic-job配置

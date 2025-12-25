@@ -1,5 +1,6 @@
 package com.br.marketing.mapper;
 
+import com.br.marketing.dto.autocheck.CheckTransferSyncDataDto;
 import com.br.marketing.entity.TransferSyncReport;
 import com.br.marketing.entity.TransferSyncReportExample;
 import com.br.marketing.mysqlInterceptor.AddDataAuth;
