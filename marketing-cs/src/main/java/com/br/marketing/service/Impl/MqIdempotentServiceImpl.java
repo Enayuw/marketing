@@ -48,15 +48,15 @@ public class MqIdempotentServiceImpl implements MqIdempotentService {
                 throw new IllegalArgumentException("不支持的幂等表类型: " + tableType);
         }
     }
-    
+
     @Override
-    public void deleteIdempotentRecord(MqIdempotentTableType tableType, Long recordId) {
+    public void deleteIdempotentRecordByKey(MqIdempotentTableType tableType, Long idempotentKey) {
         switch (tableType) {
             case COMMON:
-                mqIdempotentCommonMapper.deleteByPrimaryKey(recordId);
+                mqIdempotentCommonMapper.deleteByIdempotentKey(idempotentKey);
                 break;
             case SPECIAL:
-                mqIdempotentSpecialMapper.deleteByPrimaryKey(recordId);
+                mqIdempotentSpecialMapper.deleteByIdempotentKey(idempotentKey);
                 break;
             default:
                 throw new IllegalArgumentException("不支持的幂等表类型: " + tableType);
