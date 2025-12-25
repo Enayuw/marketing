@@ -47,7 +47,7 @@ public class DidiCallBackDataDTO extends InterfaceParams {
     /**
      * 创建日期
      */
-    private Integer createDate;
+    private String createDate;
 
     /**
      * 1-代表TRUE，0-代表FALSE

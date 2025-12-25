@@ -46,7 +46,7 @@ public class DidiV5SmsInsertDbImpl implements AssembleData<DidiCallBackDataDTO> 
         didiCallRecord.setPushStatus(0);
         didiCallRecord.setCallbackType(2);
         didiCallRecord.setSmsSendStatus(cbo.getSmsSendStatus());
-        didiCallRecord.setCreateDate(Integer.parseInt(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)));
+        didiCallRecord.setCreateDate(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE));
         didiCallRecord.setCreateTime(new Date());
         didiCallRecord.setUpdateTime(didiCallRecord.getCreateTime());
         didiCallRecord.setExtend(JSON.toJSONString(cbo));
