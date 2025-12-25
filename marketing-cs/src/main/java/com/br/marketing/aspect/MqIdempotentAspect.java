@@ -159,7 +159,6 @@ public class MqIdempotentAspect {
 
         try {
             mqIdempotentService.updateApiCode(tableType, recordId, currentApiCode);
-            log.warn("业务处理成功，更新幂等记录apiCode，recordId: {}, apiCode: {}, tag: {}", recordId, currentApiCode, tag);
         } catch (Exception e) {
             String subject = "MQ幂等切面, 更新幂等记录apiCode失败";
             String errorMsg = String.format("更新幂等记录apiCode失败, recordId: %s, tag: %s, apiCode: %s, error: %s",
