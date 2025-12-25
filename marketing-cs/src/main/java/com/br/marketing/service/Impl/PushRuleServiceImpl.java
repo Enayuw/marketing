@@ -1692,11 +1692,11 @@ public class PushRuleServiceImpl implements PushRuleService {
         List<TimeRangePlus> timeRangePlusList = new ArrayList<>();
         int order = 0;
         for (TimeRange timeRange : timeRanges) {
-            timeRangePlusList.add(new TimeRangePlus(timeRange, order++));
+            timeRangePlusList.add(new TimeRangePlus(timeRange, ++order));
         }
         //2.获取timeRange范围外的量级
-        Map<String, Integer> outCycleMagnitudeMap = getOutCycleMagnitudes(timeRangePlusList);
-        List<Future<ImmutablePair<Map<String, Integer>, Map<String, Integer>>>> futures = new ArrayList<>();
+        Map<String, Long> outCycleMagnitudeMap = getOutCycleMagnitudes(timeRangePlusList);
+        List<Future<ImmutablePair<Map<String, Long>, Map<String, Long>>>> futures = new ArrayList<>();
         //3.获取周期数据与跑分数据的交集量级
         try {
             for (String batchNumber : batchNumbers) {
@@ -1704,10 +1704,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                         magnitudeDistCalOpt(timeRangePlusList, batchNumber, sqlCondition)
                 ));
             }
-            List<Pair<Map<String, Integer>, Map<String, Integer>>> futureResults = new ArrayList<>();
+            List<Pair<Map<String, Long>, Map<String, Long>>> futureResults = new ArrayList<>();
             long globalStart = System.currentTimeMillis();
             long globalTimeout = TimeUnit.MINUTES.toMillis(2); // 总超时时间2分钟
-            for (Future<ImmutablePair<Map<String, Integer>, Map<String, Integer>>> future : futures) {
+            for (Future<ImmutablePair<Map<String, Long>, Map<String, Long>>> future : futures) {
                 long timeLeft = globalTimeout - (System.currentTimeMillis() - globalStart);
                 if (timeLeft <= 0) {
                     log.error("规则中心-周期数据剔除量级查询整体处理超时");
@@ -1728,7 +1728,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
             }
             //4.并行聚合结果
-            Pair<Map<String, Integer>, Map<String, Integer>> aggregateResult = aggregateResultsParallel(futureResults);
+            Pair<Map<String, Long>, Map<String, Long>> aggregateResult = aggregateResultsParallel(futureResults);
             //5.汇总量级
             return calculateMagnitudeOpt(timeRangePlusList, outCycleMagnitudeMap, aggregateResult);
         } catch (Exception e) {
@@ -1749,25 +1749,28 @@ public class PushRuleServiceImpl implements PushRuleService {
      * @return
      */
     private Result<List<XcDeleteMagnitudeDistDTO>> calculateMagnitudeOpt(List<TimeRangePlus> timeRangePlusList, 
-                                                                         Map<String, Integer> outCycleMagnitudeMap, 
-                                                                         Pair<Map<String, Integer>, Map<String, Integer>> aggregateResult) {
+                                                                         Map<String, Long> outCycleMagnitudeMap,
+                                                                         Pair<Map<String, Long>, Map<String, Long>> aggregateResult) {
         List<XcDeleteMagnitudeDistDTO> dtos = new ArrayList<>();
         //撞得量级阈值
         int totalThreshold = variableAllocationService.getVariableAllocation().getNormalQuantity();
-        Map<String, Integer> interWithoutConMagnitudeMap = aggregateResult.getLeft();
-        Map<String, Integer> interWithConMagnitudeMap = aggregateResult.getRight();
+        Map<String, Long> interWithoutConMagnitudeMap = aggregateResult.getLeft();
+        Map<String, Long> interWithConMagnitudeMap = aggregateResult.getRight();
         for (TimeRangePlus timeRangePlus : timeRangePlusList) {
             //T日timeRange范围外量级
-            int outMagnitude = outCycleMagnitudeMap.get(XcDeletePrefixEnum.OUT + "_" + timeRangePlus.getOrder());
+            long outMagnitude = outCycleMagnitudeMap.
+                    get(XcDeletePrefixEnum.OUT.getAlias() + "_" + timeRangePlus.getOrder());
             //timeRange范围内，与跑分数据的交集量级
-            int interWithoutConMagnitude = interWithoutConMagnitudeMap.get(XcDeletePrefixEnum.INTER_WITHOUT_CON + "_" + timeRangePlus.getOrder());
+            long interWithoutConMagnitude = interWithoutConMagnitudeMap.
+                    get(XcDeletePrefixEnum.INTER_WITHOUT_CON.getAlias() + "_" + timeRangePlus.getOrder());
             //timeRange范围内，与符合条件的跑分数据的交集量级
-            int interWithConMagnitude = interWithoutConMagnitudeMap.get(XcDeletePrefixEnum.INTER_WITH_CON + "_" + timeRangePlus.getOrder());
+            long interWithConMagnitude = interWithConMagnitudeMap.
+                    get(XcDeletePrefixEnum.INTER_WITH_CON.getAlias() + "_" + timeRangePlus.getOrder());
             //timeRange范围内的剔除量级
-            int deleteNum = interWithoutConMagnitude - interWithConMagnitude;
+            long deleteNum = interWithoutConMagnitude - interWithConMagnitude;
             //空挡量级
-            int freeNum = totalThreshold - outMagnitude - interWithConMagnitude;
-            dtos.add(new XcDeleteMagnitudeDistDTO(timeRangePlus.getBegin(), timeRangePlus.getEnd(), deleteNum, interWithConMagnitude, freeNum));
+            int freeNum = (int) (totalThreshold - outMagnitude - interWithConMagnitude);
+            dtos.add(new XcDeleteMagnitudeDistDTO(timeRangePlus.getBegin(), timeRangePlus.getEnd(), (int) deleteNum, (int) interWithConMagnitude, freeNum));
         }
         return new Result<List<XcDeleteMagnitudeDistDTO>>()
                 .setCode(ResultCode.SUCCESS.getValue())
@@ -1777,24 +1780,24 @@ public class PushRuleServiceImpl implements PushRuleService {
     /**
      * 并行聚合结果
      */
-    private static Pair<Map<String, Integer>, Map<String, Integer>> aggregateResultsParallel(
-            List<Pair<Map<String, Integer>, Map<String, Integer>>> results) {
+    private static Pair<Map<String, Long>, Map<String, Long>> aggregateResultsParallel(
+            List<Pair<Map<String, Long>, Map<String, Long>>> results) {
         // 使用并行流合并左 Map
-        Map<String, Integer> leftResult = results.parallelStream()
+        Map<String, Long> leftResult = results.parallelStream()
                 .flatMap(pair -> pair.getLeft().entrySet().stream())
                 .collect(Collectors.toConcurrentMap(
                         Map.Entry::getKey,
                         Map.Entry::getValue,
-                        Integer::sum
+                        Long::sum
                 ));
 
         // 使用并行流合并右 Map
-        Map<String, Integer> rightResult = results.parallelStream()
+        Map<String, Long> rightResult = results.parallelStream()
                 .flatMap(pair -> pair.getRight().entrySet().stream())
                 .collect(Collectors.toConcurrentMap(
                         Map.Entry::getKey,
                         Map.Entry::getValue,
-                        Integer::sum
+                        Long::sum
                 ));
         return new ImmutablePair<>(leftResult, rightResult);
     }
@@ -1807,43 +1810,40 @@ public class PushRuleServiceImpl implements PushRuleService {
      * @author hedongshuo
      * @date 2025/12/20 12:47
      **/
-    private Map<String, Integer> getOutCycleMagnitudes(List<TimeRangePlus> timeRangePlusList) {
+    private Map<String, Long> getOutCycleMagnitudes(List<TimeRangePlus> timeRangePlusList) {
         //1.将timeRangePlusList分为今天的和非今天的
-        List<TimeRangePlus> todayTimeRangePlusList = new ArrayList<>();
         List<TimeRangePlus> notTodayTimeRangePlusList = new ArrayList<>();
+        //timeRange范围外量级 <out_order, count>
+        Map<String, Long> outCycleMagnitudeMap = new HashMap<>();
         for (TimeRangePlus timeRange : timeRangePlusList) {
             if (timeRange.isToday()) {
-                todayTimeRangePlusList.add(timeRange);
+                int todayOutCycleMagnitude = xieChengCollidingDataLoopCycleMapper
+                        .selectTimeRangeOutMagnitudeForTodaytiflash_(timeRange.getBegin(), timeRange.getEnd());
+                outCycleMagnitudeMap.put(XcDeletePrefixEnum.OUT.getAlias() + "_" + timeRange.getOrder(), (long) todayOutCycleMagnitude);
             } else {
                 notTodayTimeRangePlusList.add(timeRange);
             }
         }
-        //2.timeRange范围外量级 <out_order, count>
-        Map<String, Integer> outCycleMagnitudeMap = new HashMap<>();
-        if (!CollectionUtils.isEmpty(todayTimeRangePlusList)) {
-            Map<String, Integer> todayOutMagnitudeMap = xieChengCollidingDataLoopCycleMapper.
-                    selectTimeRangeOutMagnitudeForTodaystiflash_(todayTimeRangePlusList, XcDeletePrefixEnum.OUT.getAlias());
-            outCycleMagnitudeMap.putAll(todayOutMagnitudeMap);
-        }
+        //2.非今天的量级
         if (!CollectionUtils.isEmpty(notTodayTimeRangePlusList)) {
             LocalDateTime minBegin = notTodayTimeRangePlusList.get(0).getBegin();
             LocalDateTime maxEnd = notTodayTimeRangePlusList.get(notTodayTimeRangePlusList.size() - 1).getEnd();
-            Map<String, Integer> notTodayOutMagnitudeMap = xieChengCollidingDataLoopCycleMapper
+            Map<String, Long> notTodayOutMagnitudeMap = xieChengCollidingDataLoopCycleMapper
                     .selectTimeRangeOutMagnitudeForNotTodaystiflash_(notTodayTimeRangePlusList, minBegin, maxEnd, XcDeletePrefixEnum.OUT.getAlias());
             outCycleMagnitudeMap.putAll(notTodayOutMagnitudeMap);
         }
         return outCycleMagnitudeMap;
     }
 
-    private ImmutablePair<Map<String, Integer>, Map<String, Integer>> magnitudeDistCalOpt(List<TimeRangePlus> timeRangePlusList, String batchNumber, String sqlCondition) {
+    private ImmutablePair<Map<String, Long>, Map<String, Long>> magnitudeDistCalOpt(List<TimeRangePlus> timeRangePlusList, String batchNumber, String sqlCondition) {
         //1.获取
         LocalDateTime minBegin = timeRangePlusList.get(0).getBegin();
         LocalDateTime maxEnd = timeRangePlusList.get(timeRangePlusList.size() - 1).getEnd();
         //3.周期表与跑分数据交集
-        Map<String, Integer> interWithoutConMagnitudes = xieChengCollidingDataLoopCycleMapper.selectTimeRangeBetweenWithScoreMagnitudestiflash_(
-                timeRangePlusList, minBegin, maxEnd, null, sqlCondition, XcDeletePrefixEnum.INTER_WITHOUT_CON.getAlias());
-        Map<String, Integer> interWithConMagnitudes = xieChengCollidingDataLoopCycleMapper.selectTimeRangeBetweenWithScoreMagnitudestiflash_(
-                timeRangePlusList, minBegin, maxEnd, null, sqlCondition, XcDeletePrefixEnum.INTER_WITH_CON.getAlias());
+        Map<String, Long> interWithoutConMagnitudes = xieChengCollidingDataLoopCycleMapper.selectTimeRangeBetweenWithScoreMagnitudestiflash_(
+                timeRangePlusList, minBegin, maxEnd, batchNumber, null, XcDeletePrefixEnum.INTER_WITHOUT_CON.getAlias());
+        Map<String, Long> interWithConMagnitudes = xieChengCollidingDataLoopCycleMapper.selectTimeRangeBetweenWithScoreMagnitudestiflash_(
+                timeRangePlusList, minBegin, maxEnd, batchNumber, sqlCondition, XcDeletePrefixEnum.INTER_WITH_CON.getAlias());
         return ImmutablePair.of(interWithoutConMagnitudes, interWithConMagnitudes);
     }
 

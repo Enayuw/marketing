@@ -127,10 +127,7 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
 
     int selectTimeRangeOutMagnitudeForNotTodaytiflash_(@Param("begin") LocalDateTime begin, @Param("end") LocalDateTime end);
 
-    Map<String, Integer> selectTimeRangeOutMagnitudeForTodaystiflash_(@Param("timeRangePlusList") List<TimeRangePlus> timeRangePlusList,
-                                                                      @Param("prefix") String prefix);
-
-    Map<String, Integer> selectTimeRangeOutMagnitudeForNotTodaystiflash_(@Param("timeRangePlusList") List<TimeRangePlus> timeRangePlusList,
+    Map<String, Long> selectTimeRangeOutMagnitudeForNotTodaystiflash_(@Param("timeRangePlusList") List<TimeRangePlus> timeRangePlusList,
                                                         @Param("minBegin") LocalDateTime minBegin,
                                                         @Param("maxEnd") LocalDateTime maxEnd,
                                                         @Param("prefix") String prefix);
@@ -139,7 +136,7 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
                                                          @Param("end") LocalDateTime end,
                                                          @Param("scoreSql") String scoreSql);
 
-    Map<String, Integer> selectTimeRangeBetweenWithScoreMagnitudestiflash_(@Param("timeRangePlusList") List<TimeRangePlus> timeRangePlusList,
+    Map<String, Long> selectTimeRangeBetweenWithScoreMagnitudestiflash_(@Param("timeRangePlusList") List<TimeRangePlus> timeRangePlusList,
                                                                            @Param("minBegin") LocalDateTime minBegin,
                                                                            @Param("maxEnd") LocalDateTime maxEnd,
                                                                            @Param("batchNumber") String batchNumber,
