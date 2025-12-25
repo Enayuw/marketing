@@ -2082,33 +2082,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         if (fileHeader.size() != fileData.size()) {
             throw new BusinessException("文件表头与文件数据不匹配");
         }
-        List<MarketingDataCleanGeneralRuleConfig> filteredConfigs = ruleConfigList.stream()
-                .filter((MarketingDataCleanGeneralRuleConfig cfg) -> Constants.DATA_VALID.equals(cfg.getIsDel()))
-                .collect(Collectors.toList());
 
-        if (CollectionUtils.isEmpty(filteredConfigs)) {
-            for (int i = 0; i < fileHeader.size(); i++) {
-                FieldSampleDTO dto = new FieldSampleDTO();
-                // 设置字段名称
-                dto.setFieldName(fileHeader.get(i));
-                dto.setFieldSample(fileData.get(i));
-                dto.setFirstUploadTime(cleanDataFile.getCreateTime());
-                dto.setFieldType(0);
-                dto.setNeedCleaning(false);
-                MarketingDataCleanGeneralRuleConfig ruleConfig = ruleConfigList.stream().filter(rule -> rule.getCleanFields().equals(dto.getFieldName()))
-                        .findFirst().orElse(null);
-                if (!Objects.isNull(ruleConfig)) {
-                    dto.setMappingRule(ruleConfig.getMappingRule());
-                    dto.setRelatedField(ruleConfig.getMappingField());
-                    dto.setResultPreview(ruleConfig.getResultPreview());
-                    dto.setNeedCleaning(ruleConfig.getIsMapping());
-                    dto.setFieldType(ruleConfig.getIsDerived());
-                }
-                // 添加到结果列表
-                result.add(dto);
-            }
-        }
-        for (MarketingDataCleanGeneralRuleConfig ruleConfig : filteredConfigs) {
+        for (MarketingDataCleanGeneralRuleConfig ruleConfig : ruleConfigList) {
             String cleanField = ruleConfig.getCleanFields();
             String fieldSample;
             try {
@@ -2128,6 +2103,26 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             // 添加到结果列表
             result.add(dto);
         }
+        List<String> fileFields =
+                result.stream().filter((FieldSampleDTO file) -> !Constants.DATA_VALID.equals(file.getFieldType()))
+                        .map(FieldSampleDTO::getFieldName).collect(Collectors.toList());
+
+        for (int i = 0; i < fileHeader.size(); i++) {
+            if (fileFields.contains(fileHeader.get(i))) {
+                continue;
+            }
+            FieldSampleDTO dto = new FieldSampleDTO();
+            // 设置字段名称
+            dto.setFieldName(fileHeader.get(i));
+            dto.setFieldSample(fileData.get(i));
+            dto.setFirstUploadTime(cleanDataFile.getCreateTime());
+            dto.setFieldType(0);
+            dto.setNeedCleaning(false);
+            // 添加到结果列表
+            result.add(dto);
+        }
+
+
     }
 
     @Override
