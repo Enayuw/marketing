@@ -660,7 +660,9 @@
             fingerprint,
             DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') as snapTime
         from b_marketing_sync_${apiCode}
-        where create_time <![CDATA[>=]]> DATE_ADD(DATE_SUB(CURDATE(), INTERVAL 1 DAY), INTERVAL 8 HOUR)
+        where
+          applet_date = DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 DAY), '%Y-%m-%d')
+          and create_time <![CDATA[>=]]> DATE_ADD(DATE_SUB(CURDATE(), INTERVAL 1 DAY), INTERVAL 8 HOUR)
           and create_time <![CDATA[<]]> DATE_ADD(
               DATE_ADD(DATE_SUB(CURDATE(), INTERVAL 1 DAY), INTERVAL 8 HOUR),
               INTERVAL 5 MINUTE
@@ -697,7 +699,8 @@
             fingerprint,
             DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') as snapTime
         from b_marketing_sync_${apiCode}
-        where create_time <![CDATA[>=]]> CURDATE()
+        where applet_date = DATE_FORMAT(CURDATE(), '%Y-%m-%d')
+          and create_time <![CDATA[>=]]> CURDATE()
           and create_time <![CDATA[<]]> DATE_ADD(CURDATE(), INTERVAL 1 DAY)
         order by create_time desc, id desc
         limit 1
