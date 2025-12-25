@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl;
 
+import cn.hutool.core.collection.CollUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
@@ -323,6 +324,25 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
             return vos.stream().distinct().collect(Collectors.toList());
         }
         return vos;
+    }
+
+    @Override
+    public List<MarketingCustomerVO> getApiCodeList(List<String> apiCodeList) {
+        if (CollUtil.isEmpty(apiCodeList)) {
+            return new ArrayList<>();
+        }
+        MarketingCustomerExample example = new MarketingCustomerExample();
+        example.createCriteria().andStatusEqualTo((byte) 1).andApiCodeIn(apiCodeList);
+        List<MarketingCustomer> list = marketingCustomerMapper.selectByExample(example);
+
+        List<MarketingCustomerVO> vos = list.stream().map(marketingCustomer -> {
+            MarketingCustomerVO vo = new MarketingCustomerVO();
+            BeanUtils.copyProperties(marketingCustomer, vo);
+            vo.setId(marketingCustomer.getId().toString());
+            return vo;
+        }).collect(Collectors.toList());
+
+        return vos.stream().distinct().collect(Collectors.toList());
     }
 
     @Override

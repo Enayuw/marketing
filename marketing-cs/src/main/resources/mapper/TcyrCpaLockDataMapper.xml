@@ -9,4 +9,17 @@
     </foreach>
   </insert>
 
+  <select id="queryMagnitudeWithBelong" resultType="com.br.marketing.entity.TcyrCpaMagnitude">
+    SELECT DATE_FORMAT(release_time, '%Y-%m-%d') AS releaseTime, lock_belong AS lockBelong, count(0) AS magnitude
+    FROM b_tcyr_cpa_lock_data
+    WHERE is_del = 1
+    AND lock_belong = #{lockBelong,jdbcType=INTEGER}
+    AND DATE(release_time) IN
+    <foreach collection="releaseTimes" item="releaseTime" open="(" separator="," close=")">
+      #{releaseTime}
+    </foreach>
+    GROUP BY DATE_FORMAT(release_time, '%Y-%m-%d')
+    ORDER BY releaseTime
+  </select>
+
 </mapper>

@@ -340,6 +340,11 @@ public class MarketingCommonConfig {
     private Boolean xcLoopCycleJobOnlineSwitch;
 
     /**
+     * #sync服务job的上线开关
+     */
+    private Boolean syncJobOnlineSwitch;
+
+    /**
      * 离线跑批入es文件 线程数
      */
     private Integer OffLineInserEsThreadNum;
@@ -3560,6 +3565,16 @@ public class MarketingCommonConfig {
 
 
     private Map<String, Boolean> tcCpaMockConfig;
+
+    /**
+     * TC CPA文件推送配置
+     */
+    private JSONObject tcCpaFilePushConfig;
+
+    /**
+     * 同程易融cpa推送文件配置VT
+     */
+    private JSONObject tcyrCpaPushFileVTConfig;
 
     /**
      * 随意记获取黑名单RSA私钥

@@ -1366,4 +1366,19 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
+
+    <job:simple id="【check】-AutoCheckResultJob"
+                class="com.br.marketing.check.job.autocheck.AutoCheckResultJob"
+                cron="0 */5 * * * ?"
+                description="自动巡检任务，每五分钟执行一次，若检测到新数据，则进行结果比对"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="false"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
 </beans>

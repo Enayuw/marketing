@@ -224,7 +224,8 @@ public class SmsBaseInfoSyncServiceImpl implements SmsBaseInfoSyncService {
         robotOutboundDTO.setApiCode(smsApiCode);
         robotOutboundDTO.setJsonData(jsonDataDTO);
         TransferRobotOutboundVO transferRobotOutboundVO = robotaiApiServiceClient.getSmsBaseInfo(robotOutboundDTO);
-        log.warn("TITLE:{},getSmsBaseInfo:{}",TITLE,JSONObject.toJSONString(robotOutboundDTO));
+        log.warn("TITLE:{},getSmsBaseInfo:{},result:{}",TITLE,JSONObject.toJSONString(robotOutboundDTO),
+                JSONObject.toJSONString(transferRobotOutboundVO));
         if ("00".equals(transferRobotOutboundVO.getCode())) {
             baseInfo =  JSONArray.parseArray(transferRobotOutboundVO.getData().toString());
         }

@@ -15,10 +15,9 @@
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
     <result column="extend" property="extend" jdbcType="VARCHAR" />
     <result column="local_id" property="localId" jdbcType="BIGINT" />
+    <result column="data_message" property="dataMessage" jdbcType="VARCHAR" />
     <result column="create_date" property="createDate" jdbcType="VARCHAR" />
-  </resultMap>
-  <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.MarketingHaloCallBackData" extends="BaseResultMap" >
-    <result column="data_message" property="dataMessage" jdbcType="LONGVARCHAR" />
+    <result column="model_code" property="modelCode" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -79,28 +78,9 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, cell, cust_num, user_type, start_time, deal_status, `status`, is_del, 
-    create_time, update_time, extend, local_id, create_date
+    id, api_code, cell, cust_num, user_type, start_time, deal_status, `status`, is_del,
+    create_time, update_time, extend, local_id, data_message, create_date, model_code
   </sql>
-  <sql id="Blob_Column_List" >
-    data_message
-  </sql>
-  <select id="selectByExampleWithBLOBs" resultMap="ResultMapWithBLOBs" parameterType="com.br.marketing.entity.MarketingHaloCallBackDataExample" >
-    select
-    <if test="distinct" >
-      distinct
-    </if>
-    <include refid="Base_Column_List" />
-    ,
-    <include refid="Blob_Column_List" />
-    from b_marketing_halo_callback_data
-    <if test="_parameter != null" >
-      <include refid="Example_Where_Clause" />
-    </if>
-    <if test="orderByClause != null" >
-      order by ${orderByClause}
-    </if>
-  </select>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingHaloCallBackDataExample" >
     select
     <if test="distinct" >
@@ -115,11 +95,9 @@
       order by ${orderByClause}
     </if>
   </select>
-  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
-    select 
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select
     <include refid="Base_Column_List" />
-    ,
-    <include refid="Blob_Column_List" />
     from b_marketing_halo_callback_data
     where id = #{id,jdbcType=BIGINT}
   </select>
@@ -137,16 +115,18 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_halo_callback_data (api_code, cell, cust_num, 
-      user_type, start_time, deal_status, 
-      `status`, is_del, create_time, 
-      update_time, extend, local_id, 
-      create_date, data_message)
-    values (#{apiCode,jdbcType=VARCHAR}, #{cell,jdbcType=VARCHAR}, #{custNum,jdbcType=VARCHAR}, 
-      #{userType,jdbcType=VARCHAR}, #{startTime,jdbcType=VARCHAR}, #{dealStatus,jdbcType=INTEGER}, 
-      #{status,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP}, #{extend,jdbcType=VARCHAR}, #{localId,jdbcType=BIGINT}, 
-      #{createDate,jdbcType=VARCHAR}, #{dataMessage,jdbcType=LONGVARCHAR})
+    insert into b_marketing_halo_callback_data (api_code, cell, cust_num,
+    user_type, start_time, deal_status,
+    `status`, is_del, create_time,
+    update_time, extend, local_id,
+    data_message, create_date, model_code
+    )
+    values (#{apiCode,jdbcType=VARCHAR}, #{cell,jdbcType=VARCHAR}, #{custNum,jdbcType=VARCHAR},
+    #{userType,jdbcType=VARCHAR}, #{startTime,jdbcType=VARCHAR}, #{dealStatus,jdbcType=INTEGER},
+    #{status,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP},
+    #{updateTime,jdbcType=TIMESTAMP}, #{extend,jdbcType=VARCHAR}, #{localId,jdbcType=BIGINT},
+    #{dataMessage,jdbcType=VARCHAR}, #{createDate,jdbcType=VARCHAR}, #{modelCode,jdbcType=VARCHAR}
+    )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingHaloCallBackData" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -190,11 +170,14 @@
       <if test="localId != null" >
         local_id,
       </if>
+      <if test="dataMessage != null" >
+        data_message,
+      </if>
       <if test="createDate != null" >
         create_date,
       </if>
-      <if test="dataMessage != null" >
-        data_message,
+      <if test="modelCode != null" >
+        model_code,
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
@@ -234,11 +217,14 @@
       <if test="localId != null" >
         #{localId,jdbcType=BIGINT},
       </if>
+      <if test="dataMessage != null" >
+        #{dataMessage,jdbcType=VARCHAR},
+      </if>
       <if test="createDate != null" >
         #{createDate,jdbcType=VARCHAR},
       </if>
-      <if test="dataMessage != null" >
-        #{dataMessage,jdbcType=LONGVARCHAR},
+      <if test="modelCode != null" >
+        #{modelCode,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -290,34 +276,16 @@
       <if test="record.localId != null" >
         local_id = #{record.localId,jdbcType=BIGINT},
       </if>
+      <if test="record.dataMessage != null" >
+        data_message = #{record.dataMessage,jdbcType=VARCHAR},
+      </if>
       <if test="record.createDate != null" >
         create_date = #{record.createDate,jdbcType=VARCHAR},
       </if>
-      <if test="record.dataMessage != null" >
-        data_message = #{record.dataMessage,jdbcType=LONGVARCHAR},
+      <if test="record.modelCode != null" >
+        model_code = #{record.modelCode,jdbcType=VARCHAR},
       </if>
     </set>
-    <if test="_parameter != null" >
-      <include refid="Update_By_Example_Where_Clause" />
-    </if>
-  </update>
-  <update id="updateByExampleWithBLOBs" parameterType="map" >
-    update b_marketing_halo_callback_data
-    set id = #{record.id,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      cell = #{record.cell,jdbcType=VARCHAR},
-      cust_num = #{record.custNum,jdbcType=VARCHAR},
-      user_type = #{record.userType,jdbcType=VARCHAR},
-      start_time = #{record.startTime,jdbcType=VARCHAR},
-      deal_status = #{record.dealStatus,jdbcType=INTEGER},
-      `status` = #{record.status,jdbcType=INTEGER},
-      is_del = #{record.isDel,jdbcType=INTEGER},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      extend = #{record.extend,jdbcType=VARCHAR},
-      local_id = #{record.localId,jdbcType=BIGINT},
-      create_date = #{record.createDate,jdbcType=VARCHAR},
-      data_message = #{record.dataMessage,jdbcType=LONGVARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -325,19 +293,21 @@
   <update id="updateByExample" parameterType="map" >
     update b_marketing_halo_callback_data
     set id = #{record.id,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      cell = #{record.cell,jdbcType=VARCHAR},
-      cust_num = #{record.custNum,jdbcType=VARCHAR},
-      user_type = #{record.userType,jdbcType=VARCHAR},
-      start_time = #{record.startTime,jdbcType=VARCHAR},
-      deal_status = #{record.dealStatus,jdbcType=INTEGER},
-      `status` = #{record.status,jdbcType=INTEGER},
-      is_del = #{record.isDel,jdbcType=INTEGER},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      extend = #{record.extend,jdbcType=VARCHAR},
-      local_id = #{record.localId,jdbcType=BIGINT},
-      create_date = #{record.createDate,jdbcType=VARCHAR}
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    cell = #{record.cell,jdbcType=VARCHAR},
+    cust_num = #{record.custNum,jdbcType=VARCHAR},
+    user_type = #{record.userType,jdbcType=VARCHAR},
+    start_time = #{record.startTime,jdbcType=VARCHAR},
+    deal_status = #{record.dealStatus,jdbcType=INTEGER},
+    `status` = #{record.status,jdbcType=INTEGER},
+    is_del = #{record.isDel,jdbcType=INTEGER},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    extend = #{record.extend,jdbcType=VARCHAR},
+    local_id = #{record.localId,jdbcType=BIGINT},
+    data_message = #{record.dataMessage,jdbcType=VARCHAR},
+    create_date = #{record.createDate,jdbcType=VARCHAR},
+    model_code = #{record.modelCode,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -381,48 +351,35 @@
       <if test="localId != null" >
         local_id = #{localId,jdbcType=BIGINT},
       </if>
+      <if test="dataMessage != null" >
+        data_message = #{dataMessage,jdbcType=VARCHAR},
+      </if>
       <if test="createDate != null" >
         create_date = #{createDate,jdbcType=VARCHAR},
       </if>
-      <if test="dataMessage != null" >
-        data_message = #{dataMessage,jdbcType=LONGVARCHAR},
+      <if test="modelCode != null" >
+        model_code = #{modelCode,jdbcType=VARCHAR},
       </if>
     </set>
-    where id = #{id,jdbcType=BIGINT}
-  </update>
-  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.br.marketing.entity.MarketingHaloCallBackData" >
-    update b_marketing_halo_callback_data
-    set api_code = #{apiCode,jdbcType=VARCHAR},
-      cell = #{cell,jdbcType=VARCHAR},
-      cust_num = #{custNum,jdbcType=VARCHAR},
-      user_type = #{userType,jdbcType=VARCHAR},
-      start_time = #{startTime,jdbcType=VARCHAR},
-      deal_status = #{dealStatus,jdbcType=INTEGER},
-      `status` = #{status,jdbcType=INTEGER},
-      is_del = #{isDel,jdbcType=INTEGER},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP},
-      extend = #{extend,jdbcType=VARCHAR},
-      local_id = #{localId,jdbcType=BIGINT},
-      create_date = #{createDate,jdbcType=VARCHAR},
-      data_message = #{dataMessage,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingHaloCallBackData" >
     update b_marketing_halo_callback_data
     set api_code = #{apiCode,jdbcType=VARCHAR},
-      cell = #{cell,jdbcType=VARCHAR},
-      cust_num = #{custNum,jdbcType=VARCHAR},
-      user_type = #{userType,jdbcType=VARCHAR},
-      start_time = #{startTime,jdbcType=VARCHAR},
-      deal_status = #{dealStatus,jdbcType=INTEGER},
-      `status` = #{status,jdbcType=INTEGER},
-      is_del = #{isDel,jdbcType=INTEGER},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP},
-      extend = #{extend,jdbcType=VARCHAR},
-      local_id = #{localId,jdbcType=BIGINT},
-      create_date = #{createDate,jdbcType=VARCHAR}
+        cell = #{cell,jdbcType=VARCHAR},
+        cust_num = #{custNum,jdbcType=VARCHAR},
+        user_type = #{userType,jdbcType=VARCHAR},
+        start_time = #{startTime,jdbcType=VARCHAR},
+        deal_status = #{dealStatus,jdbcType=INTEGER},
+        `status` = #{status,jdbcType=INTEGER},
+        is_del = #{isDel,jdbcType=INTEGER},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        extend = #{extend,jdbcType=VARCHAR},
+        local_id = #{localId,jdbcType=BIGINT},
+        data_message = #{dataMessage,jdbcType=VARCHAR},
+        create_date = #{createDate,jdbcType=VARCHAR},
+        model_code = #{modelCode,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

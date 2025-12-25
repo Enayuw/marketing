@@ -69,14 +69,19 @@ public class MarketingHaloCallBackData {
     private Long localId;
 
     /**
+     * data_message
+     */
+    private String dataMessage;
+
+    /**
      * create_date
      */
     private String createDate;
 
     /**
-     * data_message
+     * 数据包类型（数字枚举）
      */
-    private String dataMessage;
+    private String modelCode;
 
     public Long getId() {
         return id;
@@ -182,6 +187,14 @@ public class MarketingHaloCallBackData {
         this.localId = localId;
     }
 
+    public String getDataMessage() {
+        return dataMessage;
+    }
+
+    public void setDataMessage(String dataMessage) {
+        this.dataMessage = dataMessage == null ? null : dataMessage.trim();
+    }
+
     public String getCreateDate() {
         return createDate;
     }
@@ -190,11 +203,11 @@ public class MarketingHaloCallBackData {
         this.createDate = createDate == null ? null : createDate.trim();
     }
 
-    public String getDataMessage() {
-        return dataMessage;
+    public String getModelCode() {
+        return modelCode;
     }
 
-    public void setDataMessage(String dataMessage) {
-        this.dataMessage = dataMessage == null ? null : dataMessage.trim();
+    public void setModelCode(String modelCode) {
+        this.modelCode = modelCode == null ? null : modelCode.trim();
     }
 }

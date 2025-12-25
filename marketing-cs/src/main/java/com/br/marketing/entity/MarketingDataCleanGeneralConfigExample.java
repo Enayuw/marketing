@@ -12,7 +12,7 @@ public class MarketingDataCleanGeneralConfigExample {
     protected List<Criteria> oredCriteria;
 
     public MarketingDataCleanGeneralConfigExample() {
-        oredCriteria = new ArrayList<>();
+        oredCriteria = new ArrayList<Criteria>();
     }
 
     public void setOrderByClause(String orderByClause) {
@@ -69,7 +69,7 @@ public class MarketingDataCleanGeneralConfigExample {
 
         protected GeneratedCriteria() {
             super();
-            criteria = new ArrayList<>();
+            criteria = new ArrayList<Criterion>();
         }
 
         public boolean isValid() {
@@ -302,6 +302,66 @@ public class MarketingDataCleanGeneralConfigExample {
 
         public Criteria andAccountTypeNotBetween(String value1, String value2) {
             addCriterion("account_type not between", value1, value2, "accountType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSystemTypeIsNull() {
+            addCriterion("system_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSystemTypeIsNotNull() {
+            addCriterion("system_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSystemTypeEqualTo(Integer value) {
+            addCriterion("system_type =", value, "systemType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSystemTypeNotEqualTo(Integer value) {
+            addCriterion("system_type <>", value, "systemType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSystemTypeGreaterThan(Integer value) {
+            addCriterion("system_type >", value, "systemType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSystemTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("system_type >=", value, "systemType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSystemTypeLessThan(Integer value) {
+            addCriterion("system_type <", value, "systemType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSystemTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("system_type <=", value, "systemType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSystemTypeIn(List<Integer> values) {
+            addCriterion("system_type in", values, "systemType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSystemTypeNotIn(List<Integer> values) {
+            addCriterion("system_type not in", values, "systemType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSystemTypeBetween(Integer value1, Integer value2) {
+            addCriterion("system_type between", value1, value2, "systemType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSystemTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("system_type not between", value1, value2, "systemType");
             return (Criteria) this;
         }
 
@@ -926,9 +986,8 @@ public class MarketingDataCleanGeneralConfigExample {
         }
     }
 
-    /**
-     */
     public static class Criteria extends GeneratedCriteria {
+
         protected Criteria() {
             super();
         }

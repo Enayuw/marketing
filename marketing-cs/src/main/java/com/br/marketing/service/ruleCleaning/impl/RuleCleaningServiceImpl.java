@@ -10,6 +10,7 @@ import com.br.marketing.client.rulecleaning.*;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.DataTypeEnum;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.JsonParseUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.common.exception.BusinessException;
@@ -27,6 +28,7 @@ import com.br.marketing.service.Impl.EntityOptServiceImpl;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.clean.common.impl.DataCleanServiceImpl;
 import com.br.marketing.service.ruleCleaning.RuleCleaningService;
+import com.br.marketing.service.template.TemplateJsonParseService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.dataclean.CleanFieldConfigVO;
 import com.github.pagehelper.PageHelper;
@@ -85,6 +87,9 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
     @Resource
     private EntityOptServiceImpl entityOptService;
+
+    @Resource
+    private TemplateJsonParseService templateJsonParseService;
 
     @Resource
     private MarketingCustomerMapper marketingCustomerMapper;
@@ -166,20 +171,15 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     @Override
     public boolean deleteRule(MarketingDataCleanGeneralConfig config, List<String> mappingFields) {
         // 查询已存在的规则配置
-        MarketingDataCleanGeneralConfigExample configExample = new MarketingDataCleanGeneralConfigExample();
-        configExample.createCriteria()
-                .andApiCodeEqualTo(config.getApiCode())
-                .andDataTypeEqualTo(config.getDataType())
-                .andAcceptTypeEqualTo(config.getAcceptType())
-                .andIsDelEqualTo(1);
-        List<MarketingDataCleanGeneralConfig> existingConfigs = cleanGeneralConfigMapper.selectByExample(configExample);
-        
+        List<MarketingDataCleanGeneralConfig> existingConfigs =
+                queryCleanConfigCommon(config.getApiCode(),config.getSystemType(),config.getDataType(),config.getAcceptType());
+
         if (existingConfigs == null || existingConfigs.isEmpty()) {
             return true;
         }
-        
+
         Long configId = existingConfigs.get(0).getId();
-        
+
         // 查询已存在的规则字段配置
         MarketingDataCleanGeneralRuleConfigExample ruleExample = new MarketingDataCleanGeneralRuleConfigExample();
         ruleExample.createCriteria()
@@ -187,7 +187,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 .andApiCodeEqualTo(config.getApiCode())
                 .andIsDelEqualTo(1);
         List<MarketingDataCleanGeneralRuleConfig> existingRules = cleanGeneralRuleConfigMapper.selectByExample(ruleExample);
-        
+
         if (existingRules == null || existingRules.isEmpty()) {
             return true;
         }
@@ -215,7 +215,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             }
         }
 
-        return anyRuleDeleted && allSuccess;
+        // 如果有需要删除的规则，则返回是否全部删除成功
+        return !anyRuleDeleted || allSuccess;
     }
 
     /**
@@ -226,26 +227,26 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
      * @return 字段样例列表
      */
     @Override
-    public List<FieldSampleDTO> getPreviewFieldSamples(String apiCode, Integer dataType, Integer acceptType) {
+    public List<FieldSampleDTO> getPreviewFieldSamples(String apiCode, Integer systemType, Integer dataType, Integer acceptType) {
         List<FieldSampleDTO> result = new ArrayList<>();
         // 参数验证
-        if (dataType != DataProcessEnum.DataTypeEnum.UPLOAD.getCode() && dataType != DataProcessEnum.DataTypeEnum.TRANSFORM.getCode()) {
+        if (!DataProcessEnum.SystemTypeEnum.MARKETING.getCode().equals(systemType)
+                && !DataProcessEnum.SystemTypeEnum.CALL.getCode().equals(systemType)){
+            throw new BusinessException("数据来源无效，应为0(营销中台)或1(外呼系统)");
+        }
+
+        if (!DataProcessEnum.DataTypeEnum.UPLOAD.getCode().equals(dataType)
+                && !DataProcessEnum.DataTypeEnum.TRANSFORM.getCode().equals(dataType)) {
             throw new BusinessException("数据类型无效，应为0(上传)或1(转化)");
         }
 
-        if (acceptType != DataProcessEnum.AcceptTypeEnum.GENERAL.getCode()
-                && acceptType != DataProcessEnum.AcceptTypeEnum.CUSTOM.getCode()
-                && acceptType != DataProcessEnum.AcceptTypeEnum.FTP.getCode()) {
+        if ( !DataProcessEnum.AcceptTypeEnum.GENERAL.getCode().equals(acceptType)
+                && !DataProcessEnum.AcceptTypeEnum.CUSTOM.getCode().equals(acceptType)
+                && !DataProcessEnum.AcceptTypeEnum.FTP.getCode().equals(acceptType)) {
             throw new BusinessException("接口类型无效，应为0(通用)、1(定制)或2(FTP)");
         }
 
-        MarketingDataCleanGeneralConfigExample configExample = new MarketingDataCleanGeneralConfigExample();
-        configExample.createCriteria()
-                .andApiCodeEqualTo(apiCode)
-                .andDataTypeEqualTo(dataType)
-                .andAcceptTypeEqualTo(acceptType)
-                .andIsDelEqualTo(1);
-        List<MarketingDataCleanGeneralConfig> configs = cleanGeneralConfigMapper.selectByExample(configExample);
+        List<MarketingDataCleanGeneralConfig> configs = queryCleanConfigCommon(apiCode, systemType, dataType, acceptType);
         if (ObjectUtil.isNotEmpty(configs)) {
             throw new BusinessException("该用户清洗配置已存在");
         }
@@ -253,6 +254,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         MarketingJsonNodeParseExample nodeExample = new MarketingJsonNodeParseExample();
         nodeExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
+                .andSystemTypeEqualTo(systemType)
                 .andDataTypeEqualTo(dataType)
                 .andAcceptTypeEqualTo(acceptType);
         List<MarketingJsonNodeParse> nodes = jsonNodeParseMapper.selectByExample(nodeExample);
@@ -264,10 +266,10 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             for (MarketingJsonNodeParse node : nodes) {
                 String nodeName = node.getNodeName();
                 Integer level = node.getLevel();
-                if (level == 0) {
+                if (Integer.valueOf(0).equals(level)) {
                     continue;
                 }
-                if (acceptType == DataProcessEnum.AcceptTypeEnum.GENERAL.getCode()){
+                if (DataProcessEnum.AcceptTypeEnum.GENERAL.getCode().equals(acceptType)){
                     if (("requestId".equals(nodeName)) || "taskId".equals(nodeName)) {
                         continue;
                     }
@@ -307,9 +309,13 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
      * @return 字段样例列表
      */
     @Override
-    public List<FieldSampleDTO> getFieldSamples(String apiCode, Integer dataType, Integer acceptType) {
+    public List<FieldSampleDTO> getFieldSamples(String apiCode, Integer systemType, Integer dataType, Integer acceptType) {
         List<FieldSampleDTO> result = new ArrayList<>();
         // 参数验证
+        if (systemType != DataProcessEnum.SystemTypeEnum.MARKETING.getCode() && systemType != DataProcessEnum.SystemTypeEnum.CALL.getCode()){
+            throw new BusinessException("数据来源无效，应为0(营销中台)或1(外呼系统)");
+        }
+
         if (dataType != DataProcessEnum.DataTypeEnum.UPLOAD.getCode() && dataType != DataProcessEnum.DataTypeEnum.TRANSFORM.getCode()) {
             throw new BusinessException("数据类型无效，应为0(上传)或1(转化)");
         }
@@ -382,7 +388,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                             if (DataProcessEnum.AcceptTypeEnum.GENERAL.getCode().equals(acceptType)) {
                                 // 通用类型：查询b_marketing_sync_info表
                                 log.info("查询通用上传表获取字段值: apiCode={}, field={}", apiCode, nodeName);
-                                
+
                                 // 查询最新的一条记录
                                 MarketingSyncInfoExample example = new MarketingSyncInfoExample();
                                 example.createCriteria()
@@ -391,16 +397,16 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                                 example.setOrderByClause("create_time DESC");
                                 // 使用PageHelper限制结果数量
                                 PageHelper.startPage(1, 1);
-                                
+
                                 List<MarketingSyncInfo> infoList = marketingSyncInfoMapper.selectByExample(example);
                                 if (!CollectionUtils.isEmpty(infoList)) {
                                     MarketingSyncInfo info = infoList.get(0);
                                     String jsonData = info.getJsonData();
                                     createTime = info.getCreateTime();
-                                    
+
                                     // 从JSON数据中提取指定字段值
                                     nodeValue = extractValueFromJson(jsonData, nodeName);
-                                    
+
                                     if (StringUtils.isNotBlank(nodeValue)) {
                                         // 更新JSON结构表
                                         updateNodeValue(node.getId(), nodeValue);
@@ -410,7 +416,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                             } else if (DataProcessEnum.AcceptTypeEnum.CUSTOM.getCode().equals(acceptType)) {
                                 // 定制类型：查询b_marketing_customer_original_data表
                                 log.info("查询定制上传表获取字段值: apiCode={}, field={}", apiCode, nodeName);
-                                
+
                                 // 查询最新的一条记录
                                 MarketingCustomerOriginalDataExample example = new MarketingCustomerOriginalDataExample();
                                 example.createCriteria()
@@ -419,16 +425,16 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                                 example.setOrderByClause("create_time DESC");
                                 // 使用PageHelper限制结果数量
                                 PageHelper.startPage(1, 1);
-                                
+
                                 List<MarketingCustomerOriginalData> dataList = marketingCustomerOriginalDataMapper.selectByExample(example);
                                 if (!CollectionUtils.isEmpty(dataList)) {
                                     MarketingCustomerOriginalData data = dataList.get(0);
                                     String jsonData = data.getJsonData();
                                     createTime = data.getCreateTime();
-                                    
+
                                     // 从JSON数据中提取指定字段值
                                     nodeValue = extractValueFromJson(jsonData, nodeName);
-                                    
+
                                     if (StringUtils.isNotBlank(nodeValue)) {
                                         // 更新JSON结构表
                                         updateNodeValue(node.getId(), nodeValue);
@@ -472,15 +478,17 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     /**
      * 字段样例查询
      * @param apiCode API编码
+     * @param systemType 数据来源
      * @param dataType 数据类型：0上传，1转化
      * @param acceptType 接口类型：0通用,1定制,2FTP
      * @return 字段样例列表
      */
     @Override
-    public String getpreviewField(String apiCode, Integer dataType, Integer acceptType) {
+    public String getpreviewField(String apiCode, Integer systemType, Integer dataType, Integer acceptType) {
         MarketingJsonNodeParseExample nodeExample = new MarketingJsonNodeParseExample();
         nodeExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
+                .andSystemTypeEqualTo(systemType)
                 .andDataTypeEqualTo(dataType)
                 .andAcceptTypeEqualTo(acceptType)
                 .andLevelEqualTo(0);
@@ -657,7 +665,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
         return fieldSample;
     }
-    
+
     /**
      * 预览字段清洗结果
      *
@@ -713,25 +721,25 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         if (nodeParse == null) {
             throw new BusinessException("节点解析对象不能为空");
         }
-        
+
         if (cleaningRule == null) {
             throw new BusinessException("清洗规则不能为空");
         }
-        
+
         Boolean isMapping = cleaningRule.getIsMapping();
         String cleanFields = cleaningRule.getCleanFields();
         String parentPath = cleaningRule.getParentPath();
         Integer level = cleaningRule.getLevel();
         Integer isDel = cleaningRule.getIsDel();
-        
+
         if ("9".equals(isDel)) {
             return "";
         }
-        
+
         if (StringUtils.isBlank(cleanFields)) {
             throw new BusinessException("清洗字段不能为空");
         }
-        
+
         Object fieldValue = null;
         if (ObjectUtil.isNotEmpty(parentPath) || ObjectUtil.isNotEmpty(level)) {
             fieldValue = JsonParseUtils.findFirstValueByKey(nodeParse, cleanFields, parentPath);
@@ -744,42 +752,42 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             log.warn("未找到字段值: cleanFields={}", cleanFields);
             return "";
         }
-        
+
         String firstValueByKey = fieldValue.toString();
-        
+
         if (isMapping) {
             String mappingRule = cleaningRule.getMappingRule();
             if (StringUtils.isBlank(mappingRule)) {
                 log.warn("映射规则为空，无法执行清洗: cleanFields={}", cleanFields);
                 return firstValueByKey;
             }
-            
+
             Object result = previewFieldCleaning(firstValueByKey, mappingRule, nodeParse);
             return result;
         }
-        
+
         return firstValueByKey;
     }
 
-    
+
     /**
      * 执行单个清洗规则
      */
     private Object executeSingleRule(String fieldSample, String cleaningRule, Object nodeParse) {
         //log.warn("执行单个规则 - 输入值: {}, 规则: {}", fieldSample, cleaningRule);
-        
+
         Map<String, Object> ruleMap = null;
         try {
             ruleMap = JSON.parseObject(cleaningRule, Map.class);
         } catch (Exception e) {
             throw new BusinessException("解析清洗规则失败！");
         }
-        
+
         if (ruleMap == null || ruleMap.isEmpty()) {
             //log.warn("规则映射为空，返回原值");
             return fieldSample;
         }
-        
+
         // 获取操作类型
         String operator = ruleMap.containsKey("operator") ? String.valueOf(ruleMap.get("operator")) : null;
         if (StringUtils.isBlank(operator)) {
@@ -788,7 +796,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         }
 
         //log.warn("操作类型: {}", operator);
-        
+
         // 根据操作类型执行不同的清洗逻辑
         Object result = fieldSample;
 
@@ -864,7 +872,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         String operator = String.valueOf(ruleMap.get("operator"));
         log.warn("处理数学运算 - 输入值: {}, 操作符: {}", fieldSample, operator);
         String type = String.valueOf(ruleMap.get("type"));
-        
+
         // 计算所有操作数
         Object value = null;
         if ("field".equals(type)) {
@@ -1010,15 +1018,15 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             // 首先检查原字符串是否包含关键字（不区分大小写）
             Pattern pattern = Pattern.compile(Pattern.quote(patternField), Pattern.CASE_INSENSITIVE);
             Matcher matcher = pattern.matcher(fieldSample);
-            
+
             if (!matcher.find()) {
                 //log.warn("保留关键字操作（忽略大小写）：原值 '{}' 不包含关键字 '{}'，返回原值", fieldSample, patternField);
                 return fieldSample;
             }
-            
+
             // 重置匹配器，重新开始查找
             matcher.reset();
-            
+
             // 收集所有匹配项
             StringBuilder result = new StringBuilder();
             while (matcher.find()) {
@@ -1047,7 +1055,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         String regex = "(?i)" + Pattern.quote(oldValue);
         String result = fieldSample.replaceAll(regex, newValue);
         //log.warn("替换操作（忽略大小写）：原值 '{}' 替换 '{}' 为 '{}' 结果是 '{}'", fieldSample, oldValue, newValue, result);
-        
+
         return result;
     }
 
@@ -1099,7 +1107,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         int length = fieldSample.length();
         /*log.warn("截取参数(从1开始的索引): 字符串长度={}, 开始索引={}, 结束索引={}, 方向={}",
                 length, startIndex, endIndex, startLocation);*/
-        
+
         // 转换为Java的0基索引
         int javaStartIndex = startIndex - 1;
         // endIndex就表示要包含的字符数
@@ -1116,7 +1124,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
             /*log.warn("右侧起算修正后: 右侧开始索引={}, 右侧结束索引={}",
                     rightStartIndex, rightEndIndex);*/
-            
+
             // 不需要交换，只需要确保索引有效
             javaStartIndex = Math.max(0, rightStartIndex);
             javaEndIndex = Math.min(length, rightEndIndex);
@@ -1127,7 +1135,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         javaEndIndex = Math.max(javaStartIndex, Math.min(javaEndIndex, length));
 
         //log.warn("最终Java索引: startIndex={}, endIndex={}", javaStartIndex, javaEndIndex);
-        
+
         // 如果开始和结束索引相同，返回空字符串
         if (javaStartIndex == javaEndIndex) {
             log.warn("开始索引等于结束索引，返回空字符串");
@@ -1213,7 +1221,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
         // 获取并处理fieldValue，支持多种格式
         List<String> fieldValues = new ArrayList<>();
-        
+
         if (fieldSample instanceof List) {
             // 已经是列表，直接使用
             List<?> rawList = (List<?>) fieldSample;
@@ -1237,7 +1245,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             }
         } else if (fieldSample instanceof String) {
             String strValue = (String) fieldSample;
-            
+
             // 尝试判断是否为JSON数组格式
             if (strValue.startsWith("[") && strValue.endsWith("]")) {
                 try {
@@ -1270,7 +1278,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 fieldValues.addAll(Arrays.asList(strValue.split(",")));
             }
         }
-        
+
         log.warn("解析fieldValue得到的值列表: {}", fieldValues);
 
         // 获取优先级条件
@@ -1290,7 +1298,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         // 优先级排序后的结果
         List<String> processedValues = new ArrayList<>(fieldValues);
         log.warn("初始字段值列表: {}", processedValues);
-        
+
         // 记录是否有条件匹配
         boolean anyConditionMatched = false;
 
@@ -1309,7 +1317,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 // 检查是否所有值都是纯字符串（不包含数字）
                 boolean allPureStrings = processedValues.stream()
                         .allMatch(v -> !v.matches(".*\\d+.*"));
-                
+
                 if (allPureStrings) {
                     // 纯字符串按字母排序
                     if ("desc".equals(sort)) {
@@ -1347,7 +1355,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     }
                 }
                 anyConditionMatched = true;
-                
+
             } else if ("keyword".equals(priorityType)) {
                 // 按关键字过滤（忽略大小写）
                 String keyword = String.valueOf(condition.get("keywordValue"));
@@ -1375,22 +1383,22 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             log.warn("条件匹配成功，返回排序后的第一个值: {}", processedValues.get(0));
             return processedValues.get(0);
         }
-        
+
         // 如果没有条件匹配或处理后没有值，使用兜底方案
         log.warn("没有条件匹配或处理后没有值，使用兜底方案");
-        
+
         // 使用defaultValue作为索引从原始列表中选择（下标从1开始）
         if (ruleMap.containsKey("defaultValue")) {
             try {
                 // 获取defaultValue值(从1开始计数)
                 int defaultIdx = Integer.parseInt(String.valueOf(ruleMap.get("defaultValue")));
-                
+
                 // 验证defaultValue不能为空且必须大于0
                 if (defaultIdx <= 0) {
                     log.warn("兜底方案索引值必须大于0，当前值: {}", defaultIdx);
                     return fieldSample;
                 }
-                
+
                 // 转换为0基索引
                 defaultIdx = defaultIdx - 1;
                 // 确保索引在有效范围内
@@ -1410,31 +1418,31 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         // 如果前面的处理都没有返回结果，返回原始样例
         return fieldSample;
     }
-    
+
     /**
      * 辅助类：用于解析和排序包含数字的字符串
      */
     private static class NumberStringPair {
         private final String originalString;
         private final double number;
-        
+
         public NumberStringPair(String str) {
             this.originalString = str;
             this.number = extractNumber(str);
         }
-        
+
         public String getOriginalString() {
             return originalString;
         }
-        
+
         public double getNumber() {
             return number;
         }
-        
+
         private double extractNumber(String str) {
             StringBuilder sb = new StringBuilder();
             boolean hasDecimalPoint = false;
-            
+
             for (char c : str.toCharArray()) {
                 if (Character.isDigit(c)) {
                     sb.append(c);
@@ -1443,7 +1451,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     hasDecimalPoint = true;
                 }
             }
-            
+
             if (sb.length() > 0) {
                 try {
                     return Double.parseDouble(sb.toString());
@@ -1452,7 +1460,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     log.warn("无法解析数字: '{}', 返回0", sb.toString(), e);
                 }
             }
-            
+
             return 0;
         }
     }
@@ -1480,14 +1488,19 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     }
 
     @Override
-    public MarketingDataCleanGeneralFieldConfig getFieldConfg(Integer dataType, Integer acceptType) {
+    public MarketingDataCleanGeneralFieldConfig getFieldConfg(Integer dataType, Integer acceptType,
+                                                              Integer systemType) {
         // 参数验证
         if (dataType == null) {
             throw new BusinessException("数据类型不能为空");
         }
-        
+
+        if (systemType == null) {
+            throw new BusinessException("数据来源不能为空");
+        }
+
         MarketingDataCleanGeneralFieldConfigExample fieldConfigExample = new MarketingDataCleanGeneralFieldConfigExample();
-        fieldConfigExample.createCriteria().andDataTypeEqualTo(dataType);
+        fieldConfigExample.createCriteria().andDataTypeEqualTo(dataType).andSystemTypeEqualTo(systemType);
         List<MarketingDataCleanGeneralFieldConfig> fieldConfigList = marketingDataCleanGeneralFieldConfigMapper.selectByExample(fieldConfigExample);
         if (CollectionUtils.isEmpty(fieldConfigList)) {
             return null;
@@ -1508,23 +1521,23 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             if (fieldConfigVO == null) {
                 throw new BusinessException("字段配置不能为空");
             }
-            
+
             if (fieldConfigVO.getDataType() == null) {
                 throw new BusinessException("数据类型不能为空");
             }
-            
+
             if (StringUtils.isBlank(fieldConfigVO.getFieldCollect())) {
                 throw new BusinessException("字段集合不能为空");
             }
-            
+
             MarketingUserDetail user = ThreadContextInfo.getUser();
             String fieldStr = fieldConfigVO.getFieldCollect();
             List<String> fieldList = Arrays.asList(fieldStr.split(","));
-            
+
             Set<String> baseField = Sets.newHashSet("cell", "id", "name", "userType", "custNum", "operateType", "taskId", "requestId");
             baseField.addAll(fieldList);
             String fieldCollect = String.join(",", baseField);
-            
+
             if (Objects.isNull(fieldConfigVO.getId())) {
                 //插入
                 MarketingDataCleanGeneralFieldConfig fieldConfig = new MarketingDataCleanGeneralFieldConfig();
@@ -1542,7 +1555,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 if (update == null) {
                     throw new BusinessException("模版字段配置不存在，无法更新");
                 }
-                
+
                 BeanUtils.copyProperties(fieldConfigVO, update);
                 update.setFieldCollect(fieldCollect);
                 update.setOptUserId(Long.valueOf(user.getId()));
@@ -1568,7 +1581,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         if (StringUtils.isBlank(jsonData) || StringUtils.isBlank(fieldName)) {
             return null;
         }
-        
+
         try {
             // 尝试解析为JSONObject
             if (jsonData.trim().startsWith("{")) {
@@ -1585,7 +1598,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         } catch (Exception e) {
             log.warn("JSON解析失败！错误信息：{}", e.getMessage(), e);
         }
-        
+
         return null;
     }
 
@@ -1600,24 +1613,24 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         if (jsonObject == null) {
             return null;
         }
-        
+
         // 直接查找字段
         if (jsonObject.containsKey(fieldName)) {
             Object value = jsonObject.get(fieldName);
             return value != null ? value.toString() : null;
         }
-        
+
         // 递归查找所有嵌套的JSON对象
         for (String key : jsonObject.keySet()) {
             Object value = jsonObject.get(key);
-            
+
             // 递归处理嵌套的JSONObject
             if (value instanceof JSONObject) {
                 String nestedResult = findValueInJsonObject((JSONObject) value, fieldName);
                 if (nestedResult != null) {
                     return nestedResult;
                 }
-            } 
+            }
             // 递归处理JSONArray中的所有JSONObject
             else if (value instanceof JSONArray) {
                 JSONArray jsonArray = (JSONArray) value;
@@ -1631,7 +1644,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 }
             }
         }
-        
+
         return null;
     }
 
@@ -1645,7 +1658,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         if (StringUtils.isBlank(mappingRule)) {
             return "";
         }
-        
+
         try {
             // 尝试解析JSON数组格式的规则
             if (mappingRule.trim().startsWith("[")) {
@@ -1662,7 +1675,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                         }
                     }
                 }
-            } 
+            }
             // 尝试解析单个JSON对象格式的规则
             else if (mappingRule.trim().startsWith("{")) {
                 JSONObject jsonObj = JSON.parseObject(mappingRule);
@@ -1673,20 +1686,20 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                     if (expression.containsKey("fieldValue")) {
                         return expression.getString("fieldValue");
                     }
-                } 
+                }
                 // 检查是否本身就是一个expression对象
                 else if (jsonObj.containsKey("fieldValue")) {
                     return jsonObj.getString("fieldValue");
                 }
             }
-            
+
             // 记录未找到的情况
             log.warn("在清洗规则中未找到fieldValue: {}", mappingRule);
-            
+
         } catch (Exception e) {
             log.warn("解析清洗规则提取fieldValue失败！错误信息：{}", e.getMessage(), e);
         }
-        
+
         return "";
     }
 
@@ -1725,6 +1738,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         MarketingDataCleanGeneralConfigExample configExample = new MarketingDataCleanGeneralConfigExample();
         configExample.createCriteria()
                 .andApiCodeEqualTo(configDTO.getApiCode())
+                .andSystemTypeEqualTo(configDTO.getSystemType())
                 .andDataTypeEqualTo(configDTO.getDataType())
                 .andAcceptTypeEqualTo(configDTO.getAcceptType())
                 .andIsDelEqualTo(1);
@@ -1738,6 +1752,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         // 构建规则配置对象
         MarketingDataCleanGeneralConfig config = new MarketingDataCleanGeneralConfig();
         config.setApiCode(configDTO.getApiCode());
+        config.setSystemType(configDTO.getSystemType());
         config.setDataType(configDTO.getDataType());
         config.setAcceptType(configDTO.getAcceptType());
         config.setSftpPath(configDTO.getSftpPath());
@@ -1783,6 +1798,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         List<FieldSampleDTO> result = new ArrayList<>();
         MarketingDataCleanGeneralConfig config = cleanGeneralConfigMapper.selectByPrimaryKey(configId);
         String apiCode = config.getApiCode();
+        Integer systemType = config.getSystemType();
         Integer dataType = config.getDataType();
         Integer acceptType = config.getAcceptType();
         MarketingDataCleanGeneralRuleConfigExample generalRuleConfigExample = new MarketingDataCleanGeneralRuleConfigExample();
@@ -1798,114 +1814,253 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         MarketingJsonNodeParseExample nodeExample = new MarketingJsonNodeParseExample();
         nodeExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
+                .andSystemTypeEqualTo(systemType)
                 .andDataTypeEqualTo(dataType)
                 .andAcceptTypeEqualTo(acceptType);
         List<MarketingJsonNodeParse> nodes = jsonNodeParseMapper.selectByExample(nodeExample);
+        // 判断客户是否传输过数据 -未传输
         if (CollectionUtils.isEmpty(nodes)) {
+            // 1. 查询客户部门信息
+            MarketingCustomerExample marketingCustomerExample = new MarketingCustomerExample();
+            marketingCustomerExample.createCriteria().andApiCodeEqualTo(apiCode).andStatusEqualTo(Byte.valueOf("1"));
+            List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(marketingCustomerExample);
+            if (marketingCustomers.isEmpty()) {
+                return result;
+            }
+            MarketingCustomer marketingCustomer = marketingCustomers.get(0);
+            String firstDepartment = marketingCustomer.getFirstDepartment();
+            String secondDepartment = marketingCustomer.getSecondDepartment();
+            String apiType = marketingCustomer.getApiType();
+            // 2. 查询行业模板
+            Result<JSONArray> jsonArrayResult = templateJsonParseService.queryIndustryTemplateJsonParses(
+                    firstDepartment, secondDepartment, apiType, systemType, dataType, acceptType ,false);
+            if (!jsonArrayResult.isSuccess()) {
+                log.warn("查询行业模板失败: {}", JSONObject.toJSONString(jsonArrayResult));
+                return result;
+            }
+            JSONArray data = jsonArrayResult.getData();
+            List<MarketingBuildInTemplateJsonParse> marketingIndustryTemplates =
+                    JSON.parseArray(data.toJSONString(), MarketingBuildInTemplateJsonParse.class);
+
+            // 3. 处理行业模板字段并构建字段标识集合
+            Set<String> templateFieldKeys = processIndustryTemplates(result, ruleConfigList, marketingIndustryTemplates);
+
+            // 4. 处理ruleConfigList特有的字段（在marketingIndustryTemplates中不存在的字段）
+            addRuleConfigOnlyFields(result, ruleConfigList, templateFieldKeys);
+
             return result;
         }
+        // 客户已传输数据
         for (MarketingJsonNodeParse node : nodes) {
             String nodeName = node.getNodeName();
             Integer level = node.getLevel();
-            if (level == 0) {
+            if (level == 0 || StringUtil.isBlank(nodeName)) {
                 continue;
             }
-            String nodeValue = node.getNodeValue();
-            Date createTime = node.getCreateTime();
-            if (StringUtil.isBlank(nodeName)) {
-                continue;
-            }
+            buildFieldSample(result, ruleConfigList, nodeName, level,
+                    node.getNodeValue(), node.getParentPath(), node.getNodeType(), node.getCreateTime());
 
-            List<MarketingDataCleanGeneralRuleConfig> ruleConfigs = ruleConfigList.stream()
-                    .filter(rule -> rule.getCleanFields().equals(nodeName)
-                            && rule.getLevel().equals(level))
-                    .collect(Collectors.toList());
-            if (!CollectionUtils.isEmpty(ruleConfigs)) {
-                ruleConfigs.forEach(ruleConfig -> {
-                    FieldSampleDTO dto = new FieldSampleDTO();
-                    dto.setFieldName(nodeName);
-                    dto.setLevel(level);
-                    dto.setParentPath(node.getParentPath());
-                    dto.setNodeType(node.getNodeType());
-                    dto.setFieldSample(nodeValue);
-                    dto.setFirstUploadTime(createTime);
-                    dto.setFieldType(0);
-                    dto.setMappingRule(ruleConfig.getMappingRule());
-                    dto.setRelatedField(ruleConfig.getMappingField());
-                    dto.setResultPreview(ruleConfig.getResultPreview());
-                    dto.setNeedCleaning(ruleConfig.getIsMapping());
-                    dto.setFieldType(ruleConfig.getIsDerived());
-                    // 添加到结果列表
-                    result.add(dto);
-                });
-            } else {
+        }
+        return result;
+    }
+    public void buildFieldSample(List<FieldSampleDTO> result, List<MarketingDataCleanGeneralRuleConfig> ruleConfigList,
+                                 String nodeName, Integer level, String nodeValue, String parentPath,
+                                 String nodeType, Date createTime) {
+
+        List<MarketingDataCleanGeneralRuleConfig> ruleConfigs = ruleConfigList.stream()
+                .filter(rule -> rule.getCleanFields().equals(nodeName)
+                        && rule.getLevel().equals(level))
+                .collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(ruleConfigs)) {
+            ruleConfigs.forEach(ruleConfig -> {
                 FieldSampleDTO dto = new FieldSampleDTO();
                 dto.setFieldName(nodeName);
                 dto.setLevel(level);
-                dto.setParentPath(node.getParentPath());
-                dto.setNodeType(node.getNodeType());
+                dto.setParentPath(parentPath);
+                dto.setNodeType(nodeType);
                 dto.setFieldSample(nodeValue);
                 dto.setFirstUploadTime(createTime);
                 dto.setFieldType(0);
-                dto.setNeedCleaning(false);
+                dto.setMappingRule(ruleConfig.getMappingRule());
+                dto.setRelatedField(ruleConfig.getMappingField());
+                dto.setResultPreview(ruleConfig.getResultPreview());
+                dto.setNeedCleaning(ruleConfig.getIsMapping());
+                dto.setFieldType(ruleConfig.getIsDerived());
+                // 添加到结果列表
+                result.add(dto);
+            });
+        } else {
+            FieldSampleDTO dto = new FieldSampleDTO();
+            dto.setFieldName(nodeName);
+            dto.setLevel(level);
+            dto.setParentPath(parentPath);
+            dto.setNodeType(nodeType);
+            dto.setFieldSample(nodeValue);
+            dto.setFirstUploadTime(createTime);
+            dto.setFieldType(0);
+            dto.setNeedCleaning(false);
+            result.add(dto);
+        }
+    }
+
+    /**
+     * 处理行业模板字段并构建字段标识集合
+     *
+     * @param result 结果列表
+     * @param ruleConfigList 规则配置列表
+     * @param marketingIndustryTemplates 行业模板列表
+     * @return 模板字段标识集合（nodeName_level）
+     */
+    private Set<String> processIndustryTemplates(List<FieldSampleDTO> result,
+                                                  List<MarketingDataCleanGeneralRuleConfig> ruleConfigList,
+                                                  List<MarketingBuildInTemplateJsonParse> marketingIndustryTemplates) {
+        Set<String> templateFieldKeys = new HashSet<>();
+        for (MarketingBuildInTemplateJsonParse parse : marketingIndustryTemplates) {
+            String nodeName = parse.getNodeName();
+            Integer level = parse.getLevel();
+            if (level == null || level == 0 || StringUtil.isBlank(nodeName)) {
+                continue;
+            }
+            String key = nodeName + "_" + level;
+            templateFieldKeys.add(key);
+            buildFieldSample(result, ruleConfigList, nodeName, level,
+                    parse.getNodeValue(), parse.getParentPath(), parse.getNodeType(), parse.getCreateTime());
+        }
+        return templateFieldKeys;
+    }
+
+    /**
+     * 处理ruleConfigList特有的字段（在marketingIndustryTemplates中不存在的字段）
+     *
+     * @param result 结果列表
+     * @param ruleConfigList 规则配置列表
+     * @param templateFieldKeys 模板字段标识集合
+     */
+    private void addRuleConfigOnlyFields(List<FieldSampleDTO> result,
+                                         List<MarketingDataCleanGeneralRuleConfig> ruleConfigList,
+                                         Set<String> templateFieldKeys) {
+        if (CollectionUtils.isEmpty(ruleConfigList)) {
+            return;
+        }
+        for (MarketingDataCleanGeneralRuleConfig ruleConfig : ruleConfigList) {
+            String cleanFields = ruleConfig.getCleanFields();
+            Integer level = ruleConfig.getLevel();
+            if (StringUtil.isBlank(cleanFields) || level == null || level == 0) {
+                continue;
+            }
+            String key = cleanFields + "_" + level;
+            // 如果该字段不在模板中，则添加到结果中
+            if (!templateFieldKeys.contains(key)) {
+                FieldSampleDTO dto = createFieldSampleDTOFromRuleConfig(ruleConfig);
                 result.add(dto);
             }
         }
-        return result;
+    }
+
+    /**
+     * 从规则配置创建FieldSampleDTO
+     *
+     * @param ruleConfig 规则配置
+     * @return FieldSampleDTO对象
+     */
+    private FieldSampleDTO createFieldSampleDTOFromRuleConfig(MarketingDataCleanGeneralRuleConfig ruleConfig) {
+        FieldSampleDTO dto = new FieldSampleDTO();
+        dto.setFieldName(ruleConfig.getCleanFields());
+        dto.setLevel(ruleConfig.getLevel());
+        dto.setParentPath(ruleConfig.getParentPath());
+        dto.setFieldType(0);
+        dto.setMappingRule(ruleConfig.getMappingRule());
+        dto.setRelatedField(ruleConfig.getMappingField());
+        dto.setResultPreview(ruleConfig.getResultPreview());
+        dto.setNeedCleaning(ruleConfig.getIsMapping());
+        return dto;
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean saveCleanRule(RuleCleaningConfigDTO configDTO) {
-        List<FieldCleaningConfigDTO> cleaningConfigs = configDTO.getCleaningConfig();
+        // 1. 获取清洗配置
         MarketingDataCleanGeneralConfig config = cleanGeneralConfigMapper.selectByPrimaryKey(configDTO.getConfigId());
-        if (!CollectionUtils.isEmpty(cleaningConfigs)) {
-            List<String> mappingFields = cleaningConfigs.stream().map(FieldCleaningConfigDTO::getMappingField).collect(Collectors.toList());
-            List<String> uploadMustField = Lists.newArrayList("custNum", "cell", "userType");
-            if (DataProcessEnum.DataTypeEnum.UPLOAD.getCode().equals(configDTO.getDataType())) {
-                if (!mappingFields.containsAll(uploadMustField)) {
-                    throw new BusinessException("上传必填字段[custNum,cell,userType]未配置，请检查");
-                }
-            }
-            // 提取所有清洗字段
-            List<String> nonMappingFields = cleaningConfigs.stream()
-                    .map(FieldCleaningConfigDTO::getMappingField)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
 
-            // 删除不在当前配置中的规则
-            boolean deleteResult = deleteRule(config, nonMappingFields);
-            if (!deleteResult) {
-                // 继续处理，不要因为删除失败而中断整个流程
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
-                        "删除不在当前配置中的规则失败！"));
-            }
-            // 保存清洗配置
-            for (FieldCleaningConfigDTO fieldConfig : cleaningConfigs) {
-                if(StringUtils.isEmpty(fieldConfig.getMappingField())){
-                    continue;
-                }
-                // 设置API编码信息
-                fieldConfig.setApiCode(configDTO.getApiCode());
-                fieldConfig.setDataType(configDTO.getDataType());
-                fieldConfig.setAcceptType(configDTO.getAcceptType());
-                // 2. 保存字段清洗规则
-                saveFieldCleaningRule(configDTO.getConfigId(), fieldConfig);
-            }
+        // 2. 处理清洗配置
+        List<FieldCleaningConfigDTO> cleaningConfigs = configDTO.getCleaningConfig();
+        if (!CollectionUtils.isEmpty(cleaningConfigs)) {
+            processCleaningConfigs(configDTO, config);
         }
-        dataCleanService.delConfigRule(configDTO.getApiCode(), configDTO.getDataType(), configDTO.getAcceptType());
-        //更新配置表状态
+
+        // 3. 清除缓存
+        dataCleanService.delConfigRule(configDTO.getSystemType(), configDTO.getApiCode(),
+                configDTO.getDataType(), configDTO.getAcceptType());
+
+        // 4. 更新配置表状态
         MarketingDataCleanGeneralConfig update = new MarketingDataCleanGeneralConfig();
         update.setId(configDTO.getConfigId());
-        if (DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode().equals(config.getStatus())) {
-            update.setStatus(DataProcessEnum.RuleStatusEnum.READY.getCode());
+
+        // 营销中台
+        if (DataProcessEnum.SystemTypeEnum.MARKETING.getCode().equals(configDTO.getSystemType())) {
+            // 获取客户传的字段结构
+            MarketingJsonNodeParseExample nodeExample = new MarketingJsonNodeParseExample();
+            nodeExample.createCriteria()
+                    .andApiCodeEqualTo(config.getApiCode())
+                    .andDataTypeEqualTo(config.getDataType())
+                    .andAcceptTypeEqualTo(config.getAcceptType())
+                    .andSystemTypeEqualTo(config.getSystemType());
+            List<MarketingJsonNodeParse> nodes = jsonNodeParseMapper.selectByExample(nodeExample);
+
+            // 没有客户数据——行业模板——试跑成功
+            update.setStatus(nodes.isEmpty() ? DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode()
+                    : DataProcessEnum.RuleStatusEnum.READY.getCode());
+        }else{
+            // 其他系统不需要试跑
+            update.setStatus(DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode());
         }
         update.setUpdateTime(new Date());
+        MarketingUserDetail user = ThreadContextInfo.getUser();
+        Long userId = Long.valueOf(user.getId());
+        String userName = user.getUserName();
+        update.setOptUserId(userId);
+        update.setOptUserName(userName);
         cleanGeneralConfigMapper.updateByPrimaryKeySelective(update);
         entityOptService.writeOptLog(update.getId(), update, config);
         return Boolean.TRUE;
     }
 
+    private void processCleaningConfigs(RuleCleaningConfigDTO configDTO, MarketingDataCleanGeneralConfig config){
+        List<FieldCleaningConfigDTO> cleaningConfigs = configDTO.getCleaningConfig();
+        List<String> mappingFields = cleaningConfigs.stream().map(FieldCleaningConfigDTO::getMappingField).collect(Collectors.toList());
+        List<String> uploadMustField = Lists.newArrayList("custNum", "cell", "userType");
+        if (DataProcessEnum.SystemTypeEnum.MARKETING.getCode().equals(configDTO.getSystemType())
+                && DataProcessEnum.DataTypeEnum.UPLOAD.getCode().equals(configDTO.getDataType())
+                && !mappingFields.containsAll(uploadMustField)) {
+            throw new BusinessException("上传必填字段[custNum,cell,userType]未配置，请检查");
+        }
+        // 提取所有清洗字段
+        List<String> nonMappingFields = cleaningConfigs.stream()
+                .map(FieldCleaningConfigDTO::getMappingField)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        // 删除不在当前配置中的规则
+        boolean deleteResult = deleteRule(config, nonMappingFields);
+        if (!deleteResult) {
+            // 继续处理，不要因为删除失败而中断整个流程
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DATACLEANING_SERVICEERROR.getCode(),
+                    "删除不在当前配置中的规则失败！"));
+        }
+        // 保存清洗配置
+        for (FieldCleaningConfigDTO fieldConfig : cleaningConfigs) {
+            if (StringUtils.isEmpty(fieldConfig.getMappingField())) {
+                continue;
+            }
+            // 设置API编码信息
+            fieldConfig.setApiCode(configDTO.getApiCode());
+            fieldConfig.setDataType(configDTO.getDataType());
+            fieldConfig.setAcceptType(configDTO.getAcceptType());
+            fieldConfig.setSystemType(configDTO.getSystemType());
+            // 2. 保存字段清洗规则
+            saveFieldCleaningRule(configDTO.getConfigId(), fieldConfig);
+        }
+    }
 
     private void getFileField(List<FieldSampleDTO> result, MarketingDataCleanGeneralConfig config, List<MarketingDataCleanGeneralRuleConfig> ruleConfigList) {
         SyncConfigExample syncConfigCycle = new SyncConfigExample();
@@ -1961,7 +2116,9 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             if (Objects.isNull(marketingSyncInfo)) {
                 marketingSyncInfo = marketingSyncInfoMapper.getMarketingSyncInfoByDate(apiCode, appletDate, null);
             }
-            Map<String, MarketingDataCleanGeneralRuleConfig> ruleConfigMap = dataCleanService.getConfigRule(apiCode, dataType, acceptType,DataProcessEnum.RuleStatusEnum.READY.getCode());
+            Map<String, MarketingDataCleanGeneralRuleConfig> ruleConfigMap = dataCleanService.getConfigRule(apiCode,
+                    DataProcessEnum.SystemTypeEnum.MARKETING.getCode(),
+                    dataType, acceptType,DataProcessEnum.RuleStatusEnum.READY.getCode());
             if (Objects.isNull(marketingSyncInfo)||CollectionUtils.isEmpty(ruleConfigMap)) {
                 throw new BusinessException("未找到符合条件的通用上传数据");
             }
@@ -1992,7 +2149,9 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
             }
             // 查询规则
-            Map<String, MarketingDataCleanGeneralRuleConfig> ruleConfigMap = dataCleanService.getConfigRule(apiCode, dataType, acceptType,DataProcessEnum.RuleStatusEnum.READY.getCode());
+            Map<String, MarketingDataCleanGeneralRuleConfig> ruleConfigMap =
+                    dataCleanService.getConfigRule(apiCode, DataProcessEnum.SystemTypeEnum.MARKETING.getCode(),
+                            dataType, acceptType,DataProcessEnum.RuleStatusEnum.READY.getCode());
             List<MarketingDataCleanGeneralRuleConfig> ruleConfigList = ruleConfigMap.values().stream().collect(Collectors.toList());
             //定制清洗
             String jsonData = marketingCustomerOriginalData.getJsonData();
@@ -2056,7 +2215,10 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         MarketingDataCleanGeneralRuleConfigExample ruleConfigExample = new MarketingDataCleanGeneralRuleConfigExample();
         ruleConfigExample.createCriteria().andCleanConfigIdEqualTo(ruleId).andIsDelEqualTo(1);
         marketingDataCleanGeneralRuleConfigMapper.deleteByExample(ruleConfigExample);
-        dataCleanService.delConfigRule(marketingCommonConfig.getDatacleanTestRunApiCode(), ruleTrialConfigDTO.getDataType(), ruleTrialConfigDTO.getAcceptType());
+        dataCleanService.delConfigRule(
+                DataProcessEnum.SystemTypeEnum.MARKETING.getCode(),
+                marketingCommonConfig.getDatacleanTestRunApiCode(),
+                ruleTrialConfigDTO.getDataType(), ruleTrialConfigDTO.getAcceptType());
     }
 
     private Long insertRuleToTest(Map<String, MarketingDataCleanGeneralRuleConfig> ruleConfigMap, String testApiCode,RuleTrialConfigDTO ruleTrialConfigDTO) {
@@ -2075,7 +2237,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             ruleField.setApiCode(testApiCode);
             marketingDataCleanGeneralRuleConfigMapper.insertSelective(ruleField);
         });
-        dataCleanService.delConfigRule(testApiCode, ruleTrialConfigDTO.getDataType(), ruleTrialConfigDTO.getAcceptType());
+        dataCleanService.delConfigRule(DataProcessEnum.SystemTypeEnum.MARKETING.getCode(), testApiCode,
+                ruleTrialConfigDTO.getDataType(), ruleTrialConfigDTO.getAcceptType());
         return config.getId();
     }
 
@@ -2117,11 +2280,11 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 RuleCleaningResult ruleCleaningResult = new RuleCleaningResult();
                 ruleCleaningResult.setCleanFields(entry.getValue());
                 ruleCleaningResult.setCleanValue(ObjectUtil.isNotEmpty(JsonParseUtils.findFirstValueByKey(item, entry.getValue()))
-                        ? (String)JsonParseUtils.findFirstValueByKey(item, entry.getValue())
+                        ? JsonParseUtils.findFirstValueByKey(item, entry.getValue())
                         : "");
                 ruleCleaningResult.setMappingField(entry.getKey());
                 ruleCleaningResult.setMappingValue(ObjectUtil.isNotEmpty(JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getKey()))
-                        ? (String)JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getKey())
+                        ? JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getKey())
                         : "");
                 cleaningResultItems.add(ruleCleaningResult);
             }
@@ -2264,7 +2427,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 for (Map.Entry<String,String> entry : cleaningToMappingFieldMap.entrySet()) {
                     RuleCleaningResult ruleCleaningResult = new RuleCleaningResult();
                     ruleCleaningResult.setCleanFields(entry.getValue());
-                    ruleCleaningResult.setCleanValue((String)JsonParseUtils.findFirstValueByKey(item, entry.getKey()));
+                    ruleCleaningResult.setCleanValue(JsonParseUtils.findFirstValueByKey(item, entry.getKey()));
                     ruleCleaningResult.setMappingField(entry.getKey());
                     ruleCleaningResult.setMappingValue((String)JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getValue()));
                     cleaningResultItems.add(ruleCleaningResult);
@@ -2278,7 +2441,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             for (Map.Entry<String,String> entry : cleaningToMappingFieldMap.entrySet()) {
                 RuleCleaningResult ruleCleaningResult = new RuleCleaningResult();
                 ruleCleaningResult.setCleanFields(entry.getValue());
-                ruleCleaningResult.setCleanValue((String)JsonParseUtils.findFirstValueByKey(jsonObject, entry.getKey()));
+                ruleCleaningResult.setCleanValue(JsonParseUtils.findFirstValueByKey(jsonObject, entry.getKey()));
                 ruleCleaningResult.setMappingField(entry.getKey());
                 ruleCleaningResult.setMappingValue((String)JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getValue()));
                 cleaningResultItems.add(ruleCleaningResult);
@@ -2376,6 +2539,17 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             log.warn("字段拼接操作失败！错误信息：{}", e.getMessage(), e);
             return fieldSample;
         }
+    }
+
+    public List<MarketingDataCleanGeneralConfig> queryCleanConfigCommon(String apiCode, Integer systemType, Integer dataType, Integer acceptType) {
+        //查询清洗通用配置表
+        MarketingDataCleanGeneralConfigExample example = new MarketingDataCleanGeneralConfigExample();
+        example.createCriteria().andApiCodeEqualTo(apiCode)
+                .andSystemTypeEqualTo(systemType)
+                .andDataTypeEqualTo(dataType)
+                .andAcceptTypeEqualTo(acceptType)
+                .andIsDelEqualTo(Constants.DATA_VALID);
+        return cleanGeneralConfigMapper.selectByExample(example);
     }
 
 }

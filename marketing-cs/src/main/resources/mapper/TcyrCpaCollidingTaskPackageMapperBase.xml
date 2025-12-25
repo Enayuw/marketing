@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.TcyrCpaCollidingTaskPackageMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.TcyrCpaCollidingTaskPackage" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="colliding_task_id" property="collidingTaskId" jdbcType="BIGINT" />
+    <result column="package_type" property="packageType" jdbcType="INTEGER" />
+    <result column="package_id" property="packageId" jdbcType="BIGINT" />
+    <result column="priority" property="priority" jdbcType="INTEGER" />
+    <result column="fail_msg" property="failMsg" jdbcType="VARCHAR" />
+    <result column="supply_rule_info" property="supplyRuleInfo" jdbcType="VARCHAR" />
+    <result column="execute_sql" property="executeSql" jdbcType="VARCHAR" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="magnitude" property="magnitude" jdbcType="INTEGER" />
+    <result column="is_del" property="isDel" jdbcType="INTEGER" />
+    <result column="extend" property="extend" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, colliding_task_id, package_type, package_id, priority, fail_msg, supply_rule_info,
+    execute_sql, `status`, magnitude, is_del, extend, create_time, update_time
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.TcyrCpaCollidingTaskPackageExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_tcyr_cpa_colliding_task_package
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select
+    <include refid="Base_Column_List" />
+    from b_tcyr_cpa_colliding_task_package
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_tcyr_cpa_colliding_task_package
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.TcyrCpaCollidingTaskPackageExample" >
+    delete from b_tcyr_cpa_colliding_task_package
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.TcyrCpaCollidingTaskPackage" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_tcyr_cpa_colliding_task_package (colliding_task_id, package_type, package_id,
+    priority, fail_msg, supply_rule_info,
+    execute_sql, `status`, magnitude,
+    is_del, extend, create_time,
+    update_time)
+    values (#{collidingTaskId,jdbcType=BIGINT}, #{packageType,jdbcType=INTEGER}, #{packageId,jdbcType=BIGINT},
+    #{priority,jdbcType=INTEGER}, #{failMsg,jdbcType=VARCHAR}, #{supplyRuleInfo,jdbcType=VARCHAR},
+    #{executeSql,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, #{magnitude,jdbcType=INTEGER},
+    #{isDel,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP},
+    #{updateTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.TcyrCpaCollidingTaskPackage" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_tcyr_cpa_colliding_task_package
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="collidingTaskId != null" >
+        colliding_task_id,
+      </if>
+      <if test="packageType != null" >
+        package_type,
+      </if>
+      <if test="packageId != null" >
+        package_id,
+      </if>
+      <if test="priority != null" >
+        priority,
+      </if>
+      <if test="failMsg != null" >
+        fail_msg,
+      </if>
+      <if test="supplyRuleInfo != null" >
+        supply_rule_info,
+      </if>
+      <if test="executeSql != null" >
+        execute_sql,
+      </if>
+      <if test="status != null" >
+        `status`,
+      </if>
+      <if test="magnitude != null" >
+        magnitude,
+      </if>
+      <if test="isDel != null" >
+        is_del,
+      </if>
+      <if test="extend != null" >
+        extend,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="collidingTaskId != null" >
+        #{collidingTaskId,jdbcType=BIGINT},
+      </if>
+      <if test="packageType != null" >
+        #{packageType,jdbcType=INTEGER},
+      </if>
+      <if test="packageId != null" >
+        #{packageId,jdbcType=BIGINT},
+      </if>
+      <if test="priority != null" >
+        #{priority,jdbcType=INTEGER},
+      </if>
+      <if test="failMsg != null" >
+        #{failMsg,jdbcType=VARCHAR},
+      </if>
+      <if test="supplyRuleInfo != null" >
+        #{supplyRuleInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="executeSql != null" >
+        #{executeSql,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="magnitude != null" >
+        #{magnitude,jdbcType=INTEGER},
+      </if>
+      <if test="isDel != null" >
+        #{isDel,jdbcType=INTEGER},
+      </if>
+      <if test="extend != null" >
+        #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.TcyrCpaCollidingTaskPackageExample" resultType="java.lang.Integer" >
+    select count(*) from b_tcyr_cpa_colliding_task_package
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_tcyr_cpa_colliding_task_package
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.collidingTaskId != null" >
+        colliding_task_id = #{record.collidingTaskId,jdbcType=BIGINT},
+      </if>
+      <if test="record.packageType != null" >
+        package_type = #{record.packageType,jdbcType=INTEGER},
+      </if>
+      <if test="record.packageId != null" >
+        package_id = #{record.packageId,jdbcType=BIGINT},
+      </if>
+      <if test="record.priority != null" >
+        priority = #{record.priority,jdbcType=INTEGER},
+      </if>
+      <if test="record.failMsg != null" >
+        fail_msg = #{record.failMsg,jdbcType=VARCHAR},
+      </if>
+      <if test="record.supplyRuleInfo != null" >
+        supply_rule_info = #{record.supplyRuleInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="record.executeSql != null" >
+        execute_sql = #{record.executeSql,jdbcType=VARCHAR},
+      </if>
+      <if test="record.status != null" >
+        `status` = #{record.status,jdbcType=INTEGER},
+      </if>
+      <if test="record.magnitude != null" >
+        magnitude = #{record.magnitude,jdbcType=INTEGER},
+      </if>
+      <if test="record.isDel != null" >
+        is_del = #{record.isDel,jdbcType=INTEGER},
+      </if>
+      <if test="record.extend != null" >
+        extend = #{record.extend,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_tcyr_cpa_colliding_task_package
+    set id = #{record.id,jdbcType=BIGINT},
+    colliding_task_id = #{record.collidingTaskId,jdbcType=BIGINT},
+    package_type = #{record.packageType,jdbcType=INTEGER},
+    package_id = #{record.packageId,jdbcType=BIGINT},
+    priority = #{record.priority,jdbcType=INTEGER},
+    fail_msg = #{record.failMsg,jdbcType=VARCHAR},
+    supply_rule_info = #{record.supplyRuleInfo,jdbcType=VARCHAR},
+    execute_sql = #{record.executeSql,jdbcType=VARCHAR},
+    `status` = #{record.status,jdbcType=INTEGER},
+    magnitude = #{record.magnitude,jdbcType=INTEGER},
+    is_del = #{record.isDel,jdbcType=INTEGER},
+    extend = #{record.extend,jdbcType=VARCHAR},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.TcyrCpaCollidingTaskPackage" >
+    update b_tcyr_cpa_colliding_task_package
+    <set >
+      <if test="collidingTaskId != null" >
+        colliding_task_id = #{collidingTaskId,jdbcType=BIGINT},
+      </if>
+      <if test="packageType != null" >
+        package_type = #{packageType,jdbcType=INTEGER},
+      </if>
+      <if test="packageId != null" >
+        package_id = #{packageId,jdbcType=BIGINT},
+      </if>
+      <if test="priority != null" >
+        priority = #{priority,jdbcType=INTEGER},
+      </if>
+      <if test="failMsg != null" >
+        fail_msg = #{failMsg,jdbcType=VARCHAR},
+      </if>
+      <if test="supplyRuleInfo != null" >
+        supply_rule_info = #{supplyRuleInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="executeSql != null" >
+        execute_sql = #{executeSql,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        `status` = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="magnitude != null" >
+        magnitude = #{magnitude,jdbcType=INTEGER},
+      </if>
+      <if test="isDel != null" >
+        is_del = #{isDel,jdbcType=INTEGER},
+      </if>
+      <if test="extend != null" >
+        extend = #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.TcyrCpaCollidingTaskPackage" >
+    update b_tcyr_cpa_colliding_task_package
+    set colliding_task_id = #{collidingTaskId,jdbcType=BIGINT},
+        package_type = #{packageType,jdbcType=INTEGER},
+        package_id = #{packageId,jdbcType=BIGINT},
+        priority = #{priority,jdbcType=INTEGER},
+        fail_msg = #{failMsg,jdbcType=VARCHAR},
+        supply_rule_info = #{supplyRuleInfo,jdbcType=VARCHAR},
+        execute_sql = #{executeSql,jdbcType=VARCHAR},
+        `status` = #{status,jdbcType=INTEGER},
+        magnitude = #{magnitude,jdbcType=INTEGER},
+        is_del = #{isDel,jdbcType=INTEGER},
+        extend = #{extend,jdbcType=VARCHAR},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

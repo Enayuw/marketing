@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.AutoCheckSceneDictMapper" >
+    <resultMap id="SceneVOResultMap" type="com.br.marketing.vo.autocheck.AutoCheckSceneVO">
+        <result column="id" property="id" jdbcType="BIGINT" />
+        <result column="scene_code" property="sceneCode" jdbcType="VARCHAR" />
+        <result column="scene_name" property="sceneName" jdbcType="VARCHAR" />
+    </resultMap>
+
+    <!-- 根据参数模糊匹配name和code的查询 -->
+    <select id="searchSceneList" resultMap="SceneVOResultMap" parameterType="java.lang.String">
+        SELECT id,
+        scene_code,
+        scene_name
+        FROM b_auto_check_scene_dict
+        WHERE is_deleted = 0
+        <if test="searchContent != null and searchContent != ''">
+            AND (
+            scene_name LIKE CONCAT('%', #{searchContent}, '%')
+            OR scene_code LIKE CONCAT('%', #{searchContent}, '%')
+            )
+        </if>
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 根据场景编码列表查询场景信息 -->
+    <select id="selectBySceneCodes" resultMap="SceneVOResultMap" parameterType="java.util.List">
+        SELECT id,
+        scene_code,
+        scene_name
+        FROM b_auto_check_scene_dict
+        WHERE is_deleted = 0
+        <if test="sceneCodeList != null and sceneCodeList.size() > 0">
+            AND scene_code IN
+            <foreach collection="sceneCodeList" item="sceneCode" open="(" close=")" separator=",">
+                #{sceneCode}
+            </foreach>
+        </if>
+        ORDER BY create_time DESC
+    </select>
+
+</mapper>
