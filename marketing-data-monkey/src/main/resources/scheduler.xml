@@ -771,8 +771,8 @@
 
     <job:simple id="【monkey】-DidiV5CallbackJob"
                 class="com.br.marketing.monkey.job.didi.DidiV5CallbackJob"
-                cron="0 0 20 * * ? *"
-                description="滴滴短信流量数据撞库任务"
+                cron="0 0 18 29 9 ? 2099-2099"
+                description="滴滴触达上报任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
                 sharding-item-parameters="0=A"
