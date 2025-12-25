@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.DidiCallBackDataMapper">
+
+    <insert id="batchAdd" parameterType="java.util.List">
+        INSERT INTO `b_didi_v5_callback_data` (
+        `callback_type`, `cell`, `cust_num`, `api_code`, `push_status`, `status`,
+        `create_date`, `scas`, `is_connect`, `sms_send_status`, `extend`
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.callbackType}, #{item.cell}, #{item.custNum}, #{item.apiCode},
+            #{item.pushStatus}, #{item.status}, #{item.createDate}, #{item.scas},
+            #{item.isConnect}, #{item.smsSendStatus}, #{item.extend})
+        </foreach>
+    </insert>
+
+    <select id="queryDidiCellSuccessData" parameterType="map" resultType="com.br.marketing.entity.DidiCallBackData">
+        SELECT * FROM b_didi_v5_callback_data
+        WHERE id > #{lastId}
+          AND create_time >= curdate()
+          AND push_status = 0
+          AND status = 0
+          AND is_connect = 1
+          AND api_code = #{apiCode}
+        ORDER BY id ASC LIMIT #{pageSize}
+    </select>
+
+    <select id="queryDidiSmsSuccessData" parameterType="map" resultType="com.br.marketing.entity.DidiCallBackData">
+        SELECT * FROM b_didi_v5_callback_data
+        WHERE id > #{lastId}
+          AND create_time >= curdate()
+          AND push_status = 0
+          AND status = 0
+          AND (is_connect = 0 or is_connect IS NULL)
+          AND sms_send_status = 1
+          AND api_code = #{apiCode}
+        ORDER BY id ASC LIMIT #{pageSize}
+    </select>
+
+    <select id="queryDidiCellConstructData" parameterType="map" resultType="com.br.marketing.entity.DidiCallBackData">
+        SELECT * FROM b_didi_v5_callback_data
+        WHERE id > #{lastId}
+          AND create_time >= curdate()
+          AND push_status = 0
+          AND status = 0
+          AND is_connect = 0
+          AND api_code = #{apiCode}
+        ORDER BY id ASC LIMIT #{pageSize}
+    </select>
+
+    <select id="queryDidiSmsConstructData" parameterType="map" resultType="com.br.marketing.entity.DidiCallBackData">
+        SELECT * FROM b_didi_v5_callback_data
+        WHERE id > #{lastId}
+          AND create_time >= curdate()
+          AND push_status = 0
+          AND status = 0
+          AND sms_send_status = 0
+          AND is_connect IS NULL
+          AND api_code = #{apiCode}
+        ORDER BY id ASC LIMIT #{pageSize}
+    </select>
+
+    <update id="updateStatusByIds">
+        UPDATE b_didi_v5_callback_data
+        SET status = #{status}, update_time = NOW()
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="updateStatusByCells">
+        UPDATE b_didi_v5_callback_data
+        SET status = #{status}, update_time = NOW()
+        WHERE cust_num IN
+        <foreach collection="custNums" item="custNum" open="(" close=")" separator=",">
+            #{custNum}
+        </foreach>
+        and push_status = 0
+    </update>
+
+</mapper>

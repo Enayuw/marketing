@@ -97,6 +97,8 @@ api:
     reachUrl: ${api.didi.baseUrl}/crow/user/success/bairong
     jmassSUrl: ${api.didi.baseUrl}/model/sample/bairong
     failedUrl: ${api.didi.baseUrl}/crow/faileduser/mediaName
+    collidingUrl: ${api.didi.baseUrl}/crow/collision/mediaName
+    callbackSuccessUrl: ${api.didi.baseUrl}/crow/user/success/mediaName
     token: DK&SgWl!fZ%WVSXe
     scas: "0001"
     channelId: 3140738836439875
@@ -171,3 +173,46 @@ corn:
   monitoringExpirationAlarmJob: 00 00 10 * * ?
   progressReportJob: 00 00 09 * * ?
   reportJob: 00 00 18 * * ?
+
+rocketmq:
+  # 多个NameServer，host:port;host:port，RocketMQProperties
+  name-server: 10.100.123.171:9876;10.100.123.172:9876;10.100.123.173:9876
+  producer:
+    # 发送同一类消息的设置为同一个group，保证唯一
+    group: Marketing_Default_Group
+    # 发送消息失败重试次数，默认2
+    retryTimesWhenSendFailed: 3
+    # 异步消息重试此处，默认2
+    retryTimesWhenSendAsyncFailed: 2
+    # 发送消息超时时间，默认3000
+    sendMessageTimeout: 5000
+    # 消息最大长度，默认1024 * 1024 * 4(默认4M)
+    maxMessageSize: 4194304
+    # 压缩消息阈值，默认4k(1024 * 4)
+    compressMessageBodyThreshold: 4096
+    # 是否在内部发送失败时重试另一个broker，默认false
+    retryNextServer: false
+    # access-key
+    #accessKey: xxx
+    # secret-key
+    #secretKey: xxx
+    # 是否启用消息跟踪，默认false
+    enableMsgTrace: false
+    # 消息跟踪主题的名称值。如果不进行配置，可以使用默认的跟踪主题名称
+    customizedTraceTopic: RMQ_SYS_TRACE_TOPIC
+    namespace: ${ROCKETMQ_NAMESPACE:dev_local}
+  consumer:
+    #    # 配置指定group是否启动监听器 group1.topic1 = false
+    #    listeners:
+    #      # key：group名称
+    #      rocketmq_source_code_group:
+    #        # value：{key: topic名称: value: true/false}
+    #        rocketmq_source_code: true
+    # 指定消费组
+    group: Marketing_Default_Group
+    # 指定topic，启动时就会注册
+    #topic: springboot_consumer_xxx
+    # 一次拉取消息最大值，注意是拉取消息的最大值而非消费最大值
+    pull-batch-size: 5
+    # 其他配置参考属性类
+    namespace: ${ROCKETMQ_NAMESPACE:dev_local}

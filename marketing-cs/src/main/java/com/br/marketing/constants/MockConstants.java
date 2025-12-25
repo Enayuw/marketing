@@ -40,6 +40,11 @@ public final class MockConstants {
     //随忆记黑名单
     public static final String SUIYIJI_BLACK = "suiyiji_black";
 
+    public static final String DIDI_V5_COLLIDING_DATA_RETURN = "didi_v5_colliding_data_return";
+
+    public static final String DIDI_V5_CALLBACK_SUCCESS_DATA_RETURN = "didi_v5_callback_success_data_return";
+
+    public static final String DIDI_V5_CALLBACK_FAIL_DATA_RETURN = "didi_v5_callback_fail_data_return";
 
     /**
      * 获取所有Mock名称的列表
@@ -60,7 +65,10 @@ public final class MockConstants {
                 TEST_QIFIUQUERY_RETURN,
                 SUIYIJI_QUERY_BLACK,
                 SUIYIJI_ORIGINAL,
-                SUIYIJI_BLACK
+                SUIYIJI_BLACK,
+                DIDI_V5_COLLIDING_DATA_RETURN,
+                DIDI_V5_CALLBACK_SUCCESS_DATA_RETURN,
+                DIDI_V5_CALLBACK_FAIL_DATA_RETURN
         );
     }
 

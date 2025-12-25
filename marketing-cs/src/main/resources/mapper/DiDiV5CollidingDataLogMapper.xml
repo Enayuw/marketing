@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.DiDiV5CollidingDataLogMapper">
+    <resultMap id="BaseResultMap" type="com.br.marketing.entity.DiDiV5CollidingDataLog">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="data_id" property="dataId" jdbcType="BIGINT"/>
+        <result column="local_id" property="localId" jdbcType="BIGINT"/>
+        <result column="api_code" property="apiCode" jdbcType="VARCHAR"/>
+        <result column="cell" property="cell" jdbcType="VARCHAR"/>
+        <result column="result" property="result" jdbcType="VARCHAR"/>
+        <result column="fail_reason" property="failReason" jdbcType="VARCHAR"/>
+        <result column="user_group" property="userGroup" jdbcType="VARCHAR"/>
+        <result column="next_time" property="nextTime" jdbcType="VARCHAR"/>
+        <result column="http_code" property="httpCode" jdbcType="VARCHAR"/>
+        <result column="error_code" property="errorCode" jdbcType="VARCHAR"/>
+        <result column="error_message" property="errorMessage" jdbcType="VARCHAR"/>
+        <result column="return_content" property="returnContent" jdbcType="VARCHAR"/>
+        <result column="extend" property="extend" jdbcType="VARCHAR"/>
+        <result column="is_delete" property="isDelete" jdbcType="INTEGER"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <select id="queryFailedData" resultType="com.br.marketing.entity.DiDiV5CollidingDataLog">
+        SELECT *
+        FROM b_didi_v5_colliding_data_log
+        WHERE id > #{lastId}
+          AND result = 'true'
+          AND create_time >= curdate()
+          AND api_code = #{apiCode}
+        ORDER BY id ASC
+            LIMIT #{pageSize}
+    </select>
+</mapper>
