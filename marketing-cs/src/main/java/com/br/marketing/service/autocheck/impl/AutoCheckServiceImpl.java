@@ -258,10 +258,15 @@ public class AutoCheckServiceImpl implements AutoCheckService {
         // 获取今天已经比对过的id
         String today = DateUtil.today();
         List<AutoCheckResultLog> resultList = autoCheckResultLogMapper.selectByCodeListAndTime(today, null, null);
-        Map<String, Long> comparedIdMap = new HashMap<>();
+        Map<String, List<Long>> comparedIdMap = new HashMap<>();
         for (AutoCheckResultLog result : resultList) {
             String key = buildKey(result.getApiCode(), result.getSceneCode());
-            comparedIdMap.put(key, result.getTodayDataId());
+            List<Long> values = comparedIdMap.get(key);
+            if (values == null) {
+                values = new ArrayList<>();
+            }
+            values.add(result.getTodayDataId());
+            comparedIdMap.put(key, values);
         }
 
         List<AutoCheckResultLog> saveList = new ArrayList<>();
@@ -364,7 +369,7 @@ public class AutoCheckServiceImpl implements AutoCheckService {
     }
 
     private List<AutoCheckResultLog> checkUploadScene(List<String> apiCodeList,
-                                                      Map<String, Long> comparedIdMap) {
+                                                      Map<String, List<Long>> comparedIdMap) {
         List<AutoCheckResultLog> resultLogList = new ArrayList<>();
         for (String apiCode : apiCodeList) {
             CheckUploadSyncDataDto lastDay8;
@@ -387,7 +392,8 @@ public class AutoCheckServiceImpl implements AutoCheckService {
             }
             // 若当天本条数据已经比对过，则跳过
             String key = buildKey(apiCode, SCENE_UPLOAD);
-            if (Objects.equals(comparedIdMap.get(key), latest.getId())) {
+            List<Long> existIds = comparedIdMap.get(key);
+            if (CollUtil.isNotEmpty(existIds) && existIds.contains(latest.getId())) {
                 continue;
             }
             AutoCheckResultLog log = new AutoCheckResultLog();
@@ -435,7 +441,7 @@ public class AutoCheckServiceImpl implements AutoCheckService {
 
     private List<AutoCheckResultLog> checkTransferScene(List<String> apiCodeList,
                                                         Map<String, MarketingCustomerVO> apiInfoMap,
-                                                        Map<String, Long> comparedIdMap) {
+                                                        Map<String, List<Long>> comparedIdMap) {
         List<AutoCheckResultLog> resultLogList = new ArrayList<>();
         for (String apiCode : apiCodeList) {
             MarketingCustomerVO apiInfo = apiInfoMap.get(apiCode);
@@ -464,7 +470,8 @@ public class AutoCheckServiceImpl implements AutoCheckService {
             }
             // 若当天本条数据已经比对过，则跳过
             String key = buildKey(apiCode, SCENE_TRANSFER);
-            if (Objects.equals(latest.getId(), comparedIdMap.get(key))) {
+            List<Long> existIds = comparedIdMap.get(key);
+            if (CollUtil.isNotEmpty(existIds) && existIds.contains(latest.getId())) {
                 continue;
             }
             AutoCheckResultLog log = new AutoCheckResultLog();

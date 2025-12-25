@@ -5,7 +5,7 @@
 
     <select id="selectDataList" resultType="com.br.marketing.entity.MarketingHaloCallBackData">
         SELECT id, api_code, cell, cust_num, user_type, start_time, deal_status, `status`, is_del,
-                create_time, update_time, extend, local_id, create_date
+               create_time, update_time, extend, local_id, data_message, create_date, model_code
         FROM b_marketing_halo_callback_data
         WHERE
             api_code = #{apiCode}

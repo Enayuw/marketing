@@ -945,6 +945,76 @@ public class MarketingHaloCallBackDataExample {
             return (Criteria) this;
         }
 
+        public Criteria andDataMessageIsNull() {
+            addCriterion("data_message is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataMessageIsNotNull() {
+            addCriterion("data_message is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataMessageEqualTo(String value) {
+            addCriterion("data_message =", value, "dataMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataMessageNotEqualTo(String value) {
+            addCriterion("data_message <>", value, "dataMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataMessageGreaterThan(String value) {
+            addCriterion("data_message >", value, "dataMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataMessageGreaterThanOrEqualTo(String value) {
+            addCriterion("data_message >=", value, "dataMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataMessageLessThan(String value) {
+            addCriterion("data_message <", value, "dataMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataMessageLessThanOrEqualTo(String value) {
+            addCriterion("data_message <=", value, "dataMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataMessageLike(String value) {
+            addCriterion("data_message like", value, "dataMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataMessageNotLike(String value) {
+            addCriterion("data_message not like", value, "dataMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataMessageIn(List<String> values) {
+            addCriterion("data_message in", values, "dataMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataMessageNotIn(List<String> values) {
+            addCriterion("data_message not in", values, "dataMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataMessageBetween(String value1, String value2) {
+            addCriterion("data_message between", value1, value2, "dataMessage");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataMessageNotBetween(String value1, String value2) {
+            addCriterion("data_message not between", value1, value2, "dataMessage");
+            return (Criteria) this;
+        }
+
         public Criteria andCreateDateIsNull() {
             addCriterion("create_date is null");
             return (Criteria) this;
@@ -1012,6 +1082,76 @@ public class MarketingHaloCallBackDataExample {
 
         public Criteria andCreateDateNotBetween(String value1, String value2) {
             addCriterion("create_date not between", value1, value2, "createDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andModelCodeIsNull() {
+            addCriterion("model_code is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andModelCodeIsNotNull() {
+            addCriterion("model_code is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andModelCodeEqualTo(String value) {
+            addCriterion("model_code =", value, "modelCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andModelCodeNotEqualTo(String value) {
+            addCriterion("model_code <>", value, "modelCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andModelCodeGreaterThan(String value) {
+            addCriterion("model_code >", value, "modelCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andModelCodeGreaterThanOrEqualTo(String value) {
+            addCriterion("model_code >=", value, "modelCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andModelCodeLessThan(String value) {
+            addCriterion("model_code <", value, "modelCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andModelCodeLessThanOrEqualTo(String value) {
+            addCriterion("model_code <=", value, "modelCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andModelCodeLike(String value) {
+            addCriterion("model_code like", value, "modelCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andModelCodeNotLike(String value) {
+            addCriterion("model_code not like", value, "modelCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andModelCodeIn(List<String> values) {
+            addCriterion("model_code in", values, "modelCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andModelCodeNotIn(List<String> values) {
+            addCriterion("model_code not in", values, "modelCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andModelCodeBetween(String value1, String value2) {
+            addCriterion("model_code between", value1, value2, "modelCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andModelCodeNotBetween(String value1, String value2) {
+            addCriterion("model_code not between", value1, value2, "modelCode");
             return (Criteria) this;
         }
     }
