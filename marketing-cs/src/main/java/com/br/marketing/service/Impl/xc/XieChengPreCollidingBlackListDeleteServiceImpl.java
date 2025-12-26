@@ -87,10 +87,10 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                                  List<CompletableFuture<Void>> futures) {
         //1.公共黑名单
         //1.1周期剔除
-        deleteWithBatchNumber(null, null, XieChengBlackListEnum.SELF_DEVELOPED_AI_BUSINESS_BLACKLIST,
+        deleteWithBatchNumber(null, null, XieChengBlackListEnum.PUBLIC_BLACKLISTS,
                 "b_xiecheng_colliding_data_loop_cycle", today, threadPool, futures);
         //1.2非周期剔除
-        deleteWithBatchNumber(null, null, XieChengBlackListEnum.SELF_DEVELOPED_AI_BUSINESS_BLACKLIST,
+        deleteWithBatchNumber(null, null, XieChengBlackListEnum.PUBLIC_BLACKLISTS,
                 "b_xiecheng_colliding_data_rob", today, threadPool, futures);
         //2.自研/百应黑名单
         String condition = task.getTaskExecutionConditions();
@@ -131,7 +131,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
         List<Long> ids;
         for (; ; ) {
             try {
-                ids = blackListMapper.selectIdsByBatchNumberAndConditiontikv_
+                ids = blackListMapper.selectIdsByBatchNumberAndCondition
                         (tableName, xieChengBlackListEnum.getValue(), batchNumber, condition, minId);
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()

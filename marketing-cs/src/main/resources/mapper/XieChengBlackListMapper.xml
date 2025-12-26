@@ -254,19 +254,19 @@
         ${querySql}
     </select>
 
-    <select id="selectIdsByBatchNumberAndConditiontikv_" resultType="java.lang.Long">
+    <select id="selectIdsByBatchNumberAndCondition" resultType="java.lang.Long">
         select dt.id
         from ${delTableName} dt
-            inner join b_xiecheng_colliding_data_black_list black on cycle.cell_sha256_code_list = black.cell_sha256
+            inner join b_xiecheng_colliding_data_black_list black on dt.cell_sha256_code_list = black.cell_sha256
             <if test="batchNumber != null and batchNumber != ''">
-                inner join b_xiecheng_colliding_${batchNumber} score on cycle.cell_sha256_code_list = score.cell
+                inner join b_xiecheng_colliding_${batchNumber} score on dt.cell_sha256_code_list = score.cell
             </if>
         where dt.is_delete = 0
           and black.status = 1
           and black.label_type = #{labelType}
           <if test="batchNumber != null and batchNumber != '' and condition != null and condition != ''">
               and score.is_delete = 0
-              and #{condition}
+              and ${condition}
           </if>
           <if test="minId != null and minId>0">
               and dt.id > #{minId}
