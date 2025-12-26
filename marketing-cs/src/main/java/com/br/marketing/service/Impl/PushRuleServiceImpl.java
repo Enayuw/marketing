@@ -1770,7 +1770,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             long deleteNum = interWithoutConMagnitude - interWithConMagnitude;
             //空挡量级
             int freeNum = (int) (totalThreshold - outMagnitude - interWithConMagnitude);
-            dtos.add(new XcDeleteMagnitudeDistDTO(timeRangePlus.getBegin(), timeRangePlus.getEnd(), (int) deleteNum, (int) interWithConMagnitude, freeNum));
+            dtos.add(new XcDeleteMagnitudeDistDTO(
+                    timeRangePlus.getBegin(), timeRangePlus.getEnd(), (int) deleteNum, (int) interWithConMagnitude, freeNum));
         }
         return new Result<List<XcDeleteMagnitudeDistDTO>>()
                 .setCode(ResultCode.SUCCESS.getValue())
@@ -1835,7 +1836,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         return outCycleMagnitudeMap;
     }
 
-    private ImmutablePair<Map<String, Long>, Map<String, Long>> magnitudeDistCalOpt(List<TimeRangePlus> timeRangePlusList, String batchNumber, String sqlCondition) {
+    private ImmutablePair<Map<String, Long>, Map<String, Long>> magnitudeDistCalOpt(
+            List<TimeRangePlus> timeRangePlusList, String batchNumber, String sqlCondition) {
         //1.获取
         LocalDateTime minBegin = timeRangePlusList.get(0).getBegin();
         LocalDateTime maxEnd = timeRangePlusList.get(timeRangePlusList.size() - 1).getEnd();
