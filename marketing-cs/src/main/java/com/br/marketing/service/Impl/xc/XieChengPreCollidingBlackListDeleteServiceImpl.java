@@ -1,10 +1,8 @@
 package com.br.marketing.service.Impl.xc;
 
 import com.br.common.log.AlertLog;
-import com.br.common.util.DateUtils;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
-import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.XcProcessTaskEnum;
 import com.br.marketing.enums.XieChengBlackListEnum;
@@ -22,23 +20,15 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengPreCollidingBlackListDeleteService {
-    private final static int PAGE_SIZE = 2000;
+
     @Resource
     MarketingCommonConfig marketingCommonConfig;
     @Resource
     XiechengCollidingDataProcessTaskMapper taskMapper;
-    @Resource
-    XieChengCollidingDataLoopCycleMapper cycleMapper;
-    @Resource
-    XieChengCollidingDataRobMapper robMapper;
     @Resource
     XieChengBlackListMapper blackListMapper;
     @Resource
@@ -46,8 +36,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
 
     @Override
     public void process() {
-        marketingCommonConfig.getXieChengCollidingDataProcessApiCodes().forEach((String apiCode) ->
-        {
+        marketingCommonConfig.getXieChengCollidingDataProcessApiCodes().forEach((String apiCode) -> {
             //1.当天所有动态包剔除任务是否全部完成
             if (!xieChengCollidingDataProcessService.queryDeletingTaskCount(apiCode, XcProcessTaskEnum.PROCESS_BALCKLIST_DELETE)) {
                 return;
@@ -71,26 +60,39 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
         if (CollectionUtils.isEmpty(tasks)) {
             return;
         }
-        for (XiechengCollidingDataProcessTask task : tasks) {
-            try {
+        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        TpDynamicExecutor threadPool = TpDynamicExecutorFactory
+                .getThreadPool(ThreadPoolNameEnum.XIECHENG_BLACK_DELETE.getName(), 50, 100);
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+        try {
+            for (XiechengCollidingDataProcessTask task : tasks) {
                 //1、携程撞库黑名单任务剔除开始,更新task任务状态
                 processBeforeDeleteForBatch(task);
-                //2.公共黑名单剔除
-                deletePublicBlackList();
-                //3.自研AI业务黑名单/百应业务黑名单剔除
-                deleteNoPublicBlackList(task);
-//                batchUpdateNoPublicBlackList(task);
-                //4.更新task状态
+                //2.黑名单剔除
+                deleteBlackList(task, today, threadPool, futures);
+                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+                //3.更新task状态
                 processAfterDeleteForBatch(task);
-            } catch (Exception e) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
-                        "携程黑名单剔除流程出现异常，taskId=" + task.getId() + "errorMessage=" + e.getMessage()), e);
-                return;
             }
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
+                    "携程黑名单剔除流程出现异常"), e);
+        } finally {
+            threadPool.shutdownAndAwaitTermination();
         }
     }
 
-    private void deleteNoPublicBlackList(XiechengCollidingDataProcessTask task) {
+    private void deleteBlackList(XiechengCollidingDataProcessTask task,
+                                 String today, TpDynamicExecutor threadPool,
+                                 List<CompletableFuture<Void>> futures) {
+        //1.公共黑名单
+        //1.1周期剔除
+        deleteWithBatchNumber(null, null, XieChengBlackListEnum.SELF_DEVELOPED_AI_BUSINESS_BLACKLIST,
+                "b_xiecheng_colliding_data_loop_cycle", today, threadPool, futures);
+        //1.2非周期剔除
+        deleteWithBatchNumber(null, null, XieChengBlackListEnum.SELF_DEVELOPED_AI_BUSINESS_BLACKLIST,
+                "b_xiecheng_colliding_data_rob", today, threadPool, futures);
+        //2.自研/百应黑名单
         String condition = task.getTaskExecutionConditions();
         if (StringUtils.isBlank(condition)) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
@@ -98,10 +100,6 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
             return;
         }
         List<String> batchNumbers = Arrays.asList(task.getBatchNumber().split(","));
-        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        TpDynamicExecutor threadPool = TpDynamicExecutorFactory
-                .getThreadPool(ThreadPoolNameEnum.XIECHENG_BLACK_DELETE.getName(), 50, 100);
-        List<CompletableFuture<Void>> futures = new ArrayList<>();
         for (String batchNumber : batchNumbers) {
             deleteWithBatchNumber(batchNumber, condition, XieChengBlackListEnum.SELF_DEVELOPED_AI_BUSINESS_BLACKLIST,
                     "b_xiecheng_colliding_data_loop_cycle", today, threadPool, futures);
@@ -112,13 +110,10 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
             deleteWithBatchNumber(batchNumber, condition, XieChengBlackListEnum.BAIYING_BUSINESS_BLACKLIST,
                     "b_xiecheng_colliding_data_rob", today, threadPool, futures);
         }
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-        threadPool.shutdownAndAwaitTermination();
     }
 
     /**
-     * 与跑分文件相关的黑名单剔除
-     *
+     * 黑名单剔除
      * @param batchNumber
      * @param condition
      * @param xieChengBlackListEnum
@@ -153,7 +148,8 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                     blackListMapper.updateIsDeleteByIds(tableName, finalIds, extend);
                 } catch (Exception e) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage(),
-                            String.format("携程黑名单剔除-更新异常, 参数: tableName=%s, ids=%s, extend=%s",
+                            String.format("携程黑名单剔除-更新异常, 参数: label_type=%d, tableName=%s, ids=%s, extend=%s",
+                                    xieChengBlackListEnum.getValue(),
                                     tableName,
                                     finalIds,
                                     extend
@@ -164,139 +160,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
         }
     }
 
-    /**
-     * @Description:公共黑名单剔除
-     * @Author: Ethan.Kang
-     */
-    public void deletePublicBlackList() {
-        //周期表公共黑名单提出
-        deleteCycPublicBlackList();
-        //非周期表公共黑名单剔除
-        deleteRobPublicBlackList();
-    }
 
-    private void batchUpdateNoPublicBlackList(XiechengCollidingDataProcessTask vo) {
-        //条件为空的处理
-        String conditions = vo.getTaskExecutionConditions();
-        if (StringUtils.isBlank(conditions)) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
-                    "携程批量更新分组黑名单剔除，条件为空"));
-            return;
-        }
-        Integer threadPoolSize = marketingCommonConfig.getXieChengPreCollidingBlackListDeleteThread();
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
-        //非空
-        String batchNumberStr = vo.getBatchNumber();
-        List<String> batchNumberList = Arrays.asList(batchNumberStr.split(","));
-        Long minId = null;
-        while (true) {
-            List<XieChengBlackList> blackListCells = blackListMapper.selectCellsByPage(minId, PAGE_SIZE);
-            if (CollectionUtils.isEmpty(blackListCells)) {
-                threadPoolShutDown(threadPool);
-                return;
-            }
-            minId = (blackListCells.get(blackListCells.size() - 1).getId());
-            CompletableFuture.runAsync(() -> {
-                try {
-                    StringBuilder builderStr = new StringBuilder();
-                    for (int i = 0; i < blackListCells.size(); i++) {
-                        XieChengBlackList black = blackListCells.get(i);
-                        if (i == 0) {
-                            builderStr.append(black.getCellSha256()).append("\",");
-                        } else if (i == blackListCells.size() - 1) {
-                            builderStr.append("\"").append(black.getCellSha256());
-                        } else {
-                            builderStr.append("\"").append(black.getCellSha256()).append("\",");
-                        }
-                    }
-                    String querySql = "";
-                    for (int i = 0; i < batchNumberList.size(); i++) {
-                        if (i == batchNumberList.size() - 1) {
-                            querySql = querySql.concat("select ").concat("cell").concat(" from ")
-                                    .concat("b_xiecheng_colliding_" + batchNumberList.get(i)) + " where cell in(" + "\"" + builderStr + "\"" + ") and " + conditions;
-                        } else {
-                            querySql = querySql.concat("select ").concat("cell").concat(" from ")
-                                    .concat("b_xiecheng_colliding_" + batchNumberList.get(i)).concat(" where cell in(" + "\"" + builderStr + "\"" + ") and " + conditions)
-                                    .concat(" union all ");
-                        }
-                    }
-                    List<String> scoreCells = blackListMapper.selectByBlackListIdsFromScoreFiletikv_(querySql);
-                    if (!CollectionUtils.isEmpty(scoreCells)) {
-                        Map<String, XieChengBlackList> backMap =
-                                blackListCells.stream().collect(Collectors.toMap(XieChengBlackList::getCellSha256, Function.identity(),
-                                        (t1, t2) -> {
-                                            if (t1.getLabelType() <= t2.getLabelType()) {
-                                                return t1;
-                                            } else {
-                                                return t2;
-                                            }
-                                        }));
-                        //交集
-                        List<XieChengBlackList> result = new ArrayList<>(scoreCells.size());
-                        scoreCells.forEach(a -> {
-                            if (backMap.containsKey(a)) {
-                                result.add(backMap.get(a));
-                            }
-                        });
-
-                        if (!CollectionUtils.isEmpty(result)) {
-                            result.forEach(t -> {
-                                cycleMapper.batchUpdateCycNoPublicBlackListData(t.getLabelName(), t.getCellSha256());
-                                robMapper.batchUpdateRobNoPublicBlackListData(t.getLabelName(), t.getCellSha256());
-                            });
-                        }
-                    }
-                } catch (Exception e) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
-                            , "携程批量更新分组黑名单剔除，子线程处理异常"), e);
-                }
-            }, threadPool);
-        }
-    }
-
-    private void deleteRobPublicBlackList() {
-        Integer threadPoolSize = marketingCommonConfig.getXieChengPreCollidingBlackListDeleteThread();
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
-        Long minId = null;
-        while (true) {
-            List<Long> ids = robMapper.selectRobPublicBlackListIdsByPage(minId, PAGE_SIZE, XieChengBlackListEnum.PUBLIC_BLACKLISTS.getValue());
-            if (CollectionUtils.isEmpty(ids)) {
-                break;
-            }
-            minId = ids.get(ids.size() - 1);
-            CompletableFuture.runAsync(() -> {
-                try {
-                    robMapper.batchUpdateRobBlackListData(ids, DateUtils.format(new Date()) + "公共黑名单");
-                } catch (Exception e) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
-                            , "携程批量更新非周期表公共黑名单状态，子线程处理异常"), e);
-                }
-            }, threadPool);
-        }
-        threadPoolShutDown(threadPool);
-    }
-
-    private void deleteCycPublicBlackList() {
-        Integer threadPoolSize = marketingCommonConfig.getXieChengPreCollidingBlackListDeleteThread();
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
-        Long minId = null;
-        while (true) {
-            List<Long> ids = cycleMapper.selectCycleBlackListIdsByPage(minId, PAGE_SIZE, XieChengBlackListEnum.PUBLIC_BLACKLISTS.getValue());
-            if (CollectionUtils.isEmpty(ids)) {
-                break;
-            }
-            minId = ids.get(ids.size() - 1);
-            CompletableFuture.runAsync(() -> {
-                try {
-                    cycleMapper.batchUpdateCycPublicBlackListData(ids, DateUtils.format(new Date()) + "公共黑名单");
-                } catch (Exception e) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
-                            , "携程批量更新周期表公共黑名单状态，子线程处理异常"), e);
-                }
-            }, threadPool);
-        }
-        threadPoolShutDown(threadPool);
-    }
 
     private void processAfterDeleteForBatch(XiechengCollidingDataProcessTask vo) {
         XiechengCollidingDataProcessTask processTask = new XiechengCollidingDataProcessTask();
@@ -327,17 +191,4 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
         return nowDate;
     }
 
-    private void threadPoolShutDown(ThreadPoolExecutor threadPool) {
-        threadPool.shutdown();
-        try {
-            while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
-                log.info("携程撞库数据黑名单剔除作业线程池关闭");
-            }
-        } catch (InterruptedException ex) {
-            threadPool.shutdownNow();
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
-                    "携程撞库数据黑名单剔除作业，日志保存线程池结束异常！errorMessage=" + ex.getMessage()), ex);
-            Thread.currentThread().interrupt();
-        }
-    }
 }

@@ -9,7 +9,8 @@ import com.br.marketing.common.utils.StringUtils;
 public enum XieChengBlackListEnum {
     PUBLIC_BLACKLISTS(0,"公共黑名单"),
     SELF_DEVELOPED_AI_BUSINESS_BLACKLIST(1,"自研AI业务黑名单"),
-    BAIYING_BUSINESS_BLACKLIST(2,"百应业务黑名单");
+    BAIYING_BUSINESS_BLACKLIST(2,"百应业务黑名单"),
+    OLD_DATA_SIGN(3,"旧数据标识");
 
     XieChengBlackListEnum(Integer value, String desc) {
         this.value = value;
