@@ -242,10 +242,10 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
 
         if (cleanResult == null || !cleanResult.isSuccess()) {
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(), "数据清洗失败,dataId:" + dataLog.getDataId(), TITLE));
-            return cleanResult;
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(false);
         }
         // 生成批次号与请求号
-        String batchNo = dataLog.getApiCode() + "_" + DateUtil.format(DateUtil.date(), "yyyyMMdd");
+        String batchNo = dataLog.getApiCode() + "_" + DateUtil.format(DateUtil.date(), DatePattern.PURE_DATE_FORMAT);
         String requestId = batchNo + "_" + RandomStringUtils.randomAlphabetic(16) + UUID.randomUUID();
         // 转换清洗结果
         List<MarketingPreUserDetailDTO> userList = (List<MarketingPreUserDetailDTO>) cleanResult.getData();
