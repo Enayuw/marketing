@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.CybotstarAgentConfigMapper" >
+<mapper namespace="com.br.marketing.mapper.llm.CybotstarAgentConfigMapper" >
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.llm.CybotstarAgentConfig" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="agent_code" property="agentCode" jdbcType="VARCHAR" />

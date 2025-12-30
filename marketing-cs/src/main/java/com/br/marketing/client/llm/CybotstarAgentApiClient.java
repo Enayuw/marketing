@@ -1,5 +1,6 @@
 package com.br.marketing.client.llm;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.client.HttpProxyClient;
@@ -50,7 +51,7 @@ public class CybotstarAgentApiClient {
     @Value("${api.cybotstar.dialogUrl:https://www.cybotstar.cn/openapi/v1/conversation/dialog/}")
     private String dialogUrl;
 
-    @Value("${api.cybotstar.isProxy:true}")
+    @Value("${api.cybotstar.isProxy:false}")
     private boolean isProxy;
 
     /**
@@ -152,21 +153,21 @@ public class CybotstarAgentApiClient {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("未找到智能体配置: " + agentCode);
         }
         // 构建请求参数
-        Map<String, Object> paramsMap = new HashMap<>();
-        paramsMap.put("cybertron-robot-token", config.getRobotToken());
-        paramsMap.put("username", config.getUsername());
-        paramsMap.put("question", question);
+        JSONObject jsonParam = new JSONObject();
+        jsonParam.put("cybertron-robot-token", config.getRobotToken());
+        jsonParam.put("username", config.getUsername());
+        jsonParam.put("question", question);
         Header[] headers = new Header[]{
                 new BasicHeader("Content-Type", "application/json"),
                 new BasicHeader("cybertron-robot-key", config.getRobotKey())
         };
         //发送请求
         HashMap<String, String> response = httpProxyClient.sendByCodeWithLogWithHeader(
-                paramsMap,
+                jsonParam,
                 dialogUrl,
                 isProxy,
                 MediaType.APPLICATION_JSON_UTF8_VALUE,
-                "cybotstar-" + agentCode,
+                jsonParam.toJSONString(),
                 true,
                 false,
                 headers
