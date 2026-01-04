@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.HttpProxyClient;
+import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
@@ -132,6 +133,7 @@ public class DingDingAiTableClient {
      * @param operatorId  操作人ID
      * @return 字段列表响应
      */
+    @RetryMethod
     public DingDingAiTableFieldsResponse getSheetFields(String accessToken, String baseId, String sheetId, String operatorId) {
         // 替换URL中的占位符
         String path = urlGetFields.replace("{baseId}", baseId).replace("{sheetId}", sheetId);
