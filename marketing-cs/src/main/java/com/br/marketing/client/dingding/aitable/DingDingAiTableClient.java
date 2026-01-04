@@ -5,6 +5,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.common.annoation.RetryMethod;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
@@ -133,8 +135,9 @@ public class DingDingAiTableClient {
      * @param operatorId  操作人ID
      * @return 字段列表响应
      */
-    @RetryMethod
-    public DingDingAiTableFieldsResponse getSheetFields(String accessToken, String baseId, String sheetId, String operatorId) {
+    @RetryMethod(retryNowNum = 3)
+    public Result<DingDingAiTableFieldsResponse> getSheetFields(String accessToken, String baseId, String sheetId, String operatorId) {
+        Result<DingDingAiTableFieldsResponse> result = new Result<>();
         // 替换URL中的占位符
         String path = urlGetFields.replace("{baseId}", baseId).replace("{sheetId}", sheetId);
         StringBuilder urlBuilder = new StringBuilder();
@@ -162,16 +165,17 @@ public class DingDingAiTableClient {
             log.warn("获取钉钉AI表格字段响应状态码: {}", statusCode);
 
             if (statusCode == 200) {
-                return JSON.parseObject(body, DingDingAiTableFieldsResponse.class);
+                DingDingAiTableFieldsResponse fieldsResponse = JSON.parseObject(body, DingDingAiTableFieldsResponse.class);
+                return result.setCode(ResultCode.SUCCESS.getValue()).setDate(fieldsResponse);
             } else {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "调用钉钉API获取字段异常"
-                        , "钉钉AI表格数据同步作业异常"));
-                return null;
+                log.warn("调用钉钉API获取字段失败，statusCode: {}, body: {}", statusCode, body);
+                return result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue())
+                        .setMessage("调用钉钉API获取字段异常，statusCode: " + statusCode);
             }
         } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "调用钉钉API获取字段异常" + e.getMessage()
-                    , "钉钉AI表格数据同步作业异常"), e);
-            return null;
+            log.warn("调用钉钉API获取字段异常: {}", e.getMessage(), e);
+            return result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue())
+                    .setMessage("调用钉钉API获取字段异常: " + e.getMessage());
         }
     }
 
@@ -303,8 +307,10 @@ public class DingDingAiTableClient {
      * @param maxResults  每页最大记录数
      * @return 记录响应
      */
-    public DingDingAiTableRecordsResponse getSheetRecords(String accessToken, String baseId, String sheetId,
-                                                          String operatorId, String nextToken, Integer maxResults) {
+    @RetryMethod(retryNowNum = 3)
+    public Result<DingDingAiTableRecordsResponse> getSheetRecords(String accessToken, String baseId, String sheetId,
+                                                                   String operatorId, String nextToken, Integer maxResults) {
+        Result<DingDingAiTableRecordsResponse> result = new Result<>();
         // 替换URL中的占位符
         String path = urlGetRecords.replace("{baseId}", baseId).replace("{sheetId}", sheetId);
         String url = apiBaseUrl + path;
@@ -342,15 +348,17 @@ public class DingDingAiTableClient {
                     statusCode == 200 ? JSON.parseObject(body).getBoolean("hasMore") : "N/A");
 
             if (statusCode == 200) {
-                return JSON.parseObject(body, DingDingAiTableRecordsResponse.class);
+                DingDingAiTableRecordsResponse recordsResponse = JSON.parseObject(body, DingDingAiTableRecordsResponse.class);
+                return result.setCode(ResultCode.SUCCESS.getValue()).setDate(recordsResponse);
             } else {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "调用钉钉API获取数据异常", "钉钉AI表格数据同步作业异常"));
-                return null;
+                log.warn("调用钉钉API获取数据失败，statusCode: {}, body: {}", statusCode, body);
+                return result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue())
+                        .setMessage("调用钉钉API获取数据异常，statusCode: " + statusCode);
             }
         } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "调用钉钉API获取数据异常" + e.getMessage()
-                    , "钉钉AI表格数据同步作业异常"), e);
-            return null;
+            log.warn("调用钉钉API获取数据异常: {}", e.getMessage(), e);
+            return result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue())
+                    .setMessage("调用钉钉API获取数据异常: " + e.getMessage());
         }
     }
 }
