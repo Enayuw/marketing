@@ -85,6 +85,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
     private void deleteBlackList(XiechengCollidingDataProcessTask task,
                                  String today, TpDynamicExecutor threadPool,
                                  List<CompletableFuture<Void>> futures) {
+        log.warn("携程黑名单剔除-opt");
         //1.公共黑名单
         //1.1周期剔除
         deleteWithBatchNumber(null, null, XieChengBlackListEnum.PUBLIC_BLACKLISTS,

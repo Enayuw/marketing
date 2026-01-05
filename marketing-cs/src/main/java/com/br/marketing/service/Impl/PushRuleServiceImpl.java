@@ -1678,8 +1678,10 @@ public class PushRuleServiceImpl implements PushRuleService {
         List<TimeRange> timeRanges = TimeUtils.splitByNaturalDays(releaseTimeBegin, releaseTimeEnd);
         //5.计算量级
         if (marketingCommonConfig.getXcDeleteMagnitudeOptSwitch()) {
+            log.warn("规则中心-周期数据分天剔除查询-opt");
             return getResultOpt(dto.getBatchNumberList(), conditionJson, timeRanges);
         }
+        log.warn("规则中心-周期数据分天剔除查询");
         return getResult(dto, conditionJson, timeRanges);
     }
 
