@@ -28,7 +28,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -169,16 +168,20 @@ public class CybotstarAgentApiClient {
                 MediaType.APPLICATION_JSON_UTF8_VALUE,
                 jsonParam.toJSONString(),
                 true,
-                false,
+                true,
                 headers
         );
         String code = response.get("httpcode");
-        String content = response.get("content");
-
         if ("200".equals(code)) {
-            return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(content);
+            JSONObject jsonResult = JSONObject.parseObject(response.get("content"));
+            if ("000000".equals(jsonResult.getString("code"))) {
+                JSONObject data = jsonResult.getJSONObject("data");
+                return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(data.getString("answer"));
+            }else{
+                return new Result<String>().setCode(ResultCode.FAIL.getValue());
+            }
         } else {
-            return new Result<String>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage("调用失败, httpcode: " + code);
+            return new Result<String>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
     }
 }
