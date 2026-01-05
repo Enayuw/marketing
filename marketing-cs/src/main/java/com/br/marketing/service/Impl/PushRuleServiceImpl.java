@@ -1769,7 +1769,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             long interWithConMagnitude = interWithConMagnitudeMap.
                     get(XcDeletePrefixEnum.INTER_WITH_CON.getAlias() + "_" + timeRangePlus.getOrder());
             //timeRange范围内的剔除量级
-            long deleteNum = interWithoutConMagnitude - interWithConMagnitude;
+            long deleteNum = Math.max(0, interWithoutConMagnitude - interWithConMagnitude);
             //空挡量级
             int freeNum = (int) (totalThreshold - outMagnitude - interWithConMagnitude);
             dtos.add(new XcDeleteMagnitudeDistDTO(
