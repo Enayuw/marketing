@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class TcyrCpaFailMsgConfig {
 
-    private Integer failMsg;
+    private Integer value;
 
     private String desc;
 

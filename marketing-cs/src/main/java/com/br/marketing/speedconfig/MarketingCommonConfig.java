@@ -3586,4 +3586,9 @@ public class MarketingCommonConfig {
      * 滴滴V5相关配置
      */
     private JSONObject diDiV5Config;
+
+    /**
+     * 同程易融cpa-failMsg配置
+     */
+    private List<JSONObject> tcyrCpaFailMsgConfig;
 }

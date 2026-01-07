@@ -2,8 +2,10 @@ package com.br.marketing.innerapi.controller;
 
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.config.biz.TcyrCpaConfigManager;
 import com.br.marketing.enums.TcCpaFailMsgEnum;
 import com.br.marketing.service.tccpa.TcCpaDataDeleteRuleService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.tccpa.TcyrCpaDeleteRuleVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -29,6 +31,9 @@ public class TcCpaDeleteRuleController {
 
     @Resource
     private TcCpaDataDeleteRuleService tcCpaDataDeleteRuleService;
+
+    @Resource
+    MarketingCommonConfig marketingCommonConfig;
 
     /**
      * 同程CPA跑分文件数据包删除
@@ -79,8 +84,8 @@ public class TcCpaDeleteRuleController {
     @Operation(summary = "获取FailMsg列表", description = "获取FailMsg列表")
     @GetMapping("/getFailMsgs")
     public ApiResult getFailMsgs() {
-        return new ApiResult().success().setData(Arrays.stream(TcCpaFailMsgEnum.values())
-                .map(TcyrCpaFailMsgVO::fromFailMsgEnum).collect(Collectors.toList()));
+        return new ApiResult().success().setData(
+                TcyrCpaConfigManager.createFailMsgVOs(marketingCommonConfig.getTcyrCpaFailMsgConfig()));
     }
 
     /**
