@@ -41,6 +41,8 @@ public enum InterfaceHandlerEnum {
     CUSTOMER_AUTO_FILTRATION_SOLE_RS(35, "榕树自动化过滤去重(分发到多个apiCode)"),
     CALLRECORD_MESSAGE_DELAY(36, "通话明细消息延迟批量接口"),
     ZHONGAN_SMS_LOCK_DATA_INSERT(37, "众安短信明细锁定数据落库"),
+    DIDI_SMS_CALLBACK(38, "滴滴短信明细锁定数据落库"),
+    DIDI_CALL_RECORD(39, "滴滴通话明细锁定数据落库"),
     ;
 
 

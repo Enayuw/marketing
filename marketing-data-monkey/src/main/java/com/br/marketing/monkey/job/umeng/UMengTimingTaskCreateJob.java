@@ -29,7 +29,9 @@ import java.util.List;
  * @Description 友盟智能时机任务创建 job
  * @Author zhiyong.zhang
  * @CreateTime 2025/05/23
+ * @deprecated  业务下线  2025/12/23
  */
+@Deprecated
 @Component
 @Slf4j
 public class UMengTimingTaskCreateJob extends AbstractSimpleElasticJob {

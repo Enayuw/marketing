@@ -632,4 +632,78 @@
         AND status = 1 AND is_repeat in (1, 2)
     </select>
 
+    <!-- 自动化巡检：上传场景 - 前一天08:00快照（单表） -->
+    <select id="getLastDay8DataByApiCode" resultType="com.br.marketing.dto.autocheck.CheckUploadSyncDataDto">
+        select
+            id,
+            api_code as apiCode,
+            cus_batch as cusBatch,
+            request_batch as requestBatch,
+            cust_num as custNum,
+            id_card as idCard,
+            name,
+            cell,
+            cell_md5 as cellMd5,
+            cell_sha256 as cellSha256,
+            cell_original as cellOriginal,
+            id_card_original as idCardOriginal,
+            name_original as nameOriginal,
+            group_type as groupType,
+            user_type as userType,
+            operate_type as operateType,
+            reserve_field1 as reserveField1,
+            reserve_field2 as reserveField2,
+            status,
+            fail_type as failType,
+            is_task as isTask,
+            is_repeat as isRepeat,
+            fingerprint,
+            DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') as snapTime
+        from b_marketing_sync_${apiCode}
+        where
+          applet_date = DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 DAY), '%Y-%m-%d')
+          and create_time <![CDATA[>=]]> DATE_ADD(DATE_SUB(CURDATE(), INTERVAL 1 DAY), INTERVAL 8 HOUR)
+          and create_time <![CDATA[<]]> DATE_ADD(
+              DATE_ADD(DATE_SUB(CURDATE(), INTERVAL 1 DAY), INTERVAL 8 HOUR),
+              INTERVAL 5 MINUTE
+          )
+        order by create_time desc, id desc
+        limit 1
+    </select>
+
+    <!-- 自动化巡检：上传场景 - 最新快照（单表） -->
+    <select id="getLatestDataByApiCode" resultType="com.br.marketing.dto.autocheck.CheckUploadSyncDataDto">
+        select
+            id,
+            api_code as apiCode,
+            cus_batch as cusBatch,
+            request_batch as requestBatch,
+            cust_num as custNum,
+            id_card as idCard,
+            name,
+            cell,
+            cell_md5 as cellMd5,
+            cell_sha256 as cellSha256,
+            cell_original as cellOriginal,
+            id_card_original as idCardOriginal,
+            name_original as nameOriginal,
+            group_type as groupType,
+            user_type as userType,
+            operate_type as operateType,
+            reserve_field1 as reserveField1,
+            reserve_field2 as reserveField2,
+            status,
+            fail_type as failType,
+            is_task as isTask,
+            is_repeat as isRepeat,
+            fingerprint,
+            DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') as snapTime
+        from b_marketing_sync_${apiCode}
+        where applet_date = DATE_FORMAT(CURDATE(), '%Y-%m-%d')
+          and create_time <![CDATA[>=]]> CURDATE()
+          and create_time <![CDATA[<]]> DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+        order by create_time desc, id desc
+        limit 1
+    </select>
+
 </mapper>

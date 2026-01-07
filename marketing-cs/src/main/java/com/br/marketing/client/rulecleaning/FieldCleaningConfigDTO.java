@@ -52,4 +52,7 @@ public class FieldCleaningConfigDTO implements Serializable {
 
     @Schema(description = "映射规则（清洗规则）")
     private String mappingRule;
+
+    @Schema(description = "数据源类型：0:营销中台，1:外呼系统")
+    private Integer systemType;
 }

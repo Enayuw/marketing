@@ -53,6 +53,8 @@ public class MarketingOutsideInterfaceConstants {
      * 的 Tag
      */
     public static final String TAG_MARKETING_TRANSFER_PUSH_CUSTOMER = "Marketing.Transfer.Push.Customer";
+
+    public static final String TAG_MARKETING_DIDI_V5_COLLIDING_DATA = "Marketing.DiDi.V5.Colliding.Data";
 //    Tag 结束
 
 
@@ -101,6 +103,8 @@ public class MarketingOutsideInterfaceConstants {
      * 的 consumerGroup
      */
     public static final String MARKETING_TRANSFER_PUSH_CUSTOMER = "Marketing_Transfer_Push_Customer";
+
+    public static final String MARKETING_DIDI_V5_COLLIDING_DATA = "Marketing_DiDi_V5_Colliding_Data";
 //    consumerGroup 结束
 
 }

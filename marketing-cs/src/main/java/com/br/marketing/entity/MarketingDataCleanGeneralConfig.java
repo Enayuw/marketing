@@ -1,15 +1,8 @@
 package com.br.marketing.entity;
 
-import java.io.Serializable;
 import java.util.Date;
-import lombok.Data;
 
-/**
- * b_marketing_data_clean_general_config
- * @author 
- */
-@Data
-public class MarketingDataCleanGeneralConfig implements Serializable {
+public class MarketingDataCleanGeneralConfig {
     /**
      * 主键ID
      */
@@ -24,6 +17,11 @@ public class MarketingDataCleanGeneralConfig implements Serializable {
      * 账号类型
      */
     private String accountType;
+
+    /**
+     * 数据来源,0-营销中台 1-外呼系统
+     */
+    private Integer systemType;
 
     /**
      * 数据类型：0:上传，1:转化
@@ -75,5 +73,115 @@ public class MarketingDataCleanGeneralConfig implements Serializable {
      */
     private Date updateTime;
 
-    private static final long serialVersionUID = 1L;
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getApiCode() {
+        return apiCode;
+    }
+
+    public void setApiCode(String apiCode) {
+        this.apiCode = apiCode == null ? null : apiCode.trim();
+    }
+
+    public String getAccountType() {
+        return accountType;
+    }
+
+    public void setAccountType(String accountType) {
+        this.accountType = accountType == null ? null : accountType.trim();
+    }
+
+    public Integer getSystemType() {
+        return systemType;
+    }
+
+    public void setSystemType(Integer systemType) {
+        this.systemType = systemType;
+    }
+
+    public Integer getDataType() {
+        return dataType;
+    }
+
+    public void setDataType(Integer dataType) {
+        this.dataType = dataType;
+    }
+
+    public Integer getAcceptType() {
+        return acceptType;
+    }
+
+    public void setAcceptType(Integer acceptType) {
+        this.acceptType = acceptType;
+    }
+
+    public Integer getCustomRunStatus() {
+        return customRunStatus;
+    }
+
+    public void setCustomRunStatus(Integer customRunStatus) {
+        this.customRunStatus = customRunStatus;
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
+    public String getSftpPath() {
+        return sftpPath;
+    }
+
+    public void setSftpPath(String sftpPath) {
+        this.sftpPath = sftpPath == null ? null : sftpPath.trim();
+    }
+
+    public Integer getIsDel() {
+        return isDel;
+    }
+
+    public void setIsDel(Integer isDel) {
+        this.isDel = isDel;
+    }
+
+    public Long getOptUserId() {
+        return optUserId;
+    }
+
+    public void setOptUserId(Long optUserId) {
+        this.optUserId = optUserId;
+    }
+
+    public String getOptUserName() {
+        return optUserName;
+    }
+
+    public void setOptUserName(String optUserName) {
+        this.optUserName = optUserName == null ? null : optUserName.trim();
+    }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
+    }
 }

@@ -35,7 +35,7 @@
         and is_del = 1
   </select>
 
-    <select id="queryScoreDataWithPagedoris_" resultType="java.lang.String">
+    <select id="queryScoreDataWithPagebI_" resultType="java.lang.String">
         ${querySql}
         <if test="minCusNum != null">
             and cus_num > #{minCusNum}
@@ -64,6 +64,14 @@
         select count(0) from b_tcyr_cpa_colliding_data
         where package_id = #{packageId}
         and is_del = 1
+    </select>
+
+    <select id="queryUserKeyWithPagetikv_" resultType="java.lang.String">
+        ${querySql}
+        <if test="minUserKey != null">
+            and ${fieldName} > #{minUserKey}
+        </if>
+        order by ${fieldName} limit #{pageSize}
     </select>
 
 </mapper>

@@ -26,9 +26,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
@@ -99,7 +97,7 @@ public class MarketingHaloCallBackDataServiceImpl implements MarketingHaloCallBa
                     String httpUrl = marketingCommonConfig.getHaloCallBackDataConfig().getString("openApiUrl");
                     result = haLoCallBackDataApiClient.dealMarketingCallBack(apiCode,httpUrl,requestJson);
                 }else {
-                    log.warn("TITLE:{},apiCode:{} mock测试",TITLE,apiCode);
+                    log.warn("TITLE:{},apiCode:{} mock测试,requestJson:{}",TITLE,apiCode,requestJson);
                 }
                 //3. 修改状态(返回处理成功,失败状态)
                 if (result.getCode().equals(ResultCode.SUCCESS.getValue())) {
@@ -146,6 +144,9 @@ public class MarketingHaloCallBackDataServiceImpl implements MarketingHaloCallBa
                 dataItemObj.put("batchNo",batchNo);
                 dataItemObj.put("customerNo",item.getCustNum());
                 dataItemObj.put("userType","1");
+                Map<Object,Object> extra = new HashMap<>();
+                extra.put("modelCode",item.getModelCode());
+                dataItemObj.put("extra",extra);
                 dataItmes.add(dataItemObj);
             }
             dataObj.put("dataItems", dataItmes);

@@ -41,4 +41,30 @@
     order by update_time desc
   </select>
 
+  <select id="queryPackageNamesByIds" resultType="java.lang.String">
+    SELECT
+    GROUP_CONCAT(package_name ORDER BY priority ASC, create_time ASC SEPARATOR ',') AS package_names
+    FROM b_tcyr_cpa_colliding_data_package
+    WHERE id IN
+    <foreach collection="packageIds" item="id" open="(" separator="," close=")">
+      #{id}
+    </foreach>
+    AND is_del = 1
+    ORDER BY priority ASC, create_time ASC
+  </select>
+
+  <select id="orderByPriority" resultType="java.lang.Long">
+    SELECT id
+    FROM b_tcyr_cpa_colliding_data_package
+    WHERE id IN
+    <foreach collection="packageIds" item="packageId" open="(" separator="," close=")">
+      #{packageId}
+    </foreach>
+      AND is_del = 1
+      AND enabled = 1
+    ORDER BY
+      priority asc,
+      create_time DESC;
+  </select>
+
 </mapper>

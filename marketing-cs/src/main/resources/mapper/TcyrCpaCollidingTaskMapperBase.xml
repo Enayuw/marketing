@@ -1,0 +1,416 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.TcyrCpaCollidingTaskMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.TcyrCpaCollidingTask" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="package_ids" property="packageIds" jdbcType="VARCHAR" />
+    <result column="package_names" property="packageNames" jdbcType="VARCHAR" />
+    <result column="colliding_date" property="collidingDate" jdbcType="DATE" />
+    <result column="colliding_time" property="collidingTime" jdbcType="TIMESTAMP" />
+    <result column="delete_rule_ids" property="deleteRuleIds" jdbcType="VARCHAR" />
+    <result column="delete_num" property="deleteNum" jdbcType="INTEGER" />
+    <result column="supply_rule_info" property="supplyRuleInfo" jdbcType="VARCHAR" />
+    <result column="supply_num" property="supplyNum" jdbcType="INTEGER" />
+    <result column="est_num" property="estNum" jdbcType="INTEGER" />
+    <result column="push_num" property="pushNum" jdbcType="INTEGER" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="enabled" property="enabled" jdbcType="INTEGER" />
+    <result column="is_del" property="isDel" jdbcType="INTEGER" />
+    <result column="extend" property="extend" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, api_code, package_ids, package_names, colliding_date, colliding_time, delete_rule_ids,
+    delete_num, supply_rule_info, supply_num, est_num, push_num, `status`, enabled, is_del,
+    extend, create_time, update_time
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.TcyrCpaCollidingTaskExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_tcyr_cpa_colliding_task
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select
+    <include refid="Base_Column_List" />
+    from b_tcyr_cpa_colliding_task
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_tcyr_cpa_colliding_task
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.TcyrCpaCollidingTaskExample" >
+    delete from b_tcyr_cpa_colliding_task
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.TcyrCpaCollidingTask" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_tcyr_cpa_colliding_task (api_code, package_ids, package_names,
+    colliding_date, colliding_time, delete_rule_ids,
+    delete_num, supply_rule_info, supply_num,
+    est_num, push_num, `status`,
+    enabled, is_del, extend,
+    create_time, update_time)
+    values (#{apiCode,jdbcType=VARCHAR}, #{packageIds,jdbcType=VARCHAR}, #{packageNames,jdbcType=VARCHAR},
+    #{collidingDate,jdbcType=DATE}, #{collidingTime,jdbcType=TIMESTAMP}, #{deleteRuleIds,jdbcType=VARCHAR},
+    #{deleteNum,jdbcType=INTEGER}, #{supplyRuleInfo,jdbcType=VARCHAR}, #{supplyNum,jdbcType=INTEGER},
+    #{estNum,jdbcType=INTEGER}, #{pushNum,jdbcType=INTEGER}, #{status,jdbcType=INTEGER},
+    #{enabled,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR},
+    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.TcyrCpaCollidingTask" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_tcyr_cpa_colliding_task
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="packageIds != null" >
+        package_ids,
+      </if>
+      <if test="packageNames != null" >
+        package_names,
+      </if>
+      <if test="collidingDate != null" >
+        colliding_date,
+      </if>
+      <if test="collidingTime != null" >
+        colliding_time,
+      </if>
+      <if test="deleteRuleIds != null" >
+        delete_rule_ids,
+      </if>
+      <if test="deleteNum != null" >
+        delete_num,
+      </if>
+      <if test="supplyRuleInfo != null" >
+        supply_rule_info,
+      </if>
+      <if test="supplyNum != null" >
+        supply_num,
+      </if>
+      <if test="estNum != null" >
+        est_num,
+      </if>
+      <if test="pushNum != null" >
+        push_num,
+      </if>
+      <if test="status != null" >
+        `status`,
+      </if>
+      <if test="enabled != null" >
+        enabled,
+      </if>
+      <if test="isDel != null" >
+        is_del,
+      </if>
+      <if test="extend != null" >
+        extend,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="packageIds != null" >
+        #{packageIds,jdbcType=VARCHAR},
+      </if>
+      <if test="packageNames != null" >
+        #{packageNames,jdbcType=VARCHAR},
+      </if>
+      <if test="collidingDate != null" >
+        #{collidingDate,jdbcType=DATE},
+      </if>
+      <if test="collidingTime != null" >
+        #{collidingTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="deleteRuleIds != null" >
+        #{deleteRuleIds,jdbcType=VARCHAR},
+      </if>
+      <if test="deleteNum != null" >
+        #{deleteNum,jdbcType=INTEGER},
+      </if>
+      <if test="supplyRuleInfo != null" >
+        #{supplyRuleInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="supplyNum != null" >
+        #{supplyNum,jdbcType=INTEGER},
+      </if>
+      <if test="estNum != null" >
+        #{estNum,jdbcType=INTEGER},
+      </if>
+      <if test="pushNum != null" >
+        #{pushNum,jdbcType=INTEGER},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="enabled != null" >
+        #{enabled,jdbcType=INTEGER},
+      </if>
+      <if test="isDel != null" >
+        #{isDel,jdbcType=INTEGER},
+      </if>
+      <if test="extend != null" >
+        #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.TcyrCpaCollidingTaskExample" resultType="java.lang.Integer" >
+    select count(*) from b_tcyr_cpa_colliding_task
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_tcyr_cpa_colliding_task
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.packageIds != null" >
+        package_ids = #{record.packageIds,jdbcType=VARCHAR},
+      </if>
+      <if test="record.packageNames != null" >
+        package_names = #{record.packageNames,jdbcType=VARCHAR},
+      </if>
+      <if test="record.collidingDate != null" >
+        colliding_date = #{record.collidingDate,jdbcType=DATE},
+      </if>
+      <if test="record.collidingTime != null" >
+        colliding_time = #{record.collidingTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.deleteRuleIds != null" >
+        delete_rule_ids = #{record.deleteRuleIds,jdbcType=VARCHAR},
+      </if>
+      <if test="record.deleteNum != null" >
+        delete_num = #{record.deleteNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.supplyRuleInfo != null" >
+        supply_rule_info = #{record.supplyRuleInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="record.supplyNum != null" >
+        supply_num = #{record.supplyNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.estNum != null" >
+        est_num = #{record.estNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.pushNum != null" >
+        push_num = #{record.pushNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.status != null" >
+        `status` = #{record.status,jdbcType=INTEGER},
+      </if>
+      <if test="record.enabled != null" >
+        enabled = #{record.enabled,jdbcType=INTEGER},
+      </if>
+      <if test="record.isDel != null" >
+        is_del = #{record.isDel,jdbcType=INTEGER},
+      </if>
+      <if test="record.extend != null" >
+        extend = #{record.extend,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_tcyr_cpa_colliding_task
+    set id = #{record.id,jdbcType=BIGINT},
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    package_ids = #{record.packageIds,jdbcType=VARCHAR},
+    package_names = #{record.packageNames,jdbcType=VARCHAR},
+    colliding_date = #{record.collidingDate,jdbcType=DATE},
+    colliding_time = #{record.collidingTime,jdbcType=TIMESTAMP},
+    delete_rule_ids = #{record.deleteRuleIds,jdbcType=VARCHAR},
+    delete_num = #{record.deleteNum,jdbcType=INTEGER},
+    supply_rule_info = #{record.supplyRuleInfo,jdbcType=VARCHAR},
+    supply_num = #{record.supplyNum,jdbcType=INTEGER},
+    est_num = #{record.estNum,jdbcType=INTEGER},
+    push_num = #{record.pushNum,jdbcType=INTEGER},
+    `status` = #{record.status,jdbcType=INTEGER},
+    enabled = #{record.enabled,jdbcType=INTEGER},
+    is_del = #{record.isDel,jdbcType=INTEGER},
+    extend = #{record.extend,jdbcType=VARCHAR},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.TcyrCpaCollidingTask" >
+    update b_tcyr_cpa_colliding_task
+    <set >
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="packageIds != null" >
+        package_ids = #{packageIds,jdbcType=VARCHAR},
+      </if>
+      <if test="packageNames != null" >
+        package_names = #{packageNames,jdbcType=VARCHAR},
+      </if>
+      <if test="collidingDate != null" >
+        colliding_date = #{collidingDate,jdbcType=DATE},
+      </if>
+      <if test="collidingTime != null" >
+        colliding_time = #{collidingTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="deleteRuleIds != null" >
+        delete_rule_ids = #{deleteRuleIds,jdbcType=VARCHAR},
+      </if>
+      <if test="deleteNum != null" >
+        delete_num = #{deleteNum,jdbcType=INTEGER},
+      </if>
+      <if test="supplyRuleInfo != null" >
+        supply_rule_info = #{supplyRuleInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="supplyNum != null" >
+        supply_num = #{supplyNum,jdbcType=INTEGER},
+      </if>
+      <if test="estNum != null" >
+        est_num = #{estNum,jdbcType=INTEGER},
+      </if>
+      <if test="pushNum != null" >
+        push_num = #{pushNum,jdbcType=INTEGER},
+      </if>
+      <if test="status != null" >
+        `status` = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="enabled != null" >
+        enabled = #{enabled,jdbcType=INTEGER},
+      </if>
+      <if test="isDel != null" >
+        is_del = #{isDel,jdbcType=INTEGER},
+      </if>
+      <if test="extend != null" >
+        extend = #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.TcyrCpaCollidingTask" >
+    update b_tcyr_cpa_colliding_task
+    set api_code = #{apiCode,jdbcType=VARCHAR},
+        package_ids = #{packageIds,jdbcType=VARCHAR},
+        package_names = #{packageNames,jdbcType=VARCHAR},
+        colliding_date = #{collidingDate,jdbcType=DATE},
+        colliding_time = #{collidingTime,jdbcType=TIMESTAMP},
+        delete_rule_ids = #{deleteRuleIds,jdbcType=VARCHAR},
+        delete_num = #{deleteNum,jdbcType=INTEGER},
+        supply_rule_info = #{supplyRuleInfo,jdbcType=VARCHAR},
+        supply_num = #{supplyNum,jdbcType=INTEGER},
+        est_num = #{estNum,jdbcType=INTEGER},
+        push_num = #{pushNum,jdbcType=INTEGER},
+        `status` = #{status,jdbcType=INTEGER},
+        enabled = #{enabled,jdbcType=INTEGER},
+        is_del = #{isDel,jdbcType=INTEGER},
+        extend = #{extend,jdbcType=VARCHAR},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

@@ -2,6 +2,7 @@ package com.br.marketing.mapper;
 
 
 import com.alibaba.fastjson.JSONArray;
+import com.br.marketing.dto.autocheck.CheckTransferSyncDataDto;
 import com.br.marketing.entity.*;
 import com.br.marketing.vo.TransferOfCnIdVO;
 import com.br.marketing.vo.TransferOfRdRFVO;
@@ -714,5 +715,19 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
     List<MarketingTransferSyncUser> getYXMarketingTransferByLiveTypetikv_
             (@Param("tCid") String tCid, @Param("apiCode")String apiCode, @Param("requestDate")String requestDate, @Param("indexId")Long indexId,
              @Param("liveType")String liveType, @Param("pageSize")Integer yiXinSearchPageSize);
+
+    /**
+     * 自动化巡检：转化场景 - 前一天08:00快照（单表：b_marketing_transfer_sync_${cid}，按 api_code 取最新一条）。
+     *
+     * <p>说明：当分表不存在时，MySQL 会抛错（1146）。上层按需 try/catch 处理。</p>
+     */
+    CheckTransferSyncDataDto getLastDay8DataByCidAndApiCode(@Param("cid") String cid, @Param("apiCode") String apiCode);
+
+    /**
+     * 自动化巡检：转化场景 - 当天最新快照（单表：b_marketing_transfer_sync_${cid}，按 api_code 取最新一条）。
+     *
+     * <p>说明：当分表不存在时，MySQL 会抛错（1146）。上层按需 try/catch 处理。</p>
+     */
+    CheckTransferSyncDataDto getLatestDataByCidAndApiCode(@Param("cid") String cid, @Param("apiCode") String apiCode);
 
 }
