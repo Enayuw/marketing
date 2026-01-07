@@ -266,7 +266,7 @@
           and black.label_type = #{labelType}
           <if test="batchNumber != null and batchNumber != '' and condition != null and condition != ''">
               and score.is_delete = 0
-              and ${condition}
+              and (${condition})
           </if>
           <if test="minId != null and minId>0">
               and dt.id > #{minId}
