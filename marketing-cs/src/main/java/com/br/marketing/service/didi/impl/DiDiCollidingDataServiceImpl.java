@@ -97,6 +97,8 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
         int limit = collidingConfig.getInteger("limit") != null ? collidingConfig.getInteger("limit") : 2000;
         String mediaName = collidingConfig.getString("mediaName") != null ? collidingConfig.getString("mediaName") : "bairongC";
         String token = collidingConfig.getString("token") != null ? collidingConfig.getString("token") : "9Hqeoi36CJfdA7n4";
+        boolean preScreen1 = collidingConfig.getBoolean("preScreen1") != null ? collidingConfig.getBoolean("preScreen1") : true;
+        boolean preScreen2 = collidingConfig.getBoolean("preScreen2") != null ? collidingConfig.getBoolean("preScreen2") : true;
         // 收集所有异步任务的Future，用于等待所有任务完成
         List<CompletableFuture<Void>> futures = new ArrayList<>();
         while (true) {
@@ -109,14 +111,13 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
             markAsPushing(dataList);
             // 使用CompletableFuture包装异步任务，收集所有Future
             dataList.forEach((DiDiV5CollidingData data) -> {
-                int count = didiCallbackDataLogMapper.checkCell(data.getCell());
-                if (count == 0) {
-                    CompletableFuture<Void> future = new CompletableFuture<>();
-                    pushPool.execute(() -> {
-                        collidingData(data, mediaName, token);
-                        future.complete(null);
-                    });
-                    futures.add(future);
+                int preScreen1Count = didiCallbackDataLogMapper.checkCell(data.getCell());
+                int preScreen2Count = diDiV5CollidingDataLogMapper.checkCell(data.getCell());
+                if ((!preScreen1 || preScreen1Count == 0) && (!preScreen2 || preScreen2Count == 0)) {
+                    futures.add(CompletableFuture.runAsync(
+                            () -> collidingData(data, mediaName, token),
+                            pushPool)
+                    );
                 }
             });
         }
@@ -168,7 +169,7 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
             pushToMq(data, httpcode, content);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(),
-                    "该手机号撞库异常：" + data.getCell() + "id:" + data.getId()), e.getMessage());
+                    "该手机号撞库异常：" + data.getCell() + "id:" + data.getId()), e);
         }
     }
 
