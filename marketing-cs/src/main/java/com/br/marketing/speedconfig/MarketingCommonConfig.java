@@ -3581,6 +3581,11 @@ public class MarketingCommonConfig {
      */
     private String suiyijiBlackBrPrivateKey;
 
+    /**
+     * 携程分天剔除量级查询优化开关
+     */
+    private Boolean xcDeleteMagnitudeOptSwitch;
+
 
     /**
      * 滴滴V5相关配置
