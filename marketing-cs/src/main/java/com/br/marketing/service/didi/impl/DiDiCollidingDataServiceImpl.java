@@ -24,6 +24,7 @@ import com.br.marketing.entity.DiDiV5CollidingData;
 import com.br.marketing.entity.DiDiV5CollidingDataLog;
 import com.br.marketing.mapper.DiDiV5CollidingDataLogMapper;
 import com.br.marketing.mapper.DiDiV5CollidingDataMapper;
+import com.br.marketing.mapper.DidiCallbackDataLogMapper;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.service.clean.common.GeneralDataCleanService;
@@ -33,17 +34,17 @@ import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.google.common.collect.Lists;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-
-import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 @Service
 @Slf4j
@@ -59,6 +60,10 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
 
     @Resource
     private DiDiV5CollidingDataLogMapper diDiV5CollidingDataLogMapper;
+
+    @Resource
+    private DidiCallbackDataLogMapper didiCallbackDataLogMapper;
+
 
     @Resource
     private DiDiV5Client diDiV5Client;
@@ -80,7 +85,7 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
         List<Integer> shardingItems = context.getShardingItems();
         int shardingTotalCount = context.getShardingTotalCount();
         log.warn("滴滴短信流量数据撞库任务开始执行，总分片数：{}，当前分片：{}", shardingTotalCount, shardingItems);
-        
+
         TpDynamicExecutor pushPool = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.DIDI_V5_COLLIDING.getName(), 50, 50);
         List<Long> fileIds = diDiV5CollidingDataMapper.queryCollidingFileIds(DateUtil.beginOfDay(new Date()), new Date());
         if (CollectionUtils.isEmpty(fileIds)) {
@@ -104,12 +109,15 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
             markAsPushing(dataList);
             // 使用CompletableFuture包装异步任务，收集所有Future
             dataList.forEach((DiDiV5CollidingData data) -> {
-                CompletableFuture<Void> future = new CompletableFuture<>();
-                pushPool.execute(() -> {
-                    collidingData(data, mediaName, token);
-                    future.complete(null);
-                });
-                futures.add(future);
+                int count = didiCallbackDataLogMapper.checkCell(data.getCell());
+                if (count == 0) {
+                    CompletableFuture<Void> future = new CompletableFuture<>();
+                    pushPool.execute(() -> {
+                        collidingData(data, mediaName, token);
+                        future.complete(null);
+                    });
+                    futures.add(future);
+                }
             });
         }
         log.warn("分片{}等待所有撞库任务完成，共{}个任务", shardingItems, futures.size());
@@ -207,10 +215,26 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
             String dataLogStr = dto.getString("diDiV5CollidingDataLog");
             DiDiV5CollidingDataLog dataLog = JSONObject.parseObject(dataLogStr, DiDiV5CollidingDataLog.class);
             diDiV5CollidingDataLogMapper.insertSelective(dataLog);
-            if (!diDiV5CollidingResultResponseDTO.getData().getResult()) {
+            if (diDiV5CollidingResultResponseDTO.getData().getResult()) {
+                return cleanAndUpload(diDiV5CollidingResultResponseDTO, dataLog);
+            } else {
+                if (Objects.equals(diDiV5CollidingResultResponseDTO.getData().getFailReason(), 1) && diDiV5CollidingResultResponseDTO.getData().getNextTime() != null) {
+                    JSONObject collidingConfig = marketingCommonConfig.getDiDiV5Config();
+                    Long retrieveFileId = collidingConfig.getLong("retrieveFileId");
+                    DiDiV5CollidingData retrieveData = new DiDiV5CollidingData();
+                    retrieveData.setApiCode(dataLog.getApiCode());
+                    retrieveData.setLocalId(retrieveFileId);
+                    retrieveData.setCell(dataLog.getCell());
+                    retrieveData.setCollidingTime(new Date(diDiV5CollidingResultResponseDTO.getData().getNextTime()));
+                    retrieveData.setPushStatus(0);
+                    retrieveData.setStatus(1);
+                    retrieveData.setCreateDate(Integer.valueOf(DateUtil.format(DateUtil.date(), "yyyyMMdd")));
+                    retrieveData.setCreateTime(new Date());
+                    retrieveData.setUpdateTime(new Date());
+                    diDiV5CollidingDataMapper.insertSelective(retrieveData);
+                }
                 return result;
             }
-            return cleanAndUpload(diDiV5CollidingResultResponseDTO, dataLog);
         } catch (Exception ex) {
             log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(), "数据清洗/上传失败,bodyString:" + bodyString,
                     TITLE), ex);
@@ -233,7 +257,7 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
         JSONObject cleanJson = (JSONObject) JSONObject.toJSON(responseDTO.getData());
         cleanJson.put("cell", dataLog.getCell());
         cleanJson.put("userGroup", dataLog.getUserGroup());
-        cleanJson.put("userType",userType);
+        cleanJson.put("userType", userType);
         String today = DateUtil.format(new Date(), DatePattern.PURE_DATE_FORMAT);
         cleanJson.put("scas", today + userType);
         Result cleanResult = generalDataCleanService.uploadClean(

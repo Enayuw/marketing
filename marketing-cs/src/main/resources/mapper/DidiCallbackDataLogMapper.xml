@@ -18,4 +18,12 @@
         AND push_type IN (1, 2, 3)
     </select>
 
+    <select id="checkCell" resultType="int">
+        select count(*)
+        from b_didi_v5_callback_data_log
+        where <![CDATA[ create_time >= DATE_SUB(current_date, INTERVAL 15 DAY) ]]>
+          and <![CDATA[ create_time < curdate() ]]>
+          and push_type in (1, 2, 3)
+          and cell = #{cell}
+    </select>
 </mapper>

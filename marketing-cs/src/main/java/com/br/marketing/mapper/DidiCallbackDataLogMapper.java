@@ -1,11 +1,8 @@
 package com.br.marketing.mapper;
 
-import com.br.marketing.entity.DidiCallbackDataLog;
-import com.br.marketing.entity.DidiCallbackDataLogExample;
-import org.apache.ibatis.annotations.Param;
-
 import java.util.List;
 import java.util.Set;
+import org.apache.ibatis.annotations.Param;
 
 public interface DidiCallbackDataLogMapper extends DidiCallbackDataLogMapperBase{
 
@@ -13,4 +10,5 @@ public interface DidiCallbackDataLogMapper extends DidiCallbackDataLogMapperBase
 
     List<String> selectSuccessPushedCells(@Param("cellSet") Set<String> cellSet);
 
+    int checkCell(@Param("cell") String cell);
 }
