@@ -12,6 +12,7 @@ import com.br.marketing.mapper.TcyrCpaCollidingDataCleanTaskMapper;
 import com.br.marketing.mapper.TcyrCpaCollidingDataMapper;
 import com.br.marketing.mapper.TcyrCpaCollidingDataPackageMapper;
 import com.br.marketing.service.tccpa.TcCpaCollidingDataCleanService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -39,6 +40,9 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
 
     @Resource
     TcyrCpaCollidingDataMapper tcyrCpaCollidingDataMapper;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     private final static String TITLE = "【同程易融CPA-数据包清洗Job】";
 
@@ -253,10 +257,9 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
                 } else {
                     batchNumbers = cleanPackage.getBatchNumbers().split(",");
                 }
-                String conditions = cleanPackage.getConditions();
                 List<TcyrCpaBatchCleanInfo> tcyrCpaBatchCleanInfos = new ArrayList<>();
                 for (String batchNumber : batchNumbers) {
-                    batchClean(threadPool, futures, cleanPackage, conditions, tcyrCpaBatchCleanInfos, batchNumber);
+                    batchClean(threadPool, futures, cleanPackage, tcyrCpaBatchCleanInfos, batchNumber);
                 }
                 CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
                 if (tcyrCpaBatchCleanInfos.size() > 0) {
@@ -289,18 +292,18 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
     private void batchClean(TpDynamicExecutor threadPool,
                             List<CompletableFuture<Void>> futures,
                             TcyrCpaCollidingDataPackage cleanPackage,
-                            String conditions,
                             List<TcyrCpaBatchCleanInfo> tcyrCpaBatchCleanInfos,
                             String batchNumber) {
         //1.从跑分文件中查询数据
         List<String> cusNums;
-        String querySql = "select cus_num from b_score_" + batchNumber + " where " + conditions;
         AtomicBoolean isInner = new AtomicBoolean(false);
-        log.warn("同程CPA撞库数据清洗，新包新增数据查询条件:{}", querySql);
         String minCusNum = null;
         for (; ; ) {
+            if (marketingCommonConfig.getTcyrCpaPushFileVTConfig().getBoolean("cleanStopSwitch")) {
+                break;
+            }
             try {
-                cusNums = tcyrCpaCollidingDataMapper.queryScoreDataWithPagebI_(querySql, minCusNum);
+                cusNums = tcyrCpaCollidingDataMapper.queryScoreDataWithPagebI_(batchNumber, cleanPackage.getConditions(), minCusNum);
             } catch (Exception e) {
                 log.warn("同程CPA撞库数据清洗，跑分数据查询异常，packageId：{}，batchNumber：{}", cleanPackage.getId(), batchNumber);
                 tcyrCpaBatchCleanInfos.add(new TcyrCpaBatchCleanInfo(batchNumber, true, isInner.get(), e.getMessage()));

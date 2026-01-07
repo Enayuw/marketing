@@ -122,6 +122,7 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
         //3.更新撞库任务状态为3-筛选中
         if (!Objects.equals(task.getStatus(), TcCpaCollidingTaskStatusEnum.STATUS_FILTERING.getValue())) {
             task.setStatus(TcCpaCollidingTaskStatusEnum.STATUS_FILTERING.getValue());
+            task.setUpdateTime(new Date());
             tcyrCpaCollidingTaskMapper.updateByPrimaryKeySelective(task);
         }
         //3.筛选撞库数据
@@ -137,6 +138,7 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
         } else {
             task.setStatus(TcCpaCollidingTaskStatusEnum.STATUS_STA_COMPLETED.getValue());
         }
+        task.setUpdateTime(new Date());
         tcyrCpaCollidingTaskMapper.updateByPrimaryKeySelective(task);
         return isSuccess;
     }
@@ -213,6 +215,7 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
                 log.warn(TITLE + "querySql: " + querySql);
                 taskPackage.setExecuteSql(querySql);
                 taskPackage.setStatus(TcCpaCollidingTaskPackageStatus.STATUS_EXECUTING.getValue());
+                taskPackage.setUpdateTime(new Date());
                 tcyrCpaCollidingTaskPackageMapper.updateByPrimaryKeySelective(taskPackage);
                 isSuccess = packageProcess(task.getId().intValue(), taskPackage.getPackageId(), taskPackage.getPriority(),
                         colldingDate, querySql, "pck.user_key",
@@ -221,6 +224,7 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
                     int packageCount = queryPackageCount(taskPackage.getPackageId(), colldingDate);
                     taskPackage.setMagnitude(packageCount);
                     taskPackage.setStatus(TcCpaCollidingTaskPackageStatus.STATUS_EXECUTED.getValue());
+                    taskPackage.setUpdateTime(new Date());
                     tcyrCpaCollidingTaskPackageMapper.updateByPrimaryKeySelective(taskPackage);
                 } else {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),

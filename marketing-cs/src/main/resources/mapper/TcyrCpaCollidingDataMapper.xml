@@ -36,7 +36,8 @@
   </select>
 
     <select id="queryScoreDataWithPagebI_" resultType="java.lang.String">
-        ${querySql}
+        select cus_num from b_score_${batchNumber}
+        where (${conditions})
         <if test="minCusNum != null">
             and cus_num > #{minCusNum}
         </if>
