@@ -1,7 +1,6 @@
 package com.br.marketing.service.tccpa.impl;
 
 import cn.hutool.core.util.ObjectUtil;
-import com.alibaba.excel.util.CollectionUtils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
@@ -227,7 +226,7 @@ public class TcCpaSyncDataQuickDealServiceImpl implements TcCpaSyncDataQuickDeal
         SimpleDateFormat sdf = new SimpleDateFormat(DateHelper.LINE_DATE_FORMAT);
         List<MarketingTcyrCpaSuccessData> tcyrSyncList = new ArrayList<>();
         try {
-            //1.id维度查 2、过滤出id查不到的元素 custNum维度查 3、封装数据
+            //1.id维度查 3、封装数据
             Map<String, String> userKeyToCellMap = new HashMap<>();
             List<String> userKeyList = batchData.stream()
                     .map(line -> line.split(","))
@@ -236,20 +235,8 @@ public class TcCpaSyncDataQuickDealServiceImpl implements TcCpaSyncDataQuickDeal
                     .collect(Collectors.toList());
             // id维度批量查库处理
             List<Map<String, Object>> cellList = custCellMappingService.selectCellInfo(userKeyList);
-            List<String> existUserKeyList = new ArrayList<>();
             for (Map<String, Object> map : cellList) {
                 userKeyToCellMap.put(map.get("custNum").toString(), map.get("cell").toString());
-                existUserKeyList.add(map.get("custNum").toString());
-            }
-            // custNum维度批量查看处理
-            Set<String> existSet = new HashSet<>(existUserKeyList);
-            List<String> notExistUserKeyList = userKeyList.stream().filter(userKey -> !existSet.contains(userKey))
-                    .collect(Collectors.toList());
-            if(!CollectionUtils.isEmpty(notExistUserKeyList)) {
-                List<Map<String,String>> cellList2 = custCellMappingService.selectCellByStrCustNum(notExistUserKeyList);
-                for (Map<String, String> map : cellList2) {
-                    userKeyToCellMap.put(map.get("custNum"), map.get("cell"));
-                }
             }
             // 3.遍历 batchData，命中才封装
             for (String line : batchData) {
