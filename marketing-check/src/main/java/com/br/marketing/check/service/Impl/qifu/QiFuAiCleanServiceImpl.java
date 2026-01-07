@@ -66,7 +66,7 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
     public void aiCleanProcessFromOriginal() {
         log.warn("奇富ai清洗开始，查询b_qifu_upload_data_original数据");
 
-        // 获取今天的日期
+        // 获取日期
         String todayDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         // 直接处理今天所有未处理的数据

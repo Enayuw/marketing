@@ -3,6 +3,7 @@ package com.br.marketing.mapper;
 import com.br.marketing.dto.xiecheng.XieChengActivateDTO;
 import com.br.marketing.entity.CustomizeUploadData;
 import com.br.marketing.entity.XieChengCollidingDataLoopCycle;
+import com.br.marketing.entity.common.TimeRangePlus;
 import com.br.marketing.vo.xiecheng.XiechengCollidingRuleVO;
 import com.br.marketing.vo.xiecheng.param.CollidingRuleListParam;
 import org.apache.ibatis.annotations.Param;
@@ -126,8 +127,20 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
 
     int selectTimeRangeOutMagnitudeForNotTodaytiflash_(@Param("begin") LocalDateTime begin, @Param("end") LocalDateTime end);
 
+    Map<String, Long> selectTimeRangeOutMagnitudeForNotTodaystiflash_(@Param("timeRangePlusList") List<TimeRangePlus> timeRangePlusList,
+                                                        @Param("minBegin") LocalDateTime minBegin,
+                                                        @Param("maxEnd") LocalDateTime maxEnd,
+                                                        @Param("prefix") String prefix);
+
     int selectTimeRangeBetweenWithScoreMagnitudetiflash_(@Param("begin") LocalDateTime begin,
                                                          @Param("end") LocalDateTime end,
                                                          @Param("scoreSql") String scoreSql);
+
+    Map<String, Long> selectTimeRangeBetweenWithScoreMagnitudestiflash_(@Param("timeRangePlusList") List<TimeRangePlus> timeRangePlusList,
+                                                                           @Param("minBegin") LocalDateTime minBegin,
+                                                                           @Param("maxEnd") LocalDateTime maxEnd,
+                                                                           @Param("batchNumber") String batchNumber,
+                                                                           @Param("sqlCondition") String sqlCondition,
+                                                                           @Param("prefix") String prefix);
 
 }
