@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
+import com.br.marketing.client.llm.CybotstarAgentApiClient;
 import com.br.marketing.client.rulecleaning.CleanConfigDTO;
 import com.br.marketing.client.rulecleaning.*;
 import com.br.marketing.common.commondto.Result;
@@ -21,6 +22,7 @@ import com.br.marketing.entity.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.enums.clean.DataProcessEnum;
 import com.br.marketing.enums.clean.DerivedTypeEnum;
+import com.br.marketing.enums.llm.CybotstarAgentEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.mapper.rulecleaning.MarketingCustomerOriginalDataMapper;
 import com.br.marketing.mapper.rulecleaning.MarketingDataCleanGeneralConfigMapper;
@@ -35,7 +37,9 @@ import com.br.marketing.vo.dataclean.CleanFieldConfigVO;
 import com.github.pagehelper.PageHelper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.googlecode.aviator.AviatorEvaluator;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.util.StringUtil;
 import org.springframework.beans.BeanUtils;
@@ -109,6 +113,9 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    private CybotstarAgentApiClient cybotstarAgentApiClient;
 
     /**
      * 规则列表查询
@@ -851,6 +858,10 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             case "condition":
                 // 条件判断
                 result = handleConditionOperation(fieldSample, ruleMap);
+                break;
+            case "LLMCode":
+                // 大模型代码配置
+                result = handleAviatorScriptOperation(fieldSample, ruleMap, nodeParse);
                 break;
             default:
                 log.warn("未知的操作类型: {}", operator);
@@ -2574,6 +2585,114 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 .andAcceptTypeEqualTo(acceptType)
                 .andIsDelEqualTo(Constants.DATA_VALID);
         return cleanGeneralConfigMapper.selectByExample(example);
+    }
+
+    @Override
+    public String generateAviatorScriptRule(String question) {
+        // 参数校验
+        if(StringUtils.isBlank(question)) {
+            throw new BusinessException("问题内容不能为空");
+        }
+
+        // 调用大模型接口生成Aviator脚本
+        Result<String> result = cybotstarAgentApiClient.dialog(CybotstarAgentEnum.SCRIPT_GENERATOR.getCode(), question);
+        if(result == null || !result.isSuccess()) {
+            if(result != null && StringUtils.isNotBlank(result.getMessage())) {
+                throw new BusinessException(result.getMessage());
+            }
+            throw new BusinessException("调用大模型接口生成Aviator脚本失败");
+        }
+        return result.getData();
+    }
+
+    /**
+     * 处理Aviator脚本，计算结果
+     * @param fieldSample 字段样本值
+     * @param ruleMap 规则配置
+     * @param nodeParse 原始数据对象
+     * @return 处理后的结果
+     */
+    private Object handleAviatorScriptOperation(String fieldSample, Map<String, Object> ruleMap, Object nodeParse) {
+        log.warn("处理大模型代码配置操作 - 输入值: {}, 规则: {}", fieldSample, ruleMap);
+
+        // 参数校验
+        if (MapUtils.isEmpty(ruleMap)) {
+            log.warn("规则配置为空");
+            return fieldSample;
+        }
+        // 获取Aviator脚本
+        String aviatorScript = ruleMap.containsKey("aviatorScript") ? String.valueOf(ruleMap.get("aviatorScript")) : null;
+        if(StringUtils.isBlank(aviatorScript)) {
+            log.warn("规则配置中脚本为空");
+            return fieldSample;
+        }
+        // 获取字段配置列表
+        List<Map<String, Object>> fields = (List<Map<String, Object>>) ruleMap.get("fields");
+        if (CollectionUtils.isEmpty(fields)) {
+            log.warn("大模型代码字段配置为空，返回原值");
+            return fieldSample;
+        }
+
+        // 组装aviatorScript中的输入参数
+        Map<String, Object> env = assembleAviatorScriptParams(fields, nodeParse, fieldSample);
+
+        // 执行Aviator脚本
+        try {
+            log.warn("执行大模型代码配置操作 - 脚本: {}, 输入参数: {}",aviatorScript, env);
+            return AviatorEvaluator.execute(aviatorScript, env);
+        } catch (Exception e) {
+            log.warn("大模型代码配置操作失败！错误信息：{}", e.getMessage(), e);
+            throw new BusinessException("执行大模型代码配置操作失败！请检查脚本或者脚本输入参数值是否正确");
+        }
+
+    }
+
+    /**
+     * 组装Aviator脚本输入参数
+     * @param fields 字段list
+     * @param nodeParse 原始对象数据
+     * @param fieldSample 字段样本值
+     * @return  Aviator脚本输入参数Map
+     */
+    private Map<String,Object> assembleAviatorScriptParams(List<Map<String, Object>> fields, Object nodeParse, String fieldSample) {
+        Map<String, Object> env = new HashMap<>();
+        if(CollectionUtils.isEmpty(fields)) {
+            return env;
+        }
+        // 处理所有字段
+        for (int i = 0; i < fields.size(); i++) {
+            Map<String, Object> fieldConfig = fields.get(i);
+            String fieldName = String.valueOf(fieldConfig.get("fieldName"));
+
+            // 获取字段值
+            Object fieldValue = null;
+            if (ObjectUtil.isNotEmpty(nodeParse)) {
+                // 从nodeParse中获取字段值
+                String parentPath = String.valueOf(fieldConfig.get("parentPath"));
+                String level = String.valueOf(fieldConfig.get("level"));
+                boolean a = !"null".equals(parentPath) && ObjectUtil.isNotEmpty(parentPath);
+                boolean b = !"null".equals(level) && ObjectUtil.isNotEmpty(level);
+                if (a || b) {
+                    log.warn("大模型代码配置操作逻辑（新）从nodeParse获取字段 {} 的值: {}", fieldName, fieldValue);
+                    fieldValue = JsonParseUtils.findFirstValueByKey(nodeParse, fieldName, parentPath);
+                } else {
+                    fieldValue = JsonParseUtils.findFirstValueByKey(nodeParse, fieldName);
+                    log.warn("大模型代码配置操作逻辑（老）从nodeParse获取字段 {} 的值: {}", fieldName, fieldValue);
+                }
+            } else {
+                // 使用规则中的预设值
+                fieldValue = fieldConfig.get("fieldValue");
+                log.warn("使用规则中预设的字段值: {}", fieldValue);
+            }
+            // 设置aviatorScript中的输入参数
+            // 第一个字段赋值传入进来的fieldSample（最新的值）
+            if(i == 0) {
+                env.put(fieldName, fieldSample);
+            }else {
+                env.put(fieldName, fieldValue);
+            }
+        }
+        return env;
     }
 
 }
