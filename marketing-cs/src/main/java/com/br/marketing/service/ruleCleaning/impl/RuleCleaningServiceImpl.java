@@ -38,6 +38,7 @@ import com.github.pagehelper.PageHelper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.googlecode.aviator.AviatorEvaluator;
+import com.googlecode.aviator.AviatorEvaluatorInstance;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -116,6 +117,9 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
     @Resource
     private CybotstarAgentApiClient cybotstarAgentApiClient;
+
+    @Resource
+    private AviatorEvaluatorInstance cleanRuleAviatorEvaluatorInstance;
 
     /**
      * 规则列表查询
@@ -2639,7 +2643,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         // 执行Aviator脚本
         try {
             log.warn("执行大模型代码配置操作 - 脚本: {}, 输入参数: {}",aviatorScript, env);
-            return AviatorEvaluator.execute(aviatorScript, env);
+            return cleanRuleAviatorEvaluatorInstance.execute(aviatorScript, env);
         } catch (Exception e) {
             log.warn("大模型代码配置操作失败！错误信息：{}", e.getMessage(), e);
             throw new BusinessException("执行大模型代码配置操作失败！请检查脚本或者脚本输入参数值是否正确");
