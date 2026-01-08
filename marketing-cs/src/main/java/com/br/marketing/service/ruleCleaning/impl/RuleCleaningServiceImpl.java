@@ -2631,14 +2631,16 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             return fieldSample;
         }
         // 获取字段配置列表
-        List<Map<String, Object>> fields = (List<Map<String, Object>>) ruleMap.get("fields");
-        if (CollectionUtils.isEmpty(fields)) {
-            log.warn("大模型代码字段配置为空，返回原值");
-            return fieldSample;
+        List<Map<String, Object>> fields = null;
+        if(ruleMap.containsKey("fields")) {
+            fields = (List<Map<String, Object>>) ruleMap.get("fields");
         }
 
         // 组装aviatorScript中的输入参数
-        Map<String, Object> env = assembleAviatorScriptParams(fields, nodeParse, fieldSample);
+        Map<String, Object> env = getLLMCodeFieldsParam(fields, nodeParse);
+        String fieldName = String.valueOf(ruleMap.get("fieldName"));
+        // 将目标清洗字段最新的值放到map中
+        env.put(fieldName,fieldSample);
 
         // 执行Aviator脚本
         try {
@@ -2652,13 +2654,12 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     }
 
     /**
-     * 组装Aviator脚本输入参数
+     * 获取大模型代码配置规则fields中字段及参数值
      * @param fields 字段list
      * @param nodeParse 原始对象数据
-     * @param fieldSample 字段样本值
-     * @return  Aviator脚本输入参数Map
+     * @return  fields中字段及参数值Map
      */
-    private Map<String,Object> assembleAviatorScriptParams(List<Map<String, Object>> fields, Object nodeParse, String fieldSample) {
+    private Map<String,Object> getLLMCodeFieldsParam(List<Map<String, Object>> fields, Object nodeParse) {
         Map<String, Object> env = new HashMap<>();
         if(CollectionUtils.isEmpty(fields)) {
             return env;
@@ -2688,13 +2689,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 fieldValue = fieldConfig.get("fieldValue");
                 log.warn("使用规则中预设的字段值: {}", fieldValue);
             }
-            // 设置aviatorScript中的输入参数
-            // 第一个字段赋值传入进来的fieldSample（最新的值）
-            if(i == 0) {
-                env.put(fieldName, fieldSample);
-            }else {
-                env.put(fieldName, fieldValue);
-            }
+            env.put(fieldName, fieldValue);
         }
         return env;
     }
