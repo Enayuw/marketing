@@ -233,6 +233,11 @@ api:
   mock:
     baseUrl: http://marketing-inner-api
     redisUrl: ${api.mock.baseUrl}/mockRedis/queryMockConfig
+  cybotstar:
+    baseUrl: https://www.cybotstar.cn
+    dialogUrl: ${api.cybotstar.baseUrl}/openapi/v1/conversation/dialog/
+    isProxy: true
+
 #elastic-job配置
 SERVER_LISTS: pd-zk-yz-01.brapp.com:2181,pd-zk-yz-02.brapp.com:2181,pd-zk-yz-03.brapp.com:2181
 NAMESPACE: marketing-job

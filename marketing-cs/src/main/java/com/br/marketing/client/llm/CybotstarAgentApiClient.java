@@ -50,7 +50,7 @@ public class CybotstarAgentApiClient {
     @Value("${api.cybotstar.dialogUrl:https://www.cybotstar.cn/openapi/v1/conversation/dialog/}")
     private String dialogUrl;
 
-    @Value("${api.cybotstar.isProxy:false}")
+    @Value("${api.cybotstar.isProxy:true}")
     private boolean isProxy;
 
     /**
