@@ -2,39 +2,14 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.MarketingTcyrCustCellMappingMapper" >
 
-    <insert id="batchSaveCustCell">
-        ${insertSql}
-    </insert>
 
-
-    <insert id="saveNewCustCellInfo">
-        INSERT INTO
-            b_marketing_tcyr_cust_cell_mapping (id,cust_num,cell)
-        VALUES
-            (#{userKeyId},#{userKeyId},#{cell})
-    </insert>
-
-    <insert id="saveStrCustCellInfo">
-        INSERT INTO
-            b_marketing_tcyr_cust_cell_mapping (cust_num,cell)
-        VALUES
-            (#{userKey},#{cell})
-    </insert>
-
-
-    <select id="selectNumUserKeyCellBytikv_" resultType="java.lang.String">
-      select
-          cell
-      from  b_marketing_tcyr_cust_cell_mapping
-      where id = #{userKey}
+    <select id="selectCellBySyncId" resultType="java.lang.String">
+        SELECT
+            cell_md5
+        FROM b_marketing_sync_${apiCode}
+        WHERE id = #{id}  AND status = 1 AND is_repeat in (1,2)
     </select>
 
-    <select id="selectStrUserKeyCellBytikv_" resultType="java.lang.String">
-        select
-            cell
-        from  b_marketing_tcyr_cust_cell_mapping
-        where cust_num = #{userKey}
-    </select>
 
     <select id="selectCellInfotikv_" resultType="java.util.Map">
         SELECT
@@ -49,12 +24,6 @@
     </select>
 
 
-    <select id="selectCellBySyncId" resultType="java.lang.String">
-        SELECT
-            cell_md5
-        FROM b_marketing_sync_${apiCode}
-        WHERE id = #{id}  AND status = 1 AND is_repeat in (1,2)
-    </select>
 
 
 </mapper>
