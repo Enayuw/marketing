@@ -20,6 +20,7 @@ import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.enums.clean.DataProcessEnum;
+import com.br.marketing.enums.clean.DerivedTypeEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.mapper.rulecleaning.MarketingCustomerOriginalDataMapper;
 import com.br.marketing.mapper.rulecleaning.MarketingDataCleanGeneralConfigMapper;
@@ -266,13 +267,11 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             for (MarketingJsonNodeParse node : nodes) {
                 String nodeName = node.getNodeName();
                 Integer level = node.getLevel();
-                if (Integer.valueOf(0).equals(level)) {
+                if (Integer.valueOf(0).equals(level)
+                        || DataProcessEnum.AcceptTypeEnum.GENERAL.getCode().equals(acceptType)
+                        || ("requestId".equals(nodeName))
+                        || "taskId".equals(nodeName)) {
                     continue;
-                }
-                if (DataProcessEnum.AcceptTypeEnum.GENERAL.getCode().equals(acceptType)){
-                    if (("requestId".equals(nodeName)) || "taskId".equals(nodeName)) {
-                        continue;
-                    }
                 }
                 FieldSampleDTO dto = new FieldSampleDTO();
                 String nodeValue = node.getNodeValue();
@@ -2080,7 +2079,39 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         MarketingCleanDataFile cleanDataFile = cleanDataFiles.get(0);
         List<String> fileHeader = Arrays.asList(cleanDataFile.getFileHeader().split(","));
         List<String> fileData = Arrays.asList(cleanDataFile.getFileData().split(",", -1));
+
+        if (fileHeader.size() != fileData.size()) {
+            throw new BusinessException("文件表头与文件数据不匹配");
+        }
+
+        for (MarketingDataCleanGeneralRuleConfig ruleConfig : ruleConfigList) {
+            String cleanField = ruleConfig.getCleanFields();
+            String fieldSample;
+            try {
+                fieldSample  = fileData.get(fileHeader.indexOf(cleanField));
+            } catch (Exception e) {
+                fieldSample = "";
+            }
+            FieldSampleDTO dto = new FieldSampleDTO();
+            dto.setFieldName(cleanField);
+            dto.setFieldSample(fieldSample);
+            dto.setFirstUploadTime(cleanDataFile.getCreateTime());
+            dto.setMappingRule(ruleConfig.getMappingRule());
+            dto.setRelatedField(ruleConfig.getMappingField());
+            dto.setResultPreview(ruleConfig.getResultPreview());
+            dto.setNeedCleaning(ruleConfig.getIsMapping());
+            dto.setFieldType(ruleConfig.getIsDerived());
+            // 添加到结果列表
+            result.add(dto);
+        }
+        List<String> fileFields =
+                result.stream().filter((FieldSampleDTO file) ->  DerivedTypeEnum.NORMAL.getCode().equals(file.getFieldType()))
+                        .map(FieldSampleDTO::getFieldName).collect(Collectors.toList());
+
         for (int i = 0; i < fileHeader.size(); i++) {
+            if (fileFields.contains(fileHeader.get(i))) {
+                continue;
+            }
             FieldSampleDTO dto = new FieldSampleDTO();
             // 设置字段名称
             dto.setFieldName(fileHeader.get(i));
@@ -2088,18 +2119,11 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             dto.setFirstUploadTime(cleanDataFile.getCreateTime());
             dto.setFieldType(0);
             dto.setNeedCleaning(false);
-            MarketingDataCleanGeneralRuleConfig ruleConfig = ruleConfigList.stream().filter(rule -> rule.getCleanFields().equals(dto.getFieldName()))
-                    .findFirst().orElse(null);
-            if (!Objects.isNull(ruleConfig)) {
-                dto.setMappingRule(ruleConfig.getMappingRule());
-                dto.setRelatedField(ruleConfig.getMappingField());
-                dto.setResultPreview(ruleConfig.getResultPreview());
-                dto.setNeedCleaning(ruleConfig.getIsMapping());
-                dto.setFieldType(ruleConfig.getIsDerived());
-            }
             // 添加到结果列表
             result.add(dto);
         }
+
+
     }
 
     @Override

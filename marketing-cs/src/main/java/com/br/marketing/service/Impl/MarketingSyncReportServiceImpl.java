@@ -945,34 +945,28 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
     @Override
     public void exportData(String cidOrName, String appletTimeStart, String appletTimeEnd, String apiCodes,
                            String userTypes,Integer selectType,String selectExportIds, HttpServletResponse response){
-        OutputStreamWriter writer = null;
         try {
             String yyyyMMdd = new SimpleDateFormat(DateHelper.SHORT_DATE_FORMAT).format(new Date());
             String encodeFileName  = URLEncoder.encode("数据导出"+ yyyyMMdd +".txt",StandardCharsets.UTF_8.toString());
             response.setContentType("text/plain; charset=UTF-8");
             response.setHeader("Content-Disposition", "attachment; filename=" + encodeFileName);
             ServletOutputStream out = response.getOutputStream();
-            writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);
-            // 写入UTF-8 BOM，确保Excel等软件正确识别编码
-            out.write(0xEF);
-            out.write(0xBB);
-            out.write(0xBF);
-            writer.append("上传日期").append(",").append("客户编号").append(",").append("APIcode").append(",")
-                    .append("客户名称").append(",").append("场景").append(",").append("数据正常入库条数").append(",")
-                    .append("去重后数据量").append(",").append("创建时间").append(",").append("上传开始时间").append(",")
-                    .append("上传结束时间").append(",").append("数据生效时间").append(",").append("数据失效时间").append("\r\n");
+            try(OutputStreamWriter writer = new OutputStreamWriter(out, StandardCharsets.UTF_8)) {
+                // 写入UTF-8 BOM，确保Excel等软件正确识别编码
+                out.write(0xEF);
+                out.write(0xBB);
+                out.write(0xBF);
+                writer.append("上传日期").append(",").append("客户编号").append(",").append("APIcode").append(",")
+                        .append("客户名称").append(",").append("场景").append(",").append("数据正常入库条数").append(",")
+                        .append("去重后数据量").append(",").append("创建时间").append(",").append("上传开始时间").append(",")
+                        .append("上传结束时间").append(",").append("数据生效时间").append(",").append("数据失效时间").append("\r\n");
 
-            fillExportData(cidOrName,appletTimeStart,appletTimeEnd,apiCodes,userTypes,selectType,selectExportIds,writer,out);
+                fillExportData(cidOrName,appletTimeStart,appletTimeEnd,apiCodes,userTypes,selectType,selectExportIds,writer,out);
+            }catch (Exception e) {
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SYNC_REPORT_EXPORT_SERVICEERROR.getCode(), e.getMessage()), e);
+            }
         } catch (IOException e) {
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SYNC_REPORT_EXPORT_SERVICEERROR.getCode(), e.getMessage()), e);
-        }finally {
-            if (writer != null) {
-                try {
-                    writer.close();
-                }catch (Exception e) {
-                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SYNC_REPORT_EXPORT_SERVICEERROR.getCode(), e.getMessage()), e);
-                }
-            }
         }
     }
 

@@ -180,6 +180,8 @@ api:
     reachUrl: ${api.didi.baseUrl}/crow/user/success/bairong
     jmassSUrl: ${api.didi.baseUrl}/model/sample/mediaName
     failedUrl: ${api.didi.baseUrl}/crow/faileduser/mediaName
+    collidingUrl: ${api.didi.baseUrl}/crow/collision/mediaName
+    callbackSuccessUrl: ${api.didi.baseUrl}/crow/user/success/mediaName
     token: DK&SgWl!fZ%WVSXe
     scas: "0001"
     channelId: 3140738836439875

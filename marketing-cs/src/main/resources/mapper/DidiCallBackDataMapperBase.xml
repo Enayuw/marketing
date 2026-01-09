@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.DidiCallBackDataMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.DidiCallBackData" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="callback_type" property="callbackType" jdbcType="INTEGER" />
+    <result column="cell" property="cell" jdbcType="VARCHAR" />
+    <result column="cust_num" property="custNum" jdbcType="VARCHAR" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="push_status" property="pushStatus" jdbcType="INTEGER" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="create_date" property="createDate" jdbcType="VARCHAR" />
+    <result column="scas" property="scas" jdbcType="VARCHAR" />
+    <result column="is_connect" property="isConnect" jdbcType="INTEGER" />
+    <result column="sms_send_status" property="smsSendStatus" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="extend" property="extend" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, callback_type, cell, cust_num, api_code, push_status, `status`, create_date, 
+    scas, is_connect, sms_send_status, create_time, update_time, extend
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.DidiCallBackDataExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_didi_v5_callback_data
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select
+    <include refid="Base_Column_List" />
+    from b_didi_v5_callback_data
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_didi_v5_callback_data
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.DidiCallBackDataExample" >
+    delete from b_didi_v5_callback_data
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.DidiCallBackData" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_didi_v5_callback_data (callback_type, cell, cust_num,
+    api_code, push_status, `status`,
+    create_date, scas, is_connect,
+    sms_send_status, create_time, update_time,
+    extend)
+    values (#{callbackType,jdbcType=INTEGER}, #{cell,jdbcType=VARCHAR}, #{custNum,jdbcType=VARCHAR},
+    #{apiCode,jdbcType=VARCHAR}, #{pushStatus,jdbcType=INTEGER}, #{status,jdbcType=INTEGER},
+    #{createDate,jdbcType=VARCHAR}, #{scas,jdbcType=VARCHAR}, #{isConnect,jdbcType=INTEGER},
+    #{smsSendStatus,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
+    #{extend,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.DidiCallBackData" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_didi_v5_callback_data
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="callbackType != null" >
+        callback_type,
+      </if>
+      <if test="cell != null" >
+        cell,
+      </if>
+      <if test="custNum != null" >
+        cust_num,
+      </if>
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="pushStatus != null" >
+        push_status,
+      </if>
+      <if test="status != null" >
+        `status`,
+      </if>
+      <if test="createDate != null" >
+        create_date,
+      </if>
+      <if test="scas != null" >
+        scas,
+      </if>
+      <if test="isConnect != null" >
+        is_connect,
+      </if>
+      <if test="smsSendStatus != null" >
+        sms_send_status,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+      <if test="extend != null" >
+        extend,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="callbackType != null" >
+        #{callbackType,jdbcType=INTEGER},
+      </if>
+      <if test="cell != null" >
+        #{cell,jdbcType=VARCHAR},
+      </if>
+      <if test="custNum != null" >
+        #{custNum,jdbcType=VARCHAR},
+      </if>
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="pushStatus != null" >
+        #{pushStatus,jdbcType=INTEGER},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="createDate != null" >
+        #{createDate,jdbcType=VARCHAR},
+      </if>
+      <if test="scas != null" >
+        #{scas,jdbcType=VARCHAR},
+      </if>
+      <if test="isConnect != null" >
+        #{isConnect,jdbcType=INTEGER},
+      </if>
+      <if test="smsSendStatus != null" >
+        #{smsSendStatus,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="extend != null" >
+        #{extend,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.DidiCallBackDataExample" resultType="java.lang.Integer" >
+    select count(*) from b_didi_v5_callback_data
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_didi_v5_callback_data
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.callbackType != null" >
+        callback_type = #{record.callbackType,jdbcType=INTEGER},
+      </if>
+      <if test="record.cell != null" >
+        cell = #{record.cell,jdbcType=VARCHAR},
+      </if>
+      <if test="record.custNum != null" >
+        cust_num = #{record.custNum,jdbcType=VARCHAR},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.pushStatus != null" >
+        push_status = #{record.pushStatus,jdbcType=INTEGER},
+      </if>
+      <if test="record.status != null" >
+        `status` = #{record.status,jdbcType=INTEGER},
+      </if>
+      <if test="record.createDate != null" >
+        create_date = #{record.createDate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.scas != null" >
+        scas = #{record.scas,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isConnect != null" >
+        is_connect = #{record.isConnect,jdbcType=INTEGER},
+      </if>
+      <if test="record.smsSendStatus != null" >
+        sms_send_status = #{record.smsSendStatus,jdbcType=INTEGER},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.extend != null" >
+        extend = #{record.extend,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_didi_v5_callback_data
+    set id = #{record.id,jdbcType=BIGINT},
+    callback_type = #{record.callbackType,jdbcType=INTEGER},
+    cell = #{record.cell,jdbcType=VARCHAR},
+    cust_num = #{record.custNum,jdbcType=VARCHAR},
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    push_status = #{record.pushStatus,jdbcType=INTEGER},
+    `status` = #{record.status,jdbcType=INTEGER},
+    create_date = #{record.createDate,jdbcType=VARCHAR},
+    scas = #{record.scas,jdbcType=VARCHAR},
+    is_connect = #{record.isConnect,jdbcType=INTEGER},
+    sms_send_status = #{record.smsSendStatus,jdbcType=INTEGER},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    extend = #{record.extend,jdbcType=VARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.DidiCallBackData" >
+    update b_didi_v5_callback_data
+    <set >
+      <if test="callbackType != null" >
+        callback_type = #{callbackType,jdbcType=INTEGER},
+      </if>
+      <if test="cell != null" >
+        cell = #{cell,jdbcType=VARCHAR},
+      </if>
+      <if test="custNum != null" >
+        cust_num = #{custNum,jdbcType=VARCHAR},
+      </if>
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="pushStatus != null" >
+        push_status = #{pushStatus,jdbcType=INTEGER},
+      </if>
+      <if test="status != null" >
+        `status` = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="createDate != null" >
+        create_date = #{createDate,jdbcType=VARCHAR},
+      </if>
+      <if test="scas != null" >
+        scas = #{scas,jdbcType=VARCHAR},
+      </if>
+      <if test="isConnect != null" >
+        is_connect = #{isConnect,jdbcType=INTEGER},
+      </if>
+      <if test="smsSendStatus != null" >
+        sms_send_status = #{smsSendStatus,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="extend != null" >
+        extend = #{extend,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.DidiCallBackData" >
+    update b_didi_v5_callback_data
+    set callback_type = #{callbackType,jdbcType=INTEGER},
+        cell = #{cell,jdbcType=VARCHAR},
+        cust_num = #{custNum,jdbcType=VARCHAR},
+        api_code = #{apiCode,jdbcType=VARCHAR},
+        push_status = #{pushStatus,jdbcType=INTEGER},
+        `status` = #{status,jdbcType=INTEGER},
+        create_date = #{createDate,jdbcType=VARCHAR},
+        scas = #{scas,jdbcType=VARCHAR},
+        is_connect = #{isConnect,jdbcType=INTEGER},
+        sms_send_status = #{smsSendStatus,jdbcType=INTEGER},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        extend = #{extend,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>
