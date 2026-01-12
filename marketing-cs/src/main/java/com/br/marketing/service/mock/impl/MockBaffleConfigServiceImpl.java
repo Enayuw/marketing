@@ -11,6 +11,7 @@ import com.br.marketing.constants.MockConstants;
 import com.br.marketing.dto.mock.MockCreatePolicyDTO;
 import com.br.marketing.dto.mock.MockInitDTO;
 import com.br.marketing.origin.CaffeineCache;
+import com.br.marketing.service.mock.MockService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -45,19 +46,25 @@ public class MockBaffleConfigServiceImpl {
 
     @Resource
     private MarketingMockApiService marketingMockApiService;
+    
+    @Resource(name = "newMockService")
+    private MockService mockService;
 
     // 获取应用名称，用于判断是否需要启用Mock功能
     @Value("${spring.application.name:unknown}")
     private String applicationName;
 
     private static final String TITLE = "【Mock初始化】";
+    
+    /** inner-api 项目名称，该项目可直接调用 MockService 查询 Redis，无需走 HTTP API */
+    private static final String INNER_API_PROJECT = "marketing-inner-api";
 
     @PostConstruct
     public void init() {
         // 检查当前项目是否需要禁用Mock初始化
         Set<String> disableMockProjects = marketingCommonConfig.getDisableMockProjects();
         if (!disableMockProjects.contains(applicationName)) {
-            log.warn(TITLE + "当前项目 [{}] 在禁用Mock列表中，跳过Mock初始化操作", applicationName);
+            log.warn(TITLE + "当前项目 [{}] 不在可用Mock列表中，跳过Mock，执行真实方法", applicationName);
             return;
         }
         
@@ -129,6 +136,22 @@ public class MockBaffleConfigServiceImpl {
     }
 
     /**
+     * 根据项目类型查询 Mock 配置
+     * inner-api 项目直接调用 MockService（本地 Redis），其他项目走 HTTP API
+     *
+     * @param cacheKey Redis 缓存 key
+     * @return Mock 配置结果
+     */
+    private Result<String> queryMockConfigByProject(String cacheKey) {
+        if (INNER_API_PROJECT.equals(applicationName)) {
+            // inner-api 项目直接调用 MockService 查询 Redis，避免 HTTP 自调用
+            return mockService.queryMockConfig(cacheKey);
+        }
+        // 其他项目通过 HTTP API 调用 inner-api
+        return marketingMockApiService.queryMockConfig(cacheKey);
+    }
+
+    /**
      * 检查并更新Mock缓存
      * 比较本地缓存和Redis版本，如果不一致则更新本地缓存
      */
@@ -143,7 +166,8 @@ public class MockBaffleConfigServiceImpl {
                 String mockConfigValue = null;
 
                 // 查询mock配置信息
-                Result<String> mockConfig = marketingMockApiService.queryMockConfig(localCacheKey);
+                // inner-api 项目直接调用 MockService，其他项目走 HTTP API
+                Result<String> mockConfig = queryMockConfigByProject(localCacheKey);
                 Integer code = mockConfig.getCode();
                 if(code.equals(ResultCode.SUCCESS.getValue())){
                     mockConfigValue = mockConfig.getData();
