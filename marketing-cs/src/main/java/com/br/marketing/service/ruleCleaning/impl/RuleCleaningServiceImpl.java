@@ -2678,8 +2678,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 boolean a = !"null".equals(parentPath) && ObjectUtil.isNotEmpty(parentPath);
                 boolean b = !"null".equals(level) && ObjectUtil.isNotEmpty(level);
                 if (a || b) {
-                    log.warn("大模型代码配置操作逻辑（新）从nodeParse获取字段 {} 的值: {}", fieldName, fieldValue);
                     fieldValue = JsonParseUtils.findFirstValueByKey(nodeParse, fieldName, parentPath);
+                    log.warn("大模型代码配置操作逻辑（新）从nodeParse获取字段 {} 的值: {}", fieldName, fieldValue);
                 } else {
                     fieldValue = JsonParseUtils.findFirstValueByKey(nodeParse, fieldName);
                     log.warn("大模型代码配置操作逻辑（老）从nodeParse获取字段 {} 的值: {}", fieldName, fieldValue);
