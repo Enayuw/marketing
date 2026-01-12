@@ -35,19 +35,16 @@ import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.google.common.collect.Lists;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
-import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+
+import javax.annotation.Resource;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 @Slf4j
@@ -290,12 +287,17 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
 
     private String getCurrentScas() {
         String currentScas;
-        if(StringUtils.isEmpty(preScas.get())) {
-            currentScas = scasMap.values().iterator().next();
-        } else {
-            currentScas = scasMap.get(preScas.get());
-        }
-        preScas.set(currentScas);
+        String expectedScas;
+        String newScas;
+        do {
+            expectedScas = preScas.get();
+            if (StringUtils.isEmpty(expectedScas)) {
+                currentScas = scasMap.values().iterator().next();
+            } else {
+                currentScas = scasMap.get(expectedScas);
+            }
+            newScas = currentScas;
+        } while (!preScas.compareAndSet(expectedScas, newScas));
         return currentScas;
     }
 
