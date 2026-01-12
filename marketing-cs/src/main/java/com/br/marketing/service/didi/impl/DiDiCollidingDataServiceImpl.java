@@ -5,6 +5,7 @@ import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.didi.DiDiV5Client;
 import com.br.marketing.client.didi.input.v5.DiDiV5CollidingRequestDTO;
@@ -40,6 +41,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -51,6 +54,11 @@ import org.springframework.util.CollectionUtils;
 public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
 
     private final static String TITLE = "【滴滴V5-短信流量数据】";
+
+    private ConcurrentHashMap<String, String> scasMap = new ConcurrentHashMap<>();
+
+    private AtomicReference<String> preScas = new AtomicReference<>();
+
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -208,6 +216,9 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
     @Override
     public Result<Boolean> saveDiDiCollidingDataLog(String bodyString) {
         Result<Boolean> result = new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(false);
+        JSONObject collidingConfig = marketingCommonConfig.getDiDiV5Config();
+        scasMap = collidingConfig.getJSONObject("scasMap")
+                .toJavaObject(new TypeReference<ConcurrentHashMap<String, String>>() {});
         try {
             JSONObject dto = JSONObject.parseObject(bodyString);
             String responseStr = dto.getString("diDiV5CollidingResultResponseDTO");
@@ -220,7 +231,6 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
                 return cleanAndUpload(diDiV5CollidingResultResponseDTO, dataLog);
             } else {
                 if (Objects.equals(diDiV5CollidingResultResponseDTO.getData().getFailReason(), 1) && diDiV5CollidingResultResponseDTO.getData().getNextTime() != null) {
-                    JSONObject collidingConfig = marketingCommonConfig.getDiDiV5Config();
                     Long retrieveFileId = collidingConfig.getLong("retrieveFileId");
                     DiDiV5CollidingData retrieveData = new DiDiV5CollidingData();
                     retrieveData.setApiCode(dataLog.getApiCode());
@@ -260,7 +270,7 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
         cleanJson.put("userGroup", dataLog.getUserGroup());
         cleanJson.put("userType", userType);
         String today = DateUtil.format(new Date(), DatePattern.PURE_DATE_FORMAT);
-        cleanJson.put("scas", today + userType);
+        cleanJson.put("scas", today + userType + "-" + getCurrentScas());
         Result cleanResult = generalDataCleanService.uploadClean(
                 Lists.newArrayList(cleanJson),
                 dataLog.getApiCode());
@@ -276,6 +286,17 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
         List<MarketingPreUserDetailDTO> userList = (List<MarketingPreUserDetailDTO>) cleanResult.getData();
         UploadDataDTO uploadDataDTO = initUploadData(dataLog.getApiCode(), batchNo, userList, requestId);
         return pushInfoService.pushUploadByRetry(uploadDataDTO, null);
+    }
+
+    private String getCurrentScas() {
+        String currentScas;
+        if(StringUtils.isEmpty(preScas.get())) {
+            currentScas = scasMap.values().iterator().next();
+        } else {
+            currentScas = scasMap.get(preScas.get());
+        }
+        preScas.set(currentScas);
+        return currentScas;
     }
 
 
