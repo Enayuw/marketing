@@ -1,10 +1,10 @@
 package com.br.marketing.service.tccpa.impl;
 
 import com.br.marketing.common.utils.Constants;
+import com.br.marketing.config.biz.TcyrCpaConfigManager;
 import com.br.marketing.dto.tccpa.TcCpaDeleteRuleExecuteInfoDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.TcCpaDeleteRuleSourceTypeEnum;
-import com.br.marketing.enums.TcCpaFailMsgEnum;
 import com.br.marketing.mapper.TcyrCpaCommonMapper;
 import com.br.marketing.mapper.TcyrCpaDeleteRuleMapper;
 import com.br.marketing.service.tccpa.TcCpaCommonService;
@@ -30,6 +30,9 @@ public class TcCpaCommonServiceImpl implements TcCpaCommonService {
     @Resource
     private TcyrCpaDeleteRuleMapper tcyrCpaDeleteRuleMapper;
 
+    @Resource
+    TcyrCpaConfigManager tcyrCpaConfigManager;
+
     @Override
     public void updateVolumeByTask(TcyrCpaCollidingTask collidingTask) throws IOException {
         String joinFrag = getDeleteSqlFrag(collidingTask.getDeleteRuleIds());
@@ -52,14 +55,17 @@ public class TcCpaCommonServiceImpl implements TcCpaCommonService {
         int supplyEstNum = 0;
         //补充包预估
         int supplyEstNumWithDel = 0;
+
+        //failMsg与lockBelong的映射Map
+        Map<Integer, Integer> failMsgToLbMap = tcyrCpaConfigManager.getFailMsgToBlMap();
         if (StringUtils.isNotEmpty(collidingTask.getSupplyRuleInfo())) {
             List<TcyrSupplyRuleInfo> supplyRuleInfos =
                     objectMapper.readValue(collidingTask.getSupplyRuleInfo(),
                             new TypeReference<List<TcyrSupplyRuleInfo>>() {
                             });
             for (TcyrSupplyRuleInfo ruleInfo : supplyRuleInfos) {
-                if (TcCpaFailMsgEnum.isLock(ruleInfo.getFailMsg())) {
-                    Integer lockBelong = convertFailMsgToLockBelong(ruleInfo.getFailMsg());
+                if (failMsgToLbMap.containsKey(ruleInfo.getFailMsg())) {
+                    Integer lockBelong = failMsgToLbMap.get(ruleInfo.getFailMsg());
                     String lockEstSql = "select count(distinct pck.user_key) from b_tcyr_cpa_lock_data pck "
                             .concat(" where pck.is_del = 1")
                             .concat(" and pck.lock_belong = " + lockBelong)
@@ -151,32 +157,6 @@ public class TcCpaCommonServiceImpl implements TcCpaCommonService {
         return scripts.size() == 1 ?
                 tcyrCpaCommonMapper.calculateDeleteNumByScript(scripts.get(0)) :
                 tcyrCpaCommonMapper.executeUnionQueriestikv_(scripts);
-    }
-
-    @Override
-    public Integer convertFailMsgToLockBelong(Integer failMsg) {
-        if (failMsg == null) {
-            return null;
-        }
-        for (TcCpaFailMsgEnum enumItem : TcCpaFailMsgEnum.values()) {
-            if (failMsg.equals(enumItem.getValue())) {
-                return enumItem.getLockValue();
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public Integer convertLockBelongToFailMsg(Integer lockBelong) {
-        if (lockBelong == null) {
-            return null;
-        }
-        for (TcCpaFailMsgEnum enumItem : TcCpaFailMsgEnum.values()) {
-            if (lockBelong.equals(enumItem.getLockValue())) {
-                return enumItem.getValue();
-            }
-        }
-        return null;
     }
 
     @Override

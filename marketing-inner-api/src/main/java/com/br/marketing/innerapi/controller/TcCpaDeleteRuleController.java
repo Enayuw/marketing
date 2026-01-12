@@ -3,7 +3,6 @@ package com.br.marketing.innerapi.controller;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.config.biz.TcyrCpaConfigManager;
-import com.br.marketing.enums.TcCpaFailMsgEnum;
 import com.br.marketing.service.tccpa.TcCpaDataDeleteRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.tccpa.TcyrCpaDeleteRuleVO;
@@ -11,12 +10,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import com.br.marketing.vo.tccpa.TcyrCpaFailMsgVO;
 import org.springframework.web.bind.annotation.*;
-
 import javax.annotation.Resource;
-import java.util.Arrays;
-import java.util.stream.Collectors;
 
 
 /**
@@ -33,7 +28,7 @@ public class TcCpaDeleteRuleController {
     private TcCpaDataDeleteRuleService tcCpaDataDeleteRuleService;
 
     @Resource
-    MarketingCommonConfig marketingCommonConfig;
+    TcyrCpaConfigManager tcyrCpaConfigManager;
 
     /**
      * 同程CPA跑分文件数据包删除
@@ -84,8 +79,7 @@ public class TcCpaDeleteRuleController {
     @Operation(summary = "获取FailMsg列表", description = "获取FailMsg列表")
     @GetMapping("/getFailMsgs")
     public ApiResult getFailMsgs() {
-        return new ApiResult().success().setData(
-                TcyrCpaConfigManager.createFailMsgVOs(marketingCommonConfig.getTcyrCpaFailMsgConfig()));
+        return new ApiResult().success().setData(tcyrCpaConfigManager.getFailMsgVOs());
     }
 
     /**

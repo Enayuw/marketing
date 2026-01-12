@@ -4,25 +4,24 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.entity.TcyrCpaFailMsgConfig;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.tccpa.TcyrCpaFailMsgVO;
-import lombok.Builder;
-import lombok.Data;
-import java.util.List;
+import org.springframework.stereotype.Service;
+import javax.annotation.Resource;
+import java.util.*;
+import java.util.stream.Collectors;
 
-@Data
-@Builder
+@Service
 public class TcyrCpaConfigManager {
 
-    private List<TcyrCpaFailMsgConfig> failMsgConfig;
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
-    public TcyrCpaConfigManager create(List<JSONObject> tcyrCpaFailMsgConfig) {
-
-        return TcyrCpaConfigManager.builder()
-                .failMsgConfig(createFailMsgConfig(tcyrCpaFailMsgConfig))
-                .build();
-    }
-
-    private List<TcyrCpaFailMsgConfig> createFailMsgConfig(List<JSONObject> tcyrCpaFailMsgConfig) {
+    /**
+     * 获取原始配置
+     */
+    private List<TcyrCpaFailMsgConfig> createFailMsgConfig() {
+        List<JSONObject> tcyrCpaFailMsgConfig = marketingCommonConfig.getTcyrCpaFailMsgConfig();
         try {
             String jsonString = JSON.toJSONString(tcyrCpaFailMsgConfig);
             List<TcyrCpaFailMsgConfig> configs = JSON.parseObject(
@@ -35,9 +34,59 @@ public class TcyrCpaConfigManager {
         }
     }
 
-    public static List<TcyrCpaFailMsgVO> createFailMsgVOs(List<JSONObject> tcyrCpaFailMsgConfig) {
+    /**
+     * 获取failMsg-lockBelong的映射Map
+     */
+    public Map<Integer, Integer> getFailMsgToBlMap() {
+        return createFailMsgConfig().stream()
+                .filter(TcyrCpaFailMsgConfig::isIfWithReleaseTime)
+                .filter(c -> c.getValue() != null)
+                .filter(c -> c.getLockBelong() != null)
+                .collect(Collectors.toMap(
+                        TcyrCpaFailMsgConfig::getValue,
+                        TcyrCpaFailMsgConfig::getLockBelong,
+                        (existing, replacement) -> existing
+                ));
+    }
+
+    /**
+     * 获取failMsg-lockBelong的映射Map
+     * String版
+     */
+    public Map<String, Integer> getFailMsgToBlMapVT() {
+        return createFailMsgConfig().stream()
+                .filter(TcyrCpaFailMsgConfig::isIfWithReleaseTime)
+                .filter(c -> c.getValue() != null)
+                .filter(c -> c.getLockBelong() != null)
+                .collect(Collectors.toMap(
+                        c -> String.valueOf(c.getValue()),
+                        TcyrCpaFailMsgConfig::getLockBelong,
+                        (existing, replacement) -> existing
+
+                ));
+    }
+
+    /**
+     * 获取lockBelong-failMsg的映射Map
+     */
+    public Map<Integer, Integer> getBelongToFmMap() {
+        return createFailMsgConfig().stream()
+                .filter(TcyrCpaFailMsgConfig::isIfWithReleaseTime)
+                .filter(c -> c.getValue() != null)
+                .filter(c -> c.getLockBelong() != null)
+                .collect(Collectors.toMap(
+                        TcyrCpaFailMsgConfig::getLockBelong,
+                        TcyrCpaFailMsgConfig::getValue,
+                        (existing, replacement) -> existing
+                ));
+    }
+
+    /**
+     * 获取failMsg的VO
+     */
+    public List<TcyrCpaFailMsgVO> getFailMsgVOs() {
         try {
-            String jsonString = JSON.toJSONString(tcyrCpaFailMsgConfig);
+            String jsonString = JSON.toJSONString(createFailMsgConfig());
             List<TcyrCpaFailMsgVO> vos = JSON.parseObject(
                     jsonString,
                     new TypeReference<List<TcyrCpaFailMsgVO>>() {}
