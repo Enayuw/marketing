@@ -105,7 +105,7 @@
         where is_real = 0
         and user_type = #{userType}
         and receive_date = #{todayDate}
-        and select_status != 0
+        and select_status not in (0,3)
         and status is null
     </update>
 </mapper>

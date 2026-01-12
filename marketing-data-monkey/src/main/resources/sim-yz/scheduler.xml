@@ -710,7 +710,7 @@
 
     <job:simple id="【monkey】-QiFuQueryCallRealTimeJob"
                 class="com.br.marketing.monkey.job.qifu.QiFuQueryCallRealTimeJob"
-                cron="0 0,30 10-12 * * ?"
+                cron="0 0,30 10-20 * * ?"
                 description="奇富AI查询外呼信息"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
