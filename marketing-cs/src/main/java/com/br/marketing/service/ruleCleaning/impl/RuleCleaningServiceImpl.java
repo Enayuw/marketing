@@ -2617,17 +2617,14 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
      * @return 处理后的结果
      */
     private Object handleAviatorScriptOperation(String fieldSample, Map<String, Object> ruleMap, Object nodeParse) {
-        log.warn("处理大模型代码配置操作 - 输入值: {}, 规则: {}", fieldSample, ruleMap);
 
         // 参数校验
         if (MapUtils.isEmpty(ruleMap)) {
-            log.warn("规则配置为空");
             return fieldSample;
         }
         // 获取Aviator脚本
         String aviatorScript = ruleMap.containsKey("aviatorScript") ? String.valueOf(ruleMap.get("aviatorScript")) : null;
         if(StringUtils.isBlank(aviatorScript)) {
-            log.warn("规则配置中脚本为空");
             return fieldSample;
         }
         // 获取字段配置列表
@@ -2644,7 +2641,6 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
         // 执行Aviator脚本
         try {
-            log.warn("执行大模型代码配置操作 - 脚本: {}, 输入参数: {}",aviatorScript, env);
             return cleanRuleAviatorEvaluatorInstance.execute(aviatorScript, env);
         } catch (Exception e) {
             log.warn("大模型代码配置操作失败！错误信息：{}", e.getMessage(), e);
@@ -2679,15 +2675,12 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 boolean b = !"null".equals(level) && ObjectUtil.isNotEmpty(level);
                 if (a || b) {
                     fieldValue = JsonParseUtils.findFirstValueByKey(nodeParse, fieldName, parentPath);
-                    log.warn("大模型代码配置操作逻辑（新）从nodeParse获取字段 {} 的值: {}", fieldName, fieldValue);
                 } else {
                     fieldValue = JsonParseUtils.findFirstValueByKey(nodeParse, fieldName);
-                    log.warn("大模型代码配置操作逻辑（老）从nodeParse获取字段 {} 的值: {}", fieldName, fieldValue);
                 }
             } else {
                 // 使用规则中的预设值
                 fieldValue = fieldConfig.get("fieldValue");
-                log.warn("使用规则中预设的字段值: {}", fieldValue);
             }
             env.put(fieldName, fieldValue);
         }
