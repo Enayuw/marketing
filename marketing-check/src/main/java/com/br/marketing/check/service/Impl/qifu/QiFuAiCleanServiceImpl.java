@@ -474,6 +474,15 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
                 case "rCouponInfo":
                     reserField1.put("rCouponInfo", value);
                     break;
+                case "pricingValidPeriod":
+                    reserField1.put("pricingValidPeriod", value);
+                    break;
+                case "pricingDiscount":
+                    reserField1.put("pricingDiscount", value);
+                    break;
+                case "pricingExpireDays":
+                    reserField1.put("pricingExpireDays", value);
+                    break;
                 default:
                     break;
             }
