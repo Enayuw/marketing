@@ -11,5 +11,6 @@ public interface DiDiV5CollidingDataLogMapper extends DiDiV5CollidingDataLogMapp
                                                  @Param("pageSize") int pageSize,
                                                  @Param("apiCode") String apiCode);
 
-    int checkCell(@Param("cell") String cell);
+    List<String> checkCellBatch(@Param("cellList") List<String> cellList);
+
 }

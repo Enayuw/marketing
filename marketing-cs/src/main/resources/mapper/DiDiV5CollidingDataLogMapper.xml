@@ -32,10 +32,13 @@
             LIMIT #{pageSize}
     </select>
 
-    <select id="checkCell" resultType="int">
-        SELECT COUNT(*)
+    <select id="checkCellBatch" resultType="java.lang.String">
+        SELECT distinct(cell)
         FROM b_didi_v5_colliding_data_log
-        Where cell = #{cell}
-          AND fail_reason in (2, 3);
+        Where cell in
+        <foreach collection="cellList" item="cell" open="(" separator="," close=")">
+            #{cell}
+        </foreach>
+        AND fail_reason in (2, 3)
     </select>
 </mapper>

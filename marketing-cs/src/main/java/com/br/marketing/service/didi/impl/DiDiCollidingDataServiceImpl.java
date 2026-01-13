@@ -45,6 +45,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -114,15 +115,21 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
                 break;
             }
             markAsPushing(dataList);
-            // 使用CompletableFuture包装异步任务，收集所有Future
+            List<String> allCellsToCheck = dataList.stream().map(DiDiV5CollidingData::getCell).distinct().collect(Collectors.toList());
+            Set<String> existingCellsInPreScreen1 = preScreen1 ?
+                    new HashSet<>(didiCallbackDataLogMapper.checkCellBatch(allCellsToCheck)) : Collections.emptySet();
+            Set<String> existingCellsInPreScreen2 = preScreen2 ?
+                    new HashSet<>(diDiV5CollidingDataLogMapper.checkCellBatch(allCellsToCheck)) : Collections.emptySet();
             dataList.forEach((DiDiV5CollidingData data) -> {
-                int preScreen1Count = didiCallbackDataLogMapper.checkCell(data.getCell());
-                int preScreen2Count = diDiV5CollidingDataLogMapper.checkCell(data.getCell());
-                if ((!preScreen1 || preScreen1Count == 0) && (!preScreen2 || preScreen2Count == 0)) {
-                    futures.add(CompletableFuture.runAsync(
+                String currentCell = data.getCell();
+                boolean existsInScreen1 = preScreen1 && existingCellsInPreScreen1.contains(currentCell);
+                boolean existsInScreen2 = preScreen2 && existingCellsInPreScreen2.contains(currentCell);
+                if ((!preScreen1 || !existsInScreen1) && (!preScreen2 || !existsInScreen2)) {
+                    CompletableFuture<Void> future = CompletableFuture.runAsync(
                             () -> collidingData(data, mediaName, token),
-                            pushPool)
+                            pushPool
                     );
+                    futures.add(future);
                 }
             });
         }

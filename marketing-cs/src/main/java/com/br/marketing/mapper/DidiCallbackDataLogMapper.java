@@ -10,5 +10,5 @@ public interface DidiCallbackDataLogMapper extends DidiCallbackDataLogMapperBase
 
     List<String> selectSuccessPushedCells(@Param("cellSet") Set<String> cellSet);
 
-    int checkCell(@Param("cell") String cell);
+    List<String> checkCellBatch(@Param("cellList") List<String> cellList);
 }
