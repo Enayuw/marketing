@@ -70,7 +70,8 @@ public class MqIdempotentAspect {
             } catch (Throwable e) {
                 // 业务处理异常，删除幂等记录，让MQ重试
                 deleteIdempotentRecordOnException(tableType, idempotentKey, tag);
-                throw e;
+                throw new RuntimeException("业务处理异常，删除幂等记录，让MQ重试，apiCode：" + apiCode + "，tag:" +
+                        tag + "，idempotentKey：" + idempotentKey);
             }
         } finally {
             MqIdempotentContext.clear();
@@ -126,6 +127,26 @@ public class MqIdempotentAspect {
     }
 
     /**
+     * 更新apiCode
+     */
+    private void updateApiCodeIfNeeded(MqIdempotentTableType tableType, Long recordId, String originalApiCode, String tag) {
+        String currentApiCode = MqIdempotentContext.getApiCode();
+        if (currentApiCode == null || currentApiCode.equals(originalApiCode)) {
+            return;
+        }
+
+        try {
+            mqIdempotentService.updateApiCode(tableType, recordId, currentApiCode);
+        } catch (Exception e) {
+            String subject = "MQ幂等切面, 更新幂等记录apiCode失败";
+            String errorMsg = String.format("更新幂等记录apiCode失败, recordId: %s, tag: %s, apiCode: %s, error: %s",
+                    recordId, tag, currentApiCode, e.getMessage());
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), errorMsg
+                    , subject), e);
+        }
+    }
+
+    /**
      * 插入幂等记录
      * @return 记录ID，如果返回null表示消息已处理过（DuplicateKeyException）
      * @throws RuntimeException 插入失败时抛出异常，让MQ重试
@@ -145,26 +166,6 @@ public class MqIdempotentAspect {
             deleteIdempotentRecordOnException(tableType, idempotentKey, tag);
             // 插入失败，无法保证幂等性，抛出异常让MQ重试（最多16次）
             throw new RuntimeException(e.getMessage(), e);
-        }
-    }
-
-    /**
-     * 更新apiCode
-     */
-    private void updateApiCodeIfNeeded(MqIdempotentTableType tableType, Long recordId, String originalApiCode, String tag) {
-        String currentApiCode = MqIdempotentContext.getApiCode();
-        if (currentApiCode == null || currentApiCode.equals(originalApiCode)) {
-            return;
-        }
-
-        try {
-            mqIdempotentService.updateApiCode(tableType, recordId, currentApiCode);
-        } catch (Exception e) {
-            String subject = "MQ幂等切面, 更新幂等记录apiCode失败";
-            String errorMsg = String.format("更新幂等记录apiCode失败, recordId: %s, tag: %s, apiCode: %s, error: %s",
-                    recordId, tag, currentApiCode, e.getMessage());
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), errorMsg
-                    , subject), e);
         }
     }
 

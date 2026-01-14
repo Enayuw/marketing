@@ -86,7 +86,7 @@ public class RocketMqConsumerService {
                     , e.getMessage(), topic, tags, keys, msgId, t, messageExt, apply == null ? "null" : apply.toString());
             log.warn(error, e);
             alarmClient.sendAlarm(error, "RocketMQ消费异常", AlarmSendCodeEnum.ROCKETMQ_CONSUMER_ERROR.getCode());
-            throw e;
+            throw new RuntimeException(error);
         } finally {
             // 清理ThreadLocal
             MqIdempotentContext.clear();
