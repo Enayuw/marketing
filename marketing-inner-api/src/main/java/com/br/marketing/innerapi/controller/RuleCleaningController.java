@@ -78,16 +78,18 @@ public class RuleCleaningController {
     @Operation(summary = "新增配置字段样例查询", description = "新增配置字段样例查询")
     @Parameters({
             @Parameter(name = "apiCode", description = "API编码", required = true),
+            @Parameter(name = "systemType", description = "数据来源,0-营销中台 1-外呼系统", required = true),
             @Parameter(name = "dataType", description = "数据类型：0上传，1转化", required = true),
             @Parameter(name = "acceptType", description = "接口类型：0通用,1定制,2FTP", required = true)
     })
     @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_warn")})
     public ApiResult<List<FieldSampleDTO>> getPreviewFieldSamples(
             @RequestParam String apiCode,
+            @RequestParam Integer systemType,
             @RequestParam Integer dataType,
             @RequestParam Integer acceptType) {
 
-        List<FieldSampleDTO> fieldSamples = ruleCleaningService.getPreviewFieldSamples(apiCode, dataType, acceptType);
+        List<FieldSampleDTO> fieldSamples = ruleCleaningService.getPreviewFieldSamples(apiCode, systemType, dataType, acceptType);
         return new ApiResult<List<FieldSampleDTO>>().success(fieldSamples);
     }
 
@@ -97,16 +99,18 @@ public class RuleCleaningController {
     @Operation(summary = "字段样例查询", description = "查询定制化接口字段和字段样例")
     @Parameters({
             @Parameter(name = "apiCode", description = "API编码", required = true),
+            @Parameter(name = "systemType", description = "数据来源,0-营销中台 1-外呼系统", required = true),
             @Parameter(name = "dataType", description = "数据类型：0上传，1转化", required = true),
             @Parameter(name = "acceptType", description = "接口类型：0通用,1定制,2FTP", required = true)
     })
     @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_warn")})
     public ApiResult<List<FieldSampleDTO>> getFieldSamples(
             @RequestParam String apiCode,
+            @RequestParam Integer systemType,
             @RequestParam Integer dataType,
             @RequestParam Integer acceptType) {
         
-        List<FieldSampleDTO> fieldSamples = ruleCleaningService.getFieldSamples(apiCode, dataType, acceptType);
+        List<FieldSampleDTO> fieldSamples = ruleCleaningService.getFieldSamples(apiCode, systemType, dataType, acceptType);
         return new ApiResult<List<FieldSampleDTO>>().success(fieldSamples);
     }
 
@@ -115,16 +119,18 @@ public class RuleCleaningController {
     @Operation(summary = "数据预览", description = "数据预览")
     @Parameters({
             @Parameter(name = "apiCode", description = "API编码", required = true),
+            @Parameter(name = "systemType", description = "数据来源,0-营销中台 1-外呼系统", required = true),
             @Parameter(name = "dataType", description = "数据类型：0上传，1转化", required = true),
             @Parameter(name = "acceptType", description = "接口类型：0通用,1定制,2FTP", required = true)
     })
     @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_warn")})
     public ApiResult<String> getpreviewField(
             @RequestParam String apiCode,
+            @RequestParam Integer systemType,
             @RequestParam Integer dataType,
             @RequestParam Integer acceptType) {
         
-        String fieldSamples = ruleCleaningService.getpreviewField(apiCode, dataType, acceptType);
+        String fieldSamples = ruleCleaningService.getpreviewField(apiCode,systemType, dataType, acceptType);
         return new ApiResult<String>().success().setData(fieldSamples);
     }
 
@@ -156,13 +162,15 @@ public class RuleCleaningController {
     @Operation(summary = "模版字段配置查询", description = "模版字段配置查询")
     @Parameters({
             @Parameter(name = "dataType", description = "数据类型：0上传，1转化", required = true),
-            @Parameter(name = "acceptType", description = "接口类型：0通用,1定制,2FTP")
+            @Parameter(name = "acceptType", description = "接口类型：0通用,1定制,2FTP"),
+            @Parameter(name = "systemType", description = "数据来源,0-营销中台 1-外呼系统", required = true),
     })
     @ApiResponses(value = {@ApiResponse(responseCode = "500", description = "INTERNAL_SERVER_warn")})
     public ApiResult<MarketingDataCleanGeneralFieldConfig> getFieldConfg(@RequestParam(required = true) Integer dataType,
-                                                                         @RequestParam(required = false) Integer acceptType) {
-        
-        MarketingDataCleanGeneralFieldConfig fieldConfg = ruleCleaningService.getFieldConfg(dataType, acceptType);
+                                                                         @RequestParam(required = false) Integer acceptType,
+                                                                         @RequestParam(required = true) Integer systemType) {
+
+        MarketingDataCleanGeneralFieldConfig fieldConfg = ruleCleaningService.getFieldConfg(dataType, acceptType, systemType);
         return new ApiResult<MarketingDataCleanGeneralFieldConfig>().success(fieldConfg);
     }
 

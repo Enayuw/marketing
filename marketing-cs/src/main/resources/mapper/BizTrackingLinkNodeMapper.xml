@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.BizTrackingLinkNodeMapper" >
+
+    <!-- 根据链路ID查询节点详情（不包含统计信息，统计信息在 Service 层从 Doris 查询后合并） -->
+    <select id="selectLinkNodeDetailsWithStatistics" resultType="com.br.marketing.dto.datamap.LinkNodeDetailDTO">
+        SELECT
+            ln.id,
+            ln.link_id AS linkId,
+            ln.node_id AS nodeId,
+            ln.node_dict_id AS nodeDictId,
+            ln.node_alias AS nodeAlias,
+            ln.status,
+            nd.node_code AS nodeCode,
+            nd.api_code AS apiCode,
+            nd.node_type AS nodeType,
+            nd.node_name AS nodeName
+        FROM biz_tracking_link_node ln
+                 INNER JOIN biz_tracking_node_dict nd ON ln.node_dict_id = nd.id AND ln.status = 1
+        WHERE ln.link_id = #{linkId}
+    </select>
+
+</mapper>

@@ -1,4 +1,5 @@
 package com.br.marketing.service.Impl;
+
 import java.util.Date;
 
 import cn.hutool.core.date.DatePattern;
@@ -55,6 +56,7 @@ import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.context.RuntimeDataContext;
 import com.br.marketing.dto.*;
 import com.br.marketing.dto.customer.PushCustomerRequestDTO;
+import com.br.marketing.dto.dataclean.mq.CommonMqDataJsonParse;
 import com.br.marketing.dto.dataclean.mq.MqDataJsonParse;
 import com.br.marketing.dto.msg.mq.ApiDataInfoDTO;
 import com.br.marketing.dto.msg.mq.UserTypeCollectionDTO;
@@ -64,6 +66,7 @@ import com.br.marketing.dto.rulecenter.XcDeleteMagnitudeDistDTO;
 import com.br.marketing.dto.rulecenter.XieChengCollidingFilterDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.entity.common.TimeRange;
+import com.br.marketing.entity.common.TimeRangePlus;
 import com.br.marketing.enums.*;
 import com.br.marketing.enums.clean.DataProcessEnum;
 import com.br.marketing.enums.clean.DataSourceTypeEnum;
@@ -114,14 +117,18 @@ import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import com.github.pagehelper.PageHelper;
+import com.marketingkit.tracking.service.TrackingService;
 import com.github.pagehelper.PageInfo;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import com.marketingkit.tracking.util.TrackingContext;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -137,6 +144,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.*;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
@@ -157,6 +165,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import com.marketingkit.tracking.model.indicator.DataFlowDirection;
 
 @Service
 public class PushRuleServiceImpl implements PushRuleService {
@@ -181,6 +191,9 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Resource
     CaffeineCache caffeineCache;
+
+    @Resource
+    private TrackingService trackingService;
 
     @Resource
     MarketingTaskMapper marketingTaskMapper;
@@ -699,7 +712,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         try {
             tagDataDetailMapper.refreshbI_("refresh catalog es");
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("refresh catalog es异常");
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("refresh catalog es异常");
         }
@@ -1116,7 +1129,7 @@ public class PushRuleServiceImpl implements PushRuleService {
      * @param querySqls
      */
     public void cycleDataQueryOpt(JSONObject jsonObject, List<String> batchNumberList,
-                                   XieChengCollidingFilterDTO collidingFilterDTO, List<String> querySqls) {
+                                  XieChengCollidingFilterDTO collidingFilterDTO, List<String> querySqls) {
         String cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where release_time>= " +
                 "DATE_ADD(CURDATE(), INTERVAL 1 DAY)  and  release_time< DATE_ADD(CURDATE(), INTERVAL 7 DAY) and is_delete=0";
         //True关联查询
@@ -1647,7 +1660,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         //2.校验releaseTimeBegin是否大于当前时间4h以上
         LocalDateTime releaseTimeBegin = dto.getReleaseTimeBegin();
         LocalDateTime releaseTimeEnd = dto.getReleaseTimeEnd();
-        if(releaseTimeBegin.isBefore(LocalDateTime.now().plusHours(4))){
+        if (releaseTimeBegin.isBefore(LocalDateTime.now().plusHours(4))) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("剔除周期数据的释放时间范围的开始时间必须大于当前时间4h以上！");
         }
         //3.校验releaseTimeRange与存量【b_xiecheng_colliding_data_process_task】是否有交叉周期数据剔除范围
@@ -1656,8 +1669,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                 xiechengCollidingDataProcessTaskMapper.selectReleaseTimeRanges(dto.getApiCode());
         if (stockReleaseTimeRanges.size() != 0) {
             for (XcDeleteMagnitudeDistDTO stockReleaseTimeRange : stockReleaseTimeRanges) {
-                if((!releaseTimeBegin.isAfter(stockReleaseTimeRange.getReleaseTimeEnd())
-                        && !releaseTimeEnd.isBefore(stockReleaseTimeRange.getReleaseTimeBegin()))){
+                if ((!releaseTimeBegin.isAfter(stockReleaseTimeRange.getReleaseTimeEnd())
+                        && !releaseTimeEnd.isBefore(stockReleaseTimeRange.getReleaseTimeBegin()))) {
                     return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("剔除周期数据的施放时间范围与已生成的剔除任务时间有交叉，请检查！");
                 }
             }
@@ -1665,11 +1678,183 @@ public class PushRuleServiceImpl implements PushRuleService {
         //4.按自然日分割releaseTimeRange
         List<TimeRange> timeRanges = TimeUtils.splitByNaturalDays(releaseTimeBegin, releaseTimeEnd);
         //5.计算量级
+        if (marketingCommonConfig.getXcDeleteMagnitudeOptSwitch()) {
+            log.warn("规则中心-周期数据分天剔除查询-opt");
+            return getResultOpt(dto.getBatchNumberList(), conditionJson, timeRanges);
+        }
+        log.warn("规则中心-周期数据分天剔除查询");
         return getResult(dto, conditionJson, timeRanges);
+    }
+
+    private Result<List<XcDeleteMagnitudeDistDTO>> getResultOpt
+            (List<String> batchNumbers, JSONObject conditionJson, List<TimeRange> timeRanges) {
+        TpDynamicExecutor threadPool = TpDynamicExecutorFactory
+                .getThreadPool(ThreadPoolNameEnum.XIECHENG_CYCLE_DELETE_EST.getName(), 16, 20);
+        String sqlCondition = EsConditionTransferSqlUtil.jsonTransferSql(conditionJson, "");
+        //1.获取timeRangePlusList
+        List<TimeRangePlus> timeRangePlusList = new ArrayList<>();
+        int order = 0;
+        for (TimeRange timeRange : timeRanges) {
+            timeRangePlusList.add(new TimeRangePlus(timeRange, ++order));
+        }
+        //2.获取timeRange范围外的量级
+        Map<String, Long> outCycleMagnitudeMap = getOutCycleMagnitudes(timeRangePlusList);
+        List<Future<ImmutablePair<Map<String, Long>, Map<String, Long>>>> futures = new ArrayList<>();
+        //3.获取周期数据与跑分数据的交集量级
+        try {
+            for (String batchNumber : batchNumbers) {
+                futures.add(threadPool.submit(() ->
+                        magnitudeDistCalOpt(timeRangePlusList, batchNumber, sqlCondition)
+                ));
+            }
+            List<Pair<Map<String, Long>, Map<String, Long>>> futureResults = new ArrayList<>();
+            long globalStart = System.currentTimeMillis();
+            long globalTimeout = TimeUnit.MINUTES.toMillis(2); // 总超时时间2分钟
+            for (Future<ImmutablePair<Map<String, Long>, Map<String, Long>>> future : futures) {
+                long timeLeft = globalTimeout - (System.currentTimeMillis() - globalStart);
+                if (timeLeft <= 0) {
+                    log.error("规则中心-周期数据剔除量级查询整体处理超时");
+                    return new Result<List<XcDeleteMagnitudeDistDTO>>()
+                            .setCode(ResultCode.FAIL.getValue())
+                            .setMessage("服务异常");
+                }
+                try {
+                    // 单任务超时限制
+                    futureResults.add(future.get(timeLeft, TimeUnit.MILLISECONDS));
+                } catch (Exception e) {
+                    // 只要有一个异常，取消所有任务
+                    futures.forEach(fu -> fu.cancel(true));
+                    log.error("规则中心-周期数据剔除量级查询异常，{}", e.getMessage(), e);
+                    return new Result<List<XcDeleteMagnitudeDistDTO>>()
+                            .setCode(ResultCode.FAIL.getValue())
+                            .setMessage("服务异常");
+                }
+            }
+            //4.并行聚合结果
+            Pair<Map<String, Long>, Map<String, Long>> aggregateResult = aggregateResultsParallel(futureResults);
+            //5.汇总量级
+            return calculateMagnitudeOpt(timeRangePlusList, outCycleMagnitudeMap, aggregateResult);
+        } catch (Exception e) {
+            log.error("规则中心-周期数据剔除量级查询异常，{}", e.getMessage(), e);
+            return new Result<List<XcDeleteMagnitudeDistDTO>>()
+                    .setCode(ResultCode.FAIL.getValue())
+                    .setMessage("服务异常");
+        } finally {
+            threadPool.shutdownAndAwaitTermination();
+        }
+    }
+
+    /**
+     * 汇总量级
+     * @param timeRangePlusList
+     * @param outCycleMagnitudeMap
+     * @param aggregateResult
+     * @return
+     */
+    private Result<List<XcDeleteMagnitudeDistDTO>> calculateMagnitudeOpt(List<TimeRangePlus> timeRangePlusList, 
+                                                                         Map<String, Long> outCycleMagnitudeMap,
+                                                                         Pair<Map<String, Long>, Map<String, Long>> aggregateResult) {
+        List<XcDeleteMagnitudeDistDTO> dtos = new ArrayList<>();
+        //撞得量级阈值
+        int totalThreshold = variableAllocationService.getVariableAllocation().getNormalQuantity();
+        Map<String, Long> interWithoutConMagnitudeMap = aggregateResult.getLeft();
+        Map<String, Long> interWithConMagnitudeMap = aggregateResult.getRight();
+        for (TimeRangePlus timeRangePlus : timeRangePlusList) {
+            //T日timeRange范围外量级
+            long outMagnitude = outCycleMagnitudeMap.
+                    get(XcDeletePrefixEnum.OUT.getAlias() + "_" + timeRangePlus.getOrder());
+            //timeRange范围内，与跑分数据的交集量级
+            long interWithoutConMagnitude = interWithoutConMagnitudeMap.
+                    get(XcDeletePrefixEnum.INTER_WITHOUT_CON.getAlias() + "_" + timeRangePlus.getOrder());
+            //timeRange范围内，与符合条件的跑分数据的交集量级
+            long interWithConMagnitude = interWithConMagnitudeMap.
+                    get(XcDeletePrefixEnum.INTER_WITH_CON.getAlias() + "_" + timeRangePlus.getOrder());
+            //timeRange范围内的剔除量级
+            long deleteNum = Math.max(0, interWithoutConMagnitude - interWithConMagnitude);
+            //空挡量级
+            int freeNum = (int) (totalThreshold - outMagnitude - interWithConMagnitude);
+            dtos.add(new XcDeleteMagnitudeDistDTO(
+                    timeRangePlus.getBegin(), timeRangePlus.getEnd(), (int) deleteNum, (int) interWithConMagnitude, freeNum));
+        }
+        return new Result<List<XcDeleteMagnitudeDistDTO>>()
+                .setCode(ResultCode.SUCCESS.getValue())
+                .setDate(dtos);
+    }
+
+    /**
+     * 并行聚合结果
+     */
+    private static Pair<Map<String, Long>, Map<String, Long>> aggregateResultsParallel(
+            List<Pair<Map<String, Long>, Map<String, Long>>> results) {
+        // 使用并行流合并左 Map
+        Map<String, Long> leftResult = results.parallelStream()
+                .flatMap(pair -> pair.getLeft().entrySet().stream())
+                .collect(Collectors.toConcurrentMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        Long::sum
+                ));
+
+        // 使用并行流合并右 Map
+        Map<String, Long> rightResult = results.parallelStream()
+                .flatMap(pair -> pair.getRight().entrySet().stream())
+                .collect(Collectors.toConcurrentMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        Long::sum
+                ));
+        return new ImmutablePair<>(leftResult, rightResult);
+    }
+
+    /**
+     * 获取timeRange范围外的量级
+     * @param timeRangePlusList
+     * @return outCycleMagnitudeMap
+     * @description
+     * @author hedongshuo
+     * @date 2025/12/20 12:47
+     **/
+    private Map<String, Long> getOutCycleMagnitudes(List<TimeRangePlus> timeRangePlusList) {
+        //1.将timeRangePlusList分为今天的和非今天的
+        List<TimeRangePlus> notTodayTimeRangePlusList = new ArrayList<>();
+        //timeRange范围外量级 <out_order, count>
+        Map<String, Long> outCycleMagnitudeMap = new HashMap<>();
+        for (TimeRangePlus timeRange : timeRangePlusList) {
+            if (timeRange.isToday()) {
+                int todayOutCycleMagnitude = xieChengCollidingDataLoopCycleMapper
+                        .selectTimeRangeOutMagnitudeForTodaytiflash_(timeRange.getBegin(), timeRange.getEnd());
+                outCycleMagnitudeMap.put(XcDeletePrefixEnum.OUT.getAlias() + "_" + timeRange.getOrder(), (long) todayOutCycleMagnitude);
+            } else {
+                notTodayTimeRangePlusList.add(timeRange);
+            }
+        }
+        //2.非今天的量级
+        if (!CollectionUtils.isEmpty(notTodayTimeRangePlusList)) {
+            LocalDateTime minBegin = notTodayTimeRangePlusList.get(0).getBegin();
+            LocalDateTime maxEnd = notTodayTimeRangePlusList.get(notTodayTimeRangePlusList.size() - 1).getEnd();
+            Map<String, Long> notTodayOutMagnitudeMap = xieChengCollidingDataLoopCycleMapper
+                    .selectTimeRangeOutMagnitudeForNotTodaystiflash_(notTodayTimeRangePlusList, minBegin, maxEnd, XcDeletePrefixEnum.OUT.getAlias());
+            outCycleMagnitudeMap.putAll(notTodayOutMagnitudeMap);
+        }
+        return outCycleMagnitudeMap;
+    }
+
+    private ImmutablePair<Map<String, Long>, Map<String, Long>> magnitudeDistCalOpt(
+            List<TimeRangePlus> timeRangePlusList, String batchNumber, String sqlCondition) {
+        //1.获取
+        LocalDateTime minBegin = timeRangePlusList.get(0).getBegin();
+        LocalDateTime maxEnd = timeRangePlusList.get(timeRangePlusList.size() - 1).getEnd();
+        //3.周期表与跑分数据交集
+        Map<String, Long> interWithoutConMagnitudes = xieChengCollidingDataLoopCycleMapper.selectTimeRangeBetweenWithScoreMagnitudestiflash_(
+                timeRangePlusList, minBegin, maxEnd, batchNumber, null, XcDeletePrefixEnum.INTER_WITHOUT_CON.getAlias());
+        Map<String, Long> interWithConMagnitudes = xieChengCollidingDataLoopCycleMapper.selectTimeRangeBetweenWithScoreMagnitudestiflash_(
+                timeRangePlusList, minBegin, maxEnd, batchNumber, sqlCondition, XcDeletePrefixEnum.INTER_WITH_CON.getAlias());
+        return ImmutablePair.of(interWithoutConMagnitudes, interWithConMagnitudes);
     }
 
     /**
      * 计算量级，方法中主要是多线程的处理
+     *
      * @param dto
      * @param conditionJson
      * @param timeRanges
@@ -1726,6 +1911,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     /**
      * 计算量级核心方法
+     *
      * @param timeRange
      * @param batchNumberList
      * @param conditionJson
@@ -2648,7 +2834,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
             // 模拟数据入库成功，但返回异常入Pulsar的场景
             Map<String, Boolean> pushDataSwitch = marketingCommonConfig.getPushDataSwitch();
-            if(pushDataSwitch.get(PushDataEnum.MARKETING_UPLOAD_BASE.getValue())){
+            if (pushDataSwitch.get(PushDataEnum.MARKETING_UPLOAD_BASE.getValue())) {
                 log.warn(String.format("【模拟异常写入Pulsar】通用上传数据infoId infoId:%s", syncInfo.getId()));
                 throw new Exception();
             }
@@ -2696,7 +2882,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (!dbException) {
             boolean intoAiQueue = routeToAiQueue(apiCode, syncInfoId, jsonData);
             // 非ai客户
-            if(Objects.equals(intoAiQueue,false)){
+            if (Objects.equals(intoAiQueue, false)) {
                 if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE)) {
                     sendToRocketMqByConfig(apiCode, MarketingUploadConstants.TOPIC
                             , MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
@@ -2706,11 +2892,33 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             sendJsonParseMq(apiCode, syncInfoId, dataSourceType);
         }
+        try {
+            // 埋点
+            log.warn("开始埋点调用 - apiCode: {}, event: marketing_pre_user_receive, syncInfoId: {}", apiCode, syncInfoId);
+            JSONObject condition = new JSONObject();
+            condition.put("request_batch", dto.getJsonData().getRequestId());
+            trackingService.trackBusinessLog(DataFlowDirection.IN
+                    , apiCode
+                    , "通用上传接口"
+                    , "b_marketing_sync_info"
+                    , JSON.toJSONString(condition)
+                    , Long.valueOf(size)
+                    , TrackingContext.generateBatchId());
+            log.warn("埋点调用成功 - apiCode: {}, event: marketing_pre_user_receive, syncInfoId: {}", apiCode, syncInfoId);
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
 
     /**
      * 批量添加唯一ID
+     *
      * @param jsonData
      */
     private String addUniqueId(String jsonData) {
@@ -2799,7 +3007,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         try {
             //使用caffeineCache存储 mq发送标识
-            String cacheKey = CaffeineCacheKeyConstant.JSON_PARSE.concat(apiCode).concat(":").concat(DataProcessEnum.DataTypeEnum.UPLOAD.getCode().toString())
+            String cacheKey = CaffeineCacheKeyConstant.JSON_PARSE.concat(apiCode)
+                    .concat(":").concat(DataProcessEnum.SystemTypeEnum.MARKETING.getCode().toString())
+                    .concat(":").concat(DataProcessEnum.DataTypeEnum.UPLOAD.getCode().toString())
                     .concat(":").concat(DataProcessEnum.AcceptTypeEnum.GENERAL.getCode().toString());
             boolean exists = caffeineCache.hasIdentifier(cacheKey);
             if (exists) {
@@ -2807,6 +3017,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             MqDataJsonParse mqDataJsonParse = new MqDataJsonParse();
             mqDataJsonParse.setDataId(Long.valueOf(syncInfoId));
+            mqDataJsonParse.setSystemType(DataProcessEnum.SystemTypeEnum.MARKETING.getCode());
             mqDataJsonParse.setDataType(DataProcessEnum.DataTypeEnum.UPLOAD.getCode());
             mqDataJsonParse.setAcceptType(DataProcessEnum.AcceptTypeEnum.GENERAL.getCode());
             rocketMqSwitch.sendMessage(apiCode, MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_MARKETING_CUSTOMER_DATA_JSON_PARSE,
@@ -2841,6 +3052,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             MqDataJsonParse mqDataJsonParse = new MqDataJsonParse();
             mqDataJsonParse.setDataId(id);
+            mqDataJsonParse.setSystemType(DataProcessEnum.SystemTypeEnum.MARKETING.getCode());
             mqDataJsonParse.setDataType(dataType);
             mqDataJsonParse.setAcceptType(acceptType);
             rocketMqSwitch.sendMessage(apiCode, MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_MARKETING_CUSTOMER_DATA_JSON_PARSE,
@@ -2851,6 +3063,48 @@ public class PushRuleServiceImpl implements PushRuleService {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage(), "上传数据清洗-发送JSON结构解析消息异常"), e);
         }
 
+    }
+
+    @Override
+    public Result<List<ConditionVO>> getConditionList(String apiCode, String content) {
+        ScoreSearchConditionMappingExample mappingExample = new ScoreSearchConditionMappingExample();
+        mappingExample.createCriteria().andIsDelEqualTo(Constants.DATA_VALID).andApiCodeEqualTo(apiCode);
+        List<ScoreSearchConditionMapping> scoreSearchConditionMappings = scoreSearchConditionMappingMapper.selectByExample(mappingExample);
+        if (scoreSearchConditionMappings.size() <= 0) {
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("未有符合条件的数据");
+        }
+        List<Long> conditionIds = scoreSearchConditionMappings.stream().map(ScoreSearchConditionMapping::getConditionId).collect(Collectors.toList());
+
+        List<ConditionOfScoreVO> scoreByNameNumberList = scoreSearchConditionMapper.getScoreByNameNumberList(conditionIds, content);
+        if (scoreByNameNumberList.size() <= 0) {
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("无符合条件的数据");
+        }
+        List<ConditionVO> conditionVOS = new ArrayList<>();
+        scoreByNameNumberList.forEach(score -> {
+            ConditionVO conditionVO = new ConditionVO();
+            conditionVO.setId(score.getId());
+            conditionVO.setConditionId(score.getId());
+            conditionVO.setName(score.getName());
+            conditionVO.setSourceType(score.getSourceType());
+            conditionVOS.add(conditionVO);
+        });
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(conditionVOS);
+    }
+
+    @Override
+    public Result<ConditionVO> getConditionById(String apiCode, Long conditionId) {
+        List<ConditionOfScoreVO> scoreByNameNumberList = scoreSearchConditionMapper
+                .getScoreByNameNumberList(
+                        Collections.singletonList(conditionId),
+                        null
+                );
+        if (scoreByNameNumberList.size() <= 0) {
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("无符合条件的数据");
+        }
+        ConditionVO conditionVO = new ConditionVO();
+        BeanUtils.copyProperties(scoreByNameNumberList.get(0), conditionVO);
+        conditionVO.setConditionId(scoreByNameNumberList.get(0).getId());
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(conditionVO);
     }
 
     @Override
@@ -2874,9 +3128,42 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(overAmt);
     }
 
+    public void sendJsonParseMq(String apiCode,Integer dataSourceType,Integer systemType,Integer dataType,Integer acceptType,String jsonData){
+        //发送Json解析消息,定制清洗不在发送MQ
+        if (dataSourceType != null && 1 == dataSourceType) {
+            return;
+        }
+
+        try {
+            //使用caffeineCache存储 mq发送标识
+            String cacheKey = CaffeineCacheKeyConstant.JSON_PARSE.concat(apiCode)
+                    .concat(":").concat(systemType.toString())
+                    .concat(":").concat(DataProcessEnum.DataTypeEnum.UPLOAD.getCode().toString())
+                    .concat(":").concat(DataProcessEnum.AcceptTypeEnum.GENERAL.getCode().toString());
+            boolean exists = caffeineCache.hasIdentifier(cacheKey);
+            if (exists) {
+                return;
+            }
+            CommonMqDataJsonParse commonMqDataJsonParse = new CommonMqDataJsonParse();
+            commonMqDataJsonParse.setApiCode(apiCode);
+            commonMqDataJsonParse.setSystemType(systemType);
+            commonMqDataJsonParse.setDataType(dataType);
+            commonMqDataJsonParse.setAcceptType(acceptType);
+            commonMqDataJsonParse.setJsonData(jsonData);
+            rocketMqSwitch.sendMessage(apiCode, MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_MARKETING_COMMON_DATA_JSON_PARSE,
+                    JSON.toJSONString(commonMqDataJsonParse), MQConstants.ROUTING_KEY_MARKETING_COMMON_DATA_JSON_PARSE);
+            //存储标识
+            caffeineCache.storeIdentifier(cacheKey, Boolean.TRUE.toString());
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * 根据apiCode与operateType，区分AI与非AI客户，AI客户返回true，并发送到AI队列，非AI客户返回false
      * 使用范围：上传数据入库mq队列、pulsar队列
+     *
      * @param apiCode    API代码
      * @param syncInfoId 同步信息ID
      * @param jsonData   JSON数据
@@ -3236,8 +3523,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         //通用调用,查询清洗规则配置
         Map<String, MarketingDataCleanGeneralRuleConfig> configRule = new HashMap<>();
         if (Objects.nonNull(marketingSyncInfo.getDataSourceType()) && (0 == marketingSyncInfo.getDataSourceType())) {
-            configRule = dataCleanService.getConfigRule(apiCode, DataProcessEnum.DataTypeEnum.UPLOAD.getCode(),
-                    DataProcessEnum.AcceptTypeEnum.GENERAL.getCode(), DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode());
+            configRule = dataCleanService.getConfigRule(apiCode, DataProcessEnum.SystemTypeEnum.MARKETING.getCode(),
+                    DataProcessEnum.DataTypeEnum.UPLOAD.getCode(), DataProcessEnum.AcceptTypeEnum.GENERAL.getCode(),
+                    DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode());
             if (!CollectionUtils.isEmpty(configRule)) {
                 //剔除规则中的基础字段
                 List<String> generalFields = Lists.newArrayList("dataItems", "item", "reserveField1", "reserveField2");
@@ -3549,6 +3837,25 @@ public class PushRuleServiceImpl implements PushRuleService {
                 taskApiCodeSet.add(concat);
             }
         }
+        try {
+            JSONObject condition = new JSONObject();
+            condition.put("request_batch", marketingSyncInfo.getRequestBatch());
+            trackingService.trackBusinessLog(DataFlowDirection.IN
+                    , apiCode
+                    , "通用上传接口明细入库"
+                    , String.format("b_marketing_sync_%s", apiCode)
+                    , JSON.toJSONString(condition)
+                    , Long.valueOf(dto.getDataItems().size() - errorSize)
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
+
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
     }
 
@@ -3574,7 +3881,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
 
-    private void addCellReserveFileld1(JSONObject reserveFileld1Json, String cell, Integer isCheck, 
+    private void addCellReserveFileld1(JSONObject reserveFileld1Json, String cell, Integer isCheck,
                                        IUploadCheckService iUploadCheckService, CustomerTagsVO tags) {
         if (StringUtils.isNotEmpty(cell)) {
             //明文规则校验
@@ -3587,35 +3894,35 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
 
         }
-        
+
         // 处理debtorCell1-4字段，传入cell用于去重
         processDebtorCells(reserveFileld1Json, cell, isCheck, iUploadCheckService, tags);
     }
-    
+
     /**
      * 处理debtorCell1-4字段，生成debtorCellList
      * 基于原始值去重，保留顺序：cell → debtorCell1 → debtorCell2 → debtorCell3 → debtorCell4
-     * 
+     *
      * @param reserveFileld1Json 扩展字段JSON对象
      * @param cell 主手机号字段值，用于去重
      * @param isCheck 是否校验
      * @param iUploadCheckService 解密服务
-     * @param tags 客户标签配置
+     * @param tags                客户标签配置
      */
-    private void processDebtorCells(JSONObject reserveFileld1Json, String cell, Integer isCheck, 
-                                   IUploadCheckService iUploadCheckService, CustomerTagsVO tags) {
+    private void processDebtorCells(JSONObject reserveFileld1Json, String cell, Integer isCheck,
+                                    IUploadCheckService iUploadCheckService, CustomerTagsVO tags) {
         String[] debtorCellFields = {"debtorCell1", "debtorCell2", "debtorCell3", "debtorCell4"};
         JSONArray debtorCellList = new JSONArray();
         int order = 1;
-        
+
         // 用于去重的Set，存储已经出现过的原始值
         Set<String> existingValues = new HashSet<>();
-        
+
         // 先将cell的原始值加入去重集合
         if (StringUtils.isNotEmpty(cell)) {
             existingValues.add(cell);
         }
-        
+
         // 遍历debtorCell1-4字段
         for (String fieldName : debtorCellFields) {
             if (reserveFileld1Json.containsKey(fieldName)) {
@@ -3626,65 +3933,65 @@ public class PushRuleServiceImpl implements PushRuleService {
                         // 重复，跳过
                         continue;
                     }
-                    
+
                     // 解密
                     String decryptedValue = decryptDebtorCell(orgDebtorCellValue, isCheck, iUploadCheckService, tags);
-                    
+
                     // 只有解密成功才添加到list中
                     if (StringUtils.isNotEmpty(decryptedValue)) {
                         JSONObject debtorCellItem = new JSONObject();
-                        
+
                         // 设置原值
                         debtorCellItem.put("orgDebtorCell", orgDebtorCellValue);
-                        
+
                         // 设置log加密后的值
                         debtorCellItem.put("logDebtorCell", decryptedValue);
-                        
+
                         // 设置字段名
                         debtorCellItem.put("debtorCell", fieldName);
-                        
+
                         // 设置顺序
                         debtorCellItem.put("order", order);
-                        
+
                         debtorCellList.add(debtorCellItem);
-                        
+
                         // 添加到去重集合
                         existingValues.add(orgDebtorCellValue);
-                        
+
                         order++;
                     }
                 }
             }
         }
-        
+
         // 如果有debtorCell数据，则添加到reserveField1中
         if (!debtorCellList.isEmpty()) {
             reserveFileld1Json.put("debtorCellList", debtorCellList);
         }
     }
-    
+
     /**
      * 解密debtorCell字段值
      * 使用iUploadCheckService.process3keyCheck的解密逻辑
-     * 
+     *
      * @param encryptedValue 加密值
      * @param isCheck 是否校验
      * @param iUploadCheckService 解密服务
-     * @param tags 客户标签配置
+     * @param tags                客户标签配置
      * @return 解密后的明文值，解密失败返回空字符串
      */
-    private String decryptDebtorCell(String encryptedValue, Integer isCheck, 
-                                    IUploadCheckService iUploadCheckService, CustomerTagsVO tags) {
+    private String decryptDebtorCell(String encryptedValue, Integer isCheck,
+                                     IUploadCheckService iUploadCheckService, CustomerTagsVO tags) {
         if (StringUtils.isEmpty(encryptedValue)) {
             return "";
         }
-        
+
         try {
             // 创建临时对象用于解密
             MarketingPreUserDetailDTO tempUser = new MarketingPreUserDetailDTO();
             tempUser.setCell(encryptedValue);
             tempUser.setStatus(MonitorTypeEnum.STATUS_1.getTypeCode());
-            
+
             // 调用解密服务
             iUploadCheckService.process3keyCheck(tempUser, isCheck, tags);
 
@@ -3693,7 +4000,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             if (!Integer.valueOf(MonitorTypeEnum.STATUS_1.getTypeCode()).equals(tempUser.getStatus())) {
                 return "";
             }
-            
+
             // 获取解密后的明文值
             return tempUser.getCell();
 
@@ -3820,7 +4127,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Override
     public Result<Boolean> consumerSyncInfo(String msg) {
         boolean b = pulsarConsumerSkipUtil.shouldSkipBusinessLogic(PulsarSubscription.upLoadSubscription);
-        if(b){
+        if (b) {
             log.warn("【pulsar】标准上传数据执行跳过逻辑");
             return new Result<>().setCode(ResultCode.SUCCESS.getValue());
         }
@@ -3911,7 +4218,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (!dbException) {
             boolean intoAiQueue = routeToAiQueue(apiCode, syncInfoId, jdStr);
             // 非ai客户
-            if(Objects.equals(intoAiQueue,false)){
+            if (Objects.equals(intoAiQueue, false)) {
                 if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE)) {
                     sendToRocketMqByConfig(apiCode, MarketingUploadConstants.TOPIC
                             , MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
@@ -4014,7 +4321,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             marketingTransferInfoMapper.insertSelective(transferInfo);
             // 模拟数据入库成功，但返回异常入Pulsar的场景
             Map<String, Boolean> pushDataSwitch = marketingCommonConfig.getPushDataSwitch();
-            if(pushDataSwitch.get(PushDataEnum.MARKETING_TRANSFER_BASE.getValue())){
+            if (pushDataSwitch.get(PushDataEnum.MARKETING_TRANSFER_BASE.getValue())) {
                 log.warn(String.format("【模拟异常写入Pulsar】通用转化数据infoId infoId:%s", transferInfo.getId()));
                 throw new Exception();
             }
@@ -4055,17 +4362,37 @@ public class PushRuleServiceImpl implements PushRuleService {
                 sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE, transferInfoId, CustomerQueueEnum.ORG_TRANSFER);
             }
         }
+
+        try {
+            // 埋点
+            JSONObject condition = new JSONObject();
+            condition.put("request_id", transferDataDTO.getRequestId());
+            trackingService.trackBusinessLog(DataFlowDirection.IN
+                    , apiCode
+                    , "通用转化接口上传数据"
+                    , "b_marketing_transfer_info"
+                    , JSON.toJSONString(condition)
+                    , Long.valueOf(size)
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
 
     @Override
     public Result<Boolean> consumerTransferInfo(String msg) {
         boolean b = pulsarConsumerSkipUtil.shouldSkipBusinessLogic(PulsarSubscription.transferSubscription);
-        if(b){
-            log.warn("【pulsar】标准转化数据执行跳过逻辑："+PulsarSubscription.transferSubscription);
+        if (b) {
+            log.warn("【pulsar】标准转化数据执行跳过逻辑：" + PulsarSubscription.transferSubscription);
             return new Result<>().setCode(ResultCode.SUCCESS.getValue());
         }
-        
+
         JSONObject jb = JSON.parseObject(msg);
         String apiCode = jb.getString("apiCode");
         String jsonData = jb.getString("jsonData");
@@ -4343,6 +4670,26 @@ public class PushRuleServiceImpl implements PushRuleService {
                 producter.sendToUniversalTransferQueue(mrpMqFact);
             }
         }
+        //region 埋点
+        try {
+            JSONObject condition = new JSONObject();
+            condition.put("request_id", transferInfo.getRequestId());
+            trackingService.trackBusinessLog(DataFlowDirection.IN
+                    , apiCode
+                    , "通用转化接口明细入库"
+                    , String.format("b_marketing_transfer_sync_%s", tcid)
+                    , JSON.toJSONString(condition)
+                    , Long.valueOf(dto.getDataItems().size() - errorSize)
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
+        //endregion
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
     }
 
@@ -4466,6 +4813,24 @@ public class PushRuleServiceImpl implements PushRuleService {
             List<MarketingPreUserErrorDetailVO> o = JSON.parseObject(transferInfo.getErrorInfo(), new TypeReference<List<MarketingPreUserErrorDetailVO>>() {
             }.getType());
             vo.setErrorInfo(o);
+        }
+        try {
+            String remark = String.format("转化数据查询条件：%s，转化明细情况：%s"
+                    , transferInfo.getRequestId()
+                    , StringUtils.isNotBlank(transferInfo.getErrorInfo()) ? "转化数据有错误的数据" : "全部成功");
+            trackingService.trackPointLog(DataFlowDirection.IN
+                    , transferInfo.getApiCode()
+                    , "通用转化查询数据状态接口"
+                    , Optional.ofNullable(transferInfo.getActualNum()).map(Long::valueOf).orElse(0L)
+                    , remark
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(vo).setMessage("成功");
     }
@@ -4806,6 +5171,23 @@ public class PushRuleServiceImpl implements PushRuleService {
                 marketingPreUserSyncDetailVOResult.setMessage("部分成功");
                 break;
             default:
+        }
+        try {
+            JSONObject condition = new JSONObject();
+            condition.put("request_batch", syncInfo.getRequestBatch());
+            trackingService.trackPointLog(DataFlowDirection.IN
+                    , syncInfo.getApiCode()
+                    , "通用上传查询数据状态接口"
+                    , Optional.ofNullable(syncInfo.getActualNum()).map(Long::valueOf).orElse(0L)
+                    , JSON.toJSONString(condition)
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
         }
         return marketingPreUserSyncDetailVOResult.setCode(ResultCode.SUCCESS.getValue()).setDate(vo);
     }

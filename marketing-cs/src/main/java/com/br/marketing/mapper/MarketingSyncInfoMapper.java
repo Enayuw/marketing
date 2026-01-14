@@ -1,6 +1,7 @@
 package com.br.marketing.mapper;
 
 
+import com.br.marketing.dto.autocheck.CheckUploadSyncDataDto;
 import com.br.marketing.entity.*;
 import com.br.marketing.vo.TodayIdTimeBySoleVo;
 import com.br.marketing.vo.TransferUserVO;
@@ -309,4 +310,18 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
 
     List<String> getBatchNameByUsertikv_(@Param("apiCode") String apiCode,@Param("syncReportList") List<MarketingSyncReport> syncReportList,
                                                               @Param("filterCondition") String filterCondition);
+
+    /**
+     * 自动化巡检：上传场景 - 前一天08:00快照（单表）。
+     *
+     * <p>说明：当分表不存在时，MySQL 会抛错（1146）。上层按需 try/catch 处理。</p>
+     */
+    CheckUploadSyncDataDto getLastDay8DataByApiCode(@Param("apiCode") String apiCode);
+
+    /**
+     * 自动化巡检：上传场景 - 当天最新快照（单表）。
+     *
+     * <p>说明：当分表不存在时，MySQL 会抛错（1146）。上层按需 try/catch 处理。</p>
+     */
+    CheckUploadSyncDataDto getLatestDataByApiCode(@Param("apiCode") String apiCode);
 }

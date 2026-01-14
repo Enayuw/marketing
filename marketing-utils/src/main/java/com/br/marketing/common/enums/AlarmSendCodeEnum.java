@@ -344,9 +344,13 @@ public enum AlarmSendCodeEnum {
 
     SANLIULING_SERVICEERROR("6090002", "360-pp流量业务异常"),
 
+    DIDI_V5_SERVICEERROR("6091001", "滴滴V5业务异常"),
+
     IBMP_LINE_SERVICEERROR("7000001", "IBMP-获取线路信息异常"),
 
     TONGCHENG_CPA_SERVICEERROR("7001001", "同程CPA业务异常"),
+
+    TRACKING_POINT_SERVICEERROR("7000002", "埋点异常"),
 
     SYNC_REPORT_EXPORT_SERVICEERROR("8001001", "上传记录导出异常"),
 
@@ -358,6 +362,9 @@ public enum AlarmSendCodeEnum {
     MARKETING_AVIATORSCRIPT_LINESMS_ERROR("8001004", "短信/线路钉钉文档配置入库异常"),
 
     MARKETING_AVIATORSCRIPT_LINE_CHANGE_ERROR("8001005", "线路三方字段同步异常"),
+    //随意记
+    SUIYIJI_SERVICE_ERROR("8001008", "随意记调用异常"),
+
     MARKETING_AVIATORSCRIPT_SMS_CHANGE_ERROR("8001007", "短信三方字段同步异常"),
 
 

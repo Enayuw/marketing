@@ -81,6 +81,10 @@ public class SyncConfigController {
         , @Parameter(name = "targetSftpPort", description = "目的sftp port")
         , @Parameter(name = "targetSftpUser", description = "目的sftp账号")
         , @Parameter(name = "targetSftpPwd", description = "目的sftp密码")
+        , @Parameter(name = "srcType", description = "源服务器类型")
+        , @Parameter(name = "targetType", description = "目标服务器类型")
+
+
     })
     @GetMapping("/copySftp")
     public ApiResult<Boolean> copySftp(@RequestParam(required = true) String id,
@@ -97,10 +101,12 @@ public class SyncConfigController {
                                        @RequestParam(required = false) String targetSftpHost,
                                        @RequestParam(required = false) Integer targetSftpPort,
                                        @RequestParam(required = false) String targetSftpUser,
-                                       @RequestParam(required = false) String targetSftpPwd) {
+                                       @RequestParam(required = false) String targetSftpPwd,
+                                       @RequestParam(required = false) String srcType,
+                                       @RequestParam(required = false) String targetType) {
         try {
             return syncConfigService.copySftp(id, apiCode, srcPath, targetPath, type, dataType, suffix, srcSftpHost, srcSftpPort,
-                srcSftpUser, srcSftpPwd, targetSftpHost, targetSftpPort, targetSftpUser, targetSftpPwd);
+                srcSftpUser, srcSftpPwd, targetSftpHost, targetSftpPort, targetSftpUser, targetSftpPwd,srcType,targetType);
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
             return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);

@@ -2,6 +2,7 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.dto.SyncOperateTypeDTO;
 import com.br.marketing.dto.SyncUserTypeNumDTO;
+import com.br.marketing.dto.autocheck.CheckUploadSyncDataDto;
 import com.br.marketing.entity.MarketingDataValidConfig;
 import com.br.marketing.entity.MarketingSyncReport;
 import com.br.marketing.entity.MarketingSyncReportExample;
@@ -134,5 +135,4 @@ public interface MarketingSyncReportMapper extends MarketingSyncReportMapperBase
                                                     @Param("syncReportList") List<MarketingSyncReport> syncReportList);
 
     List<MarketingSyncReport> selectByIds(@Param("ids") List<Long> ids);
-
 }

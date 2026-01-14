@@ -99,4 +99,6 @@ public interface LocalFileMapper extends LocalFileMapperBase {
     List<LocalFile> getLastDataByApiCode(@Param("apiCode") String apiCode,
                                          @Param("startTime") LocalDateTime startTime,
                                          @Param("endTime")LocalDateTime endTime);
+
+    void updatePushEndTimeById(@Param("id")Long id, @Param("pushNumber")int pushNumber, @Param("date")Date date);
 }

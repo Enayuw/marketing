@@ -1,30 +1,71 @@
-sharding:
-  jdbc:
-    datasource:
-      names: ds0
-      ds0:
-        url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&autoReconnect=false&failOverReadOnly=false
-        username: u_pd_marketing
-        password: f9daIYUIAXQkeyVbDoOI
-        type: com.alibaba.druid.pool.DruidDataSource
-        driver-class-name: com.mysql.jdbc.Driver
-        filters: stat
-        maxActive: 300
-        initialSize: 10
-        maxWait: 30000
-        minIdle: 10
-        timeBetweenEvictionRunsMillis: 60000
-        minEvictableIdleTimeMillis: 300000
-        validationQuery: select 'x'
-        testWhileIdle: true
-        testOnBorrow: false
-        testOnReturn: false
-        poolPreparedStatements: true
-        maxOpenPreparedStatements: 20
-  config:
-    sharding:
-      props:
-        sql.show: true
+datasource:
+  database:
+    names: shardingmarketing,marketing-tikiv,marketing-tiflash,marketing-log
+    defaultSource: shardingmarketing
+    shardingmarketing:
+      name: shardingmarketing
+      jdbc-url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
+      username: u_pd_marketing
+      password: f9daIYUIAXQkeyVbDoOI
+      type: com.zaxxer.hikari.HikariDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      minimum-idle: 1 # 最小空闲连接数
+      maximum-pool-size: 300 # 最大连接池数量
+      connection-timeout: 60000 # 获取连接超时时间，单位毫秒
+      idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
+      max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
+      keepalive-time: 30000 # 连接保活时间，单位毫秒
+      connection-test-query: select 1 # 连接测试查询
+    marketing-tikiv:
+      name: marketing-tikiv
+      type: com.zaxxer.hikari.HikariDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
+      username: u_pd_marketing
+      password: f9daIYUIAXQkeyVbDoOI
+      minimum-idle: 5 # 最小空闲连接数
+      maximum-pool-size: 30 # 最大连接池数量
+      connection-timeout: 60000 # 获取连接超时时间，单位毫秒
+      idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
+      max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
+      keepalive-time: 30000 # 连接保活时间，单位毫秒
+      connection-test-query: select 1 # 连接测试查询
+    #      removeAbandoned: true # 是否自动回收超时连接
+    #      removeAbandonedTimeout: 1800 # 超时时间(以秒数为单位)
+    #      filters: stat,wall,log4j2
+    #      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+    marketing-tiflash:
+      name: marketing-tiflash
+      type: com.zaxxer.hikari.HikariDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://tidb-pre.brapp.com:4020/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
+      username: u_pd_marketing
+      password: f9daIYUIAXQkeyVbDoOI
+      minimum-idle: 4 # 最小空闲连接数
+      maximum-pool-size: 4 # 最大连接池数量
+      connection-timeout: 60000 # 获取连接超时时间，单位毫秒
+      idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
+      max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
+      keepalive-time: 30000 # 连接保活时间，单位毫秒
+      connection-test-query: select 1 # 连接测试查询
+#      removeAbandoned: true # 是否自动回收超时连接
+#      removeAbandonedTimeout: 1800 # 超时时间(以秒数为单位)
+#      filters: stat,wall,log4j2
+#      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+    marketing-log:
+      name: marketing-log
+      type: com.zaxxer.hikari.HikariDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing_log?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
+      username: u_pd_m_log
+      password: kZ4IDzKrI1a4BKpLqSnW
+      minimum-idle: 5 # 最小空闲连接数
+      maximum-pool-size: 30 # 最大连接池数量
+      connection-timeout: 60000 # 获取连接超时时间，单位毫秒
+      idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
+      max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
+      keepalive-time: 30000 # 连接保活时间，单位毫秒
+      connection-test-query: select 1 # 连接测试查询
 spring:
   rabbitmq:
     zw:
@@ -59,12 +100,12 @@ otherConfig:
   alarm:
     secretKey: a9c57e4138807a9e18b439cd9dab275b
     appName: marketing
-  encodeMapping:
-    appName: loan-warning
-    appSecretKey: f15a1421ac95a284683688af14688b72
   userCenter:
-    appName: loan-strategy
-    appSecretKey: 404be42e9ad8ce59af79f17eb51594cf
+    appName: marketing-api
+    appSecretKey: bd3c18667f8fcbb4985d2be66e70ca1e
+  encodeMapping:
+    appName: marketing
+    appSecretKey: c6acc38a39b0769fa7fb1a95f82d9b33
   mom:
     appSecretKey: d42726322ba9bda57b74043be21aa2c4
     appName: marketing_query_producer

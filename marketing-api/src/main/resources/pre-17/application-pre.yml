@@ -1,0 +1,192 @@
+datasource:
+  database:
+    names: shardingmarketing,marketing-tikiv,marketing-tiflash,marketing-log
+    defaultSource: shardingmarketing
+    shardingmarketing:
+      name: shardingmarketing
+      jdbc-url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
+      username: ENC(mysql-pre-ai-marketing-user)
+      password: ENC(mysql-pre-ai-marketing-password)
+      type: com.zaxxer.hikari.HikariDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      minimum-idle: 1 # 最小空闲连接数
+      maximum-pool-size: 300 # 最大连接池数量
+      connection-timeout: 60000 # 获取连接超时时间，单位毫秒
+      idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
+      max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
+      keepalive-time: 30000 # 连接保活时间，单位毫秒
+      connection-test-query: select 1 # 连接测试查询
+    marketing-tikiv:
+      name: marketing-tikiv
+      type: com.zaxxer.hikari.HikariDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
+      username: ENC(mysql-pre-ai-marketing-user)
+      password: ENC(mysql-pre-ai-marketing-password)
+      minimum-idle: 5 # 最小空闲连接数
+      maximum-pool-size: 30 # 最大连接池数量
+      connection-timeout: 60000 # 获取连接超时时间，单位毫秒
+      idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
+      max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
+      keepalive-time: 30000 # 连接保活时间，单位毫秒
+      connection-test-query: select 1 # 连接测试查询
+    #      removeAbandoned: true # 是否自动回收超时连接
+    #      removeAbandonedTimeout: 1800 # 超时时间(以秒数为单位)
+    #      filters: stat,wall,log4j2
+    #      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+    marketing-tiflash:
+      name: marketing-tiflash
+      type: com.zaxxer.hikari.HikariDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://tidb-pre.brapp.com:4020/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
+      username: ENC(mysql-pre-ai-marketing-user)
+      password: ENC(mysql-pre-ai-marketing-password)
+      minimum-idle: 4 # 最小空闲连接数
+      maximum-pool-size: 4 # 最大连接池数量
+      connection-timeout: 60000 # 获取连接超时时间，单位毫秒
+      idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
+      max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
+      keepalive-time: 30000 # 连接保活时间，单位毫秒
+      connection-test-query: select 1 # 连接测试查询
+#      removeAbandoned: true # 是否自动回收超时连接
+#      removeAbandonedTimeout: 1800 # 超时时间(以秒数为单位)
+#      filters: stat,wall,log4j2
+#      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+    marketing-log:
+      name: marketing-log
+      type: com.zaxxer.hikari.HikariDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing_log?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
+      username: ENC(mysql-pre-ai-marketing-log-user)
+      password: ENC(mysql-pre-ai-marketing-log-password)
+      minimum-idle: 5 # 最小空闲连接数
+      maximum-pool-size: 30 # 最大连接池数量
+      connection-timeout: 60000 # 获取连接超时时间，单位毫秒
+      idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
+      max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
+      keepalive-time: 30000 # 连接保活时间，单位毫秒
+      connection-test-query: select 1 # 连接测试查询
+spring:
+  rabbitmq:
+    zw:
+      addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
+      username: strategy_distribute
+      password: strategy_distribute
+      publisher-confirms: true
+      publisher-returns: true
+      virtual-host: marketing-flow
+    yz:
+      addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
+      username: strategy_distribute
+      password: strategy_distribute
+      publisher-confirms: true
+      publisher-returns: true
+      virtual-host: marketing-flow-yz
+    listener:
+      retry:
+        enabled: true
+        max-attempts: 5
+        initial-interval: 3000
+      acknowledge-mode: manual
+      default-requeue-rejected: false
+      auto-startup: true
+  web:
+    interceptors.enabled: true
+  sql.source: prod
+cluster:
+  flag: ${CONF_CLUSTER}
+otherConfig:
+  alarm:
+    secretKey: a9c57e4138807a9e18b439cd9dab275b
+    appName: marketing
+    outsideSecretKey: 71e63ead0af0a07ae4191eb14b75a541
+    outsideAppName: marketing-out
+  userCenter:
+    appName: marketing-api
+    appSecretKey: bd3c18667f8fcbb4985d2be66e70ca1e
+  encodeMapping:
+    appName: marketing
+    appSecretKey: c6acc38a39b0769fa7fb1a95f82d9b33
+  mom:
+    appSecretKey: d42726322ba9bda57b74043be21aa2c4
+    appName: marketing_query_producer
+    destinationName: marketing_query_log
+  proxy:
+    proxy_host: squid-proxy-pre.brapp.com
+    proxy_port: 3128
+    proxy_username: spmarketing
+    proxy_password: ek1EIgo9
+    proxy_host_zw: 10.100.123.221
+  #mom上传日志
+  uploadMom:
+    producerKey: marketing_api_upload_producer
+    appSecretKey: 3a78162475b96285ea70a9edb6438ba4
+    destinationName: marketing_api_upload_log
+    logIceTimeout: 2000
+api:
+  intelligentCustomerService:
+    baseUrl: http://k8s.brapp.com/compass-api/api/helios-app-api
+    pushUserUrl: ${api.intelligentCustomerService.baseUrl}/third/process/data  #推送智能客服接口
+  robotAiApiService:
+    baseUrl: http://k8s.brapp.com/compass-api/api/robotai-api-service
+    robotOutboundUrl: ${api.robotAiApiService.baseUrl}/api/robotOutbound  #转化推送智能客服
+  mock:
+    baseUrl: http://marketing-inner-api-a
+    redisUrl: ${api.mock.baseUrl}/mockRedis/queryMockConfig
+  zhongAn:
+    baseUrl: https://finance-gateway-test.diandian.com.cn
+    api: ${api.zhongAn.baseUrl}/fcpGateway
+    isProxy: true
+    rsapKey: MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCVuaxc7ZznPdvsH0nhd2eQ/uhu/LewJqUVMvdYUKwXPxzGBUz8cVKyltwpMJ03uMPx+RStWnkWcmCSeQdqiw27FtaPELOxxQQc06OGBXfp5R86MKp2+bkdPRSkpUKK2X8vCyiopQojBXbaVzRUwjPPsQAsDinCGkSUirWETxfCxwIDAQAB
+    xdCode: 07brdyy01
+    bxCode: 3360001
+  customerService:
+    apiCode: 4000296
+  dass:
+    aesKey: ovksl39fcl13m9dF
+# 雪花算法数据中心ID
+snowflake:
+  datacenter:
+    id: ${SNOWFLAKE_DATACENTER_ID:0}
+rocketmq:
+  # 多个NameServer，host:port;host:port，RocketMQProperties
+  name-server: 10.100.123.171:9876;10.100.123.172:9876;10.100.123.173:9876
+  producer:
+    # 发送同一类消息的设置为同一个group，保证唯一
+    group: Marketing_Default_Group
+    # 发送消息失败重试次数，默认2
+    retryTimesWhenSendFailed: 5
+    # 异步消息重试此处，默认2
+    retryTimesWhenSendAsyncFailed: 2
+    # 发送消息超时时间，默认3000
+    sendMessageTimeout: 5000
+    # 消息最大长度，默认1024 * 1024 * 4(默认4M)
+    maxMessageSize: 4194304
+    # 压缩消息阈值，默认4k(1024 * 4)
+    compressMessageBodyThreshold: 4096
+    # 是否在内部发送失败时重试另一个broker，默认false
+    retryNextServer: false
+    # access-key
+    #accessKey: xxx
+    # secret-key
+    #secretKey: xxx
+    # 是否启用消息跟踪，默认false
+    enableMsgTrace: true
+    # 消息跟踪主题的名称值。如果不进行配置，可以使用默认的跟踪主题名称
+    customizedTraceTopic: RMQ_SYS_TRACE_TOPIC
+    namespace: ${ROCKETMQ_NAMESPACE:pre_a}
+  consumer:
+#    # 配置指定group是否启动监听器 group1.topic1 = false
+#    listeners:
+#      # key：group名称
+#      rocketmq_source_code_group:
+#        # value：{key: topic名称: value: true/false}
+#        rocketmq_source_code: true
+    # 指定消费组
+    group: Marketing_Default_Group
+    # 指定topic，启动时就会注册
+    #topic: springboot_consumer_xxx
+    # 一次拉取消息最大值，注意是拉取消息的最大值而非消费最大值
+    pull-batch-size: 5
+    # 其他配置参考属性类
+    namespace: ${ROCKETMQ_NAMESPACE:pre_a}

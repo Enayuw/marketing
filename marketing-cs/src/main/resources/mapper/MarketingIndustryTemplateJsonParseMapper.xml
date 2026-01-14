@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.MarketingIndustryTemplateJsonParseMapper" >
+
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO `b_marketing_industry_template_json_parse` (
+        `interface_template_id`,
+        `interface_template_name`,
+        `system_type`,
+        `data_type`,
+        `accept_type`,
+        `node_name`,
+        `node_value`,
+        `parent_path`,
+        `node_type`,
+        `is_array_item`,
+        `level`,
+        `create_time`,
+        `update_time`
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.interfaceTemplateId},
+            #{item.interfaceTemplateName},
+            #{item.systemType},
+            #{item.dataType},
+            #{item.acceptType},
+            #{item.nodeName},
+            #{item.nodeValue},
+            #{item.parentPath},
+            #{item.nodeType},
+            #{item.isArrayItem},
+            #{item.level},
+            #{item.createTime},
+            #{item.updateTime}
+            )
+        </foreach>
+    </insert>
+
+    <update id="deleteJsonParseList">
+        update `b_marketing_industry_template_json_parse`
+        set is_del = 9
+        where interface_template_id = #{templateId}
+        and is_del = 1
+    </update>
+
+</mapper>

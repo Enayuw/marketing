@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.TcyrCpaCommonMapper" >
+
+    <select id="calculateDeleteNumByScript" resultType="java.lang.Integer">
+        select count(distinct(user_key)) from (${executeScript}) as temp
+    </select>
+
+    <select id="executeUnionQueriestikv_" resultType="java.lang.Integer">
+        SELECT count(distinct(user_key)) as total_sum FROM (
+        <foreach collection="scripts" item="script" separator=" UNION ALL ">
+            (${script})
+        </foreach>
+        ) as distinct_result
+    </select>
+
+    <select id="magnitudeQuerytiflash_" resultType="java.lang.Integer">
+        ${querySql}
+    </select>
+
+</mapper>

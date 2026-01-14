@@ -1,0 +1,300 @@
+datasource:
+  database:
+    names: shardingmarketing,marketing-tikiv,marketing-tiflash,marketing-doris,marketing-bi,marketing-log,marketing-datamap
+    defaultSource: shardingmarketing
+    shardingmarketing:
+      name: shardingmarketing
+      jdbc-url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
+      username: ENC(mysql-pre-ai-marketing-user)
+      password: ENC(mysql-pre-ai-marketing-password)
+      type: com.zaxxer.hikari.HikariDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      minimum-idle: 1 # 最小空闲连接数
+      maximum-pool-size: 300 # 最大连接池数量
+      connection-timeout: 60000 # 获取连接超时时间，单位毫秒
+      idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
+      max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
+      keepalive-time: 30000 # 连接保活时间，单位毫秒
+      connection-test-query: select 1 # 连接测试查询
+    marketing-tikiv:
+      name: marketing-tikiv
+      type: com.zaxxer.hikari.HikariDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
+      username: ENC(mysql-pre-ai-marketing-user)
+      password: ENC(mysql-pre-ai-marketing-password)
+      minimum-idle: 5 # 最小空闲连接数
+      maximum-pool-size: 30 # 最大连接池数量
+      connection-timeout: 60000 # 获取连接超时时间，单位毫秒
+      idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
+      max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
+      keepalive-time: 30000 # 连接保活时间，单位毫秒
+      connection-test-query: select 1 # 连接测试查询
+#      removeAbandoned: true # 是否自动回收超时连接
+#      removeAbandonedTimeout: 1800 # 超时时间(以秒数为单位)
+#      filters: stat,wall,log4j2
+#      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+    marketing-tiflash:
+      name: marketing-tiflash
+      type: com.zaxxer.hikari.HikariDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://tidb-pre.brapp.com:4020/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
+      username: ENC(mysql-pre-ai-marketing-user)
+      password: ENC(mysql-pre-ai-marketing-password)
+      minimum-idle: 4 # 最小空闲连接数
+      maximum-pool-size: 4 # 最大连接池数量
+      connection-timeout: 60000 # 获取连接超时时间，单位毫秒
+      idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
+      max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
+      keepalive-time: 30000 # 连接保活时间，单位毫秒
+      connection-test-query: select 1 # 连接测试查询
+#      removeAbandoned: true # 是否自动回收超时连接
+#      removeAbandonedTimeout: 1800 # 超时时间(以秒数为单位)
+#      filters: stat,wall,log4j2
+#      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+    marketing-doris:
+      name: marketing-doris
+      type: com.zaxxer.hikari.HikariDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://tidb-pre.brapp.com:9030/marketing
+      username: ENC(mysql-pre-ai-marketing-user)
+      password: ENC(mysql-pre-ai-marketing-password)
+      minimum-idle: 4 # 最小空闲连接数
+      maximum-pool-size: 4 # 最大连接池数量
+      connection-timeout: 60000 # 获取连接超时时间，单位毫秒
+      idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
+      max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
+      keepalive-time: 30000 # 连接保活时间，单位毫秒
+      connection-test-query: select 1 # 连接测试查询
+      replicationAllocation: tag.location.default:1
+    marketing-bi:
+      name: marketing-bi
+      type: com.zaxxer.hikari.HikariDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://tidb-pre.brapp.com:9030/marketing
+      username: ENC(mysql-pre-ai-marketing-user)
+      password: ENC(mysql-pre-ai-marketing-password)
+      minimum-idle: 20 # 最小空闲连接数
+      maximum-pool-size: 40 # 最大连接池数量
+      connection-timeout: 60000 # 获取连接超时时间，单位毫秒
+      idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
+      max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
+      keepalive-time: 30000 # 连接保活时间，单位毫秒
+      connection-test-query: select 1 # 连接测试查询
+      replicationAllocation: tag.location.default:1
+    marketing-log:
+      name: marketing-log
+      type: com.zaxxer.hikari.HikariDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing_log?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
+      username: ENC(mysql-pre-ai-marketing-log-user)
+      password: ENC(mysql-pre-ai-marketing-log-password)
+      minimum-idle: 5 # 最小空闲连接数
+      maximum-pool-size: 30 # 最大连接池数量
+      connection-timeout: 60000 # 获取连接超时时间，单位毫秒
+      idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
+      max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
+      keepalive-time: 30000 # 连接保活时间，单位毫秒
+      connection-test-query: select 1 # 连接测试查询
+    marketing-datamap:
+      name: marketing-datamap
+      type: com.zaxxer.hikari.HikariDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://tidb-pre.brapp.com:9030/marketing
+      username: ENC(mysql-pre-ai-marketing-user)
+      password: ENC(mysql-pre-ai-marketing-password)
+      minimum-idle: 20 # 最小空闲连接数
+      maximum-pool-size: 20 # 最大连接池数量
+      connection-timeout: 60000 # 获取连接超时时间，单位毫秒
+      idle-timeout: 300000 # 连接空闲超时时间，单位毫秒
+      max-lifetime: 1800000 # 连接最大生命周期，单位毫秒（30分钟）
+      keepalive-time: 30000 # 连接保活时间，单位毫秒
+      connection-test-query: select 1 # 连接测试查询
+      replicationAllocation: tag.location.default:1
+
+spring:
+  rabbitmq:
+    zw:
+      addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
+      username: strategy_distribute
+      password: strategy_distribute
+      publisher-confirms: true
+      publisher-returns: true
+      virtual-host: marketing-flow
+    yz:
+      addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
+      username: strategy_distribute
+      password: strategy_distribute
+      publisher-confirms: true
+      publisher-returns: true
+      virtual-host: marketing-flow-yz
+    secondary:
+      addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
+      username: strategy_distribute
+      password: strategy_distribute
+      virtual-host: common
+    listener:
+      retry:
+        enabled: true
+        max-attempts: 5
+        initial-interval: 3000
+      acknowledge-mode: manual
+      default-requeue-rejected: false
+      auto-startup: true
+  web:
+    interceptors.enabled: true
+  sql.source: prod
+cluster:
+  flag: ${CONF_CLUSTER}
+otherConfig:
+  alarm:
+    secretKey: a9c57e4138807a9e18b439cd9dab275b
+    appName: marketing
+    outsideSecretKey: 71e63ead0af0a07ae4191eb14b75a541
+    outsideAppName: marketing-out
+  userCenter:
+    appName: marketing-api
+    appSecretKey: bd3c18667f8fcbb4985d2be66e70ca1e
+  encodeMapping:
+    appName: marketing
+    appSecretKey: c6acc38a39b0769fa7fb1a95f82d9b33
+  warning:
+    pageSize: 5000
+    apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
+    path: /opt/data/inloan/download/marketing/
+    sftpHost: 10.100.123.65
+    sftpPort: 9999
+    sftpUser: BRmarketing_pre
+    sftpPwd: 72aXd79ITcMeuyPAlDYy@_2021.06.07
+  proxy:
+    proxy_host: squid-proxy-pre.brapp.com
+    proxy_port: 3128
+    proxy_username: spmarketing
+    proxy_password: ek1EIgo9
+    proxy_host_zw: 10.100.123.221
+  mom:
+    appSecretKey: d42726322ba9bda57b74043be21aa2c4
+    appName: marketing_query_producer
+    destinationName: marketing_query_log
+api:
+  intelligentCustomerService:
+    baseUrl: http://k8stest.brapp.com/compass-api/api/helios-app-api
+    pushUserUrl: ${api.intelligentCustomerService.baseUrl}/third/process/data  #推送智能客服接口
+  robotAiApiService:
+    baseUrl: http://k8stest.brapp.com/compass-api/api/robotai-api-service
+    robotOutboundUrl: ${api.robotAiApiService.baseUrl}/api/robotOutbound  #转化推送智能客服
+  yiQianBao:
+    baseUrl: https://teststable4-www-pmgw.stg.1qianbao.com
+    pushMarketingData: ${api.yiQianBao.baseUrl}/pmgw/18/GI180098/PM180022/commonRequest
+    rsaPubKey: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnYI7ITjERAtNMOUsR2i1Tt0Jt7ku9+sRKpv17UIXleE3eDJQO4bK2al1hySHoKpKqvXN/TBQh+tlZNcDqcaEqc5B5V3+ohdvKciae+d6vohc2SkLxcmxc9jseS9NsZ6UWrCrSad/BiNiOAevioAL0pUK+HL3yRrLyr/S8nbc/0qKoHsF+rhqbw72QcUL63Kl4gq/8/hAEHU6HGvT5cgDuymtdRyT2jMkOTkyu32vX8SUapa2YZi1FmOPsvbeNKnVteBCVpDLRCcYR11yuFO8olSEELOFc4uHwxwOXNWg/J0ps60mRmntBsaFbd/pMkYbPJ/OVBO0PHvSQG/5Gy4qewIDAQAB"
+    brPrivateKey: "MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCnyVDp07vw7+/wkrO6M2zEmlt9vKnFlTkZEJ0HQC7DsmyYiNlLFPJEbFqW4Urssh0Gj+neEgsUyrSVuFhhsZACTfckPEdtOr8SpcbkkgCOZ2fP/wjy7uPmeThdlebWZSIHQN0whHhv5euQf0ze3IIZnAjPvCERf8tI8Wu3YGp7VPu/XEntsaesc6wuteCB8UnWGVJvayKbmT+DVqcroIbV4j7JSbbj/8VDQ0+RjBxkf/Z8ReNfGhZ6UGIIFKykvLKfUTwgEBttlDfdKfMpUlg0gRbksbuSV6H6cETK/YqRgcROe1YLm/fXLh+nBzbwvq9jjUzDQPz99APUACD2bsuHAgMBAAECggEAcfQaThSNij+K+BrKkeWnM4eaJ7VgoF6OnuVXoLsIh8TAWIBpA8NAHxRwGhT86/C0IebP8RDUEdTx/NVswTz1D3ugJC4EXL0PVDze7hHy6sR0DyGpFEUG51rg2z6ZvnaFO+Pj1bXCjkzbRhIPRTUB7x64JU4iL15Z1DqS68JBz2x4yofJgKcF8A3cQq9BV5iNwURmVdrTM8ruwvQ8/fnJpHVbznHZlMbyLlvp1FNmQWErhryoYPiAqajxx0HoppRW41q+ZIt5z/PxKOA1L64mOT3W0WpTwHJGpTkQDIVLFh8vkSNUJIi8y/Qg9a5LJBTVSG40ndPlsZkWm5gJhfcWkQKBgQDUj1KuPAurQkDOza3XkXLU9RgZv21KHAb9oTzmb+gkoZWx/f/dUfmocS5YE0llfq7f81VcPD7bFq3s7j0TXeaH/UUc4yLmrfkdzUqPg01RQUWw3bknjZ6S3XAP1rNWVWWLFWNJ9YEIJIJXecUmFKB8Fypqr33bClvl0CGKzitjvQKBgQDKE4qLpQm8pbdvduPSvmYbvjIZoLhrN0kVWBfMM1jpHzg+36mOEohhAMuQmOIQB74Ubi609HK0vslxxoEnarhpR8ArQFIbzToULeM+DqexLO5ODDW1yXKVziBN8+cM1xyveOtLBS3fyQcQk/YhLjQp0AeodVP4ViLdmw/HUjv+kwKBgQC5Q4Y76If/J8rWtPw9ND+TD2CHKIq4Gj+Zlow/CPCb5N5Ved4l58ojHyrWh1DkjosbFLqknrnmORk0td0z4RcKFhzD9dC4oI/Ngt3mwfmExdBZPJehutSoiyqeE3LR37KWi/izQLDLCQ818SN9cmMCZSqKPBUE8j1wy3xAwDufPQKBgHHHwPnSCoJ6+Kc9VRgjdtDmLcV6VnygG3l2KagjvUs99eiI/SpuyvV7giM/wgHuqhtM0uW2wiN9TWXPtIciMwWsjcqMo+7dhnc4Qzx8+fTr7J5rh459CBTLhCsASzdSo+c1eZ67ItJfmae++BZEssBcTwOOVKJ+tZD7r022wusbAoGBAJI8tUL0A/2JAcwhl6hrB1dFgB8EdGrEceCaFwuYzOt2mcfcViU4HOOilOIRSuZDONKLhfoVmS5hS+WOPWZMaJpUIOz/Fi/XnWkRxGOcr1eOuNLPQMRArCkieBX6dmlX2Tf3lRN8cX4x4aGOgOm2sUd3koa5K/9uMXkeSKJPrJNy"
+    salt: e9d46339e4edc515
+    isProxy: 1
+  dass:
+    baseUrl: http://testdaas.huiyunai.com
+    postHermesUserData: ${api.dass.baseUrl}/csos-daas/call/postHermesUserData
+    postBlackList: ${api.dass.baseUrl}/csos-daas/call/postBlackList # 黑名单数据推送
+    postRealTimeUserData: ${api.dass.baseUrl}/csos-daas/call/postRealTimeUserData # 实时单条用户名单数据推送
+    postTransferData: ${api.dass.baseUrl}/csos-daas/call/postDealData # 转化数据推送
+    aesKey: ovksl39fcl13m9dF
+    SecretKey: MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAJ4W9Hw1Kb6g0RevKSeKqriBCup3x8V2G2J63imkypbtPV+RJjq4eCqcd7s2FI/9eTSMw17675Ey9MkKndIckvpxT1iCtUnuRbg1ICtZ127t65GhOPchBzWHoC+rG56Rw4NhpsvpIGC1y4EUx26TyNop7HRekKwosAnnl6QDWBEdAgMBAAECgYAkX7W7CmRjdw8E+wlmDrK/JvnC/vJZDZa5bvnE7SSr20Qew//ezOjhLQUjbwsGIlUL8UNWjDgo2WeXBjlPycFLP8YN/+gUPR/bfftUY4cTnWzAAKKyUJBeyt3SqaeYcUhW3aUCUlaVAb8ZdyIu4WlHYHhlkSoXrDRvnqlJmyj8wQJBAMzApuvsJDZIX6qvMGR6YTvqPIsl47+qIlk7iTUfwbjGz5zlFtu4IRd+ZVdHlncg5arrl+lOw33rkHhxtnV8jO0CQQDFqGsIPk4Nnwsx9XtCCrYePvgydzEAT1nr4gBUkXbvavMyJKsQWI5AXUAInNuqxRvNfjh3GMaWstIsMQJyDj7xAkEAglL1bCEIA40ZZ1jO4oWKskorcx4Q0oQGDOn6MVgfQ+83YlPmsr+GQJ/w/RbRzM2hoaMHNDcv80wmzqMCUdGPGQJAKIHuhX73UhVRHwj3HL7DOgmfpgAFW9HnVM85UBuLq19YveMD59KuPISf1eQHpMTGgOOoQMgkEshNCF9259cBkQJBAKIlpXnTHvv2M96B7w7T1RYVvjke4LLpCbAVd8fBciOdFLmMh0+FThxGWijgfow1XYaPrU0DlfLpkfLrgk3LWUQ=
+    isProxy: 1
+    ibuBaseUrl: http://39.98.232.175:8801
+    batchHermesUserData: ${api.dass.ibuBaseUrl}/ibu-daas/api/batchHermesUserData
+    ibuAk: d87a6e0ab4dc2903
+    ibuSk: fbd1478a51d88954
+  customerService:
+    apiCode: 4000296
+  pushTransfer:
+    robotAi:
+      #isito baseUrl: http://k8s.brapp.com/compass-api/api/robotai-api-service/api
+      baseUrl: http://k8stest.brapp.com/compass-api/api/robotai-api-service
+      robotOutboundUrl: ${api.pushTransfer.robotAi.baseUrl}/robotOutbound
+      tailor:
+        # eg: "{'apiCode':'true',apiCode:'false'}"
+        apiCodeMap: "{'7410846':'true','7410787':'true','7410784':'true','7410437':'true','7410780':'true','7410797':'true'}"
+  productManagement:
+    url: http://production-pre.100credit.com/api/getProductionList.do?firstBusinessCode=A10&spreadStatus=5,2,3,4,0
+    productTypeUrl: http://production-pre.100credit.com/api/getProductionTypes.do
+  bi:
+    baseUrl: http://script-govern-pre.100credit.cn
+    executeTask: ${api.bi.baseUrl}/api/distribute/offlineBatch/executeTask
+  biocloo:
+    baseUrl: http://58.33.156.202:57436
+    blackList: ${api.biocloo.baseUrl}/api/middle/robotai/v1/process_data
+    isProxy: true
+  hxCar:
+    baseUrl: http://haoyunlailai.cn:6001
+    carList: ${api.hxCar.baseUrl}/open_api/v1/car_list
+    cityList: ${api.hxCar.baseUrl}/open_api/v1/city_list
+    commitClue: ${api.hxCar.baseUrl}/open_api/v1/test_commit_clue
+    isProxy: true
+  antaios:
+    baseUrl: https://antaios-process-prec.100credit.cn
+    pushUserUrl: ${api.antaios.baseUrl}/api/antaios-app-api-prec/antaios/third/process/resource
+  rsxk:
+    baseUrl: https://dymapi.shurongdai.cn
+    queryCallStatus: ${api.rsxk.baseUrl}/mdp-thinker-facade/api/queryCallStatus
+    isProxy: true
+  imbpApiService:
+    baseUrl: https://antaios-process-prec.100credit.cn/api/antaios-app-api-prec
+    lineBaseInfoUrl: ${api.imbpApiService.baseUrl}/antaios/third/ibmp/gateway/groupByLineSupplier  #IMBP获取线路基础信息
+  mock:
+    baseUrl: http://marketing-inner-api-a
+    redisUrl: ${api.mock.baseUrl}/mockRedis/queryMockConfig
+#elastic-job配置
+SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181
+NAMESPACE: marketing-job-a
+BASE_SLEEP_TIME_MILLISECONDS: 1000
+MAX_SLEEP_TIME_MILLISECONDS: 3000
+MAX_RETRIES: 3
+NESTED_PORT: -1
+NESTED_DATA_DIR: target/test_zk_data/
+corn:
+  taskJob: 0 0/30 * * * ?
+# 雪花算法数据中心ID
+snowflake:
+  datacenter:
+    id: ${SNOWFLAKE_DATACENTER_ID:0}
+rocketmq:
+  # 多个NameServer，host:port;host:port，RocketMQProperties
+  name-server: 10.100.123.171:9876;10.100.123.172:9876;10.100.123.173:9876
+  producer:
+    # 发送同一类消息的设置为同一个group，保证唯一
+    group: Marketing_Default_Group
+    # 发送消息失败重试次数，默认2
+    retryTimesWhenSendFailed: 3
+    # 异步消息重试此处，默认2
+    retryTimesWhenSendAsyncFailed: 2
+    # 发送消息超时时间，默认3000
+    sendMessageTimeout: 5000
+    # 消息最大长度，默认1024 * 1024 * 4(默认4M)
+    maxMessageSize: 4194304
+    # 压缩消息阈值，默认4k(1024 * 4)
+    compressMessageBodyThreshold: 4096
+    # 是否在内部发送失败时重试另一个broker，默认false
+    retryNextServer: false
+    # access-key
+    #accessKey: xxx
+    # secret-key
+    #secretKey: xxx
+    # 是否启用消息跟踪，默认false
+    enableMsgTrace: false
+    # 消息跟踪主题的名称值。如果不进行配置，可以使用默认的跟踪主题名称
+    customizedTraceTopic: RMQ_SYS_TRACE_TOPIC
+    namespace: ${ROCKETMQ_NAMESPACE:pre_a}
+  consumer:
+#    # 配置指定group是否启动监听器 group1.topic1 = false
+#    listeners:
+#      # key：group名称
+#      rocketmq_source_code_group:
+#        # value：{key: topic名称: value: true/false}
+#        rocketmq_source_code: true
+    # 指定消费组
+    group: Marketing_Default_Group
+    # 指定topic，启动时就会注册
+    #topic: springboot_consumer_xxx
+    # 一次拉取消息最大值，注意是拉取消息的最大值而非消费最大值
+    pull-batch-size: 5
+    # 其他配置参考属性类
+    namespace: ${ROCKETMQ_NAMESPACE:pre_a}

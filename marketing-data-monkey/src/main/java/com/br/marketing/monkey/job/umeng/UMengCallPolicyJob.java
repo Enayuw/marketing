@@ -37,8 +37,10 @@ import java.util.stream.Collectors;
 /**
  * @Description 友盟设备注册job
  * @Author zhiyong.zhang
- * @CreateTime 2025/05/23
+ * @CreateTime 2025/05/
+ * @deprecated 业务下线  2025/12/23
  */
+@Deprecated
 @Component
 @Slf4j
 public class UMengCallPolicyJob extends AbstractSimpleElasticJob {

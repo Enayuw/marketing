@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.SYJBlackDataMapper" >
+
+    <select id="queryBlackData" resultType="com.br.marketing.entity.SYJBlackData">
+        select *
+        from b_syj_black_data
+        where local_id = #{localId}
+        and query_status = #{queryStatus}
+        and status = 1
+        <if test="minId != null and minId >0">
+            and id > #{minId}
+        </if>
+        order by id asc
+        limit #{pageSize}
+    </select>
+
+    <update id="batchUpdateStatus">
+        update b_syj_black_data
+        <trim prefix="set" suffixOverrides=",">
+            <if test="queryStatus != null">
+                query_status = #{queryStatus},
+            </if>
+            <if test="extend != null">
+                extend = #{extend},
+            </if>
+            <if test="requestId != null">
+                request_id = #{requestId},
+            </if>
+        </trim>
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+
+</mapper>

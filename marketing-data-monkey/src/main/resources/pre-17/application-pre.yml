@@ -145,7 +145,7 @@ api:
         info:
           url: ${api.haier.custData.receive.url}/info
   marketing:
-    baseUrl: http://marketing-api
+    baseUrl: http://marketing-api-a
     transferUrl: ${api.marketing.baseUrl}/marketingTransferData/receiveTransferDataSync
     uploadUrl: ${api.marketing.baseUrl}/marketingUserPre/receiveMarketingPreUser
   halo:
@@ -180,6 +180,8 @@ api:
     reachUrl: ${api.didi.baseUrl}/crow/user/success/bairong
     jmassSUrl: ${api.didi.baseUrl}/model/sample/mediaName
     failedUrl: ${api.didi.baseUrl}/crow/faileduser/mediaName
+    collidingUrl: ${api.didi.baseUrl}/crow/collision/mediaName
+    callbackSuccessUrl: ${api.didi.baseUrl}/crow/user/success/mediaName
     token: DK&SgWl!fZ%WVSXe
     scas: "0001"
     channelId: 3140738836439875
@@ -267,7 +269,7 @@ api:
     batch: ${api.sanliuling.baseUrl}/open_api/v1/apply/batch
     isProxy: true
   mock:
-    baseUrl: http://marketing-inner-api
+    baseUrl: http://marketing-inner-api-a
     redisUrl: ${api.mock.baseUrl}/mockRedis/queryMockConfig
   hxCar:
     baseUrl: http://haoyunlailai.cn:6001
@@ -346,6 +348,7 @@ rocketmq:
     enableMsgTrace: false
     # 消息跟踪主题的名称值。如果不进行配置，可以使用默认的跟踪主题名称
     customizedTraceTopic: RMQ_SYS_TRACE_TOPIC
+    namespace: ${ROCKETMQ_NAMESPACE:pre_a}
   consumer:
 #    # 配置指定group是否启动监听器 group1.topic1 = false
 #    listeners:
@@ -360,6 +363,7 @@ rocketmq:
     # 一次拉取消息最大值，注意是拉取消息的最大值而非消费最大值
     pull-batch-size: 5
     # 其他配置参考属性类
+    namespace: ${ROCKETMQ_NAMESPACE:pre_a}
 
 # 线程池动态配置监控
 tp:

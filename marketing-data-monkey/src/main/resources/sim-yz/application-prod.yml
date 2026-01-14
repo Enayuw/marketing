@@ -56,7 +56,7 @@ datasource:
       name: marketing-log
       type: com.zaxxer.hikari.HikariDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
-      jdbc-url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing_log?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=true&failOverReadOnly=false&useConfigs=maxPerformance
+      jdbc-url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing_log?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
       username: ENC(mysql-prod-ai-marketing-log-user)
       password: ENC(mysql-prod-ai-marketing-log-password)
       minimum-idle: 5 # 最小空闲连接数
@@ -186,6 +186,8 @@ api:
     reachUrl: ${api.didi.baseUrl}/crow/user/success/bairong
     jmassSUrl: ${api.didi.baseUrl}/model/sample/mediaName
     failedUrl: ${api.didi.baseUrl}/crow/faileduser/mediaName
+    collidingUrl: ${api.didi.baseUrl}/crow/collision/mediaName
+    callbackSuccessUrl: ${api.didi.baseUrl}/crow/user/success/mediaName
     token: DK&SgWl!fZ%WVSXe
     scas: "0001"
     channelId: 3140738836439875
@@ -290,6 +292,14 @@ api:
     appKey: 1845238f517b4bd993438bc821270749
     version: 1
     encryptionType: md5
+  syj:
+    baseUrl: https://partner.yhyunjin.com
+    code: bairong
+    originalUrl: ${api.syj.baseUrl}/yjPart/${api.syj.code}
+    blackUrl: ${api.syj.baseUrl}/yjPart/blackList/insertUnsubscribeData/${api.syj.code}
+    getBlackUrl: https://partner.ppdai.com/blackList/complaint/${api.syj.code}
+    brPrivateKey: "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDGtQkRQD+XHg/EmeXq3URdxR8R4r0aopbwhNNQA321d3lkPoyIpyj+EaqCTAnhy9B60YCi2e/udIDDRfC0F08nKSsRREPMLAFRID4Y33Yh14xZR70Fl8Qj0O6yp8mqkZyyFHfn01W2/9NmTkINUB/vmA2U3aRfSC7GmeVxl4JYTgilqYsfjNl0B7+ZKFrxESdMNwm4BV2l93BiETjkHcSVl7aYn9hzGlUoK4KIeOM+MmKMlrCpkD+lP/ojy+1lcTtKEeA2uDl6+HQx1yLm4fv/t9Hj8/RueYHv05SP3PZFrLbVl697SgDFBsv+cUn+NnfkXprxTBPN49YfkOy7CLejAgMBAAECggEAHS4IntfofrCTcDOJZ+wGVh7UaTP6wSaPM9LNlTpuA3AAC5CD4q1pf6XofCneaaIcg2ywjzmh2kqRfhuPNWMW5JFPGcIEkr8Dkn5BoDVwi5ezrIi0YVXgH8JWyzWIj9vCPwRyd0C5nZ4D1Uo4uOvDRNP3ap0BvlxDQjbnUr8FDSJmMO+x7DQNXZBK7H+AX+h+AsHhOlJuhTxpYZ58yy2K8UskZiKjkr4Vhp+2mLBaLz88YdAM50PHkkWlHtT/oIlQ47so6wzEppwL0ElSbaHuLU7exBwnk4lzAl2cF8a5ymK31Tk3BI5dFdcuZtfzR24SKQtGsK3ghV6A336kUSmlwQKBgQDmYs/2T6Fc5+SdjP1nkXDZTducoQwGR+XHi5voJ/buNYkIyYmg94l4O1cB6rqL8WOToavqofGHuezyPNTF1zi84kXt0UsJANw8hCC82F1/tV9OlnkhBOrRMoM8kIpDiORJl47rWuCl7FgB9CseMY78D7rg+hsc2PO5h+CB9JeUDwKBgQDczJavhX5HF18hSBz9LZhGCJMS9oflUJWiFJmIqEyNoMzFm9PG+v1icGos+X0lulzc70ScIElqgum12seHKz4zk/Od9jFmcE2F38wIPTfGlA22FTj436KFA4WVx35+W9agGnfyyhV3rPHr7Zb6qKenenrgKiRgofirpfWwXcw/LQKBgBr3X+4tve54+ipy0UppHLNiyJzZwOWPTtb/gV04KFATlhmgNWrQ7pdTIskHp5Qvyf8CwnOxRusjGRf1hNYvbeW1+oduowDHx/+RW5+fF7qWCTTSqhTyVWXtKq1RIc3r3QS8J69msLrbIiYAZXegR2M7mB0zSS8kOcrym5W6gm+DAoGAP7kD3BAoy5ehKtfHFgJsqfmbiKOBwNqq9KYBUYFQ5qb7siQw0IJrUlejLOusBJFub4zWPkDLL2Qs0wEbCJWgU/5lFreQtkG+/d4C4nXYfQUJl/0z/g98teq4SOvUQ995Z6d76qQL4ggVocNmCV1XVWxxvfQrn3/fZpp097t6UNkCgYEA4S7Bf0P7K5wfV206W8I2XswC3oRL2D1rupSdUKyZGOt445p+S2KtcuGbeh+ruIufz/Zmbp5amhA9eaO3Vu3E3I5IjfchYokYkHbiAEFDK396Mnfj3hRWh9aulgZGJImrjQFiZzMIMRxaqIg1paMwY/UAUfr4mdJpnnYuhn0Rqzw="
+    isProxy: true
 spring:
   rabbitmq:
     zw:

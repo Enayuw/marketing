@@ -122,8 +122,8 @@ public class UploadRePushPolicyStrategy extends AbstractRuleCenterPushStrategy {
         List<Future<Boolean>> resList = new ArrayList<>();
         //通用调用,查询清洗规则配置
         Map<String, MarketingDataCleanGeneralRuleConfig> configRule = dataCleanService.getConfigRule(apiCode,
-                DataProcessEnum.DataTypeEnum.UPLOAD.getCode(), DataProcessEnum.AcceptTypeEnum.GENERAL.getCode(),
-                DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode());
+                DataProcessEnum.SystemTypeEnum.MARKETING.getCode(), DataProcessEnum.DataTypeEnum.UPLOAD.getCode(),
+                DataProcessEnum.AcceptTypeEnum.GENERAL.getCode(), DataProcessEnum.RuleStatusEnum.PRE_SUCCESS.getCode());
         if (CollectionUtils.isEmpty(configRule)) {
             log.warn(TITLE + "清洗配置为空，apiCode={}", apiCode);
             return result;

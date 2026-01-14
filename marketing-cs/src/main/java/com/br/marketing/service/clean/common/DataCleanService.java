@@ -1,6 +1,7 @@
 package com.br.marketing.service.clean.common;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.client.rulecleaning.DataCleanDTO;
 import com.br.marketing.client.rulecleaning.RuleCleaningResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
@@ -17,8 +18,10 @@ public interface DataCleanService {
 
     Result<Boolean> customerDataJsonParse(String t);
 
+    Result<Boolean> commonDataJsonParse(String message);
 
-    Map<String, MarketingDataCleanGeneralRuleConfig> getConfigRule(String apiCode, Integer dataType, Integer acceptType,Integer status);
+    Map<String, MarketingDataCleanGeneralRuleConfig> getConfigRule(String apiCode, Integer systemType,
+                                                                   Integer dataType, Integer acceptType,Integer status);
 
 
     Object getCleanResult(JSONObject jsonObject, MarketingDataCleanGeneralRuleConfig rule);
@@ -43,5 +46,7 @@ public interface DataCleanService {
     void uploadDetailCleanHandler(JSONObject jsonObject, Collection<MarketingDataCleanGeneralRuleConfig> ruleConfigList,
                                   MarketingSyncUser marketingSyncUser);
 
+
+    Result commonClean(DataCleanDTO dto);
 
 }
