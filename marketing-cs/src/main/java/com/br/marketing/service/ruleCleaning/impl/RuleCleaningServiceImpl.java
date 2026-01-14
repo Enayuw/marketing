@@ -2643,7 +2643,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         try {
             return cleanRuleAviatorEvaluatorInstance.execute(aviatorScript, env);
         } catch (Exception e) {
-            log.warn("大模型代码配置操作失败！错误信息：{}", e.getMessage(), e);
+            log.warn("大模型代码配置操作失败！脚本: {}, 脚本输入参数: {}, 错误信息：{}", aviatorScript, env, e.getMessage(), e);
             throw new BusinessException("执行大模型代码配置操作失败！请检查脚本或者脚本输入参数值是否正确");
         }
 
