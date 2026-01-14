@@ -165,63 +165,63 @@ public class MqIdempotentCommonExample {
             return (Criteria) this;
         }
 
-        public Criteria andIdempotentkeyIsNull() {
-            addCriterion("idempotentKey is null");
+        public Criteria andIdempotentKeyIsNull() {
+            addCriterion("idempotent_key is null");
             return (Criteria) this;
         }
 
-        public Criteria andIdempotentkeyIsNotNull() {
-            addCriterion("idempotentKey is not null");
+        public Criteria andIdempotentKeyIsNotNull() {
+            addCriterion("idempotent_key is not null");
             return (Criteria) this;
         }
 
-        public Criteria andIdempotentkeyEqualTo(Long value) {
-            addCriterion("idempotentKey =", value, "idempotentkey");
+        public Criteria andIdempotentKeyEqualTo(Long value) {
+            addCriterion("idempotent_key =", value, "idempotentKey");
             return (Criteria) this;
         }
 
-        public Criteria andIdempotentkeyNotEqualTo(Long value) {
-            addCriterion("idempotentKey <>", value, "idempotentkey");
+        public Criteria andIdempotentKeyNotEqualTo(Long value) {
+            addCriterion("idempotent_key <>", value, "idempotentKey");
             return (Criteria) this;
         }
 
-        public Criteria andIdempotentkeyGreaterThan(Long value) {
-            addCriterion("idempotentKey >", value, "idempotentkey");
+        public Criteria andIdempotentKeyGreaterThan(Long value) {
+            addCriterion("idempotent_key >", value, "idempotentKey");
             return (Criteria) this;
         }
 
-        public Criteria andIdempotentkeyGreaterThanOrEqualTo(Long value) {
-            addCriterion("idempotentKey >=", value, "idempotentkey");
+        public Criteria andIdempotentKeyGreaterThanOrEqualTo(Long value) {
+            addCriterion("idempotent_key >=", value, "idempotentKey");
             return (Criteria) this;
         }
 
-        public Criteria andIdempotentkeyLessThan(Long value) {
-            addCriterion("idempotentKey <", value, "idempotentkey");
+        public Criteria andIdempotentKeyLessThan(Long value) {
+            addCriterion("idempotent_key <", value, "idempotentKey");
             return (Criteria) this;
         }
 
-        public Criteria andIdempotentkeyLessThanOrEqualTo(Long value) {
-            addCriterion("idempotentKey <=", value, "idempotentkey");
+        public Criteria andIdempotentKeyLessThanOrEqualTo(Long value) {
+            addCriterion("idempotent_key <=", value, "idempotentKey");
             return (Criteria) this;
         }
 
-        public Criteria andIdempotentkeyIn(List<Long> values) {
-            addCriterion("idempotentKey in", values, "idempotentkey");
+        public Criteria andIdempotentKeyIn(List<Long> values) {
+            addCriterion("idempotent_key in", values, "idempotentKey");
             return (Criteria) this;
         }
 
-        public Criteria andIdempotentkeyNotIn(List<Long> values) {
-            addCriterion("idempotentKey not in", values, "idempotentkey");
+        public Criteria andIdempotentKeyNotIn(List<Long> values) {
+            addCriterion("idempotent_key not in", values, "idempotentKey");
             return (Criteria) this;
         }
 
-        public Criteria andIdempotentkeyBetween(Long value1, Long value2) {
-            addCriterion("idempotentKey between", value1, value2, "idempotentkey");
+        public Criteria andIdempotentKeyBetween(Long value1, Long value2) {
+            addCriterion("idempotent_key between", value1, value2, "idempotentKey");
             return (Criteria) this;
         }
 
-        public Criteria andIdempotentkeyNotBetween(Long value1, Long value2) {
-            addCriterion("idempotentKey not between", value1, value2, "idempotentkey");
+        public Criteria andIdempotentKeyNotBetween(Long value1, Long value2) {
+            addCriterion("idempotent_key not between", value1, value2, "idempotentKey");
             return (Criteria) this;
         }
 

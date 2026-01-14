@@ -16,13 +16,13 @@ public interface MqIdempotentService {
      * @return 幂等记录ID
      */
     Long insertIdempotentRecord(MqIdempotentTableType tableType, Long idempotentKey, String apiCode, String tag);
-    
+
     /**
-     * 删除幂等记录（物理删除）
+     * 根据幂等键删除幂等记录（物理删除）
      * @param tableType 表类型
-     * @param recordId 记录ID
+     * @param idempotentKey 幂等键
      */
-    void deleteIdempotentRecord(MqIdempotentTableType tableType, Long recordId);
+    void deleteIdempotentRecordByKey(MqIdempotentTableType tableType, Long idempotentKey);
     
     /**
      * 更新apiCode

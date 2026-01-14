@@ -9,6 +9,7 @@ import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.dto.XieChengDataDTO;
 import com.br.marketing.entity.XieChengData;
+import com.br.marketing.handle.SnowflakeRedisGeneratorHandle;
 import com.br.marketing.mapper.XieChengDataMapper;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.TransferSource;
@@ -50,6 +51,8 @@ public class XieChengVTPushHandler extends AbstractExternalInterfaceHandler<XieC
     private MarketingCommonConfig marketingCommonConfig;
 
     private static final String EXPIRE_TIME = "3600000";
+    @Resource
+    private SnowflakeRedisGeneratorHandle snowflakeRedisGeneratorHandle;
 
     @Override
     JSONObject call(List<XieChengDataDTO> list, ProcessHandlerContext context) {
@@ -90,6 +93,7 @@ public class XieChengVTPushHandler extends AbstractExternalInterfaceHandler<XieC
                 set.add("XieCheng_CallRecord_Insert_DB_VT");
                 mqFact.setIncludeRules(set);
                 mqFact.setSource(TransferSource.CUSTOMER_CALL_RECORD.getCode());
+                mqFact.setIdempotentKey(snowflakeRedisGeneratorHandle.nextId());
                 String message = JSON.toJSONString(mqFact);
                 if(rocketMqSwitch.rocketMQSwitchFlag(null, MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR)){
                     rocketMqSwitch.syncSendDelaySecond(MarketingDelayedConstants.TOPIC

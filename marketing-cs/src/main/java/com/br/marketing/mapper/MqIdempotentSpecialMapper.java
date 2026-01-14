@@ -27,4 +27,11 @@ public interface MqIdempotentSpecialMapper {
     int updateByPrimaryKeySelective(MqIdempotentSpecial record);
 
     int updateByPrimaryKey(MqIdempotentSpecial record);
+
+    /**
+     * 根据幂等键删除记录
+     * @param idempotentKey 幂等键
+     * @return 删除的记录数
+     */
+    int deleteByIdempotentKey(@Param("idempotentKey") Long idempotentKey);
 }

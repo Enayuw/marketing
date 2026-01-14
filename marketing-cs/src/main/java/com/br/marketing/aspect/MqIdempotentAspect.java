@@ -19,8 +19,8 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 
 /**
- * MQ消息幂等切面
- * <p>
+ * MQ消息幂等性切面
+ * 
  * 处理流程：
  * 1. 前置：尝试插入幂等记录，如果DuplicateKeyException则直接返回成功，跳过业务处理
  * 2. 后置：业务处理成功，更新apiCode（如果之前为null）
@@ -46,7 +46,12 @@ public class MqIdempotentAspect {
             Long idempotentKey = extractIdempotentKey(joinPoint.getArgs(), mqIdempotent, tag);
             if (idempotentKey == null) {
                 log.warn("MQ消息中未找到idempotentKey，跳过幂等性检查(在服务上线过程中会出现，当生产者节点全部上线完成后不应再出现该消息！), tag: {}", tag);
-                return joinPoint.proceed();
+                try {
+                    return joinPoint.proceed();
+                } catch (Throwable e) {
+                    // 业务处理异常，删除幂等记录，让MQ重试
+                    throw new RuntimeException(e);
+                }
             }
 
             // 尝试插入幂等记录（失败时抛出异常，让MQ重试）
@@ -64,7 +69,7 @@ public class MqIdempotentAspect {
                 return result;
             } catch (Throwable e) {
                 // 业务处理异常，删除幂等记录，让MQ重试
-                deleteIdempotentRecordOnException(tableType, idempotentKey, recordId, tag);
+                deleteIdempotentRecordOnException(tableType, idempotentKey, tag);
                 throw e;
             }
         } finally {
@@ -137,6 +142,7 @@ public class MqIdempotentAspect {
                     , subject), e);
             return null;
         } catch (Exception e) {
+            deleteIdempotentRecordOnException(tableType, idempotentKey, tag);
             // 插入失败，无法保证幂等性，抛出异常让MQ重试（最多16次）
             throw new RuntimeException(e.getMessage(), e);
         }
@@ -153,7 +159,6 @@ public class MqIdempotentAspect {
 
         try {
             mqIdempotentService.updateApiCode(tableType, recordId, currentApiCode);
-            log.warn("业务处理成功，更新幂等记录apiCode，recordId: {}, apiCode: {}, tag: {}", recordId, currentApiCode, tag);
         } catch (Exception e) {
             String subject = "MQ幂等切面, 更新幂等记录apiCode失败";
             String errorMsg = String.format("更新幂等记录apiCode失败, recordId: %s, tag: %s, apiCode: %s, error: %s",
@@ -165,10 +170,14 @@ public class MqIdempotentAspect {
 
     /**
      * 业务异常时删除幂等记录（带重试机制）
-     * 删除失败时进行有限次数的重试，提高删除成功率
+     * 使用幂等键删除，删除失败时进行有限次数的重试，提高删除成功率
      */
     private void deleteIdempotentRecordOnException(MqIdempotentTableType tableType,
-                                                   Long idempotentKey, Long recordId, String tag) {
+                                                   Long idempotentKey, String tag) {
+        if (idempotentKey == null) {
+            return;
+        }
+
         String apiCode = MqIdempotentContext.getApiCode();
         int maxRetries = 3;
         int retryCount = 0;
@@ -176,29 +185,29 @@ public class MqIdempotentAspect {
 
         while (retryCount < maxRetries && !deleted) {
             try {
-                mqIdempotentService.deleteIdempotentRecord(tableType, recordId);
-                log.warn("MQ幂等切面，业务处理异常，已删除幂等记录, idempotentKey: {}, recordId: {}, 重试次数: {}, tag: {}, apiCode: {}, 等待MQ重试",
-                        idempotentKey, recordId, retryCount, tag, apiCode);
+                mqIdempotentService.deleteIdempotentRecordByKey(tableType, idempotentKey);
+                log.warn("MQ幂等切面，业务处理异常，已通过幂等键删除幂等记录, idempotentKey: {}, 重试次数: {}, tag: {}, apiCode: {}, 等待MQ重试",
+                        idempotentKey, retryCount, tag, apiCode);
                 deleted = true;
             } catch (Exception e) {
                 retryCount++;
                 if (retryCount < maxRetries) {
-                    log.warn("MQ幂等切面，删除幂等记录失败，准备重试，idempotentKey: {}, recordId: {}, 重试次数: {}/{}, tag: {}, apiCode: {}",
-                            idempotentKey, recordId, retryCount, maxRetries, tag, apiCode, e);
+                    log.warn("MQ幂等切面，通过幂等键删除幂等记录失败，准备重试，idempotentKey: {}, 重试次数: {}/{}, tag: {}, apiCode: {}",
+                            idempotentKey, retryCount, maxRetries, tag, apiCode, e);
                     try {
                         // 递增延迟：100ms, 200ms, 300ms
                         Thread.sleep(100L * retryCount);
                     } catch (InterruptedException ie) {
                         Thread.currentThread().interrupt();
-                        log.warn("MQ幂等切面，删除幂等记录重试延迟被中断，idempotentKey: {}, recordId: {}, tag: {}, apiCode: {}",
-                                idempotentKey, recordId, tag, apiCode, ie);
+                        log.warn("MQ幂等切面，删除幂等记录重试延迟被中断，idempotentKey: {}, tag: {}, apiCode: {}",
+                                idempotentKey, tag, apiCode, ie);
                         break;
                     }
                 } else {
                     // 重试失败，记录告警
                     String errorMsg = String.format("MQ幂等切面，删除幂等记录失败（已重试%d次），" +
-                                    "幂等记录可能残留 idempotentKey: %s, recordId: %s, tag: %s, apiCode: %s, error: %s",
-                            maxRetries, idempotentKey, recordId, tag, apiCode != null ? apiCode : "null", e.getMessage());
+                                    "幂等记录可能残留 idempotentKey: %s, tag: %s, apiCode: %s, error: %s",
+                            maxRetries, idempotentKey, tag, apiCode != null ? apiCode : "null", e.getMessage());
                     String subject = "MQ幂等切面，删除幂等记录失败";
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), errorMsg
                             , subject), e);

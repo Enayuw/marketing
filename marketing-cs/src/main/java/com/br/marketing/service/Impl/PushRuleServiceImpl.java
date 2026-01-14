@@ -13,6 +13,7 @@ import com.br.common.encryption.Sha256Util;
 import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
+import com.br.marketing.aspect.MqIdempotent;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
@@ -53,6 +54,7 @@ import com.br.marketing.common.validators.user.UserValidator;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.commonentity.StatusConstants;
 import com.br.marketing.config.RocketMqSwitch;
+import com.br.marketing.context.MqIdempotentContext;
 import com.br.marketing.context.RuntimeDataContext;
 import com.br.marketing.dto.*;
 import com.br.marketing.dto.customer.PushCustomerRequestDTO;
@@ -3020,6 +3022,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             mqDataJsonParse.setSystemType(DataProcessEnum.SystemTypeEnum.MARKETING.getCode());
             mqDataJsonParse.setDataType(DataProcessEnum.DataTypeEnum.UPLOAD.getCode());
             mqDataJsonParse.setAcceptType(DataProcessEnum.AcceptTypeEnum.GENERAL.getCode());
+
             rocketMqSwitch.sendMessage(apiCode, MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_MARKETING_CUSTOMER_DATA_JSON_PARSE,
                     JSON.toJSONString(mqDataJsonParse), MQConstants.ROUTING_KEY_MARKETING_CUSTOMER_DATA_JSON_PARSE);
             //存储标识
@@ -4625,22 +4628,27 @@ public class PushRuleServiceImpl implements PushRuleService {
                     , AlarmSendCodeEnum.TRANSFER_MUST_ERROR.getMessage()));
         }
 
+        JSONObject pushCustomerMqFact = new JSONObject();
+        pushCustomerMqFact.put("id", id);
+        pushCustomerMqFact.put("idempotentKey", snowflakeRedisGeneratorHandle.nextId());
+        String pushCustomerMessage = JSON.toJSONString(pushCustomerMqFact);
+
         if (pushCustomerApiCodes.contains(apiCode)
                 && (updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success)
                 || updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success_part))) {
             if (transferInfo.getRequestId().startsWith("black_")) {
                 if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_BLACK)) {
                     rocketMqSwitch.syncSend(MarketingOutsideInterfaceConstants.TOPIC
-                            , MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_BLACK, id.toString());
+                            , MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_BLACK, pushCustomerMessage);
                 } else {
-                    producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_BLACK, id.toString());
+                    producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_BLACK, pushCustomerMessage);
                 }
             } else {
                 if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_CUSTOMER)) {
                     rocketMqSwitch.syncSend(MarketingOutsideInterfaceConstants.TOPIC
-                            , MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_CUSTOMER, id.toString());
+                            , MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_CUSTOMER, pushCustomerMessage);
                 } else {
-                    producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER, id.toString());
+                    producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER, pushCustomerMessage);
                 }
             }
         }
@@ -4648,6 +4656,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             MqFact mqFact = new MqFact();
             mqFact.setSourceId(id);
             mqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
+            mqFact.setIdempotentKey(snowflakeRedisGeneratorHandle.nextId());
+
             if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)) {
                 String message = JSON.toJSONString(mqFact);
                 rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
@@ -4662,6 +4672,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             mrpMqFact.setSourceId(id);
             mrpMqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
             mrpMqFact.setApiCode(apiCode);
+            mrpMqFact.setIdempotentKey(snowflakeRedisGeneratorHandle.nextId());
             if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_MRP_UNIVERSAL_TRANSFER_RECEIVE)) {
                 String message = JSON.toJSONString(mrpMqFact);
                 rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
@@ -5261,6 +5272,34 @@ public class PushRuleServiceImpl implements PushRuleService {
             false);
 
     private final String cidKey = "marketing:innerapi:transfer:cid:";
+
+    @MqIdempotent
+    public synchronized Result<Boolean> pushPersonalTransferDataWrapper(String msg) {
+        Long infoId;
+        // 兼容老消息（纯数字字符串）和新消息（JSON格式）
+        if (msg.startsWith("{")) {
+            JSONObject jsonObject = JSON.parseObject(msg);
+            if (jsonObject != null && jsonObject.containsKey("id")) {
+                infoId = jsonObject.getLong("id");
+            } else {
+                log.warn("JSON消息中未找到id字段，msg: {}", msg);
+                throw new RuntimeException("消息格式错误，JSON中未找到id字段");
+            }
+        } else {
+            try {
+                infoId = JSON.parseObject(msg, new TypeReference<Long>() {}.getType());
+            } catch (Exception e) {
+                log.warn("解析数字消息失败，msg: {}", msg, e);
+                throw new RuntimeException("消息格式错误，无法解析为数字", e);
+            }
+        }
+
+        if (infoId == null) {
+            throw new RuntimeException("消息中未找到id字段");
+        }
+
+        return pushPersonalTransferData(infoId);
+    }
 
     @Override
     @Transactional
@@ -5939,9 +5978,32 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(isContiue);
     }
 
+    @MqIdempotent
     @Override
-    public Result<Boolean> consumerBlack(Long id) {
-        Integer soleNum = 20;
+    public Result<Boolean> consumerBlack(String msg) {
+        Long id;
+        // 兼容老消息（纯数字字符串）和新消息（JSON格式）
+        if (msg.startsWith("{")) {
+            JSONObject jsonObject = JSON.parseObject(msg);
+            if (jsonObject != null && jsonObject.containsKey("id")) {
+                id = jsonObject.getLong("id");
+            } else {
+                log.warn("JSON消息中未找到id字段，msg: {}", msg);
+                throw new RuntimeException("消息格式错误，JSON中未找到id字段");
+            }
+        } else {
+            try {
+                id = JSON.parseObject(msg, new TypeReference<Long>() {}.getType());
+            } catch (Exception e) {
+                log.warn("解析数字消息失败，msg: {}", msg, e);
+                throw new RuntimeException("消息格式错误，无法解析为数字", e);
+            }
+        }
+
+        if (id == null) {
+            throw new RuntimeException("消息中未找到id字段");
+        }
+
         Boolean isContinue = Boolean.FALSE;
         MarketingTransferInfo transferInfo = marketingTransferInfoMapper.selectByPrimaryKey(id);
         if (transferInfo == null) {
@@ -5950,15 +6012,18 @@ public class PushRuleServiceImpl implements PushRuleService {
                     .setDate(isContinue)
                     .setMessage("数据不存在");
         }
-        String tcId = tableCreateService.getTcId(transferInfo.getApiCode());
+
+        String apiCode = transferInfo.getApiCode();
+        MqIdempotentContext.setApiCode(apiCode);
+        String tcId = tableCreateService.getTcId(apiCode);
         if (tcId == null) {
             return new Result<>()
                     .setCode(ResultCode.SUCCESS.getValue())
                     .setDate(isContinue)
-                    .setMessage(String.format("apiCode:%s 未维护cid信息", transferInfo.getApiCode()));
+                    .setMessage(String.format("apiCode:%s 未维护cid信息", apiCode));
         }
         MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
-        example.createCriteria().andApiCodeEqualTo(transferInfo.getApiCode()).
+        example.createCriteria().andApiCodeEqualTo(apiCode).
                 andRequestIdEqualTo(transferInfo.getRequestId());
         example.settCid(tcId);
         List<MarketingTransferSyncUser> marketingTransferSyncUsers = marketingTransferSyncUserMapper.selectByExample(example);

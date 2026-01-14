@@ -3,6 +3,7 @@ package com.br.marketing.strategy;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.context.AbstractRuleCollectDataService;
+import com.br.marketing.context.MqIdempotentContext;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.PeriodPushLog;
 import com.br.marketing.mapper.PeriodPushLogMapper;
@@ -157,8 +158,10 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
          */
         List<Object> transmitFacts = originData.collect(mqFact, context);
 
-        // todo
         String apiCode = context.getApiCode();
+        // 同步到ThreadLocal，供幂等性切面使用
+        MqIdempotentContext.setApiCode(apiCode);
+
         // 检查配置是否要给间隔job添加数据以及是否继续往下走
         Map<String, JSONObject> periodPushConfig = marketingCommonConfig.getPeriodPushConfig();
         if(null != periodPushConfig){

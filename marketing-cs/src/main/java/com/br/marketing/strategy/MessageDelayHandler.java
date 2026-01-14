@@ -6,6 +6,7 @@ import com.br.marketing.common.constants.rocketmq.MarketingDelayedConstants;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.handle.SnowflakeRedisGeneratorHandle;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -57,6 +58,8 @@ public class MessageDelayHandler extends AbstractExternalInterfaceHandler<MqFact
     private RocketMqSwitch rocketMqSwitch;
     @Resource
     private RocketMqTemplate template;
+    @Resource
+    private SnowflakeRedisGeneratorHandle snowflakeRedisGeneratorHandle;
 
     @Override
     JSONObject call(List<MqFact> mqFacts, ProcessHandlerContext context) {
@@ -64,6 +67,7 @@ public class MessageDelayHandler extends AbstractExternalInterfaceHandler<MqFact
                 ?marketingCommonConfig.getMessageQueueExpireTime():EXPIRE_TIME;
 
         for (MqFact mqFact : mqFacts) {
+            mqFact.setIdempotentKey(snowflakeRedisGeneratorHandle.nextId());
             String message = JSON.toJSONString(mqFact);
             if (!StringUtils.isEmpty(mqFact.getDelayTime()) && mqFact.getDelayTime() > 0) {
                 float v = mqFact.getDelayTime() * Integer.parseInt(expireTime);

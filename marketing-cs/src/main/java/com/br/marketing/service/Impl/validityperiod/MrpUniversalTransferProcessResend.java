@@ -12,6 +12,7 @@ import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.entity.MarketingTransferInfo;
 import com.br.marketing.entity.ValidityPeriodResendRecord;
 import com.br.marketing.enums.ValidityPeriodResendEnum;
+import com.br.marketing.handle.SnowflakeRedisGeneratorHandle;
 import com.br.marketing.mapper.MarketingDataValidConfigMapper;
 import com.br.marketing.mapper.MarketingTransferInfoMapper;
 import com.br.marketing.origin.MqFact;
@@ -51,6 +52,8 @@ public class MrpUniversalTransferProcessResend implements ValidityPeriodResendSt
     private RocketMqTemplate template;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+    @Resource
+    private SnowflakeRedisGeneratorHandle snowflakeRedisGeneratorHandle;
 
     /**
      * 构建重推数据扩展字段
@@ -135,11 +138,12 @@ public class MrpUniversalTransferProcessResend implements ValidityPeriodResendSt
      * @author senyang.zheng
      * @date 2023/11/13
      */
-    protected static MrpMqFact buildMrpMqFact(MarketingTransferInfo info, ValidityPeriodResendRecord record) {
+    protected MrpMqFact buildMrpMqFact(MarketingTransferInfo info, ValidityPeriodResendRecord record) {
         MrpMqFact mqFact = new MrpMqFact();
         mqFact.setSourceId(info.getId());
         mqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
         mqFact.setApiCode(info.getApiCode());
+        mqFact.setIdempotentKey(snowflakeRedisGeneratorHandle.nextId());
         JSONObject resendData = JSONObject.parseObject(record.getResendData());
         if (resendData != null && StringUtils.isNotEmpty((resendData.getString("ruleScene")))) {
             String ruleScene = resendData.getString("ruleScene");

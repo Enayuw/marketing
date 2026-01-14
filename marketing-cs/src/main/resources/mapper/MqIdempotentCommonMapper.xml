@@ -3,7 +3,7 @@
 <mapper namespace="com.br.marketing.mapper.MqIdempotentCommonMapper" >
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.MqIdempotentCommon" >
     <id column="id" property="id" jdbcType="BIGINT" />
-    <result column="idempotentKey" property="idempotentkey" jdbcType="BIGINT" />
+    <result column="idempotent_key" property="idempotentKey" jdbcType="BIGINT" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="tag" property="tag" jdbcType="VARCHAR" />
     <result column="is_deleted" property="isDeleted" jdbcType="INTEGER" />
@@ -71,7 +71,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, idempotentKey, api_code, tag, is_deleted, extend, create_date, create_time, update_time
+    id, idempotent_key, api_code, tag, is_deleted, extend, create_date, create_time, 
+    update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MqIdempotentCommonExample" >
     select
@@ -107,10 +108,10 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_mq_idempotent_common (idempotentKey, api_code, tag, 
+    insert into b_mq_idempotent_common (idempotent_key, api_code, tag, 
       is_deleted, extend, create_date, 
       create_time, update_time)
-    values (#{idempotentkey,jdbcType=BIGINT}, #{apiCode,jdbcType=VARCHAR}, #{tag,jdbcType=VARCHAR}, 
+    values (#{idempotentKey,jdbcType=BIGINT}, #{apiCode,jdbcType=VARCHAR}, #{tag,jdbcType=VARCHAR}, 
       #{isDeleted,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR}, #{createDate,jdbcType=INTEGER}, 
       #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
@@ -120,8 +121,8 @@
     </selectKey>
     insert into b_mq_idempotent_common
     <trim prefix="(" suffix=")" suffixOverrides="," >
-      <if test="idempotentkey != null" >
-        idempotentKey,
+      <if test="idempotentKey != null" >
+        idempotent_key,
       </if>
       <if test="apiCode != null" >
         api_code,
@@ -146,8 +147,8 @@
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
-      <if test="idempotentkey != null" >
-        #{idempotentkey,jdbcType=BIGINT},
+      <if test="idempotentKey != null" >
+        #{idempotentKey,jdbcType=BIGINT},
       </if>
       <if test="apiCode != null" >
         #{apiCode,jdbcType=VARCHAR},
@@ -184,8 +185,8 @@
       <if test="record.id != null" >
         id = #{record.id,jdbcType=BIGINT},
       </if>
-      <if test="record.idempotentkey != null" >
-        idempotentKey = #{record.idempotentkey,jdbcType=BIGINT},
+      <if test="record.idempotentKey != null" >
+        idempotent_key = #{record.idempotentKey,jdbcType=BIGINT},
       </if>
       <if test="record.apiCode != null" >
         api_code = #{record.apiCode,jdbcType=VARCHAR},
@@ -216,7 +217,7 @@
   <update id="updateByExample" parameterType="map" >
     update b_mq_idempotent_common
     set id = #{record.id,jdbcType=BIGINT},
-      idempotentKey = #{record.idempotentkey,jdbcType=BIGINT},
+      idempotent_key = #{record.idempotentKey,jdbcType=BIGINT},
       api_code = #{record.apiCode,jdbcType=VARCHAR},
       tag = #{record.tag,jdbcType=VARCHAR},
       is_deleted = #{record.isDeleted,jdbcType=INTEGER},
@@ -231,8 +232,8 @@
   <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MqIdempotentCommon" >
     update b_mq_idempotent_common
     <set >
-      <if test="idempotentkey != null" >
-        idempotentKey = #{idempotentkey,jdbcType=BIGINT},
+      <if test="idempotentKey != null" >
+        idempotent_key = #{idempotentKey,jdbcType=BIGINT},
       </if>
       <if test="apiCode != null" >
         api_code = #{apiCode,jdbcType=VARCHAR},
@@ -260,7 +261,7 @@
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MqIdempotentCommon" >
     update b_mq_idempotent_common
-    set idempotentKey = #{idempotentkey,jdbcType=BIGINT},
+    set idempotent_key = #{idempotentKey,jdbcType=BIGINT},
       api_code = #{apiCode,jdbcType=VARCHAR},
       tag = #{tag,jdbcType=VARCHAR},
       is_deleted = #{isDeleted,jdbcType=INTEGER},
@@ -270,4 +271,8 @@
       update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}
   </update>
+  <delete id="deleteByIdempotentKey" parameterType="java.lang.Long" >
+    delete from b_mq_idempotent_common
+    where idempotent_key = #{idempotentKey,jdbcType=BIGINT}
+  </delete>
 </mapper>

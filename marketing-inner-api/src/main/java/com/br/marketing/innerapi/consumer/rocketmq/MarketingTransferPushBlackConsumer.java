@@ -44,8 +44,8 @@ public class MarketingTransferPushBlackConsumer extends BaseMqMessageListener im
     @Override
     protected void handleMessage(MessageExt messageExt) throws Exception {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
-        Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {}.getType());
-        consumerService.consumerRun(messageExt, pushRuleService::consumerBlack, o);
+//        Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {}.getType());
+        consumerService.consumerRun(messageExt, pushRuleService::consumerBlack, bodyString);
     }
 
     @Override

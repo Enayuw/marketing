@@ -6,10 +6,12 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.common.encryption.Md5Utils;
 import com.br.common.log.AlertLog;
 import com.br.marketing.api.customer.upload.service.hengchang.dto.HengChangUploadJsonDTO;
+import com.br.marketing.aspect.MqIdempotent;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.context.MqIdempotentContext;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.entity.CustomizeUploadData;
@@ -41,6 +43,7 @@ public class HengChangDataCleanServiceImpl implements HengChangDataCleanService 
     @Resource
     private PushInfoService pushInfoService;
 
+    @MqIdempotent
     @Override
     public Result<Boolean> cleanData(String message) {
         log.warn("恒昌数据接入：" +message);
@@ -53,6 +56,7 @@ public class HengChangDataCleanServiceImpl implements HengChangDataCleanService 
             return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
         }
         try {
+            MqIdempotentContext.setApiCode(data.getApiCode());
             HengChangUploadJsonDTO uploadJson = JSON.parseObject(data.getRequestJsonData(), HengChangUploadJsonDTO.class);
             Result<Boolean> result;
             MarketingPreUserDTO userDTO = new MarketingPreUserDTO();

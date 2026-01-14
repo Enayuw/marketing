@@ -179,7 +179,7 @@ public class ZhongYuanUploadDataJob extends AbstractSimpleElasticJob {
             mqDataJsonParse.setSystemType(DataProcessEnum.SystemTypeEnum.MARKETING.getCode());
             mqDataJsonParse.setDataType(DataProcessEnum.DataTypeEnum.UPLOAD.getCode());
             mqDataJsonParse.setAcceptType(DataProcessEnum.AcceptTypeEnum.CUSTOM.getCode());
-            
+
             rocketMqSwitch.sendMessage(apiCode, MarketingAssistConstants.TOPIC,
                     MarketingAssistConstants.TAG_MARKETING_CUSTOMER_DATA_JSON_PARSE,
                     JSON.toJSONString(mqDataJsonParse),
