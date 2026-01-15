@@ -387,7 +387,7 @@ public class SyncServiceImpl implements SyncService {
         }
     }
 
-    private void sftpFileUploadToMiNio(SyncConfig loanSyncConfig, String fileName, BaseFtpClient srcClient) {
+    public Boolean sftpFileUploadToMiNio(SyncConfig loanSyncConfig, String fileName, BaseFtpClient srcClient) {
         InputStream inputStream = null;
         String srcPath = loanSyncConfig.getSrcPath().endsWith("/") ? loanSyncConfig.getSrcPath() : loanSyncConfig.getSrcPath() + "/";
         String targetPath = loanSyncConfig.getTargetPath().endsWith("/") ? loanSyncConfig.getTargetPath() : loanSyncConfig.getTargetPath() + "/";
@@ -395,8 +395,10 @@ public class SyncServiceImpl implements SyncService {
         try {
             inputStream = srcClient.getInputStream(srcPath, fileName);
             minioFileService.uploadFile(inputStream, targetPath.concat(fileName));
+            return Boolean.TRUE;
         } catch (Exception e) {
             log.error("拷贝文件出错", e);
+            return Boolean.FALSE;
         } finally {
             try {
                 if (inputStream != null) {

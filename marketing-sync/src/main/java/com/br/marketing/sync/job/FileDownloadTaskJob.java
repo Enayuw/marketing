@@ -6,6 +6,7 @@ import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.sync.service.FileUploadDownloadService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -29,7 +30,7 @@ public class FileDownloadTaskJob extends AbstractSimpleElasticJob {
     @Resource
     private FileUploadDownloadService fileUploadDownloadService;
 
-    private final static String TITLE = "文件下载";
+    private final static String TITLE = "[文件下载]";
 
 
     @Override
@@ -38,7 +39,7 @@ public class FileDownloadTaskJob extends AbstractSimpleElasticJob {
         log.warn(TITLE + "任务调度开始");
         //查询要下载的配置
         List<SyncConfig> loanSyncConfigs = loanSyncConfigMapper.queryConfigByTypeAndTargetType("1"
-                , Arrays.asList(Constants.LOAN_WARNING_FTP, Constants.LOAN_WARNING_SFTP));
+                , Lists.newArrayList());
 
         fileUploadDownloadService.processDownloadTask(loanSyncConfigs);
         log.warn(TITLE + "任务调度结束，耗时：{}", System.currentTimeMillis() - start);

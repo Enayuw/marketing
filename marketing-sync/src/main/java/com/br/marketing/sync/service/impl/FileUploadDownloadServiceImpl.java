@@ -2,7 +2,11 @@ package com.br.marketing.sync.service.impl;
 
 import com.br.common.validator.DateUtils;
 import com.br.marketing.client.BaseFtpClient;
+import com.br.marketing.client.FtpClient;
+import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.enums.DataTypeEnum;
+import com.br.marketing.enums.SyncConfigCustomizedTypeEnum;
+import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
@@ -15,8 +19,15 @@ import com.br.marketing.enums.file.FileServerType;
 import com.br.marketing.mapper.FileSyncTaskMapper;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.mapper.SyncLogMapper;
+import com.br.marketing.sync.entity.FileSyncInfo;
 import com.br.marketing.sync.service.FileUploadDownloadService;
+import com.br.marketing.sync.service.ShuHeCustomizedSyncService;
+import com.jcraft.jsch.SftpATTRS;
+import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
+import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.net.ftp.FTPFile;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -26,9 +37,10 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -48,6 +60,11 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
 
     @Resource
     private MinioFileService minioFileService;
+
+    @Resource
+    private ShuHeCustomizedSyncService shuHeCustomizedSyncService;
+
+    private static final String DOWNLOAD_TITLE = "[文件下载任务]";
 
 
     @Override
@@ -241,7 +258,141 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
 
     @Override
     public void processDownloadTask(List<SyncConfig> loanSyncConfigs) {
+        if (CollectionUtils.isEmpty(loanSyncConfigs)) {
+            log.warn(DOWNLOAD_TITLE + "配置列表为空，跳过处理");
+            return;
+        }
+        log.warn(DOWNLOAD_TITLE + "开始处理，配置数量：{}", loanSyncConfigs.size());
+        // 分离不同类型的配置
+        List<SyncConfig> shuHeConfigs = new ArrayList<>();
+        List<SyncConfig> defaultConfigs = new ArrayList<>();
+        for (SyncConfig config : loanSyncConfigs) {
+            SyncConfigCustomizedTypeEnum typeEnum = SyncConfigCustomizedTypeEnum.getEnumByCode(config.getCustomizedType());
+            switch (typeEnum) {
+                case DEFAULT:
+                    defaultConfigs.add(config);
+                    break;
+                case SHUHE_AUTO_MATCH_DATA:
+                    shuHeConfigs.add(config);
+                    break;
+                default:
+                    log.warn(DOWNLOAD_TITLE + "不支持的customizedType，跳过：apiCode={}, customizedType={}",
+                            config.getApiCode(), config.getCustomizedType());
+                    break;
+            }
+        }
+        // 处理SHUHE_AUTO_MATCH_DATA类型
+        processShuHeConfigs(shuHeConfigs);
+        //使用线程池并行遍历
+        TpDynamicExecutor threadPool = TpDynamicExecutorFactory
+                .getThreadPool(ThreadPoolNameEnum.FILE_SYNC_DOWNLOAD.getName(), 10, 20);
+        List<FileSyncInfo> allFilesToSync = Collections.synchronizedList(new ArrayList<>());
+        for (SyncConfig config : defaultConfigs) {
+            threadPool.submit(() -> {
+                try {
+                    List<FileSyncInfo> filesToSync = processConfigForFileList(config);
+                    if (!CollectionUtils.isEmpty(filesToSync)) {
+                        allFilesToSync.addAll(filesToSync);
+                    }
+                } catch (Exception e) {
+                    log.error(DOWNLOAD_TITLE + "处理配置异常，apiCode: {}, id: {}, error: {}",
+                            config.getApiCode(), config.getId(), e.getMessage(), e);
+                }
+            });
+        }
+        // 关闭线程池并等待所有任务完成
+        threadPool.shutdownAndAwaitTermination();
+        if (CollectionUtils.isEmpty(allFilesToSync)) {
+            log.warn(DOWNLOAD_TITLE + "无待同步文件，任务结束");
+            return;
+        }
+        // 按配置ID分组，同一配置的文件共用连接
+        Map<Long, List<FileSyncInfo>> groupedByConfig = allFilesToSync.stream()
+                .collect(Collectors.groupingBy(f -> f.getConfig().getId()));
 
+        log.warn(DOWNLOAD_TITLE + "遍历完成，待同步文件：{}，配置数：{}", allFilesToSync.size(), groupedByConfig.size());
+        for (Map.Entry<Long, List<FileSyncInfo>> entry : groupedByConfig.entrySet()) {
+            List<FileSyncInfo> files = entry.getValue();
+            if (CollectionUtils.isEmpty(files)) {
+                continue;
+            }
+            SyncConfig config = files.get(0).getConfig();
+            boolean diskBool = Constants.LOAN_DISK.equals(config.getTargetType());
+
+            BaseFtpClient srcClient = null;
+            BaseFtpClient targetClient = null;
+
+            try {
+                srcClient = syncServiceImpl.getClient(config, true);
+                if (!diskBool) {
+                    targetClient = syncServiceImpl.getClient(config, false);
+                }
+
+                // 连接校验
+                if (srcClient == null || (!diskBool && targetClient == null)) {
+                    log.error(DOWNLOAD_TITLE + "targetClient or srcClient is null, apiCode: {}", config.getApiCode());
+                    continue;
+                }
+                if (!srcClient.isConnected() || (!diskBool && !targetClient.isConnected())) {
+                    log.error(DOWNLOAD_TITLE + "连接不可用, apiCode: {}", config.getApiCode());
+                    continue;
+                }
+                log.warn(DOWNLOAD_TITLE + "开始同步配置：apiCode={},dataType={}, 文件数量：{}", config.getApiCode(), config.getDataType(), files.size());
+                // 同一配置的文件共用连接，串行同步
+                for (FileSyncInfo fileToSync : files) {
+                    try {
+                        syncSingleFile(fileToSync, srcClient, targetClient, diskBool);
+                    } catch (Exception e) {
+                        log.error(DOWNLOAD_TITLE + "同步文件异常，apiCode={},fileName: {}, error: {}",
+                                config.getApiCode(), fileToSync.getFileName(), e.getMessage(), e);
+                    }
+                }
+
+                log.warn(DOWNLOAD_TITLE + "配置同步完成：apiCode={}", config.getApiCode());
+
+            } catch (Exception e) {
+                log.error(DOWNLOAD_TITLE + "处理配置异常，apiCode: {}, error: {}",
+                        config.getApiCode(), e.getMessage(), e);
+            } finally {
+                closeClient(srcClient);
+                closeClient(targetClient);
+            }
+        }
+    }
+
+    /**
+     * 处理SHUHE_AUTO_MATCH_DATA类型配置（不需要遍历文件）
+     */
+    private void processShuHeConfigs(List<SyncConfig> shuHeConfigs) {
+
+        log.warn(DOWNLOAD_TITLE + "开始处理SHUHE_AUTO_MATCH_DATA类型配置，数量：{}", shuHeConfigs.size());
+
+        for (SyncConfig config : shuHeConfigs) {
+            BaseFtpClient srcClient = null;
+            BaseFtpClient targetClient = null;
+            try {
+                srcClient = syncServiceImpl.getClient(config, true);
+                targetClient = syncServiceImpl.getClient(config, false);
+
+                if (srcClient == null || targetClient == null) {
+                    log.error(DOWNLOAD_TITLE + "SHUHE连接建立失败，apiCode: {}", config.getApiCode());
+                    continue;
+                }
+                if (!srcClient.isConnected() || !targetClient.isConnected()) {
+                    log.error(DOWNLOAD_TITLE + "SHUHE连接不可用，apiCode: {}", config.getApiCode());
+                    continue;
+                }
+
+                shuHeCustomizedSyncService.syncFile(config, srcClient, targetClient);
+                log.warn(DOWNLOAD_TITLE + "SHUHE配置同步完成：apiCode={}", config.getApiCode());
+            } catch (Exception e) {
+                log.error(DOWNLOAD_TITLE + "SHUHE配置处理异常，apiCode: {}, error: {}",
+                        config.getApiCode(), e.getMessage(), e);
+            } finally {
+                closeClient(srcClient);
+                closeClient(targetClient);
+            }
+        }
     }
 
     @Override
@@ -314,5 +465,519 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
         return result;
     }
 
+    /**
+     * 处理单个配置，获取待同步的文件列表
+     */
+    private List<FileSyncInfo> processConfigForFileList(SyncConfig config) {
+        List<FileSyncInfo> result = new ArrayList<>();
+        String srcPath = config.getSrcPath();
+        String apiCode = config.getApiCode();
+        // 建立SFTP/FTP连接
+        BaseFtpClient client = syncServiceImpl.getClient(config, true);
+        if (client == null || !client.isConnected()) {
+            log.error(DOWNLOAD_TITLE + "连接建立失败，apiCode: {}", apiCode);
+            return result;
+        }
+        try {
+            // 判断源路径格式
+            boolean containsDatePattern = srcPath.contains("yyyyMMdd") || srcPath.contains("yyyy-MM-dd");
+            if (containsDatePattern) {
+                // 包含日期格式：使用当前日期(T)和(T-60min)日期
+                Set<String> dateSet = new TreeSet<>();
+                dateSet.add(DateHelper.getDateByMinute(-60));
+                dateSet.add(DateHelper.getDateAddYyMmDd(0));
+
+                for (String date : dateSet) {
+                    SyncConfig configCopy = copyConfig(config);
+                    // 替换路径中的日期
+                    String formattedSrcPath = replaceDateInPathWithDate(srcPath, date);
+                    String formattedTargetPath = replaceDateInPathWithDate(config.getTargetPath(), date);
+                    configCopy.setSrcPath(formattedSrcPath);
+                    configCopy.setTargetPath(formattedTargetPath);
+
+                    // 获取文件列表
+                    List<FileSyncInfo> fileInfoList = listFilesFromServer(configCopy, client);
+
+                    // 批量查询已同步记录
+                    List<FileSyncInfo> filesToSync = filterUnSyncedFiles(fileInfoList, configCopy);
+                    result.addAll(filesToSync);
+                }
+            } else {
+                // 不包含日期格式：遍历目录
+                List<FileSyncInfo> fileInfoList = listFilesFromServer(config, client);
+                // 根据syncStartTime过滤
+                String fileFilterTime = config.getSyncStartTime();
+                List<FileSyncInfo> filteredFiles;
+                if (StringUtils.isEmpty(fileFilterTime)) {
+                    // syncStartTime为空：默认过滤 >= T-1（昨天）的文件
+                    LocalDate yesterday = LocalDate.now().minusDays(1);
+                    String defaultFilterTime = yesterday.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + " 00:00:00";
+                    filteredFiles = filterFilesByTime(fileInfoList, defaultFilterTime);
+                } else {
+                    // fileFilterTime不为空：过滤 >= fileFilterTime 的文件
+                    filteredFiles = filterFilesByTime(fileInfoList, fileFilterTime);
+                    log.warn(DOWNLOAD_TITLE + "使用配置的过滤时间：{}", fileFilterTime);
+                }
+
+                // 批量查询已同步记录
+                List<FileSyncInfo> filesToSync = filterUnSyncedFiles(filteredFiles, config);
+                result.addAll(filesToSync);
+            }
+
+            log.warn(DOWNLOAD_TITLE + "配置处理完成，apiCode: {}, 待同步文件数：{}", apiCode, result.size());
+
+        } catch (Exception e) {
+            log.error(DOWNLOAD_TITLE + "处理配置异常，apiCode: {}, error: {}", apiCode, e.getMessage(), e);
+        } finally {
+            closeClient(client);
+        }
+
+        return result;
+    }
+
+    /**
+     * 从服务器获取文件列表（与SyncServiceImpl逻辑保持一致，但不查询是否同步）
+     */
+    private List<FileSyncInfo> listFilesFromServer(SyncConfig config, BaseFtpClient client) {
+        List<FileSyncInfo> fileInfoList = new ArrayList<>();
+        String srcPath = config.getSrcPath();
+        String suffixStr = config.getSuffix();
+        String apiCode = config.getApiCode();
+
+        try {
+            if (Constants.LOAN_WARNING_SFTP.equals(config.getSrcType())) {
+                SftpClient sftpClient = (SftpClient) client;
+                if ("no_suffix".equals(suffixStr)) {
+                    // no_suffix类型需要递归遍历所有子目录
+                    log.warn(DOWNLOAD_TITLE + "no_suffix类型，开始递归遍历SFTP目录: {}", srcPath);
+                    listSftpFilesRecursively(fileInfoList, config, sftpClient, srcPath);
+                } else {
+                    // 其他类型只遍历当前目录（与SyncServiceImpl.sftpFileList保持一致）
+                    Map<String, SftpATTRS> map = sftpClient.listFiles(srcPath);
+                    log.warn(DOWNLOAD_TITLE + "SFTP同步路径:{},该路径下文件有:{}个", srcPath, map.keySet().size());
+                    for (Map.Entry<String, SftpATTRS> entry : map.entrySet()) {
+                        String fileName = entry.getKey();
+                        SftpATTRS attrs = entry.getValue();
+                        String createTime = DateHelper.timeStamp2Date(attrs.getMTime() + "", "yyyy-MM-dd HH:mm:ss");
+                        // 过滤历史文件
+                        if (vaildExclusionTime(createTime, config)) {
+                            log.warn(DOWNLOAD_TITLE + "历史文件，不处理{},{}", fileName, createTime);
+                            continue;
+                        }
+                        // 文件上传时间距离当前时间小于1分钟，暂时不处理
+                        long minutes = DateHelper.getDistanceMinutes(createTime);
+                        if (minutes < 1) {
+                            log.warn(DOWNLOAD_TITLE + "文件上传时间距离当前时间小于1分钟，暂时不处理{},{}", fileName, createTime);
+                            continue;
+                        }
+                        fileInfoList.add(new FileSyncInfo(fileName, srcPath, createTime, attrs.getSize(), null));
+                    }
+                }
+            } else if (Constants.LOAN_WARNING_FTP.equals(config.getSrcType())) {
+                FtpClient ftpClient = (FtpClient) client;
+                if ("no_suffix".equals(suffixStr)) {
+                    // no_suffix类型需要递归遍历所有子目录
+                    log.warn(DOWNLOAD_TITLE + "no_suffix类型，开始递归遍历FTP目录: {}", srcPath);
+                    listFtpFilesRecursively(fileInfoList, config, ftpClient, srcPath);
+                } else {
+                    // 其他类型只遍历当前目录（与SyncServiceImpl.ftpFileList保持一致）
+                    FTPFile[] ftpFiles = ftpClient.listFiles(srcPath);
+                    if (ftpFiles == null || ftpFiles.length == 0) {
+                        log.warn(DOWNLOAD_TITLE + "FTP目录为空或不存在，跳过遍历：{}", srcPath);
+                        return fileInfoList;
+                    }
+                    log.warn(DOWNLOAD_TITLE + "FTP同步路径:{},该路径下文件有:{}个", srcPath, ftpFiles.length);
+                    for (FTPFile file : ftpFiles) {
+                        String fileName = file.getName();
+                        Calendar timestamp = file.getTimestamp();
+                        String createTime = DateUtils.parseDateTimeByDate(timestamp.getTime(), "yyyy-MM-dd HH:mm:ss");
+                        log.info(DOWNLOAD_TITLE + "fileName:{},size:{},time:{}", fileName, file.getSize(), createTime);
+                        // 过滤历史文件
+                        if (vaildExclusionTime(createTime, config)) {
+                            log.info(DOWNLOAD_TITLE + "历史文件，不处理{},{}", fileName, createTime);
+                            continue;
+                        }
+                        // 文件上传时间距离当前时间小于1分钟，暂时不处理
+                        long minutes = DateHelper.getDistanceMinutes(createTime);
+                        if (minutes < 1) {
+                            log.warn(DOWNLOAD_TITLE + "文件上传时间距离当前时间小于1分钟，暂时不处理{},{}", fileName, createTime);
+                            continue;
+                        }
+                        fileInfoList.add(new FileSyncInfo(fileName, srcPath, createTime, file.getSize(), null));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error(DOWNLOAD_TITLE + "apiCode={} 获取文件列表异常，srcPath: {}, error: {}", apiCode, srcPath, e.getMessage(), e);
+        }
+
+        // 根据配置后缀过滤文件，并校验success
+        return filterFilesBySuffixAndSuccess(fileInfoList, config);
+    }
+
+    /**
+     * 递归遍历SFTP目录
+     */
+    private void listSftpFilesRecursively(List<FileSyncInfo> fileInfoList, SyncConfig config, SftpClient client, String currentPath) {
+        try {
+            Map<String, SftpATTRS> map = client.listFiles(currentPath);
+            log.warn(DOWNLOAD_TITLE + "递归遍历SFTP路径:{},该路径下文件有:{}个", currentPath, map.keySet().size());
+
+            for (Map.Entry<String, SftpATTRS> entry : map.entrySet()) {
+                String fileName = entry.getKey();
+                SftpATTRS attrs = entry.getValue();
+
+                // 跳过. 和 .. 目录
+                if (".".equals(fileName) || "..".equals(fileName)) {
+                    continue;
+                }
+
+                String fullPath = currentPath.endsWith("/") ? currentPath + fileName : currentPath + "/" + fileName;
+
+                if (attrs.isDir()) {
+                    // 如果是目录，递归遍历
+                    log.warn(DOWNLOAD_TITLE + "发现子目录：{}，开始递归遍历", fullPath);
+                    listSftpFilesRecursively(fileInfoList, config, client, fullPath);
+                } else {
+                    // 如果是文件
+                    String createTime = DateHelper.timeStamp2Date(attrs.getMTime() + "", "yyyy-MM-dd HH:mm:ss");
+                    // 过滤历史文件
+                    if (vaildExclusionTime(createTime, config)) {
+                        log.warn(DOWNLOAD_TITLE + "历史文件，不处理{},{}", fileName, createTime);
+                        continue;
+                    }
+                    // 文件上传时间距离当前时间小于1分钟，暂时不处理
+                    long minutes = DateHelper.getDistanceMinutes(createTime);
+                    if (minutes < 1) {
+                        log.warn(DOWNLOAD_TITLE + "文件上传时间距离当前时间小于1分钟，暂时不处理{},{}", fileName, createTime);
+                        continue;
+                    }
+                    fileInfoList.add(new FileSyncInfo(fileName, currentPath, createTime, attrs.getSize(), "no_suffix"));
+                }
+            }
+        } catch (Exception e) {
+            log.error(DOWNLOAD_TITLE + "递归遍历SFTP目录出错，路径：{}", currentPath, e);
+        }
+    }
+
+    /**
+     * 递归遍历FTP目录
+     */
+    private void listFtpFilesRecursively(List<FileSyncInfo> fileInfoList, SyncConfig config, FtpClient client, String currentPath) {
+        try {
+            FTPFile[] ftpFiles = client.listFiles(currentPath);
+
+            if (ftpFiles == null || ftpFiles.length == 0) {
+                log.warn(DOWNLOAD_TITLE + "FTP目录为空或不存在，跳过遍历：{}", currentPath);
+                return;
+            }
+
+            log.warn(DOWNLOAD_TITLE + "递归遍历FTP路径:{},该路径下文件有:{}个", currentPath, ftpFiles.length);
+
+            for (FTPFile file : ftpFiles) {
+                String fileName = file.getName();
+
+                // 跳过. 和 .. 目录
+                if (".".equals(fileName) || "..".equals(fileName)) {
+                    continue;
+                }
+
+                String fullPath = currentPath.endsWith("/") ? currentPath + fileName : currentPath + "/" + fileName;
+
+                if (file.isDirectory()) {
+                    // 如果是目录，递归遍历
+                    log.warn(DOWNLOAD_TITLE + "发现子目录：{}，开始递归遍历", fullPath);
+                    listFtpFilesRecursively(fileInfoList, config, client, fullPath);
+                } else {
+                    // 如果是文件
+                    Calendar timestamp = file.getTimestamp();
+                    String createTime = DateUtils.parseDateTimeByDate(timestamp.getTime(), "yyyy-MM-dd HH:mm:ss");
+                    // 过滤历史文件
+                    if (vaildExclusionTime(createTime, config)) {
+                        log.warn(DOWNLOAD_TITLE + "历史文件，不处理{},{}", fileName, createTime);
+                        continue;
+                    }
+                    // 文件上传时间距离当前时间小于1分钟，暂时不处理
+                    long minutes = DateHelper.getDistanceMinutes(createTime);
+                    if (minutes < 1) {
+                        log.warn(DOWNLOAD_TITLE + "文件上传时间距离当前时间小于1分钟，暂时不处理{},{}", fileName, createTime);
+                        continue;
+                    }
+                    fileInfoList.add(new FileSyncInfo(fileName, currentPath, createTime, file.getSize(), "no_suffix"));
+                }
+            }
+        } catch (Exception e) {
+            log.error(DOWNLOAD_TITLE + "递归遍历FTP目录出错，路径：{}", currentPath, e);
+        }
+    }
+
+    /**
+     * 校验排除日期（与SyncServiceImpl保持一致）
+     */
+    private boolean vaildExclusionTime(String createFileTime, SyncConfig config) {
+        if (StringUtils.isEmpty(config.getExclusionTime())) {
+            return false;
+        }
+        try {
+            long distanceDays = DateHelper.getDistanceDays(createFileTime, config.getExclusionTime());
+            if (distanceDays > 0) {
+                return true;
+            }
+        } catch (Exception e) {
+            log.warn("Exception", e);
+        }
+        return false;
+    }
+
+    /**
+     * 根据时间过滤文件
+     */
+    private List<FileSyncInfo> filterFilesByTime(List<FileSyncInfo> fileInfoList, String filterTime) {
+        return fileInfoList.stream()
+                .filter(f -> {
+                    try {
+                        return f.getCreateTime().compareTo(filterTime) >= 0;
+                    } catch (Exception e) {
+                        return false;
+                    }
+                })
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 批量查询已同步记录，过滤出未同步的文件
+     */
+    private List<FileSyncInfo> filterUnSyncedFiles(List<FileSyncInfo> fileInfoList, SyncConfig config) {
+        if (CollectionUtils.isEmpty(fileInfoList)) {
+            return new ArrayList<>();
+        }
+
+        List<FileSyncInfo> result = new ArrayList<>();
+        String apiCode = config.getApiCode();
+        String srcPath = config.getSrcSftpHost() + ":" + config.getSrcPath();
+
+        // 逐个查询是否已同步
+        for (FileSyncInfo fileInfo : fileInfoList) {
+            Map<String, String> params = new HashMap<>();
+            params.put("apiCode", apiCode);
+            params.put("fileName", fileInfo.getFileName());
+            params.put("srcPath", srcPath);
+            List<SyncLog> syncLogs = loanSyncLogMapper.querySyncLog(params);
+
+            if (CollectionUtils.isEmpty(syncLogs)) {
+                FileSyncInfo fileSyncInfo = new FileSyncInfo(fileInfo.getFileName(), fileInfo.getFilePath(),
+                        fileInfo.getCreateTime(), fileInfo.getFileSize(), fileInfo.getSuffix());
+                fileSyncInfo.setConfig(config);
+                result.add(fileSyncInfo);
+            }
+        }
+
+        return result;
+    }
+
+
+    /**
+     * 替换路径中的日期（使用指定日期）
+     */
+    private String replaceDateInPathWithDate(String path, String date) {
+        if (path.contains("yyyy-MM-dd")) {
+            String formattedDate = formatDate(date, "yyyyMMdd", "yyyy-MM-dd");
+            return path.replace("yyyy-MM-dd", formattedDate);
+        } else if (path.contains("yyyyMMdd")) {
+            return path.replace("yyyyMMdd", date);
+        }
+        return path;
+    }
+
+    /**
+     * 复制配置对象
+     */
+    private SyncConfig copyConfig(SyncConfig source) {
+        SyncConfig target = new SyncConfig();
+        BeanUtils.copyProperties(source, target);
+        return target;
+    }
+
+    /**
+     * 关闭客户端连接
+     */
+    private void closeClient(BaseFtpClient client) {
+        if (client != null) {
+            try {
+                client.disconnect();
+            } catch (Exception e) {
+                log.error(DOWNLOAD_TITLE + "关闭连接异常，error: {}", e.getMessage(), e);
+            }
+        }
+    }
+
+    /**
+     * 根据配置后缀过滤文件，并校验success文件
+     */
+    private List<FileSyncInfo> filterFilesBySuffixAndSuccess(List<FileSyncInfo> fileInfoList, SyncConfig config) {
+        if (CollectionUtils.isEmpty(fileInfoList)) {
+            return fileInfoList;
+        }
+
+        String suffixStr = config.getSuffix();
+        // no_suffix类型不需要过滤
+        if ("no_suffix".equals(suffixStr)) {
+            return fileInfoList;
+        }
+        // 收集success文件列表
+        List<String> successList = fileInfoList.stream()
+                .map(FileSyncInfo::getFileName)
+                .filter(name -> name.endsWith(".success"))
+                .collect(Collectors.toList());
+
+        List<FileSyncInfo> result = new ArrayList<>();
+
+        for (FileSyncInfo fileInfo : fileInfoList) {
+            String fileName = fileInfo.getFileName();
+
+            // success文件作为标识文件，不加入结果列表
+            if (fileName.endsWith(".success")) {
+                continue;
+            }
+            // 根据配置的后缀过滤文件
+            if (!matchSuffix(fileName, suffixStr)) {
+                continue;
+            }
+            // 校验success文件
+            if (!checkSuccess(config, fileName, successList)) {
+                continue;
+            }
+            result.add(fileInfo);
+        }
+
+        log.warn(DOWNLOAD_TITLE + "后缀过滤完成，原始文件数：{}，过滤后文件数：{}", fileInfoList.size(), result.size());
+        return result;
+    }
+
+    /**
+     * 判断文件名是否匹配配置的后缀
+     */
+    private boolean matchSuffix(String fileName, String suffixStr) {
+        // suffixStr格式如：".txt,.csv,.zip,.success,.finish"
+        if (StringUtils.isBlank(suffixStr)) {
+            return true;
+        }
+
+        String[] suffixes = suffixStr.split(",");
+        for (String suffix : suffixes) {
+            suffix = suffix.trim();
+            if (fileName.endsWith(suffix)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 校验success文件是否存在
+     */
+    private boolean checkSuccess(SyncConfig config, String fileName, List<String> successList) {
+        // 如果配置不需要校验success，直接返回true
+        if (config.getCheckSuccess() == null || config.getCheckSuccess() != 1) {
+            return true;
+        }
+
+        if (successList == null || successList.isEmpty()) {
+            log.warn(DOWNLOAD_TITLE + "需要校验success但successList为空，跳过文件：{}", fileName);
+            return false;
+        }
+
+        String successFileName = fileName + ".success";
+        if (!successList.contains(successFileName)) {
+            log.warn(DOWNLOAD_TITLE + "success文件不存在，跳过：successFileName:{}", successFileName);
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * 同步单个文件
+     */
+    private void syncSingleFile(FileSyncInfo fileToSync, BaseFtpClient srcClient,
+                                BaseFtpClient targetClient, boolean diskBool) {
+        SyncConfig config = fileToSync.getConfig();
+        String fileName = fileToSync.getFileName();
+        String suffixStr = config.getSuffix();
+        String apiCode = config.getApiCode();
+
+        try {
+            // no_suffix类型需要特殊处理路径
+            if ("no_suffix".equals(suffixStr)) {
+                String filePath = fileToSync.getFilePath();
+
+                SyncConfig syncConfig = copyConfig(config);
+                // 计算目标路径，保持与源路径相同的目录结构
+                String targetPath = calculateTargetPath(config.getSrcPath(), config.getTargetPath(), filePath);
+                syncConfig.setSrcPath(filePath);
+                syncConfig.setTargetPath(targetPath);
+
+                log.warn(DOWNLOAD_TITLE + "apiCode={},no_suffix类型-开始同步文件: {} 从路径: {} 到路径: {}", apiCode, fileName, filePath, targetPath);
+
+                if (diskBool) {
+                    syncServiceImpl.downloadFileToLocalDisk(syncConfig, srcClient, fileName);
+                } else if (FileServerType.MINIO.getServerType().equals(syncConfig.getTargetType())) {
+                    syncServiceImpl.sftpFileUploadToMiNio(syncConfig, fileName, srcClient);
+                } else {
+                    syncServiceImpl.copyFile(syncConfig, fileName, srcClient, targetClient);
+                }
+
+                log.warn(DOWNLOAD_TITLE + "apiCode={},no_suffix类型-文件同步完成: {}", apiCode, fileName);
+                return;
+            }
+
+            // 其他类型的处理
+            if (diskBool) {
+                // 下载到本地磁盘
+                syncServiceImpl.downloadFileToLocalDisk(config, srcClient, fileName);
+            } else if (FileServerType.MINIO.getServerType().equals(config.getTargetType())) {
+                // 上传到MinIO
+                syncServiceImpl.sftpFileUploadToMiNio(config, fileName, srcClient);
+            } else {
+                // 复制到目标SFTP
+                syncServiceImpl.copyFile(config, fileName, srcClient, targetClient);
+                //上传success
+                String successFile = fileName + ".success";
+                syncServiceImpl.copyFile(config, successFile, srcClient, targetClient);
+            }
+
+            log.warn(DOWNLOAD_TITLE + "apiCode={},文件同步完成，fileName: {}", apiCode, fileName);
+        } catch (Exception e) {
+            log.error(DOWNLOAD_TITLE + "apiCode={},文件同步失败，fileName: {}, error: {}", apiCode, fileName, e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 计算目标路径，保持与源路径相同的目录结构
+     */
+    private String calculateTargetPath(String originalSrcPath, String originalTargetPath, String currentFilePath) {
+        try {
+            String baseSrcPath = originalSrcPath.endsWith("/") ? originalSrcPath : originalSrcPath + "/";
+            String baseTargetPath = originalTargetPath.endsWith("/") ? originalTargetPath : originalTargetPath + "/";
+
+            if (currentFilePath.equals(originalSrcPath)) {
+                return originalTargetPath;
+            }
+
+            if (currentFilePath.startsWith(baseSrcPath)) {
+                String relativePath = currentFilePath.substring(baseSrcPath.length());
+                String targetPath = baseTargetPath + relativePath;
+                log.warn(DOWNLOAD_TITLE + "计算目标路径: {} -> {}", currentFilePath, targetPath);
+                return targetPath;
+            } else {
+                log.warn(DOWNLOAD_TITLE + "文件路径{}不在源路径{}下，使用原始目标路径", currentFilePath, originalSrcPath);
+                return originalTargetPath;
+            }
+        } catch (Exception e) {
+            log.error(DOWNLOAD_TITLE + "计算目标路径失败. originalSrcPath: {}, currentFilePath: {}",
+                    originalSrcPath, currentFilePath, e);
+            return originalTargetPath;
+        }
+    }
 
 }
