@@ -4,12 +4,11 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ServiceResultEnum;
+import com.br.marketing.dto.autocheck.QueryAssociationTableFieldDto;
 import com.br.marketing.dto.autocheck.SaveAutoCheckConfigDto;
 import com.br.marketing.dto.autocheck.SaveAutoCheckConfigResDto;
 import com.br.marketing.service.autocheck.AutoCheckService;
-import com.br.marketing.vo.autocheck.AutoCheckResultVO;
-import com.br.marketing.vo.autocheck.AutoCheckConfigVO;
-import com.br.marketing.vo.autocheck.AutoCheckSceneVO;
+import com.br.marketing.vo.autocheck.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -114,6 +113,33 @@ public class AutoCheckController {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
                     "根据指定的apiCode和场景查询已有配置接口错误！错误信息：" + ex.getMessage()), ex);
             return new ApiResult<List<AutoCheckResultVO>>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+    @GetMapping("/associationTable")
+    @Operation(summary = "查询关联表接口", description = "查询关联表接口")
+    @Parameter(name = "tableName", description = "tableName")
+    public ApiResult<List<AutoCheckAssociationTableVO>> getAssociationTable(@RequestParam(name = "tableName", required = false) String tableName) {
+        try {
+            List<AutoCheckAssociationTableVO> list = autoCheckService.getAssociationTable(tableName);
+            return new ApiResult<List<AutoCheckAssociationTableVO>>().success(list);
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
+                    "查询关联表接口！错误信息：" + ex.getMessage()), ex);
+            return new ApiResult<List<AutoCheckAssociationTableVO>>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+    @PostMapping("/table/field")
+    @Operation(summary = "根据关联表查询表字段接口（批量）", description = "根据关联表查询表字段接口（批量）")
+    public ApiResult<List<AutoCheckAssociationTableFieldVO>> getAssociationTableFields(@RequestBody QueryAssociationTableFieldDto dto) {
+        try {
+            List<AutoCheckAssociationTableFieldVO> list = autoCheckService.getAssociationTableFields(dto);
+            return new ApiResult<List<AutoCheckAssociationTableFieldVO>>().success(list);
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
+                    "根据关联表查询表字段接口！错误信息：" + ex.getMessage()), ex);
+            return new ApiResult<List<AutoCheckAssociationTableFieldVO>>().fail(ServiceResultEnum.FAILED);
         }
     }
 

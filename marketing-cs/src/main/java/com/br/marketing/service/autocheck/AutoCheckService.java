@@ -1,10 +1,9 @@
 package com.br.marketing.service.autocheck;
 
+import com.br.marketing.dto.autocheck.QueryAssociationTableFieldDto;
 import com.br.marketing.dto.autocheck.SaveAutoCheckConfigDto;
 import com.br.marketing.dto.autocheck.SaveAutoCheckConfigResDto;
-import com.br.marketing.vo.autocheck.AutoCheckResultVO;
-import com.br.marketing.vo.autocheck.AutoCheckConfigVO;
-import com.br.marketing.vo.autocheck.AutoCheckSceneVO;
+import com.br.marketing.vo.autocheck.*;
 
 import java.util.List;
 
@@ -20,4 +19,8 @@ public interface AutoCheckService {
     void autoCheck();
 
     List<AutoCheckResultVO> getResultList(String apiCodes, String sceneCodes);
+
+    List<AutoCheckAssociationTableVO> getAssociationTable(String tableName);
+
+    List<AutoCheckAssociationTableFieldVO> getAssociationTableFields(QueryAssociationTableFieldDto dto);
 }

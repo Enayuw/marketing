@@ -2,11 +2,9 @@ package com.br.marketing.service.autocheck.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.StrUtil;
 import com.br.marketing.common.enums.ServiceResultEnum;
-import com.br.marketing.dto.autocheck.CheckTransferSyncDataDto;
-import com.br.marketing.dto.autocheck.CheckUploadSyncDataDto;
-import com.br.marketing.dto.autocheck.SaveAutoCheckConfigDto;
-import com.br.marketing.dto.autocheck.SaveAutoCheckConfigResDto;
+import com.br.marketing.dto.autocheck.*;
 import com.br.marketing.entity.AutoCheckConfig;
 import com.br.marketing.entity.AutoCheckResultLog;
 import com.br.marketing.mapper.*;
@@ -15,9 +13,7 @@ import com.br.marketing.service.autocheck.AutoCheckService;
 import com.br.marketing.utils.CheckObjectSameUtil;
 import com.br.marketing.utils.JsonFilterUtil;
 import com.br.marketing.vo.MarketingCustomerVO;
-import com.br.marketing.vo.autocheck.AutoCheckResultVO;
-import com.br.marketing.vo.autocheck.AutoCheckConfigVO;
-import com.br.marketing.vo.autocheck.AutoCheckSceneVO;
+import com.br.marketing.vo.autocheck.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -57,6 +53,9 @@ public class AutoCheckServiceImpl implements AutoCheckService {
 
     @Resource
     private AutoCheckResultLogMapper autoCheckResultLogMapper;
+
+    @Resource
+    private AutoCheckTableDictMapper autoCheckTableDictMapper;
 
 
     @Override
@@ -338,6 +337,63 @@ public class AutoCheckServiceImpl implements AutoCheckService {
                 Comparator.nullsLast(Comparator.reverseOrder())
         ));
 
+        return result;
+    }
+
+    @Override
+    public List<AutoCheckAssociationTableVO> getAssociationTable(String tableName) {
+        return autoCheckTableDictMapper.getAssociationTable(tableName);
+    }
+
+    @Override
+    public List<AutoCheckAssociationTableFieldVO> getAssociationTableFields(QueryAssociationTableFieldDto dto) {
+        if (dto == null || CollUtil.isEmpty(dto.getTableNameList())) {
+            return Collections.emptyList();
+        }
+
+        List<String> tableNameList = dto.getTableNameList().stream()
+                .filter(StringUtils::isNotBlank)
+                .map(String::trim)
+                .distinct()
+                .collect(Collectors.toList());
+        if (CollUtil.isEmpty(tableNameList)) {
+            return Collections.emptyList();
+        }
+
+        // 先按入参顺序初始化，确保“表不存在”也能返回空 fieldList
+        Map<String, List<AutoCheckAssociationTableFieldVO.FieldVO>> tableFieldMap = new LinkedHashMap<>();
+        for (String tableName : tableNameList) {
+            tableFieldMap.put(tableName, new ArrayList<>());
+        }
+
+        List<AutoCheckTableColumnVO> rows = autoCheckTableDictMapper.getAssociationTableColumns(tableNameList);
+        if (CollUtil.isNotEmpty(rows)) {
+            for (AutoCheckTableColumnVO row : rows) {
+                if (row == null || StringUtils.isBlank(row.getTableName()) || StringUtils.isBlank(row.getFieldName())) {
+                    continue;
+                }
+
+                AutoCheckAssociationTableFieldVO.FieldVO fieldVO = new AutoCheckAssociationTableFieldVO.FieldVO();
+
+                fieldVO.setFieldName(row.getFieldName().trim());
+                fieldVO.setFieldDesc(StringUtils.defaultString(row.getFieldDesc()));
+
+                tableFieldMap.computeIfAbsent(row.getTableName().trim(), k -> new ArrayList<>()).add(fieldVO);
+            }
+        }
+
+        List<AutoCheckAssociationTableFieldVO> result = new ArrayList<>();
+        for (Map.Entry<String, List<AutoCheckAssociationTableFieldVO.FieldVO>> entry : tableFieldMap.entrySet()) {
+            AutoCheckAssociationTableFieldVO vo = new AutoCheckAssociationTableFieldVO();
+            vo.setTableName(entry.getKey());
+            vo.setFieldList(entry.getValue());
+            result.add(vo);
+
+            // 表不存在/无字段：不抛错，给前端空列表即可
+            if (CollUtil.isEmpty(entry.getValue())) {
+                log.warn("QA自动化巡检-查询关联表字段：表不存在或无字段，tableName={}", entry.getKey());
+            }
+        }
         return result;
     }
 
