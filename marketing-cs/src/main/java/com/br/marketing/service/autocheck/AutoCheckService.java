@@ -14,7 +14,7 @@ public interface AutoCheckService {
 
     SaveAutoCheckConfigResDto saveAutoCheckConfig(SaveAutoCheckConfigDto dto);
 
-    Boolean delAutoCheckConfig(Long id);
+    Boolean delAutoCheckConfig(String apiCode, String sceneCode);
 
     void autoCheck();
 

@@ -87,10 +87,13 @@ public class AutoCheckController {
 
     @GetMapping("/delete")
     @Operation(summary = "删除自动化巡检配置接口", description = "删除自动化巡检配置接口")
-    @Parameter(name = "id", description = "配置id")
-    public ApiResult<Boolean> delAutoCheckConfig(@RequestParam(name = "id") Long id) {
+    @Parameters({@Parameter(name = "apiCode", description = "apiCode"),
+            @Parameter(name = "sceneCode", description = "场景编码")
+    })
+    public ApiResult<Boolean> delAutoCheckConfig(@RequestParam(name = "apiCode") String apiCode,
+                                                 @RequestParam(name = "sceneCode") String sceneCode) {
         try {
-            Boolean res = autoCheckService.delAutoCheckConfig(id);
+            Boolean res = autoCheckService.delAutoCheckConfig(apiCode, sceneCode);
             return new ApiResult<Boolean>().success(res);
         } catch (Exception ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),

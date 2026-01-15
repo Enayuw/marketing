@@ -2,11 +2,12 @@ package com.br.marketing.service.autocheck.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.StrUtil;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.dto.autocheck.*;
 import com.br.marketing.entity.AutoCheckConfig;
 import com.br.marketing.entity.AutoCheckResultLog;
+import com.br.marketing.entity.AutoCheckTableDict;
+import com.br.marketing.entity.AutoCheckTableDictExample;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.MarketingCustomerService;
 import com.br.marketing.service.autocheck.AutoCheckService;
@@ -35,6 +36,9 @@ public class AutoCheckServiceImpl implements AutoCheckService {
 
     private static final String SCENE_UPLOAD = "TY-SCJK";
     private static final String SCENE_TRANSFER = "TY-ZHJK";
+
+    private static final String COMPARE_RESULT_SAME = "一致";
+    private static final String COMPARE_RESULT_DIFFERENT = "不一致";
 
     @Resource
     private AutoCheckSceneDictMapper autoCheckSceneDictMapper;
@@ -85,51 +89,49 @@ public class AutoCheckServiceImpl implements AutoCheckService {
         Map<String, MarketingCustomerVO> apiCodeInfoMap = apiCodeInfoList.stream()
                 .collect(Collectors.toMap(MarketingCustomerVO::getApiCode, e -> e));
 
-        // 收集所有配置中涉及的场景编码，用于查询场景信息
-        List<String> allSceneCodes = new ArrayList<>();
-        for (AutoCheckConfig config : configList) {
-            if (StringUtils.isNotBlank(config.getSceneCode())) {
-                // 配置中的scene_code字段可能包含逗号分隔的多个场景
-                List<String> configSceneCodes = Arrays.stream(config.getSceneCode().split(","))
-                        .map(String::trim)
-                        .filter(StringUtils::isNotBlank)
-                        .collect(Collectors.toList());
-                allSceneCodes.addAll(configSceneCodes);
-            }
-        }
-        // 去重
-        allSceneCodes = allSceneCodes.stream().distinct().collect(Collectors.toList());
-
         // 查询场景信息
-        List<AutoCheckSceneVO> autoCheckSceneVOList = autoCheckSceneDictMapper.selectBySceneCodes(allSceneCodes);
+        List<AutoCheckSceneVO> autoCheckSceneVOList = autoCheckSceneDictMapper.selectBySceneCodes(sceneCodeList);
         Map<String, AutoCheckSceneVO> sceneMap = autoCheckSceneVOList.stream()
                 .collect(Collectors.toMap(AutoCheckSceneVO::getSceneCode, scene -> scene));
-        Map<String, AutoCheckConfig> configMapByApiCode = configList.stream()
-                .collect(Collectors.toMap(AutoCheckConfig::getApiCode, e -> e));
 
-        // 组装AutoConfigVO
-        for (String apiCode : configMapByApiCode.keySet()) {
+        // 按照apiCode和sceneCode进行聚合分组
+        Map<String, List<AutoCheckConfig>> configGroupMap = configList.stream()
+                .filter(Objects::nonNull)
+                .filter(cfg -> StringUtils.isNotBlank(cfg.getApiCode()) && StringUtils.isNotBlank(cfg.getSceneCode()))
+                .collect(Collectors.groupingBy(cfg -> buildKey(cfg.getApiCode().trim(), cfg.getSceneCode().trim()),
+                        LinkedHashMap::new,
+                        Collectors.toList()));
+
+        for (Map.Entry<String, List<AutoCheckConfig>> entry : configGroupMap.entrySet()) {
+            List<AutoCheckConfig> group = entry.getValue();
+            if (CollUtil.isEmpty(group)) {
+                continue;
+            }
+            AutoCheckConfig first = group.get(0);
+            if (first == null || StringUtils.isBlank(first.getApiCode()) || StringUtils.isBlank(first.getSceneCode())) {
+                continue;
+            }
+
+            String apiCode = first.getApiCode().trim();
+            String sceneCode = first.getSceneCode().trim();
+
+            String tableNames = group.stream()
+                    .filter(Objects::nonNull)
+                    .map(AutoCheckConfig::getTableName)
+                    .filter(StringUtils::isNotBlank)
+                    .map(String::trim)
+                    .distinct()
+                    .collect(Collectors.joining(","));
+
             AutoCheckConfigVO vo = new AutoCheckConfigVO();
-            AutoCheckConfig apiConfig = configMapByApiCode.get(apiCode);
-            vo.setId(apiConfig.getId());
             vo.setApiCode(apiCode);
             vo.setName(Optional.ofNullable(apiCodeInfoMap.get(apiCode)).map(MarketingCustomerVO::getName).orElse(""));
-
-            // 收集该ApiCode下的所有场景信息
-            List<AutoCheckSceneVO> sceneList = new ArrayList<>();
-            String configSceneCodes = apiConfig.getSceneCode();
-            if (StringUtils.isNotBlank(configSceneCodes)) {
-                String[] split = configSceneCodes.split(",");
-                for (String sceneCode : split) {
-                    AutoCheckSceneVO autoCheckSceneVO = sceneMap.get(StringUtils.trimToEmpty(sceneCode));
-                    if (autoCheckSceneVO != null) {
-                        sceneList.add(autoCheckSceneVO);
-                    }
-                }
-            }
-            vo.setSceneList(sceneList);
+            vo.setSceneCode(sceneCode);
+            vo.setSceneName(Optional.ofNullable(sceneMap.get(sceneCode)).map(AutoCheckSceneVO::getSceneName).orElse(""));
+            vo.setTableNames(tableNames);
             result.add(vo);
         }
+
         return result;
     }
 
@@ -181,59 +183,81 @@ public class AutoCheckServiceImpl implements AutoCheckService {
     @Transactional(rollbackFor = Exception.class)
     public SaveAutoCheckConfigResDto saveAutoCheckConfig(SaveAutoCheckConfigDto dto) {
         SaveAutoCheckConfigResDto result = new SaveAutoCheckConfigResDto();
-        if (Objects.isNull(dto.getId())) {
-            // 新增
-            // 新增前做防止重复的处理
-            AutoCheckConfig existingConfig = autoCheckConfigMapper.selectByApiCode(dto.getApiCode());
-            if (Objects.nonNull(existingConfig)) {
-                log.warn("QA自动化巡检,要保存的配置已存在，apiCode: {}", dto.getApiCode());
-                result.setRes(false);
-                result.setCode(ServiceResultEnum.UNKNOWN_ERROR.getCode());
-                result.setMessage("保存失败，apiCode：" + dto.getApiCode() + "已存在");
-                return result;
+
+        String apiCode = dto.getApiCode();
+        String sceneCode = dto.getSceneCode();
+        List<SaveAutoCheckConfigDto.TableNameAndField> tableNameAndFieldList = dto.getTableNameAndFieldList();
+        // 拿apiCode和sceneCode去表里查询记录
+        List<AutoCheckConfig> existingConfigs = autoCheckConfigMapper
+                .selectByApiCodesAndSceneCodes(Collections.singletonList(apiCode)
+                        , Collections.singletonList(sceneCode));
+
+        if (!dto.getIsUpdate() && CollUtil.isNotEmpty(existingConfigs)) {
+            log.warn("QA自动化巡检,要保存的配置已存在，apiCode: {}, sceneCode: {}", apiCode, sceneCode);
+            result.setRes(false);
+            result.setCode(ServiceResultEnum.UNKNOWN_ERROR.getCode());
+            result.setMessage("保存失败，apiCode：" + apiCode + "，sceneCode：" + sceneCode + "已存在");
+            return result;
+        }
+
+        if (dto.getIsUpdate() && CollUtil.isEmpty(existingConfigs)) {
+            log.warn("QA自动化巡检,要编辑的配置不存在，apiCode: {}, sceneCode: {}", apiCode, sceneCode);
+            result.setRes(false);
+            result.setCode(ServiceResultEnum.UNKNOWN_ERROR.getCode());
+            result.setMessage("要编辑的配置不存在");
+            return result;
+        }
+
+        if (CollUtil.isNotEmpty(existingConfigs)) {
+            autoCheckConfigMapper.batchDelete(existingConfigs);
+        }
+
+        List<AutoCheckConfig> insertConfigs = new ArrayList<>();
+        for (SaveAutoCheckConfigDto.TableNameAndField tableNameAndField : tableNameAndFieldList) {
+            if (tableNameAndField == null
+                    || StringUtils.isBlank(tableNameAndField.getTableName())
+                    || StringUtils.isBlank(tableNameAndField.getFieldNames())) {
+                continue;
             }
             AutoCheckConfig config = new AutoCheckConfig();
-            config.setApiCode(dto.getApiCode());
-            config.setSceneCode(dto.getSceneCodes());
-            Date now = new Date();
-            config.setCreateTime(now);
-            config.setUpdateTime(now);
-            // 插入数据库
-            result.setRes(autoCheckConfigMapper.insertSelective(config) > 0);
-        } else {
-            // 编辑
-            AutoCheckConfig existingConfig = autoCheckConfigMapper.selectByPrimaryKey(dto.getId());
-            if (Objects.isNull(existingConfig)) {
-                log.warn("QA自动化巡检,要编辑的配置不存在，id: {}", dto.getId());
-                result.setRes(false);
-                result.setCode(ServiceResultEnum.UNKNOWN_ERROR.getCode());
-                result.setMessage("要编辑的配置不存在");
-                return result;
-            }
-            // 更新字段
-            existingConfig.setSceneCode(dto.getSceneCodes());
-            existingConfig.setUpdateTime(new Date());
-            // 更新数据库
-            result.setRes(autoCheckConfigMapper.updateByPrimaryKeySelective(existingConfig) > 0);
+            config.setApiCode(apiCode);
+            config.setSceneCode(sceneCode);
+            config.setTableName(tableNameAndField.getTableName().trim());
+            config.setFieldName(tableNameAndField.getFieldNames().trim());
+            insertConfigs.add(config);
         }
+        // 防止同一个表重复提交导致重复插入（按 tableName 去重，保留第一条）
+        if (CollUtil.isNotEmpty(insertConfigs)) {
+            insertConfigs = insertConfigs.stream()
+                    .collect(Collectors.toMap(AutoCheckConfig::getTableName, e -> e, (a, b) -> a, LinkedHashMap::new))
+                    .values().stream().collect(Collectors.toList());
+        }
+        if (CollUtil.isNotEmpty(insertConfigs)) {
+            autoCheckConfigMapper.batchInsert(insertConfigs);
+        } else {
+            result.setRes(false);
+            result.setCode(ServiceResultEnum.UNKNOWN_ERROR.getCode());
+            result.setMessage("有效配置为空，请检查 tableName/fieldNames");
+            return result;
+        }
+        result.setRes(true);
         return result;
     }
 
     @Override
-    public Boolean delAutoCheckConfig(Long id) {
-        if (Objects.isNull(id)) {
+    public Boolean delAutoCheckConfig(String apiCode, String sceneCode) {
+        if (StringUtils.isBlank(apiCode) || StringUtils.isBlank(sceneCode)) {
+            return false;
+        }
+        List<AutoCheckConfig> existingConfigs = autoCheckConfigMapper
+                .selectByApiCodesAndSceneCodes(Collections.singletonList(apiCode)
+                        , Collections.singletonList(sceneCode));
+        if (CollUtil.isEmpty(existingConfigs)) {
+            log.warn("QA自动化巡检,要删除的配置不存在，apiCode: {}, sceneCode: {}", apiCode, sceneCode);
             return true;
         }
-        AutoCheckConfig existingConfig = autoCheckConfigMapper.selectByPrimaryKey(id);
-        if (Objects.isNull(existingConfig)) {
-            log.warn("QA自动化巡检,要删除的配置不存在，id: {}", id);
-            return true;
-        }
-        // 更新字段
-        existingConfig.setIsDeleted((byte) 1);
-        existingConfig.setUpdateTime(new Date());
-        // 更新数据库
-        return autoCheckConfigMapper.updateByPrimaryKeySelective(existingConfig) > 0;
+        autoCheckConfigMapper.batchDelete(existingConfigs);
+        return true;
     }
 
     @Override
@@ -244,9 +268,12 @@ public class AutoCheckServiceImpl implements AutoCheckService {
 
         // 获取apiCode对应的场景配置
         List<AutoCheckConfigVO> configList = getAutoCheckConfigList(apiCodeList, sceneCodeList);
-        Map<String, AutoCheckConfigVO> configMap = configList.stream()
+        // apiCode -> 配置的场景编码集合
+        Map<String, Set<String>> apiSceneCodeMap = configList.stream()
                 .filter(Objects::nonNull)
-                .collect(Collectors.toMap(AutoCheckConfigVO::getApiCode, e -> e, (a, b) -> a));
+                .filter(vo -> StringUtils.isNotBlank(vo.getApiCode()) && StringUtils.isNotBlank(vo.getSceneCode()))
+                .collect(Collectors.groupingBy(vo -> vo.getApiCode().trim(),
+                        Collectors.mapping(vo -> vo.getSceneCode().trim(), Collectors.toSet())));
 
         // apiCode 基础信息（名称）
         Map<String, MarketingCustomerVO> apiInfoMap = marketingCustomerService.getApiCodeList(apiCodeList)
@@ -275,13 +302,13 @@ public class AutoCheckServiceImpl implements AutoCheckService {
                 case SCENE_UPLOAD:
                     // 过滤掉没有配置该场景的apiCode
                     saveList.addAll(checkUploadScene(
-                            filterApiCodesByScene(apiCodeList, SCENE_UPLOAD, configMap),
+                            filterApiCodesByScene(apiCodeList, SCENE_UPLOAD, apiSceneCodeMap),
                             comparedIdMap));
                     break;
                 case SCENE_TRANSFER:
                     // 过滤掉没有配置该场景的apiCode
                     saveList.addAll(checkTransferScene(
-                            filterApiCodesByScene(apiCodeList, SCENE_TRANSFER, configMap),
+                            filterApiCodesByScene(apiCodeList, SCENE_TRANSFER, apiSceneCodeMap),
                             apiInfoMap, comparedIdMap));
                     break;
                 default:
@@ -317,20 +344,104 @@ public class AutoCheckServiceImpl implements AutoCheckService {
         // 找出当天的比对结果，用于前端展示
         String today = DateUtil.today();
         List<AutoCheckResultLog> resultList = autoCheckResultLogMapper.selectByCodeListAndTime(today, apiCodeList, sceneCodeList);
-        for (AutoCheckResultLog log : resultList) {
-            AutoCheckResultVO autoCheckResultVO = new AutoCheckResultVO();
-            autoCheckResultVO.setTime(log.getCompareTime());
-            autoCheckResultVO.setApiCode(log.getApiCode());
-            autoCheckResultVO.setName(Optional.ofNullable(apiInfoMap.get(log.getApiCode()))
-                    .map(MarketingCustomerVO::getName).orElse(""));
-            autoCheckResultVO.setSceneCode(log.getSceneCode());
-            autoCheckResultVO.setSceneName(Optional.ofNullable(sceneMap.get(log.getSceneCode()))
-                    .map(AutoCheckSceneVO::getSceneName).orElse(""));
-            autoCheckResultVO.setLastDayData(log.getLastData());
-            autoCheckResultVO.setThisData(log.getTodayData());
-            autoCheckResultVO.setCompareResult(log.getResult());
-            result.add(autoCheckResultVO);
+
+        // 组装resultVO
+        if (CollUtil.isNotEmpty(resultList)) {
+            // 表字典：tableName -> tableDesc（用于明细展示）
+            Map<String, String> tableDescMap = new HashMap<>();
+            List<String> tableNameList = resultList.stream()
+                    .filter(Objects::nonNull)
+                    .map(AutoCheckResultLog::getTableName)
+                    .filter(StringUtils::isNotBlank)
+                    .map(String::trim)
+                    .distinct()
+                    .collect(Collectors.toList());
+            if (CollUtil.isNotEmpty(tableNameList)) {
+                AutoCheckTableDictExample example = new AutoCheckTableDictExample();
+                example.createCriteria()
+                        .andIsDeletedEqualTo((byte) 0)
+                        .andTableNameIn(tableNameList);
+                List<AutoCheckTableDict> tableDictList = autoCheckTableDictMapper.selectByExample(example);
+                if (CollUtil.isNotEmpty(tableDictList)) {
+                    tableDescMap = tableDictList.stream()
+                            .collect(Collectors.toMap(
+                                    d -> d.getTableName().trim(),
+                                    d -> StringUtils.defaultString(d.getTableDesc()),
+                                    (a, b) -> a
+                            ));
+                }
+            }
+
+            // 按 apiCode + sceneCode 聚合
+            Map<String, List<AutoCheckResultLog>> groupMap = resultList.stream()
+                    .collect(Collectors.groupingBy(
+                            r -> buildKey(r.getApiCode().trim(), r.getSceneCode().trim()),
+                            LinkedHashMap::new,
+                            Collectors.toList()
+                    ));
+
+            for (Map.Entry<String, List<AutoCheckResultLog>> entry : groupMap.entrySet()) {
+                List<AutoCheckResultLog> group = entry.getValue();
+                if (CollUtil.isEmpty(group)) {
+                    continue;
+                }
+                AutoCheckResultLog first = group.get(0);
+
+                String apiCode = first.getApiCode().trim();
+                String sceneCode = first.getSceneCode().trim();
+
+                AutoCheckResultVO vo = new AutoCheckResultVO();
+                vo.setApiCode(apiCode);
+                vo.setSceneCode(sceneCode);
+
+                MarketingCustomerVO apiInfo = apiInfoMap.get(apiCode);
+                vo.setName(apiInfo == null ? "" : StringUtils.defaultString(apiInfo.getName()));
+
+                AutoCheckSceneVO sceneInfo = sceneMap.get(sceneCode);
+                vo.setSceneName(sceneInfo == null ? "" : StringUtils.defaultString(sceneInfo.getSceneName()));
+
+                // 外层 time：取明细里最晚时间
+                String earliestTime = null;
+                // 外层 compareResult：只要任一条不一致，则不一致；全部一致才一致
+                boolean allSame = true;
+
+                List<AutoCheckResultVO.CompareResultDetail> detailList = new ArrayList<>();
+                for (AutoCheckResultLog row : group) {
+                    AutoCheckResultVO.CompareResultDetail detail = new AutoCheckResultVO.CompareResultDetail();
+                    String tableName = StringUtils.defaultString(row.getTableName()).trim();
+                    detail.setTableName(tableName);
+                    detail.setTableDesc(StringUtils.defaultString(tableDescMap.get(tableName)));
+                    detail.setLastDayData(StringUtils.defaultString(row.getLastData()));
+                    detail.setThisData(StringUtils.defaultString(row.getTodayData()));
+                    detail.setCompareResult(StringUtils.defaultString(row.getResult()));
+
+                    String time = StringUtils.isBlank(row.getCompareTime()) ? "" : row.getCompareTime().trim();
+                    detail.setTime(time);
+
+                    // earliestTime（compare_time 通常为 yyyy-MM-dd HH:mm:ss，字典序=时间序）
+                    if (StringUtils.isNotBlank(time)) {
+                        if (earliestTime == null || time.compareTo(earliestTime) > 0) {
+                            earliestTime = time;
+                        }
+                    }
+                    // 聚合 compareResult：非“一致”都视为不一致（兼容后续新增结果值）
+                    if (!COMPARE_RESULT_SAME.equals(detail.getCompareResult())) {
+                        allSame = false;
+                    }
+                    detailList.add(detail);
+                }
+
+                vo.setTime(StringUtils.defaultString(earliestTime));
+                vo.setCompareResult(allSame ? COMPARE_RESULT_SAME : COMPARE_RESULT_DIFFERENT);
+                vo.setCompareResultDetailList(detailList);
+
+                vo.setLastDayData(detailList.get(0).getLastDayData());
+                vo.setThisData(detailList.get(0).getThisData());
+
+                result.add(vo);
+            }
         }
+
         // 按时间倒序（time 为 yyyy-MM-dd HH:mm:ss 字符串，字典序=时间序）；空值/空串放最后
         result.sort(Comparator.comparing(
                 vo -> StringUtils.isBlank(vo.getTime()) ? null : vo.getTime().trim(),
@@ -404,21 +515,15 @@ public class AutoCheckServiceImpl implements AutoCheckService {
      */
     private List<String> filterApiCodesByScene(List<String> apiCodeList,
                                                String sceneCode,
-                                               Map<String, AutoCheckConfigVO> configMap) {
-        if (CollUtil.isEmpty(apiCodeList) || StringUtils.isBlank(sceneCode) || configMap == null || configMap.isEmpty()) {
+                                               Map<String, Set<String>> apiSceneCodeMap) {
+        if (CollUtil.isEmpty(apiCodeList) || StringUtils.isBlank(sceneCode) || apiSceneCodeMap == null || apiSceneCodeMap.isEmpty()) {
             return Collections.emptyList();
         }
         return apiCodeList.stream()
                 .filter(StringUtils::isNotBlank)
                 .filter(apiCode -> {
-                    AutoCheckConfigVO cfg = configMap.get(apiCode);
-                    if (cfg == null || CollUtil.isEmpty(cfg.getSceneList())) {
-                        return false;
-                    }
-                    return cfg.getSceneList().stream()
-                            .filter(Objects::nonNull)
-                            .map(AutoCheckSceneVO::getSceneCode)
-                            .anyMatch(code -> StringUtils.equals(code, sceneCode));
+                    Set<String> scenes = apiSceneCodeMap.get(apiCode.trim());
+                    return CollUtil.isNotEmpty(scenes) && scenes.contains(sceneCode);
                 })
                 .distinct()
                 .collect(Collectors.toList());
