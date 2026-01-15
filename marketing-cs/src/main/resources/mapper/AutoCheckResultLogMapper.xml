@@ -31,6 +31,7 @@
         INSERT INTO b_auto_check_result_log (
             api_code,
             scene_code,
+            table_name,
             last_data,
             today_data,
             today_data_id,
@@ -45,6 +46,7 @@
             (
                 #{item.apiCode, jdbcType=VARCHAR},
                 #{item.sceneCode, jdbcType=VARCHAR},
+                #{item.tableName, jdbcType=VARCHAR},
                 #{item.lastData, jdbcType=VARCHAR},
                 #{item.todayData, jdbcType=VARCHAR},
                 #{item.todayDataId, jdbcType=BIGINT},

@@ -11,7 +11,6 @@ import com.br.marketing.entity.AutoCheckTableDictExample;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.MarketingCustomerService;
 import com.br.marketing.service.autocheck.AutoCheckService;
-import com.br.marketing.utils.CheckObjectSameUtil;
 import com.br.marketing.utils.JsonFilterUtil;
 import com.br.marketing.vo.MarketingCustomerVO;
 import com.br.marketing.vo.autocheck.*;
@@ -23,7 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.zip.CRC32;
 
 /**
  * @author: fuzhen.zhang
@@ -34,7 +35,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public class AutoCheckServiceImpl implements AutoCheckService {
 
+    @SuppressWarnings("unused")
     private static final String SCENE_UPLOAD = "TY-SCJK";
+    @SuppressWarnings("unused")
     private static final String SCENE_TRANSFER = "TY-ZHJK";
 
     private static final String COMPARE_RESULT_SAME = "一致";
@@ -60,6 +63,14 @@ public class AutoCheckServiceImpl implements AutoCheckService {
 
     @Resource
     private AutoCheckTableDictMapper autoCheckTableDictMapper;
+
+    @Resource
+    private AutoCheckDynamicDataMapper autoCheckDynamicDataMapper;
+
+    /**
+     * SQL 标识符白名单：仅允许字母数字下划线，防止 ${} 拼接注入。
+     */
+    private static final Pattern SAFE_IDENTIFIER = Pattern.compile("^[0-9a-zA-Z_]+$");
 
 
     @Override
@@ -108,12 +119,9 @@ public class AutoCheckServiceImpl implements AutoCheckService {
                 continue;
             }
             AutoCheckConfig first = group.get(0);
-            if (first == null || StringUtils.isBlank(first.getApiCode()) || StringUtils.isBlank(first.getSceneCode())) {
-                continue;
-            }
 
-            String apiCode = first.getApiCode().trim();
-            String sceneCode = first.getSceneCode().trim();
+            String apiCode = first.getApiCode();
+            String sceneCode = first.getSceneCode();
 
             String tableNames = group.stream()
                     .filter(Objects::nonNull)
@@ -266,20 +274,8 @@ public class AutoCheckServiceImpl implements AutoCheckService {
         List<String> apiCodeList = handleApiCodeParam(null);
         List<String> sceneCodeList = handleSceneCodeParam(null);
 
-        // 获取apiCode对应的场景配置
-        List<AutoCheckConfigVO> configList = getAutoCheckConfigList(apiCodeList, sceneCodeList);
-        // apiCode -> 配置的场景编码集合
-        Map<String, Set<String>> apiSceneCodeMap = configList.stream()
-                .filter(Objects::nonNull)
-                .filter(vo -> StringUtils.isNotBlank(vo.getApiCode()) && StringUtils.isNotBlank(vo.getSceneCode()))
-                .collect(Collectors.groupingBy(vo -> vo.getApiCode().trim(),
-                        Collectors.mapping(vo -> vo.getSceneCode().trim(), Collectors.toSet())));
-
-        // apiCode 基础信息（名称）
-        Map<String, MarketingCustomerVO> apiInfoMap = marketingCustomerService.getApiCodeList(apiCodeList)
-                .stream()
-                .filter(Objects::nonNull)
-                .collect(Collectors.toMap(MarketingCustomerVO::getApiCode, e -> e, (a, b) -> a));
+        List<AutoCheckConfig> configList = autoCheckConfigMapper.
+                selectByApiCodesAndSceneCodes(apiCodeList, sceneCodeList);
 
         // 获取今天已经比对过的id
         String today = DateUtil.today();
@@ -296,25 +292,103 @@ public class AutoCheckServiceImpl implements AutoCheckService {
         }
 
         List<AutoCheckResultLog> saveList = new ArrayList<>();
-        // 针对每一个场景，查询apiCode对应的结果
-        for (String sceneCode : sceneCodeList) {
-            switch (sceneCode) {
-                case SCENE_UPLOAD:
-                    // 过滤掉没有配置该场景的apiCode
-                    saveList.addAll(checkUploadScene(
-                            filterApiCodesByScene(apiCodeList, SCENE_UPLOAD, apiSceneCodeMap),
-                            comparedIdMap));
-                    break;
-                case SCENE_TRANSFER:
-                    // 过滤掉没有配置该场景的apiCode
-                    saveList.addAll(checkTransferScene(
-                            filterApiCodesByScene(apiCodeList, SCENE_TRANSFER, apiSceneCodeMap),
-                            apiInfoMap, comparedIdMap));
-                    break;
-                default:
-                    log.warn("未知场景编码: {}", sceneCode);
+
+        for (AutoCheckConfig config : configList) {
+            /**
+             * 针对每一条配置 apiCode、sceneCode、tableName，进行巡检
+             * 1、是否有当天最新的数据
+             * 2、是否有昨天的八点的数据
+             * 3、是否对比过
+             */
+            String apiCode = StringUtils.defaultString(config.getApiCode()).trim();
+            String sceneCode = StringUtils.defaultString(config.getSceneCode()).trim();
+            String tableName = StringUtils.defaultString(config.getTableName()).trim();
+            String fieldName = StringUtils.defaultString(config.getFieldName()).trim();
+
+            if (StringUtils.isBlank(apiCode) || StringUtils.isBlank(sceneCode)
+                    || StringUtils.isBlank(tableName) || StringUtils.isBlank(fieldName)) {
+                log.warn("QA自动化巡检-动态查表：跳过无效配置，apiCode={}, sceneCode={}, tableName={}, fieldName={}",
+                        apiCode, sceneCode, tableName, fieldName);
+                continue;
             }
+            if (!isSafeIdentifier(tableName)) {
+                log.warn("QA自动化巡检-动态查表：跳过不安全表名，apiCode={}, sceneCode={}, tableName={}",
+                        apiCode, sceneCode, tableName);
+                continue;
+            }
+
+            List<String> compareFields = parseFieldNames(fieldName);
+            if (CollUtil.isEmpty(compareFields)) {
+                log.warn("QA自动化巡检-动态查表：跳过空字段配置，apiCode={}, sceneCode={}, tableName={}, fieldName={}",
+                        apiCode, sceneCode, tableName, fieldName);
+                continue;
+            }
+            // 字段名白名单校验
+            boolean unsafeField = compareFields.stream().anyMatch(f -> !isSafeIdentifier(f));
+            if (unsafeField) {
+                log.warn("QA自动化巡检-动态查表：跳过不安全字段名，apiCode={}, sceneCode={}, tableName={}, fieldName={}",
+                        apiCode, sceneCode, tableName, fieldName);
+                continue;
+            }
+
+            String safeTableSql = quoteIdentifier(tableName);
+            String selectColumnsSql = buildSelectColumnsSql(compareFields);
+
+            Map<String, Object> lastDay8;
+            Map<String, Object> latest;
+            try {
+                String ymd = DateUtil.format(DateUtil.yesterday(), "yyyy-MM-dd");
+                String startTime = ymd + " 08:00:00";
+                String endTime = ymd + " 08:10:00";
+                lastDay8 = autoCheckDynamicDataMapper.selectLastDay8(safeTableSql, selectColumnsSql, startTime, endTime, apiCode);
+                latest = autoCheckDynamicDataMapper.selectLatestToday(safeTableSql, selectColumnsSql, today, apiCode);
+            } catch (Exception ex) {
+                if (isTableNotExist(ex, tableName)) {
+                    log.warn("QA自动化巡检-动态查表：跳过表不存在，apiCode={}, sceneCode={}, tableName={}", apiCode, sceneCode, tableName);
+                    continue;
+                }
+                // 字段不存在（例如表里无 create_time / api_code / id）：仅跳过该配置，不影响其他配置
+                if (isColumnNotExist(ex, "create_time") || isColumnNotExist(ex, "api_code") || isColumnNotExist(ex, "id")) {
+                    log.warn("QA自动化巡检-动态查表：跳过字段不存在，apiCode={}, sceneCode={}, tableName={}, msg={}",
+                            apiCode, sceneCode, tableName, ex.getMessage());
+                    continue;
+                }
+                // 其他异常继续抛出，便于尽快暴露配置/SQL问题
+                throw ex;
+            }
+
+            if (lastDay8 == null || latest == null || lastDay8.isEmpty() || latest.isEmpty()) {
+                log.warn("QA自动化巡检-动态查表：跳过，数据不存在，apiCode={}, sceneCode={}, tableName={}", apiCode, sceneCode, tableName);
+                continue;
+            }
+
+            Long todayDataId = getLong(latest.get("id"));
+            String compareTime = getString(latest.get("create_time"));
+
+            String key = buildKey(apiCode, sceneCode);
+            List<Long> existIds = comparedIdMap.get(key);
+            if (CollUtil.isNotEmpty(existIds) && existIds.contains(todayDataId)) {
+                continue;
+            }
+
+            // 仅比较配置的字段（不包含 id/create_time）
+            boolean same = isAllFieldsSame(compareFields, lastDay8, latest);
+
+            AutoCheckResultLog row = new AutoCheckResultLog();
+            row.setApiCode(apiCode);
+            row.setSceneCode(sceneCode);
+            row.setTableName(tableName);
+            row.setCompareTime(compareTime);
+            row.setTodayDataId(todayDataId);
+            row.setLastData(toJsonExcludeSafe(filterToCompareFields(lastDay8, compareFields), "id", "create_time"));
+            row.setTodayData(toJsonExcludeSafe(filterToCompareFields(latest, compareFields), "id", "create_time"));
+            row.setResult(same ? COMPARE_RESULT_SAME : COMPARE_RESULT_DIFFERENT);
+            Date now = new Date();
+            row.setCreateTime(now);
+            row.setUpdateTime(now);
+            saveList.add(row);
         }
+
         if (CollUtil.isNotEmpty(saveList)) {
             autoCheckResultLogMapper.batchInsert(saveList);
         }
@@ -508,189 +582,162 @@ public class AutoCheckServiceImpl implements AutoCheckService {
         return result;
     }
 
-    /**
-     * 过滤出“配置了指定场景”的 apiCode。
-     *
-     * <p>规则：configMap 中存在该 apiCode，且其配置的场景列表包含指定 sceneCode。</p>
-     */
-    private List<String> filterApiCodesByScene(List<String> apiCodeList,
-                                               String sceneCode,
-                                               Map<String, Set<String>> apiSceneCodeMap) {
-        if (CollUtil.isEmpty(apiCodeList) || StringUtils.isBlank(sceneCode) || apiSceneCodeMap == null || apiSceneCodeMap.isEmpty()) {
-            return Collections.emptyList();
-        }
-        return apiCodeList.stream()
-                .filter(StringUtils::isNotBlank)
-                .filter(apiCode -> {
-                    Set<String> scenes = apiSceneCodeMap.get(apiCode.trim());
-                    return CollUtil.isNotEmpty(scenes) && scenes.contains(sceneCode);
-                })
-                .distinct()
-                .collect(Collectors.toList());
-    }
-
-    private List<AutoCheckResultLog> checkUploadScene(List<String> apiCodeList,
-                                                      Map<String, List<Long>> comparedIdMap) {
-        List<AutoCheckResultLog> resultLogList = new ArrayList<>();
-        for (String apiCode : apiCodeList) {
-            CheckUploadSyncDataDto lastDay8;
-            CheckUploadSyncDataDto latest;
-            try {
-                lastDay8 = marketingSyncInfoMapper.getLastDay8DataByApiCode(apiCode);
-                latest = marketingSyncInfoMapper.getLatestDataByApiCode(apiCode);
-            } catch (Exception ex) {
-                if (isUploadSyncTableNotExist(ex, apiCode)) {
-                    // 分表不存在：跳过该 apiCode（不影响其他 apiCode 的查询）
-                    log.warn("QA自动化巡检-上传场景：跳过 apiCode={}，分表不存在：b_marketing_sync_{}", apiCode, apiCode);
-                    continue;
-                }
-                throw ex;
-            }
-            // 若前一天八点的数据不存在，或者当前数据不存在，则跳过
-            if (lastDay8 == null || latest == null) {
-                log.warn("QA自动化巡检-上传场景：跳过 apiCode={}，数据不存在", apiCode);
-                continue;
-            }
-            // 若当天本条数据已经比对过，则跳过
-            String key = buildKey(apiCode, SCENE_UPLOAD);
-            List<Long> existIds = comparedIdMap.get(key);
-            if (CollUtil.isNotEmpty(existIds) && existIds.contains(latest.getId())) {
-                continue;
-            }
-            AutoCheckResultLog log = new AutoCheckResultLog();
-            log.setApiCode(apiCode);
-            log.setSceneCode(SCENE_UPLOAD);
-            log.setCompareTime(latest.getSnapTime());
-            log.setTodayDataId(latest.getId());
-            log.setLastData(toJsonExcludeSafe(lastDay8, "id", "snapTime", "cusBatch",
-                    "requestBatch", "custNum", "fingerprint"));
-            log.setTodayData(toJsonExcludeSafe(latest, "id", "snapTime", "cusBatch",
-                    "requestBatch", "custNum", "fingerprint"));
-            log.setResult(compareUpload(lastDay8, latest));
-            Date now = new Date();
-            log.setCreateTime(now);
-            log.setUpdateTime(now);
-            resultLogList.add(log);
-        }
-
-        return resultLogList;
-    }
-
-    /**
-     * 判断是否为“上传同步分表不存在”的异常（MySQL error code: 1146）。
-     */
-    private boolean isUploadSyncTableNotExist(Throwable ex, String apiCode) {
-        String tableName = "b_marketing_sync_" + apiCode;
-        Throwable t = ex;
-        while (t != null) {
-            if (t instanceof SQLException) {
-                SQLException sqlEx = (SQLException) t;
-                if (sqlEx.getErrorCode() == 1146) {
-                    return true;
-                }
-            }
-            String msg = t.getMessage();
-            if (StringUtils.isNotBlank(msg)
-                    && msg.contains("doesn't exist")
-                    && msg.contains(tableName)) {
-                return true;
-            }
-            t = t.getCause();
-        }
-        return false;
-    }
-
-    private List<AutoCheckResultLog> checkTransferScene(List<String> apiCodeList,
-                                                        Map<String, MarketingCustomerVO> apiInfoMap,
-                                                        Map<String, List<Long>> comparedIdMap) {
-        List<AutoCheckResultLog> resultLogList = new ArrayList<>();
-        for (String apiCode : apiCodeList) {
-            MarketingCustomerVO apiInfo = apiInfoMap.get(apiCode);
-            if (apiInfo == null || StringUtils.isBlank(apiInfo.getCid())) {
-                log.warn("QA自动化巡检-转化场景：跳过 apiCode={}，cid为空", apiCode);
-                continue;
-            }
-            String tCid = apiInfo.getCid().replaceFirst("-", "");
-
-            CheckTransferSyncDataDto lastDay8;
-            CheckTransferSyncDataDto latest;
-            try {
-                lastDay8 = marketingTransferSyncUserMapper.getLastDay8DataByCidAndApiCode(tCid, apiCode);
-                latest = marketingTransferSyncUserMapper.getLatestDataByCidAndApiCode(tCid, apiCode);
-            } catch (Exception ex) {
-                if (isTransferSyncTableNotExist(ex, tCid)) {
-                    log.warn("QA自动化巡检-转化场景：跳过 apiCode={}，分表不存在：b_marketing_transfer_sync_{}", apiCode, tCid);
-                    continue;
-                }
-                throw ex;
-            }
-            // 若前一天八点的数据不存在，或者当前数据不存在，则跳过
-            if (Objects.isNull(lastDay8) || Objects.isNull(latest)) {
-                log.warn("QA自动化巡检-转化场景：跳过 apiCode={}，数据不存在", apiCode);
-                continue;
-            }
-            // 若当天本条数据已经比对过，则跳过
-            String key = buildKey(apiCode, SCENE_TRANSFER);
-            List<Long> existIds = comparedIdMap.get(key);
-            if (CollUtil.isNotEmpty(existIds) && existIds.contains(latest.getId())) {
-                continue;
-            }
-            AutoCheckResultLog log = new AutoCheckResultLog();
-            log.setApiCode(apiCode);
-            log.setSceneCode(SCENE_TRANSFER);
-            log.setCompareTime(latest.getSnapTime());
-            log.setTodayDataId(latest.getId());
-            log.setLastData(toJsonExcludeSafe(lastDay8, "id", "snapTime", "cid", "tCid", "fingerprint"));
-            log.setTodayData(toJsonExcludeSafe(latest, "id", "snapTime", "cid", "tCid", "fingerprint"));
-            log.setResult(compareTransfer(lastDay8, latest));
-            Date now = new Date();
-            log.setCreateTime(now);
-            log.setUpdateTime(now);
-            resultLogList.add(log);
-        }
-        return resultLogList;
-    }
-
-    /**
-     * 判断是否为“转化同步分表不存在”的异常（MySQL error code: 1146）。
-     */
-    private boolean isTransferSyncTableNotExist(Throwable ex, String tCid) {
-        String tableName = "b_marketing_transfer_sync_" + tCid;
-        Throwable t = ex;
-        while (t != null) {
-            if (t instanceof SQLException) {
-                SQLException sqlEx = (SQLException) t;
-                if (sqlEx.getErrorCode() == 1146) {
-                    return true;
-                }
-            }
-            String msg = t.getMessage();
-            if (StringUtils.isNotBlank(msg)
-                    && msg.contains("doesn't exist")
-                    && msg.contains(tableName)) {
-                return true;
-            }
-            t = t.getCause();
-        }
-        return false;
-    }
-
-    private String compareUpload(CheckUploadSyncDataDto lastDay8, CheckUploadSyncDataDto latest) {
-        boolean same = CheckObjectSameUtil.isAllFieldsEqualExclude(lastDay8, latest, "id", "snapTime", "cusBatch",
-                "requestBatch", "custNum", "fingerprint");
-        return same ? "一致" : "不一致";
-    }
-
-    private String compareTransfer(CheckTransferSyncDataDto lastDay8, CheckTransferSyncDataDto latest) {
-        boolean same = CheckObjectSameUtil.isAllFieldsEqualExclude(lastDay8, latest, "id", "snapTime", "cid", "tCid", "fingerprint");
-        return same ? "一致" : "不一致";
-    }
-
     private String toJsonExcludeSafe(Object obj, String... excludeFields) {
         return JsonFilterUtil.toJsonExcludeSafe(obj, excludeFields);
     }
 
     private String buildKey(String apiCode, String sceneCode) {
         return apiCode + "_" + sceneCode;
+    }
+
+    private boolean isSafeIdentifier(String identifier) {
+        if (StringUtils.isBlank(identifier)) {
+            return false;
+        }
+        return SAFE_IDENTIFIER.matcher(identifier.trim()).matches();
+    }
+
+    private String quoteIdentifier(String identifier) {
+        // identifier 已校验，仅做反引号包裹
+        return "`" + identifier.trim() + "`";
+    }
+
+    private List<String> parseFieldNames(String fieldNames) {
+        if (StringUtils.isBlank(fieldNames)) {
+            return Collections.emptyList();
+        }
+        return Arrays.stream(fieldNames.split(","))
+                .map(String::trim)
+                .filter(StringUtils::isNotBlank)
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 构造 selectColumns SQL 片段（用于 ${selectColumns}）。
+     * <p>强制包含 id 与 snap_time（用于去重与定位时间）。</p>
+     */
+    private String buildSelectColumnsSql(List<String> compareFields) {
+        LinkedHashSet<String> cols = new LinkedHashSet<>();
+        cols.add("id");
+        // 输出为字符串，避免 JDBC 返回 Date/Time 导致序列化不一致
+        cols.add("DATE_FORMAT(create_time,'%Y-%m-%d %H:%i:%s') AS create_time");
+        for (String f : compareFields) {
+            if (StringUtils.isBlank(f)) {
+                continue;
+            }
+            String c = f.trim();
+            if ("id".equalsIgnoreCase(c) || "create_time".equalsIgnoreCase(c)) {
+                continue;
+            }
+            cols.add(quoteIdentifier(c));
+        }
+        return String.join(", ", cols);
+    }
+
+    private boolean isTableNotExist(Throwable ex, String tableName) {
+        Throwable t = ex;
+        while (t != null) {
+            if (t instanceof SQLException) {
+                SQLException sqlEx = (SQLException) t;
+                if (sqlEx.getErrorCode() == 1146) {
+                    return true;
+                }
+            }
+            String msg = t.getMessage();
+            if (StringUtils.isNotBlank(msg)
+                    && msg.contains("doesn't exist")
+                    && msg.contains(tableName)) {
+                return true;
+            }
+            t = t.getCause();
+        }
+        return false;
+    }
+
+    /**
+     * 判断是否为“字段不存在”的异常（MySQL error code: 1054）。
+     */
+    private boolean isColumnNotExist(Throwable ex, String columnName) {
+        if (StringUtils.isBlank(columnName)) {
+            return false;
+        }
+        Throwable t = ex;
+        while (t != null) {
+            if (t instanceof SQLException) {
+                SQLException sqlEx = (SQLException) t;
+                if (sqlEx.getErrorCode() == 1054) {
+                    return true;
+                }
+            }
+            String msg = t.getMessage();
+            if (StringUtils.isNotBlank(msg)
+                    && msg.contains("Unknown column")
+                    && msg.contains("'" + columnName + "'")) {
+                return true;
+            }
+            t = t.getCause();
+        }
+        return false;
+    }
+
+    private String getString(Object v) {
+        if (v == null) {
+            return null;
+        }
+        String s = String.valueOf(v);
+        return StringUtils.isBlank(s) ? null : s.trim();
+    }
+
+    private Long getLong(Object v) {
+        if (v == null) {
+            return null;
+        }
+        if (v instanceof Number) {
+            return ((Number) v).longValue();
+        }
+        try {
+            return Long.parseLong(String.valueOf(v).trim());
+        } catch (Exception ignore) {
+            return null;
+        }
+    }
+
+    private Map<String, Object> filterToCompareFields(Map<String, Object> src, List<String> compareFields) {
+        if (src == null || src.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        Map<String, Object> out = new LinkedHashMap<>();
+        for (String f : compareFields) {
+            if (StringUtils.isBlank(f)) {
+                continue;
+            }
+            String key = f.trim();
+            out.put(key, src.get(key));
+        }
+        return out;
+    }
+
+    private boolean isAllFieldsSame(List<String> compareFields, Map<String, Object> last, Map<String, Object> today) {
+        for (String f : compareFields) {
+            if (StringUtils.isBlank(f)) {
+                continue;
+            }
+            String key = f.trim();
+            if ("id".equalsIgnoreCase(key) || "create_time".equalsIgnoreCase(key)) {
+                continue;
+            }
+            Object a = last.get(key);
+            Object b = today.get(key);
+            if (!Objects.equals(a, b)) {
+                // 兼容 JDBC 返回类型不一致（如 BigDecimal vs Long）：统一按字符串比对一次
+                String as = a == null ? null : String.valueOf(a);
+                String bs = b == null ? null : String.valueOf(b);
+                if (!Objects.equals(as, bs)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }
