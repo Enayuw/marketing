@@ -1,6 +1,7 @@
 package com.br.marketing.service.Impl;
 
 import com.br.marketing.common.utils.DateHelper;
+import com.br.marketing.entity.IdempotentRecordInfo;
 import com.br.marketing.entity.MqIdempotentCommon;
 import com.br.marketing.entity.MqIdempotentSpecial;
 import com.br.marketing.enums.MqIdempotentTableType;
@@ -121,6 +122,14 @@ public class MqIdempotentServiceImpl implements MqIdempotentService {
         record.setCreateTime(now);
         record.setUpdateTime(now);
         return record;
+    }
+
+    @Override
+    public IdempotentRecordInfo selectByIdempotentKey(MqIdempotentTableType tableType, Long idempotentKey) {
+        return switch (tableType) {
+            case COMMON -> mqIdempotentCommonMapper.selectByIdempotentKey(idempotentKey);
+            case SPECIAL -> mqIdempotentSpecialMapper.selectByIdempotentKey(idempotentKey);
+        };
     }
 }
 

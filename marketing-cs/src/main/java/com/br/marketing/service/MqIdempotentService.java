@@ -1,5 +1,6 @@
 package com.br.marketing.service;
 
+import com.br.marketing.entity.IdempotentRecordInfo;
 import com.br.marketing.enums.MqIdempotentTableType;
 
 /**
@@ -31,5 +32,13 @@ public interface MqIdempotentService {
      * @param apiCode 客户编号
      */
     void updateApiCode(MqIdempotentTableType tableType, Long recordId, String apiCode);
+
+    /**
+     * 根据幂等键查询幂等记录
+     * @param tableType 表类型
+     * @param idempotentKey 幂等键
+     * @return 幂等记录信息（包含id和apiCode），如果不存在返回null
+     */
+    IdempotentRecordInfo selectByIdempotentKey(MqIdempotentTableType tableType, Long idempotentKey);
 }
 
