@@ -2,31 +2,21 @@ package com.br.marketing.entity;
 
 import java.util.Date;
 
-public class AutoCheckConfig {
+public class AutoCheckTableDict {
     /**
      * 
      */
     private Long id;
 
     /**
-     * 用户编号
-     */
-    private String apiCode;
-
-    /**
-     * 场景编码(多场景用逗号分隔)
-     */
-    private String sceneCode;
-
-    /**
-     * 关联表
+     * 表名
      */
     private String tableName;
 
     /**
-     * 比较的字段
+     * 表含义
      */
-    private String fieldName;
+    private String tableDesc;
 
     /**
      * 0-未删除 1-删除
@@ -51,22 +41,6 @@ public class AutoCheckConfig {
         this.id = id;
     }
 
-    public String getApiCode() {
-        return apiCode;
-    }
-
-    public void setApiCode(String apiCode) {
-        this.apiCode = apiCode == null ? null : apiCode.trim();
-    }
-
-    public String getSceneCode() {
-        return sceneCode;
-    }
-
-    public void setSceneCode(String sceneCode) {
-        this.sceneCode = sceneCode == null ? null : sceneCode.trim();
-    }
-
     public String getTableName() {
         return tableName;
     }
@@ -75,12 +49,12 @@ public class AutoCheckConfig {
         this.tableName = tableName == null ? null : tableName.trim();
     }
 
-    public String getFieldName() {
-        return fieldName;
+    public String getTableDesc() {
+        return tableDesc;
     }
 
-    public void setFieldName(String fieldName) {
-        this.fieldName = fieldName == null ? null : fieldName.trim();
+    public void setTableDesc(String tableDesc) {
+        this.tableDesc = tableDesc == null ? null : tableDesc.trim();
     }
 
     public Byte getIsDeleted() {

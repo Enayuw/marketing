@@ -19,6 +19,11 @@ public class AutoCheckResultLog {
     private String sceneCode;
 
     /**
+     * 关联表
+     */
+    private String tableName;
+
+    /**
      * 前一天八点数据
      */
     private String lastData;
@@ -39,7 +44,7 @@ public class AutoCheckResultLog {
     private String compareTime;
 
     /**
-     * 对比结果 0-不一致 1-有差异 2-一致
+     * 对比结果
      */
     private String result;
 
@@ -80,6 +85,14 @@ public class AutoCheckResultLog {
 
     public void setSceneCode(String sceneCode) {
         this.sceneCode = sceneCode == null ? null : sceneCode.trim();
+    }
+
+    public String getTableName() {
+        return tableName;
+    }
+
+    public void setTableName(String tableName) {
+        this.tableName = tableName == null ? null : tableName.trim();
     }
 
     public String getLastData() {
