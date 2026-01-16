@@ -296,7 +296,7 @@ public class AutoCheckServiceImpl implements AutoCheckService {
         List<AutoCheckResultLog> saveList = new ArrayList<>();
         // 生成这一次对比的批次号，方便查看巡检结果时数据聚合
         String batchId = DateUtil.format(new Date(), "yyyyMMddHHmmss");
-
+        String compareTime = DateUtil.formatDateTime(new Date());
         for (AutoCheckConfig config : configList) {
             /**
              * 针对每一条配置 apiCode、sceneCode、tableName，进行巡检
@@ -367,7 +367,6 @@ public class AutoCheckServiceImpl implements AutoCheckService {
             }
 
             Long todayDataId = getLong(latest.get("id"));
-            String compareTime = getString(latest.get("create_time"));
 
             String key = buildKey(apiCode, sceneCode);
             List<Long> existIds = comparedIdMap.get(key);
