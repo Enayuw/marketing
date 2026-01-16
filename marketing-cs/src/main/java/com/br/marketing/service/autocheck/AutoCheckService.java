@@ -18,7 +18,7 @@ public interface AutoCheckService {
 
     void autoCheck();
 
-    List<AutoCheckResultVO> getResultList(String apiCodes, String sceneCodes);
+    List<AutoCheckResultVO> getResultList(String apiCodes, String sceneCodes, String startTime, String endTime);
 
     List<AutoCheckAssociationTableVO> getAssociationTable(String tableName);
 

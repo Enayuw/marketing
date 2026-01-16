@@ -1,5 +1,6 @@
 package com.br.marketing.innerapi.controller.autocheck;
 
+import cn.hutool.core.date.DateUtil;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -13,6 +14,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
@@ -108,9 +110,17 @@ public class AutoCheckController {
             @Parameter(name = "sceneCodes", description = "场景编码，多场景逗号分隔")
     })
     public ApiResult<List<AutoCheckResultVO>> getResultList(@RequestParam(name = "apiCodes", required = false) String apiCodes,
-                                                            @RequestParam(name = "sceneCodes", required = false) String sceneCodes) {
+                                                            @RequestParam(name = "sceneCodes", required = false) String sceneCodes,
+                                                            @RequestParam(name = "startTime", required = false) String startTime,
+                                                            @RequestParam(name = "endTime", required = false) String endTime) {
         try {
-            List<AutoCheckResultVO> list = autoCheckService.getResultList(apiCodes, sceneCodes);
+            // 默认当天比对结果
+            if (StringUtils.isBlank(startTime) && StringUtils.isBlank(endTime)) {
+                String today = DateUtil.today();
+                startTime = today + " 00:00:00";
+                endTime = today + " 23:59:59";
+            }
+            List<AutoCheckResultVO> list = autoCheckService.getResultList(apiCodes, sceneCodes, startTime, endTime);
             return new ApiResult<List<AutoCheckResultVO>>().success(list);
         } catch (Exception ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
@@ -145,5 +155,4 @@ public class AutoCheckController {
             return new ApiResult<List<AutoCheckAssociationTableFieldVO>>().fail(ServiceResultEnum.FAILED);
         }
     }
-
 }

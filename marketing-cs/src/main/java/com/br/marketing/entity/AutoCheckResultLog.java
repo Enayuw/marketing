@@ -49,6 +49,11 @@ public class AutoCheckResultLog {
     private String result;
 
     /**
+     * 批次id
+     */
+    private String batchId;
+
+    /**
      * 0-未删除 1-删除
      */
     private Byte isDeleted;
@@ -133,6 +138,14 @@ public class AutoCheckResultLog {
 
     public void setResult(String result) {
         this.result = result == null ? null : result.trim();
+    }
+
+    public String getBatchId() {
+        return batchId;
+    }
+
+    public void setBatchId(String batchId) {
+        this.batchId = batchId == null ? null : batchId.trim();
     }
 
     public Byte getIsDeleted() {

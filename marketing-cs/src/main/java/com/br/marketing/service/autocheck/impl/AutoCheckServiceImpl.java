@@ -24,7 +24,6 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.zip.CRC32;
 
 /**
  * @author: fuzhen.zhang
@@ -279,7 +278,10 @@ public class AutoCheckServiceImpl implements AutoCheckService {
 
         // 获取今天已经比对过的id
         String today = DateUtil.today();
-        List<AutoCheckResultLog> resultList = autoCheckResultLogMapper.selectByCodeListAndTime(today, null, null);
+        String todayStartTime = today + " 00:00:00";
+        String todayEndTime = today + " 23:59:59";
+        List<AutoCheckResultLog> resultList = autoCheckResultLogMapper
+                .selectByCodeListAndTime(todayStartTime, todayEndTime, null, null);
         Map<String, List<Long>> comparedIdMap = new HashMap<>();
         for (AutoCheckResultLog result : resultList) {
             String key = buildKey(result.getApiCode(), result.getSceneCode());
@@ -292,6 +294,8 @@ public class AutoCheckServiceImpl implements AutoCheckService {
         }
 
         List<AutoCheckResultLog> saveList = new ArrayList<>();
+        // 生成这一次对比的批次号，方便查看巡检结果时数据聚合
+        String batchId = DateUtil.format(new Date(), "yyyyMMddHHmmss");
 
         for (AutoCheckConfig config : configList) {
             /**
@@ -383,6 +387,7 @@ public class AutoCheckServiceImpl implements AutoCheckService {
             row.setLastData(toJsonExcludeSafe(filterToCompareFields(lastDay8, compareFields), "id", "create_time"));
             row.setTodayData(toJsonExcludeSafe(filterToCompareFields(latest, compareFields), "id", "create_time"));
             row.setResult(same ? COMPARE_RESULT_SAME : COMPARE_RESULT_DIFFERENT);
+            row.setBatchId(batchId);
             Date now = new Date();
             row.setCreateTime(now);
             row.setUpdateTime(now);
@@ -395,7 +400,7 @@ public class AutoCheckServiceImpl implements AutoCheckService {
     }
 
     @Override
-    public List<AutoCheckResultVO> getResultList(String apiCodes, String sceneCodes) {
+    public List<AutoCheckResultVO> getResultList(String apiCodes, String sceneCodes, String startTime, String endTime) {
         // 处理apiCodes参数，用逗号分隔
         List<String> apiCodeList = handleApiCodeParam(apiCodes);
 
@@ -415,9 +420,9 @@ public class AutoCheckServiceImpl implements AutoCheckService {
                 .collect(Collectors.toMap(AutoCheckSceneVO::getSceneCode, e -> e, (a, b) -> a));
 
         List<AutoCheckResultVO> result = new ArrayList<>();
-        // 找出当天的比对结果，用于前端展示
-        String today = DateUtil.today();
-        List<AutoCheckResultLog> resultList = autoCheckResultLogMapper.selectByCodeListAndTime(today, apiCodeList, sceneCodeList);
+
+        List<AutoCheckResultLog> resultList = autoCheckResultLogMapper
+                .selectByCodeListAndTime(startTime, endTime, apiCodeList, sceneCodeList);
 
         // 组装resultVO
         if (CollUtil.isNotEmpty(resultList)) {
@@ -455,64 +460,79 @@ public class AutoCheckServiceImpl implements AutoCheckService {
                     ));
 
             for (Map.Entry<String, List<AutoCheckResultLog>> entry : groupMap.entrySet()) {
-                List<AutoCheckResultLog> group = entry.getValue();
-                if (CollUtil.isEmpty(group)) {
+                List<AutoCheckResultLog> apiSceneGroup = entry.getValue();
+                if (CollUtil.isEmpty(apiSceneGroup)) {
                     continue;
                 }
-                AutoCheckResultLog first = group.get(0);
+                // 同一 apiCode + sceneCode 下，再按 batchId 聚合
+                Map<String, List<AutoCheckResultLog>> batchGroupMap = apiSceneGroup.stream()
+                        .collect(Collectors.groupingBy(
+                                r -> StringUtils.defaultString(r.getBatchId()).trim(),
+                                LinkedHashMap::new,
+                                Collectors.toList()
+                        ));
 
-                String apiCode = first.getApiCode().trim();
-                String sceneCode = first.getSceneCode().trim();
+                for (Map.Entry<String, List<AutoCheckResultLog>> batchEntry : batchGroupMap.entrySet()) {
+                    List<AutoCheckResultLog> group = batchEntry.getValue();
+                    if (CollUtil.isEmpty(group)) {
+                        continue;
+                    }
 
-                AutoCheckResultVO vo = new AutoCheckResultVO();
-                vo.setApiCode(apiCode);
-                vo.setSceneCode(sceneCode);
+                    AutoCheckResultLog first = group.get(0);
 
-                MarketingCustomerVO apiInfo = apiInfoMap.get(apiCode);
-                vo.setName(apiInfo == null ? "" : StringUtils.defaultString(apiInfo.getName()));
+                    String apiCode = first.getApiCode().trim();
+                    String sceneCode = first.getSceneCode().trim();
 
-                AutoCheckSceneVO sceneInfo = sceneMap.get(sceneCode);
-                vo.setSceneName(sceneInfo == null ? "" : StringUtils.defaultString(sceneInfo.getSceneName()));
+                    AutoCheckResultVO vo = new AutoCheckResultVO();
+                    vo.setApiCode(apiCode);
+                    vo.setSceneCode(sceneCode);
 
-                // 外层 time：取明细里最晚时间
-                String earliestTime = null;
-                // 外层 compareResult：只要任一条不一致，则不一致；全部一致才一致
-                boolean allSame = true;
+                    MarketingCustomerVO apiInfo = apiInfoMap.get(apiCode);
+                    vo.setName(apiInfo == null ? "" : StringUtils.defaultString(apiInfo.getName()));
 
-                List<AutoCheckResultVO.CompareResultDetail> detailList = new ArrayList<>();
-                for (AutoCheckResultLog row : group) {
-                    AutoCheckResultVO.CompareResultDetail detail = new AutoCheckResultVO.CompareResultDetail();
-                    String tableName = StringUtils.defaultString(row.getTableName()).trim();
-                    detail.setTableName(tableName);
-                    detail.setTableDesc(StringUtils.defaultString(tableDescMap.get(tableName)));
-                    detail.setLastDayData(StringUtils.defaultString(row.getLastData()));
-                    detail.setThisData(StringUtils.defaultString(row.getTodayData()));
-                    detail.setCompareResult(StringUtils.defaultString(row.getResult()));
+                    AutoCheckSceneVO sceneInfo = sceneMap.get(sceneCode);
+                    vo.setSceneName(sceneInfo == null ? "" : StringUtils.defaultString(sceneInfo.getSceneName()));
 
-                    String time = StringUtils.isBlank(row.getCompareTime()) ? "" : row.getCompareTime().trim();
-                    detail.setTime(time);
+                    // 外层 time：取明细里最晚时间
+                    String oldestTime = null;
+                    // 外层 compareResult：只要任一条不一致，则不一致；全部一致才一致
+                    boolean allSame = true;
 
-                    // earliestTime（compare_time 通常为 yyyy-MM-dd HH:mm:ss，字典序=时间序）
-                    if (StringUtils.isNotBlank(time)) {
-                        if (earliestTime == null || time.compareTo(earliestTime) > 0) {
-                            earliestTime = time;
+                    List<AutoCheckResultVO.CompareResultDetail> detailList = new ArrayList<>();
+                    for (AutoCheckResultLog row : group) {
+                        AutoCheckResultVO.CompareResultDetail detail = new AutoCheckResultVO.CompareResultDetail();
+                        String tableName = StringUtils.defaultString(row.getTableName()).trim();
+                        detail.setTableName(tableName);
+                        detail.setTableDesc(StringUtils.defaultString(tableDescMap.get(tableName)));
+                        detail.setLastDayData(StringUtils.defaultString(row.getLastData()));
+                        detail.setThisData(StringUtils.defaultString(row.getTodayData()));
+                        detail.setCompareResult(StringUtils.defaultString(row.getResult()));
+
+                        String time = StringUtils.isBlank(row.getCompareTime()) ? "" : row.getCompareTime().trim();
+                        detail.setTime(time);
+
+                        // earliestTime（compare_time 通常为 yyyy-MM-dd HH:mm:ss，字典序=时间序）
+                        if (StringUtils.isNotBlank(time)) {
+                            if (oldestTime == null || time.compareTo(oldestTime) > 0) {
+                                oldestTime = time;
+                            }
                         }
+                        // 聚合 compareResult：非“一致”都视为不一致（兼容后续新增结果值）
+                        if (!COMPARE_RESULT_SAME.equals(detail.getCompareResult())) {
+                            allSame = false;
+                        }
+                        detailList.add(detail);
                     }
-                    // 聚合 compareResult：非“一致”都视为不一致（兼容后续新增结果值）
-                    if (!COMPARE_RESULT_SAME.equals(detail.getCompareResult())) {
-                        allSame = false;
-                    }
-                    detailList.add(detail);
+
+                    vo.setTime(StringUtils.defaultString(oldestTime));
+                    vo.setCompareResult(allSame ? COMPARE_RESULT_SAME : COMPARE_RESULT_DIFFERENT);
+                    vo.setCompareResultDetailList(detailList);
+
+                    vo.setLastDayData(detailList.get(0).getLastDayData());
+                    vo.setThisData(detailList.get(0).getThisData());
+
+                    result.add(vo);
                 }
-
-                vo.setTime(StringUtils.defaultString(earliestTime));
-                vo.setCompareResult(allSame ? COMPARE_RESULT_SAME : COMPARE_RESULT_DIFFERENT);
-                vo.setCompareResultDetailList(detailList);
-
-                vo.setLastDayData(detailList.get(0).getLastDayData());
-                vo.setThisData(detailList.get(0).getThisData());
-
-                result.add(vo);
             }
         }
 
