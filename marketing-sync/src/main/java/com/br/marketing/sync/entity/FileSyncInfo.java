@@ -64,13 +64,12 @@ public class FileSyncInfo {
      * 构造函数 - 完整参数
      */
     public FileSyncInfo(String fileName, String filePath, String createTime, long fileSize, 
-                        String suffix, String date, SyncConfig config) {
+                        String suffix, SyncConfig config) {
         this.fileName = fileName;
         this.filePath = filePath;
         this.createTime = createTime;
         this.fileSize = fileSize;
         this.suffix = suffix;
-        this.date = date;
         this.config = config;
     }
     

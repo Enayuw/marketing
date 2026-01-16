@@ -22,6 +22,7 @@ import com.br.marketing.mapper.SyncLogMapper;
 import com.br.marketing.sync.entity.FileSyncInfo;
 import com.br.marketing.sync.service.FileUploadDownloadService;
 import com.br.marketing.sync.service.ShuHeCustomizedSyncService;
+import com.google.common.collect.Lists;
 import com.jcraft.jsch.SftpATTRS;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
@@ -571,7 +572,7 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                             log.warn(DOWNLOAD_TITLE + "文件上传时间距离当前时间小于1分钟，暂时不处理{},{}", fileName, createTime);
                             continue;
                         }
-                        fileInfoList.add(new FileSyncInfo(fileName, srcPath, createTime, attrs.getSize(), null));
+                        fileInfoList.add(new FileSyncInfo(fileName, srcPath, createTime, attrs.getSize(), null,config));
                     }
                 }
             } else if (Constants.LOAN_WARNING_FTP.equals(config.getSrcType())) {
@@ -604,7 +605,7 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                             log.warn(DOWNLOAD_TITLE + "文件上传时间距离当前时间小于1分钟，暂时不处理{},{}", fileName, createTime);
                             continue;
                         }
-                        fileInfoList.add(new FileSyncInfo(fileName, srcPath, createTime, file.getSize(), null));
+                        fileInfoList.add(new FileSyncInfo(fileName, srcPath, createTime, file.getSize(), null,config));
                     }
                 }
             }
@@ -653,7 +654,7 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                         log.warn(DOWNLOAD_TITLE + "文件上传时间距离当前时间小于1分钟，暂时不处理{},{}", fileName, createTime);
                         continue;
                     }
-                    fileInfoList.add(new FileSyncInfo(fileName, currentPath, createTime, attrs.getSize(), "no_suffix"));
+                    fileInfoList.add(new FileSyncInfo(fileName, currentPath, createTime, attrs.getSize(), "no_suffix",config));
                 }
             }
         } catch (Exception e) {
@@ -704,7 +705,7 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                         log.warn(DOWNLOAD_TITLE + "文件上传时间距离当前时间小于1分钟，暂时不处理{},{}", fileName, createTime);
                         continue;
                     }
-                    fileInfoList.add(new FileSyncInfo(fileName, currentPath, createTime, file.getSize(), "no_suffix"));
+                    fileInfoList.add(new FileSyncInfo(fileName, currentPath, createTime, file.getSize(), "no_suffix",config));
                 }
             }
         } catch (Exception e) {
@@ -753,27 +754,37 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
             return new ArrayList<>();
         }
 
-        List<FileSyncInfo> result = new ArrayList<>();
         String apiCode = config.getApiCode();
         String srcPath = config.getSrcSftpHost() + ":" + config.getSrcPath();
 
-        // 逐个查询是否已同步
-        for (FileSyncInfo fileInfo : fileInfoList) {
-            Map<String, String> params = new HashMap<>();
-            params.put("apiCode", apiCode);
-            params.put("fileName", fileInfo.getFileName());
-            params.put("srcPath", srcPath);
-            List<SyncLog> syncLogs = loanSyncLogMapper.querySyncLog(params);
+        // 提取所有文件名
+        List<String> fileNames = fileInfoList.stream()
+                .map(FileSyncInfo::getFileName)
+                .collect(Collectors.toList());
 
-            if (CollectionUtils.isEmpty(syncLogs)) {
-                FileSyncInfo fileSyncInfo = new FileSyncInfo(fileInfo.getFileName(), fileInfo.getFilePath(),
-                        fileInfo.getCreateTime(), fileInfo.getFileSize(), fileInfo.getSuffix());
-                fileSyncInfo.setConfig(config);
-                result.add(fileSyncInfo);
+        // 批量查询已同步的文件名（使用 Lists.partition 每2000个一批）
+        Set<String> syncedFileNames = new HashSet<>();
+        int batchSize = 2000;
+        List<List<String>> batches = Lists.partition(fileNames, batchSize);
+        for (List<String> batch : batches) {
+            try {
+                List<SyncLog> syncLogs = loanSyncLogMapper.querySyncLogBatch(apiCode, srcPath, batch);
+                if (!CollectionUtils.isEmpty(syncLogs)) {
+                    // 收集已同步的文件名
+                    syncedFileNames.addAll(syncLogs.stream()
+                            .map(SyncLog::getFileName)
+                            .collect(Collectors.toSet()));
+                }
+            } catch (Exception e) {
+                log.error(DOWNLOAD_TITLE + "批量查询同步记录异常，apiCode: {}, batchSize: {}, error: {}", 
+                        apiCode, batch.size(), e.getMessage(), e);
             }
         }
 
-        return result;
+        // 过滤，移除已同步的文件
+        fileInfoList.removeIf(fileInfo -> syncedFileNames.contains(fileInfo.getFileName()));
+
+        return fileInfoList;
     }
 
 
