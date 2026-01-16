@@ -1,5 +1,6 @@
 package com.br.marketing.dto.autocheck;
 
+import com.br.marketing.vo.autocheck.TableNameAndFieldVO;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
@@ -16,15 +17,7 @@ public class SaveAutoCheckConfigDto {
     private String sceneCode;
 
     @NotEmpty(message = "tableNameAndFieldList不能为空")
-    private List<TableNameAndField> tableNameAndFieldList;
+    private List<TableNameAndFieldVO> tableNameAndFieldList;
 
     private Boolean isUpdate = false;
-
-    @Data
-    public static class TableNameAndField {
-
-        private String tableName;
-
-        private String fieldNames;
-    }
 }

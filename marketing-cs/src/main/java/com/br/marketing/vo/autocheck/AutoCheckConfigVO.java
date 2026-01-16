@@ -3,6 +3,8 @@ package com.br.marketing.vo.autocheck;
 
 import lombok.Data;
 
+import java.util.List;
+
 
 @Data
 public class AutoCheckConfigVO {
@@ -15,5 +17,5 @@ public class AutoCheckConfigVO {
 
     private String sceneName;
 
-    private String tableNames;
+    private List<TableNameAndFieldVO> tableNameAndFieldList;
 }

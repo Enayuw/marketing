@@ -122,20 +122,19 @@ public class AutoCheckServiceImpl implements AutoCheckService {
             String apiCode = first.getApiCode();
             String sceneCode = first.getSceneCode();
 
-            String tableNames = group.stream()
-                    .filter(Objects::nonNull)
-                    .map(AutoCheckConfig::getTableName)
-                    .filter(StringUtils::isNotBlank)
-                    .map(String::trim)
-                    .distinct()
-                    .collect(Collectors.joining(","));
-
             AutoCheckConfigVO vo = new AutoCheckConfigVO();
             vo.setApiCode(apiCode);
             vo.setName(Optional.ofNullable(apiCodeInfoMap.get(apiCode)).map(MarketingCustomerVO::getName).orElse(""));
             vo.setSceneCode(sceneCode);
             vo.setSceneName(Optional.ofNullable(sceneMap.get(sceneCode)).map(AutoCheckSceneVO::getSceneName).orElse(""));
-            vo.setTableNames(tableNames);
+            List<TableNameAndFieldVO> tableNameAndFieldList = new ArrayList<>();
+            for (AutoCheckConfig config : group) {
+                TableNameAndFieldVO tableNameAndFieldVO = new TableNameAndFieldVO();
+                tableNameAndFieldVO.setTableName(config.getTableName());
+                tableNameAndFieldVO.setFieldNames(config.getFieldName());
+                tableNameAndFieldList.add(tableNameAndFieldVO);
+            }
+            vo.setTableNameAndFieldList(tableNameAndFieldList);
             result.add(vo);
         }
 
@@ -193,7 +192,7 @@ public class AutoCheckServiceImpl implements AutoCheckService {
 
         String apiCode = dto.getApiCode();
         String sceneCode = dto.getSceneCode();
-        List<SaveAutoCheckConfigDto.TableNameAndField> tableNameAndFieldList = dto.getTableNameAndFieldList();
+        List<TableNameAndFieldVO> tableNameAndFieldList = dto.getTableNameAndFieldList();
         // 拿apiCode和sceneCode去表里查询记录
         List<AutoCheckConfig> existingConfigs = autoCheckConfigMapper
                 .selectByApiCodesAndSceneCodes(Collections.singletonList(apiCode)
@@ -220,7 +219,7 @@ public class AutoCheckServiceImpl implements AutoCheckService {
         }
 
         List<AutoCheckConfig> insertConfigs = new ArrayList<>();
-        for (SaveAutoCheckConfigDto.TableNameAndField tableNameAndField : tableNameAndFieldList) {
+        for (TableNameAndFieldVO tableNameAndField : tableNameAndFieldList) {
             if (tableNameAndField == null
                     || StringUtils.isBlank(tableNameAndField.getTableName())
                     || StringUtils.isBlank(tableNameAndField.getFieldNames())) {
