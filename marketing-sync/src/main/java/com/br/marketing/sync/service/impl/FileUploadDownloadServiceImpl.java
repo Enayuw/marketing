@@ -285,7 +285,7 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
         processShuHeConfigs(shuHeConfigs);
         //使用线程池并行遍历
         TpDynamicExecutor threadPool = TpDynamicExecutorFactory
-                .getThreadPool(ThreadPoolNameEnum.FILE_SYNC_DOWNLOAD.getName(), 10, 20);
+                .getThreadPool(ThreadPoolNameEnum.FILE_SYNC_DOWNLOAD.getName(), 5, 5);
         List<FileSyncInfo> allFilesToSync = Collections.synchronizedList(new ArrayList<>());
         for (SyncConfig config : defaultConfigs) {
             threadPool.submit(() -> {
@@ -472,13 +472,14 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
         List<FileSyncInfo> result = new ArrayList<>();
         String srcPath = config.getSrcPath();
         String apiCode = config.getApiCode();
-        // 建立SFTP/FTP连接
-        BaseFtpClient client = syncServiceImpl.getClient(config, true);
-        if (client == null || !client.isConnected()) {
-            log.error(DOWNLOAD_TITLE + "连接建立失败，apiCode: {}", apiCode);
-            return result;
-        }
+        BaseFtpClient client = null;
         try {
+            // 建立SFTP/FTP连接
+            client = syncServiceImpl.getClient(config, true);
+            if (client == null || !client.isConnected()) {
+                log.error(DOWNLOAD_TITLE + "连接建立失败，apiCode: {}", apiCode);
+                return result;
+            }
             // 判断源路径格式
             boolean containsDatePattern = srcPath.contains("yyyyMMdd") || srcPath.contains("yyyy-MM-dd");
             if (containsDatePattern) {
@@ -527,7 +528,7 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
             log.warn(DOWNLOAD_TITLE + "配置处理完成，apiCode: {}, 待同步文件数：{}", apiCode, result.size());
 
         } catch (Exception e) {
-            log.error(DOWNLOAD_TITLE + "处理配置异常，apiCode: {}, error: {}", apiCode, e.getMessage(), e);
+            log.error(DOWNLOAD_TITLE + "配置遍历异常，apiCode: {}, error: {}", apiCode, e.getMessage(), e);
         } finally {
             closeClient(client);
         }

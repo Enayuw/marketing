@@ -42,7 +42,7 @@ public class FileDownloadTaskJob extends AbstractSimpleElasticJob {
                 , Lists.newArrayList());
 
         fileUploadDownloadService.processDownloadTask(loanSyncConfigs);
-        log.warn(TITLE + "任务调度结束，耗时：{}", System.currentTimeMillis() - start);
+        log.warn(TITLE + "任务调度结束，耗时：{}ms", System.currentTimeMillis() - start);
 
     }
 
