@@ -232,12 +232,7 @@ public class AutoCheckServiceImpl implements AutoCheckService {
             config.setFieldName(tableNameAndField.getFieldNames().trim());
             insertConfigs.add(config);
         }
-        // 防止同一个表重复提交导致重复插入（按 tableName 去重，保留第一条）
-        if (CollUtil.isNotEmpty(insertConfigs)) {
-            insertConfigs = insertConfigs.stream()
-                    .collect(Collectors.toMap(AutoCheckConfig::getTableName, e -> e, (a, b) -> a, LinkedHashMap::new))
-                    .values().stream().collect(Collectors.toList());
-        }
+
         if (CollUtil.isNotEmpty(insertConfigs)) {
             autoCheckConfigMapper.batchInsert(insertConfigs);
         } else {
