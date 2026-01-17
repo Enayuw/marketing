@@ -117,6 +117,10 @@ public class TcCpaCollidingFailDealServiceImpl implements TcCpaCollidingFailDeal
             while ((line = reader.readLine()) != null) {
                 lines.add(line);
                 if (lines.size() == marketingCommonConfig.getTcyrCpaCollidingFailDealConfig().getInteger("lineReadSize")) {
+                    if (!marketingCommonConfig.getTcyrCpaCollidingFailDealConfig().getBoolean("jobSwitch")) {
+                        lines.clear();
+                        break;
+                    }
                     List<String> threadLines = new ArrayList<>(lines);
                     futures.add(CompletableFuture.runAsync(() -> process(tcyrCpaFailFile, threadLines), actionPool));
                     lines.clear();
