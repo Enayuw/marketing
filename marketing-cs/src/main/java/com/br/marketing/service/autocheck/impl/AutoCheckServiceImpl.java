@@ -34,11 +34,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class AutoCheckServiceImpl implements AutoCheckService {
 
-    @SuppressWarnings("unused")
-    private static final String SCENE_UPLOAD = "TY-SCJK";
-    @SuppressWarnings("unused")
-    private static final String SCENE_TRANSFER = "TY-ZHJK";
-
     private static final String COMPARE_RESULT_SAME = "一致";
     private static final String COMPARE_RESULT_DIFFERENT = "不一致";
 
@@ -50,12 +45,6 @@ public class AutoCheckServiceImpl implements AutoCheckService {
 
     @Resource
     private MarketingCustomerService marketingCustomerService;
-
-    @Resource
-    private MarketingSyncInfoMapper marketingSyncInfoMapper;
-
-    @Resource
-    private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
 
     @Resource
     private AutoCheckResultLogMapper autoCheckResultLogMapper;
@@ -269,24 +258,7 @@ public class AutoCheckServiceImpl implements AutoCheckService {
 
         List<AutoCheckConfig> configList = autoCheckConfigMapper.
                 selectByApiCodesAndSceneCodes(apiCodeList, sceneCodeList);
-
-        // 获取今天已经比对过的id
         String today = DateUtil.today();
-        String todayStartTime = today + " 00:00:00";
-        String todayEndTime = today + " 23:59:59";
-        List<AutoCheckResultLog> resultList = autoCheckResultLogMapper
-                .selectByCodeListAndTime(todayStartTime, todayEndTime, null, null);
-        Map<String, List<Long>> comparedIdMap = new HashMap<>();
-        for (AutoCheckResultLog result : resultList) {
-            String key = buildKey(result.getApiCode(), result.getSceneCode());
-            List<Long> values = comparedIdMap.get(key);
-            if (values == null) {
-                values = new ArrayList<>();
-            }
-            values.add(result.getTodayDataId());
-            comparedIdMap.put(key, values);
-        }
-
         List<AutoCheckResultLog> saveList = new ArrayList<>();
         // 生成这一次对比的批次号，方便查看巡检结果时数据聚合
         String batchId = DateUtil.format(new Date(), "yyyyMMddHHmmss");
@@ -303,29 +275,10 @@ public class AutoCheckServiceImpl implements AutoCheckService {
             String tableName = StringUtils.defaultString(config.getTableName()).trim();
             String fieldName = StringUtils.defaultString(config.getFieldName()).trim();
 
-            if (StringUtils.isBlank(apiCode) || StringUtils.isBlank(sceneCode)
-                    || StringUtils.isBlank(tableName) || StringUtils.isBlank(fieldName)) {
-                log.warn("QA自动化巡检-动态查表：跳过无效配置，apiCode={}, sceneCode={}, tableName={}, fieldName={}",
-                        apiCode, sceneCode, tableName, fieldName);
-                continue;
-            }
-            if (!isSafeIdentifier(tableName)) {
-                log.warn("QA自动化巡检-动态查表：跳过不安全表名，apiCode={}, sceneCode={}, tableName={}",
-                        apiCode, sceneCode, tableName);
-                continue;
-            }
-
             List<String> compareFields = parseFieldNames(fieldName);
-            if (CollUtil.isEmpty(compareFields)) {
-                log.warn("QA自动化巡检-动态查表：跳过空字段配置，apiCode={}, sceneCode={}, tableName={}, fieldName={}",
-                        apiCode, sceneCode, tableName, fieldName);
-                continue;
-            }
-            // 字段名白名单校验
-            boolean unsafeField = compareFields.stream().anyMatch(f -> !isSafeIdentifier(f));
-            if (unsafeField) {
-                log.warn("QA自动化巡检-动态查表：跳过不安全字段名，apiCode={}, sceneCode={}, tableName={}, fieldName={}",
-                        apiCode, sceneCode, tableName, fieldName);
+
+            // 数据校验
+            if (!checkConfig(apiCode, sceneCode, tableName, fieldName, compareFields)) {
                 continue;
             }
 
@@ -355,18 +308,11 @@ public class AutoCheckServiceImpl implements AutoCheckService {
                 throw ex;
             }
 
-            if (lastDay8 == null || latest == null || lastDay8.isEmpty() || latest.isEmpty()) {
-                log.warn("QA自动化巡检-动态查表：跳过，数据不存在，apiCode={}, sceneCode={}, tableName={}", apiCode, sceneCode, tableName);
+            if (!checkData(lastDay8, latest, apiCode, sceneCode, tableName, today)) {
                 continue;
             }
 
             Long todayDataId = getLong(latest.get("id"));
-
-            String key = buildKey(apiCode, sceneCode);
-            List<Long> existIds = comparedIdMap.get(key);
-            if (CollUtil.isNotEmpty(existIds) && existIds.contains(todayDataId)) {
-                continue;
-            }
 
             // 仅比较配置的字段（不包含 id/create_time）
             boolean same = isAllFieldsSame(compareFields, lastDay8, latest);
@@ -390,6 +336,78 @@ public class AutoCheckServiceImpl implements AutoCheckService {
         if (CollUtil.isNotEmpty(saveList)) {
             autoCheckResultLogMapper.batchInsert(saveList);
         }
+    }
+
+    private boolean checkConfig(String apiCode, String sceneCode, String tableName,
+                                String fieldName, List<String> compareFields) {
+        if (StringUtils.isBlank(apiCode) || StringUtils.isBlank(sceneCode)
+                || StringUtils.isBlank(tableName) || StringUtils.isBlank(fieldName)) {
+            log.warn("QA自动化巡检-动态查表：跳过无效配置，apiCode={}, sceneCode={}, tableName={}, fieldName={}",
+                    apiCode, sceneCode, tableName, fieldName);
+            return false;
+        }
+        if (!isSafeIdentifier(tableName)) {
+            log.warn("QA自动化巡检-动态查表：跳过不安全表名，apiCode={}, sceneCode={}, tableName={}",
+                    apiCode, sceneCode, tableName);
+            return false;
+        }
+
+        if (CollUtil.isEmpty(compareFields)) {
+            log.warn("QA自动化巡检-动态查表：跳过空字段配置，apiCode={}, sceneCode={}, tableName={}, fieldName={}",
+                    apiCode, sceneCode, tableName, fieldName);
+            return false;
+        }
+        // 字段名白名单校验
+        boolean unsafeField = compareFields.stream().anyMatch(f -> !isSafeIdentifier(f));
+        if (unsafeField) {
+            log.warn("QA自动化巡检-动态查表：跳过不安全字段名，apiCode={}, sceneCode={}, tableName={}, fieldName={}",
+                    apiCode, sceneCode, tableName, fieldName);
+            return false;
+        }
+        return true;
+    }
+
+    private boolean checkData(Map<String, Object> lastDay8,
+                              Map<String, Object> latest,
+                              String apiCode,
+                              String sceneCode,
+                              String tableName,
+                              String today) {
+        if (lastDay8 == null || latest == null || lastDay8.isEmpty() || latest.isEmpty()) {
+            log.warn("QA自动化巡检-动态查表：跳过，数据不存在，apiCode={}, sceneCode={}, tableName={}", apiCode, sceneCode, tableName);
+            return false;
+        }
+
+        Long todayDataId = getLong(latest.get("id"));
+        Map<String, List<Long>> comparedIdMap = getTodayExistComparedId(today);
+        String key = buildKey(apiCode, sceneCode);
+        List<Long> existIds = comparedIdMap.get(key);
+        if (CollUtil.isNotEmpty(existIds) && existIds.contains(todayDataId)) {
+            log.warn("QA自动化巡检-动态查表：跳过，数据已存在，apiCode={}, sceneCode={}, tableName={}, id={}",
+                    apiCode, sceneCode, tableName, todayDataId);
+            return false;
+        }
+
+        return true;
+    }
+
+    private Map<String, List<Long>> getTodayExistComparedId(String today) {
+        // 获取今天已经比对过的id
+        String todayStartTime = today + " 00:00:00";
+        String todayEndTime = today + " 23:59:59";
+        List<AutoCheckResultLog> resultList = autoCheckResultLogMapper
+                .selectByCodeListAndTime(todayStartTime, todayEndTime, null, null);
+        Map<String, List<Long>> comparedIdMap = new HashMap<>();
+        for (AutoCheckResultLog result : resultList) {
+            String key = buildKey(result.getApiCode(), result.getSceneCode());
+            List<Long> values = comparedIdMap.get(key);
+            if (values == null) {
+                values = new ArrayList<>();
+            }
+            values.add(result.getTodayDataId());
+            comparedIdMap.put(key, values);
+        }
+        return comparedIdMap;
     }
 
     @Override
@@ -417,115 +435,93 @@ public class AutoCheckServiceImpl implements AutoCheckService {
         List<AutoCheckResultLog> resultList = autoCheckResultLogMapper
                 .selectByCodeListAndTime(startTime, endTime, apiCodeList, sceneCodeList);
 
-        // 组装resultVO
-        if (CollUtil.isNotEmpty(resultList)) {
-            // 表字典：tableName -> tableDesc（用于明细展示）
-            Map<String, String> tableDescMap = new HashMap<>();
-            List<String> tableNameList = resultList.stream()
-                    .filter(Objects::nonNull)
-                    .map(AutoCheckResultLog::getTableName)
-                    .filter(StringUtils::isNotBlank)
-                    .map(String::trim)
-                    .distinct()
-                    .collect(Collectors.toList());
-            if (CollUtil.isNotEmpty(tableNameList)) {
-                AutoCheckTableDictExample example = new AutoCheckTableDictExample();
-                example.createCriteria()
-                        .andIsDeletedEqualTo((byte) 0)
-                        .andTableNameIn(tableNameList);
-                List<AutoCheckTableDict> tableDictList = autoCheckTableDictMapper.selectByExample(example);
-                if (CollUtil.isNotEmpty(tableDictList)) {
-                    tableDescMap = tableDictList.stream()
-                            .collect(Collectors.toMap(
-                                    d -> d.getTableName().trim(),
-                                    d -> StringUtils.defaultString(d.getTableDesc()),
-                                    (a, b) -> a
-                            ));
-                }
-            }
+        if (CollUtil.isEmpty(resultList)) {
+            return result;
+        }
+        // 表字典：tableName -> tableDesc（用于明细展示）
+        Map<String, String> tableDescMap = getTableDescMap(resultList);
 
-            // 按 apiCode + sceneCode 聚合
-            Map<String, List<AutoCheckResultLog>> groupMap = resultList.stream()
+        // 按 apiCode + sceneCode 聚合
+        Map<String, List<AutoCheckResultLog>> groupMap = resultList.stream()
+                .collect(Collectors.groupingBy(
+                        r -> buildKey(r.getApiCode().trim(), r.getSceneCode().trim()),
+                        LinkedHashMap::new,
+                        Collectors.toList()
+                ));
+        // 组装resultVO
+        for (Map.Entry<String, List<AutoCheckResultLog>> entry : groupMap.entrySet()) {
+            List<AutoCheckResultLog> apiSceneGroup = entry.getValue();
+            if (CollUtil.isEmpty(apiSceneGroup)) {
+                continue;
+            }
+            // 同一 apiCode + sceneCode 下，再按 batchId 聚合
+            Map<String, List<AutoCheckResultLog>> batchGroupMap = apiSceneGroup.stream()
                     .collect(Collectors.groupingBy(
-                            r -> buildKey(r.getApiCode().trim(), r.getSceneCode().trim()),
+                            r -> StringUtils.defaultString(r.getBatchId()).trim(),
                             LinkedHashMap::new,
                             Collectors.toList()
                     ));
 
-            for (Map.Entry<String, List<AutoCheckResultLog>> entry : groupMap.entrySet()) {
-                List<AutoCheckResultLog> apiSceneGroup = entry.getValue();
-                if (CollUtil.isEmpty(apiSceneGroup)) {
+            for (Map.Entry<String, List<AutoCheckResultLog>> batchEntry : batchGroupMap.entrySet()) {
+                List<AutoCheckResultLog> group = batchEntry.getValue();
+                if (CollUtil.isEmpty(group)) {
                     continue;
                 }
-                // 同一 apiCode + sceneCode 下，再按 batchId 聚合
-                Map<String, List<AutoCheckResultLog>> batchGroupMap = apiSceneGroup.stream()
-                        .collect(Collectors.groupingBy(
-                                r -> StringUtils.defaultString(r.getBatchId()).trim(),
-                                LinkedHashMap::new,
-                                Collectors.toList()
-                        ));
 
-                for (Map.Entry<String, List<AutoCheckResultLog>> batchEntry : batchGroupMap.entrySet()) {
-                    List<AutoCheckResultLog> group = batchEntry.getValue();
-                    if (CollUtil.isEmpty(group)) {
-                        continue;
-                    }
+                AutoCheckResultLog first = group.get(0);
 
-                    AutoCheckResultLog first = group.get(0);
+                String apiCode = first.getApiCode().trim();
+                String sceneCode = first.getSceneCode().trim();
 
-                    String apiCode = first.getApiCode().trim();
-                    String sceneCode = first.getSceneCode().trim();
+                AutoCheckResultVO vo = new AutoCheckResultVO();
+                vo.setApiCode(apiCode);
+                vo.setSceneCode(sceneCode);
 
-                    AutoCheckResultVO vo = new AutoCheckResultVO();
-                    vo.setApiCode(apiCode);
-                    vo.setSceneCode(sceneCode);
+                MarketingCustomerVO apiInfo = apiInfoMap.get(apiCode);
+                vo.setName(apiInfo == null ? "" : StringUtils.defaultString(apiInfo.getName()));
 
-                    MarketingCustomerVO apiInfo = apiInfoMap.get(apiCode);
-                    vo.setName(apiInfo == null ? "" : StringUtils.defaultString(apiInfo.getName()));
+                AutoCheckSceneVO sceneInfo = sceneMap.get(sceneCode);
+                vo.setSceneName(sceneInfo == null ? "" : StringUtils.defaultString(sceneInfo.getSceneName()));
 
-                    AutoCheckSceneVO sceneInfo = sceneMap.get(sceneCode);
-                    vo.setSceneName(sceneInfo == null ? "" : StringUtils.defaultString(sceneInfo.getSceneName()));
+                // 外层 time：取明细里最晚时间
+                String oldestTime = null;
+                // 外层 compareResult：只要任一条不一致，则不一致；全部一致才一致
+                boolean allSame = true;
 
-                    // 外层 time：取明细里最晚时间
-                    String oldestTime = null;
-                    // 外层 compareResult：只要任一条不一致，则不一致；全部一致才一致
-                    boolean allSame = true;
+                List<AutoCheckResultVO.CompareResultDetail> detailList = new ArrayList<>();
+                for (AutoCheckResultLog row : group) {
+                    AutoCheckResultVO.CompareResultDetail detail = new AutoCheckResultVO.CompareResultDetail();
+                    String tableName = StringUtils.defaultString(row.getTableName()).trim();
+                    detail.setTableName(tableName);
+                    detail.setTableDesc(StringUtils.defaultString(tableDescMap.get(tableName)));
+                    detail.setLastDayData(StringUtils.defaultString(row.getLastData()));
+                    detail.setThisData(StringUtils.defaultString(row.getTodayData()));
+                    detail.setCompareResult(StringUtils.defaultString(row.getResult()));
 
-                    List<AutoCheckResultVO.CompareResultDetail> detailList = new ArrayList<>();
-                    for (AutoCheckResultLog row : group) {
-                        AutoCheckResultVO.CompareResultDetail detail = new AutoCheckResultVO.CompareResultDetail();
-                        String tableName = StringUtils.defaultString(row.getTableName()).trim();
-                        detail.setTableName(tableName);
-                        detail.setTableDesc(StringUtils.defaultString(tableDescMap.get(tableName)));
-                        detail.setLastDayData(StringUtils.defaultString(row.getLastData()));
-                        detail.setThisData(StringUtils.defaultString(row.getTodayData()));
-                        detail.setCompareResult(StringUtils.defaultString(row.getResult()));
+                    String time = row.getCompareTime().trim();
+                    detail.setTime(time);
 
-                        String time = StringUtils.isBlank(row.getCompareTime()) ? "" : row.getCompareTime().trim();
-                        detail.setTime(time);
-
-                        // earliestTime（compare_time 通常为 yyyy-MM-dd HH:mm:ss，字典序=时间序）
-                        if (StringUtils.isNotBlank(time)) {
-                            if (oldestTime == null || time.compareTo(oldestTime) > 0) {
-                                oldestTime = time;
-                            }
+                    // earliestTime（compare_time 通常为 yyyy-MM-dd HH:mm:ss，字典序=时间序）
+                    if (StringUtils.isNotBlank(time)) {
+                        if (oldestTime == null || time.compareTo(oldestTime) > 0) {
+                            oldestTime = time;
                         }
-                        // 聚合 compareResult：非“一致”都视为不一致（兼容后续新增结果值）
-                        if (!COMPARE_RESULT_SAME.equals(detail.getCompareResult())) {
-                            allSame = false;
-                        }
-                        detailList.add(detail);
                     }
-
-                    vo.setTime(StringUtils.defaultString(oldestTime));
-                    vo.setCompareResult(allSame ? COMPARE_RESULT_SAME : COMPARE_RESULT_DIFFERENT);
-                    vo.setCompareResultDetailList(detailList);
-
-                    vo.setLastDayData(detailList.get(0).getLastDayData());
-                    vo.setThisData(detailList.get(0).getThisData());
-
-                    result.add(vo);
+                    // 聚合 compareResult：非“一致”都视为不一致（兼容后续新增结果值）
+                    if (!COMPARE_RESULT_SAME.equals(detail.getCompareResult())) {
+                        allSame = false;
+                    }
+                    detailList.add(detail);
                 }
+
+                vo.setTime(StringUtils.defaultString(oldestTime));
+                vo.setCompareResult(allSame ? COMPARE_RESULT_SAME : COMPARE_RESULT_DIFFERENT);
+                vo.setCompareResultDetailList(detailList);
+
+                vo.setLastDayData(detailList.get(0).getLastDayData());
+                vo.setThisData(detailList.get(0).getThisData());
+
+                result.add(vo);
             }
         }
 
@@ -536,6 +532,37 @@ public class AutoCheckServiceImpl implements AutoCheckService {
         ));
 
         return result;
+    }
+
+    private Map<String, String> getTableDescMap(List<AutoCheckResultLog> resultList) {
+        Map<String, String> tableDescMap = new HashMap<>();
+        if (CollUtil.isEmpty(resultList)) {
+            return tableDescMap;
+        }
+        // 表字典：tableName -> tableDesc（用于明细展示）
+        List<String> tableNameList = resultList.stream()
+                .filter(Objects::nonNull)
+                .map(AutoCheckResultLog::getTableName)
+                .filter(StringUtils::isNotBlank)
+                .map(String::trim)
+                .distinct()
+                .collect(Collectors.toList());
+        if (CollUtil.isNotEmpty(tableNameList)) {
+            AutoCheckTableDictExample example = new AutoCheckTableDictExample();
+            example.createCriteria()
+                    .andIsDeletedEqualTo((byte) 0)
+                    .andTableNameIn(tableNameList);
+            List<AutoCheckTableDict> tableDictList = autoCheckTableDictMapper.selectByExample(example);
+            if (CollUtil.isNotEmpty(tableDictList)) {
+                tableDescMap = tableDictList.stream()
+                        .collect(Collectors.toMap(
+                                d -> d.getTableName().trim(),
+                                d -> StringUtils.defaultString(d.getTableDesc()),
+                                (a, b) -> a
+                        ));
+            }
+        }
+        return tableDescMap;
     }
 
     @Override
@@ -692,14 +719,6 @@ public class AutoCheckServiceImpl implements AutoCheckService {
             t = t.getCause();
         }
         return false;
-    }
-
-    private String getString(Object v) {
-        if (v == null) {
-            return null;
-        }
-        String s = String.valueOf(v);
-        return StringUtils.isBlank(s) ? null : s.trim();
     }
 
     private Long getLong(Object v) {
