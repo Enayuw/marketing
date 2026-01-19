@@ -302,4 +302,49 @@
         on cycle.cell = score.cell
     </select>
 
+    <select id="selectTimeRangeOutMagnitudeForNotTodaystiflash_" resultType="java.util.Map">
+        SELECT
+            <trim suffixOverrides=",">
+                <foreach collection="timeRangePlusList" item="timeRangePlus" index="index">
+                    COUNT(CASE
+                    WHEN cycle.release_time >= date(#{timeRangePlus.begin,jdbcType=TIMESTAMP})
+                        AND cycle.release_time <![CDATA[<]]> DATE_ADD(date(#{timeRangePlus.begin,jdbcType=TIMESTAMP}), INTERVAL 1 DAY)
+                        AND (cycle.release_time <![CDATA[<]]> #{timeRangePlus.begin,jdbcType=TIMESTAMP}
+                            OR cycle.release_time > #{timeRangePlus.end,jdbcType=TIMESTAMP})
+                    THEN cycle.cell_sha256_code_list
+                    END) as ${prefix}_#{timeRangePlus.order},
+                </foreach>
+            </trim>
+        FROM
+            b_xiecheng_colliding_data_loop_cycle cycle
+        <![CDATA[
+        WHERE cycle.release_time >= date(#{minBegin,jdbcType=TIMESTAMP})
+          AND cycle.release_time < #{maxEnd,jdbcType=TIMESTAMP}
+          AND cycle.is_delete = 0
+        ]]>
+    </select>
+
+    <select id="selectTimeRangeBetweenWithScoreMagnitudestiflash_" resultType="java.util.Map">
+        SELECT
+            <trim suffixOverrides=",">
+                <foreach collection="timeRangePlusList" item="timeRangePlus" index="index">
+                    COUNT(CASE
+                    WHEN cycle.release_time BETWEEN #{timeRangePlus.begin,jdbcType=TIMESTAMP} AND #{timeRangePlus.end,jdbcType=TIMESTAMP}
+                    THEN cycle.cell_sha256_code_list
+                    END) as ${prefix}_#{timeRangePlus.order},
+                </foreach>
+            </trim>
+        FROM
+            b_xiecheng_colliding_data_loop_cycle cycle
+        INNER JOIN b_xiecheng_colliding_${batchNumber} sc
+            on cycle.cell_sha256_code_list = sc.cell
+            and sc.is_delete = 0
+            <if test="sqlCondition != null and sqlCondition != ''">
+                and (${sqlCondition})
+            </if>
+        where
+            <![CDATA[ cycle.release_time >= #{minBegin,jdbcType=TIMESTAMP} AND cycle.release_time <= #{maxEnd,jdbcType=TIMESTAMP} ]]>
+            and cycle.is_delete = 0
+    </select>
+
 </mapper>
