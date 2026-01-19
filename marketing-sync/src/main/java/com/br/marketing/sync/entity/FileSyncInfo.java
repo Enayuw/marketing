@@ -43,22 +43,8 @@ public class FileSyncInfo {
      * 同步配置（同步阶段使用）
      */
     private SyncConfig config;
-    
-    /**
-     * 是否已同步（过滤后标记）
-     */
-    private boolean synced;
-    
-    /**
-     * 构造函数 - 遍历文件时使用
-     */
-    public FileSyncInfo(String fileName, String filePath, String createTime, long fileSize, String suffix) {
-        this.fileName = fileName;
-        this.filePath = filePath;
-        this.createTime = createTime;
-        this.fileSize = fileSize;
-        this.suffix = suffix;
-    }
+
+
     
     /**
      * 构造函数 - 完整参数
@@ -72,10 +58,5 @@ public class FileSyncInfo {
         this.suffix = suffix;
         this.config = config;
     }
-    
-    /**
-     * 无参构造
-     */
-    public FileSyncInfo() {
-    }
+
 }

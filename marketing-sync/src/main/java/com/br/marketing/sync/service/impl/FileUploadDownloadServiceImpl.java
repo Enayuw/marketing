@@ -67,6 +67,8 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
 
     private static final String DOWNLOAD_TITLE = "[文件下载任务]";
 
+    private static final String NO_SUFFIX = "no_suffix";
+
 
     @Override
     public void processUploadTask(FileSyncTask uploadTask) {
@@ -259,10 +261,6 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
 
     @Override
     public void processDownloadTask(List<SyncConfig> loanSyncConfigs) {
-        if (CollectionUtils.isEmpty(loanSyncConfigs)) {
-            log.warn(DOWNLOAD_TITLE + "配置列表为空，跳过处理");
-            return;
-        }
         log.warn(DOWNLOAD_TITLE + "开始处理，配置数量：{}", loanSyncConfigs.size());
         // 分离不同类型的配置
         List<SyncConfig> shuHeConfigs = new ArrayList<>();
@@ -282,7 +280,7 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                     break;
             }
         }
-        // 处理SHUHE_AUTO_MATCH_DATA类型
+        // 处理数禾类型
         processShuHeConfigs(shuHeConfigs);
         //使用线程池并行遍历
         TpDynamicExecutor threadPool = TpDynamicExecutorFactory
@@ -304,7 +302,7 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
         // 关闭线程池并等待所有任务完成
         threadPool.shutdownAndAwaitTermination();
         if (CollectionUtils.isEmpty(allFilesToSync)) {
-            log.warn(DOWNLOAD_TITLE + "无待同步文件，任务结束");
+            log.warn(DOWNLOAD_TITLE + "没有待同步文件，任务结束");
             return;
         }
         // 按配置ID分组，同一配置的文件共用连接
@@ -348,9 +346,6 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                                 config.getApiCode(), fileToSync.getFileName(), e.getMessage(), e);
                     }
                 }
-
-                log.warn(DOWNLOAD_TITLE + "配置同步完成：apiCode={}", config.getApiCode());
-
             } catch (Exception e) {
                 log.error(DOWNLOAD_TITLE + "处理配置异常，apiCode: {}, error: {}",
                         config.getApiCode(), e.getMessage(), e);
@@ -362,7 +357,7 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
     }
 
     /**
-     * 处理SHUHE_AUTO_MATCH_DATA类型配置（不需要遍历文件）
+     * 处理SHUHE_AUTO_MATCH_DATA类型配置
      */
     private void processShuHeConfigs(List<SyncConfig> shuHeConfigs) {
 
@@ -470,6 +465,7 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
      * 处理单个配置，获取待同步的文件列表
      */
     private List<FileSyncInfo> processConfigForFileList(SyncConfig config) {
+        long startTime = System.currentTimeMillis();
         List<FileSyncInfo> result = new ArrayList<>();
         String srcPath = config.getSrcPath();
         String apiCode = config.getApiCode();
@@ -488,7 +484,6 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                 Set<String> dateSet = new TreeSet<>();
                 dateSet.add(DateHelper.getDateByMinute(-60));
                 dateSet.add(DateHelper.getDateAddYyMmDd(0));
-
                 for (String date : dateSet) {
                     SyncConfig configCopy = copyConfig(config);
                     // 替换路径中的日期
@@ -496,10 +491,8 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                     String formattedTargetPath = replaceDateInPathWithDate(config.getTargetPath(), date);
                     configCopy.setSrcPath(formattedSrcPath);
                     configCopy.setTargetPath(formattedTargetPath);
-
                     // 获取文件列表
                     List<FileSyncInfo> fileInfoList = listFilesFromServer(configCopy, client);
-
                     // 批量查询已同步记录
                     List<FileSyncInfo> filesToSync = filterUnSyncedFiles(fileInfoList, configCopy);
                     result.addAll(filesToSync);
@@ -518,18 +511,16 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                 } else {
                     // fileFilterTime不为空：过滤 >= fileFilterTime 的文件
                     filteredFiles = filterFilesByTime(fileInfoList, fileFilterTime);
-                    log.warn(DOWNLOAD_TITLE + "使用配置的过滤时间：{}", fileFilterTime);
+                    log.warn(DOWNLOAD_TITLE + "apiCode={},配置id={} 使用配置的过滤时间：{}",apiCode,config.getId(), fileFilterTime);
                 }
-
-                // 批量查询已同步记录
                 List<FileSyncInfo> filesToSync = filterUnSyncedFiles(filteredFiles, config);
                 result.addAll(filesToSync);
             }
-
-            log.warn(DOWNLOAD_TITLE + "配置处理完成，apiCode: {}, 待同步文件数：{}", apiCode, result.size());
-
+            log.warn(DOWNLOAD_TITLE + "配置处理完成，apiCode: {},配置id={} 待同步文件数：{}, 耗时：{}ms", apiCode,config.getId(), result.size(),
+                    System.currentTimeMillis() - startTime);
         } catch (Exception e) {
-            log.error(DOWNLOAD_TITLE + "配置遍历异常，apiCode: {}, error: {}", apiCode, e.getMessage(), e);
+            log.error(DOWNLOAD_TITLE + "配置遍历异常，apiCode: {}, error: {}, 耗时：{}ms", apiCode, e.getMessage(),
+                    System.currentTimeMillis() - startTime, e);
         } finally {
             closeClient(client);
         }
@@ -538,7 +529,7 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
     }
 
     /**
-     * 从服务器获取文件列表（与SyncServiceImpl逻辑保持一致，但不查询是否同步）
+     * 从服务器获取文件列表
      */
     private List<FileSyncInfo> listFilesFromServer(SyncConfig config, BaseFtpClient client) {
         List<FileSyncInfo> fileInfoList = new ArrayList<>();
@@ -549,12 +540,12 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
         try {
             if (Constants.LOAN_WARNING_SFTP.equals(config.getSrcType())) {
                 SftpClient sftpClient = (SftpClient) client;
-                if ("no_suffix".equals(suffixStr)) {
+                if (NO_SUFFIX.equals(suffixStr)) {
                     // no_suffix类型需要递归遍历所有子目录
                     log.warn(DOWNLOAD_TITLE + "no_suffix类型，开始递归遍历SFTP目录: {}", srcPath);
                     listSftpFilesRecursively(fileInfoList, config, sftpClient, srcPath);
                 } else {
-                    // 其他类型只遍历当前目录（与SyncServiceImpl.sftpFileList保持一致）
+                    // 其他类型只遍历当前目录
                     Map<String, SftpATTRS> map = sftpClient.listFiles(srcPath);
                     log.warn(DOWNLOAD_TITLE + "SFTP同步路径:{},该路径下文件有:{}个", srcPath, map.keySet().size());
                     for (Map.Entry<String, SftpATTRS> entry : map.entrySet()) {
@@ -577,12 +568,12 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                 }
             } else if (Constants.LOAN_WARNING_FTP.equals(config.getSrcType())) {
                 FtpClient ftpClient = (FtpClient) client;
-                if ("no_suffix".equals(suffixStr)) {
+                if (NO_SUFFIX.equals(suffixStr)) {
                     // no_suffix类型需要递归遍历所有子目录
                     log.warn(DOWNLOAD_TITLE + "no_suffix类型，开始递归遍历FTP目录: {}", srcPath);
                     listFtpFilesRecursively(fileInfoList, config, ftpClient, srcPath);
                 } else {
-                    // 其他类型只遍历当前目录（与SyncServiceImpl.ftpFileList保持一致）
+                    // 其他类型只遍历当前目录
                     FTPFile[] ftpFiles = ftpClient.listFiles(srcPath);
                     if (ftpFiles == null || ftpFiles.length == 0) {
                         log.warn(DOWNLOAD_TITLE + "FTP目录为空或不存在，跳过遍历：{}", srcPath);
@@ -654,7 +645,7 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                         log.warn(DOWNLOAD_TITLE + "文件上传时间距离当前时间小于1分钟，暂时不处理{},{}", fileName, createTime);
                         continue;
                     }
-                    fileInfoList.add(new FileSyncInfo(fileName, currentPath, createTime, attrs.getSize(), "no_suffix",config));
+                    fileInfoList.add(new FileSyncInfo(fileName, currentPath, createTime, attrs.getSize(), NO_SUFFIX,config));
                 }
             }
         } catch (Exception e) {
@@ -705,7 +696,7 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                         log.warn(DOWNLOAD_TITLE + "文件上传时间距离当前时间小于1分钟，暂时不处理{},{}", fileName, createTime);
                         continue;
                     }
-                    fileInfoList.add(new FileSyncInfo(fileName, currentPath, createTime, file.getSize(), "no_suffix",config));
+                    fileInfoList.add(new FileSyncInfo(fileName, currentPath, createTime, file.getSize(), NO_SUFFIX,config));
                 }
             }
         } catch (Exception e) {
@@ -753,16 +744,13 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
         if (CollectionUtils.isEmpty(fileInfoList)) {
             return new ArrayList<>();
         }
-
         String apiCode = config.getApiCode();
         String srcPath = config.getSrcSftpHost() + ":" + config.getSrcPath();
-
         // 提取所有文件名
         List<String> fileNames = fileInfoList.stream()
                 .map(FileSyncInfo::getFileName)
                 .collect(Collectors.toList());
-
-        // 批量查询已同步的文件名（使用 Lists.partition 每2000个一批）
+        // 批量查询已同步的文件名
         Set<String> syncedFileNames = new HashSet<>();
         int batchSize = 2000;
         List<List<String>> batches = Lists.partition(fileNames, batchSize);
@@ -833,7 +821,7 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
 
         String suffixStr = config.getSuffix();
         // no_suffix类型不需要过滤
-        if ("no_suffix".equals(suffixStr)) {
+        if (NO_SUFFIX.equals(suffixStr)) {
             return fileInfoList;
         }
         // 收集success文件列表
@@ -861,8 +849,6 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
             }
             result.add(fileInfo);
         }
-
-        log.warn(DOWNLOAD_TITLE + "后缀过滤完成，原始文件数：{}，过滤后文件数：{}", fileInfoList.size(), result.size());
         return result;
     }
 
@@ -893,12 +879,6 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
         if (config.getCheckSuccess() == null || config.getCheckSuccess() != 1) {
             return true;
         }
-
-        if (successList == null || successList.isEmpty()) {
-            log.warn(DOWNLOAD_TITLE + "需要校验success但successList为空，跳过文件：{}", fileName);
-            return false;
-        }
-
         String successFileName = fileName + ".success";
         if (!successList.contains(successFileName)) {
             log.warn(DOWNLOAD_TITLE + "success文件不存在，跳过：successFileName:{}", successFileName);
@@ -920,7 +900,7 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
 
         try {
             // no_suffix类型需要特殊处理路径
-            if ("no_suffix".equals(suffixStr)) {
+            if (NO_SUFFIX.equals(suffixStr)) {
                 String filePath = fileToSync.getFilePath();
 
                 SyncConfig syncConfig = copyConfig(config);

@@ -9,6 +9,7 @@ import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.Arrays;
@@ -40,7 +41,10 @@ public class FileDownloadTaskJob extends AbstractSimpleElasticJob {
         //查询要下载的配置
         List<SyncConfig> loanSyncConfigs = loanSyncConfigMapper.queryConfigByTypeAndTargetType("1"
                 , Lists.newArrayList());
-
+        if (CollectionUtils.isEmpty(loanSyncConfigs)) {
+            log.warn(TITLE + "配置列表为空，不处理");
+            return;
+        }
         fileUploadDownloadService.processDownloadTask(loanSyncConfigs);
         log.warn(TITLE + "任务调度结束，耗时：{}ms", System.currentTimeMillis() - start);
 
