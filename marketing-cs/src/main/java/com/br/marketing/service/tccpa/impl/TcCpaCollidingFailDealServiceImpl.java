@@ -117,8 +117,7 @@ public class TcCpaCollidingFailDealServiceImpl implements TcCpaCollidingFailDeal
             while ((line = reader.readLine()) != null) {
                 lines.add(line);
                 if (lines.size() == marketingCommonConfig.getTcyrCpaCollidingFailDealConfig().getInteger("lineReadSize")) {
-                    if (marketingCommonConfig.getTcyrCpaCollidingFailDealConfig().containsKey("jobSwitch")
-                            && !marketingCommonConfig.getTcyrCpaCollidingFailDealConfig().getBoolean("jobSwitch")) {
+                    if (marketingCommonConfig.getTcyrCpaCollidingFailDealConfig().getBoolean("jobStopSwitch")) {
                         lines.clear();
                         break;
                     }
