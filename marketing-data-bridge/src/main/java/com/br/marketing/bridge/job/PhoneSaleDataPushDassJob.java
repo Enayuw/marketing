@@ -1,5 +1,6 @@
 package com.br.marketing.bridge.job;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.LocalFileExample;
@@ -49,7 +50,14 @@ public class PhoneSaleDataPushDassJob extends AbstractSimpleElasticJob {
         }
 
         HashMap<String, List<String>> dxFileCustomize = marketingCommonConfig.getDxFileCustomize();
+        JSONObject daasConfig = marketingCommonConfig.getDaasConfig();
         List zhongYuanList = dxFileCustomize.get("zhongYuan");
+        
+        // 获取special文件名前缀配置集合
+        List<String> specialFileNamePrefixes = null;
+        if (daasConfig != null && daasConfig.containsKey("specialFileNamePrefixes")) {
+            specialFileNamePrefixes = daasConfig.getJSONArray("specialFileNamePrefixes").toJavaList(String.class);
+        }
 
         for (LocalFile localFile : localFiles) {
             // 更新推送状态为推送中
@@ -57,15 +65,26 @@ public class PhoneSaleDataPushDassJob extends AbstractSimpleElasticJob {
             updateFile.setId(localFile.getId());
             updateFile.setPushStatus("1");
             localFileMapper.updateByPrimaryKeySelective(updateFile);
+            
+            String fileName = localFile.getFileName();
+            
             //文件名以csosnew开头，推送财富Daas接口
-            if(localFile.getFileName().startsWith("csosnew")){
+            if(fileName.startsWith("csosnew")){
                 pushDataService.pushCsosDassData(localFile.getId());
-            } else if (localFile.getFileName().startsWith("update")) {
+            } else if (fileName.startsWith("update")) {
                 pushDataService.pushUpdateDassData(localFile.getId());
-            }else if (localFile.getFileName().startsWith("weizhong")) {
+            } else if (fileName.startsWith("weizhong")) {
                 pushDataService.pushWeiZhongDassData(localFile.getId());
-            }else {
-                pushDataService.pushDassData(localFile.getId());
+            } else {
+                // 判断文件名是否以配置的任意前缀开始，并获取对应的配置
+                String matchedPrefix = findMatchedPrefix(fileName, specialFileNamePrefixes);
+                if (matchedPrefix != null) {
+                    // 获取该前缀对应的配置
+                    JSONObject prefixConfig = daasConfig != null ? daasConfig.getJSONObject(matchedPrefix) : null;
+                    pushDataService.pushSpecialDassData(localFile.getId(), matchedPrefix, prefixConfig);
+                } else {
+                    pushDataService.pushDassData(localFile.getId());
+                }
             }
             if (zhongYuanList.contains(localFile.getApiCode())) {
                 zhongYuanService.pushOutBoundData(localFile.getId());
@@ -75,5 +94,25 @@ public class PhoneSaleDataPushDassJob extends AbstractSimpleElasticJob {
             updateFile.setPushStatus("2");
             localFileMapper.updateByPrimaryKeySelective(updateFile);
         }
+    }
+
+    /**
+     * 查找匹配的文件名前缀
+     * @param fileName 文件名
+     * @param prefixes 前缀列表
+     * @return 匹配的前缀，如果没有匹配则返回null
+     */
+    private String findMatchedPrefix(String fileName, List<String> prefixes) {
+        if (CollectionUtils.isEmpty(prefixes) || fileName == null) {
+            return null;
+        }
+        
+        for (String prefix : prefixes) {
+            if (fileName.startsWith(prefix)) {
+                return prefix;
+            }
+        }
+        
+        return null;
     }
 }
