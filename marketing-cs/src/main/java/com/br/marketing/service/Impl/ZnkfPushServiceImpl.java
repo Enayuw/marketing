@@ -642,6 +642,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             // 根据apiCode获取对应的策略
             CallRecordingInsertStrategy strategy = callRecordingInsertStrategyFactory.getStrategy(apiCode);
             if (strategy == null) {
+                log.error("apiCode={}, recordId={} 未配置大模型规则！", apiCode, message);
                 return result;
             }
             if (strategy.isProcessingRequired(callRecordLLMResultV2)) {
