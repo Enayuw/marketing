@@ -624,15 +624,17 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         try {
             // 解析MQ消息
             if (message == null) {
-                log.error("MQ消息解析失败或参数不完整，message={}", message);
-                result.setCode(ResultCode.FAIL.getValue()).setMessage("MQ消息解析失败或参数不完整");
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CALLBACK_LARGE_MODEL.getCode(),
+                        "MQ消息为空！"));
+                result.setCode(ResultCode.FAIL.getValue()).setMessage("MQ消息为空");
                 return result;
             }
 
             // 根据表名和数据id查询版本明细表数据
             CallRecordLLMResultV2 callRecordLLMResultV2 = callRecordLLMResultV2Mapper.selectByPrimaryKey(message);
             if (callRecordLLMResultV2 == null) {
-                log.error("查询版本明细表数据失败，id={}", message);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CALLBACK_LARGE_MODEL.getCode(),
+                        "查询版本明细表数据失败！id=" + message));
                 result.setCode(ResultCode.FAIL.getValue()).setMessage("查询版本明细表数据失败");
                 return result;
             }
@@ -642,7 +644,8 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             // 根据apiCode获取对应的策略
             CallRecordingInsertStrategy strategy = callRecordingInsertStrategyFactory.getStrategy(apiCode);
             if (strategy == null) {
-                log.error("apiCode={}, recordId={} 未配置大模型规则！", apiCode, message);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CALLBACK_LARGE_MODEL.getCode(),
+                        "未配置大模型规则！apiCode=" + apiCode + "，recordId" + message));
                 return result;
             }
             if (strategy.isProcessingRequired(callRecordLLMResultV2)) {
@@ -651,7 +654,8 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
 
             return result;
         } catch (Exception e) {
-            log.error("MQ消费插入CallRecording记录失败，错误信息：{}", e.getMessage(), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CALLBACK_LARGE_MODEL.getCode(),
+                    "MQ消费插入CallRecording记录失败，错误信息：" + e.getMessage()),e);
             result.setCode(ResultCode.FAIL.getValue()).setMessage("MQ消费插入CallRecording记录失败：" + e.getMessage());
             return result;
         }

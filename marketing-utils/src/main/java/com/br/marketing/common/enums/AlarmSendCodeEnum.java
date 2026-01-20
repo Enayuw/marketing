@@ -370,6 +370,8 @@ public enum AlarmSendCodeEnum {
 
     ZHONGYUAN_XIAOJIN_SERVICEERROR("8001006", "中原消金业务异常"),
 
+    CALLBACK_LARGE_MODEL("8001009", "大模型回调业务异常"),
+
     ;
 
     /**
