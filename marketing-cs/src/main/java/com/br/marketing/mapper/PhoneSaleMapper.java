@@ -39,7 +39,16 @@ public interface PhoneSaleMapper extends PhoneSaleMapperBase {
     List<DassImportDataDTO> getWeiZhongData(@Param("localId") String localId, @Param("phone") String phone, @Param("dataId") Long dataId);
 
     /**
-     * 获取特殊文件数据（按手机号分组，按创建时间升序）
+     * 获取特殊文件数据的第一条记录（create_time最早的）
      */
-    List<DassImportDataDTO> getSpecialData(@Param("localId") String localId, @Param("phone") String phone);
+    DassImportDataDTO getSpecialDataFirst(@Param("localId") String localId, 
+                                          @Param("phone") String phone);
+
+    /**
+     * 获取特殊文件数据（按手机号分组，按ID分页查询）
+     * 用于批量合并数据
+     */
+    List<DassImportDataDTO> getSpecialData(@Param("localId") String localId, 
+                                           @Param("phone") String phone, 
+                                           @Param("lastId") Long lastId);
 }

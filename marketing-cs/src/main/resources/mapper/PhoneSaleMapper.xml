@@ -99,13 +99,29 @@
         order by id asc limit 1000;
     </select>
 
+    <select id="getSpecialDataFirst" resultType="com.br.marketing.client.dassservice.input.DassImportDataDTO">
+        select
+        *
+        from b_phone_sale
+        where local_id = #{localId}
+        and status = 1 
+        and phone = #{phone}
+        order by create_time asc, id asc
+        limit 1;
+    </select>
+
     <select id="getSpecialData" resultType="com.br.marketing.client.dassservice.input.DassImportDataDTO">
         select
         *
         from b_phone_sale
         where local_id = #{localId}
-        and status =1 and phone = #{phone}
-        order by create_time asc;
+        and status = 1 
+        and phone = #{phone}
+        <if test="lastId != null">
+            and id > #{lastId}
+        </if>
+        order by id asc
+        limit 2000;
     </select>
 
 </mapper>

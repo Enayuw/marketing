@@ -2574,36 +2574,95 @@ public class PushDataServiceImpl implements PushDataService {
 
                 // 处理当前批次的手机号
                 for (String phone : phoneGroup) {
-                    // 获取该手机号对应的所有记录，按创建时间升序排序
-                    List<DassImportDataDTO> phoneSales = phoneSaleMapper.getSpecialData(String.valueOf(id), phone);
+                    // 第一步：单独查询第一条记录（create_time最早的）作为基准
+                    DassImportDataDTO firstDataDTO = phoneSaleMapper.getSpecialDataFirst(String.valueOf(id), phone);
                     
-                    if (phoneSales.isEmpty()) {
+                    if (firstDataDTO == null) {
+                        log.warn(TITLE + "该手机号没有数据，跳过: {}", phone);
                         continue;
                     }
                     
-                    // 获取最早的一条记录作为基础数据
-                    DassImportDataDTO firstDataDTO = phoneSales.get(0);
+                    // 解析第一条记录的extend作为基础数据
+                    JSONObject firstExtend = JSON.parseObject(firstDataDTO.getExtend());
+                    if (firstExtend == null) {
+                        firstExtend = new JSONObject();
+                    }
                     
-                    // 根据配置动态处理字段
+                    // 用于存储所有批次合并的数据
+                    JSONObject mergedDataMap = new JSONObject();
+                    boolean hasValidData = false;
+                    
+                    // 初始化合并数据结构
                     if (prefixConfig != null && !prefixConfig.isEmpty()) {
-                        try {
-                            // 解析第一条记录的extend字段
-                            JSONObject firstExtend = JSON.parseObject(firstDataDTO.getExtend());
-                            if (firstExtend == null) {
-                                firstExtend = new JSONObject();
-                            }
+                        for (String configKey : prefixConfig.keySet()) {
+                            mergedDataMap.put(configKey, new JSONArray());
+                        }
+                    }
+                    
+                    // 第二步：处理所有记录（包括第一条）进行合并
+                    // 先处理第一条记录的extend字段
+                    Long firstRecordId = firstDataDTO.getId();
+                    if (prefixConfig != null && !prefixConfig.isEmpty()) {
+                        for (String configKey : prefixConfig.keySet()) {
+                            List<String> fieldNames = prefixConfig.getJSONArray(configKey).toJavaList(String.class);
+                            JSONArray mergedArray = mergedDataMap.getJSONArray(configKey);
                             
+                            // 检查第一条记录的special字段
+                            String specialValue = firstExtend.getString("special");
+                            if ("1".equals(specialValue)) {
+                                JSONObject extractedData = new JSONObject();
+                                for (String fieldName : fieldNames) {
+                                    String value = firstExtend.getString(fieldName);
+                                    extractedData.put(fieldName, value == null ? "" : value);
+                                }
+                                mergedArray.add(extractedData);
+                                hasValidData = true;
+                            } else {
+                                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(),
+                                        TITLE + "第一条记录special字段值不为1，手机号: " + phone + ", special: " + specialValue + ", id: " + firstRecordId));
+                            }
+                        }
+                    }
+                    
+                    // 第三步：从头开始分批查询所有记录（ID分页）
+                    Long lastId = null;
+                    
+                    // 分批处理，每批2000条，使用ID分页
+                    while (true) {
+                        List<DassImportDataDTO> phoneSales = phoneSaleMapper.getSpecialData(
+                                String.valueOf(id), phone, lastId);
+                        
+                        if (phoneSales.isEmpty()) {
+                            break;
+                        }
+                        
+                        // 根据配置动态处理字段
+                        if (prefixConfig != null && !prefixConfig.isEmpty()) {
                             // 遍历配置中的所有字段组（如"list"、"couponsList"等）
                             for (String configKey : prefixConfig.keySet()) {
                                 List<String> fieldNames = prefixConfig.getJSONArray(configKey).toJavaList(String.class);
-                                JSONArray mergedArray = new JSONArray();
+                                JSONArray mergedArray = mergedDataMap.getJSONArray(configKey);
                                 
-                                // 遍历该手机号的所有记录，从每条记录的extend中提取配置的字段
+                                // 遍历当前批次的记录，从每条记录的extend中提取配置的字段
                                 for (DassImportDataDTO dataDTO : phoneSales) {
+                                    // 跳过第一条记录（已经处理过了）
+                                    if (dataDTO.getId().equals(firstRecordId)) {
+                                        continue;
+                                    }
+                                    
                                     String extend = dataDTO.getExtend();
                                     if (StringUtils.isNotBlank(extend)) {
                                         try {
                                             JSONObject jsonParam = JSON.parseObject(extend);
+                                            
+                                            // 检查special字段是否为1
+                                            String specialValue = jsonParam.getString("special");
+                                            if (!"1".equals(specialValue)) {
+                                                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(),
+                                                        TITLE + "special字段值不为1，跳过该记录。手机号: " + phone + ", special: " + specialValue + ", id: " + dataDTO.getId()));
+                                                continue;
+                                            }
+                                            
                                             JSONObject extractedData = new JSONObject();
                                             
                                             // 提取配置中指定的字段
@@ -2614,16 +2673,34 @@ public class PushDataServiceImpl implements PushDataService {
                                             
                                             // 将提取的字段添加到合并数组中
                                             mergedArray.add(extractedData);
+                                            hasValidData = true;
                                         } catch (Exception e) {
                                             log.warn(TITLE + "解析extend字段异常，跳过该记录: {}", extend, e);
                                         }
                                     }
                                 }
-                                
-                                // 将合并后的数组放入第一条记录的extend中，key为configKey
-                                firstExtend.put(configKey, mergedArray);
+                            }
+                        }
+                        
+                        // 更新分页参数为当前批次最后一条记录的id
+                        DassImportDataDTO lastRecord = phoneSales.get(phoneSales.size() - 1);
+                        lastId = lastRecord.getId();
+                        
+                        // 如果返回的记录数少于2000，说明已经是最后一批了
+                        if (phoneSales.size() < 2000) {
+                            break;
+                        }
+                    }
+                    
+                    // 处理完所有批次后，组装最终数据
+                    if (firstDataDTO != null && hasValidData) {
+                        try {
+                            // 将合并后的数组放入第一条记录的extend中
+                            for (String configKey : mergedDataMap.keySet()) {
+                                firstExtend.put(configKey, mergedDataMap.getJSONArray(configKey));
                                 
                                 // 移除已经合并到数组中的字段，避免重复
+                                List<String> fieldNames = prefixConfig.getJSONArray(configKey).toJavaList(String.class);
                                 for (String fieldName : fieldNames) {
                                     firstExtend.remove(fieldName);
                                 }
@@ -2638,10 +2715,9 @@ public class PushDataServiceImpl implements PushDataService {
                         } catch (Exception e) {
                             log.error(TITLE + "构建合并数据异常，跳过该手机号: {}, 配置: {}", phone, prefixConfig, e);
                         }
-                    } else {
-                        // 如果没有配置，直接添加第一条数据
-                        dataDTOS.add(firstDataDTO);
-                        processedPhoneCount++;
+                    } else if (firstDataDTO != null && !hasValidData) {
+                        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(),
+                                TITLE + "该手机号所有记录的special字段均不为1，跳过该手机号: " + phone));
                     }
 
                     // 达到批次大小时推送数据
