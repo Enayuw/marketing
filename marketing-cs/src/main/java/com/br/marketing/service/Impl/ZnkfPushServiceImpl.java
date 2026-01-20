@@ -626,7 +626,6 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             if (message == null) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CALLBACK_LARGE_MODEL.getCode(),
                         "MQ消息为空！"));
-                result.setCode(ResultCode.FAIL.getValue()).setMessage("MQ消息为空");
                 return result;
             }
 
@@ -635,7 +634,6 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             if (callRecordLLMResultV2 == null) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CALLBACK_LARGE_MODEL.getCode(),
                         "查询版本明细表数据失败！id=" + message));
-                result.setCode(ResultCode.FAIL.getValue()).setMessage("查询版本明细表数据失败");
                 return result;
             }
 
@@ -651,14 +649,11 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             if (strategy.isProcessingRequired(callRecordLLMResultV2)) {
                 strategy.process(callRecordLLMResultV2);
             }
-
-            return result;
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CALLBACK_LARGE_MODEL.getCode(),
                     "MQ消费插入CallRecording记录失败，错误信息：" + e.getMessage()),e);
-            result.setCode(ResultCode.FAIL.getValue()).setMessage("MQ消费插入CallRecording记录失败：" + e.getMessage());
-            return result;
         }
+        return result;
     }
 
 }
