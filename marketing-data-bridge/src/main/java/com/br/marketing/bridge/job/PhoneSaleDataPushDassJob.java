@@ -67,7 +67,8 @@ public class PhoneSaleDataPushDassJob extends AbstractSimpleElasticJob {
             localFileMapper.updateByPrimaryKeySelective(updateFile);
             
             String fileName = localFile.getFileName();
-            
+            // 判断文件名是否以配置的任意前缀开始，并获取对应的配置
+            String matchedPrefix = findMatchedPrefix(fileName, specialFileNamePrefixes);
             //文件名以csosnew开头，推送财富Daas接口
             if(fileName.startsWith("csosnew")){
                 pushDataService.pushCsosDassData(localFile.getId());
@@ -75,16 +76,12 @@ public class PhoneSaleDataPushDassJob extends AbstractSimpleElasticJob {
                 pushDataService.pushUpdateDassData(localFile.getId());
             } else if (fileName.startsWith("weizhong")) {
                 pushDataService.pushWeiZhongDassData(localFile.getId());
+            } else if (matchedPrefix != null) {
+                // 获取该前缀对应的配置
+                JSONObject prefixConfig = daasConfig != null ? daasConfig.getJSONObject(matchedPrefix) : null;
+                pushDataService.pushSpecialDassData(localFile.getId(), matchedPrefix, prefixConfig);
             } else {
-                // 判断文件名是否以配置的任意前缀开始，并获取对应的配置
-                String matchedPrefix = findMatchedPrefix(fileName, specialFileNamePrefixes);
-                if (matchedPrefix != null) {
-                    // 获取该前缀对应的配置
-                    JSONObject prefixConfig = daasConfig != null ? daasConfig.getJSONObject(matchedPrefix) : null;
-                    pushDataService.pushSpecialDassData(localFile.getId(), matchedPrefix, prefixConfig);
-                } else {
-                    pushDataService.pushDassData(localFile.getId());
-                }
+                pushDataService.pushDassData(localFile.getId());
             }
             if (zhongYuanList.contains(localFile.getApiCode())) {
                 zhongYuanService.pushOutBoundData(localFile.getId());
