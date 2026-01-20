@@ -10,7 +10,7 @@ import java.util.List;
 public interface MarketingDataCleanGeneralRuleConfigMapper extends MarketingDataCleanGeneralRuleConfigMapperBase{
 
 
-    List<MarketingDataCleanGeneralRuleConfig> getRuleConfigList(@Param("apiCode")String apiCode,@Param("dataType")Integer dataType,
+    List<MarketingDataCleanGeneralRuleConfig> getRuleConfigList(@Param("apiCode")String apiCode,@Param("systemType")Integer systemType,@Param("dataType")Integer dataType,
                                                                 @Param("acceptType")Integer acceptType,@Param("status")Integer status);
 
 
