@@ -5,6 +5,8 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ServiceResultEnum;
+import com.br.marketing.dto.autocheck.BatchInitAutoCheckSceneDictDto;
+import com.br.marketing.dto.autocheck.BatchInitAutoCheckTableDictDto;
 import com.br.marketing.dto.autocheck.QueryAssociationTableFieldDto;
 import com.br.marketing.dto.autocheck.SaveAutoCheckConfigDto;
 import com.br.marketing.dto.autocheck.SaveAutoCheckConfigResDto;
@@ -153,6 +155,32 @@ public class AutoCheckController {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
                     "根据关联表查询表字段接口！错误信息：" + ex.getMessage()), ex);
             return new ApiResult<List<AutoCheckAssociationTableFieldVO>>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+    @PostMapping("/dict/scene/initBatch")
+    @Operation(summary = "初始化/维护场景字典（批量）", description = "用于后端维护数据：批量初始化 b_auto_check_scene_dict（按 sceneCode 幂等写入）")
+    public ApiResult<AutoCheckDictInitResultVO> initSceneDictBatch(@Valid @RequestBody BatchInitAutoCheckSceneDictDto dto) {
+        try {
+            AutoCheckDictInitResultVO res = autoCheckService.initSceneDictBatch(dto);
+            return new ApiResult<AutoCheckDictInitResultVO>().success(res);
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
+                    "初始化/维护场景字典（批量）接口错误！错误信息：" + ex.getMessage()), ex);
+            return new ApiResult<AutoCheckDictInitResultVO>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+    @PostMapping("/dict/table/initBatch")
+    @Operation(summary = "初始化/维护关联表字典（批量）", description = "用于后端维护数据：批量初始化 b_auto_check_table_dict（按 tableName 幂等写入）")
+    public ApiResult<AutoCheckDictInitResultVO> initTableDictBatch(@Valid @RequestBody BatchInitAutoCheckTableDictDto dto) {
+        try {
+            AutoCheckDictInitResultVO res = autoCheckService.initTableDictBatch(dto);
+            return new ApiResult<AutoCheckDictInitResultVO>().success(res);
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),
+                    "初始化/维护关联表字典（批量）接口错误！错误信息：" + ex.getMessage()), ex);
+            return new ApiResult<AutoCheckDictInitResultVO>().fail(ServiceResultEnum.FAILED);
         }
     }
 }

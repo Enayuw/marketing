@@ -43,4 +43,33 @@
         </choose>
     </select>
 
+    <!-- 批量保存（仅插入） -->
+    <insert id="batchInsert">
+        INSERT INTO b_auto_check_table_dict (
+            `table_name`,
+            table_desc,
+            is_deleted,
+            create_time,
+            update_time
+        )
+        VALUES
+        <foreach collection="saveList" item="item" separator=",">
+            (
+                #{item.tableName, jdbcType=VARCHAR},
+                #{item.tableDesc, jdbcType=VARCHAR},
+                <choose>
+                    <when test="item.isDeleted != null">
+                        #{item.isDeleted, jdbcType=TINYINT}
+                    </when>
+                    <otherwise>
+                        0
+                    </otherwise>
+                </choose>
+                ,
+                NOW(),
+                NOW()
+            )
+        </foreach>
+    </insert>
+
 </mapper>

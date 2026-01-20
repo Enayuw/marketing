@@ -6,6 +6,8 @@ import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.dto.autocheck.*;
 import com.br.marketing.entity.AutoCheckConfig;
 import com.br.marketing.entity.AutoCheckResultLog;
+import com.br.marketing.entity.AutoCheckSceneDict;
+import com.br.marketing.entity.AutoCheckSceneDictExample;
 import com.br.marketing.entity.AutoCheckTableDict;
 import com.br.marketing.entity.AutoCheckTableDictExample;
 import com.br.marketing.mapper.*;
@@ -620,6 +622,218 @@ public class AutoCheckServiceImpl implements AutoCheckService {
             }
         }
         return result;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public AutoCheckDictInitResultVO initSceneDictBatch(BatchInitAutoCheckSceneDictDto dto) {
+        AutoCheckDictInitResultVO res = new AutoCheckDictInitResultVO();
+        res.setTotal(0);
+        res.setInserted(0);
+        res.setUpdated(0);
+        res.setSkipped(0);
+
+        if (dto == null || CollUtil.isEmpty(dto.getSceneList())) {
+            return res;
+        }
+
+        // 按 sceneCode 去重（保留最后一次）
+        Map<String, AutoCheckSceneDictInitDto> inputMap = new LinkedHashMap<>();
+        for (AutoCheckSceneDictInitDto item : dto.getSceneList()) {
+            if (item == null || StringUtils.isBlank(item.getSceneCode()) || StringUtils.isBlank(item.getSceneName())) {
+                continue;
+            }
+            String code = item.getSceneCode().trim();
+            String name = item.getSceneName().trim();
+            if (StringUtils.isBlank(code) || StringUtils.isBlank(name)) {
+                continue;
+            }
+            AutoCheckSceneDictInitDto normalized = new AutoCheckSceneDictInitDto();
+            normalized.setSceneCode(code);
+            normalized.setSceneName(name);
+            inputMap.put(code, normalized);
+        }
+
+        if (inputMap.isEmpty()) {
+            return res;
+        }
+
+        List<String> sceneCodes = new ArrayList<>(inputMap.keySet());
+        res.setTotal(sceneCodes.size());
+
+        // 查库（包含已删除记录），便于“恢复” is_deleted=0
+        AutoCheckSceneDictExample example = new AutoCheckSceneDictExample();
+        example.createCriteria().andSceneCodeIn(sceneCodes);
+        List<AutoCheckSceneDict> existingList = autoCheckSceneDictMapper.selectByExample(example);
+        Map<String, AutoCheckSceneDict> existingMap = existingList.stream()
+                .filter(Objects::nonNull)
+                .filter(e -> StringUtils.isNotBlank(e.getSceneCode()))
+                .collect(Collectors.toMap(
+                        e -> e.getSceneCode().trim(),
+                        e -> e,
+                        (a, b) -> a
+                ));
+
+        Date now = new Date();
+        int updated = 0;
+        int skipped = 0;
+        List<AutoCheckSceneDict> insertList = new ArrayList<>();
+
+        for (String code : sceneCodes) {
+            AutoCheckSceneDictInitDto item = inputMap.get(code);
+            if (item == null) {
+                continue;
+            }
+
+            AutoCheckSceneDict exist = existingMap.get(code);
+            if (exist == null || exist.getId() == null) {
+                AutoCheckSceneDict row = new AutoCheckSceneDict();
+                row.setSceneCode(code);
+                row.setSceneName(item.getSceneName());
+                row.setIsDeleted((byte) 0);
+                row.setCreateTime(now);
+                row.setUpdateTime(now);
+                insertList.add(row);
+                continue;
+            }
+
+            String existName = StringUtils.defaultString(exist.getSceneName()).trim();
+            boolean needUpdate = false;
+            AutoCheckSceneDict updateRow = new AutoCheckSceneDict();
+            updateRow.setId(exist.getId());
+
+            if (!Objects.equals(existName, item.getSceneName())) {
+                updateRow.setSceneName(item.getSceneName());
+                needUpdate = true;
+            }
+            if (exist.getIsDeleted() != null && exist.getIsDeleted() == 1) {
+                updateRow.setIsDeleted((byte) 0);
+                needUpdate = true;
+            }
+
+            if (needUpdate) {
+                updateRow.setUpdateTime(now);
+                autoCheckSceneDictMapper.updateByPrimaryKeySelective(updateRow);
+                updated++;
+            } else {
+                skipped++;
+            }
+        }
+
+        if (CollUtil.isNotEmpty(insertList)) {
+            autoCheckSceneDictMapper.batchInsert(insertList);
+        }
+
+        res.setInserted(insertList.size());
+        res.setUpdated(updated);
+        res.setSkipped(skipped);
+        return res;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public AutoCheckDictInitResultVO initTableDictBatch(BatchInitAutoCheckTableDictDto dto) {
+        AutoCheckDictInitResultVO res = new AutoCheckDictInitResultVO();
+        res.setTotal(0);
+        res.setInserted(0);
+        res.setUpdated(0);
+        res.setSkipped(0);
+
+        if (dto == null || CollUtil.isEmpty(dto.getTableList())) {
+            return res;
+        }
+
+        // 按 tableName 去重（保留最后一次）
+        Map<String, AutoCheckTableDictInitDto> inputMap = new LinkedHashMap<>();
+        for (AutoCheckTableDictInitDto item : dto.getTableList()) {
+            if (item == null || StringUtils.isBlank(item.getTableName()) || StringUtils.isBlank(item.getTableDesc())) {
+                continue;
+            }
+            String name = item.getTableName().trim();
+            String desc = item.getTableDesc().trim();
+            if (StringUtils.isBlank(name) || StringUtils.isBlank(desc)) {
+                continue;
+            }
+            AutoCheckTableDictInitDto normalized = new AutoCheckTableDictInitDto();
+            normalized.setTableName(name);
+            normalized.setTableDesc(desc);
+            inputMap.put(name, normalized);
+        }
+
+        if (inputMap.isEmpty()) {
+            return res;
+        }
+
+        List<String> tableNames = new ArrayList<>(inputMap.keySet());
+        res.setTotal(tableNames.size());
+
+        // 查库（包含已删除记录），便于“恢复” is_deleted=0
+        AutoCheckTableDictExample example = new AutoCheckTableDictExample();
+        example.createCriteria().andTableNameIn(tableNames);
+        List<AutoCheckTableDict> existingList = autoCheckTableDictMapper.selectByExample(example);
+        Map<String, AutoCheckTableDict> existingMap = existingList.stream()
+                .filter(Objects::nonNull)
+                .filter(e -> StringUtils.isNotBlank(e.getTableName()))
+                .collect(Collectors.toMap(
+                        e -> e.getTableName().trim(),
+                        e -> e,
+                        (a, b) -> a
+                ));
+
+        Date now = new Date();
+        int updated = 0;
+        int skipped = 0;
+        List<AutoCheckTableDict> insertList = new ArrayList<>();
+
+        for (String tableName : tableNames) {
+            AutoCheckTableDictInitDto item = inputMap.get(tableName);
+            if (item == null) {
+                continue;
+            }
+
+            AutoCheckTableDict exist = existingMap.get(tableName);
+            if (exist == null || exist.getId() == null) {
+                AutoCheckTableDict row = new AutoCheckTableDict();
+                row.setTableName(tableName);
+                row.setTableDesc(item.getTableDesc());
+                row.setIsDeleted((byte) 0);
+                row.setCreateTime(now);
+                row.setUpdateTime(now);
+                insertList.add(row);
+                continue;
+            }
+
+            String existDesc = StringUtils.defaultString(exist.getTableDesc()).trim();
+            boolean needUpdate = false;
+            AutoCheckTableDict updateRow = new AutoCheckTableDict();
+            updateRow.setId(exist.getId());
+
+            if (!Objects.equals(existDesc, item.getTableDesc())) {
+                updateRow.setTableDesc(item.getTableDesc());
+                needUpdate = true;
+            }
+            if (exist.getIsDeleted() != null && exist.getIsDeleted() == 1) {
+                updateRow.setIsDeleted((byte) 0);
+                needUpdate = true;
+            }
+
+            if (needUpdate) {
+                updateRow.setUpdateTime(now);
+                autoCheckTableDictMapper.updateByPrimaryKeySelective(updateRow);
+                updated++;
+            } else {
+                skipped++;
+            }
+        }
+
+        if (CollUtil.isNotEmpty(insertList)) {
+            autoCheckTableDictMapper.batchInsert(insertList);
+        }
+
+        res.setInserted(insertList.size());
+        res.setUpdated(updated);
+        res.setSkipped(skipped);
+        return res;
     }
 
     private String toJsonExcludeSafe(Object obj, String... excludeFields) {
