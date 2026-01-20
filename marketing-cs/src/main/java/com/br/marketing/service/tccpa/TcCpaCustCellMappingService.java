@@ -10,5 +10,4 @@ public interface TcCpaCustCellMappingService {
 
     List<Map<String, Object>> selectCellInfo(List<String> userKeyList);
 
-    List<Map<String, String>> selectCellByStrCustNum(List<String> notExistUserKeyList);
 }
