@@ -1,9 +1,11 @@
 package com.br.marketing.sync.service.impl;
 
+import com.br.common.log.AlertLog;
 import com.br.common.validator.DateUtils;
 import com.br.marketing.client.BaseFtpClient;
 import com.br.marketing.client.FtpClient;
 import com.br.marketing.client.SftpClient;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.enums.SyncConfigCustomizedTypeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
@@ -294,8 +296,9 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                         allFilesToSync.addAll(filesToSync);
                     }
                 } catch (Exception e) {
-                    log.error(DOWNLOAD_TITLE + "处理配置异常，apiCode: {}, id: {}, error: {}",
-                            config.getApiCode(), config.getId(), e.getMessage(), e);
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.FILE_DOWNLOAD_SYNC_ERROR.getCode(),
+                            DOWNLOAD_TITLE + "处理配置异常，apiCode=" + config.getApiCode() +
+                            ", id=" + config.getId() + ", error=" + e.getMessage()), e);
                 }
             });
         }
@@ -329,26 +332,24 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
 
                 // 连接校验
                 if (srcClient == null || (!diskBool && targetClient == null)) {
-                    log.error(DOWNLOAD_TITLE + "targetClient or srcClient is null, apiCode: {}", config.getApiCode());
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.FILE_DOWNLOAD_SYNC_ERROR.getCode(),
+                            DOWNLOAD_TITLE + "targetClient or srcClient is null, apiCode=" + config.getApiCode()));
                     continue;
                 }
                 if (!srcClient.isConnected() || (!diskBool && !targetClient.isConnected())) {
-                    log.error(DOWNLOAD_TITLE + "连接不可用, apiCode: {}", config.getApiCode());
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.FILE_DOWNLOAD_SYNC_ERROR.getCode(),
+                            DOWNLOAD_TITLE + "连接不可用, apiCode=" + config.getApiCode()));
                     continue;
                 }
                 log.warn(DOWNLOAD_TITLE + "开始同步配置：apiCode={},dataType={}, 文件数量：{}", config.getApiCode(), config.getDataType(), files.size());
                 // 同一配置的文件共用连接，串行同步
                 for (FileSyncInfo fileToSync : files) {
-                    try {
-                        syncSingleFile(fileToSync, srcClient, targetClient, diskBool);
-                    } catch (Exception e) {
-                        log.error(DOWNLOAD_TITLE + "同步文件异常，apiCode={},fileName: {}, error: {}",
-                                config.getApiCode(), fileToSync.getFileName(), e.getMessage(), e);
-                    }
+                    syncSingleFile(fileToSync, srcClient, targetClient, diskBool);
                 }
             } catch (Exception e) {
-                log.error(DOWNLOAD_TITLE + "处理配置异常，apiCode: {}, error: {}",
-                        config.getApiCode(), e.getMessage(), e);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.FILE_DOWNLOAD_SYNC_ERROR.getCode(),
+                        DOWNLOAD_TITLE + "处理配置异常，apiCode=" + config.getApiCode() +
+                        ", error=" + e.getMessage()), e);
             } finally {
                 closeClient(srcClient);
                 closeClient(targetClient);
@@ -371,19 +372,22 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                 targetClient = syncServiceImpl.getClient(config, false);
 
                 if (srcClient == null || targetClient == null) {
-                    log.error(DOWNLOAD_TITLE + "SHUHE连接建立失败，apiCode: {}", config.getApiCode());
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.FILE_DOWNLOAD_SYNC_ERROR.getCode(),
+                            DOWNLOAD_TITLE + "SHUHE连接建立失败，apiCode=" + config.getApiCode()));
                     continue;
                 }
                 if (!srcClient.isConnected() || !targetClient.isConnected()) {
-                    log.error(DOWNLOAD_TITLE + "SHUHE连接不可用，apiCode: {}", config.getApiCode());
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.FILE_DOWNLOAD_SYNC_ERROR.getCode(),
+                            DOWNLOAD_TITLE + "SHUHE连接不可用，apiCode=" + config.getApiCode()));
                     continue;
                 }
 
                 shuHeCustomizedSyncService.syncFile(config, srcClient, targetClient);
                 log.warn(DOWNLOAD_TITLE + "SHUHE配置同步完成：apiCode={}", config.getApiCode());
             } catch (Exception e) {
-                log.error(DOWNLOAD_TITLE + "SHUHE配置处理异常，apiCode: {}, error: {}",
-                        config.getApiCode(), e.getMessage(), e);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.FILE_DOWNLOAD_SYNC_ERROR.getCode(),
+                        DOWNLOAD_TITLE + "SHUHE配置处理异常，apiCode=" + config.getApiCode() +
+                        ", error=" + e.getMessage()), e);
             } finally {
                 closeClient(srcClient);
                 closeClient(targetClient);
@@ -474,7 +478,8 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
             // 建立SFTP/FTP连接
             client = syncServiceImpl.getClient(config, true);
             if (client == null || !client.isConnected()) {
-                log.error(DOWNLOAD_TITLE + "连接建立失败，apiCode: {}", apiCode);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.FILE_DOWNLOAD_SYNC_ERROR.getCode(),
+                        DOWNLOAD_TITLE + "连接建立失败，apiCode=" + apiCode));
                 return result;
             }
             // 判断源路径格式
@@ -511,16 +516,17 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                 } else {
                     // fileFilterTime不为空：过滤 >= fileFilterTime 的文件
                     filteredFiles = filterFilesByTime(fileInfoList, fileFilterTime);
-                    log.warn(DOWNLOAD_TITLE + "apiCode={},配置id={} 使用配置的过滤时间：{}",apiCode,config.getId(), fileFilterTime);
+                    log.warn(DOWNLOAD_TITLE + "apiCode={},配置id={} 使用配置的过滤时间：{}", apiCode, config.getId(), fileFilterTime);
                 }
                 List<FileSyncInfo> filesToSync = filterUnSyncedFiles(filteredFiles, config);
                 result.addAll(filesToSync);
             }
-            log.warn(DOWNLOAD_TITLE + "配置处理完成，apiCode: {},配置id={} 待同步文件数：{}, 耗时：{}ms", apiCode,config.getId(), result.size(),
+            log.warn(DOWNLOAD_TITLE + "配置处理完成，apiCode: {},配置id={} 待同步文件数：{}, 耗时：{}ms", apiCode, config.getId(), result.size(),
                     System.currentTimeMillis() - startTime);
         } catch (Exception e) {
-            log.error(DOWNLOAD_TITLE + "配置遍历异常，apiCode: {}, error: {}, 耗时：{}ms", apiCode, e.getMessage(),
-                    System.currentTimeMillis() - startTime, e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.FILE_DOWNLOAD_SYNC_ERROR.getCode(),
+                    DOWNLOAD_TITLE + "配置遍历异常，apiCode=" + apiCode + ", error=" + e.getMessage() +
+                    ", 耗时：" + (System.currentTimeMillis() - startTime) + "ms"), e);
         } finally {
             closeClient(client);
         }
@@ -563,7 +569,7 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                             log.warn(DOWNLOAD_TITLE + "文件上传时间距离当前时间小于1分钟，暂时不处理{},{}", fileName, createTime);
                             continue;
                         }
-                        fileInfoList.add(new FileSyncInfo(fileName, srcPath, createTime, attrs.getSize(), null,config));
+                        fileInfoList.add(new FileSyncInfo(fileName, srcPath, createTime, attrs.getSize(), null, config));
                     }
                 }
             } else if (Constants.LOAN_WARNING_FTP.equals(config.getSrcType())) {
@@ -596,12 +602,13 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                             log.warn(DOWNLOAD_TITLE + "文件上传时间距离当前时间小于1分钟，暂时不处理{},{}", fileName, createTime);
                             continue;
                         }
-                        fileInfoList.add(new FileSyncInfo(fileName, srcPath, createTime, file.getSize(), null,config));
+                        fileInfoList.add(new FileSyncInfo(fileName, srcPath, createTime, file.getSize(), null, config));
                     }
                 }
             }
         } catch (Exception e) {
-            log.error(DOWNLOAD_TITLE + "apiCode={} 获取文件列表异常，srcPath: {}, error: {}", apiCode, srcPath, e.getMessage(), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.FILE_DOWNLOAD_SYNC_ERROR.getCode(),
+                    DOWNLOAD_TITLE + "apiCode=" + apiCode + " 获取文件列表异常，srcPath=" + srcPath + ", error=" + e.getMessage()), e);
         }
 
         // 根据配置后缀过滤文件，并校验success
@@ -645,11 +652,12 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                         log.warn(DOWNLOAD_TITLE + "文件上传时间距离当前时间小于1分钟，暂时不处理{},{}", fileName, createTime);
                         continue;
                     }
-                    fileInfoList.add(new FileSyncInfo(fileName, currentPath, createTime, attrs.getSize(), NO_SUFFIX,config));
+                    fileInfoList.add(new FileSyncInfo(fileName, currentPath, createTime, attrs.getSize(), NO_SUFFIX, config));
                 }
             }
         } catch (Exception e) {
-            log.error(DOWNLOAD_TITLE + "递归遍历SFTP目录出错，路径：{}", currentPath, e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.FILE_DOWNLOAD_SYNC_ERROR.getCode(),
+                    DOWNLOAD_TITLE + "递归遍历SFTP目录出错，路径=" + currentPath), e);
         }
     }
 
@@ -696,16 +704,17 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                         log.warn(DOWNLOAD_TITLE + "文件上传时间距离当前时间小于1分钟，暂时不处理{},{}", fileName, createTime);
                         continue;
                     }
-                    fileInfoList.add(new FileSyncInfo(fileName, currentPath, createTime, file.getSize(), NO_SUFFIX,config));
+                    fileInfoList.add(new FileSyncInfo(fileName, currentPath, createTime, file.getSize(), NO_SUFFIX, config));
                 }
             }
         } catch (Exception e) {
-            log.error(DOWNLOAD_TITLE + "递归遍历FTP目录出错，路径：{}", currentPath, e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.FILE_DOWNLOAD_SYNC_ERROR.getCode(),
+                    DOWNLOAD_TITLE + "递归遍历FTP目录出错，路径=" + currentPath), e);
         }
     }
 
     /**
-     * 校验排除日期（与SyncServiceImpl保持一致）
+     * 校验排除日期
      */
     private boolean vaildExclusionTime(String createFileTime, SyncConfig config) {
         if (StringUtils.isEmpty(config.getExclusionTime())) {
@@ -764,8 +773,9 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                             .collect(Collectors.toSet()));
                 }
             } catch (Exception e) {
-                log.error(DOWNLOAD_TITLE + "批量查询同步记录异常，apiCode: {}, batchSize: {}, error: {}", 
-                        apiCode, batch.size(), e.getMessage(), e);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.FILE_DOWNLOAD_SYNC_ERROR.getCode(),
+                        DOWNLOAD_TITLE + "批量查询同步记录异常，apiCode=" + apiCode +
+                        ", batchSize=" + batch.size() + ", error=" + e.getMessage()), e);
             }
         }
 
@@ -806,7 +816,8 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
             try {
                 client.disconnect();
             } catch (Exception e) {
-                log.error(DOWNLOAD_TITLE + "关闭连接异常，error: {}", e.getMessage(), e);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.FILE_DOWNLOAD_SYNC_ERROR.getCode(),
+                        DOWNLOAD_TITLE + "关闭连接异常，error=" + e.getMessage()), e);
             }
         }
     }
@@ -934,13 +945,16 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                 // 复制到目标SFTP
                 syncServiceImpl.copyFile(config, fileName, srcClient, targetClient);
                 //上传success
-                String successFile = fileName + ".success";
-                syncServiceImpl.copyFile(config, successFile, srcClient, targetClient);
+                if (suffixStr.contains(".success")) {
+                    String successFile = fileName + ".success";
+                    syncServiceImpl.copyFile(config, successFile, srcClient, targetClient);
+                }
             }
 
             log.warn(DOWNLOAD_TITLE + "apiCode={},文件同步完成，fileName: {}", apiCode, fileName);
         } catch (Exception e) {
-            log.error(DOWNLOAD_TITLE + "apiCode={},文件同步失败，fileName: {}, error: {}", apiCode, fileName, e.getMessage(), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.FILE_DOWNLOAD_SYNC_ERROR.getCode(),
+                    DOWNLOAD_TITLE + "apiCode=" + apiCode + ",文件同步失败，fileName=" + fileName + ", error=" + e.getMessage()), e);
         }
     }
 
@@ -966,8 +980,8 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                 return originalTargetPath;
             }
         } catch (Exception e) {
-            log.error(DOWNLOAD_TITLE + "计算目标路径失败. originalSrcPath: {}, currentFilePath: {}",
-                    originalSrcPath, currentFilePath, e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.FILE_DOWNLOAD_SYNC_ERROR.getCode(),
+                    DOWNLOAD_TITLE + "计算目标路径失败. originalSrcPath=" + originalSrcPath + ", currentFilePath=" + currentFilePath), e);
             return originalTargetPath;
         }
     }
