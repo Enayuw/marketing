@@ -35,6 +35,7 @@
         <simpleclient.version>0.9.0</simpleclient.version>
         <br-encrypt.version>1.0.0</br-encrypt.version>
         <netty.version>4.1.124.Final</netty.version>
+        <aviator.version>5.3.1</aviator.version>
     </properties>
     <dependencies>
         <dependency>
@@ -444,6 +445,11 @@
                 <groupId>io.netty</groupId>
                 <artifactId>netty-handler-proxy</artifactId>
                 <version>${netty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.googlecode.aviator</groupId>
+                <artifactId>aviator</artifactId>
+                <version>${aviator.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
