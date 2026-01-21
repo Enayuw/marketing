@@ -2607,20 +2607,14 @@ public class PushDataServiceImpl implements PushDataService {
                             List<String> fieldNames = prefixConfig.getJSONArray(configKey).toJavaList(String.class);
                             JSONArray mergedArray = mergedDataMap.getJSONArray(configKey);
                             
-                            // 检查第一条记录的special字段
-                            String specialValue = firstExtend.getString("special");
-                            if ("1".equals(specialValue)) {
-                                JSONObject extractedData = new JSONObject();
-                                for (String fieldName : fieldNames) {
-                                    String value = firstExtend.getString(fieldName);
-                                    extractedData.put(fieldName, value == null ? "" : value);
-                                }
-                                mergedArray.add(extractedData);
-                                hasValidData = true;
-                            } else {
-                                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(),
-                                        TITLE + "第一条记录special字段值不为1，手机号: " + phone + ", special: " + specialValue + ", id: " + firstRecordId));
+                            // 提取第一条记录的字段
+                            JSONObject extractedData = new JSONObject();
+                            for (String fieldName : fieldNames) {
+                                String value = firstExtend.getString(fieldName);
+                                extractedData.put(fieldName, value == null ? "" : value);
                             }
+                            mergedArray.add(extractedData);
+                            hasValidData = true;
                         }
                     }
                     
@@ -2654,14 +2648,6 @@ public class PushDataServiceImpl implements PushDataService {
                                     if (StringUtils.isNotBlank(extend)) {
                                         try {
                                             JSONObject jsonParam = JSON.parseObject(extend);
-                                            
-                                            // 检查special字段是否为1
-                                            String specialValue = jsonParam.getString("special");
-                                            if (!"1".equals(specialValue)) {
-                                                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(),
-                                                        TITLE + "special字段值不为1，跳过该记录。手机号: " + phone + ", special: " + specialValue + ", id: " + dataDTO.getId()));
-                                                continue;
-                                            }
                                             
                                             JSONObject extractedData = new JSONObject();
                                             
@@ -2715,9 +2701,6 @@ public class PushDataServiceImpl implements PushDataService {
                         } catch (Exception e) {
                             log.error(TITLE + "构建合并数据异常，跳过该手机号: {}, 配置: {}", phone, prefixConfig, e);
                         }
-                    } else if (firstDataDTO != null && !hasValidData) {
-                        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(),
-                                TITLE + "该手机号所有记录的special字段均不为1，跳过该手机号: " + phone));
                     }
 
                     // 达到批次大小时推送数据
