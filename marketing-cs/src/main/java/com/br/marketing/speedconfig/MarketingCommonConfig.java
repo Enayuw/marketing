@@ -3591,4 +3591,9 @@ public class MarketingCommonConfig {
      * 滴滴V5相关配置
      */
     private JSONObject diDiV5Config;
+
+    /**
+     * job任务开关配置,key：任务名称，value：true任务暂停，false任务恢复
+     */
+    private Map<String,Boolean> marketingJobTaskSwitch;
 }

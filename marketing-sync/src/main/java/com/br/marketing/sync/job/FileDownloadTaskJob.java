@@ -2,6 +2,7 @@ package com.br.marketing.sync.job;
 
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.SyncConfig;
+import com.br.marketing.enums.sync.SyncConfigTypeEnum;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.sync.service.FileUploadDownloadService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -39,7 +40,7 @@ public class FileDownloadTaskJob extends AbstractSimpleElasticJob {
         Long start = System.currentTimeMillis();
         log.warn(TITLE + "任务调度开始");
         //查询要下载的配置
-        List<SyncConfig> loanSyncConfigs = loanSyncConfigMapper.queryConfigByTypeAndTargetType("1"
+        List<SyncConfig> loanSyncConfigs = loanSyncConfigMapper.queryConfigByTypeAndTargetType(SyncConfigTypeEnum.DOWNLOAD_SYNC_TYPE.getCode()
                 , Lists.newArrayList());
         if (CollectionUtils.isEmpty(loanSyncConfigs)) {
             log.warn(TITLE + "配置列表为空，不处理");

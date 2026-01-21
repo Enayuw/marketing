@@ -21,6 +21,7 @@ import com.br.marketing.enums.file.FileServerType;
 import com.br.marketing.mapper.FileSyncTaskMapper;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.mapper.SyncLogMapper;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.sync.entity.FileSyncInfo;
 import com.br.marketing.sync.service.FileUploadDownloadService;
 import com.br.marketing.sync.service.ShuHeCustomizedSyncService;
@@ -66,6 +67,9 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
 
     @Resource
     private ShuHeCustomizedSyncService shuHeCustomizedSyncService;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     private static final String DOWNLOAD_TITLE = "[文件下载任务]";
 
@@ -313,6 +317,7 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                 .collect(Collectors.groupingBy(f -> f.getConfig().getId()));
 
         log.warn(DOWNLOAD_TITLE + "遍历完成，待同步文件：{}，配置数：{}", allFilesToSync.size(), groupedByConfig.size());
+        outerLoop:
         for (Map.Entry<Long, List<FileSyncInfo>> entry : groupedByConfig.entrySet()) {
             List<FileSyncInfo> files = entry.getValue();
             if (CollectionUtils.isEmpty(files)) {
@@ -344,6 +349,14 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                 log.warn(DOWNLOAD_TITLE + "开始同步配置：apiCode={},dataType={}, 文件数量：{}", config.getApiCode(), config.getDataType(), files.size());
                 // 同一配置的文件共用连接，串行同步
                 for (FileSyncInfo fileToSync : files) {
+                    //job开关判断
+                    Map<String,Boolean> jobSwitch = marketingCommonConfig.getMarketingJobTaskSwitch();
+                    if(!CollectionUtils.isEmpty(jobSwitch)){
+                        if(jobSwitch.get("fileDownloadTask")){
+                            log.warn(DOWNLOAD_TITLE + "job开关关闭，停止文件下载任务");
+                            break outerLoop;
+                        }
+                    }
                     syncSingleFile(fileToSync, srcClient, targetClient, diskBool);
                 }
             } catch (Exception e) {
