@@ -325,23 +325,25 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
             }
             SyncConfig config = files.get(0).getConfig();
             boolean diskBool = Constants.LOAN_DISK.equals(config.getTargetType());
+            String targetType = config.getTargetType();
+            boolean needTargetClient = FileServerType.FTP.getServerType().equalsIgnoreCase(targetType)
+                    || FileServerType.SFTP.getServerType().equalsIgnoreCase(targetType);
 
             BaseFtpClient srcClient = null;
             BaseFtpClient targetClient = null;
 
             try {
                 srcClient = syncServiceImpl.getClient(config, true);
-                if (!diskBool) {
+                if (needTargetClient) {
                     targetClient = syncServiceImpl.getClient(config, false);
                 }
-
                 // 连接校验
-                if (srcClient == null || (!diskBool && targetClient == null)) {
+                if (srcClient == null || (needTargetClient && targetClient == null)) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.FILE_DOWNLOAD_SYNC_ERROR.getCode(),
                             DOWNLOAD_TITLE + "targetClient or srcClient is null, apiCode=" + config.getApiCode()));
                     continue;
                 }
-                if (!srcClient.isConnected() || (!diskBool && !targetClient.isConnected())) {
+                if (!srcClient.isConnected() || (needTargetClient && !targetClient.isConnected())) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.FILE_DOWNLOAD_SYNC_ERROR.getCode(),
                             DOWNLOAD_TITLE + "连接不可用, apiCode=" + config.getApiCode()));
                     continue;
