@@ -2574,13 +2574,16 @@ public class PushDataServiceImpl implements PushDataService {
 
                 // 处理当前批次的手机号
                 for (String phone : phoneGroup) {
-                    // 第一步：单独查询第一条记录（create_time最早的）作为基准
-                    DassImportDataDTO firstDataDTO = phoneSaleMapper.getSpecialDataFirst(String.valueOf(id), phone);
+                    // 一次性查询该手机号的所有记录（按create_time排序，第一条就是最早的）
+                    List<DassImportDataDTO> phoneSales = phoneSaleMapper.getSpecialDataAll(String.valueOf(id), phone);
                     
-                    if (firstDataDTO == null) {
+                    if (phoneSales.isEmpty()) {
                         log.warn(TITLE + "该手机号没有数据，跳过: {}", phone);
                         continue;
                     }
+                    
+                    // 第一条记录（create_time最早的）作为基准
+                    DassImportDataDTO firstDataDTO = phoneSales.get(0);
                     
                     // 解析第一条记录的extend作为基础数据
                     JSONObject firstExtend = JSON.parseObject(firstDataDTO.getExtend());
@@ -2588,7 +2591,7 @@ public class PushDataServiceImpl implements PushDataService {
                         firstExtend = new JSONObject();
                     }
                     
-                    // 用于存储所有批次合并的数据
+                    // 用于存储合并的数据
                     JSONObject mergedDataMap = new JSONObject();
                     boolean hasValidData = false;
                     
@@ -2599,82 +2602,36 @@ public class PushDataServiceImpl implements PushDataService {
                         }
                     }
                     
-                    // 第二步：处理所有记录（包括第一条）进行合并
-                    // 先处理第一条记录的extend字段
-                    Long firstRecordId = firstDataDTO.getId();
+                    // 遍历所有记录，合并extend字段
                     if (prefixConfig != null && !prefixConfig.isEmpty()) {
+                        // 遍历配置中的所有字段组（如"list"、"couponsList"等）
                         for (String configKey : prefixConfig.keySet()) {
                             List<String> fieldNames = prefixConfig.getJSONArray(configKey).toJavaList(String.class);
                             JSONArray mergedArray = mergedDataMap.getJSONArray(configKey);
                             
-                            // 提取第一条记录的字段
-                            JSONObject extractedData = new JSONObject();
-                            for (String fieldName : fieldNames) {
-                                String value = firstExtend.getString(fieldName);
-                                extractedData.put(fieldName, value == null ? "" : value);
-                            }
-                            mergedArray.add(extractedData);
-                            hasValidData = true;
-                        }
-                    }
-                    
-                    // 第三步：从头开始分批查询所有记录（ID分页）
-                    Long lastId = null;
-                    
-                    // 分批处理，每批2000条，使用ID分页
-                    while (true) {
-                        List<DassImportDataDTO> phoneSales = phoneSaleMapper.getSpecialData(
-                                String.valueOf(id), phone, lastId);
-                        
-                        if (phoneSales.isEmpty()) {
-                            break;
-                        }
-                        
-                        // 根据配置动态处理字段
-                        if (prefixConfig != null && !prefixConfig.isEmpty()) {
-                            // 遍历配置中的所有字段组（如"list"、"couponsList"等）
-                            for (String configKey : prefixConfig.keySet()) {
-                                List<String> fieldNames = prefixConfig.getJSONArray(configKey).toJavaList(String.class);
-                                JSONArray mergedArray = mergedDataMap.getJSONArray(configKey);
-                                
-                                // 遍历当前批次的记录，从每条记录的extend中提取配置的字段
-                                for (DassImportDataDTO dataDTO : phoneSales) {
-                                    // 跳过第一条记录（已经处理过了）
-                                    if (dataDTO.getId().equals(firstRecordId)) {
-                                        continue;
-                                    }
-                                    
-                                    String extend = dataDTO.getExtend();
-                                    if (StringUtils.isNotBlank(extend)) {
-                                        try {
-                                            JSONObject jsonParam = JSON.parseObject(extend);
-                                            
-                                            JSONObject extractedData = new JSONObject();
-                                            
-                                            // 提取配置中指定的字段
-                                            for (String fieldName : fieldNames) {
-                                                String value = jsonParam.getString(fieldName);
-                                                extractedData.put(fieldName, value == null ? "" : value);
-                                            }
-                                            
-                                            // 将提取的字段添加到合并数组中
-                                            mergedArray.add(extractedData);
-                                            hasValidData = true;
-                                        } catch (Exception e) {
-                                            log.warn(TITLE + "解析extend字段异常，跳过该记录: {}", extend, e);
+                            // 遍历所有记录，从每条记录的extend中提取配置的字段
+                            for (DassImportDataDTO dataDTO : phoneSales) {
+                                String extend = dataDTO.getExtend();
+                                if (StringUtils.isNotBlank(extend)) {
+                                    try {
+                                        JSONObject jsonParam = JSON.parseObject(extend);
+                                        
+                                        JSONObject extractedData = new JSONObject();
+                                        
+                                        // 提取配置中指定的字段
+                                        for (String fieldName : fieldNames) {
+                                            String value = jsonParam.getString(fieldName);
+                                            extractedData.put(fieldName, value == null ? "" : value);
                                         }
+                                        
+                                        // 将提取的字段添加到合并数组中
+                                        mergedArray.add(extractedData);
+                                        hasValidData = true;
+                                    } catch (Exception e) {
+                                        log.warn(TITLE + "解析extend字段异常，跳过该记录: {}", extend, e);
                                     }
                                 }
                             }
-                        }
-                        
-                        // 更新分页参数为当前批次最后一条记录的id
-                        DassImportDataDTO lastRecord = phoneSales.get(phoneSales.size() - 1);
-                        lastId = lastRecord.getId();
-                        
-                        // 如果返回的记录数少于2000，说明已经是最后一批了
-                        if (phoneSales.size() < 2000) {
-                            break;
                         }
                     }
                     

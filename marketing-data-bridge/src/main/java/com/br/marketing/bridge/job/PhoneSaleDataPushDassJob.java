@@ -52,12 +52,9 @@ public class PhoneSaleDataPushDassJob extends AbstractSimpleElasticJob {
         HashMap<String, List<String>> dxFileCustomize = marketingCommonConfig.getDxFileCustomize();
         JSONObject daasConfig = marketingCommonConfig.getDaasConfig();
         List zhongYuanList = dxFileCustomize.get("zhongYuan");
-        
+
         // 获取special文件名前缀配置集合
-        List<String> specialFileNamePrefixes = null;
-        if (daasConfig != null && daasConfig.containsKey("specialFileNamePrefixes")) {
-            specialFileNamePrefixes = daasConfig.getJSONArray("specialFileNamePrefixes").toJavaList(String.class);
-        }
+        List<String> specialFileNamePrefixes = daasConfig.getJSONArray("specialFileNamePrefixes").toJavaList(String.class);
 
         for (LocalFile localFile : localFiles) {
             // 更新推送状态为推送中
@@ -65,7 +62,7 @@ public class PhoneSaleDataPushDassJob extends AbstractSimpleElasticJob {
             updateFile.setId(localFile.getId());
             updateFile.setPushStatus("1");
             localFileMapper.updateByPrimaryKeySelective(updateFile);
-            
+
             String fileName = localFile.getFileName();
             // 判断文件名是否以配置的任意前缀开始，并获取对应的配置
             String matchedPrefix = findMatchedPrefix(fileName, specialFileNamePrefixes);
@@ -103,13 +100,13 @@ public class PhoneSaleDataPushDassJob extends AbstractSimpleElasticJob {
         if (CollectionUtils.isEmpty(prefixes) || fileName == null) {
             return null;
         }
-        
+
         for (String prefix : prefixes) {
             if (fileName.startsWith(prefix)) {
                 return prefix;
             }
         }
-        
+
         return null;
     }
 }
