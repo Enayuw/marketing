@@ -3591,4 +3591,9 @@ public class MarketingCommonConfig {
      * 滴滴V5相关配置
      */
     private JSONObject diDiV5Config;
+
+    /**
+     * 大模型回调分发控制，存在的apiCode会走下游逻辑
+     */
+    private List<String> callbackApiCodes;
 }
