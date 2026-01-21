@@ -2593,17 +2593,14 @@ public class PushDataServiceImpl implements PushDataService {
                     
                     // 用于存储合并的数据
                     JSONObject mergedDataMap = new JSONObject();
-                    boolean hasValidData = false;
-                    
-                    // 初始化合并数据结构
-                    if (prefixConfig != null && !prefixConfig.isEmpty()) {
-                        for (String configKey : prefixConfig.keySet()) {
-                            mergedDataMap.put(configKey, new JSONArray());
-                        }
-                    }
                     
                     // 遍历所有记录，合并extend字段
                     if (prefixConfig != null && !prefixConfig.isEmpty()) {
+                        // 初始化合并数据结构
+                        for (String configKey : prefixConfig.keySet()) {
+                            mergedDataMap.put(configKey, new JSONArray());
+                        }
+                        
                         // 遍历配置中的所有字段组（如"list"、"couponsList"等）
                         for (String configKey : prefixConfig.keySet()) {
                             List<String> fieldNames = prefixConfig.getJSONArray(configKey).toJavaList(String.class);
@@ -2615,7 +2612,6 @@ public class PushDataServiceImpl implements PushDataService {
                                 if (StringUtils.isNotBlank(extend)) {
                                     try {
                                         JSONObject jsonParam = JSON.parseObject(extend);
-                                        
                                         JSONObject extractedData = new JSONObject();
                                         
                                         // 提取配置中指定的字段
@@ -2626,7 +2622,6 @@ public class PushDataServiceImpl implements PushDataService {
                                         
                                         // 将提取的字段添加到合并数组中
                                         mergedArray.add(extractedData);
-                                        hasValidData = true;
                                     } catch (Exception e) {
                                         log.warn(TITLE + "解析extend字段异常，跳过该记录: {}", extend, e);
                                     }
@@ -2635,29 +2630,27 @@ public class PushDataServiceImpl implements PushDataService {
                         }
                     }
                     
-                    // 处理完所有批次后，组装最终数据
-                    if (firstDataDTO != null && hasValidData) {
-                        try {
-                            // 将合并后的数组放入第一条记录的extend中
-                            for (String configKey : mergedDataMap.keySet()) {
-                                firstExtend.put(configKey, mergedDataMap.getJSONArray(configKey));
-                                
-                                // 移除已经合并到数组中的字段，避免重复
-                                List<String> fieldNames = prefixConfig.getJSONArray(configKey).toJavaList(String.class);
-                                for (String fieldName : fieldNames) {
-                                    firstExtend.remove(fieldName);
-                                }
+                    // 处理完所有记录后，组装最终数据
+                    try {
+                        // 将合并后的数组放入第一条记录的extend中
+                        for (String configKey : mergedDataMap.keySet()) {
+                            firstExtend.put(configKey, mergedDataMap.getJSONArray(configKey));
+                            
+                            // 移除已经合并到数组中的字段，避免重复
+                            List<String> fieldNames = prefixConfig.getJSONArray(configKey).toJavaList(String.class);
+                            for (String fieldName : fieldNames) {
+                                firstExtend.remove(fieldName);
                             }
-                            
-                            // 更新第一条记录的extend字段
-                            firstDataDTO.setExtend(firstExtend.toJSONString());
-                            dataDTOS.add(firstDataDTO);
-                            // 每处理一个手机号就+1
-                            processedPhoneCount++;
-                            
-                        } catch (Exception e) {
-                            log.error(TITLE + "构建合并数据异常，跳过该手机号: {}, 配置: {}", phone, prefixConfig, e);
                         }
+                        
+                        // 更新第一条记录的extend字段
+                        firstDataDTO.setExtend(firstExtend.toJSONString());
+                        dataDTOS.add(firstDataDTO);
+                        // 每处理一个手机号就+1
+                        processedPhoneCount++;
+                        
+                    } catch (Exception e) {
+                        log.error(TITLE + "构建合并数据异常，跳过该手机号: {}, 配置: {}", phone, prefixConfig, e);
                     }
 
                     // 达到批次大小时推送数据
