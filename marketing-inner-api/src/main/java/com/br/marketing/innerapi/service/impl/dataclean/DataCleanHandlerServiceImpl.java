@@ -107,6 +107,11 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         MarketingCleanDataFileExample.Criteria criteria = cleanDataFileExample.createCriteria();
         criteria.andApiCodeEqualTo(apiCode).andCleanTypeEqualTo(fileType);
         List<MarketingCleanDataFile> cleanDataFiles = marketingCleanDataFileMapper.selectByExample(cleanDataFileExample);
+        // 清空 targetSftpPath 和 localPath 字段
+        cleanDataFiles.forEach(file -> {
+            file.setTargetSftpPath(null);
+            file.setLocalPath(null);
+        });
         return cleanDataFiles;
     }
 
