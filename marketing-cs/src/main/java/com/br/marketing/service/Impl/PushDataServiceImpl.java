@@ -2349,10 +2349,6 @@ public class PushDataServiceImpl implements PushDataService {
         // 分页处理手机号分组
         Integer processedPhoneCount = 0;
         List<DassImportDataDTO> dataDTOS = new ArrayList<>();
-        // 每次处理1000个手机号
-        final int PHONE_PAGE_SIZE = 1000;
-        // 数据批次大小
-        final int BATCH_SIZE = 1000;
         Integer phoneOffset = 0;
 
         try {
