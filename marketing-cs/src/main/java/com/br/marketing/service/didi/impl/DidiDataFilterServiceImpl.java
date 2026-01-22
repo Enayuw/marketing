@@ -127,20 +127,26 @@ public class DidiDataFilterServiceImpl implements DiDiDataFilterService {
             Set<String> cells = list.stream().map(DiDiV5CollidingData::getCell).collect(Collectors.toSet());
 
             // 1.筛选规则1
-            List<String> delayLoopCycleData = didiCallBackDataMapper.selectPushedCells(cells, apiCode);
-            delayLoopCycleData.forEach(cells::remove);
-            if (CollectionUtils.isEmpty(cells)) {
-                return Lists.newArrayList();
+            boolean preScreen1 = pushConfig.getBoolean("preScreen1");
+            if(preScreen1) {
+                List<String> delayLoopCycleData = didiCallBackDataMapper.selectPushedCells(cells, apiCode);
+                delayLoopCycleData.forEach(cells::remove);
+                if (CollectionUtils.isEmpty(cells)) {
+                    return Lists.newArrayList();
+                }
             }
 
             // 2.筛选规则2
-            List<Integer> failMsgs = pushConfig.getObject("failMsgs", List.class);
-            if (!CollectionUtils.isEmpty(failMsgs)) {
-                List<String> loopCycleData = diDiV5CollidingDataLogMapper.checkCellBatchFailMsgs(cells, failMsgs);
-                loopCycleData.forEach(cells::remove);
-            }
-            if (CollectionUtils.isEmpty(cells)) {
-                return Lists.newArrayList();
+            boolean preScreen2 = pushConfig.getBoolean("preScreen2");
+            if(preScreen2) {
+                List<Integer> failMsgs = pushConfig.getObject("failMsgs", List.class);
+                if (!CollectionUtils.isEmpty(failMsgs)) {
+                    List<String> loopCycleData = diDiV5CollidingDataLogMapper.checkCellBatchFailMsgs(cells, failMsgs);
+                    loopCycleData.forEach(cells::remove);
+                }
+                if (CollectionUtils.isEmpty(cells)) {
+                    return Lists.newArrayList();
+                }
             }
             return list.stream().filter(t -> cells.contains(t.getCell()))
                     .map(t -> {

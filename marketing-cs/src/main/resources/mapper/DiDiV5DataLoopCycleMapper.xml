@@ -2,4 +2,26 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.DiDiV5DataLoopCycleMapper">
 
+    <select id="queryCollidingDataBySharding" resultType="com.br.marketing.entity.DiDiDataLoopCycle">
+        SELECT *
+        FROM b_didi_v5_data_loop_cycle
+        WHERE push_time is null
+        AND is_delete = 0
+        AND colliding_time BETWEEN #{startTime} AND #{endTime}
+        AND mod(id, #{shardingTotalCount}) in
+        <foreach collection="shardingItems" item="sharding" open="(" separator="," close=")">
+            #{sharding}
+        </foreach>
+        ORDER BY id ASC
+        LIMIT #{limit}
+    </select>
+
+    <update id="updatePushTimeByIds">
+        update b_didi_v5_data_loop_cycle
+        set push_time = #{pushTime}
+        where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
 </mapper>

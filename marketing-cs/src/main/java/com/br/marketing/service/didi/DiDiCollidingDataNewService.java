@@ -5,6 +5,4 @@ import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 
 public interface DiDiCollidingDataNewService {
     void colliding(JobExecutionMultipleShardingContext context);
-
-    Result<Boolean> saveDiDiCollidingDataLog(String returnContent);
 }

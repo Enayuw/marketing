@@ -14,6 +14,7 @@
     <result column="create_date" property="createDate" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="package_id" property="packageId" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -74,8 +75,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, lock_type, source_type, push_time, cell, colliding_time, extend, is_delete, 
-    create_date, create_time, update_time
+    id, api_code, lock_type, source_type, push_time, cell, colliding_time, extend, is_delete,
+    create_date, create_time, update_time, package_id
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.DiDiDataLoopCycleExample" >
     select
@@ -92,7 +93,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     from b_didi_v5_data_loop_cycle
     where id = #{id,jdbcType=BIGINT}
@@ -111,14 +112,16 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_didi_v5_data_loop_cycle (api_code, lock_type, source_type, 
-      push_time, cell, colliding_time, 
-      extend, is_delete, create_date, 
-      create_time, update_time)
-    values (#{apiCode,jdbcType=VARCHAR}, #{lockType,jdbcType=INTEGER}, #{sourceType,jdbcType=VARCHAR}, 
-      #{pushTime,jdbcType=TIMESTAMP}, #{cell,jdbcType=VARCHAR}, #{collidingTime,jdbcType=TIMESTAMP}, 
-      #{extend,jdbcType=VARCHAR}, #{isDelete,jdbcType=INTEGER}, #{createDate,jdbcType=INTEGER}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+    insert into b_didi_v5_data_loop_cycle (api_code, lock_type, source_type,
+    push_time, cell, colliding_time,
+    extend, is_delete, create_date,
+    create_time, update_time, package_id
+    )
+    values (#{apiCode,jdbcType=VARCHAR}, #{lockType,jdbcType=INTEGER}, #{sourceType,jdbcType=VARCHAR},
+    #{pushTime,jdbcType=TIMESTAMP}, #{cell,jdbcType=VARCHAR}, #{collidingTime,jdbcType=TIMESTAMP},
+    #{extend,jdbcType=VARCHAR}, #{isDelete,jdbcType=INTEGER}, #{createDate,jdbcType=INTEGER},
+    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{packageId,jdbcType=VARCHAR}
+    )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.DiDiDataLoopCycle" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -159,6 +162,9 @@
       <if test="updateTime != null" >
         update_time,
       </if>
+      <if test="packageId != null" >
+        package_id,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
@@ -193,6 +199,9 @@
       </if>
       <if test="updateTime != null" >
         #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="packageId != null" >
+        #{packageId,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -241,6 +250,9 @@
       <if test="record.updateTime != null" >
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="record.packageId != null" >
+        package_id = #{record.packageId,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -249,17 +261,18 @@
   <update id="updateByExample" parameterType="map" >
     update b_didi_v5_data_loop_cycle
     set id = #{record.id,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      lock_type = #{record.lockType,jdbcType=INTEGER},
-      source_type = #{record.sourceType,jdbcType=VARCHAR},
-      push_time = #{record.pushTime,jdbcType=TIMESTAMP},
-      cell = #{record.cell,jdbcType=VARCHAR},
-      colliding_time = #{record.collidingTime,jdbcType=TIMESTAMP},
-      extend = #{record.extend,jdbcType=VARCHAR},
-      is_delete = #{record.isDelete,jdbcType=INTEGER},
-      create_date = #{record.createDate,jdbcType=INTEGER},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    lock_type = #{record.lockType,jdbcType=INTEGER},
+    source_type = #{record.sourceType,jdbcType=VARCHAR},
+    push_time = #{record.pushTime,jdbcType=TIMESTAMP},
+    cell = #{record.cell,jdbcType=VARCHAR},
+    colliding_time = #{record.collidingTime,jdbcType=TIMESTAMP},
+    extend = #{record.extend,jdbcType=VARCHAR},
+    is_delete = #{record.isDelete,jdbcType=INTEGER},
+    create_date = #{record.createDate,jdbcType=INTEGER},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    package_id = #{record.packageId,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -300,22 +313,26 @@
       <if test="updateTime != null" >
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="packageId != null" >
+        package_id = #{packageId,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.DiDiDataLoopCycle" >
     update b_didi_v5_data_loop_cycle
     set api_code = #{apiCode,jdbcType=VARCHAR},
-      lock_type = #{lockType,jdbcType=INTEGER},
-      source_type = #{sourceType,jdbcType=VARCHAR},
-      push_time = #{pushTime,jdbcType=TIMESTAMP},
-      cell = #{cell,jdbcType=VARCHAR},
-      colliding_time = #{collidingTime,jdbcType=TIMESTAMP},
-      extend = #{extend,jdbcType=VARCHAR},
-      is_delete = #{isDelete,jdbcType=INTEGER},
-      create_date = #{createDate,jdbcType=INTEGER},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+        lock_type = #{lockType,jdbcType=INTEGER},
+        source_type = #{sourceType,jdbcType=VARCHAR},
+        push_time = #{pushTime,jdbcType=TIMESTAMP},
+        cell = #{cell,jdbcType=VARCHAR},
+        colliding_time = #{collidingTime,jdbcType=TIMESTAMP},
+        extend = #{extend,jdbcType=VARCHAR},
+        is_delete = #{isDelete,jdbcType=INTEGER},
+        create_date = #{createDate,jdbcType=INTEGER},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        package_id = #{packageId,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

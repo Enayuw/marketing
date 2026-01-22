@@ -9,7 +9,7 @@ public class DiDiDataLoopCycle {
     private Long id;
 
     /**
-     * 
+     *
      */
     private String apiCode;
 
@@ -62,6 +62,11 @@ public class DiDiDataLoopCycle {
      * 修改时间
      */
     private Date updateTime;
+
+    /**
+     * 数据包id
+     */
+    private String packageId;
 
     public Long getId() {
         return id;
@@ -157,5 +162,13 @@ public class DiDiDataLoopCycle {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public String getPackageId() {
+        return packageId;
+    }
+
+    public void setPackageId(String packageId) {
+        this.packageId = packageId == null ? null : packageId.trim();
     }
 }

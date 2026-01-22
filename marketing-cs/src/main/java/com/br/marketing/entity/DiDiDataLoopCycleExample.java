@@ -864,6 +864,76 @@ public class DiDiDataLoopCycleExample {
             addCriterion("update_time not between", value1, value2, "updateTime");
             return (Criteria) this;
         }
+
+        public Criteria andPackageIdIsNull() {
+            addCriterion("package_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdIsNotNull() {
+            addCriterion("package_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdEqualTo(String value) {
+            addCriterion("package_id =", value, "packageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdNotEqualTo(String value) {
+            addCriterion("package_id <>", value, "packageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdGreaterThan(String value) {
+            addCriterion("package_id >", value, "packageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdGreaterThanOrEqualTo(String value) {
+            addCriterion("package_id >=", value, "packageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdLessThan(String value) {
+            addCriterion("package_id <", value, "packageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdLessThanOrEqualTo(String value) {
+            addCriterion("package_id <=", value, "packageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdLike(String value) {
+            addCriterion("package_id like", value, "packageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdNotLike(String value) {
+            addCriterion("package_id not like", value, "packageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdIn(List<String> values) {
+            addCriterion("package_id in", values, "packageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdNotIn(List<String> values) {
+            addCriterion("package_id not in", values, "packageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdBetween(String value1, String value2) {
+            addCriterion("package_id between", value1, value2, "packageId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageIdNotBetween(String value1, String value2) {
+            addCriterion("package_id not between", value1, value2, "packageId");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {
