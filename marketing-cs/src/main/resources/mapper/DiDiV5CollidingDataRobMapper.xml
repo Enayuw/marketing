@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.DiDiV5CollidingDataRobMapper">
+
+    <insert id="insertToRobAndUpdateFront" parameterType="java.util.List">
+        INSERT INTO b_didi_v5_colliding_data_rob (
+        package_id, api_code, cell, source_type,
+        colliding_time, push_time, extend, is_delete,
+        create_date, create_time, update_time
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.packageId}, #{item.apiCode}, #{item.cell}, #{item.sourceType},
+            #{item.collidingTime}, #{item.pushTime}, #{item.extend}, #{item.isDelete},
+            #{item.createDate}, #{item.createTime}, #{item.updateTime})
+        </foreach>
+    </insert>
+</mapper>

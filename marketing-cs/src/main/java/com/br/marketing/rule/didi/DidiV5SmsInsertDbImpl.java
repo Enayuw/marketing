@@ -17,10 +17,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 滴滴通话明细落库
@@ -46,6 +43,7 @@ public class DidiV5SmsInsertDbImpl implements AssembleData<DidiCallBackDataDTO> 
         didiCallRecord.setPushStatus(0);
         didiCallRecord.setCallbackType(2);
         didiCallRecord.setSmsSendStatus(cbo.getSmsSendStatus());
+        didiCallRecord.setPushType(Objects.equals(1, didiCallRecord.getSmsSendStatus()) ? 2: 0);
         didiCallRecord.setCreateDate(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE));
         didiCallRecord.setCreateTime(new Date());
         didiCallRecord.setUpdateTime(didiCallRecord.getCreateTime());

@@ -50,6 +50,15 @@
         </foreach>
     </update>
 
+    <update id="batchUpdatePushStatusByCell">
+        update b_didi_v5_colliding_data
+        set push_status = 1
+        where cell in
+        <foreach collection="cells" item="cell" open="(" separator="," close=")">
+            #{cell}
+        </foreach>
+    </update>
+
     <select id="queryCollidingFileIds" resultType="java.lang.Long">
         SELECT local_id
         FROM b_didi_v5_colliding_data
@@ -65,5 +74,21 @@
           AND status = 1
           AND local_id = #{fileId,jdbcType=BIGINT}
           AND colliding_time BETWEEN #{startTime} AND #{endTime}
+    </select>
+
+    <select id="selectNoDupDataByLocalIdtikv_" resultType="com.br.marketing.entity.DiDiV5CollidingData">
+        select c.*
+        from (SELECT a.*, ROW_NUMBER() OVER (PARTITION BY a.cell ORDER BY a.id) AS row_num
+        from b_didi_v5_colliding_data a
+        where a.status = 1
+        and a.api_code = #{apiCode}
+        and a.local_id = #{localId}
+        and a.push_status = 0) as c
+        where c.row_num = 1
+        <if test="minId != null and minId!=''">
+            and c.id > #{minId}
+        </if>
+        order by c.id
+        limit #{pageSize};
     </select>
 </mapper>

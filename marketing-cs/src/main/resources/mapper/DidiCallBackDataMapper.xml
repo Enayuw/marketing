@@ -5,12 +5,12 @@
     <insert id="batchAdd" parameterType="java.util.List">
         INSERT INTO `b_didi_v5_callback_data` (
         `callback_type`, `cell`, `cust_num`, `api_code`, `push_status`, `status`,
-        `create_date`, `scas`, `is_connect`, `sms_send_status`, `extend`
+        `create_date`, `scas`, `is_connect`, `sms_send_status`, `extend`, `push_type`
         ) VALUES
         <foreach collection="list" item="item" separator=",">
             (#{item.callbackType}, #{item.cell}, #{item.custNum}, #{item.apiCode},
             #{item.pushStatus}, #{item.status}, #{item.createDate}, #{item.scas},
-            #{item.isConnect}, #{item.smsSendStatus}, #{item.extend})
+            #{item.isConnect}, #{item.smsSendStatus}, #{item.extend}, #{item.pushType})
         </foreach>
     </insert>
 
@@ -21,6 +21,7 @@
           AND push_status = 0
           AND status = 0
           AND is_connect = 1
+          AND push_type = 1
           AND api_code = #{apiCode}
         ORDER BY id ASC LIMIT #{pageSize}
     </select>
@@ -33,11 +34,12 @@
           AND status = 0
           AND (is_connect = 0 or is_connect IS NULL)
           AND sms_send_status = 1
+          AND push_type = 2
           AND api_code = #{apiCode}
         ORDER BY id ASC LIMIT #{pageSize}
     </select>
 
-    <select id="queryDidiCellConstructData" parameterType="map" resultType="com.br.marketing.entity.DidiCallBackData">
+    <select id="queryDidiCellFailData" parameterType="map" resultType="com.br.marketing.entity.DidiCallBackData">
         SELECT * FROM b_didi_v5_callback_data
         WHERE id > #{lastId}
           AND create_time >= curdate()
@@ -48,16 +50,58 @@
         ORDER BY id ASC LIMIT #{pageSize}
     </select>
 
-    <select id="queryDidiSmsConstructData" parameterType="map" resultType="com.br.marketing.entity.DidiCallBackData">
+    <select id="queryDidiSmsFailData" parameterType="map" resultType="com.br.marketing.entity.DidiCallBackData">
         SELECT * FROM b_didi_v5_callback_data
         WHERE id > #{lastId}
           AND create_time >= curdate()
           AND push_status = 0
           AND status = 0
           AND sms_send_status = 0
-          AND is_connect IS NULL
           AND api_code = #{apiCode}
         ORDER BY id ASC LIMIT #{pageSize}
+    </select>
+
+    <select id="queryDidiCellConstructData" parameterType="map" resultType="com.br.marketing.entity.DidiCallBackData">
+        SELECT * FROM b_didi_v5_callback_data
+        WHERE id > #{lastId}
+          AND create_time >= curdate()
+          AND push_status = 0
+          AND status = 0
+          AND push_type = 3
+          AND api_code = #{apiCode}
+        ORDER BY id ASC LIMIT #{pageSize}
+    </select>
+
+    <select id="queryDidiSmsConstructData" parameterType="map" resultType="com.br.marketing.entity.DidiCallBackData">
+        SELECT * FROM b_didi_v5_callback_data
+        WHERE id > #{lastId}
+          AND create_time >= curdate()
+          AND push_status = 0
+          AND status = 0
+          AND push_type = 4
+          AND api_code = #{apiCode}
+        ORDER BY id ASC LIMIT #{pageSize}
+    </select>
+
+    <select id="queryConstructedData" resultType="java.lang.String">
+        SELECT distinct(cell) FROM b_didi_v5_callback_data
+        WHERE push_type &lt;= #{pushType}
+        and cell IN
+        <foreach collection="cellSet" item="cell" open="(" close=")" separator=",">
+            #{cell}
+        </foreach>
+    </select>
+
+    <select id="selectPushedCells" resultType="java.lang.String">
+        SELECT distinct(cell) FROM b_didi_v5_callback_data
+        WHERE push_status = 1
+        and push_type in (1, 2, 3, 4)
+        and cell IN
+        <foreach collection="cells" item="cell" open="(" close=")" separator=",">
+            #{cell}
+        </foreach>
+        and create_time >= curdate() - 13
+        and create_time &lt; curdate() + 1
     </select>
 
     <update id="updateStatusByIds">
