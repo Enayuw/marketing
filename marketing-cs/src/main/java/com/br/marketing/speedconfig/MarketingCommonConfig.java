@@ -3591,4 +3591,14 @@ public class MarketingCommonConfig {
      * 滴滴V5相关配置
      */
     private JSONObject diDiV5Config;
+
+    /**
+     * 推送人工配置
+     * 支持灵活的嵌套配置结构
+     * 示例：
+     * {"specialFileNamePrefixes":["A","special"]
+     * ,"A":{"list":["province","city"]}
+     * ,"special":{"couponsList":["province","city","district"]}}
+     */
+    private JSONObject daasConfig;
 }
