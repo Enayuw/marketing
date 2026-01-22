@@ -416,7 +416,8 @@ public class DataCleanServiceImpl implements DataCleanService {
             return resultMap;
         }
         //查询数据库
-        List<MarketingDataCleanGeneralRuleConfig> ruleConfigList = marketingDataCleanGeneralRuleConfigMapper.getRuleConfigList(apiCode, dataType, acceptType,status);
+        List<MarketingDataCleanGeneralRuleConfig> ruleConfigList =
+                marketingDataCleanGeneralRuleConfigMapper.getRuleConfigList(apiCode, systemType, dataType, acceptType,status);
         if (CollectionUtils.isEmpty(ruleConfigList)) {
             return null;
         }
