@@ -37,11 +37,13 @@ public class TaikangClient {
     MarketingCommonConfig marketingCommonConfig;
 
     public String process(TaikangMarketingEvent taikangMarketingEvent) {
+        log.info("taikangMarketingEvent:{}", JSON.toJSONString(taikangMarketingEvent));
         Map<String, String> taikangConfig = marketingCommonConfig.getTaikangConfig();
         try {
             enrichEventWithConfig(taikangMarketingEvent, taikangConfig);
             ChannelRequest channelRequest = buildChannelRequest(taikangMarketingEvent, taikangConfig);
             Header[] headers = buildHeaders(taikangConfig);
+            log.info("taikangMarketingEvent:{}", JSON.toJSONString(taikangMarketingEvent));
             HashMap<String, String> result = httpProxyClient.sendByCodePoolTaikang(
                     channelRequest,
                     taikangConfig.get("url"),
