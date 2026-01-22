@@ -583,13 +583,16 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
 
             // 通过独立Service插入数据，方法返回时事务已提交
             Long versionRecordId = callRecordInsertService.insertData(tableName, jsonObject);
-            List<String> callbackApiCodes = marketingCommonConfig.getCallbackApiCodes();
-            String apiCode = jsonObject.getString("apiCode");
+            Map<String, List<String>> versionApiCodes = marketingCommonConfig.getVersionApiCodes();
             // 判断version版本是不是 LLMResultV2
-            if ("LLMResultV2".equals(version) && callbackApiCodes.contains(apiCode)) {
-                rocketMqSwitch.syncSend(MarketingCallRecordConstants.TOPIC,
-                        MarketingCallRecordConstants.TAG_MARKETING_CALL_RECORD_VERSION_INSERT, versionRecordId);
-                log.warn("[通用大模型回调]发送MQ消息成功，tableName={}, dataId={}", tableName, versionRecordId);
+            if ("LLMResultV2".equals(version)) {
+                List<String> apiCodes = versionApiCodes.get("LLMResultV2");
+                String apiCode = jsonObject.getString("apiCode");
+                if(apiCodes.contains(apiCode)){
+                    rocketMqSwitch.syncSend(MarketingCallRecordConstants.TOPIC,
+                            MarketingCallRecordConstants.TAG_MARKETING_CALL_RECORD_VERSION_INSERT, versionRecordId);
+                    log.warn("[通用大模型回调]发送MQ消息成功，tableName={}, dataId={}", tableName, versionRecordId);
+                }
             }
             return "success";
         } catch (Exception ex) {

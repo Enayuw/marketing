@@ -3603,7 +3603,9 @@ public class MarketingCommonConfig {
     private JSONObject daasConfig;
 
     /**
-     * 大模型回调分发控制，存在的apiCode会走下游逻辑
+     * 大模型回调分发控制，根据版本区分：存在的apiCode会走下游逻辑
+     * key：版本
+     * value：apiCode集合
      */
-    private List<String> callbackApiCodes;
+    private Map<String,List<String>> versionApiCodes;
 }
