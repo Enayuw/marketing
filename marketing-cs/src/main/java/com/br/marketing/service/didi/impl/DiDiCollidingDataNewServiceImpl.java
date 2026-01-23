@@ -68,11 +68,6 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
 
     @Override
     public void colliding(JobExecutionMultipleShardingContext context) {
-        // 获取分片信息
-        List<Integer> shardingItems = context.getShardingItems();
-        int shardingTotalCount = context.getShardingTotalCount();
-        log.warn("滴滴短信流量数据撞库任务开始执行，总分片数：{}，当前分片：{}", shardingTotalCount, shardingItems);
-
         TpDynamicExecutor pushPool = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.DIDI_V5_COLLIDING.getName(), 50, 50);
         JSONObject collidingConfig = marketingCommonConfig.getDiDiV5Config();
         RateLimiter rateLimiter = RateLimiter.create(collidingConfig.getInteger("rateLimit"));
@@ -147,9 +142,9 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
         // 处理非周期锁定的数据
-        processRobData(leftLimit, shardingItems, mediaName, token, rateLimiter,
+        processRobData(leftLimit, mediaName, token, rateLimiter,
                 retryHttpCode, pushPool, futures, 2, packageIds);
-        processRobData(leftLimit, shardingItems, mediaName, token, rateLimiter,
+        processRobData(leftLimit, mediaName, token, rateLimiter,
                 retryHttpCode, pushPool, futures, 3, packageIds);
         updateLocalFiles(packageIds);
         pushPool.shutdownAndAwaitTermination();
@@ -171,8 +166,7 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
         }
     }
 
-    private void processRobData(int leftLimit,
-                                List<Integer> shardingItems, String mediaName, String token, RateLimiter rateLimiter,
+    private void processRobData(int leftLimit, String mediaName, String token, RateLimiter rateLimiter,
                                 List<String> retryHttpCode, TpDynamicExecutor pushPool, List<CompletableFuture<Void>> futures,
                                 int priority, Set<Long> packageIds) {
         // 处理非周期锁定的数据
@@ -224,7 +218,6 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
                 break;
             }
         }
-        log.warn("分片{}等待所有撞库任务完成，共{}个任务", shardingItems, futures.size());
         CompletableFuture.allOf(futures3.toArray(new CompletableFuture[0])).join();
     }
 
