@@ -357,7 +357,7 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
                     diDiDataLoopCycle.setLockType(2);
                     diDiDataLoopCycle.setPackageId(data.getPackageId().toString());
                     diDiDataLoopCycle.setCollidingTime(new Date(Long.parseLong(diDiV5CollidingDataLog.getNextTime())));
-                    diDiV5DataLoopCycleMapper.insert(diDiDataLoopCycle);
+                    diDiV5DataLoopCycleMapper.insertSelective(diDiDataLoopCycle);
                 }
             }
             data.setPushTime(new Date());
