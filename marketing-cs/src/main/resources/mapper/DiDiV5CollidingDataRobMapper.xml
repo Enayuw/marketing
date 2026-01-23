@@ -35,6 +35,7 @@
         WHERE push_time is null
         AND is_delete = 0
         AND create_time BETWEEN #{startTime} AND #{endTime}
+        AND colliding_time BETWEEN #{startTime} AND #{endTime}
         AND mod(id, #{shardingTotalCount}) in
         <foreach collection="shardingItems" item="sharding" open="(" separator="," close=")">
             #{sharding}
