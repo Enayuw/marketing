@@ -93,12 +93,15 @@ public class DidiDataFilterServiceImpl implements DiDiDataFilterService {
             if (CollectionUtils.isEmpty(collidingDataList)) {
                 break;
             }
+            List<Long> ids = collidingDataList.stream().map(DiDiV5CollidingData::getId).toList();
+            diDiV5CollidingDataMapper.updatePushStatusByIds(1, ids);
             minId = collidingDataList.get(collidingDataList.size() - 1).getId();
             List<List<DiDiV5CollidingData>> partitions = Lists.partition(collidingDataList, PARTATION_SIZE);
             for (List<DiDiV5CollidingData> partition : partitions) {
                 List<DiDiV5CollidingData> list = new ArrayList<>(partition);
                 pushPool.submit(() -> removeDuplicateAndInsertToRob(list, localFile, apiCode));
             }
+            diDiV5CollidingDataMapper.updatePushStatusByIds(3, ids);
         }
         pushPool.shutdownAndAwaitTermination();
     }

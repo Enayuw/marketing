@@ -18,9 +18,7 @@ import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.config.RocketMqSwitch;
-import com.br.marketing.entity.DiDiCollidingDataRob;
-import com.br.marketing.entity.DiDiDataLoopCycle;
-import com.br.marketing.entity.DiDiV5CollidingDataLog;
+import com.br.marketing.entity.*;
 import com.br.marketing.mapper.DiDiV5CollidingDataRobMapper;
 import com.br.marketing.mapper.DiDiV5DataLoopCycleMapper;
 import com.br.marketing.service.didi.DiDiCollidingDataNewService;
@@ -77,6 +75,22 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
         String mediaName = collidingConfig.getString("mediaName") != null ? collidingConfig.getString("mediaName") : "bairongC";
         String token = collidingConfig.getString("token") != null ? collidingConfig.getString("token") : "9Hqeoi36CJfdA7n4";
         int leftLimit = collidingConfig.getInteger("collidingLimit") != null ? collidingConfig.getInteger("collidingLimit") : 3000000;
+
+        DiDiDataLoopCycleExample example = new DiDiDataLoopCycleExample();
+        example.createCriteria().andApiCodeEqualTo(collidingConfig.getString("apiCode"))
+                .andPushTimeBetween(DateUtil.beginOfDay(new Date()), new Date()).andIsDeleteEqualTo(0);
+        int cycleCount = diDiV5DataLoopCycleMapper.countByExample(example);
+
+        DiDiCollidingDataRobExample robExample = new DiDiCollidingDataRobExample();
+        robExample.createCriteria().andApiCodeEqualTo(collidingConfig.getString("apiCode"))
+                .andPushTimeBetween(DateUtil.beginOfDay(new Date()), new Date()).andIsDeleteEqualTo(0);
+        int robCount = diDiV5CollidingDataRobMapper.countByExample(robExample);
+
+        if(cycleCount + robCount >= leftLimit) {
+            log.warn("滴滴短信流量数据撞库任务停止执行，已超过限制");
+            return;
+        }
+
         List<String> retryHttpCode = collidingConfig.getJSONArray("retryHttpCode").toJavaList(String.class);
 
         // 收集所有异步任务的Future，用于等待所有任务完成
@@ -324,7 +338,7 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
                     BeanUtils.copyProperties(data, diDiDataLoopCycle);
                     diDiDataLoopCycle.setSourceType("F");
                     diDiDataLoopCycle.setLockType(2);
-                    diDiDataLoopCycle.setCollidingTime(DateUtils.parse(diDiV5CollidingDataLog.getNextTime(), DateUtils.yyyyMMddHHmmss));
+                    diDiDataLoopCycle.setCollidingTime(new Date(Long.parseLong(diDiV5CollidingDataLog.getNextTime())));
                     diDiV5DataLoopCycleMapper.insert(diDiDataLoopCycle);
                 }
             }
@@ -363,7 +377,7 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
             if ("false".equalsIgnoreCase(diDiV5CollidingDataLog.getResult())) {
                 if ("1".equalsIgnoreCase(diDiV5CollidingDataLog.getFailReason())) {
                     data.setLockType(2);
-                    data.setCollidingTime(DateUtils.parse(diDiV5CollidingDataLog.getNextTime(), DateUtils.yyyyMMddHHmmss));
+                    data.setCollidingTime(new Date(Long.parseLong(diDiV5CollidingDataLog.getNextTime())));
                 }
             }
             diDiV5DataLoopCycleMapper.updateByPrimaryKey(data);
