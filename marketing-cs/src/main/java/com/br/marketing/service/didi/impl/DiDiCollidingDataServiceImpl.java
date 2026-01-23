@@ -230,9 +230,12 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
                     DiDiV5CollidingResultResponseDTO.class);
             String dataLogStr = dto.getString("diDiV5CollidingDataLog");
             DiDiV5CollidingDataLog dataLog = JSONObject.parseObject(dataLogStr, DiDiV5CollidingDataLog.class);
-            diDiV5CollidingDataLogMapper.insertSelective(dataLog);cleanAndUpload(diDiV5CollidingResultResponseDTO, dataLog);
+            diDiV5CollidingDataLogMapper.insertSelective(dataLog);
+            if(diDiV5CollidingResultResponseDTO.getData().getResult()) {
+                cleanAndUpload(diDiV5CollidingResultResponseDTO, dataLog);
+            }
         } catch (Exception ex) {
-            log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(), "数据清洗/上传失败,bodyString:" + bodyString,
+            log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(), "数清据洗/上传失败,bodyString:" + bodyString,
                     TITLE), ex);
         }
         return result;
