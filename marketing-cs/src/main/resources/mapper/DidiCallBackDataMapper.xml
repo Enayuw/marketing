@@ -84,7 +84,7 @@
     </select>
 
     <select id="queryConstructedData" resultType="java.lang.String">
-        SELECT distinct(cell) FROM b_didi_v5_callback_data
+        SELECT distinct(cust_num) FROM b_didi_v5_callback_data
         WHERE push_type &lt;= #{pushType}
         and cust_num IN
         <foreach collection="cellSet" item="cell" open="(" close=")" separator=",">
