@@ -95,10 +95,10 @@
     </select>
 
     <select id="selectPushedCells" resultType="java.lang.String">
-        SELECT distinct(cell) FROM b_didi_v5_callback_data
+        SELECT distinct(cust_num) FROM b_didi_v5_callback_data
         WHERE push_status = 1
         and push_type in (1, 2, 3, 4)
-        and cell IN
+        and cust_num IN
         <foreach collection="cells" item="cell" open="(" close=")" separator=",">
             #{cell}
         </foreach>
