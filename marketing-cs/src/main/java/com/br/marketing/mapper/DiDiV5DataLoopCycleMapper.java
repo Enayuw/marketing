@@ -5,6 +5,7 @@ import org.apache.ibatis.annotations.Param;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 public interface DiDiV5DataLoopCycleMapper extends DiDiV5DataLoopCycleMapperBase {
 
@@ -14,4 +15,7 @@ public interface DiDiV5DataLoopCycleMapper extends DiDiV5DataLoopCycleMapperBase
 
 
     void updatePushTimeByIds(@Param("pushTime") Date pushTime, @Param("ids") List<Long> ids);
+
+
+    List<String> selectUnpushedCells(@Param("cells") Set<String> cells, @Param("apiCode") String apiCode);
 }

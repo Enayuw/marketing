@@ -10,7 +10,7 @@ import com.br.marketing.entity.DiDiV5CollidingData;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.LocalFileExample;
 import com.br.marketing.mapper.*;
-import com.br.marketing.service.didi.DiDiDataFilterService;
+import com.br.marketing.service.didi.DiDiDataSyncService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class DidiDataFilterServiceImpl implements DiDiDataFilterService {
+public class DidiDataSyncServiceImpl implements DiDiDataSyncService {
 
     private final static String TITLE = "【滴滴V5-筛选数据】";
 
@@ -52,11 +52,14 @@ public class DidiDataFilterServiceImpl implements DiDiDataFilterService {
     @Resource
     private DiDiV5CollidingDataRobMapper diDiV5CollidingDataRobMapper;
 
+    @Resource
+    private DiDiV5DataLoopCycleMapper diDiV5DataLoopCycleMapper;
+
     /**
      * 滴滴V5筛选job执行方法
      */
     @Override
-    public void filter() {
+    public void sync() {
         JSONObject pushConfig = marketingCommonConfig.getDiDiV5Config();
         String apiCode = pushConfig.getString("apiCode");
         LocalFileExample example = new LocalFileExample();
@@ -85,8 +88,12 @@ public class DidiDataFilterServiceImpl implements DiDiDataFilterService {
         TpDynamicExecutor pushPool = TpDynamicExecutorFactory.getThreadPool(
                 ThreadPoolNameEnum.DIDI_V5_FILTER.getName(), 50, 50);
         Long minId = null;
-        JSONObject pushConfig = marketingCommonConfig.getDiDiV5Config();
         while (true) {
+            JSONObject pushConfig = marketingCommonConfig.getDiDiV5Config();
+            if (pushConfig.getBooleanValue("syncSwitch")) {
+                log.warn("检测到中断信号，停止同步");
+                break;
+            }
             Integer pageSize = pushConfig.getInteger("limit");
             List<DiDiV5CollidingData> collidingDataList = diDiV5CollidingDataMapper.selectNoDupDataByLocalIdtikv_(localFile.getId(),
                     apiCode, minId, pageSize);
@@ -128,6 +135,18 @@ public class DidiDataFilterServiceImpl implements DiDiDataFilterService {
         try {
             JSONObject pushConfig = marketingCommonConfig.getDiDiV5Config();
             Set<String> cells = list.stream().map(DiDiV5CollidingData::getCell).collect(Collectors.toSet());
+
+            // 1.去重规则1
+            List<String> cycleCells = diDiV5DataLoopCycleMapper.selectUnpushedCells(cells, apiCode);
+            if (!CollectionUtils.isEmpty(cycleCells)) {
+                cycleCells.forEach(cells::remove);
+            }
+
+            // 2.去重规则2
+            List<String> robCells = diDiV5CollidingDataRobMapper.selectUnpushedCells(cells, apiCode);
+            if (!CollectionUtils.isEmpty(robCells)) {
+                robCells.forEach(cells::remove);
+            }
 
             // 1.筛选规则1
             boolean preScreen1 = pushConfig.getBoolean("preScreen1");

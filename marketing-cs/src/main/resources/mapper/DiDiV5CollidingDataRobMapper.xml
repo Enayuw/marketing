@@ -43,4 +43,16 @@
             #{id}
         </foreach>
     </update>
+
+    <select id="selectUnpushedCells" resultType="java.lang.String">
+        SELECT DISTINCT cell
+        FROM b_didi_v5_colliding_data_rob
+        WHERE push_time is null
+          AND is_delete = 0
+          AND colliding_time &lt; curdate()+2
+          AND cell IN
+        <foreach collection="cells" item="cell" open="(" separator="," close=")">
+            #{cell}
+        </foreach>
+    </select>
 </mapper>
