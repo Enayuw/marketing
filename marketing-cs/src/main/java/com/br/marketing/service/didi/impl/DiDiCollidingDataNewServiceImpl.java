@@ -124,7 +124,7 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
             int actualLimit = Math.min(leftLimit, limit);
 
             List<DiDiDataLoopCycle> dataList = diDiV5DataLoopCycleMapper.queryCollidingDataBySharding(
-                    actualLimit, DateUtil.beginOfDay(new Date()), new Date(), shardingTotalCount, shardingItems);
+                    actualLimit, DateUtil.beginOfDay(new Date()), new Date());
 
             if (CollectionUtils.isEmpty(dataList)) {
                 break;
@@ -144,13 +144,12 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
                 break;
             }
         }
-        log.warn("分片{}等待所有撞库任务完成，共{}个任务", shardingItems, futures.size());
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
         // 处理非周期锁定的数据
-        processRobData(leftLimit, shardingTotalCount, shardingItems, mediaName, token, rateLimiter,
+        processRobData(leftLimit, shardingItems, mediaName, token, rateLimiter,
                 retryHttpCode, pushPool, futures, 2, packageIds);
-        processRobData(leftLimit, shardingTotalCount, shardingItems, mediaName, token, rateLimiter,
+        processRobData(leftLimit, shardingItems, mediaName, token, rateLimiter,
                 retryHttpCode, pushPool, futures, 3, packageIds);
         updateLocalFiles(packageIds);
         pushPool.shutdownAndAwaitTermination();
@@ -172,7 +171,7 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
         }
     }
 
-    private void processRobData(int leftLimit, int shardingTotalCount,
+    private void processRobData(int leftLimit,
                                 List<Integer> shardingItems, String mediaName, String token, RateLimiter rateLimiter,
                                 List<String> retryHttpCode, TpDynamicExecutor pushPool, List<CompletableFuture<Void>> futures,
                                 int priority, Set<Long> packageIds) {
@@ -200,10 +199,10 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
             List<DiDiCollidingDataRob> dataList;
             if (priority == 2) {
                 dataList = diDiV5CollidingDataRobMapper.queryCollidingDataBySharding(
-                        actualLimit, DateUtil.beginOfDay(new Date()), new Date(), shardingTotalCount, shardingItems);
+                        actualLimit, DateUtil.beginOfDay(new Date()), new Date());
             } else {
                 dataList = diDiV5CollidingDataRobMapper.queryUploadedData(
-                        actualLimit, DateUtil.beginOfDay(new Date()), new Date(), shardingTotalCount, shardingItems);
+                        actualLimit, DateUtil.beginOfDay(new Date()), new Date());
             }
 
             if (CollectionUtils.isEmpty(dataList)) {

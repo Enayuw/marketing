@@ -86,7 +86,7 @@
     <select id="queryConstructedData" resultType="java.lang.String">
         SELECT distinct(cust_num) FROM b_didi_v5_callback_data
         WHERE push_type &lt;= #{pushType}
-        and push_type != 0
+        and push_type > 0
         and create_time >= curdate()
         and cust_num IN
         <foreach collection="cellSet" item="cell" open="(" close=")" separator=",">

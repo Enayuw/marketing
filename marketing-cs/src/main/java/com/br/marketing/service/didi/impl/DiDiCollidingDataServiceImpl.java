@@ -44,6 +44,7 @@ import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -53,10 +54,9 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
 
     private final static String TITLE = "【滴滴V5-短信流量数据】";
 
-    private ConcurrentHashMap<String, String> scasMap = new ConcurrentHashMap<>();
+    private volatile List<String> scasValues = new ArrayList<>();
 
-    private AtomicReference<String> preScas = new AtomicReference<>();
-
+    private final AtomicInteger scasIndex = new AtomicInteger(0);
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -103,8 +103,8 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
         int limit = collidingConfig.getInteger("limit") != null ? collidingConfig.getInteger("limit") : 2000;
         String mediaName = collidingConfig.getString("mediaName") != null ? collidingConfig.getString("mediaName") : "bairongC";
         String token = collidingConfig.getString("token") != null ? collidingConfig.getString("token") : "9Hqeoi36CJfdA7n4";
-        boolean preScreen1 = collidingConfig.getBoolean("preScreen1") != null ? collidingConfig.getBoolean("preScreen1") : true;
-        boolean preScreen2 = collidingConfig.getBoolean("preScreen2") != null ? collidingConfig.getBoolean("preScreen2") : true;
+        boolean preScreen1 = collidingConfig.getBoolean("preScreen1") == null || collidingConfig.getBoolean("preScreen1");
+        boolean preScreen2 = collidingConfig.getBoolean("preScreen2") == null || collidingConfig.getBoolean("preScreen2");
         // 收集所有异步任务的Future，用于等待所有任务完成
         List<CompletableFuture<Void>> futures = new ArrayList<>();
         while (true) {
@@ -169,6 +169,7 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
     private void collidingData(DiDiV5CollidingData data, String mediaName, String token) {
         //单个撞库异常不影响其他撞库
         try {
+            long start = System.currentTimeMillis();
             Result<String> response = diDiV5Client.colliding(mediaName, buildRequest(data.getCell(), token));
             String resData = response.getData();
             JSONObject resJson = JSONObject.parseObject(resData);
@@ -179,6 +180,7 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
             data.setUpdateTime(new Date());
             diDiV5CollidingDataMapper.updateByPrimaryKey(data);
             pushToMq(data, httpcode, content);
+            log.warn("滴滴短信流量数据撞库任务，单线程耗时：{}ms", (System.currentTimeMillis() - start));
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(),
                     "该手机号撞库异常：" + data.getCell() + "id:" + data.getId()), e);
@@ -220,9 +222,7 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
     @Override
     public Result<Boolean> saveDiDiCollidingDataLog(String bodyString) {
         Result<Boolean> result = new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(false);
-        JSONObject collidingConfig = marketingCommonConfig.getDiDiV5Config();
-        scasMap = collidingConfig.getJSONObject("scasMap")
-                .toJavaObject(new TypeReference<ConcurrentHashMap<String, String>>() {});
+        refreshScasConfig();
         try {
             JSONObject dto = JSONObject.parseObject(bodyString);
             String responseStr = dto.getString("diDiV5CollidingResultResponseDTO");
@@ -230,31 +230,22 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
                     DiDiV5CollidingResultResponseDTO.class);
             String dataLogStr = dto.getString("diDiV5CollidingDataLog");
             DiDiV5CollidingDataLog dataLog = JSONObject.parseObject(dataLogStr, DiDiV5CollidingDataLog.class);
-            diDiV5CollidingDataLogMapper.insertSelective(dataLog);
-            if (diDiV5CollidingResultResponseDTO.getData().getResult()) {
-                return cleanAndUpload(diDiV5CollidingResultResponseDTO, dataLog);
-            } else {
-                if (Objects.equals(diDiV5CollidingResultResponseDTO.getData().getFailReason(), 1) && diDiV5CollidingResultResponseDTO.getData().getNextTime() != null) {
-                    Long retrieveFileId = collidingConfig.getLong("retrieveFileId");
-                    DiDiV5CollidingData retrieveData = new DiDiV5CollidingData();
-                    retrieveData.setApiCode(dataLog.getApiCode());
-                    retrieveData.setLocalId(retrieveFileId);
-                    retrieveData.setCell(dataLog.getCell());
-                    retrieveData.setCollidingTime(new Date(diDiV5CollidingResultResponseDTO.getData().getNextTime()));
-                    retrieveData.setPushStatus(0);
-                    retrieveData.setStatus(1);
-                    retrieveData.setCreateDate(Integer.valueOf(DateUtil.format(DateUtil.date(), "yyyyMMdd")));
-                    retrieveData.setCreateTime(new Date());
-                    retrieveData.setUpdateTime(new Date());
-                    diDiV5CollidingDataMapper.insertSelective(retrieveData);
-                }
-                return result;
-            }
+            diDiV5CollidingDataLogMapper.insertSelective(dataLog);cleanAndUpload(diDiV5CollidingResultResponseDTO, dataLog);
         } catch (Exception ex) {
             log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(), "数据清洗/上传失败,bodyString:" + bodyString,
                     TITLE), ex);
         }
         return result;
+    }
+
+    private void refreshScasConfig() {
+        JSONObject collidingConfig = marketingCommonConfig.getDiDiV5Config();
+        ConcurrentHashMap<String, String> newScasMap = collidingConfig.getJSONObject("scasMap")
+                .toJavaObject(new TypeReference<ConcurrentHashMap<String, String>>() {});
+        List<String> newValues = new ArrayList<>(newScasMap.values());
+        if (!newValues.isEmpty() && !newValues.equals(scasValues)) {
+            this.scasValues = newValues;
+        }
     }
 
     private Result<Boolean> cleanAndUpload(DiDiV5CollidingResultResponseDTO responseDTO, DiDiV5CollidingDataLog dataLog) throws NoSuchFieldException {
@@ -293,19 +284,9 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
     }
 
     private String getCurrentScas() {
-        String currentScas;
-        String expectedScas;
-        String newScas;
-        do {
-            expectedScas = preScas.get();
-            if (StringUtils.isEmpty(expectedScas)) {
-                currentScas = scasMap.values().iterator().next();
-            } else {
-                currentScas = scasMap.get(expectedScas);
-            }
-            newScas = currentScas;
-        } while (!preScas.compareAndSet(expectedScas, newScas));
-        return currentScas;
+        List<String> currentValues = this.scasValues;
+        int currentIndex = scasIndex.getAndUpdate(i -> (i + 1) % currentValues.size());
+        return currentValues.get(currentIndex);
     }
 
 

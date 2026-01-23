@@ -12,15 +12,11 @@ public interface DiDiV5CollidingDataRobMapper extends DiDiV5CollidingDataRobMapp
 
     List<DiDiCollidingDataRob> queryCollidingDataBySharding(@Param("limit") int limit,
                                                             @Param("startTime") Date startTime,
-                                                            @Param("endTime") Date endTime,
-                                                            @Param("shardingTotalCount") int shardingTotalCount,
-                                                            @Param("shardingItems") List<Integer> shardingItems);
+                                                            @Param("endTime") Date endTime);
 
     List<DiDiCollidingDataRob> queryUploadedData(@Param("limit") int limit,
                                                  @Param("startTime") Date startTime,
-                                                 @Param("endTime") Date endTime,
-                                                 @Param("shardingTotalCount") int shardingTotalCount,
-                                                 @Param("shardingItems") List<Integer> shardingItems);
+                                                 @Param("endTime") Date endTime);
 
 
     void updatePushTimeByIds(@Param("pushTime") Date pushTime, @Param("ids") List<Long> ids);

@@ -21,10 +21,6 @@
         WHERE push_time is null
         AND is_delete = 0
         AND colliding_time &lt; #{startTime}
-        AND mod(id, #{shardingTotalCount}) in
-        <foreach collection="shardingItems" item="sharding" open="(" separator="," close=")">
-            #{sharding}
-        </foreach>
         ORDER BY id ASC
         LIMIT #{limit}
     </select>
@@ -34,12 +30,7 @@
         FROM b_didi_v5_colliding_data_rob
         WHERE push_time is null
         AND is_delete = 0
-        AND create_time BETWEEN #{startTime} AND #{endTime}
         AND colliding_time BETWEEN #{startTime} AND #{endTime}
-        AND mod(id, #{shardingTotalCount}) in
-        <foreach collection="shardingItems" item="sharding" open="(" separator="," close=")">
-            #{sharding}
-        </foreach>
         ORDER BY id ASC
         LIMIT #{limit}
     </select>
