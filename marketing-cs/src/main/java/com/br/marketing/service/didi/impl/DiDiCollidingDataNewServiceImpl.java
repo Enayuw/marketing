@@ -6,7 +6,6 @@ import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
-import com.br.common.util.DateUtils;
 import com.br.marketing.client.didi.DiDiV5Client;
 import com.br.marketing.client.didi.input.v5.DiDiV5CollidingRequestDTO;
 import com.br.marketing.client.didi.output.v5.DiDiV5CollidingResultResponseDTO;
@@ -15,7 +14,6 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.rocketmq.MarketingOutsideInterfaceConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
-import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.entity.*;
@@ -161,11 +159,13 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
     private void updateLocalFiles(Set<Long> fileIds) {
         for (Long fileId : fileIds) {
             DiDiDataLoopCycleExample example = new DiDiDataLoopCycleExample();
-            example.createCriteria().andPackageIdEqualTo(fileId.toString()).andIsDeleteEqualTo(0);
+            example.createCriteria().andPackageIdEqualTo(fileId.toString()).andIsDeleteEqualTo(0)
+                    .andPushTimeIsNotNull();
             int cycleCount = diDiV5DataLoopCycleMapper.countByExample(example);
 
             DiDiCollidingDataRobExample robExample = new DiDiCollidingDataRobExample();
-            robExample.createCriteria().andPackageIdEqualTo(fileId).andIsDeleteEqualTo(0);
+            robExample.createCriteria().andPackageIdEqualTo(fileId).andIsDeleteEqualTo(0)
+                    .andPushTimeIsNotNull();
             int robCount = diDiV5CollidingDataRobMapper.countByExample(robExample);
 
             localFileMapper.updatePushEndTimeById(fileId, cycleCount + robCount, new Date());
