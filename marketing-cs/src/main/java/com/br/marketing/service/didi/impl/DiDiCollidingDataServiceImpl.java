@@ -274,7 +274,7 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
         cleanJson.put("userGroup", dataLog.getUserGroup());
         cleanJson.put("userType", userType);
         String today = DateUtil.format(new Date(), DatePattern.PURE_DATE_FORMAT);
-        cleanJson.put("scas", today + userType + "-" + getCurrentScas());
+        cleanJson.put("scas", today + userType + getCurrentScas());
         Result cleanResult = generalDataCleanService.uploadClean(
                 Lists.newArrayList(cleanJson),
                 dataLog.getApiCode());
