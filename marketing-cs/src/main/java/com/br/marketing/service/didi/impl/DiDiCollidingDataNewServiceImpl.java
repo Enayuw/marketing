@@ -13,6 +13,7 @@ import com.br.marketing.client.didi.utils.MD5Util;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.rocketmq.MarketingOutsideInterfaceConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.config.RocketMqSwitch;
@@ -93,6 +94,14 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
 
         List<String> retryHttpCode = collidingConfig.getJSONArray("retryHttpCode").toJavaList(String.class);
         Set<Long> packageIds = Sets.newHashSet();
+        LocalFileExample fileExample = new LocalFileExample();
+        fileExample.createCriteria().andFileTypeEqualTo(SftpFileTypeEnum.DD.getValue())
+                .andPushStartTimeIsNull();
+        List<LocalFile> localFiles = localFileMapper.selectByExample(fileExample);
+        if(!CollectionUtils.isEmpty(localFiles)) {
+            List<Long> fileIds = localFiles.stream().map(LocalFile::getId).collect(Collectors.toList());
+            localFileMapper.updateUploadStartTimeById(fileIds, new Date());
+        }
 
         // 收集所有异步任务的Future，用于等待所有任务完成
         List<CompletableFuture<Void>> futures = new ArrayList<>();
@@ -351,11 +360,14 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
             data.setUpdateTime(new Date());
             if ("false".equalsIgnoreCase(diDiV5CollidingDataLog.getResult())) {
                 if ("1".equalsIgnoreCase(diDiV5CollidingDataLog.getFailReason())) {
+                    JSONObject collidingConfig = marketingCommonConfig.getDiDiV5Config();
+                    Long retrieveFileId = collidingConfig.getLong("retrieveFileId");
+
                     DiDiDataLoopCycle diDiDataLoopCycle = new DiDiDataLoopCycle();
                     BeanUtils.copyProperties(data, diDiDataLoopCycle);
                     diDiDataLoopCycle.setSourceType("F");
                     diDiDataLoopCycle.setLockType(2);
-                    diDiDataLoopCycle.setPackageId(data.getPackageId().toString());
+                    diDiDataLoopCycle.setPackageId(retrieveFileId.toString());
                     diDiDataLoopCycle.setCollidingTime(new Date(Long.parseLong(diDiV5CollidingDataLog.getNextTime())));
                     diDiV5DataLoopCycleMapper.insertSelective(diDiDataLoopCycle);
                 }
@@ -377,7 +389,7 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
         diDiV5CollidingDataLog.setCell(data.getCell());
         diDiV5CollidingDataLog.setHttpCode(httpcode);
         diDiV5CollidingDataLog.setDataId(data.getId());
-        diDiV5CollidingDataLog.setLocalId(Long.getLong(data.getPackageId()));
+        diDiV5CollidingDataLog.setLocalId(Long.parseLong(data.getPackageId()));
         diDiV5CollidingDataLog.setReturnContent(content);
         if (StringUtils.isNotBlank(content)) {
             DiDiV5CollidingResultResponseDTO diDiV5CollidingResultResponseDTO = JSON.parseObject(content,
@@ -394,7 +406,10 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
             data.setPushTime(new Date());
             if ("false".equalsIgnoreCase(diDiV5CollidingDataLog.getResult())) {
                 if ("1".equalsIgnoreCase(diDiV5CollidingDataLog.getFailReason())) {
+                    JSONObject collidingConfig = marketingCommonConfig.getDiDiV5Config();
+                    Long retrieveFileId = collidingConfig.getLong("retrieveFileId");
                     data.setLockType(2);
+                    data.setPackageId(retrieveFileId.toString());
                     data.setCollidingTime(new Date(Long.parseLong(diDiV5CollidingDataLog.getNextTime())));
                 }
             }
