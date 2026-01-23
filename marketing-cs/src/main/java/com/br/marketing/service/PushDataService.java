@@ -1,5 +1,6 @@
 package com.br.marketing.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.Result;
 
 public interface PushDataService {
@@ -85,4 +86,13 @@ public interface PushDataService {
     Result pushUpdateDassData(Long id);
 
     Result pushWeiZhongDassData(Long id);
+
+    /**
+     * 推送特殊文件数据到Dass
+     * @param id 文件ID
+     * @param filePrefix 匹配的文件名前缀
+     * @param prefixConfig 该前缀对应的配置
+     * @return 推送结果
+     */
+    Result pushSpecialDassData(Long id, String filePrefix, JSONObject prefixConfig);
 }

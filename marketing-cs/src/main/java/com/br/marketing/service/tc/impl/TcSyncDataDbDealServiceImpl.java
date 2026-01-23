@@ -227,15 +227,6 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
         return str.replace("'", "''").replace("\\", "\\\\");
     }
 
-    private Boolean isLong(String userKey) {
-        try {
-            Long.parseLong(userKey);
-            return true;
-        }catch (Exception e) {
-            return false;
-        }
-    }
-
     /**
      * 带重试机制的获取锁
      * @param lockKey 锁的key
