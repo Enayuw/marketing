@@ -21,9 +21,11 @@ import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.DiDiV5CollidingDataRobMapper;
 import com.br.marketing.mapper.DiDiV5DataLoopCycleMapper;
+import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.service.didi.DiDiCollidingDataNewService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
+import com.google.api.client.util.Sets;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -39,8 +41,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -60,6 +64,9 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
 
     @Resource
     private RocketMqSwitch rocketMqSwitch;
+
+    @Resource
+    private LocalFileMapper localFileMapper;
 
     @Override
     public void colliding(JobExecutionMultipleShardingContext context) {
@@ -92,6 +99,7 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
         }
 
         List<String> retryHttpCode = collidingConfig.getJSONArray("retryHttpCode").toJavaList(String.class);
+        Set<Long> packageIds = Sets.newHashSet();
 
         // 收集所有异步任务的Future，用于等待所有任务完成
         List<CompletableFuture<Void>> futures = new ArrayList<>();
@@ -123,6 +131,7 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
             if (CollectionUtils.isEmpty(dataList)) {
                 break;
             }
+            packageIds.addAll(dataList.stream().map(DiDiDataLoopCycle::getPackageId).map(Long::parseLong).collect(Collectors.toSet()));
             leftLimit -= dataList.size();
 
             markAsPushing(dataList);
@@ -142,17 +151,31 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
 
         // 处理非周期锁定的数据
         processRobData(leftLimit, shardingTotalCount, shardingItems, mediaName, token, rateLimiter,
-                retryHttpCode, pushPool, futures, 2);
+                retryHttpCode, pushPool, futures, 2, packageIds);
         processRobData(leftLimit, shardingTotalCount, shardingItems, mediaName, token, rateLimiter,
-                retryHttpCode, pushPool, futures, 3);
-
+                retryHttpCode, pushPool, futures, 3, packageIds);
+        updateLocalFiles(packageIds);
         pushPool.shutdownAndAwaitTermination();
+    }
+
+    private void updateLocalFiles(Set<Long> fileIds) {
+        for (Long fileId : fileIds) {
+            DiDiDataLoopCycleExample example = new DiDiDataLoopCycleExample();
+            example.createCriteria().andPackageIdEqualTo(fileId.toString()).andIsDeleteEqualTo(0);
+            int cycleCount = diDiV5DataLoopCycleMapper.countByExample(example);
+
+            DiDiCollidingDataRobExample robExample = new DiDiCollidingDataRobExample();
+            robExample.createCriteria().andPackageIdEqualTo(fileId).andIsDeleteEqualTo(0);
+            int robCount = diDiV5CollidingDataRobMapper.countByExample(robExample);
+
+            localFileMapper.updatePushEndTimeById(fileId, cycleCount + robCount, new Date());
+        }
     }
 
     private void processRobData(int leftLimit, int shardingTotalCount,
                                 List<Integer> shardingItems, String mediaName, String token, RateLimiter rateLimiter,
                                 List<String> retryHttpCode, TpDynamicExecutor pushPool, List<CompletableFuture<Void>> futures,
-                                int priority) {
+                                int priority, Set<Long> packageIds) {
         // 处理非周期锁定的数据
         List<CompletableFuture<Void>> futures3 = new ArrayList<>();
         while (true) {
@@ -186,6 +209,8 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
             if (CollectionUtils.isEmpty(dataList)) {
                 break;
             }
+            packageIds.addAll(dataList.stream().map(DiDiCollidingDataRob::getPackageId).collect(Collectors.toSet()));
+
             leftLimit -= dataList.size();
 
             markRobAsPushing(dataList);
@@ -338,6 +363,7 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
                     BeanUtils.copyProperties(data, diDiDataLoopCycle);
                     diDiDataLoopCycle.setSourceType("F");
                     diDiDataLoopCycle.setLockType(2);
+                    diDiDataLoopCycle.setPackageId(data.getPackageId().toString());
                     diDiDataLoopCycle.setCollidingTime(new Date(Long.parseLong(diDiV5CollidingDataLog.getNextTime())));
                     diDiV5DataLoopCycleMapper.insert(diDiDataLoopCycle);
                 }
