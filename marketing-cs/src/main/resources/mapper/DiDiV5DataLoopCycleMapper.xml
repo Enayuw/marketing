@@ -24,7 +24,7 @@
     <select id="selectUnpushedCells" resultType="java.lang.String">
         SELECT DISTINCT cell
         FROM b_didi_v5_data_loop_cycle
-        WHERE push_time is null AND is_delete = 0 and colliding_time > curdate() and colliding_time &lt; curdate()+2
+        WHERE push_time is null AND is_delete = 0 and colliding_time > curdate()+1 and colliding_time &lt; curdate()+2
         and cell in
         <foreach item="cell" collection="cells" index="index" separator="," close=")" open="(">
             #{cell}
