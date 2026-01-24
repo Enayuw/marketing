@@ -283,6 +283,8 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
             String content = resJson.getString("content");
             boolean retry = retryHttpCode.contains(httpcode);
             if(retry) {
+                data.setPushTime(null);
+                diDiV5DataLoopCycleMapper.updateByPrimaryKey(data);
                 return;
             }
             pushCycleDataToMq(data, httpcode, content);
@@ -327,6 +329,8 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
             String content = resJson.getString("content");
             boolean retry = retryHttpCode.contains(httpcode);
             if (retry) {
+                data.setPushTime(null);
+                diDiV5CollidingDataRobMapper.updateByPrimaryKey(data);
                 return;
             }
             pushRobDataToMq(data, httpcode, content);
