@@ -290,7 +290,7 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
         processShuHeConfigs(shuHeConfigs);
         //使用线程池并行遍历
         TpDynamicExecutor threadPool = TpDynamicExecutorFactory
-                .getThreadPool(ThreadPoolNameEnum.FILE_SYNC_DOWNLOAD.getName(), 5, 5);
+                .getThreadPool(ThreadPoolNameEnum.FILE_SYNC_DOWNLOAD.getName(), 3, 3);
         List<FileSyncInfo> allFilesToSync = Collections.synchronizedList(new ArrayList<>());
         for (SyncConfig config : defaultConfigs) {
             threadPool.submit(() -> {
