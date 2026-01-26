@@ -187,12 +187,10 @@ public class MarketingTaikangDingDingTransferServiceImpl implements MarketingTai
                     //taikangMarketingEvent.setRemark(item.getReturnResult1());
                 }
 
-                // 2.泰康回传数据,
-                // mock数据{"httpcode":"200","content":"{\"code\":\"0000\",\"message\":\"success\",\"timestamp\":\"20260122163610\",\"data\":\"\"}"}
+                // 2.泰康回传数据
                 String response;
                 if ("true".equals(taikangConfig.get("ddMockSwitch"))) {
-                    response = "{\"httpcode\":\"200\",\"content\":\"{\\\"code\\\":\\\"0000\\\",\\\"message\\\":\\\"success\\\"," +
-                            "\\\"timestamp\\\":\\\"20260122163610\\\",\\\"data\\\":\\\"\\\"}\"}";
+                    response = generateMockResponse();
                 }else {
                     response = taikangClient.process(taikangMarketingEvent);
                 }
@@ -229,6 +227,24 @@ public class MarketingTaikangDingDingTransferServiceImpl implements MarketingTai
                         "泰康大健康线索线索推送客户-钉钉记录日志异常，拨打明细id:" + item.getId()));
             }
         });
+    }
+
+    /**
+     * mock数据
+     * {"httpcode":"200","content":"{\"code\":\"0000\",\"message\":\"success\",\"timestamp\":\"20260122163610\",\"data\":\"\"}"}
+     */
+    private String generateMockResponse() {
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        JSONObject response = new JSONObject();
+        response.put("httpcode", "200");
+
+        JSONObject content = new JSONObject();
+        content.put("code", "0000");
+        content.put("message", "success");
+        content.put("timestamp", timestamp);
+        content.put("data", "");
+        response.put("content", content.toJSONString());
+        return response.toJSONString();
     }
 
 
