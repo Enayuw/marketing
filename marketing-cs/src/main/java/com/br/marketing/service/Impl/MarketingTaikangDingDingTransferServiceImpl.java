@@ -28,6 +28,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -107,21 +108,29 @@ public class MarketingTaikangDingDingTransferServiceImpl implements MarketingTai
 
 
     private void callBackDataDealMove(String apiCode, List<TaikangDingDingDataRecord> taikangDDRecordList) {
-        taikangDDRecordList.forEach(item -> {
-            TaikangDingDingTransferDetail transferDetail = new TaikangDingDingTransferDetail();
-            transferDetail.setApiCode(apiCode);
-            transferDetail.setCell(item.getCell());
-            transferDetail.setBrowseDate(item.getBrowseDate());
-            transferDetail.setApplicationName(item.getApplicationName());
-            String applicantPhone = RpcClientProxy.decode(item.getCell(), "cell", "md5", "");
-            boolean phoneEmpty = StringUtils.isEmpty(applicantPhone);
-            boolean dateEmpty = StringUtils.isEmpty(item.getBrowseDate());
-            if (phoneEmpty || dateEmpty) {
-                transferDetail.setStatus(0);
-                transferDetail.setErrorMsg((phoneEmpty ? 1 : 0) + (dateEmpty ? 2 : 0));
-            }
-            taikangDingDingTransferDetailMapper.insertSelective(transferDetail);
-        });
+        List<TaikangDingDingTransferDetail> transferDetailList = taikangDDRecordList.stream()
+                .map(item -> {
+                    TaikangDingDingTransferDetail transferDetail = new TaikangDingDingTransferDetail();
+                    transferDetail.setApiCode(apiCode);
+                    transferDetail.setCell(item.getCell());
+                    transferDetail.setBrowseDate(item.getBrowseDate());
+                    transferDetail.setApplicationName(item.getApplicationName());
+                    transferDetail.setReturnResult1(item.getReturnResult1());
+                    transferDetail.setStatus(1);
+                    transferDetail.setPushStatus(0);
+                    String applicantPhone = RpcClientProxy.decode(item.getCell(), "cell", "md5", "");
+                    boolean phoneEmpty = StringUtils.isEmpty(applicantPhone);
+                    boolean dateEmpty = StringUtils.isEmpty(item.getBrowseDate());
+                    if (phoneEmpty || dateEmpty) {
+                        transferDetail.setStatus(0);
+                        transferDetail.setErrorMsg((phoneEmpty ? 1 : 0) + (dateEmpty ? 2 : 0));
+                    }
+                    return transferDetail;
+                }).collect(Collectors.toList());
+
+        if (CollectionUtils.isNotEmpty(transferDetailList)) {
+            taikangDingDingTransferDetailMapper.batchInsert(transferDetailList);
+        }
     }
 
 
@@ -174,6 +183,7 @@ public class MarketingTaikangDingDingTransferServiceImpl implements MarketingTai
 
                 // 2.泰康回传数据,记录日志
                 String response = taikangClient.process(taikangMarketingEvent);
+                //String response = "{\"httpcode\":\"200\",\"content\":\"{\\\"code\\\":\\\"0000\\\",\\\"message\\\":\\\"success\\\",\\\"timestamp\\\":\\\"20260122163610\\\",\\\"data\\\":\\\"\\\"}\"}";
                 TaikangTransferDataLog taikangTransferDataLog = new TaikangTransferDataLog();
                 taikangTransferDataLog.setDataType(2);
                 taikangTransferDataLog.setDdRecordId(item.getId());
