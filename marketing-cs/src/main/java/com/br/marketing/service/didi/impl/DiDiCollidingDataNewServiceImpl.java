@@ -165,10 +165,17 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
 
     private void updateLocalFiles(Set<Long> fileIds) {
         for (Long fileId : fileIds) {
-            DiDiV5CollidingDataLogExample example = new DiDiV5CollidingDataLogExample();
-            example.createCriteria().andLocalIdEqualTo(Long.parseLong(fileId.toString())).andIsDeleteEqualTo(0);
-            int logCount = diDiV5CollidingDataLogMapper.countByExample(example);
-            localFileMapper.updatePushEndTimeById(fileId, logCount, new Date());
+            DiDiDataLoopCycleExample example = new DiDiDataLoopCycleExample();
+            example.createCriteria().andPackageIdEqualTo(fileId.toString()).andIsDeleteEqualTo(0)
+                    .andPushTimeIsNotNull();
+            int cycleCount = diDiV5DataLoopCycleMapper.countByExample(example);
+
+            DiDiCollidingDataRobExample robExample = new DiDiCollidingDataRobExample();
+            robExample.createCriteria().andPackageIdEqualTo(fileId).andIsDeleteEqualTo(0)
+                    .andPushTimeIsNotNull();
+            int robCount = diDiV5CollidingDataRobMapper.countByExample(robExample);
+
+            localFileMapper.updatePushEndTimeById(fileId, cycleCount + robCount, new Date());
         }
     }
 
@@ -271,6 +278,8 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
             }
             if (!acquired) {
                 log.warn("手机号: {} 的撞库请求在重试{}次后仍被限流，将跳过处理", data.getCell(), maxRetries);
+                data.setPushTime(null);
+                diDiV5DataLoopCycleMapper.updateByPrimaryKey(data);
                 return;
             }
             Result<String> response = diDiV5Client.colliding(mediaName, buildRequest(data.getCell(), token));
@@ -317,6 +326,8 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
             }
             if (!acquired) {
                 log.warn("手机号: {} 的撞库请求在重试{}次后仍被限流，将跳过处理", data.getCell(), maxRetries);
+                data.setPushTime(null);
+                diDiV5CollidingDataRobMapper.updateByPrimaryKey(data);
                 return;
             }
             Result<String> response = diDiV5Client.colliding(mediaName, buildRequest(data.getCell(), token));
