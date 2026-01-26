@@ -320,8 +320,11 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                 .collect(Collectors.groupingBy(f -> f.getConfig().getId()));
 
         log.warn(DOWNLOAD_TITLE + "遍历完成，待同步文件：{}，配置数：{}", allFilesToSync.size(), groupedByConfig.size());
-        outerLoop:
+        boolean stop = false;
         for (Map.Entry<Long, List<FileSyncInfo>> entry : groupedByConfig.entrySet()) {
+            if (stop) {
+                break;
+            }
             List<FileSyncInfo> files = entry.getValue();
             if (CollectionUtils.isEmpty(files)) {
                 continue;
@@ -355,12 +358,11 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                 // 同一配置的文件共用连接，串行同步
                 for (FileSyncInfo fileToSync : files) {
                     //job开关判断
-                    Map<String,Boolean> jobSwitch = marketingCommonConfig.getMarketingJobTaskSwitch();
-                    if(!CollectionUtils.isEmpty(jobSwitch)){
-                        if(jobSwitch.get("fileDownloadTask")){
-                            log.warn(DOWNLOAD_TITLE + "job开关关闭，停止文件下载任务");
-                            break outerLoop;
-                        }
+                    Map<String, Boolean> jobSwitch = marketingCommonConfig.getMarketingJobTaskSwitch();
+                    if (!CollectionUtils.isEmpty(jobSwitch) && Boolean.TRUE.equals(jobSwitch.get("fileDownloadTask"))) {
+                        log.warn(DOWNLOAD_TITLE + "job开关关闭，停止文件下载任务");
+                        stop = true;
+                        break;
                     }
                     syncSingleFile(fileToSync, srcClient, targetClient, diskBool);
                 }
@@ -650,7 +652,7 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                     continue;
                 }
 
-                String fullPath = currentPath.endsWith("/") ? currentPath + fileName : currentPath + "/" + fileName;
+                String fullPath = (currentPath.endsWith("/")) ? (currentPath + fileName) : (currentPath + "/" + fileName);
 
                 if (attrs.isDir()) {
                     // 如果是目录，递归遍历
@@ -701,7 +703,7 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                     continue;
                 }
 
-                String fullPath = currentPath.endsWith("/") ? currentPath + fileName : currentPath + "/" + fileName;
+                String fullPath = (currentPath.endsWith("/")) ? (currentPath + fileName) : (currentPath + "/" + fileName);
 
                 if (file.isDirectory()) {
                     // 如果是目录，递归遍历
@@ -993,8 +995,8 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
      */
     private String calculateTargetPath(String originalSrcPath, String originalTargetPath, String currentFilePath) {
         try {
-            String baseSrcPath = originalSrcPath.endsWith("/") ? originalSrcPath : originalSrcPath + "/";
-            String baseTargetPath = originalTargetPath.endsWith("/") ? originalTargetPath : originalTargetPath + "/";
+            String baseSrcPath = (originalSrcPath.endsWith("/")) ? originalSrcPath : (originalSrcPath + "/");
+            String baseTargetPath = (originalTargetPath.endsWith("/")) ? originalTargetPath : (originalTargetPath + "/");
 
             if (currentFilePath.equals(originalSrcPath)) {
                 return originalTargetPath;
