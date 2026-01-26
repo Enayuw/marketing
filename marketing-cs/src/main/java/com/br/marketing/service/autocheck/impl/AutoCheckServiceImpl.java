@@ -265,6 +265,9 @@ public class AutoCheckServiceImpl implements AutoCheckService {
         // 生成这一次对比的批次号，方便查看巡检结果时数据聚合
         String batchId = DateUtil.format(new Date(), "yyyyMMddHHmmss");
         String compareTime = DateUtil.formatDateTime(new Date());
+        // 获取今天已经比对过的id
+        Map<String, List<Long>> comparedIdMap = getTodayExistComparedId(today);
+
         for (AutoCheckConfig config : configList) {
             /**
              * 针对每一条配置 apiCode、sceneCode、tableName，进行巡检
@@ -310,7 +313,7 @@ public class AutoCheckServiceImpl implements AutoCheckService {
                 throw ex;
             }
 
-            if (!checkData(lastDay8, latest, apiCode, sceneCode, tableName, today)) {
+            if (!checkData(lastDay8, latest, apiCode, sceneCode, tableName, comparedIdMap)) {
                 continue;
             }
 
@@ -374,14 +377,13 @@ public class AutoCheckServiceImpl implements AutoCheckService {
                               String apiCode,
                               String sceneCode,
                               String tableName,
-                              String today) {
+                              Map<String, List<Long>> comparedIdMap) {
         if (lastDay8 == null || latest == null || lastDay8.isEmpty() || latest.isEmpty()) {
             log.warn("QA自动化巡检-动态查表：跳过，数据不存在，apiCode={}, sceneCode={}, tableName={}", apiCode, sceneCode, tableName);
             return false;
         }
 
         Long todayDataId = getLong(latest.get("id"));
-        Map<String, List<Long>> comparedIdMap = getTodayExistComparedId(today);
         String key = buildKey(apiCode, sceneCode);
         List<Long> existIds = comparedIdMap.get(key);
         if (CollUtil.isNotEmpty(existIds) && existIds.contains(todayDataId)) {
@@ -394,7 +396,6 @@ public class AutoCheckServiceImpl implements AutoCheckService {
     }
 
     private Map<String, List<Long>> getTodayExistComparedId(String today) {
-        // 获取今天已经比对过的id
         String todayStartTime = today + " 00:00:00";
         String todayEndTime = today + " 23:59:59";
         List<AutoCheckResultLog> resultList = autoCheckResultLogMapper
