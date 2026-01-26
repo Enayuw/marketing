@@ -187,7 +187,8 @@ public class MarketingTaikangDingDingTransferServiceImpl implements MarketingTai
                     //taikangMarketingEvent.setRemark(item.getReturnResult1());
                 }
 
-                // 2.泰康回传数据
+                // 2.泰康回传数据,
+                // mock数据{"httpcode":"200","content":"{\"code\":\"0000\",\"message\":\"success\",\"timestamp\":\"20260122163610\",\"data\":\"\"}"}
                 String response;
                 if ("true".equals(taikangConfig.get("ddMockSwitch"))) {
                     response = "{\"httpcode\":\"200\",\"content\":\"{\\\"code\\\":\\\"0000\\\",\\\"message\\\":\\\"success\\\"," +
