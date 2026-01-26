@@ -254,12 +254,12 @@ public class AutoCheckServiceImpl implements AutoCheckService {
 
     @Override
     public void autoCheck() {
-        // 1、获取所有配置
-        List<String> apiCodeList = handleApiCodeParam(null);
-        List<String> sceneCodeList = handleSceneCodeParam(null);
+//        // 1、获取所有配置
+//        List<String> apiCodeList = handleApiCodeParam(null);
+//        List<String> sceneCodeList = handleSceneCodeParam(null);
 
         List<AutoCheckConfig> configList = autoCheckConfigMapper.
-                selectByApiCodesAndSceneCodes(apiCodeList, sceneCodeList);
+                selectByApiCodesAndSceneCodes(null, null);
         String today = DateUtil.today();
         List<AutoCheckResultLog> saveList = new ArrayList<>();
         // 生成这一次对比的批次号，方便查看巡检结果时数据聚合
