@@ -156,9 +156,13 @@ public class MarketingTaikangDingDingTransferServiceImpl implements MarketingTai
             if (CollectionUtils.isEmpty(taikangDDTransferList)) {
                 break;
             }
+            List<Long> idList = taikangDDTransferList.stream().map(TaikangDingDingTransferDetail::getId).toList();
+            taikangDingDingTransferDetailMapper.updatePushStatusByIds(idList,1);
+
             futures.add( CompletableFuture.runAsync(() ->
                     callBackDataDealTransfer(taikangDDTransferList),actionPool));
-            searchId = taikangDDTransferList.get(taikangDDTransferList.size()-1).getId();
+
+            searchId = idList.get(idList.size()-1);
             totalCount += taikangDDTransferList.size();
         }
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
@@ -184,6 +188,7 @@ public class MarketingTaikangDingDingTransferServiceImpl implements MarketingTai
                 // 2.泰康回传数据,记录日志
                 String response = taikangClient.process(taikangMarketingEvent);
                 //String response = "{\"httpcode\":\"200\",\"content\":\"{\\\"code\\\":\\\"0000\\\",\\\"message\\\":\\\"success\\\",\\\"timestamp\\\":\\\"20260122163610\\\",\\\"data\\\":\\\"\\\"}\"}";
+
                 TaikangTransferDataLog taikangTransferDataLog = new TaikangTransferDataLog();
                 taikangTransferDataLog.setDataType(2);
                 taikangTransferDataLog.setDdRecordId(item.getId());

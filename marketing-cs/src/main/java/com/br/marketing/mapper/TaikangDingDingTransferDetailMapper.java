@@ -10,6 +10,8 @@ public interface TaikangDingDingTransferDetailMapper extends TaikangDingDingTran
 
     void batchInsert(@Param("detailList")List<TaikangDingDingTransferDetail> transferDetailList);
 
+    void updatePushStatusByIds(@Param("idList") List<Long> idList, @Param("pushStatus") Integer pushStatus);
+
     List<TaikangDingDingTransferDetail> selectDetailList(@Param("searchId") Long searchId,
                                                          @Param("searchSize") Integer searchSize,
                                                          @Param("pushStatus") Integer pushStatus);

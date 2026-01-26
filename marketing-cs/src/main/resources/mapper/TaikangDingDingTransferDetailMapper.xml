@@ -16,6 +16,15 @@
         </foreach>
     </insert>
 
+    <update id="updatePushStatusByIds">
+        UPDATE b_dd_taikang_transfer_detail
+            SET push_status = #{pushStatus}
+        WHERE id in
+            <foreach collection="idList" item="id" separator="," open="(" close=")">
+                #{id}
+            </foreach>
+    </update>
+
     <select id="selectDetailList" resultType="com.br.marketing.entity.TaikangDingDingTransferDetail">
         SELECT
             id, cell, browse_date, application_name, return_result1, extend, push_status, create_time,
