@@ -42,6 +42,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -74,6 +75,8 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
     private static final String DOWNLOAD_TITLE = "[文件下载任务]";
 
     private static final String NO_SUFFIX = "no_suffix";
+
+    private static final DateTimeFormatter FILE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
 
     @Override
@@ -750,16 +753,28 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
      * 根据时间过滤文件
      */
     private List<FileSyncInfo> filterFilesByTime(List<FileSyncInfo> fileInfoList, String filterTime) {
+        LocalDateTime filter;
+        try {
+            filter = LocalDateTime.parse(filterTime, FILE_TIME_FORMATTER);
+        } catch (Exception e) {
+            log.error(DOWNLOAD_TITLE + "filterTime解析失败，不进行时间过滤。filterTime={}", filterTime, e);
+            return fileInfoList;
+        }
+
         return fileInfoList.stream()
                 .filter(f -> {
                     try {
-                        return f.getCreateTime().compareTo(filterTime) >= 0;
+                        LocalDateTime create = LocalDateTime.parse(f.getCreateTime(), FILE_TIME_FORMATTER);
+                        return !create.isBefore(filter);
                     } catch (Exception e) {
+                        log.warn(DOWNLOAD_TITLE + "该文件时间解析失败。filterTime={}, createTime={}, fileName={}, configId={}",
+                                filterTime, f.getCreateTime(), f.getFileName(), f.getConfig() == null ? null : f.getConfig().getId(), e);
                         return false;
                     }
                 })
                 .collect(Collectors.toList());
     }
+
 
     /**
      * 批量查询已同步记录，过滤出未同步的文件
