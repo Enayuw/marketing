@@ -170,6 +170,8 @@ public class MarketingTaikangDingDingTransferServiceImpl implements MarketingTai
     }
 
     private void callBackDataDealTransfer(List<TaikangDingDingTransferDetail> taikangDDTransferDetailList) {
+        Map<String, String> taikangConfig = marketingCommonConfig.getTaikangConfig();
+
         taikangDDTransferDetailList.forEach(item -> {
             try {
                 // 1.封装数据
@@ -185,10 +187,16 @@ public class MarketingTaikangDingDingTransferServiceImpl implements MarketingTai
                     //taikangMarketingEvent.setRemark(item.getReturnResult1());
                 }
 
-                // 2.泰康回传数据,记录日志
-                String response = taikangClient.process(taikangMarketingEvent);
-                //String response = "{\"httpcode\":\"200\",\"content\":\"{\\\"code\\\":\\\"0000\\\",\\\"message\\\":\\\"success\\\",\\\"timestamp\\\":\\\"20260122163610\\\",\\\"data\\\":\\\"\\\"}\"}";
+                // 2.泰康回传数据
+                String response;
+                if ("true".equals(taikangConfig.get("ddMockSwitch"))) {
+                    response = "{\"httpcode\":\"200\",\"content\":\"{\\\"code\\\":\\\"0000\\\",\\\"message\\\":\\\"success\\\"," +
+                            "\\\"timestamp\\\":\\\"20260122163610\\\",\\\"data\\\":\\\"\\\"}\"}";
+                }else {
+                    response = taikangClient.process(taikangMarketingEvent);
+                }
 
+                // 3.记录日志
                 TaikangTransferDataLog taikangTransferDataLog = new TaikangTransferDataLog();
                 taikangTransferDataLog.setDataType(2);
                 taikangTransferDataLog.setDdRecordId(item.getId());
@@ -210,7 +218,7 @@ public class MarketingTaikangDingDingTransferServiceImpl implements MarketingTai
                 taikangTransferDataLog.setReturnContent(response);
                 taikangTransferDataLogMapper.insertSelective(taikangTransferDataLog);
 
-                // 3.修改泰康-钉钉详情数据 推送状态
+                // 4.修改泰康-钉钉详情数据 推送状态
                 boolean success = "200".equals(httpCode) && "0000".equals(businessCode);
                 item.setPushStatus(success ? 2 : 3);
                 item.setUpdateTime(new Date());
