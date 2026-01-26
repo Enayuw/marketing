@@ -51,13 +51,17 @@ public class MockableAspect {
     private MarketingMockApiService marketingMockApiService;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    @Resource
+    private ObjectMapper objectMapper;
 
     // 获取应用名称，用于判断是否需要启用Mock功能
     @Value("${spring.application.name:unknown}")
     private String applicationName;
 
     private final String TITLE = "【mock切面】";
+    
+    /** inner-api 项目名称，该项目可直接调用 MockService 查询 Redis，无需走 HTTP API */
+    private static final String INNER_API_PROJECT = "marketing-inner-api";
 
     /**
      * 拦截带有 @Mockable 注解的方法，动态决定是否走Mock逻辑
@@ -67,7 +71,7 @@ public class MockableAspect {
         // 检查当前项目是否需要禁用Mock初始化
         Set<String> disableMockProjects = marketingCommonConfig.getDisableMockProjects();
         if (!disableMockProjects.contains(applicationName)) {
-            log.warn(TITLE + "当前项目 [{}] 在禁用Mock列表中，跳过Mock，执行真实方法", applicationName);
+            log.warn(TITLE + "当前项目 [{}] 不在可用Mock列表中，跳过Mock，执行真实方法", applicationName);
             return joinPoint.proceed();
         }
 
@@ -88,7 +92,8 @@ public class MockableAspect {
             }
 
             // 本地缓存为空 或者 开关状态为开启，则查询redis-db
-            Result<String> mockRedisValue = marketingMockApiService.queryMockConfig(cacheKey);
+            // inner-api 项目直接调用 MockService，其他项目走 HTTP API
+            Result<String> mockRedisValue = queryMockConfigByProject(cacheKey);
             Integer code = mockRedisValue.getCode();
             // 查询redis为空  || redis异常后查询DB为空
             if(!code.equals(ResultCode.SUCCESS.getValue())){
@@ -120,6 +125,22 @@ public class MockableAspect {
             log.error(TITLE + "【拦截异常】方法 {} 执行失败，原因：{}", methodName, e.getMessage(), e);
             throw e;
         }
+    }
+
+    /**
+     * 根据项目类型查询 Mock 配置
+     * inner-api 项目直接调用 MockService（本地 Redis），其他项目走 HTTP API
+     *
+     * @param cacheKey Redis 缓存 key
+     * @return Mock 配置结果
+     */
+    private Result<String> queryMockConfigByProject(String cacheKey) {
+        if (INNER_API_PROJECT.equals(applicationName)) {
+            // inner-api 项目直接调用 MockService 查询 Redis，避免 HTTP 自调用
+            return mockService.queryMockConfig(cacheKey);
+        }
+        // 其他项目通过 HTTP API 调用 inner-api
+        return marketingMockApiService.queryMockConfig(cacheKey);
     }
 
     /**
@@ -164,7 +185,7 @@ public class MockableAspect {
                 try {
                     return objectMapper.convertValue(responseBody, objectMapper.getTypeFactory().constructType(method.getGenericReturnType()));
                 } catch (Exception e) {
-                    log.warn(TITLE + "【ApiResult转换】方法 {} 响应体无法直接转换为ApiResult，使用success包装", methodName);
+                    log.warn(TITLE + "【ApiResult转换】方法 {} 响应体无法直接转换为ApiResult，错误：{}", methodName, e.getMessage());
                     return new ApiResult<>().success(responseBody);
                 }
             }
@@ -174,7 +195,7 @@ public class MockableAspect {
                 try {
                     return objectMapper.convertValue(responseBody, objectMapper.getTypeFactory().constructType(method.getGenericReturnType()));
                 } catch (Exception e) {
-                    log.warn(TITLE + "【Result转换】方法 {} 响应体无法直接转换为Result，使用success包装", methodName);
+                    log.warn(TITLE + "【Result转换】方法 {} 响应体无法直接转换为Result，错误：{}", methodName, e.getMessage());
                     Result<Object> result = new Result<>();
                     result.success();
                     result.setDate(responseBody);

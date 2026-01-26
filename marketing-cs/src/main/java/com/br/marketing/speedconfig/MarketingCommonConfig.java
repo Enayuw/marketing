@@ -3596,4 +3596,20 @@ public class MarketingCommonConfig {
      * job任务开关配置,key：任务名称，value：true任务暂停，false任务恢复
      */
     private Map<String,Boolean> marketingJobTaskSwitch;
-}
+    /**
+     * * 推送人工配置
+     * 支持灵活的嵌套配置结构
+     * 示例：
+     * {"specialFileNamePrefixes":["A","special"]
+     * ,"A":{"list":["province","city"]}
+     * ,"special":{"couponsList":["province","city","district"]}}
+     */
+    private JSONObject daasConfig;
+
+    /**
+     * 大模型回调分发控制，根据版本区分：存在的apiCode会走下游逻辑
+     * key：版本
+     * value：apiCode集合
+     */
+    private Map<String,List<String>> versionApiCodes;
+ }
