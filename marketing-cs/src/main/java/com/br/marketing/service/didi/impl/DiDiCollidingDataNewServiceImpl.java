@@ -18,6 +18,7 @@ import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.entity.*;
+import com.br.marketing.mapper.DiDiV5CollidingDataLogMapper;
 import com.br.marketing.mapper.DiDiV5CollidingDataRobMapper;
 import com.br.marketing.mapper.DiDiV5DataLoopCycleMapper;
 import com.br.marketing.mapper.LocalFileMapper;
@@ -57,6 +58,9 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
 
     @Resource
     private DiDiV5CollidingDataRobMapper diDiV5CollidingDataRobMapper;
+
+    @Resource
+    private DiDiV5CollidingDataLogMapper diDiV5CollidingDataLogMapper;
 
     @Resource
     private DiDiV5Client diDiV5Client;
@@ -161,17 +165,10 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
 
     private void updateLocalFiles(Set<Long> fileIds) {
         for (Long fileId : fileIds) {
-            DiDiDataLoopCycleExample example = new DiDiDataLoopCycleExample();
-            example.createCriteria().andPackageIdEqualTo(fileId.toString()).andIsDeleteEqualTo(0)
-                    .andPushTimeIsNotNull();
-            int cycleCount = diDiV5DataLoopCycleMapper.countByExample(example);
-
-            DiDiCollidingDataRobExample robExample = new DiDiCollidingDataRobExample();
-            robExample.createCriteria().andPackageIdEqualTo(fileId).andIsDeleteEqualTo(0)
-                    .andPushTimeIsNotNull();
-            int robCount = diDiV5CollidingDataRobMapper.countByExample(robExample);
-
-            localFileMapper.updatePushEndTimeById(fileId, cycleCount + robCount, new Date());
+            DiDiV5CollidingDataLogExample example = new DiDiV5CollidingDataLogExample();
+            example.createCriteria().andLocalIdEqualTo(Long.parseLong(fileId.toString())).andIsDeleteEqualTo(0);
+            int logCount = diDiV5CollidingDataLogMapper.countByExample(example);
+            localFileMapper.updatePushEndTimeById(fileId, logCount, new Date());
         }
     }
 
