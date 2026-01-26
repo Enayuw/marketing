@@ -77,18 +77,21 @@
     </select>
 
     <select id="selectNoDupDataByLocalIdtikv_" resultType="com.br.marketing.entity.DiDiV5CollidingData">
-        select c.*
-        from (SELECT a.*, ROW_NUMBER() OVER (PARTITION BY a.cell ORDER BY a.id) AS row_num
-        from b_didi_v5_colliding_data a
-        where a.status = 1
-        and a.api_code = #{apiCode}
-        and a.local_id = #{localId}
-        and a.push_status = 0) as c
-        where c.row_num = 1
-        <if test="minId != null and minId!=''">
-            and c.id > #{minId}
-        </if>
-        order by c.id
-        limit #{pageSize};
+        SELECT c.*
+        FROM (SELECT a.*, ROW_NUMBER() OVER (PARTITION BY a.cell ORDER BY a.id) AS row_num
+              FROM b_didi_v5_colliding_data a
+              WHERE a.status = 1
+                AND a.api_code = #{apiCode}
+                AND a.local_id = #{localId}
+                AND a.push_status = 0
+                AND NOT EXISTS (SELECT 1
+                                FROM b_didi_v5_colliding_data_rob rob
+                                WHERE rob.cell = a.cell
+                                  AND rob.api_code = a.api_code
+                                  AND rob.package_id = a.local_id)) AS c
+        WHERE c.row_num = 1
+          AND c.id > #{minId}
+        ORDER BY c.id
+            LIMIT #{pageSize}
     </select>
 </mapper>

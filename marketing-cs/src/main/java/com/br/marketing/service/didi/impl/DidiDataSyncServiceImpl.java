@@ -87,7 +87,7 @@ public class DidiDataSyncServiceImpl implements DiDiDataSyncService {
         String apiCode = localFile.getApiCode();
         TpDynamicExecutor pushPool = TpDynamicExecutorFactory.getThreadPool(
                 ThreadPoolNameEnum.DIDI_V5_FILTER.getName(), 50, 50);
-        Long minId = null;
+        Long minId = 0L;
         while (true) {
             JSONObject pushConfig = marketingCommonConfig.getDiDiV5Config();
             if (pushConfig.getBooleanValue("syncSwitch")) {
