@@ -44,8 +44,8 @@ import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Service
@@ -54,7 +54,7 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
 
     private final static String TITLE = "【滴滴V5-短信流量数据】";
 
-    private volatile List<String> scasValues = new ArrayList<>();
+    private List<String> scasValues = Lists.newCopyOnWriteArrayList();
 
     private final AtomicInteger scasIndex = new AtomicInteger(0);
 
@@ -245,9 +245,9 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
         JSONObject collidingConfig = marketingCommonConfig.getDiDiV5Config();
         ConcurrentHashMap<String, String> newScasMap = collidingConfig.getJSONObject("scasMap")
                 .toJavaObject(new TypeReference<ConcurrentHashMap<String, String>>() {});
-        List<String> newValues = new ArrayList<>(newScasMap.values());
+        List<String> newValues = new CopyOnWriteArrayList<>(newScasMap.values());
         if (!newValues.isEmpty() && !newValues.equals(scasValues)) {
-            this.scasValues = newValues;
+            scasValues = newValues;
         }
     }
 
@@ -287,7 +287,7 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
     }
 
     private String getCurrentScas() {
-        List<String> currentValues = this.scasValues;
+        List<String> currentValues = scasValues;
         int currentIndex = scasIndex.getAndUpdate(i -> (i + 1) % currentValues.size());
         return currentValues.get(currentIndex);
     }

@@ -18,7 +18,6 @@ import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.DiDiV5CollidingDataLogMapper;
 import com.br.marketing.mapper.DiDiV5CollidingDataRobMapper;
 import com.br.marketing.mapper.DiDiV5DataLoopCycleMapper;
 import com.br.marketing.mapper.LocalFileMapper;
@@ -58,9 +57,6 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
 
     @Resource
     private DiDiV5CollidingDataRobMapper diDiV5CollidingDataRobMapper;
-
-    @Resource
-    private DiDiV5CollidingDataLogMapper diDiV5CollidingDataLogMapper;
 
     @Resource
     private DiDiV5Client diDiV5Client;
@@ -111,13 +107,15 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
         List<CompletableFuture<Void>> futures = new ArrayList<>();
         while (true) {
             JSONObject collidingConfig2 = marketingCommonConfig.getDiDiV5Config();
-            boolean collidingSwitch = collidingConfig2.getBoolean("collidingSwitch") != null ? collidingConfig2.getBoolean("collidingSwitch") : false;
+            boolean collidingSwitch = collidingConfig2.getBoolean("collidingSwitch");
             if (collidingSwitch) {
                 break;
             }
 
-            String startTimeStr = LocalDate.now().format(DateTimeFormatter.ofPattern(DatePattern.NORM_DATE_PATTERN)) + " " + collidingConfig2.getString("firstBatchStartTime");
-            String endTimeStr = LocalDate.now().format(DateTimeFormatter.ofPattern(DatePattern.NORM_DATE_PATTERN)) + " " + collidingConfig2.getString("firstBatchEndTime");
+            String startTimeStr = LocalDate.now().format(DateTimeFormatter.ofPattern(DatePattern.NORM_DATE_PATTERN)) + " "
+                    + collidingConfig2.getString("firstBatchStartTime");
+            String endTimeStr = LocalDate.now().format(DateTimeFormatter.ofPattern(DatePattern.NORM_DATE_PATTERN)) + " "
+                    + collidingConfig2.getString("firstBatchEndTime");
             DateTime startTime = DateUtil.parse(startTimeStr);
             DateTime endTime = DateUtil.parse(endTimeStr);
 
@@ -156,9 +154,9 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
 
         // 处理非周期锁定的数据
         processRobData(leftLimit, mediaName, token, rateLimiter,
-                retryHttpCode, pushPool, futures, 2, packageIds);
+                retryHttpCode, pushPool, 2, packageIds);
         processRobData(leftLimit, mediaName, token, rateLimiter,
-                retryHttpCode, pushPool, futures, 3, packageIds);
+                retryHttpCode, pushPool, 3, packageIds);
         updateLocalFiles(packageIds);
         pushPool.shutdownAndAwaitTermination();
     }
@@ -180,18 +178,20 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
     }
 
     private void processRobData(int leftLimit, String mediaName, String token, RateLimiter rateLimiter,
-                                List<String> retryHttpCode, TpDynamicExecutor pushPool, List<CompletableFuture<Void>> futures,
+                                List<String> retryHttpCode, TpDynamicExecutor pushPool,
                                 int priority, Set<Long> packageIds) {
         // 处理非周期锁定的数据
         List<CompletableFuture<Void>> futures3 = new ArrayList<>();
         while (true) {
             JSONObject collidingConfig2 = marketingCommonConfig.getDiDiV5Config();
-            boolean collidingSwitch = collidingConfig2.getBoolean("collidingSwitch") != null ? collidingConfig2.getBoolean("collidingSwitch") : false;
+            boolean collidingSwitch = collidingConfig2.getBoolean("collidingSwitch");
             if (collidingSwitch) {
                 break;
             }
-            String startTimeStr = LocalDate.now().format(DateTimeFormatter.ofPattern(DatePattern.NORM_DATE_PATTERN)) + " " + collidingConfig2.getString("firstBatchStartTime");
-            String endTimeStr = LocalDate.now().format(DateTimeFormatter.ofPattern(DatePattern.NORM_DATE_PATTERN)) + " " + collidingConfig2.getString("firstBatchEndTime");
+            String startTimeStr = LocalDate.now().format(DateTimeFormatter.ofPattern(DatePattern.NORM_DATE_PATTERN)) + " "
+                    + collidingConfig2.getString("firstBatchStartTime");
+            String endTimeStr = LocalDate.now().format(DateTimeFormatter.ofPattern(DatePattern.NORM_DATE_PATTERN)) + " "
+                    + collidingConfig2.getString("firstBatchEndTime");
             DateTime startTime = DateUtil.parse(startTimeStr);
             DateTime endTime = DateUtil.parse(endTimeStr);
 
@@ -258,9 +258,8 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
             // 尝试获取令牌
             boolean acquired = false;
             int retryCount = 0;
-            final int maxRetries = 3;
-            final long retryIntervalMs = 100;
-
+            long retryIntervalMs = 100;
+            int maxRetries = 3;
             while (!acquired && retryCount < maxRetries) {
                 acquired = rateLimiter.tryAcquire(1, 500, TimeUnit.MILLISECONDS);
                 if (!acquired) {
@@ -306,8 +305,8 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
             // 尝试获取令牌
             boolean acquired = false;
             int retryCount = 0;
-            final int maxRetries = 3;
-            final long retryIntervalMs = 100;
+            int maxRetries = 3;
+            long retryIntervalMs = 100;
 
             while (!acquired && retryCount < maxRetries) {
                 acquired = rateLimiter.tryAcquire(1, 500, TimeUnit.MILLISECONDS);
@@ -370,19 +369,17 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
             mqJson.put("diDiV5CollidingResultResponseDTO", diDiV5CollidingResultResponseDTO);
 
             data.setUpdateTime(new Date());
-            if ("false".equalsIgnoreCase(diDiV5CollidingDataLog.getResult())) {
-                if ("1".equalsIgnoreCase(diDiV5CollidingDataLog.getFailReason())) {
-                    JSONObject collidingConfig = marketingCommonConfig.getDiDiV5Config();
-                    Long retrieveFileId = collidingConfig.getLong("retrieveFileId");
+            if ("false".equalsIgnoreCase(diDiV5CollidingDataLog.getResult()) && "1".equalsIgnoreCase(diDiV5CollidingDataLog.getFailReason())) {
+                JSONObject collidingConfig = marketingCommonConfig.getDiDiV5Config();
+                Long retrieveFileId = collidingConfig.getLong("retrieveFileId");
 
-                    DiDiDataLoopCycle diDiDataLoopCycle = new DiDiDataLoopCycle();
-                    BeanUtils.copyProperties(data, diDiDataLoopCycle);
-                    diDiDataLoopCycle.setSourceType("F");
-                    diDiDataLoopCycle.setLockType(2);
-                    diDiDataLoopCycle.setPackageId(retrieveFileId.toString());
-                    diDiDataLoopCycle.setCollidingTime(new Date(Long.parseLong(diDiV5CollidingDataLog.getNextTime())));
-                    diDiV5DataLoopCycleMapper.insertSelective(diDiDataLoopCycle);
-                }
+                DiDiDataLoopCycle diDiDataLoopCycle = new DiDiDataLoopCycle();
+                BeanUtils.copyProperties(data, diDiDataLoopCycle);
+                diDiDataLoopCycle.setSourceType("F");
+                diDiDataLoopCycle.setLockType(2);
+                diDiDataLoopCycle.setPackageId(retrieveFileId.toString());
+                diDiDataLoopCycle.setCollidingTime(new Date(Long.parseLong(diDiV5CollidingDataLog.getNextTime())));
+                diDiV5DataLoopCycleMapper.insertSelective(diDiDataLoopCycle);
             }
             data.setPushTime(new Date());
             diDiV5CollidingDataRobMapper.updateByPrimaryKey(data);
@@ -416,14 +413,12 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
 
             data.setUpdateTime(new Date());
             data.setPushTime(new Date());
-            if ("false".equalsIgnoreCase(diDiV5CollidingDataLog.getResult())) {
-                if ("1".equalsIgnoreCase(diDiV5CollidingDataLog.getFailReason())) {
-                    JSONObject collidingConfig = marketingCommonConfig.getDiDiV5Config();
-                    Long retrieveFileId = collidingConfig.getLong("retrieveFileId");
-                    data.setLockType(2);
-                    data.setPackageId(retrieveFileId.toString());
-                    data.setCollidingTime(new Date(Long.parseLong(diDiV5CollidingDataLog.getNextTime())));
-                }
+            if ("false".equalsIgnoreCase(diDiV5CollidingDataLog.getResult()) && "1".equalsIgnoreCase(diDiV5CollidingDataLog.getFailReason())) {
+                JSONObject collidingConfig = marketingCommonConfig.getDiDiV5Config();
+                Long retrieveFileId = collidingConfig.getLong("retrieveFileId");
+                data.setLockType(2);
+                data.setPackageId(retrieveFileId.toString());
+                data.setCollidingTime(new Date(Long.parseLong(diDiV5CollidingDataLog.getNextTime())));
             }
             diDiV5DataLoopCycleMapper.updateByPrimaryKey(data);
         }
