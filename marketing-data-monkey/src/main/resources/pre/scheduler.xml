@@ -831,7 +831,7 @@
 
     <job:simple id="【monkey】-TaikangDingDingTransferJob"
                 class="com.br.marketing.monkey.job.taikang.TaikangDingDingTransferJob"
-                cron="0 0/30 * * * ?"
+                cron="0 0/37 * * * ?"
                 description="泰康大健康线索钉钉数据回传"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
