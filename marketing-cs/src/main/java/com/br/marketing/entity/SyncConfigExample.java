@@ -1884,6 +1884,76 @@ public class SyncConfigExample {
             addCriterion("execute_time not between", value1, value2, "executeTime");
             return (Criteria) this;
         }
+
+        public Criteria andSyncStartTimeIsNull() {
+            addCriterion("sync_start_time is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStartTimeIsNotNull() {
+            addCriterion("sync_start_time is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStartTimeEqualTo(String value) {
+            addCriterion("sync_start_time =", value, "syncStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStartTimeNotEqualTo(String value) {
+            addCriterion("sync_start_time <>", value, "syncStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStartTimeGreaterThan(String value) {
+            addCriterion("sync_start_time >", value, "syncStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStartTimeGreaterThanOrEqualTo(String value) {
+            addCriterion("sync_start_time >=", value, "syncStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStartTimeLessThan(String value) {
+            addCriterion("sync_start_time <", value, "syncStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStartTimeLessThanOrEqualTo(String value) {
+            addCriterion("sync_start_time <=", value, "syncStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStartTimeLike(String value) {
+            addCriterion("sync_start_time like", value, "syncStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStartTimeNotLike(String value) {
+            addCriterion("sync_start_time not like", value, "syncStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStartTimeIn(List<String> values) {
+            addCriterion("sync_start_time in", values, "syncStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStartTimeNotIn(List<String> values) {
+            addCriterion("sync_start_time not in", values, "syncStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStartTimeBetween(String value1, String value2) {
+            addCriterion("sync_start_time between", value1, value2, "syncStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStartTimeNotBetween(String value1, String value2) {
+            addCriterion("sync_start_time not between", value1, value2, "syncStartTime");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

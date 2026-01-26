@@ -51,6 +51,10 @@ public class CopyFileJoinAspect {
     public void downloadFileToLocalDisk() {
     }
 
+    @Pointcut("execution(public Boolean com.br.marketing.sync.service.impl.SyncServiceImpl.sftpFileUploadToMiNio(..))")
+    public void sftpFileUploadToMiNio() {
+    }
+
     @Around("com.br.marketing.sync.aspect.CopyFileJoinAspect.copyFile()")
     public void copyFile(ProceedingJoinPoint joinPoint) {
         Object[] args = joinPoint.getArgs();
@@ -131,6 +135,37 @@ public class CopyFileJoinAspect {
         return proceed;
     }
 
+    @Around("sftpFileUploadToMiNio()")
+    public Object uploadToMiNio(ProceedingJoinPoint joinPoint) {
+        Object[] args = joinPoint.getArgs();
+        SyncConfig loanSyncConfig = null;
+        String fileName = "";
+        BaseFtpClient srcClient = null;
+        for (int i = 0; i < args.length; i++) {
+            if (0 == i) {
+                loanSyncConfig = (SyncConfig) args[i];
+            } else if (1 == i) {
+                fileName = (String) args[i];
+            } else if (2 == i) {
+                srcClient = (BaseFtpClient) args[i];
+            } else {
+                break;
+            }
+        }
+        if (srcClient == null || loanSyncConfig == null) {
+            log.warn("Upload To MiNio srcClient or loanSyncConfig is null");
+            return Boolean.FALSE;
+        }
+        Object proceed = Boolean.FALSE;
+        SyncLog loanSyncLog = setSyncLog(loanSyncConfig, fileName, srcClient);
+        try {
+            proceed = joinPoint.proceed(args);
+            insertSyncLog(loanSyncConfig, fileName, (Boolean) proceed, loanSyncLog);
+        } catch (Throwable throwable) {
+            log.error("upload To MiNio error", throwable);
+        }
+        return proceed;
+    }
 
     /**
      * 回传给客户的结果文件，同步完成之后需要更新stra_his_file表中的status字段

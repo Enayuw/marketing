@@ -10,7 +10,7 @@
 	</select>
 	<select id="queryConfigByTypeAndTargetType" resultType="com.br.marketing.entity.SyncConfig">
 		select * from b_sync_config where status=1 and type=#{type}
-		<if test="targetTypes != null">
+		<if test="targetTypes != null and targetTypes.size()>0">
 			and target_type in
 			<foreach collection="targetTypes" item="targetType" separator="," close=")" open="(">
 				'${targetType}'

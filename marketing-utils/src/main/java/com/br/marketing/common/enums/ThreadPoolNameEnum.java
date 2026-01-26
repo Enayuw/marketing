@@ -69,6 +69,8 @@ public enum ThreadPoolNameEnum {
     SYJ_BLACK_DEAL(51,"syj_black","随忆记黑名单"),
     DIDI_V5_COLLIDING(52,"didi_v5_colliding","滴滴v5撞库"),
     DIDI_V5_CALLBACK(53,"didi_v5_callback","滴滴v5数据回推"),
+
+    FILE_SYNC_DOWNLOAD(54,"file_sync_download","文件同步下载任务"),
     ;
 
     private final Integer order;
