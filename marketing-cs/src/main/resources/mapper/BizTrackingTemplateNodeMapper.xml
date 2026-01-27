@@ -1,4 +1,37 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.BizTrackingTemplateNodeMapper" >
+<mapper namespace="com.br.marketing.mapper.BizTrackingTemplateNodeMapper">
+
+    <!-- 批量插入 -->
+    <insert id="batchInsert">
+        INSERT INTO biz_tracking_template_node (template_id, node_dict_id, node_name, create_time, update_time)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.templateId,jdbcType=BIGINT}, #{item.nodeDictId,jdbcType=BIGINT}, #{item.nodeName,jdbcType=VARCHAR},
+             #{item.createTime,jdbcType=TIMESTAMP}, #{item.updateTime,jdbcType=TIMESTAMP})
+        </foreach>
+    </insert>
+
+    <!-- 根据模板ID查询节点详情（包含字典信息） -->
+    <select id="selectNodeDetailsByTemplateId" resultType="com.br.marketing.dto.datamap.template.TemplateNodeDetailVO">
+        SELECT
+            tn.id,
+            tn.template_id AS templateId,
+            tn.node_dict_id AS nodeDictId,
+            tn.node_name AS nodeName,
+            nd.node_code AS nodeCode,
+            nd.node_type AS nodeType,
+            tn.create_time AS createTime,
+            tn.update_time AS updateTime
+        FROM biz_tracking_template_node tn
+        LEFT JOIN biz_tracking_node_dict nd ON tn.node_dict_id = nd.id
+        WHERE tn.template_id = #{templateId,jdbcType=BIGINT}
+        ORDER BY tn.id ASC
+    </select>
+
+    <!-- 根据模板ID删除节点 -->
+    <delete id="deleteByTemplateId">
+        DELETE FROM biz_tracking_template_node WHERE template_id = #{templateId,jdbcType=BIGINT}
+    </delete>
+
 </mapper>
