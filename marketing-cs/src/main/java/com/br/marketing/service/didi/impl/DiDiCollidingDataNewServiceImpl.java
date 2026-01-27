@@ -294,6 +294,9 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
             }
             pushCycleDataToMq(data, httpcode, content);
         } catch (Exception e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(),
                     "该手机号撞库异常：" + data.getCell() + "id:" + data.getId()), e);
         }
@@ -342,6 +345,9 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
             }
             pushRobDataToMq(data, httpcode, content);
         } catch (Exception e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(),
                     "该手机号撞库异常：" + data.getCell() + "id:" + data.getId()), e);
         }
