@@ -125,4 +125,47 @@ public class TaikangMarketingEvent {
      * 说明: 字符串
      */
     private String applicantAge;
+
+    /**
+     * 线索id
+     * 是否必传: 否
+     * 说明: 字符串
+     */
+    private String clueId;
+
+    /**
+     * 微信unionId
+     * 是否必传: 否
+     * 说明: 字符串
+     */
+    private String unionId;
+
+    /**
+     * ⽹电坐席id
+     * 是否必传: 否
+     * 说明: 字符串
+     */
+    private String seatId;
+
+
+    /**
+     * 流水号
+     * 是否必传: 否
+     * 说明: 字符串
+     */
+    private String flowNo;
+
+    /**
+     * 是否加微成功
+     * 是否必传: 否
+     * 说明: 字符串
+     */
+     private String addWeChat;
+
+    /**
+     * 备注
+     * 是否必传: 否
+     * 说明: 字符串
+     */
+    private String remark;
 }

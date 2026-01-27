@@ -3,11 +3,15 @@ package com.br.marketing.mapper;
 import com.br.marketing.entity.DiDiV5CollidingData;
 import java.util.Date;
 import java.util.List;
+
+import com.br.marketing.entity.WubaCollidingDataFront;
 import org.apache.ibatis.annotations.Param;
 
 public interface DiDiV5CollidingDataMapper extends DiDiV5CollidingDataMapperBase {
     List<DiDiV5CollidingData> queryCollidingData(@Param("limit") int limit, @Param("startTime") Date startTime, @Param("endTime") Date endTime);
 
+    void batchUpdatePushStatusByCell(@Param("list") List<DiDiV5CollidingData> diDiV5CollidingData,
+                                     @Param("localId") Long localId, @Param("apiCode") String apiCode);
     /**
      * 分片查询撞库数据
      *
@@ -30,4 +34,7 @@ public interface DiDiV5CollidingDataMapper extends DiDiV5CollidingDataMapperBase
 
     int getPushStatusCountByLocalId(@Param("fileId") Long fileId, @Param("pushStatus") int pushStatus, @Param("startTime") Date startTime, @Param(
             "endTime") Date endTime);
+
+    List<DiDiV5CollidingData> selectNoDupDataByLocalIdtikv_(@Param("localId") Long localId, @Param("apiCode") String apiCode,
+                                                               @Param("minId") Long minId, @Param("pageSize") Integer pageSize);
 }

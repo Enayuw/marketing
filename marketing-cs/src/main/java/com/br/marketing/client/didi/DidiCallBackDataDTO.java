@@ -50,6 +50,11 @@ public class DidiCallBackDataDTO extends InterfaceParams {
     private String createDate;
 
     /**
+     * 推送类型
+     */
+    private Integer pushType;
+
+    /**
      * 1-代表TRUE，0-代表FALSE
      */
     private Boolean result;

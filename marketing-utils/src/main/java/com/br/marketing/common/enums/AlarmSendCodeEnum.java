@@ -82,6 +82,9 @@ public enum AlarmSendCodeEnum {
 
     MARKETING_ERROR("90000", "服务开关未关闭"),
 
+    FILE_DOWNLOAD_SYNC_ERROR("77000", "文件下载同步异常"),
+
+
     //中台业务未知错误,立即推送
     YINGXIAO_SERVICEERROR("6000000", "中台业务未知错误"),
 
@@ -373,6 +376,7 @@ public enum AlarmSendCodeEnum {
 
     ZHONGYUAN_XIAOJIN_SERVICEERROR("8001006", "中原消金业务异常"),
 
+    CALLBACK_LARGE_MODEL("7100001", "大模型回调业务异常"),
 
     ;
 

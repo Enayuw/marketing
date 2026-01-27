@@ -70,7 +70,11 @@ public enum ThreadPoolNameEnum {
     DIDI_V5_COLLIDING(52,"didi_v5_colliding","滴滴v5撞库"),
     DIDI_V5_CALLBACK(53,"didi_v5_callback","滴滴v5数据回推"),
 
-    TAIKANG_DINGDING_TRANSFER(54,"taikang_dingding_transfer", "泰康滴滴线索数据回传"),
+    FILE_SYNC_DOWNLOAD(54,"file_sync_download","文件同步下载任务"),
+    DIDI_V5_CONSTRUCT(55,"didi_v5_callback","滴滴v5数据构造"),
+    DIDI_V5_FILTER(56,"didi_v5_filter","滴滴v5数据剔除"),
+
+    TAIKANG_DINGDING_TRANSFER(64,"taikang_dingding_transfer", "泰康滴滴线索数据回传"),
 
     ;
 

@@ -8,6 +8,7 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.FileSyncTask;
 import com.br.marketing.entity.FileSyncTaskExample;
 import com.br.marketing.enums.clean.DataProcessEnum;
+import com.br.marketing.enums.sync.SyncConfigTypeEnum;
 import com.br.marketing.mapper.FileSyncTaskMapper;
 import com.br.marketing.sync.service.FileUploadDownloadService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -51,7 +52,7 @@ public class FileUploadTaskJob extends AbstractSimpleElasticJob {
             apiCode = parameter;
         }
         //处理文件同步
-        fileUploadDownloadService.processFileSync(2);
+        fileUploadDownloadService.processFileSync(Integer.parseInt(SyncConfigTypeEnum.UPLOAD_SYNC_TYPE.getCode()));
         try {
             // 获取多个待上传的任务
             List<FileSyncTask> uploadTasks = getUploadFileTasks(apiCode);

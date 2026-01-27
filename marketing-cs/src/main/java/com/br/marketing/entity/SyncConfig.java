@@ -138,6 +138,11 @@ public class SyncConfig {
      */
     private String executeTime;
 
+    /**
+     * 同步开始时间，只同步该时间之后的文件
+     */
+    private String syncStartTime;
+
     public Long getId() {
         return id;
     }
@@ -352,5 +357,13 @@ public class SyncConfig {
 
     public void setExecuteTime(String executeTime) {
         this.executeTime = executeTime == null ? null : executeTime.trim();
+    }
+
+    public String getSyncStartTime() {
+        return syncStartTime;
+    }
+
+    public void setSyncStartTime(String syncStartTime) {
+        this.syncStartTime = syncStartTime == null ? null : syncStartTime.trim();
     }
 }

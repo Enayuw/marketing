@@ -31,4 +31,27 @@
         ORDER BY id ASC
             LIMIT #{pageSize}
     </select>
+
+    <select id="checkCellBatch" resultType="java.lang.String">
+        SELECT distinct(cell)
+        FROM b_didi_v5_colliding_data_log
+        Where cell in
+        <foreach collection="cellList" item="cell" open="(" separator="," close=")">
+            #{cell}
+        </foreach>
+        AND fail_reason in (2,3)
+    </select>
+
+    <select id="checkCellBatchFailMsgs" resultType="java.lang.String">
+        SELECT distinct(cell)
+        FROM b_didi_v5_colliding_data_log
+        Where cell in
+        <foreach collection="cellList" item="cell" open="(" separator="," close=")">
+            #{cell}
+        </foreach>
+        AND fail_reason in
+        <foreach collection="failMsgs" item="failMsg" open="(" separator="," close=")">
+            #{failMsg}
+        </foreach>
+    </select>
 </mapper>
