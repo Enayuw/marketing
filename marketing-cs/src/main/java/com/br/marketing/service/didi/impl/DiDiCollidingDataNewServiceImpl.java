@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Service
@@ -75,7 +76,8 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
 
         String mediaName = collidingConfig.getString("mediaName") != null ? collidingConfig.getString("mediaName") : "bairongC";
         String token = collidingConfig.getString("token") != null ? collidingConfig.getString("token") : "9Hqeoi36CJfdA7n4";
-        int leftLimit = collidingConfig.getInteger("collidingLimit") != null ? collidingConfig.getInteger("collidingLimit") : 3000000;
+        AtomicInteger leftLimit = new AtomicInteger(collidingConfig.getInteger("collidingLimit") != null ?
+                collidingConfig.getInteger("collidingLimit") : 3000000);
 
         DiDiDataLoopCycleExample example = new DiDiDataLoopCycleExample();
         example.createCriteria().andApiCodeEqualTo(collidingConfig.getString("apiCode"))
@@ -87,10 +89,11 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
                 .andPushTimeBetween(DateUtil.beginOfDay(new Date()), new Date()).andIsDeleteEqualTo(0);
         int robCount = diDiV5CollidingDataRobMapper.countByExample(robExample);
 
-        if(cycleCount + robCount >= leftLimit) {
+        if(cycleCount + robCount >= leftLimit.get()) {
             log.warn("滴滴短信流量数据撞库任务停止执行，已超过限制");
             return;
         }
+        leftLimit.addAndGet(-cycleCount - robCount);
 
         List<String> retryHttpCode = collidingConfig.getJSONArray("retryHttpCode").toJavaList(String.class);
         Set<Long> packageIds = Sets.newHashSet();
@@ -122,12 +125,12 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
             if (DateUtil.compare(new Date(), endTime) >= 0 || DateUtil.compare(new Date(), startTime) < 0) {
                 break;
             }
-            if (leftLimit <= 0) {
+            if (leftLimit.get() <= 0) {
                 break;
             }
 
             int limit = collidingConfig2.getInteger("limit") != null ? collidingConfig2.getInteger("limit") : 2000;
-            int actualLimit = Math.min(leftLimit, limit);
+            int actualLimit = Math.min(leftLimit.get(), limit);
 
             List<DiDiDataLoopCycle> dataList = diDiV5DataLoopCycleMapper.queryCollidingDataBySharding(
                     actualLimit, DateUtil.beginOfDay(new Date()), new Date());
@@ -136,7 +139,7 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
                 break;
             }
             packageIds.addAll(dataList.stream().map(DiDiDataLoopCycle::getPackageId).map(Long::parseLong).collect(Collectors.toSet()));
-            leftLimit -= dataList.size();
+            leftLimit.addAndGet(-dataList.size());
 
             markAsPushing(dataList);
             dataList.forEach(data -> {
@@ -146,7 +149,7 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
                 );
                 futures.add(future);
             });
-            if (leftLimit <= 0) {
+            if (leftLimit.get() <= 0) {
                 break;
             }
         }
@@ -177,7 +180,7 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
         }
     }
 
-    private void processRobData(int leftLimit, String mediaName, String token, RateLimiter rateLimiter,
+    private void processRobData(AtomicInteger leftLimit, String mediaName, String token, RateLimiter rateLimiter,
                                 List<String> retryHttpCode, TpDynamicExecutor pushPool,
                                 int priority, Set<Long> packageIds) {
         // 处理非周期锁定的数据
@@ -198,11 +201,11 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
             if (DateUtil.compare(new Date(), endTime) >= 0 || DateUtil.compare(new Date(), startTime) < 0) {
                 break;
             }
-            if (leftLimit <= 0) {
+            if (leftLimit.get() <= 0) {
                 break;
             }
             int limit = collidingConfig2.getInteger("limit") != null ? collidingConfig2.getInteger("limit") : 2000;
-            int actualLimit = Math.min(leftLimit, limit);
+            int actualLimit = Math.min(leftLimit.get(), limit);
             List<DiDiCollidingDataRob> dataList;
             if (priority == 2) {
                 dataList = diDiV5CollidingDataRobMapper.queryCollidingDataBySharding(
@@ -217,7 +220,7 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
             }
             packageIds.addAll(dataList.stream().map(DiDiCollidingDataRob::getPackageId).collect(Collectors.toSet()));
 
-            leftLimit -= dataList.size();
+            leftLimit.addAndGet(-dataList.size());
 
             markRobAsPushing(dataList);
             dataList.forEach(data -> {
@@ -227,7 +230,7 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
                 );
                 futures3.add(future);
             });
-            if (leftLimit <= 0) {
+            if (leftLimit.get() <= 0) {
                 break;
             }
         }
