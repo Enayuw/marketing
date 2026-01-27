@@ -265,7 +265,7 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
                 if (!acquired) {
                     retryCount++;
                     if (retryCount < maxRetries) {
-                        log.debug("请求被限流，进行第{}/{}次重试，手机号: {}", retryCount, maxRetries, data.getCell());
+                        log.warn("请求被限流，进行第{}/{}次重试，手机号: {}", retryCount, maxRetries, data.getCell());
                         try {
                             Thread.sleep(retryIntervalMs);
                         } catch (InterruptedException e) {
