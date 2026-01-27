@@ -347,7 +347,7 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
         }
     }
 
-    private void pushRobDataToMq(DiDiCollidingDataRob data, String httpcode, String content) throws ParseException {
+    private void pushRobDataToMq(DiDiCollidingDataRob data, String httpcode, String content) {
         log.warn("滴滴V5推送撞库日志消息content:{}", content);
         JSONObject mqJson = new JSONObject();
         DiDiV5CollidingDataLog diDiV5CollidingDataLog = new DiDiV5CollidingDataLog();
@@ -390,7 +390,7 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
                 mqJson.toJSONString());
     }
 
-    private void pushCycleDataToMq(DiDiDataLoopCycle data, String httpcode, String content) throws ParseException {
+    private void pushCycleDataToMq(DiDiDataLoopCycle data, String httpcode, String content) {
         log.warn("滴滴V5推送撞库日志消息content:{}", content);
         JSONObject mqJson = new JSONObject();
         DiDiV5CollidingDataLog diDiV5CollidingDataLog = new DiDiV5CollidingDataLog();
