@@ -504,11 +504,9 @@ public class AutoCheckServiceImpl implements AutoCheckService {
                     String time = row.getCompareTime().trim();
                     detail.setTime(time);
 
-                    // earliestTime（compare_time 通常为 yyyy-MM-dd HH:mm:ss，字典序=时间序）
-                    if (StringUtils.isNotBlank(time)) {
-                        if (oldestTime == null || time.compareTo(oldestTime) > 0) {
-                            oldestTime = time;
-                        }
+                    // oldestTime（compare_time 通常为 yyyy-MM-dd HH:mm:ss，字典序=时间序）
+                    if (StringUtils.isNotBlank(time) && (oldestTime == null || time.compareTo(oldestTime) > 0)) {
+                        oldestTime = time;
                     }
                     // 聚合 compareResult：非“一致”都视为不一致（兼容后续新增结果值）
                     if (!COMPARE_RESULT_SAME.equals(detail.getCompareResult())) {
