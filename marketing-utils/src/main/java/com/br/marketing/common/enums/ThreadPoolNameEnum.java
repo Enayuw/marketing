@@ -63,12 +63,16 @@ public enum ThreadPoolNameEnum {
     HALO_CALLBACK_DATA_3710217(40,"halo_callback_data_3710217","哈啰营销数据回传"),
     XIECHENG_CYCLE_DELETE_EST(41,"xiecheng_cycle_delete_est", "携程周期剔除量级预估"),
 
+    XIECHENG_BLACK_DELETE(42,"xiecheng_cycle_delete", "携程黑名单剔除量级"),
+
     SYJ_ORIGINAL_DEAL(50,"syj_original","随忆记用户撞库"),
     SYJ_BLACK_DEAL(51,"syj_black","随忆记黑名单"),
     DIDI_V5_COLLIDING(52,"didi_v5_colliding","滴滴v5撞库"),
     DIDI_V5_CALLBACK(53,"didi_v5_callback","滴滴v5数据回推"),
-    DIDI_V5_CONSTRUCT(54,"didi_v5_callback","滴滴v5数据构造"),
-    DIDI_V5_FILTER(55,"didi_v5_filter","滴滴v5数据剔除"),
+
+    FILE_SYNC_DOWNLOAD(54,"file_sync_download","文件同步下载任务"),
+    DIDI_V5_CONSTRUCT(55,"didi_v5_callback","滴滴v5数据构造"),
+    DIDI_V5_FILTER(56,"didi_v5_filter","滴滴v5数据剔除"),
     ;
 
     private final Integer order;

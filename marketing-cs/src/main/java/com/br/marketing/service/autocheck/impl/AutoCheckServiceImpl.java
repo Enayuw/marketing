@@ -109,9 +109,10 @@ public class AutoCheckServiceImpl implements AutoCheckService {
                 .collect(Collectors.toMap(AutoCheckConfig::getApiCode, e -> e));
 
         // 组装AutoConfigVO
-        for (String apiCode : configMapByApiCode.keySet()) {
+        for (Map.Entry<String, AutoCheckConfig> entry : configMapByApiCode.entrySet()) {
+            String apiCode = entry.getKey();
+            AutoCheckConfig apiConfig = entry.getValue();
             AutoCheckConfigVO vo = new AutoCheckConfigVO();
-            AutoCheckConfig apiConfig = configMapByApiCode.get(apiCode);
             vo.setId(apiConfig.getId());
             vo.setApiCode(apiCode);
             vo.setName(Optional.ofNullable(apiCodeInfoMap.get(apiCode)).map(MarketingCustomerVO::getName).orElse(""));

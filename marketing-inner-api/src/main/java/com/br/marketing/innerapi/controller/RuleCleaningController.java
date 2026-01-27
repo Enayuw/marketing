@@ -246,4 +246,14 @@ public class RuleCleaningController {
         return new ApiResult<Boolean>().success(result);
     }
 
+    @GetMapping("/generateAviatorScriptRule")
+    @Operation(summary = "生成Aviator脚本规则", description = "生成Aviator脚本规则")
+    @Parameters({
+            @Parameter(name = "question", description = "问题内容", required = true)
+    })
+    public ApiResult<String> generateAviatorScriptRule(@RequestParam("question") String question) {
+        String result = ruleCleaningService.generateAviatorScriptRule(question);
+        return new ApiResult<String>().success().setData(result);
+    }
+
 }

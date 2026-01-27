@@ -8,8 +8,7 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
-import com.br.marketing.entity.MarketingTcyrCustCellMapping;
-import com.br.marketing.mapper.MarketingTcyrCustCellMappingMapper;
+import com.br.marketing.service.tccpa.TcCpaCustCellMappingService;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import org.apache.commons.collections4.ListUtils;
@@ -55,16 +54,13 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
     private MarketingTcyrSyncRecordMapper tcyrSyncRecordMapper;
 
     @Resource
-    private MarketingTcyrCustCellMappingMapper custCellMappingMapper;
-
-    @Resource
     private MarketingTcyrSyncMapper tcyrSyncMapper;
-
-    @Resource
-    private MarketingTcyrCustCellMappingMapper tcyrCustCellMappingMapper;
 
     @Autowired
     private RedisChgService redisChgService;
+
+    @Resource
+    private TcCpaCustCellMappingService tcCpaCustCellMappingService;
 
     @Override
     public void shardProcess(String apiCode) {
@@ -181,35 +177,9 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
                     } else if (data.length >= 2) {
                         String userKey = data[0].trim();
                         sqlBuilder.append(",'").append(escapeSqlString(userKey)).append("','").append(escapeSqlString(data[1].trim())).append("'");
-                        //cell is_match
-                        String cell = tcyrSyncRecordMapper.selectSingleLastCustNumCelltikv_(apiCode, userKey);
+                        String cell = tcCpaCustCellMappingService.selectCell(userKey);
                         if (StringUtils.isNotBlank(cell)) {
                             sqlBuilder.append(",'").append(escapeSqlString(cell)).append("',1");
-                            if (isLong(userKey)) {
-                                Long userKeyId = Long.parseLong(userKey);
-                                MarketingTcyrCustCellMapping existCustCell = custCellMappingMapper.selectByPrimaryKey(userKeyId);
-                                if (existCustCell == null) {
-                                    custCellMappingMapper.saveNewCustCellInfo(userKeyId, cell);
-                                }else{
-                                    MarketingTcyrCustCellMapping tcyrCustCellMapping = new MarketingTcyrCustCellMapping();
-                                    tcyrCustCellMapping.setId(userKeyId);
-                                    tcyrCustCellMapping.setCell(cell);
-                                    tcyrCustCellMapping.setUpdateTime(new Date());
-                                    custCellMappingMapper.updateByPrimaryKeySelective(tcyrCustCellMapping);
-                                }
-                            }else {
-                                //TODO 07-27 userKey是String类型时,中间表数据保存id->预用雪花算法id(雪花算法id功能未上线)
-                                cell = tcyrCustCellMappingMapper.selectStrUserKeyCellBytikv_(userKey);
-                                if (StringUtils.isEmpty(cell)) {
-                                    try {
-                                        custCellMappingMapper.saveStrCustCellInfo(userKey,cell);
-                                    }catch (Exception e) {
-                                        log.error(AlertLog.buildWarnMessage(
-                                                AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
-                                                "String类型userKey保存异常"+e.getMessage(), TITLE), e);
-                                    }
-                                }
-                            }
                         } else {
                             sqlBuilder.append(",NULL,0");
                         }
@@ -255,15 +225,6 @@ public class TcSyncDataDbDealServiceImpl implements TcSyncDataDbDealService {
             return "";
         }
         return str.replace("'", "''").replace("\\", "\\\\");
-    }
-
-    private Boolean isLong(String userKey) {
-        try {
-            Long.parseLong(userKey);
-            return true;
-        }catch (Exception e) {
-            return false;
-        }
     }
 
     /**
