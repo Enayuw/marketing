@@ -73,6 +73,16 @@ public class DidiCallBackData {
      */
     private String extend;
 
+    /**
+     * 推送类型，1-通话成功，2-短信成功，3-构造通话成功，4-构造短信成功
+     */
+    private Integer pushType;
+
+    /**
+     * 数据构造时间
+     */
+    private Date constructTime;
+
     public Long getId() {
         return id;
     }
@@ -183,5 +193,21 @@ public class DidiCallBackData {
 
     public void setExtend(String extend) {
         this.extend = extend == null ? null : extend.trim();
+    }
+
+    public Integer getPushType() {
+        return pushType;
+    }
+
+    public void setPushType(Integer pushType) {
+        this.pushType = pushType;
+    }
+
+    public Date getConstructTime() {
+        return constructTime;
+    }
+
+    public void setConstructTime(Date constructTime) {
+        this.constructTime = constructTime;
     }
 }
