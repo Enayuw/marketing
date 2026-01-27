@@ -263,7 +263,11 @@ public class MarketingTaikangDingDingTransferServiceImpl implements MarketingTai
         }
     }
 
-
+    /**
+     * 获取当前时间对应的30分钟节点时间
+     * 目前时间2026-01-27 21:07:00(查询上个30分钟时间周期)
+     * 查询 2026-01-27 20:30:00 <= created_time  and created_time < 2026-01-27 21:00:00
+     */
     private String getAlignedTime(LocalDateTime dateTime) {
         return dateTime.withMinute((dateTime.getMinute() / 30) * 30)
                 .withSecond(0)
