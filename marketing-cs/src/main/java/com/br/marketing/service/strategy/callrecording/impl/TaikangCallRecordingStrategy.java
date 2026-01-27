@@ -62,6 +62,7 @@ public class TaikangCallRecordingStrategy implements CallRecordingInsertStrategy
         Map<String, String> taikangConfig = marketingCommonConfig.getTaikangConfig();
         String nameKey = taikangConfig.getOrDefault("nameKey", "et_returnName");
         String cellKey = taikangConfig.getOrDefault("cellKey", "cell");
+        String remarkKey = taikangConfig.getOrDefault("remarkKey", "return_result1");
         String applicantName = Optional.ofNullable(callRecordLLMResultV2.getReserveField1())
                 .map(TaikangCallRecordingStrategy::safeParseToJson)
                 .map((JSONObject reserveJson) -> reserveJson.getString(nameKey))
@@ -69,6 +70,10 @@ public class TaikangCallRecordingStrategy implements CallRecordingInsertStrategy
         String cell = Optional.ofNullable(callRecordLLMResultV2.getReserveField1())
                 .map(TaikangCallRecordingStrategy::safeParseToJson)
                 .map((JSONObject reserveJson) -> reserveJson.getString(cellKey))
+                .orElse(null);
+        String remark = Optional.ofNullable(callRecordLLMResultV2.getReserveField1())
+                .map(TaikangCallRecordingStrategy::safeParseToJson)
+                .map((JSONObject reserveJson) -> reserveJson.getString(remarkKey))
                 .orElse(null);
         if (cell == null) {
             cell = callRecordLLMResultV2.getCustNum();
@@ -84,6 +89,7 @@ public class TaikangCallRecordingStrategy implements CallRecordingInsertStrategy
             taikangMarketingEvent.setApplicantPhone(applicantPhone);
             taikangMarketingEvent.setBrowseDate(browseDate);
             taikangMarketingEvent.setApplicantName(applicantName);
+            taikangMarketingEvent.setRemark(remark);
             String response = taikangClient.process(taikangMarketingEvent);
             TaikangTransferDataLog taikangTransferDataLog = new TaikangTransferDataLog();
             taikangTransferDataLog.setCallRecordId(callRecordLLMResultV2.getId());
