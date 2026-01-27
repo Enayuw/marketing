@@ -8,6 +8,7 @@
         from b_marketing_data_clean_general_rule_config rule
         inner join b_marketing_data_clean_general_config config on config.id = rule.clean_config_id
         where config.api_code = #{apiCode}
+        and config.system_type = #{systemType}
         and config.data_type = #{dataType}
         and config.accept_type = #{acceptType}
         <if test="status!= null">

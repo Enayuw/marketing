@@ -40,3 +40,9 @@ endpoints:
     enabled: true
     path: /prometheus
     sensitive: false
+
+# 线程池动态配置监控
+tp:
+  dynamic:
+    metric:
+      enabled: true

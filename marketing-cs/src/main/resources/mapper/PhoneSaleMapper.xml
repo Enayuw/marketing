@@ -99,4 +99,14 @@
         order by id asc limit 1000;
     </select>
 
+    <select id="getSpecialDataAll" resultType="com.br.marketing.client.dassservice.input.DassImportDataDTO">
+        select
+        *
+        from b_phone_sale
+        where local_id = #{localId}
+        and status = 1 
+        and phone = #{phone}
+        order by create_time asc;
+    </select>
+
 </mapper>
