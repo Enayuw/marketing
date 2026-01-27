@@ -12,6 +12,9 @@
     <result column="updated_time" property="updatedTime" jdbcType="TIMESTAMP" />
     <result column="graph_json" property="graphJson" jdbcType="VARCHAR" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="template_id" property="templateId" jdbcType="VARCHAR" />
+    <result column="source_type" property="sourceType" jdbcType="VARCHAR" />
+    <result column="match_time" property="matchTime" jdbcType="TIMESTAMP" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -73,7 +76,7 @@
   </sql>
   <sql id="Base_Column_List" >
     id, link_code, link_name, biz_scene, description, `status`, created_time, updated_time, 
-    graph_json, api_code
+    graph_json, api_code, template_id, source_type, match_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.BizTrackingLinkExample" >
     select
@@ -111,11 +114,13 @@
     </selectKey>
     insert into biz_tracking_link (link_code, link_name, biz_scene, 
       description, `status`, created_time, 
-      updated_time, graph_json, api_code
+      updated_time, graph_json, api_code, 
+      template_id, source_type, match_time
       )
     values (#{linkCode,jdbcType=VARCHAR}, #{linkName,jdbcType=VARCHAR}, #{bizScene,jdbcType=VARCHAR}, 
       #{description,jdbcType=VARCHAR}, #{status,jdbcType=TINYINT}, #{createdTime,jdbcType=TIMESTAMP}, 
-      #{updatedTime,jdbcType=TIMESTAMP}, #{graphJson,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}
+      #{updatedTime,jdbcType=TIMESTAMP}, #{graphJson,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, 
+      #{templateId,jdbcType=VARCHAR}, #{sourceType,jdbcType=VARCHAR}, #{matchTime,jdbcType=TIMESTAMP}
       )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.BizTrackingLink" >
@@ -151,6 +156,15 @@
       <if test="apiCode != null" >
         api_code,
       </if>
+      <if test="templateId != null" >
+        template_id,
+      </if>
+      <if test="sourceType != null" >
+        source_type,
+      </if>
+      <if test="matchTime != null" >
+        match_time,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="linkCode != null" >
@@ -179,6 +193,15 @@
       </if>
       <if test="apiCode != null" >
         #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="templateId != null" >
+        #{templateId,jdbcType=VARCHAR},
+      </if>
+      <if test="sourceType != null" >
+        #{sourceType,jdbcType=VARCHAR},
+      </if>
+      <if test="matchTime != null" >
+        #{matchTime,jdbcType=TIMESTAMP},
       </if>
     </trim>
   </insert>
@@ -221,6 +244,15 @@
       <if test="record.apiCode != null" >
         api_code = #{record.apiCode,jdbcType=VARCHAR},
       </if>
+      <if test="record.templateId != null" >
+        template_id = #{record.templateId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.sourceType != null" >
+        source_type = #{record.sourceType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.matchTime != null" >
+        match_time = #{record.matchTime,jdbcType=TIMESTAMP},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -237,7 +269,10 @@
       created_time = #{record.createdTime,jdbcType=TIMESTAMP},
       updated_time = #{record.updatedTime,jdbcType=TIMESTAMP},
       graph_json = #{record.graphJson,jdbcType=VARCHAR},
-      api_code = #{record.apiCode,jdbcType=VARCHAR}
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      template_id = #{record.templateId,jdbcType=VARCHAR},
+      source_type = #{record.sourceType,jdbcType=VARCHAR},
+      match_time = #{record.matchTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -272,6 +307,15 @@
       <if test="apiCode != null" >
         api_code = #{apiCode,jdbcType=VARCHAR},
       </if>
+      <if test="templateId != null" >
+        template_id = #{templateId,jdbcType=VARCHAR},
+      </if>
+      <if test="sourceType != null" >
+        source_type = #{sourceType,jdbcType=VARCHAR},
+      </if>
+      <if test="matchTime != null" >
+        match_time = #{matchTime,jdbcType=TIMESTAMP},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -285,7 +329,10 @@
       created_time = #{createdTime,jdbcType=TIMESTAMP},
       updated_time = #{updatedTime,jdbcType=TIMESTAMP},
       graph_json = #{graphJson,jdbcType=VARCHAR},
-      api_code = #{apiCode,jdbcType=VARCHAR}
+      api_code = #{apiCode,jdbcType=VARCHAR},
+      template_id = #{templateId,jdbcType=VARCHAR},
+      source_type = #{sourceType,jdbcType=VARCHAR},
+      match_time = #{matchTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>
