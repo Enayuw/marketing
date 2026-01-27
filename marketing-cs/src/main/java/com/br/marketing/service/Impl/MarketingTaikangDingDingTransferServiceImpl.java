@@ -183,8 +183,7 @@ public class MarketingTaikangDingDingTransferServiceImpl implements MarketingTai
                     taikangMarketingEvent.setApplicantName(item.getApplicationName());
                 }
                 if (!StringUtils.isEmpty(item.getReturnResult1())) {
-                    //TODO V3代码待合并
-                    //taikangMarketingEvent.setRemark(item.getReturnResult1());
+                    taikangMarketingEvent.setRemark(item.getReturnResult1());
                 }
 
                 // 2.泰康回传数据
