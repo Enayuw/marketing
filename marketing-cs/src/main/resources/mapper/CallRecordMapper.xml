@@ -134,4 +134,30 @@
         set sync_status = #{syncStatus}
         where id = #{id}
     </update>
+
+    <select id="queryTaskNameByUserKey" resultType="java.lang.String">
+        select task_name from b_call_record
+        where api_code = #{apiCode}
+        and case_num = #{userKey}
+        and create_time between #{startDate} and #{endDate}
+        order by create_time desc
+        limit 1
+    </select>
+
+    <select id="queryTaskNameByUserKeyList" resultType="java.util.HashMap">
+        select b.case_num as caseNum, b.task_name as taskName
+        from (
+            select case_num, max(create_time) as create_time
+            from b_call_record
+            where api_code = #{apiCode}
+            and case_num in
+            <foreach collection="userKeyList" item="userKey" open="(" separator="," close=")">
+                #{userKey}
+            </foreach>
+            and create_time between #{startDate} and #{endDate}
+            group by case_num
+        ) as a
+        left join b_call_record b on a.case_num = b.case_num and a.create_time = b.create_time
+        where b.task_name is not null
+    </select>
 </mapper>

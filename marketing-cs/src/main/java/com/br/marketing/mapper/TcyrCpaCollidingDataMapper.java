@@ -14,7 +14,9 @@ public interface TcyrCpaCollidingDataMapper extends TcyrCpaCollidingDataMapperBa
             @Param("pageSize")Integer pageSize,
             @Param("offset")Integer offset);
 
-    List<String> queryScoreDataWithPagebI_(@Param("querySql") String querySql, @Param("minCusNum") String minCusNum);
+    List<String> queryScoreDataWithPagebI_(@Param("batchNumber") String batchNumber,
+                                           @Param("conditions") String conditions,
+                                           @Param("minCusNum") String minCusNum);
 
     void insertBatchWithPriority(@Param("dataList") List<TcyrCpaCollidingData> dataList);
 
@@ -22,7 +24,13 @@ public interface TcyrCpaCollidingDataMapper extends TcyrCpaCollidingDataMapperBa
 
     List<Long> queryIdsWithPagetikv_(@Param("packageId")Long packageId, @Param("minId")Long minId);
 
-    int updateIsDelByIds(@Param("ids") List<Long> ids);
+    /**
+     * 根据ID列表更新is_del字段
+     * @param ids ID列表
+     * @param isDel 要设置的is_del值
+     * @return 更新的记录数
+     */
+    int updateIsDelByIds(@Param("ids") List<Long> ids, @Param("isDel") Integer isDel);
 
     Long queryUnDeleteCounttiflash_(@Param("packageId")Long packageId);
 
@@ -30,4 +38,11 @@ public interface TcyrCpaCollidingDataMapper extends TcyrCpaCollidingDataMapperBa
                                            @Param("fieldName") String fieldName,
                                            @Param("minUserKey") String minUserKey,
                                            @Param("pageSize") int pageSize);
+
+    /**
+     * 查询表中最大的is_del值
+     * @return 最大的is_del值，如果表为空则返回null
+     */
+    Integer queryMaxIsDel();
+
 }
