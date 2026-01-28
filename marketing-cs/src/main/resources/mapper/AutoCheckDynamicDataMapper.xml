@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.AutoCheckDynamicDataMapper">
+
+    <!--
+      动态查表取数（巡检用）：
+      - tableName / selectColumns 通过 ${} 拼接，必须在 Java 层做严格白名单校验（仅允许 [0-9a-zA-Z_]）。
+      - 依赖字段：id（用于去重）、create_time（用于定位时间点/排序）、api_code（用于过滤）。
+    -->
+
+    <select id="selectLatestToday" resultType="java.util.HashMap">
+        SELECT ${selectColumns}
+        FROM ${tableName}
+        WHERE api_code = #{apiCode}
+          AND DATE(create_time) = #{today}
+        ORDER BY create_time DESC, id DESC
+        LIMIT 1
+    </select>
+
+    <select id="selectLastDay8" resultType="java.util.HashMap">
+        SELECT ${selectColumns}
+        FROM ${tableName}
+        WHERE api_code = #{apiCode}
+          AND create_time <![CDATA[>=]]> #{startTime}
+          AND create_time <![CDATA[<=]]> #{endTime}
+        ORDER BY create_time DESC, id DESC
+        LIMIT 1
+    </select>
+
+</mapper>
+
+

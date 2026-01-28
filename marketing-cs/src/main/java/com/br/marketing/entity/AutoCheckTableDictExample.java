@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class AutoCheckConfigExample {
+public class AutoCheckTableDictExample {
     protected String orderByClause;
 
     protected boolean distinct;
 
     protected List<Criteria> oredCriteria;
 
-    public AutoCheckConfigExample() {
+    public AutoCheckTableDictExample() {
         oredCriteria = new ArrayList<Criteria>();
     }
 
@@ -165,146 +165,6 @@ public class AutoCheckConfigExample {
             return (Criteria) this;
         }
 
-        public Criteria andApiCodeIsNull() {
-            addCriterion("api_code is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andApiCodeIsNotNull() {
-            addCriterion("api_code is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andApiCodeEqualTo(String value) {
-            addCriterion("api_code =", value, "apiCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andApiCodeNotEqualTo(String value) {
-            addCriterion("api_code <>", value, "apiCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andApiCodeGreaterThan(String value) {
-            addCriterion("api_code >", value, "apiCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andApiCodeGreaterThanOrEqualTo(String value) {
-            addCriterion("api_code >=", value, "apiCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andApiCodeLessThan(String value) {
-            addCriterion("api_code <", value, "apiCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andApiCodeLessThanOrEqualTo(String value) {
-            addCriterion("api_code <=", value, "apiCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andApiCodeLike(String value) {
-            addCriterion("api_code like", value, "apiCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andApiCodeNotLike(String value) {
-            addCriterion("api_code not like", value, "apiCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andApiCodeIn(List<String> values) {
-            addCriterion("api_code in", values, "apiCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andApiCodeNotIn(List<String> values) {
-            addCriterion("api_code not in", values, "apiCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andApiCodeBetween(String value1, String value2) {
-            addCriterion("api_code between", value1, value2, "apiCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andApiCodeNotBetween(String value1, String value2) {
-            addCriterion("api_code not between", value1, value2, "apiCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andSceneCodeIsNull() {
-            addCriterion("scene_code is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andSceneCodeIsNotNull() {
-            addCriterion("scene_code is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andSceneCodeEqualTo(String value) {
-            addCriterion("scene_code =", value, "sceneCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andSceneCodeNotEqualTo(String value) {
-            addCriterion("scene_code <>", value, "sceneCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andSceneCodeGreaterThan(String value) {
-            addCriterion("scene_code >", value, "sceneCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andSceneCodeGreaterThanOrEqualTo(String value) {
-            addCriterion("scene_code >=", value, "sceneCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andSceneCodeLessThan(String value) {
-            addCriterion("scene_code <", value, "sceneCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andSceneCodeLessThanOrEqualTo(String value) {
-            addCriterion("scene_code <=", value, "sceneCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andSceneCodeLike(String value) {
-            addCriterion("scene_code like", value, "sceneCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andSceneCodeNotLike(String value) {
-            addCriterion("scene_code not like", value, "sceneCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andSceneCodeIn(List<String> values) {
-            addCriterion("scene_code in", values, "sceneCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andSceneCodeNotIn(List<String> values) {
-            addCriterion("scene_code not in", values, "sceneCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andSceneCodeBetween(String value1, String value2) {
-            addCriterion("scene_code between", value1, value2, "sceneCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andSceneCodeNotBetween(String value1, String value2) {
-            addCriterion("scene_code not between", value1, value2, "sceneCode");
-            return (Criteria) this;
-        }
-
         public Criteria andTableNameIsNull() {
             addCriterion("`table_name` is null");
             return (Criteria) this;
@@ -375,73 +235,73 @@ public class AutoCheckConfigExample {
             return (Criteria) this;
         }
 
-        public Criteria andFieldNameIsNull() {
-            addCriterion("field_name is null");
+        public Criteria andTableDescIsNull() {
+            addCriterion("table_desc is null");
             return (Criteria) this;
         }
 
-        public Criteria andFieldNameIsNotNull() {
-            addCriterion("field_name is not null");
+        public Criteria andTableDescIsNotNull() {
+            addCriterion("table_desc is not null");
             return (Criteria) this;
         }
 
-        public Criteria andFieldNameEqualTo(String value) {
-            addCriterion("field_name =", value, "fieldName");
+        public Criteria andTableDescEqualTo(String value) {
+            addCriterion("table_desc =", value, "tableDesc");
             return (Criteria) this;
         }
 
-        public Criteria andFieldNameNotEqualTo(String value) {
-            addCriterion("field_name <>", value, "fieldName");
+        public Criteria andTableDescNotEqualTo(String value) {
+            addCriterion("table_desc <>", value, "tableDesc");
             return (Criteria) this;
         }
 
-        public Criteria andFieldNameGreaterThan(String value) {
-            addCriterion("field_name >", value, "fieldName");
+        public Criteria andTableDescGreaterThan(String value) {
+            addCriterion("table_desc >", value, "tableDesc");
             return (Criteria) this;
         }
 
-        public Criteria andFieldNameGreaterThanOrEqualTo(String value) {
-            addCriterion("field_name >=", value, "fieldName");
+        public Criteria andTableDescGreaterThanOrEqualTo(String value) {
+            addCriterion("table_desc >=", value, "tableDesc");
             return (Criteria) this;
         }
 
-        public Criteria andFieldNameLessThan(String value) {
-            addCriterion("field_name <", value, "fieldName");
+        public Criteria andTableDescLessThan(String value) {
+            addCriterion("table_desc <", value, "tableDesc");
             return (Criteria) this;
         }
 
-        public Criteria andFieldNameLessThanOrEqualTo(String value) {
-            addCriterion("field_name <=", value, "fieldName");
+        public Criteria andTableDescLessThanOrEqualTo(String value) {
+            addCriterion("table_desc <=", value, "tableDesc");
             return (Criteria) this;
         }
 
-        public Criteria andFieldNameLike(String value) {
-            addCriterion("field_name like", value, "fieldName");
+        public Criteria andTableDescLike(String value) {
+            addCriterion("table_desc like", value, "tableDesc");
             return (Criteria) this;
         }
 
-        public Criteria andFieldNameNotLike(String value) {
-            addCriterion("field_name not like", value, "fieldName");
+        public Criteria andTableDescNotLike(String value) {
+            addCriterion("table_desc not like", value, "tableDesc");
             return (Criteria) this;
         }
 
-        public Criteria andFieldNameIn(List<String> values) {
-            addCriterion("field_name in", values, "fieldName");
+        public Criteria andTableDescIn(List<String> values) {
+            addCriterion("table_desc in", values, "tableDesc");
             return (Criteria) this;
         }
 
-        public Criteria andFieldNameNotIn(List<String> values) {
-            addCriterion("field_name not in", values, "fieldName");
+        public Criteria andTableDescNotIn(List<String> values) {
+            addCriterion("table_desc not in", values, "tableDesc");
             return (Criteria) this;
         }
 
-        public Criteria andFieldNameBetween(String value1, String value2) {
-            addCriterion("field_name between", value1, value2, "fieldName");
+        public Criteria andTableDescBetween(String value1, String value2) {
+            addCriterion("table_desc between", value1, value2, "tableDesc");
             return (Criteria) this;
         }
 
-        public Criteria andFieldNameNotBetween(String value1, String value2) {
-            addCriterion("field_name not between", value1, value2, "fieldName");
+        public Criteria andTableDescNotBetween(String value1, String value2) {
+            addCriterion("table_desc not between", value1, value2, "tableDesc");
             return (Criteria) this;
         }
 
