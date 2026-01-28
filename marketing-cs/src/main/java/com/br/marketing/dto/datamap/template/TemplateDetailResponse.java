@@ -11,7 +11,7 @@ import java.util.List;
 
 /**
  * 模板详情响应
- * 
+ *
  * @author bingxu.kong
  * @since 2025/01/27
  */
@@ -47,5 +47,5 @@ public class TemplateDetailResponse {
     private List<TemplateNodeDetailVO> nodes;
 
     @Schema(description = "边列表")
-    private List<TemplateEdgeVO> edges;
+    private List<TemplateEdgeDetailVO> edges;
 }

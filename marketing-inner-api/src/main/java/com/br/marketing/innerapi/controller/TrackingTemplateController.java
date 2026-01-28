@@ -30,6 +30,21 @@ public class TrackingTemplateController {
     @Resource
     private TrackingTemplateService trackingTemplateService;
 
+    @GetMapping("/nodeDict/list")
+    @Operation(summary = "查询节点字典列表", description = "查询所有去重的节点字典列表，用于模板配置时选择节点")
+    @AddDataAuthBusiness
+    public ApiResult<List<TemplateNodeDictVO>> getNodeDictList(
+            @RequestParam(required = false) String nodeType,
+            @RequestParam(required = false) String nodeName,
+            @RequestParam(required = false) String nodeCode) {
+        try {
+            return trackingTemplateService.getDistinctNodeDictList(nodeType, nodeName, nodeCode);
+        } catch (Exception e) {
+            log.error("查询节点字典列表失败", e);
+            return new ApiResult<List<TemplateNodeDictVO>>().fail("查询节点字典列表失败: " + e.getMessage());
+        }
+    }
+
     @PostMapping("/create")
     @Operation(summary = "创建模板", description = "创建链路模板（含节点和边）")
     @AddDataAuthBusiness

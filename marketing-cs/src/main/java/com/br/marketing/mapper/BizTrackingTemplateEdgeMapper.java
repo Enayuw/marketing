@@ -1,6 +1,6 @@
 package com.br.marketing.mapper;
 
-import com.br.marketing.dto.datamap.template.TemplateEdgeVO;
+import com.br.marketing.dto.datamap.template.TemplateEdgeDetailVO;
 import com.br.marketing.entity.BizTrackingTemplateEdge;
 import org.apache.ibatis.annotations.Param;
 
@@ -23,12 +23,12 @@ public interface BizTrackingTemplateEdgeMapper extends BizTrackingTemplateEdgeMa
     int batchInsert(@Param("list") List<BizTrackingTemplateEdge> list);
 
     /**
-     * 根据模板ID查询边详情（VO）
+     * 根据模板ID查询边详情
      *
      * @param templateId 模板ID
      * @return 边详情列表
      */
-    List<TemplateEdgeVO> selectEdgeVOsByTemplateId(@Param("templateId") Long templateId);
+    List<TemplateEdgeDetailVO> selectEdgeDetailsByTemplateId(@Param("templateId") Long templateId);
 
     /**
      * 根据模板ID删除边

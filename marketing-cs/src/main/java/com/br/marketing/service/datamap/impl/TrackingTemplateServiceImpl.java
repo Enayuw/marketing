@@ -6,6 +6,7 @@ import com.br.marketing.dto.datamap.template.*;
 import com.br.marketing.entity.BizTrackingTemplate;
 import com.br.marketing.entity.BizTrackingTemplateEdge;
 import com.br.marketing.entity.BizTrackingTemplateNode;
+import com.br.marketing.mapper.BizTrackingNodeDictMapper;
 import com.br.marketing.mapper.BizTrackingTemplateEdgeMapper;
 import com.br.marketing.mapper.BizTrackingTemplateMapper;
 import com.br.marketing.mapper.BizTrackingTemplateNodeMapper;
@@ -15,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -38,6 +40,15 @@ public class TrackingTemplateServiceImpl implements TrackingTemplateService {
     @Resource
     private BizTrackingTemplateEdgeMapper templateEdgeMapper;
 
+    @Resource
+    private BizTrackingNodeDictMapper nodeDictMapper;
+
+    @Override
+    public ApiResult<List<TemplateNodeDictVO>> getDistinctNodeDictList(String nodeType, String nodeName, String nodeCode) {
+        List<TemplateNodeDictVO> list = nodeDictMapper.selectDistinctNodes(nodeType, nodeName, nodeCode);
+        return new ApiResult<List<TemplateNodeDictVO>>().success(list);
+    }
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ApiResult<Long> createTemplate(CreateTemplateRequest request) {
@@ -52,46 +63,52 @@ public class TrackingTemplateServiceImpl implements TrackingTemplateService {
         templateMapper.insertSelective(template);
         Long templateId = template.getId();
 
-        // 2. 创建模板节点
+        // 2. 创建模板节点并建立tempId到数据库ID的映射
+        Map<String, Long> tempIdToDbIdMapping = new HashMap<>();
         if (!CollectionUtils.isEmpty(request.getNodes())) {
-            // 保存节点时，建立前端ID到数据库ID的映射（用于边的保存）
-            Map<Long, Long> nodeIdMapping = new HashMap<>();
-
             for (TemplateNodeVO nodeVO : request.getNodes()) {
                 BizTrackingTemplateNode node = new BizTrackingTemplateNode();
                 node.setTemplateId(templateId);
-                node.setNodeDictId(nodeVO.getNodeDictId());
+                node.setNodeCode(nodeVO.getNodeCode());
+                node.setNodeType(nodeVO.getNodeType());
                 node.setNodeName(nodeVO.getNodeName());
                 node.setCreateTime(new Date());
                 node.setUpdateTime(new Date());
                 templateNodeMapper.insertSelective(node);
 
-                // 记录映射关系：前端传的id -> 数据库生成的id
-                if (nodeVO.getId() != null) {
-                    nodeIdMapping.put(nodeVO.getId(), node.getId());
+                // 记录映射关系：前端临时ID -> 数据库生成的ID
+                if (StringUtils.hasText(nodeVO.getTempId())) {
+                    tempIdToDbIdMapping.put(nodeVO.getTempId(), node.getId());
                 }
             }
+        }
 
-            // 3. 创建模板边（需要将前端节点ID映射为数据库节点ID）
-            if (!CollectionUtils.isEmpty(request.getEdges())) {
-                List<BizTrackingTemplateEdge> edgeEntities = new ArrayList<>();
-                for (TemplateEdgeVO edgeVO : request.getEdges()) {
-                    BizTrackingTemplateEdge edge = new BizTrackingTemplateEdge();
-                    edge.setTemplateId(String.valueOf(templateId));
-                    // 映射节点ID
-                    Long fromNodeId = nodeIdMapping.getOrDefault(edgeVO.getFromNodeId(), edgeVO.getFromNodeId());
-                    Long toNodeId = nodeIdMapping.getOrDefault(edgeVO.getToNodeId(), edgeVO.getToNodeId());
-                    edge.setFromNodeId(fromNodeId);
-                    edge.setToNodeId(toNodeId);
-                    edge.setEdgeType(edgeVO.getEdgeType() != null ? edgeVO.getEdgeType() : "SOLID");
-                    edge.setDescription(edgeVO.getDescription());
-                    edge.setCreateTime(new Date());
-                    edge.setUpdateTime(new Date());
-                    edgeEntities.add(edge);
+        // 3. 创建模板边（使用映射将临时ID转换为数据库ID）
+        if (!CollectionUtils.isEmpty(request.getEdges())) {
+            List<BizTrackingTemplateEdge> edgeEntities = new ArrayList<>();
+            for (TemplateEdgeVO edgeVO : request.getEdges()) {
+                // 通过临时ID获取数据库ID
+                Long fromNodeId = tempIdToDbIdMapping.get(edgeVO.getSourceNodeTempId());
+                Long toNodeId = tempIdToDbIdMapping.get(edgeVO.getTargetNodeTempId());
+
+                if (fromNodeId == null || toNodeId == null) {
+                    log.warn("边的节点临时ID无法映射: sourceNodeTempId={}, targetNodeTempId={}",
+                            edgeVO.getSourceNodeTempId(), edgeVO.getTargetNodeTempId());
+                    continue;
                 }
-                if (!edgeEntities.isEmpty()) {
-                    templateEdgeMapper.batchInsert(edgeEntities);
-                }
+
+                BizTrackingTemplateEdge edge = new BizTrackingTemplateEdge();
+                edge.setTemplateId(String.valueOf(templateId));
+                edge.setFromNodeId(fromNodeId);
+                edge.setToNodeId(toNodeId);
+                edge.setEdgeType(edgeVO.getEdgeType() != null ? edgeVO.getEdgeType() : "SOLID");
+                edge.setDescription(edgeVO.getDescription());
+                edge.setCreateTime(new Date());
+                edge.setUpdateTime(new Date());
+                edgeEntities.add(edge);
+            }
+            if (!edgeEntities.isEmpty()) {
+                templateEdgeMapper.batchInsert(edgeEntities);
             }
         }
 
@@ -128,20 +145,21 @@ public class TrackingTemplateServiceImpl implements TrackingTemplateService {
         templateNodeMapper.deleteByTemplateId(templateId);
         templateEdgeMapper.deleteByTemplateId(String.valueOf(templateId));
 
-        // 4. 重新创建节点
-        Map<Long, Long> nodeIdMapping = new HashMap<>();
+        // 4. 重新创建节点并建立映射
+        Map<String, Long> tempIdToDbIdMapping = new HashMap<>();
         if (!CollectionUtils.isEmpty(request.getNodes())) {
             for (TemplateNodeVO nodeVO : request.getNodes()) {
                 BizTrackingTemplateNode node = new BizTrackingTemplateNode();
                 node.setTemplateId(templateId);
-                node.setNodeDictId(nodeVO.getNodeDictId());
+                node.setNodeCode(nodeVO.getNodeCode());
+                node.setNodeType(nodeVO.getNodeType());
                 node.setNodeName(nodeVO.getNodeName());
                 node.setCreateTime(new Date());
                 node.setUpdateTime(new Date());
                 templateNodeMapper.insertSelective(node);
 
-                if (nodeVO.getId() != null) {
-                    nodeIdMapping.put(nodeVO.getId(), node.getId());
+                if (StringUtils.hasText(nodeVO.getTempId())) {
+                    tempIdToDbIdMapping.put(nodeVO.getTempId(), node.getId());
                 }
             }
         }
@@ -150,10 +168,17 @@ public class TrackingTemplateServiceImpl implements TrackingTemplateService {
         if (!CollectionUtils.isEmpty(request.getEdges())) {
             List<BizTrackingTemplateEdge> edgeEntities = new ArrayList<>();
             for (TemplateEdgeVO edgeVO : request.getEdges()) {
+                Long fromNodeId = tempIdToDbIdMapping.get(edgeVO.getSourceNodeTempId());
+                Long toNodeId = tempIdToDbIdMapping.get(edgeVO.getTargetNodeTempId());
+
+                if (fromNodeId == null || toNodeId == null) {
+                    log.warn("边的节点临时ID无法映射: sourceNodeTempId={}, targetNodeTempId={}",
+                            edgeVO.getSourceNodeTempId(), edgeVO.getTargetNodeTempId());
+                    continue;
+                }
+
                 BizTrackingTemplateEdge edge = new BizTrackingTemplateEdge();
                 edge.setTemplateId(String.valueOf(templateId));
-                Long fromNodeId = nodeIdMapping.getOrDefault(edgeVO.getFromNodeId(), edgeVO.getFromNodeId());
-                Long toNodeId = nodeIdMapping.getOrDefault(edgeVO.getToNodeId(), edgeVO.getToNodeId());
                 edge.setFromNodeId(fromNodeId);
                 edge.setToNodeId(toNodeId);
                 edge.setEdgeType(edgeVO.getEdgeType() != null ? edgeVO.getEdgeType() : "SOLID");
@@ -212,11 +237,11 @@ public class TrackingTemplateServiceImpl implements TrackingTemplateService {
             return new ApiResult<TemplateDetailResponse>().fail("模板不存在");
         }
 
-        // 2. 查询模板节点（包含字典信息）
+        // 2. 查询模板节点
         List<TemplateNodeDetailVO> nodes = templateNodeMapper.selectNodeDetailsByTemplateId(id);
 
         // 3. 查询模板边
-        List<TemplateEdgeVO> edges = templateEdgeMapper.selectEdgeVOsByTemplateId(id);
+        List<TemplateEdgeDetailVO> edges = templateEdgeMapper.selectEdgeDetailsByTemplateId(id);
 
         // 4. 构建响应
         TemplateDetailResponse response = TemplateDetailResponse.builder()

@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * 模板节点VO
+ * 模板节点字典VO（去重后的节点信息，用于模板配置时选择）
  *
  * @author bingxu.kong
  * @since 2025/01/27
@@ -16,11 +16,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "模板节点信息")
-public class TemplateNodeVO {
-
-    @Schema(description = "临时节点ID（前端生成，用于边引用节点，如：node_1, node_2）")
-    private String tempId;
+@Schema(description = "模板节点字典信息")
+public class TemplateNodeDictVO {
 
     @Schema(description = "节点代码（类名.方法名）")
     private String nodeCode;
@@ -30,4 +27,7 @@ public class TemplateNodeVO {
 
     @Schema(description = "节点名称")
     private String nodeName;
+
+    @Schema(description = "节点描述")
+    private String nodeDesc;
 }

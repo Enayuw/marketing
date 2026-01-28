@@ -23,7 +23,7 @@ public interface BizTrackingTemplateNodeMapper extends BizTrackingTemplateNodeMa
     int batchInsert(@Param("list") List<BizTrackingTemplateNode> list);
 
     /**
-     * 根据模板ID查询节点详情（包含字典信息）
+     * 根据模板ID查询节点详情
      *
      * @param templateId 模板ID
      * @return 节点详情列表

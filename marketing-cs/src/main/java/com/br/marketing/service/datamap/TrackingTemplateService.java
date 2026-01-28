@@ -15,6 +15,16 @@ import java.util.List;
 public interface TrackingTemplateService {
 
     /**
+     * 查询所有去重的字典节点列表（用于模板配置时选择）
+     *
+     * @param nodeType 节点类型（可选）
+     * @param nodeName 节点名称（可选，模糊查询）
+     * @param nodeCode 节点代码（可选，模糊查询）
+     * @return 去重后的节点列表
+     */
+    ApiResult<List<TemplateNodeDictVO>> getDistinctNodeDictList(String nodeType, String nodeName, String nodeCode);
+
+    /**
      * 创建模板
      *
      * @param request 创建模板请求

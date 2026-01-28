@@ -13,8 +13,8 @@
         </foreach>
     </insert>
 
-    <!-- 根据模板ID查询边详情（VO） -->
-    <select id="selectEdgeVOsByTemplateId" resultType="com.br.marketing.dto.datamap.template.TemplateEdgeVO">
+    <!-- 根据模板ID查询边详情 -->
+    <select id="selectEdgeDetailsByTemplateId" resultType="com.br.marketing.dto.datamap.template.TemplateEdgeDetailVO">
         SELECT
             id,
             from_node_id AS fromNodeId,
