@@ -185,7 +185,6 @@ public class MarketingTaikangDingDingTransferServiceImpl implements MarketingTai
                 if (!StringUtils.isEmpty(item.getReturnResult1())) {
                     taikangMarketingEvent.setRemark(item.getReturnResult1());
                 }
-
                 // 2.泰康回传数据
                 String response;
                 if ("true".equals(taikangConfig.get("ddMockSwitch"))) {
@@ -193,7 +192,7 @@ public class MarketingTaikangDingDingTransferServiceImpl implements MarketingTai
                 }else {
                     response = taikangClient.process(taikangMarketingEvent);
                 }
-
+                log.warn("TITLE:{},detailId:{},reqParam:{},response:{}",TITLE,item.getId(),JSONObject.toJSONString(taikangMarketingEvent),response);
                 // 3.记录日志
                 TaikangTransferDataLog taikangTransferDataLog = new TaikangTransferDataLog();
                 taikangTransferDataLog.setDataType(2);
