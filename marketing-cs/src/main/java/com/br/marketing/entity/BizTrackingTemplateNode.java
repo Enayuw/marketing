@@ -14,9 +14,14 @@ public class BizTrackingTemplateNode {
     private Long templateId;
 
     /**
-     * 节点字典ID
+     * 节点代码（类名.方法名）
      */
-    private Long nodeDictId;
+    private String nodeCode;
+
+    /**
+     * 节点类型（API/JOB/RabbitMQ/RocketMQ）
+     */
+    private String nodeType;
 
     /**
      * 节点名称
@@ -49,12 +54,20 @@ public class BizTrackingTemplateNode {
         this.templateId = templateId;
     }
 
-    public Long getNodeDictId() {
-        return nodeDictId;
+    public String getNodeCode() {
+        return nodeCode;
     }
 
-    public void setNodeDictId(Long nodeDictId) {
-        this.nodeDictId = nodeDictId;
+    public void setNodeCode(String nodeCode) {
+        this.nodeCode = nodeCode == null ? null : nodeCode.trim();
+    }
+
+    public String getNodeType() {
+        return nodeType;
+    }
+
+    public void setNodeType(String nodeType) {
+        this.nodeType = nodeType == null ? null : nodeType.trim();
     }
 
     public String getNodeName() {

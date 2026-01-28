@@ -4,7 +4,8 @@
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.BizTrackingTemplateNode" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="template_id" property="templateId" jdbcType="BIGINT" />
-    <result column="node_dict_id" property="nodeDictId" jdbcType="BIGINT" />
+    <result column="node_code" property="nodeCode" jdbcType="VARCHAR" />
+    <result column="node_type" property="nodeType" jdbcType="VARCHAR" />
     <result column="node_name" property="nodeName" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
@@ -68,7 +69,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, template_id, node_dict_id, node_name, create_time, update_time
+    id, template_id, node_code, node_type, node_name, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.BizTrackingTemplateNodeExample" >
     select
@@ -104,10 +105,12 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into biz_tracking_template_node (template_id, node_dict_id, node_name, 
-      create_time, update_time)
-    values (#{templateId,jdbcType=BIGINT}, #{nodeDictId,jdbcType=BIGINT}, #{nodeName,jdbcType=VARCHAR}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+    insert into biz_tracking_template_node (template_id, node_code, node_type, 
+      node_name, create_time, update_time
+      )
+    values (#{templateId,jdbcType=BIGINT}, #{nodeCode,jdbcType=VARCHAR}, #{nodeType,jdbcType=VARCHAR}, 
+      #{nodeName,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.BizTrackingTemplateNode" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -118,8 +121,11 @@
       <if test="templateId != null" >
         template_id,
       </if>
-      <if test="nodeDictId != null" >
-        node_dict_id,
+      <if test="nodeCode != null" >
+        node_code,
+      </if>
+      <if test="nodeType != null" >
+        node_type,
       </if>
       <if test="nodeName != null" >
         node_name,
@@ -135,8 +141,11 @@
       <if test="templateId != null" >
         #{templateId,jdbcType=BIGINT},
       </if>
-      <if test="nodeDictId != null" >
-        #{nodeDictId,jdbcType=BIGINT},
+      <if test="nodeCode != null" >
+        #{nodeCode,jdbcType=VARCHAR},
+      </if>
+      <if test="nodeType != null" >
+        #{nodeType,jdbcType=VARCHAR},
       </if>
       <if test="nodeName != null" >
         #{nodeName,jdbcType=VARCHAR},
@@ -164,8 +173,11 @@
       <if test="record.templateId != null" >
         template_id = #{record.templateId,jdbcType=BIGINT},
       </if>
-      <if test="record.nodeDictId != null" >
-        node_dict_id = #{record.nodeDictId,jdbcType=BIGINT},
+      <if test="record.nodeCode != null" >
+        node_code = #{record.nodeCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.nodeType != null" >
+        node_type = #{record.nodeType,jdbcType=VARCHAR},
       </if>
       <if test="record.nodeName != null" >
         node_name = #{record.nodeName,jdbcType=VARCHAR},
@@ -185,7 +197,8 @@
     update biz_tracking_template_node
     set id = #{record.id,jdbcType=BIGINT},
       template_id = #{record.templateId,jdbcType=BIGINT},
-      node_dict_id = #{record.nodeDictId,jdbcType=BIGINT},
+      node_code = #{record.nodeCode,jdbcType=VARCHAR},
+      node_type = #{record.nodeType,jdbcType=VARCHAR},
       node_name = #{record.nodeName,jdbcType=VARCHAR},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP}
@@ -199,8 +212,11 @@
       <if test="templateId != null" >
         template_id = #{templateId,jdbcType=BIGINT},
       </if>
-      <if test="nodeDictId != null" >
-        node_dict_id = #{nodeDictId,jdbcType=BIGINT},
+      <if test="nodeCode != null" >
+        node_code = #{nodeCode,jdbcType=VARCHAR},
+      </if>
+      <if test="nodeType != null" >
+        node_type = #{nodeType,jdbcType=VARCHAR},
       </if>
       <if test="nodeName != null" >
         node_name = #{nodeName,jdbcType=VARCHAR},
@@ -217,7 +233,8 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.BizTrackingTemplateNode" >
     update biz_tracking_template_node
     set template_id = #{templateId,jdbcType=BIGINT},
-      node_dict_id = #{nodeDictId,jdbcType=BIGINT},
+      node_code = #{nodeCode,jdbcType=VARCHAR},
+      node_type = #{nodeType,jdbcType=VARCHAR},
       node_name = #{nodeName,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP}
