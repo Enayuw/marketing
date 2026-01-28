@@ -4,7 +4,7 @@
 
 
     <insert id="batchInsert">
-        INSERT INTO b_dd_taikang_transfer_detail
+        INSERT IGNORE INTO b_dd_taikang_transfer_detail
         (cell, browse_date, application_name, return_result1, extend,
         push_status, create_time,update_time, `status`, error_msg, api_code)
         VALUES
