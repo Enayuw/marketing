@@ -35,6 +35,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import java.io.File;
 import java.io.InputStream;
@@ -45,6 +46,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -77,6 +79,18 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
     private static final String NO_SUFFIX = "no_suffix";
 
     private static final DateTimeFormatter FILE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    /**
+     * 全局单线程线程池-用于执行文件同步
+     */
+    private static final ExecutorService SYNC_EXECUTOR = Executors.newSingleThreadExecutor(r -> 
+        new Thread(r, "file-sync-single")
+    );
+
+    /**
+     * 单文件同步超时时间（1小时）
+     */
+    private static final long SINGLE_FILE_TIMEOUT_MS = 60 * 60 * 1000;
 
 
     @Override
@@ -354,9 +368,14 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                             DOWNLOAD_TITLE + "连接不可用, apiCode=" + config.getApiCode()));
                     continue;
                 }
+                final BaseFtpClient src = srcClient;
+                final BaseFtpClient tgt = targetClient;
                 log.warn(DOWNLOAD_TITLE + "开始同步配置：apiCode={},dataType={}, 文件数量：{}", config.getApiCode(), config.getDataType(), files.size());
                 // 同一配置的文件共用连接，串行同步
                 for (FileSyncInfo fileToSync : files) {
+                    if (stop) {
+                        break;
+                    }
                     //job开关判断
                     Map<String, Boolean> jobSwitch = marketingCommonConfig.getMarketingJobTaskSwitch();
                     if (!CollectionUtils.isEmpty(jobSwitch) && Boolean.TRUE.equals(jobSwitch.get("fileDownloadTask"))) {
@@ -364,7 +383,26 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                         stop = true;
                         break;
                     }
-                    syncSingleFile(fileToSync, srcClient, targetClient, diskBool);
+                    // 使用 Future.get(timeout) 控制超时
+                    Future future = SYNC_EXECUTOR.submit(() -> {
+                        syncSingleFile(fileToSync, src, tgt, diskBool);
+                    });
+                    try {
+                        future.get(SINGLE_FILE_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+                        log.warn(DOWNLOAD_TITLE + "文件同步完成，fileName={}", fileToSync.getFileName());
+                    } catch (TimeoutException te) {
+                        // 超时：中断线程 + 设置退出标志
+                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.FILE_DOWNLOAD_SYNC_ERROR.getCode(),
+                                DOWNLOAD_TITLE + "单文件同步超时，强制断开连接并退出整个任务。configId=" + config.getId() + ", fileName=" +
+                                fileToSync.getFileName() + ", apiCode=" + config.getApiCode() + ", timeoutMs=" + SINGLE_FILE_TIMEOUT_MS + "ms"));
+                        future.cancel(true); // 中断线程，让 put() 退出阻塞
+                        stop = true;
+                        break;
+                    } catch (Exception e) {
+                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.FILE_DOWNLOAD_SYNC_ERROR.getCode(),
+                                DOWNLOAD_TITLE + "文件同步异常，configId=" + config.getId() + ", fileName=" + fileToSync.getFileName()
+                                        + ", error=" + e.getMessage()),e);
+                    }
                 }
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.FILE_DOWNLOAD_SYNC_ERROR.getCode(),
@@ -936,6 +974,12 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
      */
     private void syncSingleFile(FileSyncInfo fileToSync, BaseFtpClient srcClient,
                                 BaseFtpClient targetClient, boolean diskBool) {
+        // 清除中断状态（如果之前被中断过，确保线程池线程能正常执行新任务）
+        if (Thread.currentThread().isInterrupted()) {
+            Thread.interrupted(); // 清除中断状态
+            log.warn(DOWNLOAD_TITLE + "清除线程中断状态，继续执行新任务");
+        }
+
         SyncConfig config = fileToSync.getConfig();
         String fileName = fileToSync.getFileName();
         String suffixStr = config.getSuffix();
