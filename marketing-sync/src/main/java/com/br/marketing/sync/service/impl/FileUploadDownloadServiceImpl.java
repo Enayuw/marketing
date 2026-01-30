@@ -7,6 +7,7 @@ import com.br.marketing.client.FtpClient;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.DataTypeEnum;
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.enums.SyncConfigCustomizedTypeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.Constants;
@@ -83,9 +84,8 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
     /**
      * 全局单线程线程池-用于执行文件同步
      */
-    private static final ExecutorService SYNC_EXECUTOR = Executors.newSingleThreadExecutor(r -> 
-        new Thread(r, "file-sync-single")
-    );
+    private static final ThreadPoolExecutor SYNC_EXECUTOR = BrExecutors.getThreadPool(1, 1, "file-sync-single",1);
+
 
     /**
      * 单文件同步超时时间（1小时）
