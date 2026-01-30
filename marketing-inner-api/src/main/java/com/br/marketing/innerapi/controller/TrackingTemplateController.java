@@ -45,27 +45,15 @@ public class TrackingTemplateController {
         }
     }
 
-    @PostMapping("/create")
-    @Operation(summary = "创建模板", description = "创建链路模板（含节点和边）")
+    @PostMapping("/save")
+    @Operation(summary = "保存模板", description = "创建或更新链路模板，id为空时创建，不为空时更新")
     @AddDataAuthBusiness
-    public ApiResult<Long> createTemplate(@RequestBody @Validated CreateTemplateRequest request) {
+    public ApiResult<Long> saveTemplate(@RequestBody @Validated CreateTemplateRequest request) {
         try {
-            return trackingTemplateService.createTemplate(request);
+            return trackingTemplateService.saveTemplate(request);
         } catch (Exception e) {
-            log.error("创建模板失败: templateName={}", request.getTemplateName(), e);
-            return new ApiResult<Long>().fail("创建模板失败: " + e.getMessage());
-        }
-    }
-
-    @PostMapping("/update")
-    @Operation(summary = "更新模板", description = "更新链路模板信息")
-    @AddDataAuthBusiness
-    public ApiResult<Boolean> updateTemplate(@RequestBody @Validated CreateTemplateRequest request) {
-        try {
-            return trackingTemplateService.updateTemplate(request);
-        } catch (Exception e) {
-            log.error("更新模板失败: templateId={}", request.getId(), e);
-            return new ApiResult<Boolean>().fail("更新模板失败: " + e.getMessage());
+            log.error("保存模板失败: templateId={}, templateName={}", request.getId(), request.getTemplateName(), e);
+            return new ApiResult<Long>().fail("保存模板失败: " + e.getMessage());
         }
     }
 

@@ -51,19 +51,46 @@ public class TrackingTemplateServiceImpl implements TrackingTemplateService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ApiResult<Long> createTemplate(CreateTemplateRequest request) {
-        // 1. 创建模板主表
-        BizTrackingTemplate template = new BizTrackingTemplate();
-        template.setTemplateName(request.getTemplateName());
-        template.setDescription(request.getDescription());
-        template.setStatus(request.getStatus() != null ? request.getStatus() : (byte) 1);
-        template.setGraphJson(request.getGraphJson());
-        template.setCreateTime(new Date());
-        template.setUpdateTime(new Date());
-        templateMapper.insertSelective(template);
-        Long templateId = template.getId();
+    public ApiResult<Long> saveTemplate(CreateTemplateRequest request) {
+        Long templateId = request.getId();
+        boolean isCreate = (templateId == null);
 
-        // 2. 创建模板节点并建立tempId到数据库ID的映射
+        if (isCreate) {
+            // 创建模板主表
+            BizTrackingTemplate template = new BizTrackingTemplate();
+            template.setTemplateName(request.getTemplateName());
+            template.setDescription(request.getDescription());
+            template.setStatus(request.getStatus() != null ? request.getStatus() : (byte) 1);
+            template.setGraphJson(request.getGraphJson());
+            template.setCreateTime(new Date());
+            template.setUpdateTime(new Date());
+            templateMapper.insertSelective(template);
+            templateId = template.getId();
+        } else {
+            // 检查模板是否存在
+            BizTrackingTemplate existingTemplate = templateMapper.selectByPrimaryKey(templateId);
+            if (existingTemplate == null) {
+                return new ApiResult<Long>().fail("模板不存在");
+            }
+
+            // 更新模板主表
+            BizTrackingTemplate template = new BizTrackingTemplate();
+            template.setId(templateId);
+            template.setTemplateName(request.getTemplateName());
+            template.setDescription(request.getDescription());
+            if (request.getStatus() != null) {
+                template.setStatus(request.getStatus());
+            }
+            template.setGraphJson(request.getGraphJson());
+            template.setUpdateTime(new Date());
+            templateMapper.updateByPrimaryKeySelective(template);
+
+            // 删除原有节点和边
+            templateNodeMapper.deleteByTemplateId(templateId);
+            templateEdgeMapper.deleteByTemplateId(String.valueOf(templateId));
+        }
+
+        // 创建节点并建立tempId到数据库ID的映射
         Map<String, Long> tempIdToDbIdMapping = new HashMap<>();
         if (!CollectionUtils.isEmpty(request.getNodes())) {
             for (TemplateNodeVO nodeVO : request.getNodes()) {
@@ -83,7 +110,7 @@ public class TrackingTemplateServiceImpl implements TrackingTemplateService {
             }
         }
 
-        // 3. 创建模板边（使用映射将临时ID转换为数据库ID）
+        // 创建边（使用映射将临时ID转换为数据库ID）
         if (!CollectionUtils.isEmpty(request.getEdges())) {
             List<BizTrackingTemplateEdge> edgeEntities = new ArrayList<>();
             for (TemplateEdgeVO edgeVO : request.getEdges()) {
@@ -112,87 +139,8 @@ public class TrackingTemplateServiceImpl implements TrackingTemplateService {
             }
         }
 
-        return new ApiResult<Long>().success(templateId, "创建模板成功");
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public ApiResult<Boolean> updateTemplate(CreateTemplateRequest request) {
-        Long templateId = request.getId();
-        if (templateId == null) {
-            return new ApiResult<Boolean>().fail("模板ID不能为空");
-        }
-
-        // 1. 检查模板是否存在
-        BizTrackingTemplate existingTemplate = templateMapper.selectByPrimaryKey(templateId);
-        if (existingTemplate == null) {
-            return new ApiResult<Boolean>().fail("模板不存在");
-        }
-
-        // 2. 更新模板主表
-        BizTrackingTemplate template = new BizTrackingTemplate();
-        template.setId(templateId);
-        template.setTemplateName(request.getTemplateName());
-        template.setDescription(request.getDescription());
-        if (request.getStatus() != null) {
-            template.setStatus(request.getStatus());
-        }
-        template.setGraphJson(request.getGraphJson());
-        template.setUpdateTime(new Date());
-        templateMapper.updateByPrimaryKeySelective(template);
-
-        // 3. 删除原有节点和边
-        templateNodeMapper.deleteByTemplateId(templateId);
-        templateEdgeMapper.deleteByTemplateId(String.valueOf(templateId));
-
-        // 4. 重新创建节点并建立映射
-        Map<String, Long> tempIdToDbIdMapping = new HashMap<>();
-        if (!CollectionUtils.isEmpty(request.getNodes())) {
-            for (TemplateNodeVO nodeVO : request.getNodes()) {
-                BizTrackingTemplateNode node = new BizTrackingTemplateNode();
-                node.setTemplateId(templateId);
-                node.setNodeCode(nodeVO.getNodeCode());
-                node.setNodeType(nodeVO.getNodeType());
-                node.setNodeName(nodeVO.getNodeName());
-                node.setCreateTime(new Date());
-                node.setUpdateTime(new Date());
-                templateNodeMapper.insertSelective(node);
-
-                if (StringUtils.hasText(nodeVO.getTempId())) {
-                    tempIdToDbIdMapping.put(nodeVO.getTempId(), node.getId());
-                }
-            }
-        }
-
-        // 5. 重新创建边
-        if (!CollectionUtils.isEmpty(request.getEdges())) {
-            List<BizTrackingTemplateEdge> edgeEntities = new ArrayList<>();
-            for (TemplateEdgeVO edgeVO : request.getEdges()) {
-                Long fromNodeId = tempIdToDbIdMapping.get(edgeVO.getSourceNodeTempId());
-                Long toNodeId = tempIdToDbIdMapping.get(edgeVO.getTargetNodeTempId());
-
-                if (fromNodeId == null || toNodeId == null) {
-                    log.warn("边的节点临时ID无法映射: sourceNodeTempId={}, targetNodeTempId={}",
-                            edgeVO.getSourceNodeTempId(), edgeVO.getTargetNodeTempId());
-                    continue;
-                }
-
-                BizTrackingTemplateEdge edge = new BizTrackingTemplateEdge();
-                edge.setTemplateId(String.valueOf(templateId));
-                edge.setFromNodeId(fromNodeId);
-                edge.setToNodeId(toNodeId);
-                edge.setEdgeType(edgeVO.getEdgeType() != null ? edgeVO.getEdgeType() : "SOLID");
-                edge.setDescription(edgeVO.getDescription());
-                edge.setCreateTime(new Date());
-                edge.setUpdateTime(new Date());
-                edgeEntities.add(edge);
-            }
-            if (!edgeEntities.isEmpty()) {
-                templateEdgeMapper.batchInsert(edgeEntities);
-            }
-        }
-
-        return new ApiResult<Boolean>().success(true, "更新模板成功");
+        String message = isCreate ? "创建模板成功" : "更新模板成功";
+        return new ApiResult<Long>().success(templateId, message);
     }
 
     @Override

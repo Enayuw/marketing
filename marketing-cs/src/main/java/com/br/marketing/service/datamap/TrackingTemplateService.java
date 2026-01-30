@@ -25,20 +25,13 @@ public interface TrackingTemplateService {
     ApiResult<List<TemplateNodeDictVO>> getDistinctNodeDictList(String nodeType, String nodeName, String nodeCode);
 
     /**
-     * 创建模板
+     * 保存模板（创建或更新）
+     * id为空时创建，不为空时更新
      *
-     * @param request 创建模板请求
-     * @return 创建结果（模板ID）
+     * @param request 模板请求
+     * @return 模板ID
      */
-    ApiResult<Long> createTemplate(CreateTemplateRequest request);
-
-    /**
-     * 更新模板
-     *
-     * @param request 更新模板请求
-     * @return 是否成功
-     */
-    ApiResult<Boolean> updateTemplate(CreateTemplateRequest request);
+    ApiResult<Long> saveTemplate(CreateTemplateRequest request);
 
     /**
      * 删除模板
