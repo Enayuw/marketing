@@ -56,7 +56,7 @@ public class CopyFileJoinAspect {
     }
 
     @Around("com.br.marketing.sync.aspect.CopyFileJoinAspect.copyFile()")
-    public void copyFile(ProceedingJoinPoint joinPoint) {
+    public Object copyFile(ProceedingJoinPoint joinPoint) {
         Object[] args = joinPoint.getArgs();
         SyncConfig loanSyncConfig = new SyncConfig();
         String fileName = "";
@@ -76,29 +76,34 @@ public class CopyFileJoinAspect {
                 break;
             }
         }
-        if(srcClient==null||targetClient==null){
+        if (srcClient == null || targetClient == null) {
             log.error("targetClient or srcClient is null");
-            return;
+            return Boolean.FALSE;
         }
-        SyncLog loanSyncLog = setSyncLog(loanSyncConfig, fileName,srcClient);
+        SyncLog loanSyncLog = setSyncLog(loanSyncConfig, fileName, srcClient);
+        Boolean success = false;
+        Object result = Boolean.FALSE;
         try {
-            joinPoint.proceed(args);
+            result = joinPoint.proceed(args);
+            success = Boolean.TRUE.equals(result);
         } catch (Throwable throwable) {
-            log.error("copyFile error",throwable);
+            log.error("copyFile error", throwable);
         }
-        if(DataTypeEnum.TRANSFER.getValue().equals(loanSyncConfig.getDataType())){
-            insertSyncLog(loanSyncConfig,fileName,true,loanSyncLog);
-            TransferFileTaskExample example = new TransferFileTaskExample();
-            example.createCriteria().andApiCodeEqualTo(loanSyncConfig.getApiCode()).andFileNameEqualTo(fileName);
-            TransferFileTask task = new TransferFileTask();
-            task.setStatus(4);
-            transferFileTaskMapper.updateByExampleSelective(task, example);
-        } else {
-            boolean b = vaildatorFile(loanSyncConfig, fileName, loanSyncLog, targetClient);
-            insertSyncLog(loanSyncConfig, fileName, b, loanSyncLog);
-            updateFileHisStatus(loanSyncConfig, fileName, b);
+        if (success) {
+            if (DataTypeEnum.TRANSFER.getValue().equals(loanSyncConfig.getDataType())) {
+                insertSyncLog(loanSyncConfig, fileName, true, loanSyncLog);
+                TransferFileTaskExample example = new TransferFileTaskExample();
+                example.createCriteria().andApiCodeEqualTo(loanSyncConfig.getApiCode()).andFileNameEqualTo(fileName);
+                TransferFileTask task = new TransferFileTask();
+                task.setStatus(4);
+                transferFileTaskMapper.updateByExampleSelective(task, example);
+            } else {
+                boolean b = vaildatorFile(loanSyncConfig, fileName, loanSyncLog, targetClient);
+                insertSyncLog(loanSyncConfig, fileName, b, loanSyncLog);
+                updateFileHisStatus(loanSyncConfig, fileName, b);
+            }
         }
-
+        return result;
     }
 
     @Around("downloadFileToLocalDisk()")
