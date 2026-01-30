@@ -10,7 +10,6 @@ import com.br.marketing.mapper.MqIdempotentSpecialMapper;
 import com.br.marketing.service.MqIdempotentService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
@@ -23,19 +22,21 @@ import java.util.Date;
 @Service
 @Slf4j
 public class MqIdempotentServiceImpl implements MqIdempotentService {
-    
+
     @Resource
     private MqIdempotentCommonMapper mqIdempotentCommonMapper;
-    
+
     @Resource
     private MqIdempotentSpecialMapper mqIdempotentSpecialMapper;
-    
+
     private static final Integer NOT_DELETED = 0;
-    
+    private static final Integer NOT_FINISHED = 0;
+    private static final Integer FINISHED = 1;
+
     @Override
     public Long insertIdempotentRecord(MqIdempotentTableType tableType, Long idempotentKey, String apiCode, String tag) {
         Date now = new Date();
-        
+
         switch (tableType) {
             case COMMON:
                 MqIdempotentCommon commonRecord = createCommonRecord(idempotentKey, apiCode, tag, now);
@@ -51,31 +52,14 @@ public class MqIdempotentServiceImpl implements MqIdempotentService {
     }
 
     @Override
-    public void deleteIdempotentRecordByKey(MqIdempotentTableType tableType, Long idempotentKey) {
-        switch (tableType) {
-            case COMMON:
-                mqIdempotentCommonMapper.deleteByIdempotentKey(idempotentKey);
-                break;
-            case SPECIAL:
-                mqIdempotentSpecialMapper.deleteByIdempotentKey(idempotentKey);
-                break;
-            default:
-                throw new IllegalArgumentException("不支持的幂等表类型: " + tableType);
-        }
-    }
-    
-    @Override
-    public void updateApiCode(MqIdempotentTableType tableType, Long recordId, String apiCode) {
-        if (!StringUtils.hasText(apiCode)) {
-            return;
-        }
-        
+    public void updateIsFinishedAndApiCode(MqIdempotentTableType tableType, Long recordId, String apiCode) {
         Date now = new Date();
-        
+
         switch (tableType) {
             case COMMON:
                 MqIdempotentCommon commonRecord = new MqIdempotentCommon();
                 commonRecord.setId(recordId);
+                commonRecord.setIsFinished(FINISHED);
                 commonRecord.setApiCode(apiCode);
                 commonRecord.setUpdateTime(now);
                 mqIdempotentCommonMapper.updateByPrimaryKeySelective(commonRecord);
@@ -83,6 +67,7 @@ public class MqIdempotentServiceImpl implements MqIdempotentService {
             case SPECIAL:
                 MqIdempotentSpecial specialRecord = new MqIdempotentSpecial();
                 specialRecord.setId(recordId);
+                specialRecord.setIsFinished(FINISHED);
                 specialRecord.setApiCode(apiCode);
                 specialRecord.setUpdateTime(now);
                 mqIdempotentSpecialMapper.updateByPrimaryKeySelective(specialRecord);
@@ -91,7 +76,7 @@ public class MqIdempotentServiceImpl implements MqIdempotentService {
                 throw new IllegalArgumentException("不支持的幂等表类型: " + tableType);
         }
     }
-    
+
     /**
      * 创建通用表记录
      */
@@ -101,13 +86,14 @@ public class MqIdempotentServiceImpl implements MqIdempotentService {
         record.setApiCode(apiCode);
         record.setTag(tag);
         record.setIsDeleted(NOT_DELETED);
+        record.setIsFinished(NOT_FINISHED); // 初始化业务未完成
         String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
         record.setCreateDate(Integer.valueOf(yyyyMMdd));
         record.setCreateTime(now);
         record.setUpdateTime(now);
         return record;
     }
-    
+
     /**
      * 创建特殊表记录
      */
@@ -117,6 +103,7 @@ public class MqIdempotentServiceImpl implements MqIdempotentService {
         record.setApiCode(apiCode);
         record.setTag(tag);
         record.setIsDeleted(NOT_DELETED);
+        record.setIsFinished(NOT_FINISHED); // 初始化业务未完成
         String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
         record.setCreateDate(Integer.valueOf(yyyyMMdd));
         record.setCreateTime(now);

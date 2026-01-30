@@ -365,6 +365,66 @@ public class MqIdempotentSpecialExample {
             return (Criteria) this;
         }
 
+        public Criteria andIsFinishedIsNull() {
+            addCriterion("is_finished is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsFinishedIsNotNull() {
+            addCriterion("is_finished is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsFinishedEqualTo(Integer value) {
+            addCriterion("is_finished =", value, "isFinished");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsFinishedNotEqualTo(Integer value) {
+            addCriterion("is_finished <>", value, "isFinished");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsFinishedGreaterThan(Integer value) {
+            addCriterion("is_finished >", value, "isFinished");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsFinishedGreaterThanOrEqualTo(Integer value) {
+            addCriterion("is_finished >=", value, "isFinished");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsFinishedLessThan(Integer value) {
+            addCriterion("is_finished <", value, "isFinished");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsFinishedLessThanOrEqualTo(Integer value) {
+            addCriterion("is_finished <=", value, "isFinished");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsFinishedIn(List<Integer> values) {
+            addCriterion("is_finished in", values, "isFinished");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsFinishedNotIn(List<Integer> values) {
+            addCriterion("is_finished not in", values, "isFinished");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsFinishedBetween(Integer value1, Integer value2) {
+            addCriterion("is_finished between", value1, value2, "isFinished");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsFinishedNotBetween(Integer value1, Integer value2) {
+            addCriterion("is_finished not between", value1, value2, "isFinished");
+            return (Criteria) this;
+        }
+
         public Criteria andIsDeletedIsNull() {
             addCriterion("is_deleted is null");
             return (Criteria) this;

@@ -24,6 +24,11 @@ public class MqIdempotentSpecial {
     private String tag;
 
     /**
+     * 是否业务已执行完成 0-否，1-是
+     */
+    private Integer isFinished;
+
+    /**
      * 状态 0-正常 1-删除
      */
     private Integer isDeleted;
@@ -78,6 +83,14 @@ public class MqIdempotentSpecial {
 
     public void setTag(String tag) {
         this.tag = tag == null ? null : tag.trim();
+    }
+
+    public Integer getIsFinished() {
+        return isFinished;
+    }
+
+    public void setIsFinished(Integer isFinished) {
+        this.isFinished = isFinished;
     }
 
     public Integer getIsDeleted() {

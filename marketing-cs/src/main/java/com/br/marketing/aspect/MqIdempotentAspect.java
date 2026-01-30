@@ -26,10 +26,10 @@ import javax.annotation.Resource;
  * 1. 前置：尝试插入幂等记录
  *    - 插入成功：继续执行业务逻辑
  *    - DuplicateKeyException：根据幂等键查询已存在记录
- *      - 如果apiCode不为空：说明业务已执行完成，返回成功，跳过业务处理
- *      - 如果apiCode为空：说明业务可能未执行完成（节点下线），返回记录ID，继续执行业务
- * 2. 后置：业务处理成功，更新apiCode（如果之前为null）
- * 3. 异常：业务处理异常，删除幂等记录，让MQ重试
+ *      - 如果isFinished=1：说明业务已执行完成，返回成功，跳过业务处理
+ *      - 如果isFinished=0：说明业务未执行完成（节点下线或业务失败），返回记录ID，继续执行业务
+ * 2. 后置：业务处理成功，更新isFinished=1（无论apiCode是否存在）
+ * 3. 异常：业务处理异常，不删除幂等记录（isFinished=0），让MQ重试
  */
 @Aspect
 @Component
@@ -55,28 +55,26 @@ public class MqIdempotentAspect {
                     return joinPoint.proceed();
                 } catch (Throwable e) {
                     throw new RuntimeException("业务处理异常，没有幂等键，让MQ重试，apiCode：" + apiCode + "，tag:" +
-                            tag + "，args:" + JSON.toJSONString(joinPoint.getArgs()), e);
+                            tag + "args:" + JSON.toJSONString(joinPoint.getArgs()), e);
                 }
             }
 
             // 尝试插入幂等记录（失败时抛出异常，让MQ重试）
             Long recordId = insertIdempotentRecord(tableType, idempotentKey, apiCode, tag);
             if (recordId == null) {
-                // DuplicateKeyException，消息已处理过，直接返回成功
                 return createSuccessResult();
             }
 
             // 执行业务逻辑
             try {
                 Object result = joinPoint.proceed();
-                // 业务处理成功，更新apiCode
-                updateApiCodeIfNeeded(tableType, recordId, apiCode, tag);
+                // 业务处理成功，更新isFinished=1（无论apiCode是否存在）
+                updateIsFinishedAndApiCode(tableType, recordId, tag);
                 return result;
             } catch (Throwable e) {
-                // 业务处理异常，删除幂等记录，让MQ重试
-                deleteIdempotentRecordOnException(tableType, idempotentKey, tag);
-                throw new RuntimeException("业务处理异常，删除幂等记录，让MQ重试，apiCode：" + apiCode + "，tag:" +
-                        tag + "，idempotentKey：" + idempotentKey + "，args:" + JSON.toJSONString(joinPoint.getArgs()), e);
+                // 业务处理异常，不删除幂等记录（isFinished=0），让MQ重试
+                throw new RuntimeException("业务处理异常，让MQ重试，apiCode：" + apiCode + "，tag:" +
+                        tag + "，idempotentKey：" + idempotentKey + "args:" + JSON.toJSONString(joinPoint.getArgs()), e);
             }
         } finally {
             MqIdempotentContext.clear();
@@ -132,19 +130,16 @@ public class MqIdempotentAspect {
     }
 
     /**
-     * 更新apiCode
+     * 更新isFinished和apiCode
      */
-    private void updateApiCodeIfNeeded(MqIdempotentTableType tableType, Long recordId, String originalApiCode, String tag) {
+    private void updateIsFinishedAndApiCode(MqIdempotentTableType tableType, Long recordId, String tag) {
         String currentApiCode = MqIdempotentContext.getApiCode();
-        if (currentApiCode == null || currentApiCode.equals(originalApiCode)) {
-            return;
-        }
 
         try {
-            mqIdempotentService.updateApiCode(tableType, recordId, currentApiCode);
+            mqIdempotentService.updateIsFinishedAndApiCode(tableType, recordId, currentApiCode);
         } catch (Exception e) {
-            String subject = "MQ幂等切面, 更新幂等记录apiCode失败";
-            String errorMsg = String.format("更新幂等记录apiCode失败, recordId: %s, tag: %s, apiCode: %s, error: %s",
+            String subject = "MQ幂等切面, 更新幂等记录isFinished失败";
+            String errorMsg = String.format("更新幂等记录isFinished失败, recordId: %s, tag: %s, apiCode: %s, error: %s",
                     recordId, tag, currentApiCode, e.getMessage());
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), errorMsg
                     , subject), e);
@@ -153,7 +148,7 @@ public class MqIdempotentAspect {
 
     /**
      * 插入幂等记录
-     * @return 记录ID，如果返回null表示消息已处理过（DuplicateKeyException且apiCode不为空）
+     * @return 记录ID，如果返回null表示消息已处理过（DuplicateKeyException且isFinished=1）
      * @throws RuntimeException 插入失败时抛出异常，让MQ重试
      */
     private Long insertIdempotentRecord(MqIdempotentTableType tableType, Long idempotentKey,
@@ -173,73 +168,24 @@ public class MqIdempotentAspect {
                 return null;
             }
 
-            // 判断apiCode是否为空
-            String existingApiCode = existingRecord.getApiCode();
-            if (existingApiCode == null) {
-                // apiCode为空，说明业务可能未执行完成（节点下线），返回记录ID，让业务继续执行
-                log.warn("MQ幂等切面, 检测到apiCode为空，认为业务未执行完成，重新执行业务, idempotentKey: {}, tag: {}, recordId: {}",
+            // 判断isFinished是否为1
+            Integer isFinished = existingRecord.getIsFinished();
+            if (isFinished != null && isFinished == 1) {
+                // isFinished=1，说明业务已执行完成，跳过本次处理
+                String subject = "MQ幂等切面, 幂等校验不通过！";
+                String message = String.format("该MQ消息已处理过, idempotentKey: %s, tag: %s, isFinished: %d, 跳过本次处理, error: %s",
+                        idempotentKey, tag, isFinished, e.getMessage());
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), message, subject), e);
+                return null;
+            } else {
+                // isFinished=0或null，说明业务未执行完成（节点下线或业务失败），返回记录ID，让业务继续执行
+                log.warn("MQ幂等切面, 检测到isFinished=0，认为业务未执行完成，重新执行业务, idempotentKey: {}, tag: {}, recordId: {}",
                         idempotentKey, tag, existingRecord.getId());
                 return existingRecord.getId();
             }
-
-            // apiCode不为空，说明业务已执行完成，跳过本次处理
-            String subject = "MQ幂等切面, 幂等校验不通过！";
-            String message = String.format("该MQ消息已处理过, idempotentKey: %s, tag: %s, apiCode: %s, 跳过本次处理, error: %s",
-                    idempotentKey, tag, existingApiCode, e.getMessage());
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), message, subject), e);
-            return null;
         } catch (Exception e) {
-            deleteIdempotentRecordOnException(tableType, idempotentKey, tag);
             // 插入失败，无法保证幂等性，抛出异常让MQ重试（最多16次）
-            throw new RuntimeException("insertIdempotentRecorde插入失败，无法保证幂等性，抛出异常让MQ重试。idempotentKey：" + idempotentKey + "。" + e.getMessage(), e);
-        }
-    }
-
-    /**
-     * 业务异常时删除幂等记录（带重试机制）
-     * 使用幂等键删除，删除失败时进行有限次数的重试，提高删除成功率
-     */
-    private void deleteIdempotentRecordOnException(MqIdempotentTableType tableType,
-                                                   Long idempotentKey, String tag) {
-        if (idempotentKey == null) {
-            return;
-        }
-
-        String apiCode = MqIdempotentContext.getApiCode();
-        int maxRetries = 3;
-        int retryCount = 0;
-        boolean deleted = false;
-
-        while (retryCount < maxRetries && !deleted) {
-            try {
-                mqIdempotentService.deleteIdempotentRecordByKey(tableType, idempotentKey);
-                log.warn("MQ幂等切面，业务处理异常，已通过幂等键删除幂等记录, idempotentKey: {}, 重试次数: {}, tag: {}, apiCode: {}, 等待MQ重试",
-                        idempotentKey, retryCount, tag, apiCode);
-                deleted = true;
-            } catch (Exception e) {
-                retryCount++;
-                if (retryCount < maxRetries) {
-                    log.warn("MQ幂等切面，通过幂等键删除幂等记录失败，准备重试，idempotentKey: {}, 重试次数: {}/{}, tag: {}, apiCode: {}",
-                            idempotentKey, retryCount, maxRetries, tag, apiCode, e);
-                    try {
-                        // 递增延迟：100ms, 200ms, 300ms
-                        Thread.sleep(100L * retryCount);
-                    } catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt();
-                        log.warn("MQ幂等切面，删除幂等记录重试延迟被中断，idempotentKey: {}, tag: {}, apiCode: {}",
-                                idempotentKey, tag, apiCode, ie);
-                        break;
-                    }
-                } else {
-                    // 重试失败，记录告警
-                    String errorMsg = String.format("MQ幂等切面，删除幂等记录失败（已重试%d次），" +
-                                    "幂等记录可能残留 idempotentKey: %s, tag: %s, apiCode: %s, error: %s",
-                            maxRetries, idempotentKey, tag, apiCode != null ? apiCode : "null", e.getMessage());
-                    String subject = "MQ幂等切面，删除幂等记录失败";
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), errorMsg
-                            , subject), e);
-                }
-            }
+            throw new RuntimeException("insertIdempotentRecord插入失败，无法保证幂等性，抛出异常让MQ重试" + e.getMessage(), e);
         }
     }
 
@@ -253,4 +199,5 @@ public class MqIdempotentAspect {
         return result;
     }
 }
+
 
