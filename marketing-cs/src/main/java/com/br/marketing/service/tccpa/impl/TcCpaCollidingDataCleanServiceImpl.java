@@ -374,7 +374,7 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
                                       TpDynamicExecutor threadPool, List<CompletableFuture<Void>> futures) {
         boolean hasError = false;
         Integer maxIsDel = tcyrCpaCollidingDataMapper.queryMaxIsDel();
-        Integer isDelNext = maxIsDel == null ? 9 : maxIsDel + 1;
+        Integer isDelNext = maxIsDel == null ? 9 : (maxIsDel + 1);
         for (TcyrCpaCollidingDataPackage deletePackage : deletePackages) {
             try {
                 Long minId = null;
