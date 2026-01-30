@@ -22,6 +22,9 @@ public class LinkDetailResponse {
 
     @Schema(description = "节点列表")
     private List<LinkNodeDetailVO> nodes;
+
+    @Schema(description = "边列表")
+    private List<LinkEdgeDetailVO> edges;
 }
 
 

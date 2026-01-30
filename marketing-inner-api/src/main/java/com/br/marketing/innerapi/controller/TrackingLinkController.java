@@ -42,15 +42,15 @@ public class TrackingLinkController {
         }
     }
 
-    @PostMapping("/createLink")
-    @Operation(summary = "创建链路", description = "创建链路")
+    @PostMapping("/saveLink")
+    @Operation(summary = "保存链路", description = "创建或更新链路，linkId为空时创建，不为空时更新")
     @AddDataAuthBusiness
-    public ApiResult<CreateLinkResponse> createLink(@RequestBody @Validated CreateLinkRequest request) {
+    public ApiResult<CreateLinkResponse> saveLink(@RequestBody @Validated CreateLinkRequest request) {
         try {
-            return trackingLinkService.createLink(request);
+            return trackingLinkService.saveLink(request);
         } catch (Exception e) {
-            log.error("Failed to create link", e);
-            return new ApiResult<CreateLinkResponse>().fail("Failed to create link: " + e.getMessage());
+            log.error("保存链路失败: linkId={}", request.getLinkId(), e);
+            return new ApiResult<CreateLinkResponse>().fail("保存链路失败: " + e.getMessage());
         }
     }
 
@@ -77,18 +77,6 @@ public class TrackingLinkController {
             log.error("根据apiCode查询链路详情列表失败: apiCode={}, startDate={}, endDate={}", 
                     request.getApiCode(), request.getStartDate(), request.getEndDate(), e);
             return new ApiResult<List<LinkDetailResponse>>().fail("根据apiCode查询链路详情列表失败: " + e.getMessage());
-        }
-    }
-
-    @PostMapping("/updateLink")
-    @Operation(summary = "更新链路配置", description = "更新链路配置")
-    @AddDataAuthBusiness
-    public ApiResult<Boolean> updateLink(@RequestBody @Validated CreateLinkRequest request) {
-        try {
-            return trackingLinkService.updateLink(request);
-        } catch (Exception e) {
-            log.error("Failed to update link: linkId={}", request.getLinkId(), e);
-            return new ApiResult<Boolean>().fail("Failed to update link: " + e.getMessage());
         }
     }
 
