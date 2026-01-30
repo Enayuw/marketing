@@ -12,6 +12,6 @@
     SELECT id, api_code as apiCode, is_finished as isFinished
     FROM b_mq_idempotent_common
     WHERE idempotent_key = #{idempotentKey}
-      LIMIT 1
+    LIMIT 1
   </select>
 </mapper>
