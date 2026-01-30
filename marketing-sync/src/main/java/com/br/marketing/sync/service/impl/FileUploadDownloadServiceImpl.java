@@ -90,7 +90,7 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
     /**
      * 单文件同步超时时间（1小时）
      */
-    private static final long SINGLE_FILE_TIMEOUT_MS = 60 * 60 * 1000;
+    private static long SINGLE_FILE_TIMEOUT_MS = 60 * 60 * 1000;
 
 
     @Override
@@ -382,6 +382,9 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                         log.warn(DOWNLOAD_TITLE + "job开关关闭，停止文件下载任务");
                         stop = true;
                         break;
+                    }
+                    if (Objects.nonNull(marketingCommonConfig.getSftpDownLoadTimeOut())){
+                        SINGLE_FILE_TIMEOUT_MS = marketingCommonConfig.getSftpDownLoadTimeOut();
                     }
                     // 使用 Future.get(timeout) 控制超时
                     Future future = SYNC_EXECUTOR.submit(() -> {
