@@ -192,7 +192,6 @@ public class MarketingTaikangDingDingTransferServiceImpl implements MarketingTai
                 }else {
                     response = taikangClient.process(taikangMarketingEvent);
                 }
-                log.warn("TITLE:{},detailId:{},reqParam:{},response:{}",TITLE,item.getId(),JSONObject.toJSONString(taikangMarketingEvent),response);
                 // 3.记录日志
                 TaikangTransferDataLog taikangTransferDataLog = new TaikangTransferDataLog();
                 taikangTransferDataLog.setDataType(2);
