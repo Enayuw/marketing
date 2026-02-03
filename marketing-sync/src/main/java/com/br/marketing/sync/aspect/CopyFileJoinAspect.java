@@ -80,7 +80,6 @@ public class CopyFileJoinAspect {
             log.error("targetClient or srcClient is null");
             return Boolean.FALSE;
         }
-        SyncLog loanSyncLog = setSyncLog(loanSyncConfig, fileName, srcClient);
         Boolean success = false;
         Object result = Boolean.FALSE;
         try {
@@ -90,6 +89,7 @@ public class CopyFileJoinAspect {
             log.error("copyFile error", throwable);
         }
         if (success) {
+            SyncLog loanSyncLog = setSyncLog(loanSyncConfig, fileName, srcClient);
             if (DataTypeEnum.TRANSFER.getValue().equals(loanSyncConfig.getDataType())) {
                 insertSyncLog(loanSyncConfig, fileName, true, loanSyncLog);
                 TransferFileTaskExample example = new TransferFileTaskExample();
