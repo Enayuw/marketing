@@ -76,7 +76,14 @@ public class PhoneSaleDataPushDassJob extends AbstractSimpleElasticJob {
             } else if (matchedPrefix != null) {
                 // 获取该前缀对应的配置
                 JSONObject prefixConfig = daasConfig != null ? daasConfig.getJSONObject(matchedPrefix) : null;
-                pushDataService.pushSpecialDassData(localFile.getId(), matchedPrefix, prefixConfig);
+                
+                // 判断是否使用新的动态分组逻辑（检查配置中是否包含groupByField）
+                if (prefixConfig != null && prefixConfig.containsKey("groupByField")) {
+                    pushDataService.pushDynamicGroupDassData(localFile.getId(), matchedPrefix, prefixConfig);
+                } else {
+                    // 兼容旧逻辑
+                    pushDataService.pushSpecialDassData(localFile.getId(), matchedPrefix, prefixConfig);
+                }
             } else {
                 pushDataService.pushDassData(localFile.getId());
             }
