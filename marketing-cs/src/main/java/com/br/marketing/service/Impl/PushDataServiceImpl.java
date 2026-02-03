@@ -97,6 +97,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -2885,7 +2886,7 @@ public class PushDataServiceImpl implements PushDataService {
         }
         
         // 手动分组：从 extend 中提取分组字段值
-        java.util.LinkedHashMap<String, List<DassImportDataDTO>> groupedData = new java.util.LinkedHashMap<>();
+        LinkedHashMap<String, List<DassImportDataDTO>> groupedData = new LinkedHashMap<>();
         for (DassImportDataDTO record : allRecords) {
             String extend = record.getExtend();
             if (StringUtils.isBlank(extend)) {
@@ -2910,7 +2911,7 @@ public class PushDataServiceImpl implements PushDataService {
         List<DassImportDataDTO> dataDTOS = new ArrayList<>();
         
         try {
-            for (java.util.Map.Entry<String, List<DassImportDataDTO>> entry : groupedData.entrySet()) {
+            for (Map.Entry<String, List<DassImportDataDTO>> entry : groupedData.entrySet()) {
                 List<DassImportDataDTO> records = entry.getValue();
                 
                 // 合并数据（复用现有逻辑）
@@ -3059,7 +3060,7 @@ public class PushDataServiceImpl implements PushDataService {
     private void shutdownThreadPool(ThreadPoolExecutor threadPool, String TITLE) {
         threadPool.shutdown();
         try {
-            while (!threadPool.awaitTermination(10L, java.util.concurrent.TimeUnit.SECONDS)) {
+            while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
                 log.warn(TITLE + "等待线程池结束");
             }
         } catch (InterruptedException ex) {
