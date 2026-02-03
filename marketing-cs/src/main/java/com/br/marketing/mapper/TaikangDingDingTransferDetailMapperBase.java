@@ -21,9 +21,11 @@ public interface TaikangDingDingTransferDetailMapperBase {
 
     TaikangDingDingTransferDetail selectByPrimaryKey(Long id);
 
-    int updateByExampleSelective(@Param("record") TaikangDingDingTransferDetail record, @Param("example") TaikangDingDingTransferDetailExample example);
+    int updateByExampleSelective(
+            @Param("record") TaikangDingDingTransferDetail record, @Param("example") TaikangDingDingTransferDetailExample example);
 
-    int updateByExample(@Param("record") TaikangDingDingTransferDetail record, @Param("example") TaikangDingDingTransferDetailExample example);
+    int updateByExample(
+            @Param("record") TaikangDingDingTransferDetail record, @Param("example") TaikangDingDingTransferDetailExample example);
 
     int updateByPrimaryKeySelective(TaikangDingDingTransferDetail record);
 
