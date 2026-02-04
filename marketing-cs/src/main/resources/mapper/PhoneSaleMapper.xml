@@ -109,4 +109,44 @@
         order by create_time asc;
     </select>
 
+    <!-- 动态分组：根据基础字段获取分组数量 -->
+    <select id="getGroupByFieldCount" resultType="java.lang.Integer">
+        SELECT COUNT(DISTINCT ${groupField})
+        FROM b_phone_sale
+        WHERE local_id = #{localId}
+        AND status = 1
+        AND ${groupField} IS NOT NULL
+    </select>
+
+    <!-- 动态分组：根据基础字段分页获取分组值 -->
+    <select id="getGroupByFieldWithPaging" resultType="java.lang.String">
+        SELECT ${groupField}
+        FROM b_phone_sale
+        WHERE local_id = #{localId}
+        AND status = 1
+        AND ${groupField} IS NOT NULL
+        GROUP BY ${groupField}
+        ORDER BY ${groupField}
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <!-- 动态分组：根据分组字段和分组值获取所有数据 -->
+    <select id="getDataByGroupField" resultType="com.br.marketing.client.dassservice.input.DassImportDataDTO">
+        SELECT *
+        FROM b_phone_sale
+        WHERE local_id = #{localId}
+        AND status = 1
+        AND ${groupField} = #{groupValue}
+        ORDER BY create_time ASC
+    </select>
+
+    <!-- 获取文件的所有数据（用于extend字段分组） -->
+    <select id="getAllDataByFileId" resultType="com.br.marketing.client.dassservice.input.DassImportDataDTO">
+        SELECT *
+        FROM b_phone_sale
+        WHERE local_id = #{localId}
+        AND status = 1
+        ORDER BY create_time ASC
+    </select>
+
 </mapper>
