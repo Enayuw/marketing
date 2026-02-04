@@ -32,5 +32,5 @@ public interface IDynamicSqlService {
      * @param labelName
      * @return
      */
-    List<MarketingSyncUser> selectDataRuleScoreWithDate(String apiCode, String whereStr, Long id,Integer pageSize,String labelName);
+    List<MarketingSyncUser> selectDataRuleScoreWithDate(String apiCode, String whereStr, Long id,Integer pageSize,String labelName,Long minUnCompleteId,Long maxId);
 }

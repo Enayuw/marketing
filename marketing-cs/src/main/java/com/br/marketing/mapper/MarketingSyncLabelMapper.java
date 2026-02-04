@@ -18,5 +18,6 @@ public interface MarketingSyncLabelMapper {
     int singleInsert(@Param("apiCode") String apiCode,@Param("syncLabel") MarketingSyncLabel syncLabel);
 
     List<Long> getSyncIdByLabelId(@Param("apiCode") String apiCode
-            , @Param("whereStr") String whereStr, @Param("syncId") Long syncId, @Param("pageSize") Integer pageSize, @Param("labelId") Long labelId);
+            , @Param("whereStr") String whereStr, @Param("syncId") Long syncId, @Param("pageSize") Integer pageSize, @Param("labelId") Long labelId,
+                                  @Param("minUnCompleteId") Long minUnCompleteId,@Param("maxId") Long maxId);
 }

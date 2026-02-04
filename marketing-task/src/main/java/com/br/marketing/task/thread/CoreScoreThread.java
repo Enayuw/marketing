@@ -9,7 +9,9 @@ import com.br.common.util.StringUtils;
 import com.br.marketing.client.ProFieldsClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.constants.rediskey.RedisKeyExpireConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.enums.RedisValueTypeEnum;
 import com.br.marketing.common.enums.TaskTypeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.*;
@@ -19,6 +21,7 @@ import com.br.marketing.monitor.PrometheusMonitorUtils;
 import com.br.marketing.service.MarketingTaskService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.task.Scheduler;
+import com.br.marketing.task.dto.ScoreTaskBatchDTO;
 import com.br.marketing.task.utils.HxUtil;
 import com.br.marketing.task.utils.ResultUtil;
 import com.br.marketing.vo.BaseHeadConfigVO;
@@ -65,13 +68,14 @@ public class CoreScoreThread implements Callable<String> {
     private MarketingRetryEsMapper marketingRetryEsMapper;
     private MarketingCommonConfig marketingCommonConfig;
     private MarketingRetryRedisMapper marketingRetryRedisMapper;
+    private ScoreTaskBatchDTO scoreTaskBatchDTO;
 
     public CoreScoreThread(List<MarketingSyncUser> list, Map<String, String> param
             , Long currentPage, boolean firstTime, MarketingCustomer customer, MarketingTask marketingTask
             , List<String> noflagproductlist, List<String> flagProductList, MarketingTaskExtend marketingTaskExtend
             , BaseHeadConfigVO baseHeadConfigVO, StrategyProductDetailVO fieldInfo
             , Boolean isRetry, MarketingRetryEsMapper marketingRetryEsMapper
-            , MarketingCommonConfig marketingCommonConfig, MarketingRetryRedisMapper marketingRetryRedisMapper) {
+            , MarketingCommonConfig marketingCommonConfig, MarketingRetryRedisMapper marketingRetryRedisMapper,ScoreTaskBatchDTO scoreTaskBatchDTO) {
         this.list = list;
         this.apiCode = param.get("apiCode");
         this.strategyId = param.get("strategyId");
@@ -99,6 +103,7 @@ public class CoreScoreThread implements Callable<String> {
         this.marketingRetryEsMapper = marketingRetryEsMapper;
         this.marketingCommonConfig = marketingCommonConfig;
         this.marketingRetryRedisMapper = marketingRetryRedisMapper;
+        this.scoreTaskBatchDTO = scoreTaskBatchDTO;
         Scheduler.ac.getBean(ProFieldsClient.class).setLoanPro(strategyStr, meal);
     }
 
@@ -112,7 +117,10 @@ public class CoreScoreThread implements Callable<String> {
             return null;
         }
         if (!isRetry) {
-            marketingTaskService.addTaskPercent(marketingTask.getFileId(), Long.valueOf(list.size()));
+            // 未完全完成的批次第一次执行时已记录了数量，恢复跑分不用再记录了
+            if(scoreTaskBatchDTO != null && scoreTaskBatchDTO.getMinUnCompleteId() == null) {
+                marketingTaskService.addTaskPercent(marketingTask.getFileId(), Long.valueOf(list.size()));
+            }
         }
 //        boolean check = this.checkRedisNumber();
         log.warn("开始执行监控任务。。跑分--{}。。页码--{}。。量级--{}",marketingTask.getBatchNumber(), currentPage, list.size());
@@ -135,8 +143,19 @@ public class CoreScoreThread implements Callable<String> {
             JSONObject param = new JSONObject();
             param.put("strategyId", strategyId);
             BrCipherMaker instance = BrCipherMaker.getInstance();
+            // 记录当前已处理完成的数据量
+            int count = 0;
             for (MarketingSyncUser blu : list) {
+                if(!isRetry && Thread.currentThread().isInterrupted()) {
+                    // 检测到中断了，跳出循环
+                    if(scoreTaskBatchDTO != null) {
+                        // 记录待处理的记录ID
+                        scoreTaskBatchDTO.setMinUnCompleteId(blu.getId());
+                    }
+                    break;
+                }
                 if (blu.getStatus() != 1) {
+                    count++;
                     continue;
                 }
                 if (marketingTask.getTaskType().equals(TaskTypeEnum.DIRECTDATA.getValue())
@@ -177,15 +196,27 @@ public class CoreScoreThread implements Callable<String> {
                     String resultStr = HxUtil.getReport(customer, jsonData, meal, url,noflagproductlist, flagProductList);
                     dealResult(resultStr, fw, apiCode, blu, isRetry);
                 }
+                count++;
             }
             if (errorList.size() > 0) {
                 for (MarketingSyncUser lu : errorList) {
                     errorFw.append(JSON.toJSONString(lu) + "\n");
                 }
                 String key = Constants.HXRESULTERROR_RETRY_KEY + ":" + this.fileId;
-                redisChgService.hset(key, errorFile.getPath(), batchNumber);
+                try {
+                    redisChgService.hset(key, errorFile.getPath(), batchNumber);
+                }catch (Exception e) {
+                    try {
+                        redisChgService.hset(key, errorFile.getPath(), batchNumber);
+                    }catch (Exception e1) {
+                        throw e1;
+                    }
+
+
+                }
             }
-            setScoreStatus();
+            // 保存当前批次进度
+            saveScoreBatchProgress(count);
             log.warn("结束执行监控任务。。跑分--{}。。页码--{}。。量级--{}",marketingTask.getBatchNumber(), currentPage, list.size());
         } catch (Exception e) {
             log.error("生成文件出错。。。。", e);
@@ -193,23 +224,23 @@ public class CoreScoreThread implements Callable<String> {
         return null;
     }
 
-    private void setScoreStatus() {
-        String key = RedisKeyConstant.scoreStatus.concat(fileId).concat(":").concat(String.valueOf(currentPage));
+    private void setScoreStatus(ScoreTaskBatchDTO scoreTaskBatchDTO) {
+        String key = RedisKeyConstant.scoreBatch.concat(":").concat(fileId).concat(":").concat(String.valueOf(scoreTaskBatchDTO.getConditionIndex())).concat(":").concat(String.valueOf(scoreTaskBatchDTO.getGroupId()));
         int retryCount = 0;
         while (retryCount < 3) {
             try {
                 // 模拟写redis异常
                 checkMockRedisSwitch("writeRedis");
 
-                redisChgService.set(key, "1");
-                redisChgService.expire(key, 60 * 60 * 24 * 10);
+                redisChgService.hset(key,String.valueOf(scoreTaskBatchDTO.getPreId()),JSON.toJSONString(scoreTaskBatchDTO));
+                redisChgService.expire(key, RedisKeyExpireConstant.SCORE_BATCH_EXPIRE_TIME);
                 return;
             } catch (Exception e) {
                 retryCount++;
                 if (retryCount >= 3) {
                     log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode(),
                             String.format("跑分异常，Redis写入失败3次，RedisKey=%s, fileId=%s, page=%s", key, fileId, currentPage),e.getMessage()));
-                    insertRetryRedis(key);
+                    insertRetryRedis(key,JSON.toJSONString(scoreTaskBatchDTO), RedisValueTypeEnum.Hash.getValue());
                 } else {
                     try { Thread.sleep(100); } catch (InterruptedException ignored) {}
                 }
@@ -230,12 +261,14 @@ public class CoreScoreThread implements Callable<String> {
      * redis重试异常记录至异常表
      * @param key
      */
-    private void insertRetryRedis(String key) {
+    private void insertRetryRedis(String key, String value, String valueType) {
         MarketingRetryRedis marketingRetryRedis = new MarketingRetryRedis();
         marketingRetryRedis.setApiCode(apiCode);
         marketingRetryRedis.setBatchNumber(marketingTask.getBatchNumber());
         marketingRetryRedis.setPage(String.valueOf(currentPage));
         marketingRetryRedis.setRedisKey(key);
+        marketingRetryRedis.setRedisValue(value);
+        marketingRetryRedis.setRedisValueType(valueType);
         marketingRetryRedis.setRetryStatus(0);
         marketingRetryRedis.setAppletDate(LocalDate.now().toString());
         marketingRetryRedis.setCreateTime(new Date());
@@ -295,5 +328,24 @@ public class CoreScoreThread implements Callable<String> {
             errorFw.append(s + "\r\n");
         }
     }
+
+    /**
+     * 保存当前批次进度
+     * @param count 已完成的数据量
+     */
+    private void saveScoreBatchProgress(int count) {
+        if(!isRetry) {
+            if(scoreTaskBatchDTO != null) {
+                // 说明当前批次已完全处理结束了
+                if(count == list.size()) {
+                    scoreTaskBatchDTO.setMinUnCompleteId(null);
+                }
+                // 记录已完成的数据量
+                scoreTaskBatchDTO.setCompleteNum(scoreTaskBatchDTO.getCompleteNum() + count);
+                setScoreStatus(scoreTaskBatchDTO);
+            }
+        }
+    }
+
 
 }

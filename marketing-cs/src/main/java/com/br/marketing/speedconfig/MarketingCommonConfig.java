@@ -3612,4 +3612,9 @@ public class MarketingCommonConfig {
      * value：apiCode集合
      */
     private Map<String,List<String>> versionApiCodes;
+
+    /**
+     * 跑分rediskey的scoreStatus的最终执行时间
+     */
+    private String scoreStatusFinalDate;
  }

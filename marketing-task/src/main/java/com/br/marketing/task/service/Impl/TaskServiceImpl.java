@@ -7,7 +7,9 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.ZookeeperPath;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.constants.rediskey.RedisKeyExpireConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.enums.RedisValueTypeEnum;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.rpcclient.RpcClientProxy;
@@ -15,6 +17,7 @@ import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.EntityOptServiceImpl;
 import com.br.marketing.service.Impl.datagroup.DataGroupHandlerServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.task.dto.ScoreTaskBatchDTO;
 import com.br.marketing.task.service.ITaskService;
 import com.br.marketing.vo.CustomerScoreRuleVO;
 import lombok.extern.slf4j.Slf4j;
@@ -355,7 +358,7 @@ public class TaskServiceImpl implements ITaskService {
         if (!CollectionUtils.isEmpty(marketingRetryRedis)) {
             for (MarketingRetryRedis retryRedis : marketingRetryRedis) {
                 String key = retryRedis.getRedisKey();
-                boolean success = retrySetRedisOrDisableTask(key, String.valueOf(task.getFileId()), retryRedis.getPage(), task);
+                boolean success = retrySetRedisOrDisableTask(retryRedis, String.valueOf(task.getFileId()), retryRedis.getPage(), task);
                 if (!success) {
                     log.error("重试Redis异常，任务已暂停，后续流程不再执行，fileId={}, page={}", task.getBatchNumber(), retryRedis.getPage());
                     return new Result<>().setCode(ResultCode.FAIL.getValue());
@@ -425,15 +428,26 @@ public class TaskServiceImpl implements ITaskService {
     /**
      * 尝试写入Redis，失败重试3次，失败后暂停任务并跳出外层循环
      */
-    private boolean retrySetRedisOrDisableTask(String key, String fileId, String page, MarketingTask blt) {
+    private boolean retrySetRedisOrDisableTask(MarketingRetryRedis retryRedis, String fileId, String page, MarketingTask blt) {
+        String key = retryRedis.getRedisKey();
+        String redisValueType = retryRedis.getRedisValueType();
         int retryCount = 0;
         while (retryCount < 3) {
             try {
                 // 模拟重试redis异常
                 checkMockRedisSwitch("retryRedis");
 
-                redisChgService.set(key, "1");
-                redisChgService.expire(key, 60 * 60 * 24 * 10);
+                if(RedisValueTypeEnum.String.getValue().equals(redisValueType)) {
+                    redisChgService.set(key, retryRedis.getRedisValue());
+                }else if(RedisValueTypeEnum.Set.getValue().equals(redisValueType)) {
+                    redisChgService.saddMember(key, retryRedis.getRedisValue());
+                }else if(RedisValueTypeEnum.Hash.getValue().equals(redisValueType)) {
+                    ScoreTaskBatchDTO scoreTaskBatchDTO = JSON.parseObject(retryRedis.getRedisValue(), ScoreTaskBatchDTO.class);
+                    redisChgService.hset(key, String.valueOf(scoreTaskBatchDTO.getPreId()), JSON.toJSONString(scoreTaskBatchDTO));
+                } else {
+                    redisChgService.set(key, "1");
+                }
+                redisChgService.expire(key, RedisKeyExpireConstant.SCORE_BATCH_EXPIRE_TIME);
                 // 成功
                 return true;
             } catch (Exception e) {
