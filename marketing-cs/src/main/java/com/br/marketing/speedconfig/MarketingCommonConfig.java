@@ -3577,6 +3577,13 @@ public class MarketingCommonConfig {
     private JSONObject tcyrCpaPushFileVTConfig;
 
     /**
+     * 同程易融CPA周期打标配置
+     * 格式：startDate,endDate，例如："2026-01-19,2026-01-25"
+     * 若为空，则默认取上一自然周（周一至周日）
+     */
+    private String tcyrCpaCyclePeriodConfig;
+
+    /**
      * 随意记获取黑名单RSA私钥
      */
     private String suiyijiBlackBrPrivateKey;
