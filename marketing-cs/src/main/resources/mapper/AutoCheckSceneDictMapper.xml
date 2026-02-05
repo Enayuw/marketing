@@ -39,4 +39,33 @@
         ORDER BY create_time DESC
     </select>
 
+    <!-- 批量保存（仅插入） -->
+    <insert id="batchInsert">
+        INSERT INTO b_auto_check_scene_dict (
+            scene_code,
+            scene_name,
+            is_deleted,
+            create_time,
+            update_time
+        )
+        VALUES
+        <foreach collection="saveList" item="item" separator=",">
+            (
+                #{item.sceneCode, jdbcType=VARCHAR},
+                #{item.sceneName, jdbcType=VARCHAR},
+                <choose>
+                    <when test="item.isDeleted != null">
+                        #{item.isDeleted, jdbcType=TINYINT}
+                    </when>
+                    <otherwise>
+                        0
+                    </otherwise>
+                </choose>
+                ,
+                NOW(),
+                NOW()
+            )
+        </foreach>
+    </insert>
+
 </mapper>

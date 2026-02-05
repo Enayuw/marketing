@@ -54,7 +54,10 @@ public class PhoneSaleDataPushDassJob extends AbstractSimpleElasticJob {
         List zhongYuanList = dxFileCustomize.get("zhongYuan");
 
         // 获取special文件名前缀配置集合
-        List<String> specialFileNamePrefixes = daasConfig.getJSONArray("specialFileNamePrefixes").toJavaList(String.class);
+        List<String> specialFileNamePrefixes = Lists.newArrayList();
+        if (daasConfig != null && daasConfig.containsKey("specialFileNamePrefixes")) {
+            specialFileNamePrefixes = daasConfig.getJSONArray("specialFileNamePrefixes").toJavaList(String.class);
+        }
 
         for (LocalFile localFile : localFiles) {
             // 更新推送状态为推送中
@@ -74,9 +77,16 @@ public class PhoneSaleDataPushDassJob extends AbstractSimpleElasticJob {
             } else if (fileName.startsWith("weizhong")) {
                 pushDataService.pushWeiZhongDassData(localFile.getId());
             } else if (matchedPrefix != null) {
-                // 获取该前缀对应的配置
-                JSONObject prefixConfig = daasConfig != null ? daasConfig.getJSONObject(matchedPrefix) : null;
-                pushDataService.pushSpecialDassData(localFile.getId(), matchedPrefix, prefixConfig);
+                // 获取该前缀对应的配置（此时daasConfig必定不为空，因为matchedPrefix来自specialFileNamePrefixes）
+                JSONObject prefixConfig = daasConfig.getJSONObject(matchedPrefix);
+                
+                // 判断是否使用新的动态分组逻辑（检查配置中是否包含groupByField）
+                if (prefixConfig != null && prefixConfig.containsKey("groupByField")) {
+                    pushDataService.pushDynamicGroupDassData(localFile.getId(), matchedPrefix, prefixConfig);
+                } else {
+                    // 兼容旧逻辑
+                    pushDataService.pushSpecialDassData(localFile.getId(), matchedPrefix, prefixConfig);
+                }
             } else {
                 pushDataService.pushDassData(localFile.getId());
             }

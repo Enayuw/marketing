@@ -3619,4 +3619,9 @@ public class MarketingCommonConfig {
      * value：apiCode集合
      */
     private Map<String,List<String>> versionApiCodes;
+
+    /**
+     * sftp下载单个文件超时时间
+     */
+    private Long sftpDownLoadTimeOut;
  }
