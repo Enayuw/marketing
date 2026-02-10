@@ -2930,7 +2930,6 @@ public class MarketingCommonConfig {
      */
     private JSONObject tcyrServerConfig;
 
-
     /**
      * 携程上报新接口
      */
@@ -3624,4 +3623,25 @@ public class MarketingCommonConfig {
      * sftp下载单个文件超时时间
      */
     private Long sftpDownLoadTimeOut;
+
+    /**
+     * XYF 数据中转加解密配置（请求与返回同一套公钥私钥）
+     * 示例：{"publicKey":"MIIBIjAN...","privateKey":"MIIEvQIBADANBgk..."}
+     */
+    private JSONObject xyfRelayEncryptConfig;
+
+    /**
+     * 信用飞加密配置
+     */
+    private JSONObject xyfEncryptionConfig;
+
+    /**
+     * 信用飞模拟客户加密配置
+     */
+    private JSONObject xyfSimCusEncryptionConfig;
+
+    /**
+     * 信用飞apiCode
+     */
+    private String xyfApiCode;
  }
