@@ -226,7 +226,7 @@
     />
     <job:simple id="【bridge】-XyfSyncDataCleanJob"
                 class="com.br.marketing.bridge.job.xyf.XyfSyncDataCleanJob"
-                cron="0 0/10 * * * ?"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="信用飞外呼数据解析明细并上传清洗"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"

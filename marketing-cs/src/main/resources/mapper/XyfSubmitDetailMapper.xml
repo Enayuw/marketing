@@ -20,7 +20,7 @@
              #{item.productType,jdbcType=VARCHAR},
              #{item.jobData,jdbcType=VARCHAR},
              #{item.extend,jdbcType=VARCHAR},
-             #{item.isSync,jdbcType=INTEGER},
+             #{item.isSync,jdbcType=INTEGER})
         </foreach>
     </insert>
 </mapper>
