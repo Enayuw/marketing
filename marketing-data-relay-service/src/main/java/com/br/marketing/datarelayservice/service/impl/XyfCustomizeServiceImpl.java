@@ -15,7 +15,9 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.xyf.AESUtils;
 import com.br.marketing.util.xyf.RSAUtils;
 import com.br.marketing.util.xyf.Utils;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -64,8 +66,10 @@ public class XyfCustomizeServiceImpl implements XyfCustomizeService {
             if (!result) {
                 return fail(XyfResultEnum.INVALID_SIGN);
             }
-            //4.获取业务数据
-            XyfSubmitRecord record = objectMapper.readValue(data, XyfSubmitRecord.class);
+            //4.获取业务数据（contactList 可能为数组，统一转为 JSON 字符串再反序列化）
+            String normalizedData = normalizeContactListToString(data);
+            XyfSubmitRecord record = objectMapper.readValue(normalizedData, XyfSubmitRecord.class);
+            log.warn("{} batchId:{} contactList:{}", TITLE, record.getBatchId(), record.getContactList());
             //5.必填项校验
             if (!validate(record)) {
                 return fail(XyfResultEnum.PARAMETERS_MISSING_ERROR);
@@ -128,6 +132,23 @@ public class XyfCustomizeServiceImpl implements XyfCustomizeService {
      */
     private XyfEncryptionDTO fail(XyfResultEnum resultEnum) {
         return buildEncryptedResponse(resultEnum, null);
+    }
+
+    /**
+     * 原始 data 中 contactList 可能是 JSON 数组，而实体为 String。
+     * 将 contactList 统一转为 JSON 字符串后返回整段 data，避免反序列化报错。
+     */
+    private String normalizeContactListToString(String data) throws Exception {
+        JsonNode root = objectMapper.readTree(data);
+        if (root == null) {
+            return data;
+        }
+        JsonNode contactList = root.get("contactList");
+        if (contactList != null && contactList.isArray()) {
+            ((ObjectNode) root).put("contactList", objectMapper.writeValueAsString(contactList));
+            return objectMapper.writeValueAsString(root);
+        }
+        return data;
     }
 
     private String fetchApiCode() {
