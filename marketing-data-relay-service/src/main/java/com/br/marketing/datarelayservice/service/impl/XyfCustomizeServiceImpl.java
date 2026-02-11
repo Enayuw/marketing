@@ -141,7 +141,7 @@ public class XyfCustomizeServiceImpl implements XyfCustomizeService {
                         record.getStrategyId(),
                         record.getBatchDate(),
                         record.getBatchId(),
-                        record.getContactlist()
+                        record.getContactList()
                 )
                 .noneMatch(StringUtils::isBlank);
 

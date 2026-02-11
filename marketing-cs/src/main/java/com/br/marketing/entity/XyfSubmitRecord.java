@@ -4,7 +4,7 @@ import java.util.Date;
 
 public class XyfSubmitRecord {
     /**
-     * 
+     * 主键
      */
     private Long id;
 
@@ -41,12 +41,22 @@ public class XyfSubmitRecord {
     /**
      * 拨打数据列表
      */
-    private String contactlist;
+    private String contactList;
 
     /**
-     * 状态 0-未上传；1-上传成功；2-上传失败；
+     * 状态 0-未上传；1-上传中；2-上传成功；3-上传失败；
      */
     private Integer syncStatus;
+
+    /**
+     * 量级
+     */
+    private Integer total;
+
+    /**
+     * 上传量级
+     */
+    private Integer syncTotal;
 
     /**
      * 扩展字段
@@ -124,12 +134,12 @@ public class XyfSubmitRecord {
         this.strategyId = strategyId == null ? null : strategyId.trim();
     }
 
-    public String getContactlist() {
-        return contactlist;
+    public String getContactList() {
+        return contactList;
     }
 
-    public void setContactlist(String contactlist) {
-        this.contactlist = contactlist == null ? null : contactlist.trim();
+    public void setContactList(String contactList) {
+        this.contactList = contactList == null ? null : contactList.trim();
     }
 
     public Integer getSyncStatus() {
@@ -138,6 +148,22 @@ public class XyfSubmitRecord {
 
     public void setSyncStatus(Integer syncStatus) {
         this.syncStatus = syncStatus;
+    }
+
+    public Integer getTotal() {
+        return total;
+    }
+
+    public void setTotal(Integer total) {
+        this.total = total;
+    }
+
+    public Integer getSyncTotal() {
+        return syncTotal;
+    }
+
+    public void setSyncTotal(Integer syncTotal) {
+        this.syncTotal = syncTotal;
     }
 
     public String getExtend() {
