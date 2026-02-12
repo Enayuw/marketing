@@ -3644,9 +3644,4 @@ public class MarketingCommonConfig {
      * 信用飞apiCode
      */
     private String xyfApiCode;
-
-    /**
-     * 同程易融cpa撞库成功文件表头
-     */
-    private List<String> xyfSyncExtendFields;
  }
