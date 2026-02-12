@@ -44,9 +44,9 @@ public class XyfSyncDataCleanServiceImpl implements XyfSyncDataCleanService {
     private static final Set<String> DATA_RESERVED = new HashSet<>(Arrays.asList(
             "corpCode", "accessToken", "strategyId", "batchDate", "batchId", "contactList"));
 
-    /** contactList 单项保留字段，除此以外的多传字段放入扩展字段1 */
+    /** contactList 单项保留字段，除此以外的多传字段放入扩展字段1；jobData 整键不放入，其内部字段会展开放入 */
     private static final Set<String> CONTACT_RESERVED = new HashSet<>(Arrays.asList(
-            "prePhone", "phone", "productType", "jobId"));
+            "prePhone", "phone", "productType", "jobId", "jobData"));
 
     @Resource
     private XyfSubmitRecordMapper xyfSubmitRecordMapper;
@@ -157,6 +157,16 @@ public class XyfSyncDataCleanServiceImpl implements XyfSyncDataCleanService {
             rf.put("strategyCode", record.getStrategyId());
             rf.put("userType", productType);
             rf.putAll(dataLevelExtras);
+            // jobData 中所有字段洗到扩展字段
+            if (item.containsKey("jobData")) {
+                Object jd = item.get("jobData");
+                if (jd instanceof JSONObject) {
+                    JSONObject jobDataObj = (JSONObject) jd;
+                    for (String key : jobDataObj.keySet()) {
+                        rf.put(key, jobDataObj.get(key));
+                    }
+                }
+            }
             for (String key : item.keySet()) {
                 if (!CONTACT_RESERVED.contains(key)) {
                     rf.put(key, item.get(key));
