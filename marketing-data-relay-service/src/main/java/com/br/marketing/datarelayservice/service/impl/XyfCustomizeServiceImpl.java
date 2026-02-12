@@ -90,14 +90,14 @@ public class XyfCustomizeServiceImpl implements XyfCustomizeService {
             //4.获取业务数据（record 表无 contact_list，解密数据直接反序列化，contactList 键由 Jackson 忽略）
             XyfSubmitRecord record = objectMapper.readValue(data, XyfSubmitRecord.class);
             record.setApiCode(apiCode);
-            if (StringUtils.isBlank(record.getBatchId())) {
-                record.setBatchId(generateBatchId());
-            }
             record.setOriginData(JSON.toJSONString(requestDTO));
             record.setPlainData(data);
             log.warn("{} batchId:{} plainData:{}", TITLE, record.getBatchId(), truncateForLog(record.getPlainData(), 500));
             //5.必填项校验
             if (!validate(record)) {
+                if (StringUtils.isBlank(record.getBatchId())) {
+                    record.setBatchId(generateBatchId());
+                }
                 record.setReceiveStatus(XyfReceiveStatusEnum.RECEIVE_NOFILL.getCode());
                 xyfSubmitRecordMapper.insertSelective(record);
                 return fail(XyfResultEnum.PARAMETERS_MISSING_ERROR, brPrivateKey, xyfPublicKey);
