@@ -21,12 +21,9 @@ public interface XyfSyncDataCleanService {
     List<XyfSubmitRecord> listWaitRecords();
 
     /**
-     * 处理单条 record：解析、去重、落库明细、组装上传数据并推送，更新 record 状态
-     *
-     * @param record       待处理记录
-     * @param extendFields  扩展字段 key 列表（从 jobData 写入 reserveField1）
+     * 处理单条 record：解析 plain_data、过滤（phone/productType/jobId 非空）、组装上传并推送，更新 record 状态
      */
-    void processRecord(XyfSubmitRecord record, List<String> extendFields);
+    void processRecord(XyfSubmitRecord record);
 
     /**
      * 更新 record 同步状态（如处理异常时由调用方标记失败）

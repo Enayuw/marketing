@@ -39,24 +39,24 @@ public class XyfSubmitRecord {
     private String strategyId;
 
     /**
-     * 拨打数据列表
+     * 原始数据
      */
-    private String contactList;
+    private String originData;
 
     /**
-     * 状态 0-未上传；1-上传中；2-上传成功；3-上传失败；
+     * 明文数据
+     */
+    private String plainData;
+
+    /**
+     * 接收状态 0-未解密；1-未验签；2-未必填；3-接收成功；
+     */
+    private Integer receiveStatus;
+
+    /**
+     * 上传状态 0-未上传；1-上传中；2-上传成功；3-上传失败；
      */
     private Integer syncStatus;
-
-    /**
-     * 量级
-     */
-    private Integer total;
-
-    /**
-     * 上传量级
-     */
-    private Integer syncTotal;
 
     /**
      * 扩展字段
@@ -134,12 +134,28 @@ public class XyfSubmitRecord {
         this.strategyId = strategyId == null ? null : strategyId.trim();
     }
 
-    public String getContactList() {
-        return contactList;
+    public String getOriginData() {
+        return originData;
     }
 
-    public void setContactList(String contactList) {
-        this.contactList = contactList == null ? null : contactList.trim();
+    public void setOriginData(String originData) {
+        this.originData = originData == null ? null : originData.trim();
+    }
+
+    public String getPlainData() {
+        return plainData;
+    }
+
+    public void setPlainData(String plainData) {
+        this.plainData = plainData == null ? null : plainData.trim();
+    }
+
+    public Integer getReceiveStatus() {
+        return receiveStatus;
+    }
+
+    public void setReceiveStatus(Integer receiveStatus) {
+        this.receiveStatus = receiveStatus;
     }
 
     public Integer getSyncStatus() {
@@ -148,22 +164,6 @@ public class XyfSubmitRecord {
 
     public void setSyncStatus(Integer syncStatus) {
         this.syncStatus = syncStatus;
-    }
-
-    public Integer getTotal() {
-        return total;
-    }
-
-    public void setTotal(Integer total) {
-        this.total = total;
-    }
-
-    public Integer getSyncTotal() {
-        return syncTotal;
-    }
-
-    public void setSyncTotal(Integer syncTotal) {
-        this.syncTotal = syncTotal;
     }
 
     public String getExtend() {

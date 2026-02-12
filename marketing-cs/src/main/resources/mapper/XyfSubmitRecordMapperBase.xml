@@ -9,10 +9,10 @@
     <result column="corp_code" property="corpCode" jdbcType="VARCHAR" />
     <result column="access_token" property="accessToken" jdbcType="VARCHAR" />
     <result column="strategy_id" property="strategyId" jdbcType="VARCHAR" />
-    <result column="contact_list" property="contactList" jdbcType="VARCHAR" />
+    <result column="origin_data" property="originData" jdbcType="VARCHAR" />
+    <result column="plain_data" property="plainData" jdbcType="VARCHAR" />
+    <result column="receive_status" property="receiveStatus" jdbcType="INTEGER" />
     <result column="sync_status" property="syncStatus" jdbcType="INTEGER" />
-    <result column="total" property="total" jdbcType="INTEGER" />
-    <result column="sync_total" property="syncTotal" jdbcType="INTEGER" />
     <result column="extend" property="extend" jdbcType="VARCHAR" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
@@ -77,8 +77,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, batch_id, batch_date, corp_code, access_token, strategy_id, contact_list,
-    sync_status, total, sync_total, extend, is_del, create_time, update_time
+    id, api_code, batch_id, batch_date, corp_code, access_token, strategy_id, origin_data,
+    plain_data, receive_status, sync_status, extend, is_del, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.XyfSubmitRecordExample" >
     select
@@ -116,13 +116,13 @@
     </selectKey>
     insert into b_xyf_submit_record (api_code, batch_id, batch_date,
     corp_code, access_token, strategy_id,
-    contact_list, sync_status, total,
-    sync_total, extend, is_del,
+    origin_data, plain_data, receive_status,
+    sync_status, extend, is_del,
     create_time, update_time)
     values (#{apiCode,jdbcType=VARCHAR}, #{batchId,jdbcType=VARCHAR}, #{batchDate,jdbcType=VARCHAR},
     #{corpCode,jdbcType=VARCHAR}, #{accessToken,jdbcType=VARCHAR}, #{strategyId,jdbcType=VARCHAR},
-    #{contactList,jdbcType=VARCHAR}, #{syncStatus,jdbcType=INTEGER}, #{total,jdbcType=INTEGER},
-    #{syncTotal,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER},
+    #{originData,jdbcType=VARCHAR}, #{plainData,jdbcType=VARCHAR}, #{receiveStatus,jdbcType=INTEGER},
+    #{syncStatus,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER},
     #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.XyfSubmitRecord" >
@@ -149,17 +149,17 @@
       <if test="strategyId != null" >
         strategy_id,
       </if>
-      <if test="contactList != null" >
-        contact_list,
+      <if test="originData != null" >
+        origin_data,
+      </if>
+      <if test="plainData != null" >
+        plain_data,
+      </if>
+      <if test="receiveStatus != null" >
+        receive_status,
       </if>
       <if test="syncStatus != null" >
         sync_status,
-      </if>
-      <if test="total != null" >
-        total,
-      </if>
-      <if test="syncTotal != null" >
-        sync_total,
       </if>
       <if test="extend != null" >
         extend,
@@ -193,17 +193,17 @@
       <if test="strategyId != null" >
         #{strategyId,jdbcType=VARCHAR},
       </if>
-      <if test="contactList != null" >
-        #{contactList,jdbcType=VARCHAR},
+      <if test="originData != null" >
+        #{originData,jdbcType=VARCHAR},
+      </if>
+      <if test="plainData != null" >
+        #{plainData,jdbcType=VARCHAR},
+      </if>
+      <if test="receiveStatus != null" >
+        #{receiveStatus,jdbcType=INTEGER},
       </if>
       <if test="syncStatus != null" >
         #{syncStatus,jdbcType=INTEGER},
-      </if>
-      <if test="total != null" >
-        #{total,jdbcType=INTEGER},
-      </if>
-      <if test="syncTotal != null" >
-        #{syncTotal,jdbcType=INTEGER},
       </if>
       <if test="extend != null" >
         #{extend,jdbcType=VARCHAR},
@@ -249,17 +249,17 @@
       <if test="record.strategyId != null" >
         strategy_id = #{record.strategyId,jdbcType=VARCHAR},
       </if>
-      <if test="record.contactList != null" >
-        contact_list = #{record.contactList,jdbcType=VARCHAR},
+      <if test="record.originData != null" >
+        origin_data = #{record.originData,jdbcType=VARCHAR},
+      </if>
+      <if test="record.plainData != null" >
+        plain_data = #{record.plainData,jdbcType=VARCHAR},
+      </if>
+      <if test="record.receiveStatus != null" >
+        receive_status = #{record.receiveStatus,jdbcType=INTEGER},
       </if>
       <if test="record.syncStatus != null" >
         sync_status = #{record.syncStatus,jdbcType=INTEGER},
-      </if>
-      <if test="record.total != null" >
-        total = #{record.total,jdbcType=INTEGER},
-      </if>
-      <if test="record.syncTotal != null" >
-        sync_total = #{record.syncTotal,jdbcType=INTEGER},
       </if>
       <if test="record.extend != null" >
         extend = #{record.extend,jdbcType=VARCHAR},
@@ -287,10 +287,10 @@
     corp_code = #{record.corpCode,jdbcType=VARCHAR},
     access_token = #{record.accessToken,jdbcType=VARCHAR},
     strategy_id = #{record.strategyId,jdbcType=VARCHAR},
-    contact_list = #{record.contactList,jdbcType=VARCHAR},
+    origin_data = #{record.originData,jdbcType=VARCHAR},
+    plain_data = #{record.plainData,jdbcType=VARCHAR},
+    receive_status = #{record.receiveStatus,jdbcType=INTEGER},
     sync_status = #{record.syncStatus,jdbcType=INTEGER},
-    total = #{record.total,jdbcType=INTEGER},
-    sync_total = #{record.syncTotal,jdbcType=INTEGER},
     extend = #{record.extend,jdbcType=VARCHAR},
     is_del = #{record.isDel,jdbcType=INTEGER},
     create_time = #{record.createTime,jdbcType=TIMESTAMP},
@@ -320,17 +320,17 @@
       <if test="strategyId != null" >
         strategy_id = #{strategyId,jdbcType=VARCHAR},
       </if>
-      <if test="contactList != null" >
-        contact_list = #{contactList,jdbcType=VARCHAR},
+      <if test="originData != null" >
+        origin_data = #{originData,jdbcType=VARCHAR},
+      </if>
+      <if test="plainData != null" >
+        plain_data = #{plainData,jdbcType=VARCHAR},
+      </if>
+      <if test="receiveStatus != null" >
+        receive_status = #{receiveStatus,jdbcType=INTEGER},
       </if>
       <if test="syncStatus != null" >
         sync_status = #{syncStatus,jdbcType=INTEGER},
-      </if>
-      <if test="total != null" >
-        total = #{total,jdbcType=INTEGER},
-      </if>
-      <if test="syncTotal != null" >
-        sync_total = #{syncTotal,jdbcType=INTEGER},
       </if>
       <if test="extend != null" >
         extend = #{extend,jdbcType=VARCHAR},
@@ -355,10 +355,10 @@
         corp_code = #{corpCode,jdbcType=VARCHAR},
         access_token = #{accessToken,jdbcType=VARCHAR},
         strategy_id = #{strategyId,jdbcType=VARCHAR},
-        contact_list = #{contactList,jdbcType=VARCHAR},
+        origin_data = #{originData,jdbcType=VARCHAR},
+        plain_data = #{plainData,jdbcType=VARCHAR},
+        receive_status = #{receiveStatus,jdbcType=INTEGER},
         sync_status = #{syncStatus,jdbcType=INTEGER},
-        total = #{total,jdbcType=INTEGER},
-        sync_total = #{syncTotal,jdbcType=INTEGER},
         extend = #{extend,jdbcType=VARCHAR},
         is_del = #{isDel,jdbcType=INTEGER},
         create_time = #{createTime,jdbcType=TIMESTAMP},

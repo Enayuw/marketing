@@ -5,7 +5,6 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.XyfSubmitRecord;
 import com.br.marketing.enums.XyfSyncStatusEnum;
 import com.br.marketing.service.xyf.XyfSyncDataCleanService;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
@@ -29,9 +28,6 @@ public class XyfSyncDataCleanJob extends AbstractSimpleElasticJob {
     private static final String TITLE = "【信用飞-上传数据清洗任务】";
 
     @Resource
-    private MarketingCommonConfig marketingCommonConfig;
-
-    @Resource
     private XyfSyncDataCleanService xyfSyncDataCleanService;
 
     /**
@@ -49,17 +45,16 @@ public class XyfSyncDataCleanJob extends AbstractSimpleElasticJob {
     }
 
     /**
-     * 查询未上传 record，取扩展字段配置，按批次调用 service 处理；单批异常时标记该批失败并继续下一批
+     * 查询未上传 record，按批次调用 service 处理；单批异常时标记该批失败并继续下一批
      */
     private void action() {
         List<XyfSubmitRecord> recordList = xyfSyncDataCleanService.listWaitRecords();
         if (CollectionUtils.isEmpty(recordList)) {
             return;
         }
-        List<String> extendFields = marketingCommonConfig.getXyfSyncExtendFields();
         for (XyfSubmitRecord record : recordList) {
             try {
-                xyfSyncDataCleanService.processRecord(record, extendFields);
+                xyfSyncDataCleanService.processRecord(record);
             } catch (Exception e) {
                 log.warn(TITLE + "处理批次失败 batchId={}, e={}", record.getBatchId(), e.getMessage(), e);
                 xyfSyncDataCleanService.updateRecordSyncStatus(record.getId(), XyfSyncStatusEnum.SYNC_FAIL.getCode());

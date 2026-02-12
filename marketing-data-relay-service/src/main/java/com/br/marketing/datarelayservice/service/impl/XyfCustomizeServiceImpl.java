@@ -8,6 +8,7 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.datarelayservice.service.XyfCustomizeService;
 import com.br.marketing.dto.xyf.XyfEncryptionDTO;
 import com.br.marketing.entity.XyfSubmitRecord;
+import com.br.marketing.enums.XyfReceiveStatusEnum;
 import com.br.marketing.enums.XyfResultEnum;
 import com.br.marketing.enums.XyfSyncStatusEnum;
 import com.br.marketing.mapper.XyfSubmitRecordMapper;
@@ -15,14 +16,14 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.xyf.AESUtils;
 import com.br.marketing.util.xyf.RSAUtils;
 import com.br.marketing.util.xyf.Utils;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
-
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Random;
 import java.util.stream.Stream;
 
 /**
@@ -54,49 +55,72 @@ public class XyfCustomizeServiceImpl implements XyfCustomizeService {
             //1.解密aes密钥
             String plainAesKey = RSAUtils.decryptByPrivateKey(requestDTO.getAesKey(), brPrivateKey);
             if (StringUtils.isBlank(plainAesKey)) {
-                return fail(XyfResultEnum.PARAMETERS_DECRYPTION_ERROR);
+                return saveFailureRecordAndReturn(
+                        apiCode,
+                        requestDTO,
+                        XyfReceiveStatusEnum.RECEIVE_NODEC.getCode(),
+                        null,
+                        XyfResultEnum.PARAMETERS_DECRYPTION_ERROR,
+                        brPrivateKey,
+                        xyfPublicKey);
             }
             //2.使用aes密钥解密业务数据
             String data = AESUtils.decrypt(requestDTO.getData(), plainAesKey, false);
             if (StringUtils.isBlank(data)) {
-                return fail(XyfResultEnum.PARAMETERS_DECRYPTION_ERROR);
+                return saveFailureRecordAndReturn(
+                        apiCode,
+                        requestDTO,
+                        XyfReceiveStatusEnum.RECEIVE_NODEC.getCode(),
+                        null,
+                        XyfResultEnum.PARAMETERS_DECRYPTION_ERROR,
+                        brPrivateKey,
+                        xyfPublicKey);
             }
             //3.验签
-            boolean result = RSAUtils.verifySignByPublicKey(data, requestDTO.getSign(), xyfPublicKey);
-            if (!result) {
-                return fail(XyfResultEnum.INVALID_SIGN);
+            if (!RSAUtils.verifySignByPublicKey(data, requestDTO.getSign(), xyfPublicKey)) {
+                return saveFailureRecordAndReturn(
+                        apiCode,
+                        requestDTO,
+                        XyfReceiveStatusEnum.RECEIVE_NOSIGN.getCode(),
+                        data,
+                        XyfResultEnum.INVALID_SIGN,
+                        brPrivateKey,
+                        xyfPublicKey);
             }
-            //4.获取业务数据（contactList 可能为数组，统一转为 JSON 字符串再反序列化）
-            String normalizedData = normalizeContactListToString(data);
-            XyfSubmitRecord record = objectMapper.readValue(normalizedData, XyfSubmitRecord.class);
-            log.warn("{} batchId:{} contactList:{}", TITLE, record.getBatchId(), record.getContactList());
+            //4.获取业务数据（record 表无 contact_list，解密数据直接反序列化，contactList 键由 Jackson 忽略）
+            XyfSubmitRecord record = objectMapper.readValue(data, XyfSubmitRecord.class);
+            record.setApiCode(apiCode);
+            if (StringUtils.isBlank(record.getBatchId())) {
+                record.setBatchId(generateBatchId());
+            }
+            record.setOriginData(JSON.toJSONString(requestDTO));
+            record.setPlainData(data);
+            log.warn("{} batchId:{} plainData:{}", TITLE, record.getBatchId(), truncateForLog(record.getPlainData(), 500));
             //5.必填项校验
             if (!validate(record)) {
-                return fail(XyfResultEnum.PARAMETERS_MISSING_ERROR);
+                record.setReceiveStatus(XyfReceiveStatusEnum.RECEIVE_NOFILL.getCode());
+                xyfSubmitRecordMapper.insertSelective(record);
+                return fail(XyfResultEnum.PARAMETERS_MISSING_ERROR, brPrivateKey, xyfPublicKey);
             }
-            record.setApiCode(apiCode);
+            record.setReceiveStatus(XyfReceiveStatusEnum.RECEIVE_SUCCESS.getCode());
             record.setSyncStatus(XyfSyncStatusEnum.SYNC_WAIT.getCode());
             try {
                 xyfSubmitRecordMapper.insertSelective(record);
             } catch (DuplicateKeyException dke) {
                 log.warn("{}幂等校验，batchId:{}", TITLE, record.getBatchId());
             }
-            return success(record.getBatchId());
+            return success(record.getBatchId(), brPrivateKey, xyfPublicKey);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XYF_SERVICEERROR.getCode(), e.getMessage()
                     , TITLE + "数据接入异常！"), e);
-            return fail(XyfResultEnum.BAD_REQUEST);
+            return fail(XyfResultEnum.BAD_REQUEST, brPrivateKey, xyfPublicKey);
         }
     }
 
     /**
      * 根据枚举组装并加密响应（基础方法），data 结构在方法内固定：成功时为 {batchId, respBatchId}，失败时为 null
-     * 调用时从 speed 获取 brPrivateKey、xyfPublicKey
      */
-    private XyfEncryptionDTO buildEncryptedResponse(XyfResultEnum resultEnum, String batchId) {
-        String[] keys = getXyfEncryptionKeys();
-        String brPrivateKey = keys[0];
-        String xyfPublicKey = keys[1];
+    private XyfEncryptionDTO buildEncryptedResponse(XyfResultEnum resultEnum, String batchId, String brPrivateKey, String xyfPublicKey) {
         String aesKey = AESUtils.generateAESKey();
         String encryptAesKey = RSAUtils.encryptByPublicKey(aesKey, xyfPublicKey);
         JSONObject data = new JSONObject();
@@ -120,35 +144,44 @@ public class XyfCustomizeServiceImpl implements XyfCustomizeService {
         return new XyfEncryptionDTO(encryptAesKey, encryptData, sign);
     }
 
-    /**
-     * 成功响应：data 固定为 {batchId, respBatchId}，由基础方法内部组装
-     */
-    private XyfEncryptionDTO success(String batchId) {
-        return buildEncryptedResponse(XyfResultEnum.OK, batchId);
+    private XyfEncryptionDTO success(String batchId, String brPrivateKey, String xyfPublicKey) {
+        return buildEncryptedResponse(XyfResultEnum.OK, batchId, brPrivateKey, xyfPublicKey);
+    }
+
+    private XyfEncryptionDTO fail(XyfResultEnum resultEnum, String brPrivateKey, String xyfPublicKey) {
+        return buildEncryptedResponse(resultEnum, null, brPrivateKey, xyfPublicKey);
     }
 
     /**
-     * 失败/异常响应：仅 status、error、msg，data 为 null
+     * 失败时落库并返回加密失败响应（解密失败/验签失败等）
      */
-    private XyfEncryptionDTO fail(XyfResultEnum resultEnum) {
-        return buildEncryptedResponse(resultEnum, null);
+    private XyfEncryptionDTO saveFailureRecordAndReturn(String apiCode, XyfEncryptionDTO requestDTO, int receiveStatus, String plainData, XyfResultEnum resultEnum, String brPrivateKey, String xyfPublicKey) {
+        XyfSubmitRecord record = new XyfSubmitRecord();
+        record.setApiCode(apiCode);
+        record.setBatchId(generateBatchId());
+        record.setOriginData(JSON.toJSONString(requestDTO));
+        record.setReceiveStatus(receiveStatus);
+        if (plainData != null) {
+            record.setPlainData(plainData);
+        }
+        xyfSubmitRecordMapper.insertSelective(record);
+        return fail(resultEnum, brPrivateKey, xyfPublicKey);
+    }
+
+    private static String truncateForLog(String str, int maxLen) {
+        if (str == null) {
+            return null;
+        }
+        return str.length() <= maxLen ? str : str.substring(0, maxLen) + "...[truncated]";
     }
 
     /**
-     * 原始 data 中 contactList 可能是 JSON 数组，而实体为 String。
-     * 将 contactList 统一转为 JSON 字符串后返回整段 data，避免反序列化报错。
+     * 生成带时间戳和随机数的 batchId，格式：AI + yyyyMMddHHmmss + 6位随机数
      */
-    private String normalizeContactListToString(String data) throws Exception {
-        JsonNode root = objectMapper.readTree(data);
-        if (root == null) {
-            return data;
-        }
-        JsonNode contactList = root.get("contactList");
-        if (contactList != null && contactList.isArray()) {
-            ((ObjectNode) root).put("contactList", objectMapper.writeValueAsString(contactList));
-            return objectMapper.writeValueAsString(root);
-        }
-        return data;
+    public static String generateBatchId() {
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        int random = new Random().nextInt(900000) + 100000;
+        return "999" + timestamp + random;
     }
 
     private String fetchApiCode() {
@@ -157,15 +190,11 @@ public class XyfCustomizeServiceImpl implements XyfCustomizeService {
 
     private boolean validate(XyfSubmitRecord record) {
         return Stream.of(
-                        record.getCorpCode(),
-                        record.getAccessToken(),
                         record.getStrategyId(),
-                        record.getBatchDate(),
                         record.getBatchId(),
-                        record.getContactList()
+                        record.getPlainData()
                 )
                 .noneMatch(StringUtils::isBlank);
-
     }
 
     /**

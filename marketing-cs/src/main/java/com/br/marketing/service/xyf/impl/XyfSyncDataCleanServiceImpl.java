@@ -1,39 +1,36 @@
 package com.br.marketing.service.xyf.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
-import com.br.marketing.entity.XyfSubmitDetail;
 import com.br.marketing.entity.XyfSubmitRecord;
 import com.br.marketing.entity.XyfSubmitRecordExample;
 import com.br.marketing.enums.XyfSyncStatusEnum;
-import com.br.marketing.mapper.XyfSubmitDetailMapper;
 import com.br.marketing.mapper.XyfSubmitRecordMapper;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.service.xyf.XyfSyncDataCleanService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
-
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
-import java.util.LinkedHashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 /**
  * 信用飞外呼数据上传清洗服务实现
  *
- * @Description 解析 contactList、jobId 去重、落库明细、组装上传并推送
+ * @Description 解析 plain_data，过滤后直接组装上传并推送（不再落库 b_xyf_submit_detail）
  * @Author system
  * @CreateTime 2025
  */
@@ -43,18 +40,20 @@ public class XyfSyncDataCleanServiceImpl implements XyfSyncDataCleanService {
 
     private static final String TITLE = "【信用飞-上传数据清洗任务】";
 
+    /** plain_data 顶层保留字段，除此以外的多传字段放入扩展字段1 */
+    private static final Set<String> DATA_RESERVED = new HashSet<>(Arrays.asList(
+            "corpCode", "accessToken", "strategyId", "batchDate", "batchId", "contactList"));
+
+    /** contactList 单项保留字段，除此以外的多传字段放入扩展字段1 */
+    private static final Set<String> CONTACT_RESERVED = new HashSet<>(Arrays.asList(
+            "prePhone", "phone", "productType", "jobId"));
+
     @Resource
     private XyfSubmitRecordMapper xyfSubmitRecordMapper;
 
     @Resource
-    private XyfSubmitDetailMapper xyfSubmitDetailMapper;
-
-    @Resource
     private PushInfoService pushInfoService;
 
-    /**
-     * 查询 sync_status=未上传 的记录，按 id 升序
-     */
     @Override
     public List<XyfSubmitRecord> listWaitRecords() {
         XyfSubmitRecordExample example = new XyfSubmitRecordExample();
@@ -64,54 +63,36 @@ public class XyfSyncDataCleanServiceImpl implements XyfSyncDataCleanService {
     }
 
     /**
-     * 处理单条 record：更新为上传中 → 解析 contactList（jobId 去重）→ 组装上传数据 → 落库明细 → 推送 → 更新状态/总量
+     * 处理单条 record：解析 plain_data → 过滤（phone/productType/jobId 非空）→ 组装上传数据（多传字段入扩展字段1）→ 直接推送
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void processRecord(XyfSubmitRecord record, List<String> extendFields) {
-        // 1. 更新为 1-上传中
+    public void processRecord(XyfSubmitRecord record) {
+        // 1. 更新为上传中
         updateRecordSyncStatus(record.getId(), XyfSyncStatusEnum.SYNCING.getCode());
         String batchId = record.getBatchId();
-        String contactListStr = record.getContactList();
-        if (contactListStr == null || contactListStr.trim().isEmpty()) {
-            log.warn(TITLE + "batchId={} contactlist 为空，标记失败", batchId);
+        String plainData = record.getPlainData();
+        if (StringUtils.isBlank(plainData)) {
+            log.warn(TITLE + "batchId={} plain_data 为空，标记失败", batchId);
             updateRecordSyncStatus(record.getId(), XyfSyncStatusEnum.SYNC_FAIL.getCode());
             return;
         }
-        // 2. 解析 contactList 为 detail（contactListTotal 为 contactList 原始条数，用于 record.total）
-        ParseDetailResult parseResult = parseAndSaveDetails(record);
-        List<XyfSubmitDetail> detailList = parseResult.detailList;
-        int contactListTotal = parseResult.contactListTotal;
-        // 3. 过滤异常数据，组装上传数据
-        UploadDataDTO uploadDataDTO = buildSyncData(record, detailList, extendFields);
-        long syncFailCount = detailList.stream()
-                .filter(d -> d.getIsSync() == null || Constants.NO.equals(d.getIsSync()))
-                .count();
-        if (syncFailCount > 0) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XYF_SERVICEERROR.getCode(), "存在异常明细，请关注！", TITLE));
-        }
-        // 4. 插入明细数据
-        xyfSubmitDetailMapper.batchSave(detailList);
+        // 2. 解析 plain_data，过滤并组装上传数据
+        UploadDataDTO uploadDataDTO = parsePlainDataAndBuildUpload(record, plainData);
         if (uploadDataDTO == null) {
             log.warn(TITLE + "batchId={} 解析后无有效明细", batchId);
             updateRecordSyncStatus(record.getId(), XyfSyncStatusEnum.SYNC_FAIL.getCode());
             return;
         }
-        // 5. 调用上传接口
+        // 3. 调用上传接口
         Result<Boolean> pushResult = pushInfoService.pushUploadByRetry(uploadDataDTO, null);
         if (pushResult != null && pushResult.isSuccess()) {
-            int syncTotal = (int) detailList.stream()
-                    .filter(d -> d.getIsSync() != null && d.getIsSync() == Constants.YES)
-                    .count();
-            updateRecordSyncSuccess(record.getId(), contactListTotal, syncTotal);
+            updateRecordSyncStatus(record.getId(), XyfSyncStatusEnum.SYNC_SUCCESS.getCode());
         } else {
             updateRecordSyncStatus(record.getId(), XyfSyncStatusEnum.SYNC_FAIL.getCode());
         }
     }
 
-    /**
-     * 仅更新 record 的 sync_status 与 update_time
-     */
     @Override
     public void updateRecordSyncStatus(Long recordId, int syncStatus) {
         XyfSubmitRecord up = new XyfSubmitRecord();
@@ -122,54 +103,74 @@ public class XyfSyncDataCleanServiceImpl implements XyfSyncDataCleanService {
     }
 
     /**
-     * 上传成功后更新 record：total、syncTotal、sync_status、update_time
+     * 解析 plain_data：过滤 phone/productType/jobId 为空的项；data 层与 contact 项多传字段均放入 reserveField1
      */
-    private void updateRecordSyncSuccess(Long recordId, int total, int syncTotal) {
-        XyfSubmitRecord up = new XyfSubmitRecord();
-        up.setId(recordId);
-        up.setTotal(total);
-        up.setSyncTotal(syncTotal);
-        up.setSyncStatus(XyfSyncStatusEnum.SYNC_SUCCESS.getCode());
-        up.setUpdateTime(new Date());
-        xyfSubmitRecordMapper.updateByPrimaryKeySelective(up);
-    }
-
-    /**
-     * 按 isSync=1 的明细组装 MarketingPreUserDTO，extendFields 从 jobData 写入 reserveField1
-     *
-     * @return 组装好的上传 DTO，无有效明细时返回 null
-     */
-    private UploadDataDTO buildSyncData(XyfSubmitRecord record, List<XyfSubmitDetail> details, List<String> extendFields) {
-        List<MarketingPreUserDetailDTO> syncUsers = new ArrayList<>();
-        for (XyfSubmitDetail detail : details) {
-            if (!Constants.YES.equals(detail.getIsSync())) {
-                continue;
+    private UploadDataDTO parsePlainDataAndBuildUpload(XyfSubmitRecord record, String plainData) {
+        JSONObject dataRoot;
+        try {
+            dataRoot = JSON.parseObject(plainData);
+        } catch (Exception e) {
+            log.warn(TITLE + "batchId={} plain_data 解析失败", record.getBatchId(), e);
+            return null;
+        }
+        if (dataRoot == null) {
+            return null;
+        }
+        Object contactListObj = dataRoot.get("contactList");
+        JSONArray contactArray = toJsonArray(contactListObj);
+        if (contactArray == null || contactArray.isEmpty()) {
+            return null;
+        }
+        int contactListTotal = contactArray.size();
+        // data 层多传字段（除 corpCode、accessToken、strategyId、batchDate、batchId、contactList）
+        JSONObject dataLevelExtras = new JSONObject();
+        for (String key : dataRoot.keySet()) {
+            if (!DATA_RESERVED.contains(key)) {
+                dataLevelExtras.put(key, dataRoot.get(key));
             }
-            JSONObject jobData = JSON.parseObject(detail.getJobData());
-            if (jobData == null) {
-                detail.setIsSync(Constants.NO);
+        }
+        List<MarketingPreUserDetailDTO> syncUsers = new ArrayList<>();
+        for (int i = 0; i < contactArray.size(); i++) {
+            JSONObject item = contactArray.getJSONObject(i);
+            String phone = item.getString("phone");
+            String productType = item.getString("productType");
+            String jobId = item.getString("jobId");
+            if (StringUtils.isBlank(phone) || StringUtils.isBlank(productType) || StringUtils.isBlank(jobId)) {
                 continue;
             }
             MarketingPreUserDetailDTO dto = new MarketingPreUserDetailDTO();
-            dto.setCell(detail.getPhone());
-            dto.setName(jobData.getString("userName"));
-            dto.setCustNum(detail.getJobId());
+            dto.setCell(phone);
+            dto.setCustNum(jobId);
             dto.setOperateType("6");
+            String name = null;
+            if (item.containsKey("jobData")) {
+                Object jd = item.get("jobData");
+                if (jd instanceof JSONObject) {
+                    name = ((JSONObject) jd).getString("userName");
+                }
+            }
+            if (StringUtils.isBlank(name)) {
+                name = item.getString("userName");
+            }
+            dto.setName(name);
             JSONObject rf = new JSONObject();
             rf.put("strategyCode", record.getStrategyId());
-            rf.put("userType", detail.getProductType());
-            if (!CollectionUtils.isEmpty(extendFields) && jobData != null) {
-                for (String key : extendFields) {
-                    if (jobData.containsKey(key)) {
-                        rf.put(key, jobData.get(key));
-                    }
+            rf.put("userType", productType);
+            rf.putAll(dataLevelExtras);
+            for (String key : item.keySet()) {
+                if (!CONTACT_RESERVED.contains(key)) {
+                    rf.put(key, item.get(key));
                 }
             }
             dto.setReserveField1(rf.toJSONString());
             syncUsers.add(dto);
         }
-        if (CollectionUtils.isEmpty(syncUsers)) {
+        if (syncUsers.isEmpty()) {
             return null;
+        }
+        if (syncUsers.size() < contactListTotal) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XYF_SERVICEERROR.getCode(),
+                    "batchId=" + record.getBatchId() + " 存在被过滤明细，原始=" + contactListTotal + "，过滤后=" + syncUsers.size(), TITLE));
         }
         MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
         marketingPreUserDTO.setTaskId(record.getBatchId());
@@ -181,60 +182,20 @@ public class XyfSyncDataCleanServiceImpl implements XyfSyncDataCleanService {
         return uploadDataDTO;
     }
 
-    /**
-     * 解析 contactList JSON：jobId 去重、设置 batchId/isSync，返回明细列表及 contactList 原始条数
-     */
-    private ParseDetailResult parseAndSaveDetails(XyfSubmitRecord record) {
-        String batchId = record.getBatchId();
-        List<XyfSubmitDetail> list = new ArrayList<>();
-        String contactListStr = record.getContactList();
-        if (contactListStr == null || contactListStr.trim().isEmpty()) {
-            log.warn(TITLE + "batchId={} contactList为空！", batchId);
-            return new ParseDetailResult(list, 0);
+    private static JSONArray toJsonArray(Object o) {
+        if (o == null) {
+            return new JSONArray();
         }
-        list = JSON.parseArray(contactListStr, XyfSubmitDetail.class);
-        if (list == null) {
-            list = new ArrayList<>();
+        if (o instanceof JSONArray) {
+            return (JSONArray) o;
         }
-        int contactListTotal = list.size();
-        if (!CollectionUtils.isEmpty(list)) {
-            List<XyfSubmitDetail> withJobId = list.stream()
-                    .filter(d -> StringUtils.isNotBlank(d.getJobId()))
-                    .collect(Collectors.toList());
-            int beforeDedup = withJobId.size();
-            list = new ArrayList<>(withJobId.stream()
-                    .collect(Collectors.toMap(
-                            XyfSubmitDetail::getJobId,
-                            d -> d,
-                            (existing, replacement) -> existing,
-                            LinkedHashMap::new
-                    ))
-                    .values());
-            if (list.size() < beforeDedup) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XYF_SERVICEERROR.getCode(),
-                        "batchId=" + batchId + " 存在重复 jobId，去重前=" + beforeDedup + "，去重后=" + list.size(), TITLE));
+        if (o instanceof String) {
+            try {
+                return JSON.parseArray((String) o);
+            } catch (Exception e) {
+                return new JSONArray();
             }
-            list.forEach(d -> {
-                d.setBatchId(batchId);
-                boolean allPresent = StringUtils.isNotBlank(d.getPhone())
-                        && StringUtils.isNotBlank(d.getProductType())
-                        && StringUtils.isNotBlank(d.getJobId());
-                d.setIsSync(allPresent ? Constants.YES : Constants.NO);
-            });
         }
-        return new ParseDetailResult(list, contactListTotal);
-    }
-
-    /**
-     * 解析结果：去重后的明细列表 + contactList 原始条数（用于 record.total）
-     */
-    private static class ParseDetailResult {
-        final List<XyfSubmitDetail> detailList;
-        final int contactListTotal;
-
-        ParseDetailResult(List<XyfSubmitDetail> detailList, int contactListTotal) {
-            this.detailList = detailList;
-            this.contactListTotal = contactListTotal;
-        }
+        return new JSONArray();
     }
 }

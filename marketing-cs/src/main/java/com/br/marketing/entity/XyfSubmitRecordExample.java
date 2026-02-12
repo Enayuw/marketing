@@ -585,73 +585,203 @@ public class XyfSubmitRecordExample {
             return (Criteria) this;
         }
 
-        public Criteria andContactListIsNull() {
-            addCriterion("contact_list is null");
+        public Criteria andOriginDataIsNull() {
+            addCriterion("origin_data is null");
             return (Criteria) this;
         }
 
-        public Criteria andContactListIsNotNull() {
-            addCriterion("contact_list is not null");
+        public Criteria andOriginDataIsNotNull() {
+            addCriterion("origin_data is not null");
             return (Criteria) this;
         }
 
-        public Criteria andContactListEqualTo(String value) {
-            addCriterion("contact_list =", value, "contactList");
+        public Criteria andOriginDataEqualTo(String value) {
+            addCriterion("origin_data =", value, "originData");
             return (Criteria) this;
         }
 
-        public Criteria andContactListNotEqualTo(String value) {
-            addCriterion("contact_list <>", value, "contactList");
+        public Criteria andOriginDataNotEqualTo(String value) {
+            addCriterion("origin_data <>", value, "originData");
             return (Criteria) this;
         }
 
-        public Criteria andContactListGreaterThan(String value) {
-            addCriterion("contact_list >", value, "contactList");
+        public Criteria andOriginDataGreaterThan(String value) {
+            addCriterion("origin_data >", value, "originData");
             return (Criteria) this;
         }
 
-        public Criteria andContactListGreaterThanOrEqualTo(String value) {
-            addCriterion("contact_list >=", value, "contactList");
+        public Criteria andOriginDataGreaterThanOrEqualTo(String value) {
+            addCriterion("origin_data >=", value, "originData");
             return (Criteria) this;
         }
 
-        public Criteria andContactListLessThan(String value) {
-            addCriterion("contact_list <", value, "contactList");
+        public Criteria andOriginDataLessThan(String value) {
+            addCriterion("origin_data <", value, "originData");
             return (Criteria) this;
         }
 
-        public Criteria andContactListLessThanOrEqualTo(String value) {
-            addCriterion("contact_list <=", value, "contactList");
+        public Criteria andOriginDataLessThanOrEqualTo(String value) {
+            addCriterion("origin_data <=", value, "originData");
             return (Criteria) this;
         }
 
-        public Criteria andContactListLike(String value) {
-            addCriterion("contact_list like", value, "contactList");
+        public Criteria andOriginDataLike(String value) {
+            addCriterion("origin_data like", value, "originData");
             return (Criteria) this;
         }
 
-        public Criteria andContactListNotLike(String value) {
-            addCriterion("contact_list not like", value, "contactList");
+        public Criteria andOriginDataNotLike(String value) {
+            addCriterion("origin_data not like", value, "originData");
             return (Criteria) this;
         }
 
-        public Criteria andContactListIn(List<String> values) {
-            addCriterion("contact_list in", values, "contactList");
+        public Criteria andOriginDataIn(List<String> values) {
+            addCriterion("origin_data in", values, "originData");
             return (Criteria) this;
         }
 
-        public Criteria andContactListNotIn(List<String> values) {
-            addCriterion("contact_list not in", values, "contactList");
+        public Criteria andOriginDataNotIn(List<String> values) {
+            addCriterion("origin_data not in", values, "originData");
             return (Criteria) this;
         }
 
-        public Criteria andContactListBetween(String value1, String value2) {
-            addCriterion("contact_list between", value1, value2, "contactList");
+        public Criteria andOriginDataBetween(String value1, String value2) {
+            addCriterion("origin_data between", value1, value2, "originData");
             return (Criteria) this;
         }
 
-        public Criteria andContactListNotBetween(String value1, String value2) {
-            addCriterion("contact_list not between", value1, value2, "contactList");
+        public Criteria andOriginDataNotBetween(String value1, String value2) {
+            addCriterion("origin_data not between", value1, value2, "originData");
+            return (Criteria) this;
+        }
+
+        public Criteria andPlainDataIsNull() {
+            addCriterion("plain_data is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPlainDataIsNotNull() {
+            addCriterion("plain_data is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPlainDataEqualTo(String value) {
+            addCriterion("plain_data =", value, "plainData");
+            return (Criteria) this;
+        }
+
+        public Criteria andPlainDataNotEqualTo(String value) {
+            addCriterion("plain_data <>", value, "plainData");
+            return (Criteria) this;
+        }
+
+        public Criteria andPlainDataGreaterThan(String value) {
+            addCriterion("plain_data >", value, "plainData");
+            return (Criteria) this;
+        }
+
+        public Criteria andPlainDataGreaterThanOrEqualTo(String value) {
+            addCriterion("plain_data >=", value, "plainData");
+            return (Criteria) this;
+        }
+
+        public Criteria andPlainDataLessThan(String value) {
+            addCriterion("plain_data <", value, "plainData");
+            return (Criteria) this;
+        }
+
+        public Criteria andPlainDataLessThanOrEqualTo(String value) {
+            addCriterion("plain_data <=", value, "plainData");
+            return (Criteria) this;
+        }
+
+        public Criteria andPlainDataLike(String value) {
+            addCriterion("plain_data like", value, "plainData");
+            return (Criteria) this;
+        }
+
+        public Criteria andPlainDataNotLike(String value) {
+            addCriterion("plain_data not like", value, "plainData");
+            return (Criteria) this;
+        }
+
+        public Criteria andPlainDataIn(List<String> values) {
+            addCriterion("plain_data in", values, "plainData");
+            return (Criteria) this;
+        }
+
+        public Criteria andPlainDataNotIn(List<String> values) {
+            addCriterion("plain_data not in", values, "plainData");
+            return (Criteria) this;
+        }
+
+        public Criteria andPlainDataBetween(String value1, String value2) {
+            addCriterion("plain_data between", value1, value2, "plainData");
+            return (Criteria) this;
+        }
+
+        public Criteria andPlainDataNotBetween(String value1, String value2) {
+            addCriterion("plain_data not between", value1, value2, "plainData");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveStatusIsNull() {
+            addCriterion("receive_status is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveStatusIsNotNull() {
+            addCriterion("receive_status is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveStatusEqualTo(Integer value) {
+            addCriterion("receive_status =", value, "receiveStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveStatusNotEqualTo(Integer value) {
+            addCriterion("receive_status <>", value, "receiveStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveStatusGreaterThan(Integer value) {
+            addCriterion("receive_status >", value, "receiveStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveStatusGreaterThanOrEqualTo(Integer value) {
+            addCriterion("receive_status >=", value, "receiveStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveStatusLessThan(Integer value) {
+            addCriterion("receive_status <", value, "receiveStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveStatusLessThanOrEqualTo(Integer value) {
+            addCriterion("receive_status <=", value, "receiveStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveStatusIn(List<Integer> values) {
+            addCriterion("receive_status in", values, "receiveStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveStatusNotIn(List<Integer> values) {
+            addCriterion("receive_status not in", values, "receiveStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveStatusBetween(Integer value1, Integer value2) {
+            addCriterion("receive_status between", value1, value2, "receiveStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andReceiveStatusNotBetween(Integer value1, Integer value2) {
+            addCriterion("receive_status not between", value1, value2, "receiveStatus");
             return (Criteria) this;
         }
 
@@ -712,126 +842,6 @@ public class XyfSubmitRecordExample {
 
         public Criteria andSyncStatusNotBetween(Integer value1, Integer value2) {
             addCriterion("sync_status not between", value1, value2, "syncStatus");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalIsNull() {
-            addCriterion("total is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalIsNotNull() {
-            addCriterion("total is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalEqualTo(Integer value) {
-            addCriterion("total =", value, "total");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalNotEqualTo(Integer value) {
-            addCriterion("total <>", value, "total");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalGreaterThan(Integer value) {
-            addCriterion("total >", value, "total");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalGreaterThanOrEqualTo(Integer value) {
-            addCriterion("total >=", value, "total");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalLessThan(Integer value) {
-            addCriterion("total <", value, "total");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalLessThanOrEqualTo(Integer value) {
-            addCriterion("total <=", value, "total");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalIn(List<Integer> values) {
-            addCriterion("total in", values, "total");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalNotIn(List<Integer> values) {
-            addCriterion("total not in", values, "total");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalBetween(Integer value1, Integer value2) {
-            addCriterion("total between", value1, value2, "total");
-            return (Criteria) this;
-        }
-
-        public Criteria andTotalNotBetween(Integer value1, Integer value2) {
-            addCriterion("total not between", value1, value2, "total");
-            return (Criteria) this;
-        }
-
-        public Criteria andSyncTotalIsNull() {
-            addCriterion("sync_total is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andSyncTotalIsNotNull() {
-            addCriterion("sync_total is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andSyncTotalEqualTo(Integer value) {
-            addCriterion("sync_total =", value, "syncTotal");
-            return (Criteria) this;
-        }
-
-        public Criteria andSyncTotalNotEqualTo(Integer value) {
-            addCriterion("sync_total <>", value, "syncTotal");
-            return (Criteria) this;
-        }
-
-        public Criteria andSyncTotalGreaterThan(Integer value) {
-            addCriterion("sync_total >", value, "syncTotal");
-            return (Criteria) this;
-        }
-
-        public Criteria andSyncTotalGreaterThanOrEqualTo(Integer value) {
-            addCriterion("sync_total >=", value, "syncTotal");
-            return (Criteria) this;
-        }
-
-        public Criteria andSyncTotalLessThan(Integer value) {
-            addCriterion("sync_total <", value, "syncTotal");
-            return (Criteria) this;
-        }
-
-        public Criteria andSyncTotalLessThanOrEqualTo(Integer value) {
-            addCriterion("sync_total <=", value, "syncTotal");
-            return (Criteria) this;
-        }
-
-        public Criteria andSyncTotalIn(List<Integer> values) {
-            addCriterion("sync_total in", values, "syncTotal");
-            return (Criteria) this;
-        }
-
-        public Criteria andSyncTotalNotIn(List<Integer> values) {
-            addCriterion("sync_total not in", values, "syncTotal");
-            return (Criteria) this;
-        }
-
-        public Criteria andSyncTotalBetween(Integer value1, Integer value2) {
-            addCriterion("sync_total between", value1, value2, "syncTotal");
-            return (Criteria) this;
-        }
-
-        public Criteria andSyncTotalNotBetween(Integer value1, Integer value2) {
-            addCriterion("sync_total not between", value1, value2, "syncTotal");
             return (Criteria) this;
         }
 
