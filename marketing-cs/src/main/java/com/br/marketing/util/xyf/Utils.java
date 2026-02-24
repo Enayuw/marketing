@@ -8,17 +8,14 @@ public class Utils {
     /** 用于 unicode 转中文，避免重复编译 (S4248) */
     private static final Pattern UNICODE_ESCAPE = Pattern.compile("\\\\u(\\p{XDigit}{4})");
 
-    /** 判断单字符是否为中文（CJK 统一汉字范围），避免重复编译 (S4248) */
-    private static final Pattern CHINESE_CHAR = Pattern.compile("[\u4e00-\u9fa5]");
-
     /**
-     * 判断字符是否为中文
+     * 判断字符是否为中文（CJK 统一汉字范围 0x4e00～0x9fa5）
      *
      * @param c
      * @return
      */
     public static boolean isChineseChar(char c) {
-        return CHINESE_CHAR.matcher(String.valueOf(c)).matches();
+        return c >= 0x4e00 && c <= 0x9fa5;
     }
 
     /**

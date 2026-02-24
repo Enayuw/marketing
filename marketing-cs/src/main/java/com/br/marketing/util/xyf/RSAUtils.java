@@ -162,7 +162,7 @@ public class RSAUtils {
         try {
             genKeys();
         } catch (Exception e) {
-
+            e.printStackTrace();
         }
     }
 }
