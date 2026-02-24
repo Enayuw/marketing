@@ -139,7 +139,7 @@ public class XyfCustomizeServiceImpl implements XyfCustomizeService {
                     resultEnum.getMsg(), TITLE));
         }
         String body = Utils.toUnicode(JSON.toJSONString(data));
-        String encryptData = AESUtils.encrypt(body, aesKey, true);
+        String encryptData = AESUtils.encrypt(body, aesKey, false);
         String sign = RSAUtils.signByPrivateKey(body, brPrivateKey);
         return new XyfEncryptionDTO(encryptAesKey, encryptData, sign);
     }
