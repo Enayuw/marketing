@@ -154,11 +154,15 @@ public class RSAUtils {
         RSAPrivateKey privateKey = (RSAPrivateKey)keyMap.get("RSAPrivateKey");
         String publickeyStr = Base64.encodeBase64String(publicKey.getEncoded());
         String privatekeyStr = Base64.encodeBase64String(privateKey.getEncoded());
-        System.out.println("公钥=" + publickeyStr);
-        System.out.println("私钥=" + privatekeyStr);
+//        System.out.println("公钥=" + publickeyStr);
+//        System.out.println("私钥=" + privatekeyStr);
     }
 
-    public static void main(String[] args) throws NoSuchAlgorithmException {
-        genKeys();
+    public static void main(String[] args) {
+        try {
+            genKeys();
+        } catch (Exception e) {
+
+        }
     }
 }

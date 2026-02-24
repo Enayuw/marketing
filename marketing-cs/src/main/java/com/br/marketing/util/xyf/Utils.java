@@ -5,6 +5,12 @@ import java.util.regex.Pattern;
 
 public class Utils {
 
+    /** 用于 unicode 转中文，避免重复编译 (S4248) */
+    private static final Pattern UNICODE_ESCAPE = Pattern.compile("\\\\u(\\p{XDigit}{4})");
+
+    /** 判断单字符是否为中文（CJK 统一汉字范围），避免重复编译 (S4248) */
+    private static final Pattern CHINESE_CHAR = Pattern.compile("[\u4e00-\u9fa5]");
+
     /**
      * 判断字符是否为中文
      *
@@ -12,7 +18,7 @@ public class Utils {
      * @return
      */
     public static boolean isChineseChar(char c) {
-        return String.valueOf(c).matches("[\u4e00-\u9fa5]");
+        return CHINESE_CHAR.matcher(String.valueOf(c)).matches();
     }
 
     /**
@@ -41,8 +47,7 @@ public class Utils {
      * @return
      */
     public static String toChinese(String s) {
-        Pattern pattern = Pattern.compile("\\\\u(\\p{XDigit}{4})");
-        Matcher matcher = pattern.matcher(s);
+        Matcher matcher = UNICODE_ESCAPE.matcher(s);
         char ch;
         while (matcher.find()) {
             ch = (char) Integer.parseUnsignedInt(matcher.group(1), 16);
