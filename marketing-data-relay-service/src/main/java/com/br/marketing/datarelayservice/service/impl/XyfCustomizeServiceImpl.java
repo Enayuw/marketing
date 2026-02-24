@@ -91,7 +91,7 @@ public class XyfCustomizeServiceImpl implements XyfCustomizeService {
             XyfSubmitRecord record = objectMapper.readValue(data, XyfSubmitRecord.class);
             record.setApiCode(apiCode);
             record.setOriginData(JSON.toJSONString(requestDTO));
-            record.setPlainData(data);
+            record.setPlainData(Utils.toChinese(data));
             log.warn("{} batchId:{} plainData:{}", TITLE, record.getBatchId(), truncateForLog(record.getPlainData(), 500));
             //5.必填项校验
             if (!validate(record)) {
