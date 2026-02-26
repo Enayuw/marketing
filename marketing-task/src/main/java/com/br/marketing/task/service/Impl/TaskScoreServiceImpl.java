@@ -986,7 +986,7 @@ public class TaskScoreServiceImpl {
                 String currentStatus = new String(nodeStatus.getCurrentData().getData());
                 if (taskObj.getInterrupt().equals(0) && currentStatus.equals(ZkScoreStatusEnum.PAUSE.getValue())) {
                     observedScoreThreadService.stopThread(taskObj);
-                    log.warn(TITLE + "已执行完暂停，batchNumber--{}，taskObj--{}", task.getBatchNumber(), JSONObject.toJSONString(taskObj));
+                    log.warn(TITLE + "已执行完暂停，batchNumber--{}", task.getBatchNumber());
                 }
             }
         });

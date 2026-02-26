@@ -26,11 +26,13 @@ import com.br.marketing.task.utils.HxUtil;
 import com.br.marketing.task.utils.ResultUtil;
 import com.br.marketing.vo.BaseHeadConfigVO;
 import com.br.marketing.vo.StrategyProductDetailVO;
+import org.mybatis.spring.MyBatisSystemException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 
 import java.io.*;
+import java.lang.reflect.UndeclaredThrowableException;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -133,12 +135,20 @@ public class CoreScoreThread implements Callable<String> {
         File errorFile = new File(path + "/error" + currentPage + ".txt");
         File file1 = new File(path + "/" + currentPage + ".txt");
 
+        boolean appendFlag = false;
+        if(!isRetry) {
+            if(scoreTaskBatchDTO != null && scoreTaskBatchDTO.getMinUnCompleteId() != null) {
+                appendFlag = true;
+            }
+        }else {
+            appendFlag = true;
+        }
         try (Writer errorFw = new BufferedWriter(
                 new OutputStreamWriter(
                         new FileOutputStream(errorFile), "UTF-8"));
              Writer fw = new BufferedWriter(
                      new OutputStreamWriter(
-                             new FileOutputStream(file1), "UTF-8"));) {
+                             new FileOutputStream(file1,appendFlag), "UTF-8"));) {
 
             JSONObject param = new JSONObject();
             param.put("strategyId", strategyId);
@@ -198,6 +208,9 @@ public class CoreScoreThread implements Callable<String> {
                 }
                 count++;
             }
+            if(!isRetry && Thread.currentThread().isInterrupted()) {
+                Thread.interrupted();
+            }
             if (errorList.size() > 0) {
                 for (MarketingSyncUser lu : errorList) {
                     errorFw.append(JSON.toJSONString(lu) + "\n");
@@ -205,14 +218,21 @@ public class CoreScoreThread implements Callable<String> {
                 String key = Constants.HXRESULTERROR_RETRY_KEY + ":" + this.fileId;
                 try {
                     redisChgService.hset(key, errorFile.getPath(), batchNumber);
-                }catch (Exception e) {
+                }catch (RuntimeException exception) {
                     try {
                         redisChgService.hset(key, errorFile.getPath(), batchNumber);
-                    }catch (Exception e1) {
-                        throw e1;
+                    }catch (RuntimeException e) {
+                        if(e.getCause() != null && e.getCause() instanceof UndeclaredThrowableException) {
+                            UndeclaredThrowableException e1 = (UndeclaredThrowableException) e.getCause();
+                            if(e1 != null && e1.getCause() != null && e1.getCause() instanceof InterruptedException) {
+                                redisChgService.hset(key, errorFile.getPath(), batchNumber);
+                            }else {
+                                throw e;
+                            }
+                        }else {
+                            throw e;
+                        }
                     }
-
-
                 }
             }
             // 保存当前批次进度
@@ -273,7 +293,21 @@ public class CoreScoreThread implements Callable<String> {
         marketingRetryRedis.setAppletDate(LocalDate.now().toString());
         marketingRetryRedis.setCreateTime(new Date());
         marketingRetryRedis.setUpdateTime(new Date());
-        marketingRetryRedisMapper.insertSelective(marketingRetryRedis);
+
+        try {
+            marketingRetryRedisMapper.insertSelective(marketingRetryRedis);
+        } catch (MyBatisSystemException e) {
+            // 检查线程是否被中断
+            if (Thread.currentThread().isInterrupted()) {
+                // 清除中断标志，以便重新插入数据库
+                boolean wasInterrupted = Thread.interrupted();
+                // 重新插入数据库
+                marketingRetryRedisMapper.insertSelective(marketingRetryRedis);
+            } else {
+                // 线程未被中断，是其他原因导致的异常，直接抛出
+                throw e;
+            }
+        }
     }
 
     /**
