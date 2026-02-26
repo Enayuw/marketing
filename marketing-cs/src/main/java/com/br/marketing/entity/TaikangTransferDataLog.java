@@ -41,6 +41,11 @@ public class TaikangTransferDataLog {
     private String businessCode;
 
     /**
+     * 接口返回内容
+     */
+    private String returnContent;
+
+    /**
      * 扩展字段
      */
     private String extend;
@@ -61,7 +66,12 @@ public class TaikangTransferDataLog {
     private Date updateTime;
 
     /**
-     * 接口返回内容
+     * 数据类型 1-通话回调  2-钉钉录入
      */
-    private String returnContent;
+    private Integer dataType;
+
+    /**
+     * 钉钉明细主键id
+     */
+    private Long ddRecordId;
 }

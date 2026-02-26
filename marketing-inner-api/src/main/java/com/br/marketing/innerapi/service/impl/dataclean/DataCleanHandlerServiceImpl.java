@@ -92,6 +92,11 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         if (headerSet.size() > 1) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("多个文件存在表头不一致");
         }
+        // 清空 targetSftpPath 和 localPath 字段
+        cleanDataFiles.forEach(file -> {
+            file.setTargetSftpPath(null);
+            file.setLocalPath(null);
+        });
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(cleanDataFiles);
 
     }
@@ -102,6 +107,11 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         MarketingCleanDataFileExample.Criteria criteria = cleanDataFileExample.createCriteria();
         criteria.andApiCodeEqualTo(apiCode).andCleanTypeEqualTo(fileType);
         List<MarketingCleanDataFile> cleanDataFiles = marketingCleanDataFileMapper.selectByExample(cleanDataFileExample);
+        // 清空 targetSftpPath 和 localPath 字段
+        cleanDataFiles.forEach(file -> {
+            file.setTargetSftpPath(null);
+            file.setLocalPath(null);
+        });
         return cleanDataFiles;
     }
 
@@ -341,6 +351,9 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         criteria.andApiCodeEqualTo(apiCode).andFileHeaderEqualTo(fileHeader).andCleanTypeEqualTo(Integer.valueOf(fileType));
         List<Long> fileIds = marketingCleanDataFileMapper.selectByExample(cleanDataFileExample).stream().map(MarketingCleanDataFile::getId)
                 .collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(fileIds)) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("清洗查询文件列表为空");
+        }
         MarketingDataFileConfigExample configExample = new MarketingDataFileConfigExample();
         MarketingDataFileConfigExample.Criteria configExampleCriteria = configExample.createCriteria();
         configExampleCriteria.andApiCodeEqualTo(apiCode).andFileIdIn(fileIds.stream().map(Long::intValue).collect(Collectors.toList()));

@@ -87,3 +87,10 @@ fdfs:
     max-total: 50
     max-wait-millis: 150000
     max-total-per-key: 10
+management:
+  endpoints:
+    web:
+      exposure:
+        include: []  # 空数组，不暴露任何 Actuator 端点
+      discovery:
+        enabled: false  # 可选：禁用端点发现，/actuator 根地址不会返回任何端点信息

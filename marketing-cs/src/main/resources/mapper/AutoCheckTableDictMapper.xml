@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.AutoCheckTableDictMapper" >
+
+    <resultMap id="AssociationVOResultMap" type="com.br.marketing.vo.autocheck.AutoCheckAssociationTableVO">
+        <result column="table_name" property="tableName" jdbcType="VARCHAR"/>
+        <result column="table_desc" property="tableDesc" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!-- 查询关联表（table dict）；支持按 tableName/tableDesc 模糊匹配 -->
+    <select id="getAssociationTable" resultMap="AssociationVOResultMap" parameterType="java.lang.String">
+        SELECT
+            `table_name`,
+            table_desc
+        FROM b_auto_check_table_dict
+        WHERE is_deleted = 0
+        <if test="tableName != null and tableName != ''">
+            AND (
+                `table_name` LIKE CONCAT('%', #{tableName}, '%')
+                OR table_desc LIKE CONCAT('%', #{tableName}, '%')
+            )
+        </if>
+    </select>
+
+    <!-- 批量查询指定表的字段信息（字段名/字段注释）；表不存在时无记录返回 -->
+    <select id="getAssociationTableColumns" resultType="com.br.marketing.vo.autocheck.AutoCheckTableColumnVO">
+        SELECT
+            table_name AS tableName,
+            column_name AS fieldName,
+            column_comment AS fieldDesc
+        FROM information_schema.columns
+        WHERE table_schema = (SELECT DATABASE())
+        <choose>
+            <when test="tableNameList != null and tableNameList.size() > 0">
+                AND table_name IN
+                <foreach collection="tableNameList" item="t" open="(" close=")" separator=",">
+                    #{t}
+                </foreach>
+            </when>
+            <otherwise>
+                AND 1 = 0
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 批量保存（仅插入） -->
+    <insert id="batchInsert">
+        INSERT INTO b_auto_check_table_dict (
+            `table_name`,
+            table_desc,
+            is_deleted,
+            create_time,
+            update_time
+        )
+        VALUES
+        <foreach collection="saveList" item="item" separator=",">
+            (
+                #{item.tableName, jdbcType=VARCHAR},
+                #{item.tableDesc, jdbcType=VARCHAR},
+                <choose>
+                    <when test="item.isDeleted != null">
+                        #{item.isDeleted, jdbcType=TINYINT}
+                    </when>
+                    <otherwise>
+                        0
+                    </otherwise>
+                </choose>
+                ,
+                NOW(),
+                NOW()
+            )
+        </foreach>
+    </insert>
+
+</mapper>

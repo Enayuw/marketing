@@ -484,25 +484,27 @@ public class SyncServiceImpl implements SyncService {
      * 拷贝文件。从源目录将指定文件拷贝到目的目录
      * @param loanSyncConfig 同步配置
      * @param fileName 文件名称
+     * @return 拷贝是否成功
      */
-    public void copyFile(SyncConfig loanSyncConfig, String fileName, BaseFtpClient srcClient, BaseFtpClient targetClient){
-
+    public boolean copyFile(SyncConfig loanSyncConfig, String fileName, BaseFtpClient srcClient, BaseFtpClient targetClient){
         String srcPath = loanSyncConfig.getSrcPath().endsWith("/") ? loanSyncConfig.getSrcPath() : loanSyncConfig.getSrcPath() + "/";
         String targetPath = loanSyncConfig.getTargetPath().endsWith("/") ? loanSyncConfig.getTargetPath() : loanSyncConfig.getTargetPath() + "/";
-        InputStream inputStream=null;
-        try{
+        InputStream inputStream = null;
+        try {
             targetClient.mkdir(targetPath);
             inputStream = srcClient.getInputStream(srcPath, fileName);
-            targetClient.uploadFile(inputStream,targetPath,fileName);
-        }catch (Exception e){
-            log.error("拷贝文件出错",e);
-        }finally {
+            targetClient.uploadFile(inputStream, targetPath, fileName);
+            return true;
+        } catch (Exception e) {
+            log.error("拷贝文件出错", e);
+            return false;
+        } finally {
             try {
-                if(inputStream!=null){
+                if (inputStream != null) {
                     inputStream.close();
                 }
             } catch (Exception e) {
-                log.error("关闭流出错",e);
+                log.error("关闭流出错", e);
             }
         }
     }

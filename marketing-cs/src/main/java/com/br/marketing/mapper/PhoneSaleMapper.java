@@ -44,4 +44,30 @@ public interface PhoneSaleMapper extends PhoneSaleMapperBase {
      */
     List<DassImportDataDTO> getSpecialDataAll(@Param("localId") String localId, 
                                               @Param("phone") String phone);
+
+    /**
+     * 根据动态分组字段获取分组数量（基础字段分组）
+     */
+    Integer getGroupByFieldCount(@Param("localId") String localId, 
+                                 @Param("groupField") String groupField);
+
+    /**
+     * 根据动态分组字段分页获取分组值（基础字段分组）
+     */
+    List<String> getGroupByFieldWithPaging(@Param("localId") String localId,
+                                           @Param("groupField") String groupField,
+                                           @Param("offset") Integer offset,
+                                           @Param("pageSize") Integer pageSize);
+
+    /**
+     * 根据分组字段和分组值获取所有数据
+     */
+    List<DassImportDataDTO> getDataByGroupField(@Param("localId") String localId,
+                                                @Param("groupField") String groupField,
+                                                @Param("groupValue") String groupValue);
+
+    /**
+     * 获取文件的所有数据（用于extend字段分组）
+     */
+    List<DassImportDataDTO> getAllDataByFileId(@Param("localId") String localId);
 }

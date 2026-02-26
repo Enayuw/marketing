@@ -19,6 +19,7 @@ import com.br.marketing.enums.TcCpaMatchStatusEnum;
 import com.br.marketing.enums.TcCpaSyncDealStatusEnum;
 import com.br.marketing.mapper.MarketingTcyrCpaSuccessFileMapper;
 import com.br.marketing.mapper.MarketingTcyrCpaSuccessRecordMapper;
+import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.service.clean.common.GeneralDataCleanService;
 import com.br.marketing.service.tccpa.TcCpaCustCellMappingService;
@@ -36,6 +37,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
@@ -69,6 +71,9 @@ public class TcCpaSyncDataQuickDealServiceImpl implements TcCpaSyncDataQuickDeal
 
     @Resource
     private MarketingTcyrCpaSuccessFileMapper tcyrCpaSuccessFileMapper;
+
+    @Resource
+    private CallRecordMapper callRecordMapper;
 
     @Override
     public void shardProcess(String apiCode) {
@@ -238,6 +243,10 @@ public class TcCpaSyncDataQuickDealServiceImpl implements TcCpaSyncDataQuickDeal
             for (Map<String, Object> map : cellList) {
                 userKeyToCellMap.put(map.get("custNum").toString(), map.get("cell").toString());
             }
+            
+            // 2.批量查询task_name（打标）
+            Map<String, String> userKeyToTaskNameMap = batchQueryTaskName(apiCode, userKeyList);
+            
             // 3.遍历 batchData，命中才封装
             for (String line : batchData) {
                 String[] lineData = line.split(",");
@@ -265,6 +274,11 @@ public class TcCpaSyncDataQuickDealServiceImpl implements TcCpaSyncDataQuickDeal
                         //将所有列输出为扩展字段
                         for (int i = 0; i < Math.min(lineData.length, fileHeads.size()); i++) {
                             extentJson.put(fileHeads.get(i), lineData[i]);
+                        }
+                        // 打标：设置datapacket字段（task_name）
+                        String taskName = userKeyToTaskNameMap.get(userKey);
+                        if (StringUtils.isNotBlank(taskName)) {
+                            extentJson.put("datapacket", taskName);
                         }
                         syncItem.setExtend(extentJson.toJSONString());
                         tcyrSyncList.add(syncItem);
@@ -294,6 +308,107 @@ public class TcCpaSyncDataQuickDealServiceImpl implements TcCpaSyncDataQuickDeal
         uploadDataDTO.setApiCode(apiCode);
         uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
         return uploadDataDTO;
+    }
+
+    /**
+     * 批量查询task_name（打标）
+     * 优化：使用真正的批量查询，避免N+1问题
+     * @param apiCode apiCode
+     * @param userKeyList 用户唯一编号列表
+     * @return userKey -> taskName 的映射
+     */
+    private Map<String, String> batchQueryTaskName(String apiCode, List<String> userKeyList) {
+        Map<String, String> userKeyToTaskNameMap = new HashMap<>();
+        if (userKeyList == null || userKeyList.isEmpty()) {
+            return userKeyToTaskNameMap;
+        }
+        
+        try {
+            // 1. 获取周期配置
+            String[] dateRange = getCyclePeriodDateRange();
+            String startDate = dateRange[0];
+            String endDate = dateRange[1];
+            
+            // 2. 过滤空值
+            List<String> validUserKeyList = userKeyList.stream()
+                    .filter(StringUtils::isNotBlank)
+                    .collect(Collectors.toList());
+            
+            if (validUserKeyList.isEmpty()) {
+                return userKeyToTaskNameMap;
+            }
+            
+            // 3. 真正的批量查询（一次SQL查询所有数据）
+            List<Map<String, String>> taskNameList = callRecordMapper.queryTaskNameByUserKeyList(
+                    apiCode, validUserKeyList, startDate, endDate);
+            
+            // 4. 转换为Map
+            for (Map<String, String> item : taskNameList) {
+                String caseNum = item.get("caseNum");
+                String taskName = item.get("taskName");
+                if (StringUtils.isNotBlank(caseNum) && StringUtils.isNotBlank(taskName)) {
+                    userKeyToTaskNameMap.put(caseNum, taskName);
+                }
+            }
+                    
+        } catch (Exception e) {
+            log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
+                    "批量查询task_name异常，apiCode:" + apiCode + "," + e.getMessage(), TITLE), e);
+        }
+        
+        return userKeyToTaskNameMap;
+    }
+
+    /**
+     * 获取周期日期范围
+     * 优先读取speed配置tcyrCpaCyclePeriodConfig，若为空则取上一自然周（周一至周日）
+     * @return [startDate, endDate] 格式：["2026-01-19", "2026-01-26 23:59:59"]
+     */
+    private String[] getCyclePeriodDateRange() {
+        // 1. 尝试从配置读取
+        String cycleConfig = marketingCommonConfig.getTcyrCpaCyclePeriodConfig();
+        if (StringUtils.isNotBlank(cycleConfig)) {
+            // 解析格式：startDate,endDate，例如："2026-01-19,2026-01-25"
+            String[] dates = cycleConfig.split(",");
+            if (dates.length == 2) {
+                String startDate = dates[0].trim();
+                String endDate = dates[1].trim();
+                if (StringUtils.isNotBlank(startDate) && StringUtils.isNotBlank(endDate)) {
+                    // 确保endDate包含时间部分
+                    if (!endDate.contains(" ")) {
+                        endDate = endDate + " 23:59:59";
+                    }
+                    return new String[]{startDate, endDate};
+                }
+            } else {
+                log.warn("{} 配置格式错误，应为：startDate,endDate，例如：2026-01-19,2026-01-25，当前配置：{}", TITLE, cycleConfig);
+            }
+        }
+        
+        // 2. 配置为空或格式错误，计算上一自然周（周一至周日）
+        return getLastNaturalWeekRange();
+    }
+
+    /**
+     * 计算上一自然周（周一至周日）的日期范围
+     * @return [startDate, endDate] 格式：["2026-01-19", "2026-01-26 23:59:59"]
+     */
+    private String[] getLastNaturalWeekRange() {
+        // 获取当前日期
+        LocalDate today = LocalDate.now();
+        
+        // 获取本周一
+        LocalDate thisMonday = today.with(java.time.DayOfWeek.MONDAY);
+        
+        // 上一自然周的周一（本周一减去7天）
+        LocalDate lastMonday = thisMonday.minusWeeks(1);
+        
+        // 上一自然周的周日（上一周一加6天）
+        LocalDate lastSunday = lastMonday.plusDays(6);
+        
+        String startDate = lastMonday.format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String endDate = lastSunday.format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd")) + " 23:59:59";
+        return new String[]{startDate, endDate};
     }
 
 }

@@ -136,6 +136,5 @@
         set push_end_time = #{date,jdbcType=TIMESTAMP},
             push_number   = #{pushNumber,jdbcType=INTEGER}
         where id = #{id}
-          and push_end_time is null
     </update>
 </mapper>
