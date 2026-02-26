@@ -29,6 +29,16 @@ public class MarketingRetryRedis {
     private String redisKey;
 
     /**
+     * 跑分执行记录redisValue
+     */
+    private String redisValue;
+
+    /**
+     * 跑分执行记录redisValue类型
+     */
+    private String redisValueType;
+
+    /**
      * 重试状态 0-待重试；1-重试成功；2-重试失败
      */
     private Integer retryStatus;
@@ -86,6 +96,22 @@ public class MarketingRetryRedis {
 
     public void setRedisKey(String redisKey) {
         this.redisKey = redisKey == null ? null : redisKey.trim();
+    }
+
+    public String getRedisValue() {
+        return redisValue;
+    }
+
+    public void setRedisValue(String redisValue) {
+        this.redisValue = redisValue == null ? null : redisValue.trim();
+    }
+
+    public String getRedisValueType() {
+        return redisValueType;
+    }
+
+    public void setRedisValueType(String redisValueType) {
+        this.redisValueType = redisValueType == null ? null : redisValueType.trim();
     }
 
     public Integer getRetryStatus() {

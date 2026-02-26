@@ -3624,4 +3624,9 @@ public class MarketingCommonConfig {
      * sftp下载单个文件超时时间
      */
     private Long sftpDownLoadTimeOut;
+
+    /**
+     * 跑分rediskey的scoreStatus的最终执行时间
+     */
+    private String scoreStatusFinalDate;
  }

@@ -445,6 +445,146 @@ public class MarketingRetryRedisExample {
             return (Criteria) this;
         }
 
+        public Criteria andRedisValueIsNull() {
+            addCriterion("redis_value is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedisValueIsNotNull() {
+            addCriterion("redis_value is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedisValueEqualTo(String value) {
+            addCriterion("redis_value =", value, "redisValue");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedisValueNotEqualTo(String value) {
+            addCriterion("redis_value <>", value, "redisValue");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedisValueGreaterThan(String value) {
+            addCriterion("redis_value >", value, "redisValue");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedisValueGreaterThanOrEqualTo(String value) {
+            addCriterion("redis_value >=", value, "redisValue");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedisValueLessThan(String value) {
+            addCriterion("redis_value <", value, "redisValue");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedisValueLessThanOrEqualTo(String value) {
+            addCriterion("redis_value <=", value, "redisValue");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedisValueLike(String value) {
+            addCriterion("redis_value like", value, "redisValue");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedisValueNotLike(String value) {
+            addCriterion("redis_value not like", value, "redisValue");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedisValueIn(List<String> values) {
+            addCriterion("redis_value in", values, "redisValue");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedisValueNotIn(List<String> values) {
+            addCriterion("redis_value not in", values, "redisValue");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedisValueBetween(String value1, String value2) {
+            addCriterion("redis_value between", value1, value2, "redisValue");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedisValueNotBetween(String value1, String value2) {
+            addCriterion("redis_value not between", value1, value2, "redisValue");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedisValueTypeIsNull() {
+            addCriterion("redis_value_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedisValueTypeIsNotNull() {
+            addCriterion("redis_value_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedisValueTypeEqualTo(String value) {
+            addCriterion("redis_value_type =", value, "redisValueType");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedisValueTypeNotEqualTo(String value) {
+            addCriterion("redis_value_type <>", value, "redisValueType");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedisValueTypeGreaterThan(String value) {
+            addCriterion("redis_value_type >", value, "redisValueType");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedisValueTypeGreaterThanOrEqualTo(String value) {
+            addCriterion("redis_value_type >=", value, "redisValueType");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedisValueTypeLessThan(String value) {
+            addCriterion("redis_value_type <", value, "redisValueType");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedisValueTypeLessThanOrEqualTo(String value) {
+            addCriterion("redis_value_type <=", value, "redisValueType");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedisValueTypeLike(String value) {
+            addCriterion("redis_value_type like", value, "redisValueType");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedisValueTypeNotLike(String value) {
+            addCriterion("redis_value_type not like", value, "redisValueType");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedisValueTypeIn(List<String> values) {
+            addCriterion("redis_value_type in", values, "redisValueType");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedisValueTypeNotIn(List<String> values) {
+            addCriterion("redis_value_type not in", values, "redisValueType");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedisValueTypeBetween(String value1, String value2) {
+            addCriterion("redis_value_type between", value1, value2, "redisValueType");
+            return (Criteria) this;
+        }
+
+        public Criteria andRedisValueTypeNotBetween(String value1, String value2) {
+            addCriterion("redis_value_type not between", value1, value2, "redisValueType");
+            return (Criteria) this;
+        }
+
         public Criteria andRetryStatusIsNull() {
             addCriterion("retry_status is null");
             return (Criteria) this;

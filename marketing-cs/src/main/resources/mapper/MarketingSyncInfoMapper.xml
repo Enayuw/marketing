@@ -252,6 +252,12 @@
           <if test="id != null and id >0">
             <![CDATA[  and id>#{id} ]]>
           </if>
+        <if test="minUnCompleteId != null">
+            <![CDATA[  and id>=#{minUnCompleteId} ]]>
+        </if>
+        <if test="maxId != null">
+            <![CDATA[  and id<=#{maxId} ]]>
+        </if>
         and is_repeat in (1,2)
         and status = 1
         order by id asc limit ${pageSize};
@@ -263,6 +269,12 @@
         where ${whereStr}
         <if test="id != null and id >0">
             <![CDATA[ and id>#{id} ]]>
+        </if>
+        <if test="minUnCompleteId != null">
+            <![CDATA[ and id>=#{minUnCompleteId} ]]>
+        </if>
+        <if test="maxId != null">
+            <![CDATA[ and id<=#{maxId} ]]>
         </if>
         and is_repeat in (1,2)
         and status = 1
