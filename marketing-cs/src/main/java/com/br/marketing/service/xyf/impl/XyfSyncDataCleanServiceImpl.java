@@ -183,7 +183,7 @@ public class XyfSyncDataCleanServiceImpl implements XyfSyncDataCleanService {
                     "batchId=" + record.getBatchId() + " 存在被过滤明细，原始=" + contactListTotal + "，过滤后=" + syncUsers.size(), TITLE));
         }
         MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
-        marketingPreUserDTO.setTaskId(record.getBatchId());
+        marketingPreUserDTO.setTaskId(record.getBatchDate());
         marketingPreUserDTO.setRequestId(record.getBatchId());
         marketingPreUserDTO.setDataItems(syncUsers);
         UploadDataDTO uploadDataDTO = new UploadDataDTO();
