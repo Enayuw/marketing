@@ -76,6 +76,9 @@ public enum ThreadPoolNameEnum {
 
     TAIKANG_DINGDING_TRANSFER(64,"taikang_dingding_transfer", "泰康滴滴线索数据回传"),
 
+    /** inner 线上测试用，仅 Postman 调用：线程池空跑 */
+    INNER_TEST_TP(66, "inner_test_tp", "inner 线上测试线程池空跑"),
+
     ;
 
     private final Integer order;
