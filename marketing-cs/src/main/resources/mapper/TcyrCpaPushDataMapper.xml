@@ -17,16 +17,12 @@
     </select>
 
     <select id="selectWithPagination" resultType="com.br.marketing.entity.TcyrCpaPushData">
-        select id, user_key, priority
-        from b_tcyr_cpa_push_data
-        where is_del = 1
-        and colliding_date = curdate()
-        and (priority, id) > (#{lastPriority}, #{lastId})
-        and task_id in
-        <foreach item="taskId" collection="taskIds" open="(" separator="," close=")">
-            #{taskId}
-        </foreach>
-        order by priority asc, id asc
+        SELECT id, user_key, priority FROM
+        b_tcyr_cpa_push_data
+        WHERE is_del = 1
+        AND id > #{lastId}
+        AND task_id = #{taskId}
+        ORDER BY id ASC
         limit #{limit}
     </select>
 </mapper>
