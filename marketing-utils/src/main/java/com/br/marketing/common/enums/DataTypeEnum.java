@@ -26,7 +26,8 @@ public enum DataTypeEnum {
     ,MARKETING_UP_CYCLE_DATA(13,"上传清洗周期文件")
     ,MARKETING_TRANSFER_CYCLE_DATA(14,"转化清洗周期文件")
     ,TC_CPA_PUSH_FILE(15,"同程CPA撞库文件")
-    ,SYNC_FILES(16,"同步文件");
+    ,SYNC_FILES(16,"同步文件")
+    ,MARKETING_DATA_NO_HEADER(17,"原始数据文件(无表头)");
     private Integer value;
     private String desc;
 
