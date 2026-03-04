@@ -146,11 +146,11 @@ public class XyfSyncDataCleanServiceImpl implements XyfSyncDataCleanService {
             if (item.containsKey("jobData")) {
                 Object jd = item.get("jobData");
                 if (jd instanceof JSONObject) {
-                    name = ((JSONObject) jd).getString("userName");
+                    name = ((JSONObject) jd).getString("username");
                 }
             }
             if (StringUtils.isBlank(name)) {
-                name = item.getString("userName");
+                name = item.getString("username");
             }
             dto.setName(name);
             JSONObject rf = new JSONObject();
