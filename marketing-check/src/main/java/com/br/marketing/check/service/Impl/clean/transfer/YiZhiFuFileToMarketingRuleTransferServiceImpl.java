@@ -70,6 +70,7 @@ public class YiZhiFuFileToMarketingRuleTransferServiceImpl implements IFileToMar
                     }
                     break;
             }
+            dto.setUserType("1");
         }
 
         if (!reserveFieldJo.isEmpty()) {

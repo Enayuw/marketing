@@ -227,9 +227,7 @@ public class FileNoHeaderToMarketingDataServiceImpl implements com.br.marketing.
                     errorNum++;
                     if (!columnMismatchAlarmed) {
                         columnMismatchAlarmed = true;
-                        String msg = String.format(TITLE + "文件列数与配置列数不一致，需告警。文件名:%s，行号:%d，当前列数:%d，配置要求列数:%d", fileNm, lineNum, columns.size(), expectedColumns);
-                        log.warn(msg);
-                        alarmApiClient.sendAlarm(msg, "无表头文件列数与配置不一致", AlarmSendCodeEnum.SHUHE_SERVICEERROR.getCode());
+                        log.error(TITLE + "文件列数与配置列数不一致，需告警。文件名={}，行号={}，当前列数={}，配置要求列数={}", fileNm, lineNum, columns.size(), expectedColumns);
                     }
                     continue;
                 }
