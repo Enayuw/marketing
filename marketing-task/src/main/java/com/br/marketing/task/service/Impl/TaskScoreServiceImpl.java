@@ -11,10 +11,13 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.ZookeeperPath;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.constants.rediskey.RedisKeyExpireConstant;
 import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
 import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.enums.RedisValueTypeEnum;
 import com.br.marketing.common.enums.TaskTypeEnum;
+import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.MQConstants;
@@ -32,6 +35,7 @@ import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.StrategyCs;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.task.dto.ObservedTaskObj;
+import com.br.marketing.task.dto.ScoreTaskBatchDTO;
 import com.br.marketing.task.thread.CoreScoreThread;
 import com.br.marketing.util.BrMonitorExecutor;
 import com.br.marketing.util.ThreadPoolAdjustmentUtil;
@@ -61,6 +65,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -120,6 +125,8 @@ public class TaskScoreServiceImpl {
 
     final static String RedisCodeProduct = "apicodescore:product:";
     static ConcurrentHashMap<String, Integer> threadContextNum = new ConcurrentHashMap<>();
+
+    private static final int GROUP_MAX_NUM = 1000;
 
     @Autowired
     private CuratorFramework client;
@@ -413,7 +420,7 @@ public class TaskScoreServiceImpl {
                     , marketingTask, noflagproductlist
                     , flagproductlist, marketingTaskExtend
                     , baseHeadConfigVO, fieldInfo, true
-                    , marketingRetryEsMapper, marketingCommonConfig,marketingRetryRedisMapper));
+                    , marketingRetryEsMapper, marketingCommonConfig,marketingRetryRedisMapper,null));
         } catch (Exception e) {
             log.error("重新处理画像异常数据出错:{},{}", errorFile, row, e);
         }
@@ -435,9 +442,11 @@ public class TaskScoreServiceImpl {
 
         String descPath = syncConfigService.getPath().concat(Constants.monitorTypeMap.get(String.valueOf(blt.getMonitorType()))).concat("/").concat(blt.getApiCode()).concat("/")
                 .concat(blt.getBatchNumber()).concat("/").concat(day);
-
+        // 是否是恢复跑分
+        boolean isRestoreFlag = false;
         //region 写入或者获取跑分记录以及状态
         if (blt.getFileId() != null && blt.getFileId() > 1) {
+            isRestoreFlag = true;
             StraHisFile file = straHisFileMapper.selectByPrimaryKey(blt.getFileId());
             descPath = file.getFilePath();
             // 待恢复任务，跑分状态置为进行中
@@ -515,7 +524,7 @@ public class TaskScoreServiceImpl {
         addTaskContent.append(String.format("任务批次号:%s,分片:%d 加入队列", blt.getBatchNumber(), blt.getIndex()).concat("\r\n"));
         sendContent(addTaskContent.toString(), "任务开始", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
         scoreStatusListen(taskObj);
-        core(blt, descPath, true, productJson, warrningExecutor, blt.getFileId().toString(), customer);
+        core(blt, descPath, true, productJson, warrningExecutor, blt.getFileId().toString(), customer,isRestoreFlag);
     }
 
     private void sendContent(String msg, String title, String code) {
@@ -568,7 +577,7 @@ public class TaskScoreServiceImpl {
      * @param descPath
      */
     private void core(MarketingTask blt, String descPath, boolean firstTime, String strategyStr, ExecutorService warrningExecutor,
-                      String fileId, MarketingCustomer customer) {
+                      String fileId, MarketingCustomer customer,Boolean isRestoreFlag) {
         try {
             String noflagproduct = redisChgService.get(RedisKeyConstant.noFlagProduct);
             List<String> noflagproductlist = new ArrayList<>();
@@ -613,7 +622,11 @@ public class TaskScoreServiceImpl {
             Integer verNum = taskExtendExtendFieldDTO != null && taskExtendExtendFieldDTO.getDataLimit() != null && taskExtendExtendFieldDTO.getDataLimit() > 0
                     ? taskExtendExtendFieldDTO.getDataLimit() : 500;
             Boolean isHead = Boolean.TRUE;
+
+            // 跑分条件序号
+            Integer conditionIndex = 0;
             for (String conditionData : conditionDatas) {
+                conditionIndex++;
                 if (isVerScore && verNum <= 0) {
                     continue;
                 }
@@ -625,6 +638,18 @@ public class TaskScoreServiceImpl {
                 Long minId = iDynamicSqlService.minIdRuleScoreWithDate(blt.getApiCode(), conditionData, labelName);
                 log.warn(TITLE + "每页最小id--{},页码--{},总量级--{},每页量级--{}", minId, currentPage,totalCount, isVerScore ? verNum : totalPages);
                 if (minId != null && minId > 0L) {
+                    // 分组id
+                    int groupId = 1;
+                    // 分组中元素数量
+                    int groupNum = 1;
+                    String groupSetKey = RedisKeyConstant.scoreBatch.concat(":").concat(String.valueOf(blt.getFileId())).concat(":").concat(String.valueOf(conditionIndex)).concat(":group");
+                    Set<String> groupIdSet = new HashSet<>();
+                    Map<String, ScoreTaskBatchDTO> scoreTaskBatchDTOMap = new HashMap<>();
+                    if(isRestoreFlag) {
+                        // 恢复跑分，初始化跑批进度
+                        initScoreBatchProgressData(groupSetKey,groupIdSet,scoreTaskBatchDTOMap,fileId,conditionIndex,blt);
+                    }
+
                     Integer actNum = 0;
                     Long begin = 0L;
                     Boolean threadpoolStatus = Boolean.TRUE;
@@ -632,6 +657,36 @@ public class TaskScoreServiceImpl {
                         if (isVerScore && verNum <= 0) {
                             threadpoolStatus = Boolean.FALSE;
                             continue;
+                        }
+                        // 跑分任务批次DTO
+                        ScoreTaskBatchDTO scoreTaskBatchDTO = null;
+                        Long minUnCompleteId = null;
+                        Long maxId = null;
+                        if(isRestoreFlag) {
+                            // 跑分恢复时，已完成的批次跳过
+                            scoreTaskBatchDTO = scoreTaskBatchDTOMap.get(String.valueOf(begin));
+                            while (scoreTaskBatchDTO != null) {
+                                sumNum += scoreTaskBatchDTO.getCompleteNum();
+                                // 处理当时暂停时，未完全完成的批次按最小待处理记录ID和最大记录ID查询数据
+                                if(scoreTaskBatchDTO.getMinUnCompleteId() != null) {
+                                    currentPage = scoreTaskBatchDTO.getCurrentPage();
+                                    minUnCompleteId = scoreTaskBatchDTO.getMinUnCompleteId();
+                                    maxId = scoreTaskBatchDTO.getMaxId();
+                                    break;
+                                }
+                                currentPage++;
+                                // 当前分组中元素数量等于分组最大数量，要开启下一个分组，即分组ID+1，分组中元素数量重置为1
+                                if(GROUP_MAX_NUM == groupNum) {
+                                    groupId++;
+                                    groupNum = 1;
+                                }else {
+                                    groupNum++;
+                                }
+                                begin = scoreTaskBatchDTO.getMaxId();
+                                scoreTaskBatchDTOMap.remove(String.valueOf(scoreTaskBatchDTO.getPreId()));
+                                scoreTaskBatchDTO = scoreTaskBatchDTOMap.get(String.valueOf(begin));
+
+                            }
                         }
                         //获取跑分数据 预览跑分则筛选限制的剩余条数
                         List<MarketingSyncUser> list = new ArrayList<>();
@@ -642,7 +697,7 @@ public class TaskScoreServiceImpl {
                                                 , conditionData
                                                 , begin
                                                 , isVerScore ? verNum : totalPages
-                                                , labelName);
+                                                , labelName,minUnCompleteId,maxId);
                                 break;
                             } catch (Exception ex) {
                                 log.error(String.format(TITLE + "该跑分任务捞取数据异常：%s;错误信息：%s", blt.getBatchNumber(), ex.getMessage()), ex);
@@ -673,7 +728,12 @@ public class TaskScoreServiceImpl {
                         if (isVerScore) {
                             verNum = verNum - list.size();
                         }
-                        begin = list.get(list.size() - 1).getId();
+                        // 当前分组中元素数量为1，即当前分组的数据要开始执行了，存储redis
+                        if(groupNum == 1) {
+                            saveGroupId(groupSetKey,groupIdSet,String.valueOf(groupId),fileId,blt);
+                        }
+                        // 构建跑分任务批次DTO,未开始执行的批次，进行跑分任务批次DTO初始化
+                        scoreTaskBatchDTO = assemblyScoreTaskBatchDTO(scoreTaskBatchDTO, list, begin, currentPage, groupId, conditionIndex);
                         if (!getCoreDataStatus(blt, fileId, currentPage)) {
                             Map<String, String> param = new HashMap<>();
                             param.put("apiCode", blt.getApiCode());
@@ -694,12 +754,21 @@ public class TaskScoreServiceImpl {
                                     , firstTime, customer, blt
                                     , noflagproductlist, flagproductlist, marketingTaskExtend
                                     , baseHeadConfigVO, fieldInfo, false
-                                    ,marketingRetryEsMapper,marketingCommonConfig,marketingRetryRedisMapper));
+                                    ,marketingRetryEsMapper,marketingCommonConfig,marketingRetryRedisMapper,scoreTaskBatchDTO));
                             if (warrningExecutor.isTerminated()) {
                                 threadpoolStatus = Boolean.FALSE;
                             }
                             Thread.sleep(100);
                         }
+                        // 当前分组中元素数量等于分组最大数量，要开启下一个分组，即分组ID+1，分组中元素数量重置为1
+                        if(GROUP_MAX_NUM == groupNum) {
+                            groupId++;
+                            groupNum = 1;
+                        }else {
+                            groupNum++;
+                        }
+                        // 获取到下一个批次的开始，即下一次批次的开始ID大于begin
+                        begin = list.get(list.size() - 1).getId();
                         currentPage++;
                     }
                 } else {
@@ -727,6 +796,16 @@ public class TaskScoreServiceImpl {
      * @return false-为暂未跑完；true-已经跑完；
      */
     boolean getCoreDataStatus(MarketingTask task, String fileId, Long page) {
+        // 用于兼容历史数据，之前redis的key为scoreStatus，当前时间在10天内，还会继续走下面查redis的数据
+        LocalDate now = LocalDate.now();
+        String scoreStatusFinalDate = marketingCommonConfig.getScoreStatusFinalDate();
+        if(StringUtils.isNotEmpty(scoreStatusFinalDate)) {
+            LocalDate start = LocalDate.parse(scoreStatusFinalDate);
+            long days = Math.abs(ChronoUnit.DAYS.between(start, now));
+            if(days > 10) {
+                return false;
+            }
+        }
         String key = RedisKeyConstant.scoreStatus.concat(fileId).concat(":").concat(page.toString());
         int retryCount = 0;
         while (retryCount < 3) {
@@ -907,7 +986,7 @@ public class TaskScoreServiceImpl {
                 String currentStatus = new String(nodeStatus.getCurrentData().getData());
                 if (taskObj.getInterrupt().equals(0) && currentStatus.equals(ZkScoreStatusEnum.PAUSE.getValue())) {
                     observedScoreThreadService.stopThread(taskObj);
-                    log.warn(TITLE + "已执行完暂停，batchNumber--{}，taskObj--{}", task.getBatchNumber(), JSONObject.toJSONString(taskObj));
+                    log.warn(TITLE + "已执行完暂停，batchNumber--{}", task.getBatchNumber());
                 }
             }
         });
@@ -960,4 +1039,154 @@ public class TaskScoreServiceImpl {
             e.printStackTrace();
         }
     }
+
+
+    /**
+     * 保存分组ID
+     * @param groupSetKey  分组集合key
+     * @param groupIdSet   分组ID集合
+     * @param groupId      分组ID
+     * @param fileId       执行记录ID
+     */
+    private void saveGroupId(String groupSetKey, Set<String> groupIdSet, String groupId, String fileId, MarketingTask task) {
+        if(groupIdSet.contains(groupId)) {
+            return;
+        }
+        int retryCount = 0;
+        while (retryCount < 3) {
+            try {
+                // 模拟写redis异常
+                checkMockRedisSwitch("writeRedis");
+
+                groupIdSet.add(groupId);
+                redisChgService.saddMember(groupSetKey,groupId);
+                redisChgService.expire(groupSetKey, RedisKeyExpireConstant.SCORE_BATCH_EXPIRE_TIME);
+                return;
+            } catch (Exception e) {
+                retryCount++;
+                if (retryCount >= 3) {
+                    log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode(),
+                            String.format("跑分异常，Redis写入分组ID失败3次，RedisKey=%s, fileId=%s, groupId=%s", groupSetKey, fileId, groupId),e.getMessage()));
+                    insertRetryRedis(groupSetKey,groupId, RedisValueTypeEnum.Set.getValue(), task);
+                } else {
+                    try { Thread.sleep(100); } catch (InterruptedException ignored) {}
+                }
+            }
+        }
+    }
+
+    private ScoreTaskBatchDTO assemblyScoreTaskBatchDTO(ScoreTaskBatchDTO scoreTaskBatchDTO,List<MarketingSyncUser> list, Long preId, Long currentPage,Integer groupId, Integer conditionIndex ) {
+        if(scoreTaskBatchDTO == null) {
+            scoreTaskBatchDTO = new ScoreTaskBatchDTO();
+            scoreTaskBatchDTO.setPreId(preId);
+            scoreTaskBatchDTO.setConditionIndex(conditionIndex);
+            scoreTaskBatchDTO.setGroupId(groupId);
+            scoreTaskBatchDTO.setMinId(list.get(0).getId());
+            scoreTaskBatchDTO.setMaxId(list.get(list.size() - 1).getId());
+            scoreTaskBatchDTO.setCurrentPage(currentPage);
+            scoreTaskBatchDTO.setCompleteNum(0);
+        }
+        return scoreTaskBatchDTO;
+    }
+
+    /**
+     * redis重试异常记录至异常表
+     * @param key
+     */
+    private void insertRetryRedis(String key, String value, String valueType,MarketingTask marketingTask) {
+        MarketingRetryRedis marketingRetryRedis = new MarketingRetryRedis();
+        marketingRetryRedis.setApiCode(marketingTask.getApiCode());
+        marketingRetryRedis.setBatchNumber(marketingTask.getBatchNumber());
+        marketingRetryRedis.setPage("0");
+        marketingRetryRedis.setRedisKey(key);
+        marketingRetryRedis.setRedisValue(value);
+        marketingRetryRedis.setRedisValueType(valueType);
+        marketingRetryRedis.setRetryStatus(0);
+        marketingRetryRedis.setAppletDate(LocalDate.now().toString());
+        marketingRetryRedis.setCreateTime(new Date());
+        marketingRetryRedis.setUpdateTime(new Date());
+        marketingRetryRedisMapper.insertSelective(marketingRetryRedis);
+    }
+
+
+    /**
+     * 初始化跑分批次进度
+     * @param groupSetKey
+     * @param groupIdSet
+     * @param scoreTaskBatchDTOMap
+     * @param fileId
+     * @param conditionIndex
+     * @param task
+     */
+    public void initScoreBatchProgressData(String groupSetKey,Set<String> groupIdSet,Map<String, ScoreTaskBatchDTO> scoreTaskBatchDTOMap, String fileId,Integer conditionIndex, MarketingTask task) {
+        int retryCount = 0;
+        while (retryCount < 3) {
+            try {
+                // 模拟读redis异常
+                checkMockRedisSwitch("readRedis");
+
+                // 初始化分组ID集合
+                initGroupIdSetData(groupIdSet,groupSetKey);
+                // 初始化分组下的跑分任务批次DTO
+                initScoreTaskBatchDTOMapData(scoreTaskBatchDTOMap,groupIdSet,fileId,conditionIndex);
+
+                return;
+            } catch (Exception e) {
+                retryCount++;
+                if (retryCount >= 3) {
+                    // 3次都失败，报警
+                    log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode(),
+                            String.format(TITLE + "跑分异常，Redis查询失败3次，fileId=%s", fileId),e.getMessage()));
+                    // 禁用跑分任务
+                    marketingTaskService.disableTask(task);
+                    throw new BusinessException("跑分异常，Redis查询失败3次");
+                } else {
+                    try { Thread.sleep(100); } catch (InterruptedException ignored) {}
+                }
+            }
+        }
+
+    }
+
+    /**
+     * 初始化分组ID集合
+     * @param groupSetKey 分组key
+     * @param groupIdSet 分组集合
+     */
+    private void initGroupIdSetData(Set<String> groupIdSet, String groupSetKey) {
+        if(StringUtils.isEmpty(groupSetKey)) {
+            return;
+        }
+        Set<String> smembers = redisChgService.smembers(groupSetKey);
+        if(!CollectionUtils.isEmpty(smembers)) {
+            redisChgService.expire(groupSetKey,RedisKeyExpireConstant.SCORE_BATCH_EXPIRE_TIME);
+            groupIdSet.addAll(smembers);
+        }
+
+    }
+
+    /**
+     * 初始化分组下的跑分任务批次DTO
+     * @param scoreTaskBatchDTOMap 跑分批次DTOmap
+     * @param groupIdSet 分组ID集合
+     * @param fileId 执行记录ID
+     * @param conditionIndex 跑分条件序号
+     */
+    private void initScoreTaskBatchDTOMapData(Map<String, ScoreTaskBatchDTO> scoreTaskBatchDTOMap,Set<String> groupIdSet, String fileId,Integer conditionIndex) {
+        if(CollectionUtils.isEmpty(groupIdSet)) {
+            return;
+        }
+        for(String groupId : groupIdSet) {
+            String groupBatchKey = RedisKeyConstant.scoreBatch.concat(":").concat(fileId).concat(":").concat(String.valueOf(conditionIndex)).concat(":").concat(groupId);
+            Map<String, Object> batchDTOMap = redisChgService.hgetall(groupBatchKey);
+            if(!CollectionUtils.isEmpty(batchDTOMap)) {
+                redisChgService.expire(groupBatchKey,RedisKeyExpireConstant.SCORE_BATCH_EXPIRE_TIME);
+                for (Map.Entry<String, Object> entry : batchDTOMap.entrySet()) {
+                    scoreTaskBatchDTOMap.put(entry.getKey(),JSON.parseObject(entry.getValue().toString(),ScoreTaskBatchDTO.class));
+                }
+            }
+        }
+
+    }
+
 }

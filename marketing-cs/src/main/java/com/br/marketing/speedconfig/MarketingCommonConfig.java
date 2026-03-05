@@ -3638,4 +3638,9 @@ public class MarketingCommonConfig {
      * 信用飞apiCode
      */
     private String xyfApiCode;
+
+    /**
+     * 跑分rediskey的scoreStatus的最终执行时间
+     */
+    private String scoreStatusFinalDate;
  }
