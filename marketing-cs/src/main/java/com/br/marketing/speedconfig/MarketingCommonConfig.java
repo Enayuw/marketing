@@ -3625,12 +3625,6 @@ public class MarketingCommonConfig {
     private Long sftpDownLoadTimeOut;
 
     /**
-     * XYF 数据中转加解密配置（请求与返回同一套公钥私钥）
-     * 示例：{"publicKey":"MIIBIjAN...","privateKey":"MIIEvQIBADANBgk..."}
-     */
-    private JSONObject xyfRelayEncryptConfig;
-
-    /**
      * 信用飞加密配置
      */
     private JSONObject xyfEncryptionConfig;
