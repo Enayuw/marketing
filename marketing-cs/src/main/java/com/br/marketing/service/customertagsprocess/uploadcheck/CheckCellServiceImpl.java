@@ -21,7 +21,7 @@ import java.util.Map;
 @Slf4j
 public class CheckCellServiceImpl implements IUploadCheckService {
     @Override
-    public void check3key(MarketingPreUserDetailDTO user, Integer isCheck, CustomerTagsVO customerTagsVO) {
+    public void  check3key(MarketingPreUserDetailDTO user, Integer isCheck, CustomerTagsVO customerTagsVO) {
         encodeMapping(user, "cell", isCheck);
         encodeMapping(user, "id", isCheck);
         encodeMapping(user, "name", isCheck);
