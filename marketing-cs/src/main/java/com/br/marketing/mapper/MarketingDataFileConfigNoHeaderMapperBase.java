@@ -21,9 +21,11 @@ public interface MarketingDataFileConfigNoHeaderMapperBase {
 
     MarketingDataFileConfigNoHeader selectByPrimaryKey(Long id);
 
-    int updateByExampleSelective(@Param("record") MarketingDataFileConfigNoHeader record, @Param("example") MarketingDataFileConfigNoHeaderExample example);
+    int updateByExampleSelective(@Param("record") MarketingDataFileConfigNoHeader record,
+                                 @Param("example") MarketingDataFileConfigNoHeaderExample example);
 
-    int updateByExample(@Param("record") MarketingDataFileConfigNoHeader record, @Param("example") MarketingDataFileConfigNoHeaderExample example);
+    int updateByExample(@Param("record") MarketingDataFileConfigNoHeader record,
+                        @Param("example") MarketingDataFileConfigNoHeaderExample example);
 
     int updateByPrimaryKeySelective(MarketingDataFileConfigNoHeader record);
 
