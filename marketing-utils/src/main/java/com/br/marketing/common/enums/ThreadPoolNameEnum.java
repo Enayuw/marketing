@@ -76,6 +76,8 @@ public enum ThreadPoolNameEnum {
 
     TAIKANG_DINGDING_TRANSFER(64,"taikang_dingding_transfer", "泰康滴滴线索数据回传"),
 
+    DIDI_V5_BLACK_DATA(71,"didi_v5_black_data","滴滴v5黑名单"),
+
     ;
 
     private final Integer order;
