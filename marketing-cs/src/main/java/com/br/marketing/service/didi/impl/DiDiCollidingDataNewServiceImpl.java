@@ -83,9 +83,9 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
                     collidingConfig.getInteger("collidingLimit") : 3000000);
         } else {
             startTimeStr = LocalDate.now().format(DateTimeFormatter.ofPattern(DatePattern.NORM_DATE_PATTERN)) + " "
-                    + collidingConfig.getString("firstBatchStartTime2");
+                    + collidingConfig.getString("secondBatchStartTime");
             endTimeStr = LocalDate.now().format(DateTimeFormatter.ofPattern(DatePattern.NORM_DATE_PATTERN)) + " "
-                    + collidingConfig.getString("firstBatchEndTime2");
+                    + collidingConfig.getString("secondBatchEndTime");
             startTime = DateUtil.parse(startTimeStr);
             endTime = DateUtil.parse(endTimeStr);
             if (DateUtil.compare(new Date(), endTime) >= 0 || DateUtil.compare(new Date(), startTime) < 0) {

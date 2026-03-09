@@ -11,7 +11,7 @@
 
 
   <select id="queryData" resultType="com.br.marketing.entity.DidiV5BlackData">
-    select cell from b_didi_v5_black_data where push_status = 0 and status = 1 limit #{limit}
+    select * from b_didi_v5_black_data where push_status = 0 and status = 1 limit #{limit}
   </select>
 
 </mapper>
