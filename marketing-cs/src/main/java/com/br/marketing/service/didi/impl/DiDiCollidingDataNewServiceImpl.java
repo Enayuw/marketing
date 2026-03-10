@@ -217,7 +217,7 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
             List<DiDiCollidingDataRob> dataList;
             if (priority == 2) {
                 dataList = diDiV5CollidingDataRobMapper.queryCollidingDataBySharding(
-                        actualLimit, new Date(), new Date());
+                        actualLimit, startTime, new Date());
             } else {
                 dataList = diDiV5CollidingDataRobMapper.queryUploadedData(
                         actualLimit, DateUtil.beginOfDay(new Date()), new Date());
