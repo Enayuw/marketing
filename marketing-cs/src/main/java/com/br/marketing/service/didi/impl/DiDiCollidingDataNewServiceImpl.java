@@ -78,7 +78,7 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
         DateTime endTime = DateUtil.parse(endTimeStr);
 
         AtomicInteger leftLimit = new AtomicInteger();
-        if (DateUtil.compare(new Date(), endTime) >= 0 || DateUtil.compare(new Date(), startTime) < 0) {
+        if (DateUtil.compare(new Date(), endTime) < 0 && DateUtil.compare(new Date(), startTime) >= 0) {
             leftLimit.set(collidingConfig.getInteger("collidingLimit") != null ?
                     collidingConfig.getInteger("collidingLimit") : 3000000);
         } else {
@@ -88,7 +88,7 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
                     + collidingConfig.getString("secondBatchEndTime");
             startTime = DateUtil.parse(startTimeStr);
             endTime = DateUtil.parse(endTimeStr);
-            if (DateUtil.compare(new Date(), endTime) >= 0 || DateUtil.compare(new Date(), startTime) < 0) {
+            if (DateUtil.compare(new Date(), endTime) < 0 && DateUtil.compare(new Date(), startTime) >= 0) {
                 leftLimit.set(collidingConfig.getInteger("collidingLimit2") != null ?
                         collidingConfig.getInteger("collidingLimit2") : 3000000);
             }
