@@ -70,4 +70,44 @@ public class SftpUploadHandlerServiceImpl implements SftpUploadHandlerService {
         }
     }
 
+    /**
+     * 插入SFTP上传任务记录（含推送目标配置）
+     */
+    @Override
+    public Result insertSftpUploadTaskWithTarget(String apiCode, String localPath, String fileName,
+                                                Integer dataType, String postSqlProcess,
+                                                Integer pushTargetType, String targetSftpHost, Integer targetSftpPort,
+                                                String targetSftpUser, String targetSftpPwd, String targetType) {
+        Result result = new Result().failure();
+        try {
+            FileSyncTask task = new FileSyncTask();
+            task.setApiCode(apiCode);
+            task.setLocalPath(localPath);
+            task.setFileName(fileName);
+            task.setDataType(dataType);
+            task.setPostSqlProcess(postSqlProcess);
+            task.setStatus(0); // 默认状态：0-待上传
+            task.setCreateTime(new Date());
+            task.setPushTargetType(pushTargetType);
+            task.setTargetSftpHost(targetSftpHost);
+            task.setTargetSftpPort(targetSftpPort);
+            task.setTargetSftpUser(targetSftpUser);
+            task.setTargetSftpPwd(targetSftpPwd);
+            task.setTargetType(targetType);
+            int insertResult = fileSyncTaskMapper.insertSelective(task);
+            if (insertResult > 0) {
+                log.warn("成功插入SFTP上传任务，ID: {}, apiCode: {}, fileName: {}",
+                        task.getId(), apiCode, fileName);
+                return result.success();
+            } else {
+                log.error("插入SFTP上传任务失败，apiCode: {}, fileName: {}", apiCode, fileName);
+                return result;
+            }
+        } catch (Exception e) {
+            log.error("插入SFTP上传任务异常，apiCode: {}, fileName: {}, error: {}",
+                    apiCode, fileName, e.getMessage(), e);
+            return result;
+        }
+    }
+
 }
