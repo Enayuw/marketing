@@ -1,10 +1,8 @@
 package com.br.marketing.check.job;
 
-import com.br.common.log.AlertLog;
 import com.br.common.validator.DateUtils;
 import com.br.marketing.client.FtpClient;
 import com.br.marketing.client.SftpClient;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.entity.SuccessFileUploadConfig;
@@ -12,19 +10,22 @@ import com.br.marketing.entity.SuccessFileUploadConfigExample;
 import com.br.marketing.entity.SyncConfig;
 import com.br.marketing.mapper.SuccessFileUploadConfigMapper;
 import com.br.marketing.mapper.SyncConfigMapper;
+import com.br.marketing.service.SyncConfigService;
+import com.br.marketing.service.ftp.SftpUploadHandlerService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.jcraft.jsch.SftpATTRS;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.ftp.FTPFile;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.io.File;
-import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -45,12 +46,17 @@ public class UploadSuccessFileJob extends AbstractSimpleElasticJob {
 
     private static final String TITLE = "【上传.success文件】";
     private static final Byte STATUS_ENABLED = 1;
-    private static final int UPLOAD_RETRY_TIMES = 3;
+
+    @Resource
+    SftpUploadHandlerService sftpUploadHandlerService;
 
     @Resource
     private SuccessFileUploadConfigMapper successFileUploadConfigMapper;
     @Resource
     private SyncConfigMapper syncConfigMapper;
+
+    @Autowired
+    private SyncConfigService syncConfigService;
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
@@ -101,17 +107,18 @@ public class UploadSuccessFileJob extends AbstractSimpleElasticJob {
         String fileNameContains = resolvePath(config.getFileName());
         int intervalMinutes = config.getIntervalMinutes() != null ? config.getIntervalMinutes() : 1;
         String srcPath = syncConfig.getSrcPath();
-
+        // 本地路径
+        String localPath = syncConfigService.getPath().concat("initPath/").concat("localPath/").concat(syncConfig.getApiCode()).concat("/");
         if (Constants.LOAN_WARNING_FTP.equals(srcType)) {
-            processWithFtp(syncConfig, fileNameContains, intervalMinutes, srcPath);
+            processWithFtp(syncConfig, fileNameContains, intervalMinutes, srcPath, localPath);
         } else {
-            processWithSftp(syncConfig, fileNameContains, intervalMinutes, srcPath);
+            processWithSftp(syncConfig, fileNameContains, intervalMinutes, srcPath, localPath);
         }
     }
 
     /** FTP：参考 ShuHeFileCleanUploadDateJob.ftpFileList，列出目录、按规则筛选、上传 .success */
     private void processWithFtp(SyncConfig syncConfig, String fileNameContains, int intervalMinutes,
-                                String srcPath) throws Exception {
+                                String srcPath, String localPath) throws Exception {
         FtpClient ftpClient = new FtpClient(syncConfig, true);
         try {
             ftpClient.connect();
@@ -122,7 +129,13 @@ public class UploadSuccessFileJob extends AbstractSimpleElasticJob {
             }
             List<String> targetFiles = findTargetFilesFtp(ftpFiles, fileNameContains, intervalMinutes, srcPath, ftpClient);
             for (String targetFileName : targetFiles) {
-                uploadSuccessFileFtpWithRetry(ftpClient, srcPath, targetFileName);
+                String successFileName = targetFileName + ".success";
+                if (createLocalSuccessFile(localPath, successFileName)) {
+                    sftpUploadHandlerService.insertSftpUploadTaskWithTarget(syncConfig.getApiCode(), localPath, successFileName,
+                            syncConfig.getDataType(), "", 1,
+                            syncConfig.getSrcSftpHost(), syncConfig.getSrcSftpPort(), syncConfig.getSrcSftpUser(),
+                            syncConfig.getSrcSftpPwd(), syncConfig.getSrcType(), syncConfig.getSrcPath());
+                }
             }
         } finally {
             try {
@@ -135,14 +148,20 @@ public class UploadSuccessFileJob extends AbstractSimpleElasticJob {
 
     /** SFTP：参考 ShuHeFileCleanUploadDateJob.sftpFileList，列出目录、按规则筛选、上传 .success */
     private void processWithSftp(SyncConfig syncConfig, String fileNameContains, int intervalMinutes,
-                                 String srcPath) throws Exception {
+                                 String srcPath,String localPath) throws Exception {
         SftpClient sftpClient = new SftpClient(syncConfig, true);
         try {
             sftpClient.connect();
             Map<String, SftpATTRS> files = sftpClient.listFiles(srcPath);
             List<String> targetFiles = findTargetFilesSftp(files, fileNameContains, intervalMinutes, srcPath, sftpClient);
             for (String targetFileName : targetFiles) {
-                uploadSuccessFileSftpWithRetry(sftpClient, srcPath, targetFileName);
+                String successFileName = targetFileName + ".success";
+                if (createLocalSuccessFile(localPath, successFileName)) {
+                    sftpUploadHandlerService.insertSftpUploadTaskWithTarget(syncConfig.getApiCode(), localPath, successFileName,
+                            syncConfig.getDataType(), "", 1,
+                            syncConfig.getSrcSftpHost(), syncConfig.getSrcSftpPort(), syncConfig.getSrcSftpUser(),
+                            syncConfig.getSrcSftpPwd(), syncConfig.getSrcType(), syncConfig.getSrcPath());
+                }
             }
         } finally {
             try {
@@ -155,6 +174,33 @@ public class UploadSuccessFileJob extends AbstractSimpleElasticJob {
 
     private static boolean pathEndWithSlash(String path) {
         return StringUtils.isNotBlank(path) && (path.endsWith("/") || path.endsWith("\\"));
+    }
+
+    /**
+     * 在本地生成同名的空 .success 文件，供后续上传任务使用。
+     * 若目录不存在会先创建；文件已存在则直接返回 true。
+     *
+     * @param localPath 本地目录（可含或不含末尾 /）
+     * @param successFileName 文件名，如 xxx.csv.success
+     * @return 成功生成或已存在返回 true，否则 false
+     */
+    private boolean createLocalSuccessFile(String localPath, String successFileName) {
+        if (StringUtils.isBlank(localPath) || StringUtils.isBlank(successFileName)) {
+            return false;
+        }
+        try {
+            String dir = pathEndWithSlash(localPath) ? localPath : localPath + "/";
+            Path fullPath = Paths.get(dir, successFileName);
+            Files.createDirectories(fullPath.getParent());
+            if (!Files.exists(fullPath)) {
+                Files.createFile(fullPath);
+            }
+            log.warn(TITLE + "本地已生成空文件, path={}", fullPath);
+            return true;
+        } catch (Exception e) {
+            log.error(TITLE + "生成本地.success文件失败, localPath={}, fileName={}", localPath, successFileName, e);
+            return false;
+        }
     }
 
     /**
@@ -243,91 +289,6 @@ public class UploadSuccessFileJob extends AbstractSimpleElasticJob {
             result.add(name);
         }
         return result;
-    }
-
-    /**
-     * FTP 上传 .success：创建本地空文件后上传（参考 ShuHe ftpFileList），失败重试 3 次
-     */
-    private void uploadSuccessFileFtpWithRetry(FtpClient ftpClient, String remotePath, String targetFileName) {
-        // 上传到远程的文件名一定是「同名.success」，例如 test.csv -> test.csv.success
-        String successFileName = targetFileName + ".success";
-        File tempFile = null;
-        int failCount = 0;
-        try {
-            // 仅在本机创建临时空文件，用于生成空内容流；远程文件名由上面的 successFileName 指定
-            tempFile = File.createTempFile("upload_success_", ".success");
-            String pathForStore = pathEndWithSlash(remotePath) ? remotePath : remotePath + "/";
-            for (int i = 0; i < UPLOAD_RETRY_TIMES; i++) {
-                try (InputStream in = Files.newInputStream(tempFile.toPath())) {
-                    ftpClient.uploadFile(in, pathForStore, successFileName);
-                    log.warn(TITLE + "FTP上传成功, remotePath={}, fileName={}", remotePath, successFileName);
-                    return;
-                } catch (Exception e) {
-                    failCount++;
-                    log.warn(TITLE + "FTP第{}次上传失败, fileName={}", i + 1, successFileName, e);
-                    if (i < UPLOAD_RETRY_TIMES - 1) {
-                        try {
-                            Thread.sleep(500L);
-                        } catch (InterruptedException ie) {
-                            Thread.currentThread().interrupt();
-                            break;
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            failCount = UPLOAD_RETRY_TIMES;
-            log.error(TITLE + "FTP生成或上传 .success 异常, fileName={}", successFileName, e);
-        } finally {
-            if (tempFile != null && tempFile.exists()) {
-                tempFile.delete();
-            }
-        }
-        if (failCount >= UPLOAD_RETRY_TIMES) {
-            log.error(TITLE + "FTP上传.success失败, remotePath={}, fileName={}", remotePath, successFileName);
-        }
-    }
-
-    /**
-     * SFTP 上传 .success：参考 ShuHe 使用本地文件路径上传，失败重试 3 次
-     */
-    private void uploadSuccessFileSftpWithRetry(SftpClient sftpClient, String remotePath, String targetFileName) {
-        // 上传到远程的文件名一定是「同名.success」，例如 test.csv -> test.csv.success，空文件即可
-        String successFileName = targetFileName + ".success";
-        File tempFile = null;
-        int failCount = 0;
-        try {
-            // 仅在本机创建临时空文件，用于生成空内容流；远程文件名由上面的 successFileName 指定
-            tempFile = File.createTempFile("upload_success_", ".success");
-            for (int i = 0; i < UPLOAD_RETRY_TIMES; i++) {
-                try (InputStream in = Files.newInputStream(tempFile.toPath())) {
-                    sftpClient.uploadFile(in, remotePath, successFileName);
-                    log.warn(TITLE + "上传成功, remotePath={}, fileName={}", remotePath, successFileName);
-                    return;
-                } catch (Exception e) {
-                    failCount++;
-                    log.warn(TITLE + "第{}次上传失败, fileName={}", i + 1, successFileName, e);
-                    if (i < UPLOAD_RETRY_TIMES - 1) {
-                        try {
-                            Thread.sleep(500L);
-                        } catch (InterruptedException ie) {
-                            Thread.currentThread().interrupt();
-                            break;
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            failCount = UPLOAD_RETRY_TIMES;
-            log.error(TITLE + "生成或上传 .success 异常, fileName={}", successFileName, e);
-        } finally {
-            if (tempFile != null && tempFile.exists()) {
-                tempFile.delete();
-            }
-        }
-        if (failCount >= UPLOAD_RETRY_TIMES) {
-            log.error(TITLE + "SFTP上传.success失败, remotePath={}, fileName={}", remotePath, successFileName);
-        }
     }
 
 }
