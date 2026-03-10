@@ -70,7 +70,8 @@ public final class MockConstants {
                 SUIYIJI_BLACK,
                 DIDI_V5_COLLIDING_DATA_RETURN,
                 DIDI_V5_CALLBACK_SUCCESS_DATA_RETURN,
-                DIDI_V5_CALLBACK_FAIL_DATA_RETURN
+                DIDI_V5_CALLBACK_FAIL_DATA_RETURN,
+                DIDI_V5_BLACK_DATA_RETURN
         );
     }
 
