@@ -79,8 +79,7 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
 
         AtomicInteger leftLimit = new AtomicInteger();
         if (DateUtil.compare(new Date(), endTime) < 0 && DateUtil.compare(new Date(), startTime) >= 0) {
-            leftLimit.set(collidingConfig.getInteger("collidingLimit") != null ?
-                    collidingConfig.getInteger("collidingLimit") : 3000000);
+            leftLimit.set(collidingConfig.getInteger("collidingLimit"));
         } else {
             startTimeStr = LocalDate.now().format(DateTimeFormatter.ofPattern(DatePattern.NORM_DATE_PATTERN)) + " "
                     + collidingConfig.getString("secondBatchStartTime");
@@ -89,8 +88,7 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
             startTime = DateUtil.parse(startTimeStr);
             endTime = DateUtil.parse(endTimeStr);
             if (DateUtil.compare(new Date(), endTime) < 0 && DateUtil.compare(new Date(), startTime) >= 0) {
-                leftLimit.set(collidingConfig.getInteger("collidingLimit2") != null ?
-                        collidingConfig.getInteger("collidingLimit2") : 3000000);
+                leftLimit.set(collidingConfig.getInteger("collidingLimit2"));
             }
         }
 
@@ -103,19 +101,21 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
 
         DiDiDataLoopCycleExample example = new DiDiDataLoopCycleExample();
         example.createCriteria().andApiCodeEqualTo(collidingConfig.getString("apiCode"))
-                .andPushTimeBetween(DateUtil.beginOfDay(new Date()), new Date()).andIsDeleteEqualTo(0);
+                .andPushTimeBetween(startTime, endTime).andIsDeleteEqualTo(0);
         int cycleCount = diDiV5DataLoopCycleMapper.countByExample(example);
 
         DiDiCollidingDataRobExample robExample = new DiDiCollidingDataRobExample();
         robExample.createCriteria().andApiCodeEqualTo(collidingConfig.getString("apiCode"))
-                .andPushTimeBetween(DateUtil.beginOfDay(new Date()), new Date()).andIsDeleteEqualTo(0);
+                .andPushTimeBetween(startTime, endTime).andIsDeleteEqualTo(0);
         int robCount = diDiV5CollidingDataRobMapper.countByExample(robExample);
 
-        if(cycleCount + robCount >= leftLimit.get()) {
+        int collidedCount = cycleCount + robCount;
+
+        if(collidedCount >= leftLimit.get()) {
             log.warn("滴滴短信流量数据撞库任务停止执行，已超过限制");
             return;
         }
-        leftLimit.addAndGet(-cycleCount - robCount);
+        leftLimit.addAndGet(-collidedCount);
 
         List<String> retryHttpCode = collidingConfig.getJSONArray("retryHttpCode").toJavaList(String.class);
         Set<Long> packageIds = Sets.newHashSet();
