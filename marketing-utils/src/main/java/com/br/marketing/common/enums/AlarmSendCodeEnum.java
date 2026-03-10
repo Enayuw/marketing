@@ -378,6 +378,8 @@ public enum AlarmSendCodeEnum {
 
     CALLBACK_LARGE_MODEL("7100001", "大模型回调业务异常"),
 
+    XYF_SERVICEERROR("7011001", "信用飞业务异常"),
+
     ;
 
     /**

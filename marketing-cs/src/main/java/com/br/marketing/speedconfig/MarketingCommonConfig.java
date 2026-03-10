@@ -2930,7 +2930,6 @@ public class MarketingCommonConfig {
      */
     private JSONObject tcyrServerConfig;
 
-
     /**
      * 携程上报新接口
      */
@@ -3624,6 +3623,21 @@ public class MarketingCommonConfig {
      * sftp下载单个文件超时时间
      */
     private Long sftpDownLoadTimeOut;
+
+    /**
+     * 信用飞加密配置
+     */
+    private JSONObject xyfEncryptionConfig;
+
+    /**
+     * 信用飞模拟客户加密配置
+     */
+    private JSONObject xyfSimCusEncryptionConfig;
+
+    /**
+     * 信用飞apiCode
+     */
+    private String xyfApiCode;
 
     /**
      * 跑分rediskey的scoreStatus的最终执行时间
