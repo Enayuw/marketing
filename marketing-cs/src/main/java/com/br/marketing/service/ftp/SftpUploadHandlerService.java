@@ -8,7 +8,7 @@ public interface SftpUploadHandlerService {
                                 Integer dataType, String postSqlProcess);
 
     /**
-     * 插入SFTP上传任务记录（含推送目标配置）
+     * 插入SFTP上传任务记录（含推送目标配置，pushTargetType=1 时不查配置）
      *
      * @param apiCode        商户编号
      * @param localPath      本地文件路径
@@ -21,11 +21,12 @@ public interface SftpUploadHandlerService {
      * @param targetSftpUser 目的sftp 账号
      * @param targetSftpPwd  目的sftp 账号密码
      * @param targetType     公司文件服务器类型 见类：FileServerType
+     * @param targetPath     指定目标路径（pushTargetType=1 时必填）
      * @return 插入结果
      */
     Result insertSftpUploadTaskWithTarget(String apiCode, String localPath, String fileName,
                                          Integer dataType, String postSqlProcess,
                                          Integer pushTargetType, String targetSftpHost, Integer targetSftpPort,
-                                         String targetSftpUser, String targetSftpPwd, String targetType);
+                                         String targetSftpUser, String targetSftpPwd, String targetType, String targetPath);
 
 }

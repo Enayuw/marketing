@@ -71,13 +71,13 @@ public class SftpUploadHandlerServiceImpl implements SftpUploadHandlerService {
     }
 
     /**
-     * 插入SFTP上传任务记录（含推送目标配置）
+     * 插入SFTP上传任务记录（含推送目标配置，pushTargetType=1 时不查配置）
      */
     @Override
     public Result insertSftpUploadTaskWithTarget(String apiCode, String localPath, String fileName,
                                                 Integer dataType, String postSqlProcess,
                                                 Integer pushTargetType, String targetSftpHost, Integer targetSftpPort,
-                                                String targetSftpUser, String targetSftpPwd, String targetType) {
+                                                String targetSftpUser, String targetSftpPwd, String targetType, String targetPath) {
         Result result = new Result().failure();
         try {
             FileSyncTask task = new FileSyncTask();
@@ -94,6 +94,7 @@ public class SftpUploadHandlerServiceImpl implements SftpUploadHandlerService {
             task.setTargetSftpUser(targetSftpUser);
             task.setTargetSftpPwd(targetSftpPwd);
             task.setTargetType(targetType);
+            task.setTargetPath(targetPath);
             int insertResult = fileSyncTaskMapper.insertSelective(task);
             if (insertResult > 0) {
                 log.warn("成功插入SFTP上传任务，ID: {}, apiCode: {}, fileName: {}",

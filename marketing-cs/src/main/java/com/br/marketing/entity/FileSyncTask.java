@@ -95,5 +95,10 @@ public class FileSyncTask implements Serializable {
      */
     private String targetType;
 
+    /**
+     * 指定目标路径（pushTargetType=1 时使用，不查配置）
+     */
+    private String targetPath;
+
     private static final long serialVersionUID = 1L;
 }

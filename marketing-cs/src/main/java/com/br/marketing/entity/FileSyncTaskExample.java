@@ -1064,6 +1064,46 @@ public class FileSyncTaskExample {
             addCriterion("target_type not in", values, "targetType");
             return (Criteria) this;
         }
+
+        public Criteria andTargetPathIsNull() {
+            addCriterion("target_path is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetPathIsNotNull() {
+            addCriterion("target_path is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetPathEqualTo(String value) {
+            addCriterion("target_path =", value, "targetPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetPathNotEqualTo(String value) {
+            addCriterion("target_path <>", value, "targetPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetPathLike(String value) {
+            addCriterion("target_path like", value, "targetPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetPathNotLike(String value) {
+            addCriterion("target_path not like", value, "targetPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetPathIn(List<String> values) {
+            addCriterion("target_path in", values, "targetPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetPathNotIn(List<String> values) {
+            addCriterion("target_path not in", values, "targetPath");
+            return (Criteria) this;
+        }
     }
 
     /**

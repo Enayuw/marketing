@@ -19,6 +19,7 @@
     <result column="target_sftp_user" jdbcType="VARCHAR" property="targetSftpUser" />
     <result column="target_sftp_pwd" jdbcType="VARCHAR" property="targetSftpPwd" />
     <result column="target_type" jdbcType="VARCHAR" property="targetType" />
+    <result column="target_path" jdbcType="VARCHAR" property="targetPath" />
   </resultMap>
   <sql id="Example_Where_Clause">
     <where>
@@ -81,7 +82,7 @@
   <sql id="Base_Column_List">
     id, api_code, local_path, file_name, data_type, `status`, post_sql_process, extend,
     create_date, create_time, update_time, push_target_type, target_sftp_host, target_sftp_port,
-    target_sftp_user, target_sftp_pwd, target_type
+    target_sftp_user, target_sftp_pwd, target_type, target_path
   </sql>
   <select id="selectByExample" parameterType="com.br.marketing.entity.FileSyncTaskExample" resultMap="BaseResultMap">
     select
@@ -118,12 +119,12 @@
       data_type, `status`, post_sql_process,
       extend, create_date, create_time,
       update_time, push_target_type, target_sftp_host, target_sftp_port,
-      target_sftp_user, target_sftp_pwd, target_type)
+      target_sftp_user, target_sftp_pwd, target_type, target_path)
     values (#{apiCode,jdbcType=VARCHAR}, #{localPath,jdbcType=VARCHAR}, #{fileName,jdbcType=VARCHAR},
       #{dataType,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, #{postSqlProcess,jdbcType=VARCHAR},
       #{extend,jdbcType=VARCHAR}, #{createDate,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP},
       #{updateTime,jdbcType=TIMESTAMP}, #{pushTargetType,jdbcType=INTEGER}, #{targetSftpHost,jdbcType=VARCHAR}, #{targetSftpPort,jdbcType=INTEGER},
-      #{targetSftpUser,jdbcType=VARCHAR}, #{targetSftpPwd,jdbcType=VARCHAR}, #{targetType,jdbcType=VARCHAR})
+      #{targetSftpUser,jdbcType=VARCHAR}, #{targetSftpPwd,jdbcType=VARCHAR}, #{targetType,jdbcType=VARCHAR}, #{targetPath,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.FileSyncTask" useGeneratedKeys="true">
     insert into b_file_sync_task
@@ -176,6 +177,9 @@
       <if test="targetType != null">
         target_type,
       </if>
+      <if test="targetPath != null">
+        target_path,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="apiCode != null">
@@ -225,6 +229,9 @@
       </if>
       <if test="targetType != null">
         #{targetType,jdbcType=VARCHAR},
+      </if>
+      <if test="targetPath != null">
+        #{targetPath,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -288,6 +295,9 @@
       <if test="record.targetType != null">
         target_type = #{record.targetType,jdbcType=VARCHAR},
       </if>
+      <if test="record.targetPath != null">
+        target_path = #{record.targetPath,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
@@ -311,7 +321,8 @@
       target_sftp_port = #{record.targetSftpPort,jdbcType=INTEGER},
       target_sftp_user = #{record.targetSftpUser,jdbcType=VARCHAR},
       target_sftp_pwd = #{record.targetSftpPwd,jdbcType=VARCHAR},
-      target_type = #{record.targetType,jdbcType=VARCHAR}
+      target_type = #{record.targetType,jdbcType=VARCHAR},
+      target_path = #{record.targetPath,jdbcType=VARCHAR}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -367,6 +378,9 @@
       <if test="targetType != null">
         target_type = #{targetType,jdbcType=VARCHAR},
       </if>
+      <if test="targetPath != null">
+        target_path = #{targetPath,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -387,7 +401,8 @@
       target_sftp_port = #{targetSftpPort,jdbcType=INTEGER},
       target_sftp_user = #{targetSftpUser,jdbcType=VARCHAR},
       target_sftp_pwd = #{targetSftpPwd,jdbcType=VARCHAR},
-      target_type = #{targetType,jdbcType=VARCHAR}
+      target_type = #{targetType,jdbcType=VARCHAR},
+      target_path = #{targetPath,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>
