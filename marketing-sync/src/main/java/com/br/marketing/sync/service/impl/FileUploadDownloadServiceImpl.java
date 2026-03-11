@@ -37,7 +37,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import java.io.File;
 import java.io.InputStream;
@@ -85,7 +84,6 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
     @Override
     public void processUploadTask(FileSyncTask uploadTask) {
         PushTargetTypeEnum pushTargetType = PushTargetTypeEnum.fromValue(uploadTask.getPushTargetType());
-        // 未设置或无效时按从配置获取处理
         if (pushTargetType == null) {
             pushTargetType = PushTargetTypeEnum.FROM_CONFIG;
         }
