@@ -65,5 +65,40 @@ public class FileSyncTask implements Serializable {
      */
     private Date updateTime;
 
+    /**
+     * 推送目标类型：0-从配置中获取，1-指定目标路径，默认0
+     */
+    private Integer pushTargetType;
+
+    /**
+     * 目的sftp host
+     */
+    private String targetSftpHost;
+
+    /**
+     * 目的sftp port
+     */
+    private Integer targetSftpPort;
+
+    /**
+     * 目的sftp 账号
+     */
+    private String targetSftpUser;
+
+    /**
+     * 目的sftp 账号密码
+     */
+    private String targetSftpPwd;
+
+    /**
+     * 公司文件服务器类型
+     */
+    private String targetType;
+
+    /**
+     * 指定目标路径（pushTargetType=1 时使用，不查配置）
+     */
+    private String targetPath;
+
     private static final long serialVersionUID = 1L;
 }
