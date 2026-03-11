@@ -95,13 +95,13 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                 updateTaskStatus(uploadTask.getId(), DataProcessEnum.FileStatusEnum.FAIL.getCode());
                 return;
             }
-        } else if (pushTargetType == PushTargetTypeEnum.SPECIFIED_TARGET) {
+        } else if (pushTargetType == PushTargetTypeEnum.SPECIFIED_TARGET
+                && StringUtils.isEmpty(uploadTask.getTargetPath())) {
             // 指定目标：不查配置，目标路径与连接信息均来自任务表
-            if (StringUtils.isEmpty(uploadTask.getTargetPath())) {
-                log.error("指定目标时任务未设置目标路径，taskId: {}", uploadTask.getId());
-                updateTaskStatus(uploadTask.getId(), DataProcessEnum.FileStatusEnum.FAIL.getCode());
-                return;
-            }
+            log.error("指定目标时任务未设置目标路径，taskId: {}", uploadTask.getId());
+            updateTaskStatus(uploadTask.getId(), DataProcessEnum.FileStatusEnum.FAIL.getCode());
+            return;
+
         }
 
         Boolean uploadResult;
@@ -207,7 +207,7 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
             return false;
         } finally {
             try {
-                if (client != null && client.isConnected()) {
+                if (client.isConnected()) {
                     client.disconnect();
                 }
             } catch (Exception e) {
