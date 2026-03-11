@@ -6,6 +6,7 @@
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="file_name" property="fileName" jdbcType="VARCHAR" />
     <result column="interval_minutes" property="intervalMinutes" jdbcType="INTEGER" />
+    <result column="day_offset" property="dayOffset" jdbcType="INTEGER" />
     <result column="sync_config_id" property="syncConfigId" jdbcType="BIGINT" />
     <result column="status" property="status" jdbcType="TINYINT" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
@@ -70,7 +71,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, file_name, interval_minutes, sync_config_id, `status`, create_time, 
+    id, api_code, file_name, interval_minutes, day_offset, sync_config_id, `status`, create_time, 
     update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.SuccessFileUploadConfigExample" >
@@ -107,10 +108,10 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_success_file_upload_config (api_code, file_name, interval_minutes, 
+    insert into b_success_file_upload_config (api_code, file_name, interval_minutes, day_offset,
       sync_config_id, `status`, create_time, 
       update_time)
-    values (#{apiCode,jdbcType=VARCHAR}, #{fileName,jdbcType=VARCHAR}, #{intervalMinutes,jdbcType=INTEGER}, 
+    values (#{apiCode,jdbcType=VARCHAR}, #{fileName,jdbcType=VARCHAR}, #{intervalMinutes,jdbcType=INTEGER}, #{dayOffset,jdbcType=INTEGER},
       #{syncConfigId,jdbcType=BIGINT}, #{status,jdbcType=TINYINT}, #{createTime,jdbcType=TIMESTAMP}, 
       #{updateTime,jdbcType=TIMESTAMP})
   </insert>
@@ -128,6 +129,9 @@
       </if>
       <if test="intervalMinutes != null" >
         interval_minutes,
+      </if>
+      <if test="dayOffset != null" >
+        day_offset,
       </if>
       <if test="syncConfigId != null" >
         sync_config_id,
@@ -151,6 +155,9 @@
       </if>
       <if test="intervalMinutes != null" >
         #{intervalMinutes,jdbcType=INTEGER},
+      </if>
+      <if test="dayOffset != null" >
+        #{dayOffset,jdbcType=INTEGER},
       </if>
       <if test="syncConfigId != null" >
         #{syncConfigId,jdbcType=BIGINT},
@@ -187,6 +194,9 @@
       <if test="record.intervalMinutes != null" >
         interval_minutes = #{record.intervalMinutes,jdbcType=INTEGER},
       </if>
+      <if test="record.dayOffset != null" >
+        day_offset = #{record.dayOffset,jdbcType=INTEGER},
+      </if>
       <if test="record.syncConfigId != null" >
         sync_config_id = #{record.syncConfigId,jdbcType=BIGINT},
       </if>
@@ -210,6 +220,7 @@
       api_code = #{record.apiCode,jdbcType=VARCHAR},
       file_name = #{record.fileName,jdbcType=VARCHAR},
       interval_minutes = #{record.intervalMinutes,jdbcType=INTEGER},
+      day_offset = #{record.dayOffset,jdbcType=INTEGER},
       sync_config_id = #{record.syncConfigId,jdbcType=BIGINT},
       `status` = #{record.status,jdbcType=TINYINT},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
@@ -229,6 +240,9 @@
       </if>
       <if test="intervalMinutes != null" >
         interval_minutes = #{intervalMinutes,jdbcType=INTEGER},
+      </if>
+      <if test="dayOffset != null" >
+        day_offset = #{dayOffset,jdbcType=INTEGER},
       </if>
       <if test="syncConfigId != null" >
         sync_config_id = #{syncConfigId,jdbcType=BIGINT},
@@ -250,6 +264,7 @@
     set api_code = #{apiCode,jdbcType=VARCHAR},
       file_name = #{fileName,jdbcType=VARCHAR},
       interval_minutes = #{intervalMinutes,jdbcType=INTEGER},
+      day_offset = #{dayOffset,jdbcType=INTEGER},
       sync_config_id = #{syncConfigId,jdbcType=BIGINT},
       `status` = #{status,jdbcType=TINYINT},
       create_time = #{createTime,jdbcType=TIMESTAMP},
