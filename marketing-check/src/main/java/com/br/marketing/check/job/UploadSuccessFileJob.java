@@ -5,6 +5,7 @@ import com.br.marketing.client.FtpClient;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
+import com.br.marketing.dto.SftpUploadTargetParamDTO;
 import com.br.marketing.entity.SuccessFileUploadConfig;
 import com.br.marketing.entity.SuccessFileUploadConfigExample;
 import com.br.marketing.entity.SyncConfig;
@@ -131,10 +132,21 @@ public class UploadSuccessFileJob extends AbstractSimpleElasticJob {
             for (String targetFileName : targetFiles) {
                 String successFileName = targetFileName + ".success";
                 if (createLocalSuccessFile(localPath, successFileName)) {
-                    sftpUploadHandlerService.insertSftpUploadTarget(syncConfig.getApiCode(), localPath, successFileName,
-                            syncConfig.getDataType(), "", 1,
-                            syncConfig.getSrcSftpHost(), syncConfig.getSrcSftpPort(), syncConfig.getSrcSftpUser(),
-                            syncConfig.getSrcSftpPwd(), syncConfig.getSrcType(), syncConfig.getSrcPath());
+                    SftpUploadTargetParamDTO param = SftpUploadTargetParamDTO.builder()
+                            .apiCode(syncConfig.getApiCode())
+                            .localPath(localPath)
+                            .fileName(successFileName)
+                            .dataType(syncConfig.getDataType())
+                            .postSqlProcess("")
+                            .pushTargetType(1)
+                            .targetSftpHost(syncConfig.getSrcSftpHost())
+                            .targetSftpPort(syncConfig.getSrcSftpPort())
+                            .targetSftpUser(syncConfig.getSrcSftpUser())
+                            .targetSftpPwd(syncConfig.getSrcSftpPwd())
+                            .targetType(syncConfig.getSrcType())
+                            .targetPath(syncConfig.getSrcPath())
+                            .build();
+                    sftpUploadHandlerService.insertSftpUploadTarget(param);
                 }
             }
         } finally {
@@ -157,10 +169,21 @@ public class UploadSuccessFileJob extends AbstractSimpleElasticJob {
             for (String targetFileName : targetFiles) {
                 String successFileName = targetFileName + ".success";
                 if (createLocalSuccessFile(localPath, successFileName)) {
-                    sftpUploadHandlerService.insertSftpUploadTarget(syncConfig.getApiCode(), localPath, successFileName,
-                            syncConfig.getDataType(), "", 1,
-                            syncConfig.getSrcSftpHost(), syncConfig.getSrcSftpPort(), syncConfig.getSrcSftpUser(),
-                            syncConfig.getSrcSftpPwd(), syncConfig.getSrcType(), syncConfig.getSrcPath());
+                    SftpUploadTargetParamDTO param = SftpUploadTargetParamDTO.builder()
+                            .apiCode(syncConfig.getApiCode())
+                            .localPath(localPath)
+                            .fileName(successFileName)
+                            .dataType(syncConfig.getDataType())
+                            .postSqlProcess("")
+                            .pushTargetType(1)
+                            .targetSftpHost(syncConfig.getSrcSftpHost())
+                            .targetSftpPort(syncConfig.getSrcSftpPort())
+                            .targetSftpUser(syncConfig.getSrcSftpUser())
+                            .targetSftpPwd(syncConfig.getSrcSftpPwd())
+                            .targetType(syncConfig.getSrcType())
+                            .targetPath(syncConfig.getSrcPath())
+                            .build();
+                    sftpUploadHandlerService.insertSftpUploadTarget(param);
                 }
             }
         } finally {
