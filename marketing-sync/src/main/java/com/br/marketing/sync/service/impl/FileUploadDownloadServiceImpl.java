@@ -214,7 +214,6 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                 log.error("关闭SFTP连接失败，taskId: {}, error: {}", uploadTask.getId(), e.getMessage(), e);
             }
         }
-        log.warn("文件上传成功");
     }
 
     private void insertSyncLog(FileSyncTask uploadTask, SyncConfig syncConfig, String targetPath) {
