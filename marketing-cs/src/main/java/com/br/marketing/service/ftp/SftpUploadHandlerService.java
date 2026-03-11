@@ -24,7 +24,7 @@ public interface SftpUploadHandlerService {
      * @param targetPath     指定目标路径（pushTargetType=1 时必填）
      * @return 插入结果
      */
-    Result insertSftpUploadTaskWithTarget(String apiCode, String localPath, String fileName,
+    Result insertSftpUploadTarget(String apiCode, String localPath, String fileName,
                                          Integer dataType, String postSqlProcess,
                                          Integer pushTargetType, String targetSftpHost, Integer targetSftpPort,
                                          String targetSftpUser, String targetSftpPwd, String targetType, String targetPath);

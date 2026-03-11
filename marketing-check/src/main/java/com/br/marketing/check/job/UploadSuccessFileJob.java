@@ -131,7 +131,7 @@ public class UploadSuccessFileJob extends AbstractSimpleElasticJob {
             for (String targetFileName : targetFiles) {
                 String successFileName = targetFileName + ".success";
                 if (createLocalSuccessFile(localPath, successFileName)) {
-                    sftpUploadHandlerService.insertSftpUploadTaskWithTarget(syncConfig.getApiCode(), localPath, successFileName,
+                    sftpUploadHandlerService.insertSftpUploadTarget(syncConfig.getApiCode(), localPath, successFileName,
                             syncConfig.getDataType(), "", 1,
                             syncConfig.getSrcSftpHost(), syncConfig.getSrcSftpPort(), syncConfig.getSrcSftpUser(),
                             syncConfig.getSrcSftpPwd(), syncConfig.getSrcType(), syncConfig.getSrcPath());
@@ -157,7 +157,7 @@ public class UploadSuccessFileJob extends AbstractSimpleElasticJob {
             for (String targetFileName : targetFiles) {
                 String successFileName = targetFileName + ".success";
                 if (createLocalSuccessFile(localPath, successFileName)) {
-                    sftpUploadHandlerService.insertSftpUploadTaskWithTarget(syncConfig.getApiCode(), localPath, successFileName,
+                    sftpUploadHandlerService.insertSftpUploadTarget(syncConfig.getApiCode(), localPath, successFileName,
                             syncConfig.getDataType(), "", 1,
                             syncConfig.getSrcSftpHost(), syncConfig.getSrcSftpPort(), syncConfig.getSrcSftpUser(),
                             syncConfig.getSrcSftpPwd(), syncConfig.getSrcType(), syncConfig.getSrcPath());

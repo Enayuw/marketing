@@ -74,7 +74,7 @@ public class SftpUploadHandlerServiceImpl implements SftpUploadHandlerService {
      * 插入SFTP上传任务记录（含推送目标配置，pushTargetType=1 时不查配置）
      */
     @Override
-    public Result insertSftpUploadTaskWithTarget(String apiCode, String localPath, String fileName,
+    public Result insertSftpUploadTarget(String apiCode, String localPath, String fileName,
                                                 Integer dataType, String postSqlProcess,
                                                 Integer pushTargetType, String targetSftpHost, Integer targetSftpPort,
                                                 String targetSftpUser, String targetSftpPwd, String targetType, String targetPath) {
