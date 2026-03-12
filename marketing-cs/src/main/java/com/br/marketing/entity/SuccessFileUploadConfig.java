@@ -24,6 +24,11 @@ public class SuccessFileUploadConfig {
     private Integer intervalMinutes;
 
     /**
+     * 日期偏移天数，用于文件名中 yyyyMMdd/yyyy-MM-dd 的替换：0-今天，-1-昨天，1-明天
+     */
+    private Integer dayOffset;
+
+    /**
      * 关联 b_sync_config 主键
      */
     private Long syncConfigId;
@@ -73,6 +78,14 @@ public class SuccessFileUploadConfig {
 
     public void setIntervalMinutes(Integer intervalMinutes) {
         this.intervalMinutes = intervalMinutes;
+    }
+
+    public Integer getDayOffset() {
+        return dayOffset;
+    }
+
+    public void setDayOffset(Integer dayOffset) {
+        this.dayOffset = dayOffset;
     }
 
     public Long getSyncConfigId() {

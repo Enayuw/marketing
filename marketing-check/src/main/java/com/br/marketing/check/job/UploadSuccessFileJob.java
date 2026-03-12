@@ -6,9 +6,11 @@ import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.dto.SftpUploadTargetParamDTO;
+import com.br.marketing.entity.FileSyncTaskExample;
 import com.br.marketing.entity.SuccessFileUploadConfig;
 import com.br.marketing.entity.SuccessFileUploadConfigExample;
 import com.br.marketing.entity.SyncConfig;
+import com.br.marketing.mapper.FileSyncTaskMapper;
 import com.br.marketing.mapper.SuccessFileUploadConfigMapper;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.service.SyncConfigService;
@@ -55,6 +57,8 @@ public class UploadSuccessFileJob extends AbstractSimpleElasticJob {
     private SuccessFileUploadConfigMapper successFileUploadConfigMapper;
     @Resource
     private SyncConfigMapper syncConfigMapper;
+    @Resource
+    private FileSyncTaskMapper fileSyncTaskMapper;
 
     @Autowired
     private SyncConfigService syncConfigService;
@@ -105,7 +109,8 @@ public class UploadSuccessFileJob extends AbstractSimpleElasticJob {
         }
 
         syncConfig.setSrcPath(resolvePath(syncConfig.getSrcPath()));
-        String fileNameContains = resolvePath(config.getFileName());
+        int rangeDays = config.getDayOffset() != null ? config.getDayOffset() : 0;
+        String fileNameContains = resolveFileNameWithRange(config.getFileName(), rangeDays);
         int intervalMinutes = config.getIntervalMinutes() != null ? config.getIntervalMinutes() : 1;
         String srcPath = syncConfig.getSrcPath();
         // 本地路径
@@ -131,7 +136,8 @@ public class UploadSuccessFileJob extends AbstractSimpleElasticJob {
             List<String> targetFiles = findTargetFilesFtp(ftpFiles, fileNameContains, intervalMinutes, srcPath, ftpClient);
             for (String targetFileName : targetFiles) {
                 String successFileName = targetFileName + ".success";
-                if (createLocalSuccessFile(localPath, successFileName)) {
+                if (createLocalSuccessFile(localPath, successFileName) &&
+                        existsFileSyncTask(syncConfig.getApiCode(), localPath, successFileName)) {
                     SftpUploadTargetParamDTO param = SftpUploadTargetParamDTO.builder()
                             .apiCode(syncConfig.getApiCode())
                             .localPath(localPath)
@@ -168,7 +174,8 @@ public class UploadSuccessFileJob extends AbstractSimpleElasticJob {
             List<String> targetFiles = findTargetFilesSftp(files, fileNameContains, intervalMinutes, srcPath, sftpClient);
             for (String targetFileName : targetFiles) {
                 String successFileName = targetFileName + ".success";
-                if (createLocalSuccessFile(localPath, successFileName)) {
+                if (createLocalSuccessFile(localPath, successFileName) &&
+                        existsFileSyncTask(syncConfig.getApiCode(), localPath, successFileName)) {
                     SftpUploadTargetParamDTO param = SftpUploadTargetParamDTO.builder()
                             .apiCode(syncConfig.getApiCode())
                             .localPath(localPath)
@@ -227,15 +234,40 @@ public class UploadSuccessFileJob extends AbstractSimpleElasticJob {
     }
 
     /**
-     * 路径/文件名中的 yyyyMMdd、yyyy-MM-dd 替换为当前日期
+     * 路径中的 yyyyMMdd、yyyy-MM-dd 替换为当前日期
      */
     private String resolvePath(String template) {
+        return resolveFileNameWithRange(template, 0);
+    }
+
+    /**
+     * 文件名中的 yyyyMMdd、yyyy-MM-dd 按 range 偏移替换：0-今天，-1-昨天，1-明天
+     */
+    private String resolveFileNameWithRange(String template, int rangeDays) {
         if (StringUtils.isBlank(template)) {
             return template;
         }
-        String nowDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        String nowShort = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        return template.replace("yyyy-MM-dd", nowDate).replace("yyyyMMdd", nowShort);
+        LocalDate date = LocalDate.now().plusDays(rangeDays);
+        String dateStr = date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String shortStr = date.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        return template.replace("yyyy-MM-dd", dateStr).replace("yyyyMMdd", shortStr);
+    }
+
+    /**
+     * 查询 file_sync_task 是否已有相同 apiCode+localPath+fileName 的记录，避免重复插入
+     */
+    private boolean existsFileSyncTask(String apiCode, String localPath, String fileName) {
+        FileSyncTaskExample ex = new FileSyncTaskExample();
+        ex.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andLocalPathEqualTo(localPath)
+                .andFileNameEqualTo(fileName);
+        long count = fileSyncTaskMapper.countByExample(ex);
+        if (count > 0) {
+            log.warn(TITLE + "该文件已存在上传任务，跳过插入, apiCode={}, fileName={}", apiCode, fileName);
+            return false;
+        }
+        return true;
     }
 
     /**
