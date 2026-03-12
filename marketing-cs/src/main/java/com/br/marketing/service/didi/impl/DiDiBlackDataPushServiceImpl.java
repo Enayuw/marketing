@@ -133,8 +133,7 @@ public class DiDiBlackDataPushServiceImpl implements DiDiBlackDataPushService {
 
     private DiDiV5BlackDataRequestDTO buildRequest(String mediaName, String cell, String token) {
         String timestamp = String.valueOf(System.currentTimeMillis());
-        String sign = MD5Util.encode(cell);
-        return new DiDiV5BlackDataRequestDTO().setSign(sign).setMediaName(mediaName)
-                .setTimestamp(timestamp).setSignature(MD5Util.encode(sign + timestamp + token));
+        return new DiDiV5BlackDataRequestDTO().setSign(cell).setMediaName(mediaName)
+                .setTimestamp(timestamp).setSignature(MD5Util.encode(cell + timestamp + token));
     }
 }

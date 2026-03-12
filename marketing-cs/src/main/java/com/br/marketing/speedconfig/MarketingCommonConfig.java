@@ -3643,4 +3643,9 @@ public class MarketingCommonConfig {
      * 跑分rediskey的scoreStatus的最终执行时间
      */
     private String scoreStatusFinalDate;
+
+    /**
+     * SftpToDbByCommonJob 特殊字段处理配置
+     */
+    private JSONObject sftpToDbSpecialHandleJson;
  }
