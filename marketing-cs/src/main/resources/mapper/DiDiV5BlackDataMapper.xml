@@ -14,4 +14,19 @@
     select * from b_didi_v5_black_data where push_status = 0 and status = 1 limit #{limit}
   </select>
 
+  <select id="getPushStatusCountByLocalId" resultType="int">
+    SELECT count(*)
+    FROM b_didi_v5_black_data
+    WHERE push_status = #{pushStatus,jdbcType=INTEGER}
+      AND status = 1
+      AND local_id = #{fileId,jdbcType=BIGINT}
+  </select>
+
+  <select id="queryCollidingFileIds" resultType="java.lang.Long">
+    SELECT local_id
+    FROM b_didi_v5_black_data
+    WHERE status = 1
+    group by local_id
+  </select>
+
 </mapper>
