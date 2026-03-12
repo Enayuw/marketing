@@ -175,5 +175,11 @@ public class Constants {
     public static final String TAG_KEY = "id,name,cell";
     public static final String JSON_DATA_KEYARR = "dataItems";
 
+    //否
+    public static final Integer NO = 0;
+
+    //是
+    public static final Integer YES = 1;
+
 
 }

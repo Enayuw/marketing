@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.XyfSubmitRecordMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.XyfSubmitRecord" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="batch_id" property="batchId" jdbcType="VARCHAR" />
+    <result column="batch_date" property="batchDate" jdbcType="VARCHAR" />
+    <result column="corp_code" property="corpCode" jdbcType="VARCHAR" />
+    <result column="access_token" property="accessToken" jdbcType="VARCHAR" />
+    <result column="strategy_id" property="strategyId" jdbcType="VARCHAR" />
+    <result column="origin_data" property="originData" jdbcType="VARCHAR" />
+    <result column="plain_data" property="plainData" jdbcType="VARCHAR" />
+    <result column="receive_status" property="receiveStatus" jdbcType="INTEGER" />
+    <result column="sync_status" property="syncStatus" jdbcType="INTEGER" />
+    <result column="extend" property="extend" jdbcType="VARCHAR" />
+    <result column="is_del" property="isDel" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, api_code, batch_id, batch_date, corp_code, access_token, strategy_id, origin_data,
+    plain_data, receive_status, sync_status, extend, is_del, create_time, update_time
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.XyfSubmitRecordExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_xyf_submit_record
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select
+    <include refid="Base_Column_List" />
+    from b_xyf_submit_record
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_xyf_submit_record
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.XyfSubmitRecordExample" >
+    delete from b_xyf_submit_record
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.XyfSubmitRecord" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_xyf_submit_record (api_code, batch_id, batch_date,
+    corp_code, access_token, strategy_id,
+    origin_data, plain_data, receive_status,
+    sync_status, extend, is_del,
+    create_time, update_time)
+    values (#{apiCode,jdbcType=VARCHAR}, #{batchId,jdbcType=VARCHAR}, #{batchDate,jdbcType=VARCHAR},
+    #{corpCode,jdbcType=VARCHAR}, #{accessToken,jdbcType=VARCHAR}, #{strategyId,jdbcType=VARCHAR},
+    #{originData,jdbcType=VARCHAR}, #{plainData,jdbcType=VARCHAR}, #{receiveStatus,jdbcType=INTEGER},
+    #{syncStatus,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER},
+    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.XyfSubmitRecord" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_xyf_submit_record
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="batchId != null" >
+        batch_id,
+      </if>
+      <if test="batchDate != null" >
+        batch_date,
+      </if>
+      <if test="corpCode != null" >
+        corp_code,
+      </if>
+      <if test="accessToken != null" >
+        access_token,
+      </if>
+      <if test="strategyId != null" >
+        strategy_id,
+      </if>
+      <if test="originData != null" >
+        origin_data,
+      </if>
+      <if test="plainData != null" >
+        plain_data,
+      </if>
+      <if test="receiveStatus != null" >
+        receive_status,
+      </if>
+      <if test="syncStatus != null" >
+        sync_status,
+      </if>
+      <if test="extend != null" >
+        extend,
+      </if>
+      <if test="isDel != null" >
+        is_del,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="batchId != null" >
+        #{batchId,jdbcType=VARCHAR},
+      </if>
+      <if test="batchDate != null" >
+        #{batchDate,jdbcType=VARCHAR},
+      </if>
+      <if test="corpCode != null" >
+        #{corpCode,jdbcType=VARCHAR},
+      </if>
+      <if test="accessToken != null" >
+        #{accessToken,jdbcType=VARCHAR},
+      </if>
+      <if test="strategyId != null" >
+        #{strategyId,jdbcType=VARCHAR},
+      </if>
+      <if test="originData != null" >
+        #{originData,jdbcType=VARCHAR},
+      </if>
+      <if test="plainData != null" >
+        #{plainData,jdbcType=VARCHAR},
+      </if>
+      <if test="receiveStatus != null" >
+        #{receiveStatus,jdbcType=INTEGER},
+      </if>
+      <if test="syncStatus != null" >
+        #{syncStatus,jdbcType=INTEGER},
+      </if>
+      <if test="extend != null" >
+        #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="isDel != null" >
+        #{isDel,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.XyfSubmitRecordExample" resultType="java.lang.Integer" >
+    select count(*) from b_xyf_submit_record
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_xyf_submit_record
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.batchId != null" >
+        batch_id = #{record.batchId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.batchDate != null" >
+        batch_date = #{record.batchDate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.corpCode != null" >
+        corp_code = #{record.corpCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.accessToken != null" >
+        access_token = #{record.accessToken,jdbcType=VARCHAR},
+      </if>
+      <if test="record.strategyId != null" >
+        strategy_id = #{record.strategyId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.originData != null" >
+        origin_data = #{record.originData,jdbcType=VARCHAR},
+      </if>
+      <if test="record.plainData != null" >
+        plain_data = #{record.plainData,jdbcType=VARCHAR},
+      </if>
+      <if test="record.receiveStatus != null" >
+        receive_status = #{record.receiveStatus,jdbcType=INTEGER},
+      </if>
+      <if test="record.syncStatus != null" >
+        sync_status = #{record.syncStatus,jdbcType=INTEGER},
+      </if>
+      <if test="record.extend != null" >
+        extend = #{record.extend,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isDel != null" >
+        is_del = #{record.isDel,jdbcType=INTEGER},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_xyf_submit_record
+    set id = #{record.id,jdbcType=BIGINT},
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    batch_id = #{record.batchId,jdbcType=VARCHAR},
+    batch_date = #{record.batchDate,jdbcType=VARCHAR},
+    corp_code = #{record.corpCode,jdbcType=VARCHAR},
+    access_token = #{record.accessToken,jdbcType=VARCHAR},
+    strategy_id = #{record.strategyId,jdbcType=VARCHAR},
+    origin_data = #{record.originData,jdbcType=VARCHAR},
+    plain_data = #{record.plainData,jdbcType=VARCHAR},
+    receive_status = #{record.receiveStatus,jdbcType=INTEGER},
+    sync_status = #{record.syncStatus,jdbcType=INTEGER},
+    extend = #{record.extend,jdbcType=VARCHAR},
+    is_del = #{record.isDel,jdbcType=INTEGER},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.XyfSubmitRecord" >
+    update b_xyf_submit_record
+    <set >
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="batchId != null" >
+        batch_id = #{batchId,jdbcType=VARCHAR},
+      </if>
+      <if test="batchDate != null" >
+        batch_date = #{batchDate,jdbcType=VARCHAR},
+      </if>
+      <if test="corpCode != null" >
+        corp_code = #{corpCode,jdbcType=VARCHAR},
+      </if>
+      <if test="accessToken != null" >
+        access_token = #{accessToken,jdbcType=VARCHAR},
+      </if>
+      <if test="strategyId != null" >
+        strategy_id = #{strategyId,jdbcType=VARCHAR},
+      </if>
+      <if test="originData != null" >
+        origin_data = #{originData,jdbcType=VARCHAR},
+      </if>
+      <if test="plainData != null" >
+        plain_data = #{plainData,jdbcType=VARCHAR},
+      </if>
+      <if test="receiveStatus != null" >
+        receive_status = #{receiveStatus,jdbcType=INTEGER},
+      </if>
+      <if test="syncStatus != null" >
+        sync_status = #{syncStatus,jdbcType=INTEGER},
+      </if>
+      <if test="extend != null" >
+        extend = #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="isDel != null" >
+        is_del = #{isDel,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.XyfSubmitRecord" >
+    update b_xyf_submit_record
+    set api_code = #{apiCode,jdbcType=VARCHAR},
+        batch_id = #{batchId,jdbcType=VARCHAR},
+        batch_date = #{batchDate,jdbcType=VARCHAR},
+        corp_code = #{corpCode,jdbcType=VARCHAR},
+        access_token = #{accessToken,jdbcType=VARCHAR},
+        strategy_id = #{strategyId,jdbcType=VARCHAR},
+        origin_data = #{originData,jdbcType=VARCHAR},
+        plain_data = #{plainData,jdbcType=VARCHAR},
+        receive_status = #{receiveStatus,jdbcType=INTEGER},
+        sync_status = #{syncStatus,jdbcType=INTEGER},
+        extend = #{extend,jdbcType=VARCHAR},
+        is_del = #{isDel,jdbcType=INTEGER},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

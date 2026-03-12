@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.XyfSubmitDetailMapper" >
+    <insert id="batchSave" parameterType="list">
+        insert into b_xyf_submit_detail
+            (batch_id,
+             job_id,
+             phone,
+             pre_phone,
+             product_type,
+             job_data,
+             extend,
+             is_sync)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.batchId,jdbcType=VARCHAR},
+             #{item.jobId,jdbcType=VARCHAR},
+             #{item.phone,jdbcType=VARCHAR},
+             #{item.prePhone,jdbcType=VARCHAR},
+             #{item.productType,jdbcType=VARCHAR},
+             #{item.jobData,jdbcType=VARCHAR},
+             #{item.extend,jdbcType=VARCHAR},
+             #{item.isSync,jdbcType=INTEGER})
+        </foreach>
+    </insert>
+</mapper>

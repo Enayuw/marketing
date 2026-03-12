@@ -7,6 +7,7 @@ import com.br.marketing.client.FtpClient;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.DataTypeEnum;
+import com.br.marketing.common.enums.PushTargetTypeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.enums.SyncConfigCustomizedTypeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
@@ -36,7 +37,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import java.io.File;
 import java.io.InputStream;
@@ -83,18 +83,36 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
 
     @Override
     public void processUploadTask(FileSyncTask uploadTask) {
-        SyncConfig syncConfig = getSyncConfigByTask(uploadTask);
-        if (Objects.isNull(syncConfig)) {
-            // 配置不存在，更新为失败状态
+        PushTargetTypeEnum pushTargetType = PushTargetTypeEnum.fromValue(uploadTask.getPushTargetType());
+        if (pushTargetType == null) {
+            pushTargetType = PushTargetTypeEnum.FROM_CONFIG;
+        }
+
+        SyncConfig syncConfig = null;
+        if (pushTargetType == PushTargetTypeEnum.FROM_CONFIG) {
+            syncConfig = getSyncConfigByTask(uploadTask);
+            if (Objects.isNull(syncConfig)) {
+                updateTaskStatus(uploadTask.getId(), DataProcessEnum.FileStatusEnum.FAIL.getCode());
+                return;
+            }
+        } else if (pushTargetType == PushTargetTypeEnum.SPECIFIED_TARGET
+                && StringUtils.isEmpty(uploadTask.getTargetPath())) {
+            // 指定目标：不查配置，目标路径与连接信息均来自任务表
+            log.error("指定目标时任务未设置目标路径，taskId: {}", uploadTask.getId());
             updateTaskStatus(uploadTask.getId(), DataProcessEnum.FileStatusEnum.FAIL.getCode());
             return;
+
         }
-        //文件上传
-        Boolean uploadResult = uploadSftp(uploadTask, syncConfig);
-        //后置sql处理
+
+        Boolean uploadResult;
+        if (pushTargetType == PushTargetTypeEnum.SPECIFIED_TARGET) {
+            uploadResult = uploadSftpWithTaskTarget(uploadTask);
+        } else {
+            uploadResult = uploadSftp(uploadTask, syncConfig);
+        }
+
         if (uploadResult) {
             Boolean postExecute = executePostSqlProcess(uploadTask.getPostSqlProcess());
-            // 根据上传结果更新任务状态
             if (postExecute) {
                 updateTaskStatus(uploadTask.getId(), DataProcessEnum.FileStatusEnum.SUCCESS.getCode());
                 log.warn("文件上传成功，taskId: {}, fileName: {}", uploadTask.getId(), uploadTask.getFileName());
@@ -148,6 +166,48 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
             // 确保连接被关闭
             try {
                 if (client != null && client.isConnected()) {
+                    client.disconnect();
+                }
+            } catch (Exception e) {
+                log.error("关闭SFTP连接失败，taskId: {}, error: {}", uploadTask.getId(), e.getMessage(), e);
+            }
+        }
+    }
+
+    /**
+     * 使用任务表内目标 SFTP 字段上传（pushTargetType=指定目标时，不查配置）
+     * 目标路径与连接信息均来自任务表
+     */
+    private Boolean uploadSftpWithTaskTarget(FileSyncTask uploadTask) {
+        SyncConfig targetConfig = new SyncConfig();
+        targetConfig.setTargetSftpHost(uploadTask.getTargetSftpHost());
+        targetConfig.setTargetSftpPort(uploadTask.getTargetSftpPort());
+        targetConfig.setTargetSftpUser(uploadTask.getTargetSftpUser());
+        targetConfig.setTargetSftpPwd(uploadTask.getTargetSftpPwd());
+        targetConfig.setTargetType(uploadTask.getTargetType() != null ? uploadTask.getTargetType() : FileServerType.SFTP.getServerType());
+        targetConfig.setTargetPath(uploadTask.getTargetPath());
+
+        BaseFtpClient client = syncServiceImpl.getClient(targetConfig, false);
+        if (client == null || !client.isConnected()) {
+            log.error("使用任务目标SFTP连接失败，taskId: {}, targetHost: {}", uploadTask.getId(), uploadTask.getTargetSftpHost());
+            return false;
+        }
+
+        String targetPath = replaceDateInPath(uploadTask.getTargetPath());
+        String localPath = uploadTask.getLocalPath().concat(uploadTask.getFileName());
+
+        try (InputStream inputStream = Files.newInputStream(Paths.get(localPath))) {
+            client.mkdir(targetPath);
+            client.uploadFile(inputStream, targetPath, uploadTask.getFileName());
+            insertSyncLog(uploadTask, targetConfig, targetPath);
+            return true;
+        } catch (Exception e) {
+            log.error("上传文件出错（任务指定目标），taskId: {}, fileName: {}, localPath: {}, targetPath: {}, error: {}",
+                    uploadTask.getId(), uploadTask.getFileName(), localPath, targetPath, e.getMessage(), e);
+            return false;
+        } finally {
+            try {
+                if (client.isConnected()) {
                     client.disconnect();
                 }
             } catch (Exception e) {

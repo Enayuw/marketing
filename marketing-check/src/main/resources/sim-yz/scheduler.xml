@@ -1367,4 +1367,34 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
+
+    <job:simple id="【check】-UploadSuccessFileJob"
+                class="com.br.marketing.check.job.UploadSuccessFileJob"
+                cron="0 0/10 * * * ?"
+                description="上传.success文件job"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="false"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
+    <job:simple id="【check】-FileNoHeaderToMarketingDataJob"
+                class="com.br.marketing.check.job.FileNoHeaderToMarketingDataJob"
+                cron="0 0/10 * * * ?"
+                description="文件无表头的转化数据清洗 Job"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="false"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
 </beans>

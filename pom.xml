@@ -36,6 +36,8 @@
         <br-encrypt.version>1.0.0</br-encrypt.version>
         <netty.version>4.1.124.Final</netty.version>
         <aviator.version>5.3.1</aviator.version>
+        <mybatis.version>3.5.13</mybatis.version>
+        <pagehelper.version>1.4.7</pagehelper.version>
     </properties>
     <dependencies>
         <dependency>
@@ -450,6 +452,16 @@
                 <groupId>com.googlecode.aviator</groupId>
                 <artifactId>aviator</artifactId>
                 <version>${aviator.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mybatis</groupId>
+                <artifactId>mybatis</artifactId>
+                <version>${mybatis.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.pagehelper</groupId>
+                <artifactId>pagehelper-spring-boot-starter</artifactId>
+                <version>${pagehelper.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

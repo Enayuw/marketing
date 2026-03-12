@@ -3,6 +3,7 @@ package com.br.marketing.service.ftp.Impl;
 import com.br.marketing.client.BaseFtpClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.DataTypeEnum;
+import com.br.marketing.dto.SftpUploadTargetParamDTO;
 import com.br.marketing.entity.FileSyncTask;
 import com.br.marketing.entity.SyncConfig;
 import com.br.marketing.entity.SyncConfigExample;
@@ -66,6 +67,47 @@ public class SftpUploadHandlerServiceImpl implements SftpUploadHandlerService {
         } catch (Exception e) {
             log.error("插入SFTP上传任务异常，apiCode: {}, fileName: {}, error: {}",
                     apiCode, fileName, e.getMessage(), e);
+            return result;
+        }
+    }
+
+    /**
+     * 插入SFTP上传任务记录（含推送目标配置，pushTargetType=1 时不查配置）
+     */
+    @Override
+    public Result insertSftpUploadTarget(SftpUploadTargetParamDTO param) {
+        Result result = new Result().failure();
+        if (param == null) {
+            return result;
+        }
+        try {
+            FileSyncTask task = new FileSyncTask();
+            task.setApiCode(param.getApiCode());
+            task.setLocalPath(param.getLocalPath());
+            task.setFileName(param.getFileName());
+            task.setDataType(param.getDataType());
+            task.setPostSqlProcess(param.getPostSqlProcess());
+            task.setStatus(0); // 默认状态：0-待上传
+            task.setCreateTime(new Date());
+            task.setPushTargetType(param.getPushTargetType());
+            task.setTargetSftpHost(param.getTargetSftpHost());
+            task.setTargetSftpPort(param.getTargetSftpPort());
+            task.setTargetSftpUser(param.getTargetSftpUser());
+            task.setTargetSftpPwd(param.getTargetSftpPwd());
+            task.setTargetType(param.getTargetType());
+            task.setTargetPath(param.getTargetPath());
+            int insertResult = fileSyncTaskMapper.insertSelective(task);
+            if (insertResult > 0) {
+                log.warn("成功插入SFTP上传任务，ID: {}, apiCode: {}, fileName: {}",
+                        task.getId(), param.getApiCode(), param.getFileName());
+                return result.success();
+            } else {
+                log.error("插入SFTP上传任务失败，apiCode: {}, fileName: {}", param.getApiCode(), param.getFileName());
+                return result;
+            }
+        } catch (Exception e) {
+            log.error("插入SFTP上传任务异常，apiCode: {}, fileName: {}, error: {}",
+                    param.getApiCode(), param.getFileName(), e.getMessage(), e);
             return result;
         }
     }

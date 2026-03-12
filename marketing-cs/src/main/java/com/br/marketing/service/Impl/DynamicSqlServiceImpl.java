@@ -94,7 +94,9 @@ public class DynamicSqlServiceImpl implements IDynamicSqlService {
     }
 
     @Override
-    public List<MarketingSyncUser> selectDataRuleScoreWithDate(String apiCode, String whereStr, Long id, Integer pageSize, String labelName,Long minUnCompleteId,Long maxId) {
+    public List<MarketingSyncUser> selectDataRuleScoreWithDate(String apiCode, String whereStr,
+                                                               Long id, Integer pageSize, String labelName,
+                                                               Long minUnCompleteId,Long maxId) {
         HashMap<String, Integer> sqlType = marketingCommonConfig.getSqlType();
         Integer type = sqlType == null ? 0 : sqlType.getOrDefault(SCORE_DATA_KEY, 0);
         List<MarketingSyncUser> users = new ArrayList<>();

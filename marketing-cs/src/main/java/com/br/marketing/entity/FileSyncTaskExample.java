@@ -824,6 +824,286 @@ public class FileSyncTaskExample {
             addCriterion("update_time not between", value1, value2, "updateTime");
             return (Criteria) this;
         }
+
+        public Criteria andPushTargetTypeIsNull() {
+            addCriterion("push_target_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTargetTypeIsNotNull() {
+            addCriterion("push_target_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTargetTypeEqualTo(Integer value) {
+            addCriterion("push_target_type =", value, "pushTargetType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTargetTypeNotEqualTo(Integer value) {
+            addCriterion("push_target_type <>", value, "pushTargetType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTargetTypeIn(List<Integer> values) {
+            addCriterion("push_target_type in", values, "pushTargetType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTargetTypeNotIn(List<Integer> values) {
+            addCriterion("push_target_type not in", values, "pushTargetType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTargetTypeBetween(Integer value1, Integer value2) {
+            addCriterion("push_target_type between", value1, value2, "pushTargetType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTargetTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("push_target_type not between", value1, value2, "pushTargetType");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetSftpHostIsNull() {
+            addCriterion("target_sftp_host is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetSftpHostIsNotNull() {
+            addCriterion("target_sftp_host is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetSftpHostEqualTo(String value) {
+            addCriterion("target_sftp_host =", value, "targetSftpHost");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetSftpHostNotEqualTo(String value) {
+            addCriterion("target_sftp_host <>", value, "targetSftpHost");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetSftpHostLike(String value) {
+            addCriterion("target_sftp_host like", value, "targetSftpHost");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetSftpHostNotLike(String value) {
+            addCriterion("target_sftp_host not like", value, "targetSftpHost");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetSftpHostIn(List<String> values) {
+            addCriterion("target_sftp_host in", values, "targetSftpHost");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetSftpHostNotIn(List<String> values) {
+            addCriterion("target_sftp_host not in", values, "targetSftpHost");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetSftpPortIsNull() {
+            addCriterion("target_sftp_port is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetSftpPortIsNotNull() {
+            addCriterion("target_sftp_port is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetSftpPortEqualTo(Integer value) {
+            addCriterion("target_sftp_port =", value, "targetSftpPort");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetSftpPortNotEqualTo(Integer value) {
+            addCriterion("target_sftp_port <>", value, "targetSftpPort");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetSftpPortIn(List<Integer> values) {
+            addCriterion("target_sftp_port in", values, "targetSftpPort");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetSftpPortNotIn(List<Integer> values) {
+            addCriterion("target_sftp_port not in", values, "targetSftpPort");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetSftpPortBetween(Integer value1, Integer value2) {
+            addCriterion("target_sftp_port between", value1, value2, "targetSftpPort");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetSftpPortNotBetween(Integer value1, Integer value2) {
+            addCriterion("target_sftp_port not between", value1, value2, "targetSftpPort");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetSftpUserIsNull() {
+            addCriterion("target_sftp_user is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetSftpUserIsNotNull() {
+            addCriterion("target_sftp_user is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetSftpUserEqualTo(String value) {
+            addCriterion("target_sftp_user =", value, "targetSftpUser");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetSftpUserNotEqualTo(String value) {
+            addCriterion("target_sftp_user <>", value, "targetSftpUser");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetSftpUserLike(String value) {
+            addCriterion("target_sftp_user like", value, "targetSftpUser");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetSftpUserNotLike(String value) {
+            addCriterion("target_sftp_user not like", value, "targetSftpUser");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetSftpUserIn(List<String> values) {
+            addCriterion("target_sftp_user in", values, "targetSftpUser");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetSftpUserNotIn(List<String> values) {
+            addCriterion("target_sftp_user not in", values, "targetSftpUser");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetSftpPwdIsNull() {
+            addCriterion("target_sftp_pwd is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetSftpPwdIsNotNull() {
+            addCriterion("target_sftp_pwd is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetSftpPwdEqualTo(String value) {
+            addCriterion("target_sftp_pwd =", value, "targetSftpPwd");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetSftpPwdNotEqualTo(String value) {
+            addCriterion("target_sftp_pwd <>", value, "targetSftpPwd");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetSftpPwdLike(String value) {
+            addCriterion("target_sftp_pwd like", value, "targetSftpPwd");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetSftpPwdNotLike(String value) {
+            addCriterion("target_sftp_pwd not like", value, "targetSftpPwd");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetSftpPwdIn(List<String> values) {
+            addCriterion("target_sftp_pwd in", values, "targetSftpPwd");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetSftpPwdNotIn(List<String> values) {
+            addCriterion("target_sftp_pwd not in", values, "targetSftpPwd");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetTypeIsNull() {
+            addCriterion("target_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetTypeIsNotNull() {
+            addCriterion("target_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetTypeEqualTo(String value) {
+            addCriterion("target_type =", value, "targetType");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetTypeNotEqualTo(String value) {
+            addCriterion("target_type <>", value, "targetType");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetTypeLike(String value) {
+            addCriterion("target_type like", value, "targetType");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetTypeNotLike(String value) {
+            addCriterion("target_type not like", value, "targetType");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetTypeIn(List<String> values) {
+            addCriterion("target_type in", values, "targetType");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetTypeNotIn(List<String> values) {
+            addCriterion("target_type not in", values, "targetType");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetPathIsNull() {
+            addCriterion("target_path is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetPathIsNotNull() {
+            addCriterion("target_path is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetPathEqualTo(String value) {
+            addCriterion("target_path =", value, "targetPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetPathNotEqualTo(String value) {
+            addCriterion("target_path <>", value, "targetPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetPathLike(String value) {
+            addCriterion("target_path like", value, "targetPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetPathNotLike(String value) {
+            addCriterion("target_path not like", value, "targetPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetPathIn(List<String> values) {
+            addCriterion("target_path in", values, "targetPath");
+            return (Criteria) this;
+        }
+
+        public Criteria andTargetPathNotIn(List<String> values) {
+            addCriterion("target_path not in", values, "targetPath");
+            return (Criteria) this;
+        }
     }
 
     /**
