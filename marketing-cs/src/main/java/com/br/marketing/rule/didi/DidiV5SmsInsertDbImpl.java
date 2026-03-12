@@ -48,6 +48,8 @@ public class DidiV5SmsInsertDbImpl implements AssembleData<DidiCallBackDataDTO> 
         didiCallRecord.setCreateTime(new Date());
         didiCallRecord.setUpdateTime(didiCallRecord.getCreateTime());
         didiCallRecord.setExtend(JSON.toJSONString(cbo));
+        JSONObject jsonObject = JSON.parseObject(cbo.getReserveField1());
+        didiCallRecord.setScas(jsonObject.getString("scas"));
         String custNum = didiCallRecord.getCustNum();
         String apiCode = didiCallRecord.getApiCode();
         Map<String, SyncUserValidityPeriodsBO> validityPeriodsBOMap = transferDataValidityPeriodService
@@ -56,8 +58,6 @@ public class DidiV5SmsInsertDbImpl implements AssembleData<DidiCallBackDataDTO> 
         if (bo != null) {
             List<MarketingSyncUser> syncUsers = bo.getSyncUsers();
             didiCallRecord.setCell(syncUsers.get(0).getCell());
-            JSONObject jsonObject = JSON.parseObject(syncUsers.get(0).getReserveField1());
-            didiCallRecord.setScas(jsonObject.getString("scas"));
         }
         return StringUtils.isBlank(didiCallRecord.getCell()) ? null : didiCallRecord;
     }

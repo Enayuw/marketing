@@ -17,4 +17,6 @@ public class SmsCallBackBO {
 
     private String createDate;
 
+    private String reserveField1;
+
 }

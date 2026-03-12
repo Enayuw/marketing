@@ -34,13 +34,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -74,26 +70,52 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
         JSONObject collidingConfig = marketingCommonConfig.getDiDiV5Config();
         RateLimiter rateLimiter = RateLimiter.create(collidingConfig.getInteger("rateLimit"));
 
+        String startTimeStr = LocalDate.now().format(DateTimeFormatter.ofPattern(DatePattern.NORM_DATE_PATTERN)) + " "
+                + collidingConfig.getString("firstBatchStartTime");
+        String endTimeStr = LocalDate.now().format(DateTimeFormatter.ofPattern(DatePattern.NORM_DATE_PATTERN)) + " "
+                + collidingConfig.getString("firstBatchEndTime");
+        DateTime startTime = DateUtil.parse(startTimeStr);
+        DateTime endTime = DateUtil.parse(endTimeStr);
+
+        AtomicInteger leftLimit = new AtomicInteger();
+        if (DateUtil.compare(new Date(), endTime) < 0 && DateUtil.compare(new Date(), startTime) >= 0) {
+            leftLimit.set(collidingConfig.getInteger("collidingLimit"));
+        } else {
+            startTimeStr = LocalDate.now().format(DateTimeFormatter.ofPattern(DatePattern.NORM_DATE_PATTERN)) + " "
+                    + collidingConfig.getString("secondBatchStartTime");
+            endTimeStr = LocalDate.now().format(DateTimeFormatter.ofPattern(DatePattern.NORM_DATE_PATTERN)) + " "
+                    + collidingConfig.getString("secondBatchEndTime");
+            startTime = DateUtil.parse(startTimeStr);
+            endTime = DateUtil.parse(endTimeStr);
+            if (DateUtil.compare(new Date(), endTime) < 0 && DateUtil.compare(new Date(), startTime) >= 0) {
+                leftLimit.set(collidingConfig.getInteger("collidingLimit2"));
+            }
+        }
+
+        if (Objects.equals(0, leftLimit.get())) {
+            return;
+        }
+
         String mediaName = collidingConfig.getString("mediaName") != null ? collidingConfig.getString("mediaName") : "bairongC";
         String token = collidingConfig.getString("token") != null ? collidingConfig.getString("token") : "9Hqeoi36CJfdA7n4";
-        AtomicInteger leftLimit = new AtomicInteger(collidingConfig.getInteger("collidingLimit") != null ?
-                collidingConfig.getInteger("collidingLimit") : 3000000);
 
         DiDiDataLoopCycleExample example = new DiDiDataLoopCycleExample();
         example.createCriteria().andApiCodeEqualTo(collidingConfig.getString("apiCode"))
-                .andPushTimeBetween(DateUtil.beginOfDay(new Date()), new Date()).andIsDeleteEqualTo(0);
+                .andPushTimeBetween(startTime, endTime).andIsDeleteEqualTo(0);
         int cycleCount = diDiV5DataLoopCycleMapper.countByExample(example);
 
         DiDiCollidingDataRobExample robExample = new DiDiCollidingDataRobExample();
         robExample.createCriteria().andApiCodeEqualTo(collidingConfig.getString("apiCode"))
-                .andPushTimeBetween(DateUtil.beginOfDay(new Date()), new Date()).andIsDeleteEqualTo(0);
+                .andPushTimeBetween(startTime, endTime).andIsDeleteEqualTo(0);
         int robCount = diDiV5CollidingDataRobMapper.countByExample(robExample);
 
-        if(cycleCount + robCount >= leftLimit.get()) {
+        int collidedCount = cycleCount + robCount;
+
+        if(collidedCount >= leftLimit.get()) {
             log.warn("滴滴短信流量数据撞库任务停止执行，已超过限制");
             return;
         }
-        leftLimit.addAndGet(-cycleCount - robCount);
+        leftLimit.addAndGet(-collidedCount);
 
         List<String> retryHttpCode = collidingConfig.getJSONArray("retryHttpCode").toJavaList(String.class);
         Set<Long> packageIds = Sets.newHashSet();
@@ -114,14 +136,6 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
             if (collidingSwitch) {
                 break;
             }
-
-            String startTimeStr = LocalDate.now().format(DateTimeFormatter.ofPattern(DatePattern.NORM_DATE_PATTERN)) + " "
-                    + collidingConfig2.getString("firstBatchStartTime");
-            String endTimeStr = LocalDate.now().format(DateTimeFormatter.ofPattern(DatePattern.NORM_DATE_PATTERN)) + " "
-                    + collidingConfig2.getString("firstBatchEndTime");
-            DateTime startTime = DateUtil.parse(startTimeStr);
-            DateTime endTime = DateUtil.parse(endTimeStr);
-
             if (DateUtil.compare(new Date(), endTime) >= 0 || DateUtil.compare(new Date(), startTime) < 0) {
                 break;
             }
@@ -157,9 +171,9 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
 
         // 处理非周期锁定的数据
         processRobData(leftLimit, mediaName, token, rateLimiter,
-                retryHttpCode, pushPool, 2, packageIds);
+                retryHttpCode, pushPool, 2, packageIds, startTime, endTime);
         processRobData(leftLimit, mediaName, token, rateLimiter,
-                retryHttpCode, pushPool, 3, packageIds);
+                retryHttpCode, pushPool, 3, packageIds, startTime, endTime);
         updateLocalFiles(packageIds);
         pushPool.shutdownAndAwaitTermination();
     }
@@ -182,21 +196,15 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
 
     private void processRobData(AtomicInteger leftLimit, String mediaName, String token, RateLimiter rateLimiter,
                                 List<String> retryHttpCode, TpDynamicExecutor pushPool,
-                                int priority, Set<Long> packageIds) {
+                                int priority, Set<Long> packageIds, Date startTime, Date endTime) {
         // 处理非周期锁定的数据
         List<CompletableFuture<Void>> futures3 = new ArrayList<>();
         while (true) {
-            JSONObject collidingConfig2 = marketingCommonConfig.getDiDiV5Config();
-            boolean collidingSwitch = collidingConfig2.getBoolean("collidingSwitch");
+            JSONObject collidingConfig = marketingCommonConfig.getDiDiV5Config();
+            boolean collidingSwitch = collidingConfig.getBoolean("collidingSwitch");
             if (collidingSwitch) {
                 break;
             }
-            String startTimeStr = LocalDate.now().format(DateTimeFormatter.ofPattern(DatePattern.NORM_DATE_PATTERN)) + " "
-                    + collidingConfig2.getString("firstBatchStartTime");
-            String endTimeStr = LocalDate.now().format(DateTimeFormatter.ofPattern(DatePattern.NORM_DATE_PATTERN)) + " "
-                    + collidingConfig2.getString("firstBatchEndTime");
-            DateTime startTime = DateUtil.parse(startTimeStr);
-            DateTime endTime = DateUtil.parse(endTimeStr);
 
             if (DateUtil.compare(new Date(), endTime) >= 0 || DateUtil.compare(new Date(), startTime) < 0) {
                 break;
@@ -204,12 +212,12 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
             if (leftLimit.get() <= 0) {
                 break;
             }
-            int limit = collidingConfig2.getInteger("limit") != null ? collidingConfig2.getInteger("limit") : 2000;
+            int limit = collidingConfig.getInteger("limit") != null ? collidingConfig.getInteger("limit") : 2000;
             int actualLimit = Math.min(leftLimit.get(), limit);
             List<DiDiCollidingDataRob> dataList;
             if (priority == 2) {
                 dataList = diDiV5CollidingDataRobMapper.queryCollidingDataBySharding(
-                        actualLimit, DateUtil.beginOfDay(new Date()), new Date());
+                        actualLimit, startTime, new Date());
             } else {
                 dataList = diDiV5CollidingDataRobMapper.queryUploadedData(
                         actualLimit, DateUtil.beginOfDay(new Date()), new Date());
