@@ -191,12 +191,14 @@ public class FileNoHeaderToMarketingDataServiceImpl implements com.br.marketing.
     private void fileTransferActionNoHeader(String apiCode, MarketingDataFileConfigNoHeader noHeaderConfig,
                                             String path, String fileNm, Long localId,
                                             IFileToMarketingRuleTransferService transferService) {
-        List<FileToMarketingFieldByColumnVO> columnConfigs = JSON.parseArray(noHeaderConfig.getFieldConfigColumn(), FileToMarketingFieldByColumnVO.class);
+        List<FileToMarketingFieldByColumnVO> columnConfigs =
+                JSON.parseArray(noHeaderConfig.getFieldConfigColumn(), FileToMarketingFieldByColumnVO.class);
         if (CollectionUtils.isEmpty(columnConfigs)) {
             log.warn(TITLE + "field_config_column 为空, configId={}", noHeaderConfig.getId());
             return;
         }
-        columnConfigs = columnConfigs.stream().sorted(Comparator.comparing(FileToMarketingFieldByColumnVO::getColumnIndex)).collect(Collectors.toList());
+        columnConfigs = columnConfigs.stream()
+                .sorted(Comparator.comparing(FileToMarketingFieldByColumnVO::getColumnIndex)).collect(Collectors.toList());
         int expectedColumns = columnConfigs.stream().mapToInt(c -> c.getColumnIndex() == null ? 0 : c.getColumnIndex()).max().orElse(0);
         if (expectedColumns <= 0) {
             log.warn(TITLE + "配置列序号无效, configId={}", noHeaderConfig.getId());
@@ -270,6 +272,7 @@ public class FileNoHeaderToMarketingDataServiceImpl implements com.br.marketing.
         pushPool.shutdown();
         try {
             while (!pushPool.awaitTermination(5L, TimeUnit.SECONDS)) {
+                log.info("等待线程池结束");
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -331,7 +334,8 @@ public class FileNoHeaderToMarketingDataServiceImpl implements com.br.marketing.
             if (StringUtils.isNotBlank(colConf.getConversion()) && StringUtils.isNotBlank(value)) {
                 try {
                     com.fasterxml.jackson.databind.ObjectMapper om = new com.fasterxml.jackson.databind.ObjectMapper();
-                    List<Map<String, String>> maps = om.readValue(colConf.getConversion(), new com.fasterxml.jackson.core.type.TypeReference<List<Map<String, String>>>() {});
+                    List<Map<String, String>> maps = om.readValue(colConf.getConversion(),
+                            new com.fasterxml.jackson.core.type.TypeReference<List<Map<String, String>>>() {});
                     if (!maps.isEmpty()) {
                         String mapped = maps.get(0).get(value);
                         if (mapped != null) {

@@ -219,7 +219,7 @@ public class UploadSuccessFileJob extends AbstractSimpleElasticJob {
             return false;
         }
         try {
-            String dir = pathEndWithSlash(localPath) ? localPath : localPath + "/";
+            String dir = pathEndWithSlash(localPath) ? localPath : (localPath + "/");
             Path fullPath = Paths.get(dir, successFileName);
             Files.createDirectories(fullPath.getParent());
             if (!Files.exists(fullPath)) {
@@ -295,7 +295,7 @@ public class UploadSuccessFileJob extends AbstractSimpleElasticJob {
                 continue;
             }
             String successName = name + ".success";
-            String successRemotePath = pathEndWithSlash(srcPath) ? srcPath + successName : srcPath + "/" + successName;
+            String successRemotePath = pathEndWithSlash(srcPath) ? (srcPath + successName) : (srcPath + "/" + successName);
             if (ftpClient.isExistFile(successRemotePath)) {
                 log.warn(TITLE + "同名.success已存在, 跳过 fileName={}", name);
                 continue;
@@ -336,7 +336,7 @@ public class UploadSuccessFileJob extends AbstractSimpleElasticJob {
                 continue;
             }
             String successName = name + ".success";
-            String successFullPath = pathEndWithSlash(srcPath) ? srcPath + successName : srcPath + "/" + successName;
+            String successFullPath = pathEndWithSlash(srcPath) ? (srcPath + successName) : (srcPath + "/" + successName);
             if (sftpClient.isExistFile(successFullPath)) {
                 log.warn(TITLE + "同名.success已存在, 跳过 fileName={}", name);
                 continue;
