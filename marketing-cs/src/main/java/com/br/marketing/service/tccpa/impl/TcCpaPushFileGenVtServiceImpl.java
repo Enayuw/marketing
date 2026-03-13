@@ -223,7 +223,13 @@ public class TcCpaPushFileGenVtServiceImpl implements TcCpaPushFileGenVtService 
                 }
             }
             //2.生成数据文件
-            Boolean writeSuccess = writeFile(localPath, yyyyMMdd, info, fwMap, taskIds);
+            boolean writeSuccess = taskIds.stream().allMatch(taskId -> {
+                try {
+                    return writeFile(localPath, yyyyMMdd, info, fwMap, taskId);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
             if (!writeSuccess) {
                 return false;
             }
@@ -263,11 +269,10 @@ public class TcCpaPushFileGenVtServiceImpl implements TcCpaPushFileGenVtService 
     }
 
     private Boolean writeFile(String localPath, String yyyyMMdd, FilePushTaskInfo info,
-                              Map<String, ImmutablePair<BufferedWriter, FilePushTaskFileDTO>> fwMap, List<Long> taskIds) throws Exception {
+                              Map<String, ImmutablePair<BufferedWriter, FilePushTaskFileDTO>> fwMap, Long taskId) throws Exception {
         // 查询量级
         TcyrCpaPushDataExample example = new TcyrCpaPushDataExample();
-        example.createCriteria().andIsDelEqualTo(Constants.DATA_VALID).andCollidingDateEqualTo(new Date())
-                .andTaskIdIn(taskIds.stream().map(Long::intValue).collect(Collectors.toList()));
+        example.createCriteria().andIsDelEqualTo(Constants.DATA_VALID).andTaskIdEqualTo(taskId.intValue());
         int pushDataNum = tcyrCpaPushDataMapper.countByExample(example);
 
         //所需配置
@@ -291,18 +296,15 @@ public class TcCpaPushFileGenVtServiceImpl implements TcCpaPushFileGenVtService 
                 ThreadPoolNameEnum.TCYR_CPA_PUSH_FILE_GEN_VT.getName(), threadPoolSize, threadPoolSize);
         try {
             List<CompletableFuture<Void>> futures = Lists.newArrayList();
-            // 复合游标分页
-            Integer lastPriority = -1;
+            // 游标分页
             Long lastId = 0L;
             for (; ; ) {
                 Integer pageSize = marketingCommonConfig.getTcyrCpaPushFileVTConfig().getInteger("pageSize");
-                List<TcyrCpaPushData> pushDataList = tcyrCpaPushDataMapper.selectWithPagination(lastPriority, lastId,
-                        pageSize, taskIds);
+                List<TcyrCpaPushData> pushDataList = tcyrCpaPushDataMapper.selectWithPagination(lastId, pageSize, taskId);
                 if (CollectionUtils.isEmpty(pushDataList)) {
                     break;
                 }
                 TcyrCpaPushData lastRecord = pushDataList.get(pushDataList.size() - 1);
-                lastPriority = lastRecord.getPriority();
                 lastId = lastRecord.getId();
 
                 List<String> userKeys = pushDataList.stream().map(TcyrCpaPushData::getUserKey).collect(Collectors.toList());

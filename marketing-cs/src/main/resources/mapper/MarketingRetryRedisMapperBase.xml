@@ -7,6 +7,8 @@
     <result column="batch_number" property="batchNumber" jdbcType="VARCHAR" />
     <result column="page" property="page" jdbcType="VARCHAR" />
     <result column="redis_key" property="redisKey" jdbcType="VARCHAR" />
+    <result column="redis_value" property="redisValue" jdbcType="VARCHAR" />
+    <result column="redis_value_type" property="redisValueType" jdbcType="VARCHAR" />
     <result column="retry_status" property="retryStatus" jdbcType="INTEGER" />
     <result column="applet_date" property="appletDate" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
@@ -71,7 +73,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, batch_number, page, redis_key, retry_status, applet_date, create_time, 
+    id, api_code, batch_number, page, redis_key, redis_value, redis_value_type, retry_status, applet_date, create_time,
     update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingRetryRedisExample" >
@@ -109,10 +111,10 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_marketing_retry_redis (api_code, batch_number, page, 
-      redis_key, retry_status, applet_date, 
+      redis_key, redis_value, redis_value_type, retry_status, applet_date,
       create_time, update_time)
     values (#{apiCode,jdbcType=VARCHAR}, #{batchNumber,jdbcType=VARCHAR}, #{page,jdbcType=VARCHAR}, 
-      #{redisKey,jdbcType=VARCHAR}, #{retryStatus,jdbcType=INTEGER}, #{appletDate,jdbcType=VARCHAR}, 
+      #{redisKey,jdbcType=VARCHAR}, #{redisValue,jdbcType=VARCHAR}, #{redisValueType,jdbcType=VARCHAR}, #{retryStatus,jdbcType=INTEGER}, #{appletDate,jdbcType=VARCHAR},
       #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingRetryRedis" >
@@ -132,6 +134,12 @@
       </if>
       <if test="redisKey != null" >
         redis_key,
+      </if>
+      <if test="redisValue != null" >
+        redis_value,
+      </if>
+      <if test="redisValueType != null" >
+        redis_value_type,
       </if>
       <if test="retryStatus != null" >
         retry_status,
@@ -158,6 +166,12 @@
       </if>
       <if test="redisKey != null" >
         #{redisKey,jdbcType=VARCHAR},
+      </if>
+      <if test="redisValue != null" >
+        #{redisValue,jdbcType=VARCHAR},
+      </if>
+      <if test="redisValueType != null" >
+        #{redisValueType,jdbcType=VARCHAR},
       </if>
       <if test="retryStatus != null" >
         #{retryStatus,jdbcType=INTEGER},
@@ -197,6 +211,12 @@
       <if test="record.redisKey != null" >
         redis_key = #{record.redisKey,jdbcType=VARCHAR},
       </if>
+      <if test="record.redisValue != null" >
+        redis_value = #{record.redisValue,jdbcType=VARCHAR},
+      </if>
+      <if test="record.redisValueType != null" >
+        redis_value_type = #{record.redisValueType,jdbcType=VARCHAR},
+      </if>
       <if test="record.retryStatus != null" >
         retry_status = #{record.retryStatus,jdbcType=INTEGER},
       </if>
@@ -217,14 +237,16 @@
   <update id="updateByExample" parameterType="map" >
     update b_marketing_retry_redis
     set id = #{record.id,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      batch_number = #{record.batchNumber,jdbcType=VARCHAR},
-      page = #{record.page,jdbcType=VARCHAR},
-      redis_key = #{record.redisKey,jdbcType=VARCHAR},
-      retry_status = #{record.retryStatus,jdbcType=INTEGER},
-      applet_date = #{record.appletDate,jdbcType=VARCHAR},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    batch_number = #{record.batchNumber,jdbcType=VARCHAR},
+    page = #{record.page,jdbcType=VARCHAR},
+    redis_key = #{record.redisKey,jdbcType=VARCHAR},
+    redis_value = #{record.redisValue,jdbcType=VARCHAR},
+    redis_value_type = #{record.redisValueType,jdbcType=VARCHAR},
+    retry_status = #{record.retryStatus,jdbcType=INTEGER},
+    applet_date = #{record.appletDate,jdbcType=VARCHAR},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -244,6 +266,12 @@
       <if test="redisKey != null" >
         redis_key = #{redisKey,jdbcType=VARCHAR},
       </if>
+      <if test="redisValue != null" >
+        redis_value = #{redisValue,jdbcType=VARCHAR},
+      </if>
+      <if test="redisValueType != null" >
+        redis_value_type = #{redisValueType,jdbcType=VARCHAR},
+      </if>
       <if test="retryStatus != null" >
         retry_status = #{retryStatus,jdbcType=INTEGER},
       </if>
@@ -262,13 +290,15 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingRetryRedis" >
     update b_marketing_retry_redis
     set api_code = #{apiCode,jdbcType=VARCHAR},
-      batch_number = #{batchNumber,jdbcType=VARCHAR},
-      page = #{page,jdbcType=VARCHAR},
-      redis_key = #{redisKey,jdbcType=VARCHAR},
-      retry_status = #{retryStatus,jdbcType=INTEGER},
-      applet_date = #{appletDate,jdbcType=VARCHAR},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    batch_number = #{batchNumber,jdbcType=VARCHAR},
+    page = #{page,jdbcType=VARCHAR},
+    redis_key = #{redisKey,jdbcType=VARCHAR},
+    redis_value = #{redisValue,jdbcType=VARCHAR},
+    redis_value_type = #{redisValueType,jdbcType=VARCHAR},
+    retry_status = #{retryStatus,jdbcType=INTEGER},
+    applet_date = #{appletDate,jdbcType=VARCHAR},
+    create_time = #{createTime,jdbcType=TIMESTAMP},
+    update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

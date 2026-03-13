@@ -1,5 +1,6 @@
 package com.br.marketing.task.utils;
 
+import java.sql.SQLException;
 import java.util.Date;
 
 import com.alibaba.fastjson.JSON;
@@ -28,6 +29,8 @@ import com.br.marketing.vo.StrategyProductDetailVO;
 
 import cn.hutool.core.lang.Pair;
 import lombok.extern.slf4j.Slf4j;
+import org.mybatis.spring.MyBatisSystemException;
+import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.util.DigestUtils;
 
 import java.io.IOException;
@@ -317,7 +320,34 @@ public class ResultUtil {
         marketingRetryEs.setAppletDate(String.valueOf(LocalDate.now()));
         marketingRetryEs.setCreateTime(new Date());
         marketingRetryEs.setUpdateTime(new Date());
-        marketingRetryEsMapper.insertSelective(marketingRetryEs);
+
+        try {
+            marketingRetryEsMapper.insertSelective(marketingRetryEs);
+        } catch (MyBatisSystemException e) {
+            // 检查线程是否被中断
+            if (Thread.currentThread().isInterrupted()) {
+                // 清除中断标志，以便重新插入数据库
+                boolean wasInterrupted = Thread.interrupted();
+                try {
+                    // 重新插入数据库
+                    marketingRetryEsMapper.insertSelective(marketingRetryEs);
+
+                    // 重新插入成功后，恢复中断标志
+                    if (wasInterrupted) {
+                        Thread.currentThread().interrupt();
+                    }
+                } catch (Exception retryEx) {
+                    // 重新插入失败，恢复中断标志
+                    if (wasInterrupted) {
+                        Thread.currentThread().interrupt();
+                    }
+                    throw retryEx;
+                }
+            } else {
+                // 线程未被中断，是其他原因导致的异常，直接抛出
+                throw e;
+            }
+        }
     }
 
     private static Result buildResult(JSONObject hxJson, StringBuilder sb, String sep, JSONObject esResult, StrategyProductDetailVO fieldInfo) {

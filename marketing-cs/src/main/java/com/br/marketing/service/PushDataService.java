@@ -95,4 +95,13 @@ public interface PushDataService {
      * @return 推送结果
      */
     Result pushSpecialDassData(Long id, String filePrefix, JSONObject prefixConfig);
+
+    /**
+     * 推送动态分组文件数据到Dass（支持配置化分组字段）
+     * @param id 文件ID
+     * @param filePrefix 匹配的文件名前缀
+     * @param prefixConfig 该前缀对应的配置（包含groupByField和mergeConfig）
+     * @return 推送结果
+     */
+    Result pushDynamicGroupDassData(Long id, String filePrefix, JSONObject prefixConfig);
 }

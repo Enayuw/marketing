@@ -1,5 +1,6 @@
 package com.br.marketing.service.tccpa.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
@@ -7,11 +8,14 @@ import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.JsonParseUtils;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.DingDingAlarmFunctionEnum;
 import com.br.marketing.enums.TcCpaCleanStatusEnum;
 import com.br.marketing.mapper.TcyrCpaCollidingDataCleanTaskMapper;
 import com.br.marketing.mapper.TcyrCpaCollidingDataMapper;
 import com.br.marketing.mapper.TcyrCpaCollidingDataPackageMapper;
 import com.br.marketing.service.tccpa.TcCpaCollidingDataCleanService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -30,7 +34,7 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCleanService {
-    
+
     @Resource
     TcyrCpaCollidingDataCleanTaskMapper tcyrCpaCollidingDataCleanTaskMapper;
 
@@ -39,6 +43,12 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
 
     @Resource
     TcyrCpaCollidingDataMapper tcyrCpaCollidingDataMapper;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    private DingDingRobotHookService dingDingRobotHookService;
 
     private final static String TITLE = "【同程易融CPA-数据包清洗Job】";
 
@@ -163,6 +173,12 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
                     cleanTask.setExtend("clean-success");
                     String afterPackageInfo = packageInfoAssemble();
                     executeInfo.put("afterPackageInfo", afterPackageInfo);
+                    try {
+                        notice();
+                    } catch (Exception ignored) {
+                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
+                                "数据包清洗完成，通知异常！", TITLE), ignored);
+                    }
                 }
                 cleanTask.setExecuteInfo(JsonParseUtils.toJson(executeInfo));
             }
@@ -180,6 +196,15 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
                 threadPool.shutdownAndAwaitTermination();
             }
         }
+    }
+
+    /**
+     * 通知项目清洗完成
+     */
+    private void notice() {
+        Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
+        Map<String, Object> groupInfo = webHookInfo.get(DingDingAlarmFunctionEnum.TOCHENG_CPA_NOTICE.toString());
+        dingDingRobotHookService.sendDingDingTextMessage("数据包清洗完成！", groupInfo);
     }
 
     private void packageMagnitudeUpd() {
@@ -253,10 +278,9 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
                 } else {
                     batchNumbers = cleanPackage.getBatchNumbers().split(",");
                 }
-                String conditions = cleanPackage.getConditions();
                 List<TcyrCpaBatchCleanInfo> tcyrCpaBatchCleanInfos = new ArrayList<>();
                 for (String batchNumber : batchNumbers) {
-                    batchClean(threadPool, futures, cleanPackage, conditions, tcyrCpaBatchCleanInfos, batchNumber);
+                    batchClean(threadPool, futures, cleanPackage, tcyrCpaBatchCleanInfos, batchNumber);
                 }
                 CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
                 if (tcyrCpaBatchCleanInfos.size() > 0) {
@@ -289,18 +313,18 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
     private void batchClean(TpDynamicExecutor threadPool,
                             List<CompletableFuture<Void>> futures,
                             TcyrCpaCollidingDataPackage cleanPackage,
-                            String conditions,
                             List<TcyrCpaBatchCleanInfo> tcyrCpaBatchCleanInfos,
                             String batchNumber) {
         //1.从跑分文件中查询数据
         List<String> cusNums;
-        String querySql = "select cus_num from b_score_" + batchNumber + " where " + conditions;
         AtomicBoolean isInner = new AtomicBoolean(false);
-        log.warn("同程CPA撞库数据清洗，新包新增数据查询条件:{}", querySql);
         String minCusNum = null;
         for (; ; ) {
+            if (marketingCommonConfig.getTcyrCpaPushFileVTConfig().getBoolean("cleanStopSwitch")) {
+                break;
+            }
             try {
-                cusNums = tcyrCpaCollidingDataMapper.queryScoreDataWithPagebI_(querySql, minCusNum);
+                cusNums = tcyrCpaCollidingDataMapper.queryScoreDataWithPagebI_(batchNumber, cleanPackage.getConditions(), minCusNum);
             } catch (Exception e) {
                 log.warn("同程CPA撞库数据清洗，跑分数据查询异常，packageId：{}，batchNumber：{}", cleanPackage.getId(), batchNumber);
                 tcyrCpaBatchCleanInfos.add(new TcyrCpaBatchCleanInfo(batchNumber, true, isInner.get(), e.getMessage()));
@@ -333,14 +357,14 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
 
     private void insertData(List<String> cusNums, Long packageId, Integer priority) {
 
-       List<TcyrCpaCollidingData> dataList = cusNums.stream().map(cusNum -> {
-           TcyrCpaCollidingData data = new TcyrCpaCollidingData();
-           data.setPackageId(packageId);
-           data.setPriority(priority);
-           data.setUserKey(cusNum);
-           return data;
-       }).collect(Collectors.toList());
-       tcyrCpaCollidingDataMapper.insertBatchWithPriority(dataList);
+        List<TcyrCpaCollidingData> dataList = cusNums.stream().map(cusNum -> {
+            TcyrCpaCollidingData data = new TcyrCpaCollidingData();
+            data.setPackageId(packageId);
+            data.setPriority(priority);
+            data.setUserKey(cusNum);
+            return data;
+        }).collect(Collectors.toList());
+        tcyrCpaCollidingDataMapper.insertBatchWithPriority(dataList);
     }
 
     /**
@@ -349,6 +373,8 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
     private boolean deletePackageData(List<TcyrCpaCollidingDataPackage> deletePackages,
                                       TpDynamicExecutor threadPool, List<CompletableFuture<Void>> futures) {
         boolean hasError = false;
+        Integer maxIsDel = tcyrCpaCollidingDataMapper.queryMaxIsDel();
+        Integer isDelNext = maxIsDel == null ? 9 : (maxIsDel + 1);
         for (TcyrCpaCollidingDataPackage deletePackage : deletePackages) {
             try {
                 Long minId = null;
@@ -360,7 +386,7 @@ public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCle
                     minId = ids.get(ids.size() - 1);
                     CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                         try {
-                            tcyrCpaCollidingDataMapper.updateIsDelByIds(ids);
+                            tcyrCpaCollidingDataMapper.updateIsDelByIds(ids, isDelNext);
                         } catch (Exception e) {
                             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
                                     "数据删除-线程内异常，packageId:" + deletePackage.getId(), TITLE), e);

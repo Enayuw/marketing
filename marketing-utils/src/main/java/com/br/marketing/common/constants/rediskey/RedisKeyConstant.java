@@ -439,4 +439,9 @@ public class RedisKeyConstant {
      */
     public static final String UPLOAD_REPUSH_POLICY_NUM = prefix.concat("upload:toPolicy:repush:num:");
 
+    /**
+     * 跑分批次
+     */
+    public static final String scoreBatch = prefix.concat("scoreBatch");
+
 }

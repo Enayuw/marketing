@@ -332,6 +332,9 @@ public enum AlarmSendCodeEnum {
     //泰康业务告警码
     TAIKANG_MARKING_SERVICEERROR("6061001", "泰康业务异常"),
 
+    //泰康-钉钉回传业务告警码
+    TAIKANG_DINGDING_SERVICEERROR("6061001", "泰康线索钉钉数据回传异常"),
+
     //榕树新客接口调用失败
     RSXK_INTERFACE("6071001", "榕树新客接口异常"),
     //榕树新客业务异常
@@ -374,6 +377,8 @@ public enum AlarmSendCodeEnum {
     ZHONGYUAN_XIAOJIN_SERVICEERROR("8001006", "中原消金业务异常"),
 
     CALLBACK_LARGE_MODEL("7100001", "大模型回调业务异常"),
+
+    XYF_SERVICEERROR("7011001", "信用飞业务异常"),
 
     ;
 

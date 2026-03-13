@@ -7,6 +7,8 @@ import com.br.marketing.client.FtpClient;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.DataTypeEnum;
+import com.br.marketing.common.enums.PushTargetTypeEnum;
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.enums.SyncConfigCustomizedTypeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.Constants;
@@ -45,6 +47,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -78,21 +81,38 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
 
     private static final DateTimeFormatter FILE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-
     @Override
     public void processUploadTask(FileSyncTask uploadTask) {
-        SyncConfig syncConfig = getSyncConfigByTask(uploadTask);
-        if (Objects.isNull(syncConfig)) {
-            // 配置不存在，更新为失败状态
+        PushTargetTypeEnum pushTargetType = PushTargetTypeEnum.fromValue(uploadTask.getPushTargetType());
+        if (pushTargetType == null) {
+            pushTargetType = PushTargetTypeEnum.FROM_CONFIG;
+        }
+
+        SyncConfig syncConfig = null;
+        if (pushTargetType == PushTargetTypeEnum.FROM_CONFIG) {
+            syncConfig = getSyncConfigByTask(uploadTask);
+            if (Objects.isNull(syncConfig)) {
+                updateTaskStatus(uploadTask.getId(), DataProcessEnum.FileStatusEnum.FAIL.getCode());
+                return;
+            }
+        } else if (pushTargetType == PushTargetTypeEnum.SPECIFIED_TARGET
+                && StringUtils.isEmpty(uploadTask.getTargetPath())) {
+            // 指定目标：不查配置，目标路径与连接信息均来自任务表
+            log.error("指定目标时任务未设置目标路径，taskId: {}", uploadTask.getId());
             updateTaskStatus(uploadTask.getId(), DataProcessEnum.FileStatusEnum.FAIL.getCode());
             return;
+
         }
-        //文件上传
-        Boolean uploadResult = uploadSftp(uploadTask, syncConfig);
-        //后置sql处理
+
+        Boolean uploadResult;
+        if (pushTargetType == PushTargetTypeEnum.SPECIFIED_TARGET) {
+            uploadResult = uploadSftpWithTaskTarget(uploadTask);
+        } else {
+            uploadResult = uploadSftp(uploadTask, syncConfig);
+        }
+
         if (uploadResult) {
             Boolean postExecute = executePostSqlProcess(uploadTask.getPostSqlProcess());
-            // 根据上传结果更新任务状态
             if (postExecute) {
                 updateTaskStatus(uploadTask.getId(), DataProcessEnum.FileStatusEnum.SUCCESS.getCode());
                 log.warn("文件上传成功，taskId: {}, fileName: {}", uploadTask.getId(), uploadTask.getFileName());
@@ -146,6 +166,48 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
             // 确保连接被关闭
             try {
                 if (client != null && client.isConnected()) {
+                    client.disconnect();
+                }
+            } catch (Exception e) {
+                log.error("关闭SFTP连接失败，taskId: {}, error: {}", uploadTask.getId(), e.getMessage(), e);
+            }
+        }
+    }
+
+    /**
+     * 使用任务表内目标 SFTP 字段上传（pushTargetType=指定目标时，不查配置）
+     * 目标路径与连接信息均来自任务表
+     */
+    private Boolean uploadSftpWithTaskTarget(FileSyncTask uploadTask) {
+        SyncConfig targetConfig = new SyncConfig();
+        targetConfig.setTargetSftpHost(uploadTask.getTargetSftpHost());
+        targetConfig.setTargetSftpPort(uploadTask.getTargetSftpPort());
+        targetConfig.setTargetSftpUser(uploadTask.getTargetSftpUser());
+        targetConfig.setTargetSftpPwd(uploadTask.getTargetSftpPwd());
+        targetConfig.setTargetType(uploadTask.getTargetType() != null ? uploadTask.getTargetType() : FileServerType.SFTP.getServerType());
+        targetConfig.setTargetPath(uploadTask.getTargetPath());
+
+        BaseFtpClient client = syncServiceImpl.getClient(targetConfig, false);
+        if (client == null || !client.isConnected()) {
+            log.error("使用任务目标SFTP连接失败，taskId: {}, targetHost: {}", uploadTask.getId(), uploadTask.getTargetSftpHost());
+            return false;
+        }
+
+        String targetPath = replaceDateInPath(uploadTask.getTargetPath());
+        String localPath = uploadTask.getLocalPath().concat(uploadTask.getFileName());
+
+        try (InputStream inputStream = Files.newInputStream(Paths.get(localPath))) {
+            client.mkdir(targetPath);
+            client.uploadFile(inputStream, targetPath, uploadTask.getFileName());
+            insertSyncLog(uploadTask, targetConfig, targetPath);
+            return true;
+        } catch (Exception e) {
+            log.error("上传文件出错（任务指定目标），taskId: {}, fileName: {}, localPath: {}, targetPath: {}, error: {}",
+                    uploadTask.getId(), uploadTask.getFileName(), localPath, targetPath, e.getMessage(), e);
+            return false;
+        } finally {
+            try {
+                if (client.isConnected()) {
                     client.disconnect();
                 }
             } catch (Exception e) {
@@ -305,7 +367,7 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                 } catch (Exception e) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.FILE_DOWNLOAD_SYNC_ERROR.getCode(),
                             DOWNLOAD_TITLE + "处理配置异常，apiCode=" + config.getApiCode() +
-                            ", id=" + config.getId() + ", error=" + e.getMessage()), e);
+                                    ", id=" + config.getId() + ", error=" + e.getMessage()), e);
                 }
             });
         }
@@ -321,58 +383,101 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
 
         log.warn(DOWNLOAD_TITLE + "遍历完成，待同步文件：{}，配置数：{}", allFilesToSync.size(), groupedByConfig.size());
         boolean stop = false;
-        for (Map.Entry<Long, List<FileSyncInfo>> entry : groupedByConfig.entrySet()) {
-            if (stop) {
-                break;
-            }
-            List<FileSyncInfo> files = entry.getValue();
-            if (CollectionUtils.isEmpty(files)) {
-                continue;
-            }
-            SyncConfig config = files.get(0).getConfig();
-            boolean diskBool = Constants.LOAN_DISK.equals(config.getTargetType());
-            String targetType = config.getTargetType();
-            boolean needTargetClient = FileServerType.FTP.getServerType().equalsIgnoreCase(targetType)
-                    || FileServerType.SFTP.getServerType().equalsIgnoreCase(targetType);
-
-            BaseFtpClient srcClient = null;
-            BaseFtpClient targetClient = null;
-
-            try {
-                srcClient = syncServiceImpl.getClient(config, true);
-                if (needTargetClient) {
-                    targetClient = syncServiceImpl.getClient(config, false);
+        ExecutorService syncExecutor = BrExecutors.getThreadPool(1, 1, "file-sync-single", 1);
+        long singleFileTimeoutMs = 60 * 60 * 1000; // 单文件同步超时，默认1小时
+        try {
+            for (Map.Entry<Long, List<FileSyncInfo>> entry : groupedByConfig.entrySet()) {
+                if (stop) {
+                    break;
                 }
-                // 连接校验
-                if (srcClient == null || (needTargetClient && targetClient == null)) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.FILE_DOWNLOAD_SYNC_ERROR.getCode(),
-                            DOWNLOAD_TITLE + "targetClient or srcClient is null, apiCode=" + config.getApiCode()));
+                List<FileSyncInfo> files = entry.getValue();
+                if (CollectionUtils.isEmpty(files)) {
                     continue;
                 }
-                if (!srcClient.isConnected() || (needTargetClient && !targetClient.isConnected())) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.FILE_DOWNLOAD_SYNC_ERROR.getCode(),
-                            DOWNLOAD_TITLE + "连接不可用, apiCode=" + config.getApiCode()));
-                    continue;
-                }
-                log.warn(DOWNLOAD_TITLE + "开始同步配置：apiCode={},dataType={}, 文件数量：{}", config.getApiCode(), config.getDataType(), files.size());
-                // 同一配置的文件共用连接，串行同步
-                for (FileSyncInfo fileToSync : files) {
-                    //job开关判断
-                    Map<String, Boolean> jobSwitch = marketingCommonConfig.getMarketingJobTaskSwitch();
-                    if (!CollectionUtils.isEmpty(jobSwitch) && Boolean.TRUE.equals(jobSwitch.get("fileDownloadTask"))) {
-                        log.warn(DOWNLOAD_TITLE + "job开关关闭，停止文件下载任务");
-                        stop = true;
-                        break;
+                SyncConfig config = files.get(0).getConfig();
+                boolean diskBool = Constants.LOAN_DISK.equals(config.getTargetType());
+                String targetType = config.getTargetType();
+                boolean needTargetClient = FileServerType.FTP.getServerType().equalsIgnoreCase(targetType)
+                        || FileServerType.SFTP.getServerType().equalsIgnoreCase(targetType);
+
+                BaseFtpClient srcClient = null;
+                BaseFtpClient targetClient = null;
+
+                try {
+                    srcClient = syncServiceImpl.getClient(config, true);
+                    if (needTargetClient) {
+                        targetClient = syncServiceImpl.getClient(config, false);
                     }
-                    syncSingleFile(fileToSync, srcClient, targetClient, diskBool);
+                    // 连接校验
+                    if (srcClient == null || (needTargetClient && targetClient == null)) {
+                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.FILE_DOWNLOAD_SYNC_ERROR.getCode(),
+                                DOWNLOAD_TITLE + "targetClient or srcClient is null, apiCode=" + config.getApiCode()));
+                        continue;
+                    }
+                    if (!srcClient.isConnected() || (needTargetClient && !targetClient.isConnected())) {
+                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.FILE_DOWNLOAD_SYNC_ERROR.getCode(),
+                                DOWNLOAD_TITLE + "连接不可用, apiCode=" + config.getApiCode()));
+                        continue;
+                    }
+                    final BaseFtpClient src = srcClient;
+                    final BaseFtpClient tgt = targetClient;
+                    log.warn(DOWNLOAD_TITLE + "开始同步配置：apiCode={},dataType={}, 文件数量：{}", config.getApiCode(), config.getDataType(), files.size());
+                    // 同一配置的文件共用连接，串行同步
+                    for (FileSyncInfo fileToSync : files) {
+                        if (stop) {
+                            break;
+                        }
+                        //job开关判断
+                        Map<String, Boolean> jobSwitch = marketingCommonConfig.getMarketingJobTaskSwitch();
+                        if (!CollectionUtils.isEmpty(jobSwitch) && Boolean.TRUE.equals(jobSwitch.get("fileDownloadTask"))) {
+                            log.warn(DOWNLOAD_TITLE + "job开关关闭，停止文件下载任务");
+                            stop = true;
+                            break;
+                        }
+                        if (Objects.nonNull(marketingCommonConfig.getSftpDownLoadTimeOut())) {
+                            singleFileTimeoutMs = marketingCommonConfig.getSftpDownLoadTimeOut();
+                        }
+                        // 使用 Future.get(timeout) 控制超时
+                        Future future = syncExecutor.submit(() -> {
+                            syncSingleFile(fileToSync, src, tgt, diskBool);
+                        });
+                        try {
+                            future.get(singleFileTimeoutMs, TimeUnit.MILLISECONDS);
+                            log.warn(DOWNLOAD_TITLE + "文件同步完成，fileName={}", fileToSync.getFileName());
+                        } catch (TimeoutException te) {
+                            // 超时：中断线程 + 设置退出标志
+                            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.FILE_DOWNLOAD_SYNC_ERROR.getCode(),
+                                    DOWNLOAD_TITLE + "单文件同步超时，强制断开连接并退出整个任务。configId=" + config.getId() + ", fileName=" +
+                                    fileToSync.getFileName() + ", apiCode=" + config.getApiCode() + ", timeoutMs=" + singleFileTimeoutMs + "ms"));
+                            future.cancel(true); // 中断线程，让 put() 退出阻塞
+                            stop = true;
+                            break;
+                        } catch (Exception e) {
+                            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.FILE_DOWNLOAD_SYNC_ERROR.getCode(),
+                                    DOWNLOAD_TITLE + "文件同步异常，configId=" + config.getId() + ", fileName=" + fileToSync.getFileName()
+                                            + ", error=" + e.getMessage()), e);
+                        }
+                    }
+                } catch (Exception e) {
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.FILE_DOWNLOAD_SYNC_ERROR.getCode(),
+                            DOWNLOAD_TITLE + "处理配置异常，apiCode=" + config.getApiCode() +
+                                    ", error=" + e.getMessage()), e);
+                } finally {
+                    closeClient(srcClient);
+                    closeClient(targetClient);
                 }
-            } catch (Exception e) {
+            }
+        } finally {
+            syncExecutor.shutdown();
+            try {
+                if (!syncExecutor.awaitTermination(60, TimeUnit.SECONDS)) {
+                    syncExecutor.shutdownNow();
+                }
+            } catch (InterruptedException e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.FILE_DOWNLOAD_SYNC_ERROR.getCode(),
-                        DOWNLOAD_TITLE + "处理配置异常，apiCode=" + config.getApiCode() +
-                        ", error=" + e.getMessage()), e);
-            } finally {
-                closeClient(srcClient);
-                closeClient(targetClient);
+                        DOWNLOAD_TITLE + "等待线程池终止时被中断, error=" + e.getMessage()), e);
+                syncExecutor.shutdownNow();
+                Thread.currentThread().interrupt();
             }
         }
     }
@@ -936,6 +1041,7 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
      */
     private void syncSingleFile(FileSyncInfo fileToSync, BaseFtpClient srcClient,
                                 BaseFtpClient targetClient, boolean diskBool) {
+
         SyncConfig config = fileToSync.getConfig();
         String fileName = fileToSync.getFileName();
         String suffixStr = config.getSuffix();

@@ -97,6 +97,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -2735,6 +2736,338 @@ public class PushDataServiceImpl implements PushDataService {
                     .append("数量：").append(processedCount).append("\r\n")
                     .append("特殊文件[").append(filePrefix).append("]推送dass结束\r\n");
             alarmClient.sendAlarm(content.toString(), "特殊文件Dass结果文件推送", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
+        }
+    }
+
+    @Override
+    public Result pushDynamicGroupDassData(Long id, String filePrefix, JSONObject prefixConfig) {
+        String TITLE = "动态分组文件推人工[" + filePrefix + "] ";
+        log.warn(TITLE + "开始，文件ID: {}, 配置: {}", id, prefixConfig);
+        
+        JSONObject groupByConfig = prefixConfig.getJSONObject("groupByField");
+        if (groupByConfig == null) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("配置错误：缺少groupByField配置");
+        }
+        
+        String groupFieldName = groupByConfig.getString("fieldName");
+        String groupFieldSource = groupByConfig.getString("fieldSource");
+        JSONObject mergeConfig = prefixConfig.getJSONObject("mergeConfig");
+        
+        if (StringUtils.isBlank(groupFieldName) || StringUtils.isBlank(groupFieldSource)) {
+            return new Result().setCode(ResultCode.FAIL.getValue())
+                    .setMessage("配置错误：groupByField.fieldName或fieldSource为空");
+        }
+        
+        if ("base".equals(groupFieldSource)) {
+            return pushByBaseField(id, filePrefix, groupFieldName, mergeConfig);
+        } else if ("extend".equals(groupFieldSource)) {
+            return pushByExtendField(id, filePrefix, groupFieldName, mergeConfig);
+        } else {
+            return new Result().setCode(ResultCode.FAIL.getValue())
+                    .setMessage("不支持的字段来源类型: " + groupFieldSource);
+        }
+    }
+
+    /**
+     * 基础字段分组处理
+     */
+    private Result pushByBaseField(Long id, String filePrefix, String groupFieldName, JSONObject mergeConfig) {
+        String TITLE = "基础字段分组[" + groupFieldName + "] ";
+        log.warn(TITLE + "开始处理，文件ID: {}", id);
+        
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(10, 10);
+        Boolean isContiue = false;
+        
+        LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
+        if (localFile == null) {
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在").setDate(isContiue);
+        }
+        localFile.setPushStartTime(new Date());
+        
+        // 获取分组总数（使用动态字段）
+        Integer totalGroupCount = phoneSaleMapper.getGroupByFieldCount(String.valueOf(id), groupFieldName);
+        
+        if (totalGroupCount == null || totalGroupCount == 0) {
+            localFile.setPushEndTime(new Date());
+            localFile.setPushNumber(0);
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("未查询到分组数据").setDate(isContiue);
+        }
+        
+        log.warn(TITLE + "总共需要处理 {} 个分组", totalGroupCount);
+        
+        Integer processedCount = 0;
+        List<DassImportDataDTO> dataDTOS = new ArrayList<>();
+        Integer groupOffset = 0;
+        
+        try {
+            while (groupOffset < totalGroupCount) {
+                // 分页获取分组值
+                List<String> groupValues = phoneSaleMapper.getGroupByFieldWithPaging(
+                        String.valueOf(id), groupFieldName, groupOffset, PHONE_PAGE_SIZE);
+                
+                if (groupValues.isEmpty()) {
+                    break;
+                }
+                
+                log.warn(TITLE + "处理分组，offset: {}, size: {}", groupOffset, groupValues.size());
+                
+                for (String groupValue : groupValues) {
+                    // 获取该分组的所有记录
+                    List<DassImportDataDTO> records = phoneSaleMapper.getDataByGroupField(
+                            String.valueOf(id), groupFieldName, groupValue);
+                    
+                    if (records.isEmpty()) {
+                        continue;
+                    }
+                    
+                    // 合并数据（复用现有逻辑）
+                    DassImportDataDTO mergedData = mergeRecords(records, mergeConfig, TITLE);
+                    if (mergedData != null) {
+                        dataDTOS.add(mergedData);
+                        processedCount++;
+                    }
+                    
+                    // 批量推送
+                    if (dataDTOS.size() >= BATCH_SIZE) {
+                        pushBatchData(dataDTOS, id, threadPool, TITLE);
+                        dataDTOS.clear();
+                    }
+                }
+                groupOffset += PHONE_PAGE_SIZE;
+            }
+            
+            // 推送剩余数据
+            if (!dataDTOS.isEmpty()) {
+                pushBatchData(dataDTOS, id, threadPool, TITLE);
+                dataDTOS.clear();
+            }
+            
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildErrorMessage(
+                    AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(), 
+                    TITLE + "业务异常！"), ex);
+        }
+        
+        // 关闭线程池并等待完成
+        shutdownThreadPool(threadPool, TITLE);
+        
+        localFile.setPushEndTime(new Date());
+        localFile.setPushNumber(processedCount);
+        localFileMapper.updateByPrimaryKeySelective(localFile);
+        sendSpecialFileAlarm(localFile, filePrefix, processedCount);
+        
+        log.warn(TITLE + "推送完成，处理数量: {}", processedCount);
+        return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContiue);
+    }
+
+    /**
+     * Extend字段分组处理
+     */
+    private Result pushByExtendField(Long id, String filePrefix, String groupFieldName, JSONObject mergeConfig) {
+        String TITLE = "Extend字段分组[" + groupFieldName + "] ";
+        log.warn(TITLE + "开始处理，文件ID: {}", id);
+        
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(10, 10);
+        Boolean isContiue = false;
+        
+        LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
+        if (localFile == null) {
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在").setDate(isContiue);
+        }
+        localFile.setPushStartTime(new Date());
+        
+        // 查询所有数据（因为需要从 extend JSON 中提取分组字段）
+        List<DassImportDataDTO> allRecords = phoneSaleMapper.getAllDataByFileId(String.valueOf(id));
+        
+        if (allRecords.isEmpty()) {
+            localFile.setPushEndTime(new Date());
+            localFile.setPushNumber(0);
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("未查询到数据").setDate(isContiue);
+        }
+        
+        // 手动分组：从 extend 中提取分组字段值
+        LinkedHashMap<String, List<DassImportDataDTO>> groupedData = new LinkedHashMap<>();
+        for (DassImportDataDTO record : allRecords) {
+            String extend = record.getExtend();
+            if (StringUtils.isBlank(extend)) {
+                continue;
+            }
+            
+            try {
+                JSONObject extendJson = JSON.parseObject(extend);
+                String groupValue = extendJson.getString(groupFieldName);
+                
+                if (StringUtils.isNotBlank(groupValue)) {
+                    groupedData.computeIfAbsent(groupValue, k -> new ArrayList<>()).add(record);
+                }
+            } catch (Exception e) {
+                log.warn(TITLE + "解析extend字段异常，跳过该记录", e);
+            }
+        }
+        
+        log.warn(TITLE + "总共需要处理 {} 个分组", groupedData.size());
+        
+        Integer processedCount = 0;
+        List<DassImportDataDTO> dataDTOS = new ArrayList<>();
+        
+        try {
+            for (Map.Entry<String, List<DassImportDataDTO>> entry : groupedData.entrySet()) {
+                List<DassImportDataDTO> records = entry.getValue();
+                
+                // 合并数据（复用现有逻辑）
+                DassImportDataDTO mergedData = mergeRecords(records, mergeConfig, TITLE);
+                if (mergedData != null) {
+                    dataDTOS.add(mergedData);
+                    processedCount++;
+                }
+                
+                // 批量推送
+                if (dataDTOS.size() >= BATCH_SIZE) {
+                    pushBatchData(dataDTOS, id, threadPool, TITLE);
+                    dataDTOS.clear();
+                }
+            }
+            
+            // 推送剩余数据
+            if (!dataDTOS.isEmpty()) {
+                pushBatchData(dataDTOS, id, threadPool, TITLE);
+                dataDTOS.clear();
+            }
+            
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildErrorMessage(
+                    AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(),
+                    TITLE + "业务异常！"), ex);
+        }
+        
+        // 关闭线程池并等待完成
+        shutdownThreadPool(threadPool, TITLE);
+        
+        localFile.setPushEndTime(new Date());
+        localFile.setPushNumber(processedCount);
+        localFileMapper.updateByPrimaryKeySelective(localFile);
+        sendSpecialFileAlarm(localFile, filePrefix, processedCount);
+        
+        log.warn(TITLE + "推送完成，处理数量: {}", processedCount);
+        return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContiue);
+    }
+
+    /**
+     * 合并记录（复用现有逻辑）
+     */
+    private DassImportDataDTO mergeRecords(List<DassImportDataDTO> records, JSONObject mergeConfig, String TITLE) {
+        if (records.isEmpty()) {
+            return null;
+        }
+        
+        // 第一条记录作为基准
+        DassImportDataDTO firstDataDTO = records.get(0);
+        JSONObject firstExtend = JSON.parseObject(firstDataDTO.getExtend());
+        if (firstExtend == null) {
+            firstExtend = new JSONObject();
+        }
+        
+        // 用于存储合并的数据
+        JSONObject mergedDataMap = new JSONObject();
+        
+        if (mergeConfig != null && !mergeConfig.isEmpty()) {
+            // 初始化合并数据结构
+            for (String configKey : mergeConfig.keySet()) {
+                mergedDataMap.put(configKey, new JSONArray());
+            }
+            
+            // 遍历配置中的所有字段组
+            for (String configKey : mergeConfig.keySet()) {
+                List<String> fieldNames = mergeConfig.getJSONArray(configKey).toJavaList(String.class);
+                JSONArray mergedArray = mergedDataMap.getJSONArray(configKey);
+                
+                // 遍历所有记录，提取字段
+                for (DassImportDataDTO dataDTO : records) {
+                    String extend = dataDTO.getExtend();
+                    if (StringUtils.isNotBlank(extend)) {
+                        try {
+                            JSONObject jsonParam = JSON.parseObject(extend);
+                            JSONObject extractedData = new JSONObject();
+                            
+                            for (String fieldName : fieldNames) {
+                                String value = jsonParam.getString(fieldName);
+                                extractedData.put(fieldName, value == null ? "" : value);
+                            }
+                            
+                            mergedArray.add(extractedData);
+                        } catch (Exception e) {
+                            log.warn(TITLE + "解析extend字段异常，跳过该记录: {}", extend, e);
+                        }
+                    }
+                }
+            }
+            
+            // 将合并后的数组放入 extend 中
+            for (String configKey : mergedDataMap.keySet()) {
+                firstExtend.put(configKey, mergedDataMap.getJSONArray(configKey));
+                
+                // 移除已合并的字段
+                List<String> fieldNames = mergeConfig.getJSONArray(configKey).toJavaList(String.class);
+                for (String fieldName : fieldNames) {
+                    firstExtend.remove(fieldName);
+                }
+            }
+            
+            firstDataDTO.setExtend(firstExtend.toJSONString());
+        }
+        
+        return firstDataDTO;
+    }
+
+    /**
+     * 批量推送数据
+     */
+    private void pushBatchData(List<DassImportDataDTO> dataDTOS, Long fileId,
+                              ThreadPoolExecutor threadPool, String TITLE) {
+        DassImportAdapDTO dto = new DassImportAdapDTO();
+        dto.setInterfaceExtendInfo(fileId.toString());
+        dto.setList(new ArrayList<>(dataDTOS));
+        
+        threadPool.submit(() -> {
+            try {
+                Result result = dassServiceClient.postHermesUserData(dto);
+                if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                    // 记录重试日志
+                    RetryMainLog mainLog = new RetryMainLog();
+                    mainLog.setRetryType(1);
+                    mainLog.setRetryParam(JSON.toJSONString(dto));
+                    mainLog.setRetryParamType(dto.getClass().getName());
+                    mainLog.setRetryService("dassServiceClient");
+                    mainLog.setRetryMethod("postHermesUserData");
+                    mainLog.setRetryNum(0);
+                    mainLog.setRetryMaxNum(3);
+                    mainLog.setRetryStatus(1);
+                    mainLog.setCreateTime(new Date());
+                    mainLog.setIncrId(redisChgService.incr(RedisKeyConstant.retryid));
+                    retryMainLogMapper.insertSelective(mainLog);
+                }
+            } catch (Exception e) {
+                log.warn(AlertLog.buildErrorMessage(
+                        AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(),
+                        TITLE + "推送异常：" + e.getMessage()), e);
+            }
+        });
+    }
+
+    /**
+     * 关闭线程池
+     */
+    private void shutdownThreadPool(ThreadPoolExecutor threadPool, String TITLE) {
+        threadPool.shutdown();
+        try {
+            while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.warn(TITLE + "等待线程池结束");
+            }
+        } catch (InterruptedException ex) {
+            log.warn(AlertLog.buildErrorMessage(
+                    AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(),
+                    TITLE + "线程池停止异常！"), ex);
+            Thread.currentThread().interrupt();
         }
     }
 }

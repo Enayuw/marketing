@@ -2930,7 +2930,6 @@ public class MarketingCommonConfig {
      */
     private JSONObject tcyrServerConfig;
 
-
     /**
      * 携程上报新接口
      */
@@ -3577,6 +3576,13 @@ public class MarketingCommonConfig {
     private JSONObject tcyrCpaPushFileVTConfig;
 
     /**
+     * 同程易融CPA周期打标配置
+     * 格式：startDate,endDate，例如："2026-01-19,2026-01-25"
+     * 若为空，则默认取上一自然周（周一至周日）
+     */
+    private String tcyrCpaCyclePeriodConfig;
+
+    /**
      * 随意记获取黑名单RSA私钥
      */
     private String suiyijiBlackBrPrivateKey;
@@ -3612,4 +3618,29 @@ public class MarketingCommonConfig {
      * value：apiCode集合
      */
     private Map<String,List<String>> versionApiCodes;
+
+    /**
+     * sftp下载单个文件超时时间
+     */
+    private Long sftpDownLoadTimeOut;
+
+    /**
+     * 信用飞加密配置
+     */
+    private JSONObject xyfEncryptionConfig;
+
+    /**
+     * 信用飞模拟客户加密配置
+     */
+    private JSONObject xyfSimCusEncryptionConfig;
+
+    /**
+     * 信用飞apiCode
+     */
+    private String xyfApiCode;
+
+    /**
+     * 跑分rediskey的scoreStatus的最终执行时间
+     */
+    private String scoreStatusFinalDate;
  }

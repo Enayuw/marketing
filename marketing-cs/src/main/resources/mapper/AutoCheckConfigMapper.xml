@@ -14,11 +14,10 @@
             </foreach>
         </if>
         <if test="sceneCodeList != null and sceneCodeList.size() > 0">
-            AND (
-            <foreach collection="sceneCodeList" item="sceneCode" separator=" OR ">
-                scene_code LIKE CONCAT('%', #{sceneCode}, '%')
+            AND scene_code IN
+            <foreach collection="sceneCodeList" item="sceneCode" open="(" close=")" separator=",">
+                #{sceneCode}
             </foreach>
-            )
         </if>
     </select>
 
@@ -31,5 +30,27 @@
         ORDER BY create_time DESC
         LIMIT 1
     </select>
+
+    <!-- 批量插入配置 -->
+    <insert id="batchInsert">
+        INSERT INTO b_auto_check_config
+        (api_code, scene_code, `table_name`, field_name, is_deleted, create_time, update_time)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.apiCode}, #{item.sceneCode}, #{item.tableName}, #{item.fieldName}, 0, NOW(), NOW())
+        </foreach>
+    </insert>
+
+    <!-- 批量删除配置 -->
+    <update id="batchDelete">
+        UPDATE b_auto_check_config
+        SET
+        is_deleted = 1,
+        update_time = NOW()
+        WHERE id IN
+        <foreach collection="list" item="item" open="(" close=")" separator=",">
+            #{item.id}
+        </foreach>
+    </update>
 
 </mapper>

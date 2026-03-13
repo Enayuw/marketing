@@ -73,6 +73,14 @@ public enum ThreadPoolNameEnum {
     FILE_SYNC_DOWNLOAD(54,"file_sync_download","文件同步下载任务"),
     DIDI_V5_CONSTRUCT(55,"didi_v5_callback","滴滴v5数据构造"),
     DIDI_V5_FILTER(56,"didi_v5_filter","滴滴v5数据剔除"),
+
+    TAIKANG_DINGDING_TRANSFER(64,"taikang_dingding_transfer", "泰康滴滴线索数据回传"),
+
+    /** inner 线上测试用，仅 Postman 调用：线程池空跑 */
+    INNER_TEST_TP(66, "inner_test_tp", "inner 线上测试线程池空跑"),
+
+    DIDI_V5_BLACK_DATA(71,"didi_v5_black_data","滴滴v5黑名单"),
+
     ;
 
     private final Integer order;

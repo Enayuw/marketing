@@ -305,6 +305,76 @@ public class AutoCheckResultLogExample {
             return (Criteria) this;
         }
 
+        public Criteria andTableNameIsNull() {
+            addCriterion("`table_name` is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTableNameIsNotNull() {
+            addCriterion("`table_name` is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTableNameEqualTo(String value) {
+            addCriterion("`table_name` =", value, "tableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andTableNameNotEqualTo(String value) {
+            addCriterion("`table_name` <>", value, "tableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andTableNameGreaterThan(String value) {
+            addCriterion("`table_name` >", value, "tableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andTableNameGreaterThanOrEqualTo(String value) {
+            addCriterion("`table_name` >=", value, "tableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andTableNameLessThan(String value) {
+            addCriterion("`table_name` <", value, "tableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andTableNameLessThanOrEqualTo(String value) {
+            addCriterion("`table_name` <=", value, "tableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andTableNameLike(String value) {
+            addCriterion("`table_name` like", value, "tableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andTableNameNotLike(String value) {
+            addCriterion("`table_name` not like", value, "tableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andTableNameIn(List<String> values) {
+            addCriterion("`table_name` in", values, "tableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andTableNameNotIn(List<String> values) {
+            addCriterion("`table_name` not in", values, "tableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andTableNameBetween(String value1, String value2) {
+            addCriterion("`table_name` between", value1, value2, "tableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andTableNameNotBetween(String value1, String value2) {
+            addCriterion("`table_name` not between", value1, value2, "tableName");
+            return (Criteria) this;
+        }
+
         public Criteria andLastDataIsNull() {
             addCriterion("last_data is null");
             return (Criteria) this;
@@ -642,6 +712,76 @@ public class AutoCheckResultLogExample {
 
         public Criteria andResultNotBetween(String value1, String value2) {
             addCriterion("`result` not between", value1, value2, "result");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchIdIsNull() {
+            addCriterion("batch_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchIdIsNotNull() {
+            addCriterion("batch_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchIdEqualTo(String value) {
+            addCriterion("batch_id =", value, "batchId");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchIdNotEqualTo(String value) {
+            addCriterion("batch_id <>", value, "batchId");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchIdGreaterThan(String value) {
+            addCriterion("batch_id >", value, "batchId");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchIdGreaterThanOrEqualTo(String value) {
+            addCriterion("batch_id >=", value, "batchId");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchIdLessThan(String value) {
+            addCriterion("batch_id <", value, "batchId");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchIdLessThanOrEqualTo(String value) {
+            addCriterion("batch_id <=", value, "batchId");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchIdLike(String value) {
+            addCriterion("batch_id like", value, "batchId");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchIdNotLike(String value) {
+            addCriterion("batch_id not like", value, "batchId");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchIdIn(List<String> values) {
+            addCriterion("batch_id in", values, "batchId");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchIdNotIn(List<String> values) {
+            addCriterion("batch_id not in", values, "batchId");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchIdBetween(String value1, String value2) {
+            addCriterion("batch_id between", value1, value2, "batchId");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchIdNotBetween(String value1, String value2) {
+            addCriterion("batch_id not between", value1, value2, "batchId");
             return (Criteria) this;
         }
 

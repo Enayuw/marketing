@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.TaikangDingDingDataRecordMapper" >
+
+    <select id="selectRecordList" resultType="com.br.marketing.entity.TaikangDingDingDataRecord">
+        SELECT
+            id, cell, browse_date, application_name, return_result1, created_by, created_time,
+               last_modified_by, last_modified_time, last_modified_user_id, last_modified_user_name
+        FROM b_dd_data_taikang_record
+        WHERE
+            id > #{searchId}
+            AND created_time &gt;= #{previousTime}
+            AND created_time &lt; #{nowTime}
+        ORDER BY id ASC
+        LIMIT #{searchSize}
+    </select>
+</mapper>
