@@ -107,14 +107,14 @@ public class TrackingLinkController {
     }
 
     @GetMapping("/deleteLink")
-    @Operation(summary = "删除链路", description = "删除链路")
+    @Operation(summary = "删除链路", description = "删除链路及其关联的节点、边")
     @AddDataAuthBusiness
     public ApiResult<Boolean> deleteLink(@RequestParam List<Long> ids) {
         try {
             return trackingLinkService.deleteLink(ids);
         } catch (Exception e) {
             log.error("Failed to deleteLink link", e);
-            return new ApiResult<Boolean>().fail("Failed to update link status: " + e.getMessage());
+            return new ApiResult<Boolean>().fail("删除链路失败: " + e.getMessage());
         }
     }
 

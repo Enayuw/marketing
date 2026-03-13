@@ -520,11 +520,21 @@ public class TrackingLinkServiceImpl implements TrackingLinkService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public ApiResult<Boolean> deleteLink(List<Long> ids) {
         if (ids.isEmpty()) {
             return new ApiResult<Boolean>().fail("链路ID列表不能为空");
         }
 
+        // 1. 删除该链路下的所有边
+        for (Long linkId : ids) {
+            linkEdgeMapper.deleteByLinkId(linkId);
+        }
+        // 2. 删除该链路下的所有节点
+        BizTrackingLinkNodeExample nodeExample = new BizTrackingLinkNodeExample();
+        nodeExample.createCriteria().andLinkIdIn(ids);
+        linkNodeMapper.deleteByExample(nodeExample);
+        // 3. 删除链路主表
         BizTrackingLinkExample bizTrackingLinkExample = new BizTrackingLinkExample();
         bizTrackingLinkExample.createCriteria().andIdIn(ids);
         linkMapper.deleteByExample(bizTrackingLinkExample);
