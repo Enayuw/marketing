@@ -1965,52 +1965,52 @@ public class SyncConfigExample {
             return (Criteria) this;
         }
 
-        public Criteria andIsPersEqualTo(Boolean value) {
+        public Criteria andIsPersEqualTo(Integer value) {
             addCriterion("is_pers =", value, "isPers");
             return (Criteria) this;
         }
 
-        public Criteria andIsPersNotEqualTo(Boolean value) {
+        public Criteria andIsPersNotEqualTo(Integer value) {
             addCriterion("is_pers <>", value, "isPers");
             return (Criteria) this;
         }
 
-        public Criteria andIsPersGreaterThan(Boolean value) {
+        public Criteria andIsPersGreaterThan(Integer value) {
             addCriterion("is_pers >", value, "isPers");
             return (Criteria) this;
         }
 
-        public Criteria andIsPersGreaterThanOrEqualTo(Boolean value) {
+        public Criteria andIsPersGreaterThanOrEqualTo(Integer value) {
             addCriterion("is_pers >=", value, "isPers");
             return (Criteria) this;
         }
 
-        public Criteria andIsPersLessThan(Boolean value) {
+        public Criteria andIsPersLessThan(Integer value) {
             addCriterion("is_pers <", value, "isPers");
             return (Criteria) this;
         }
 
-        public Criteria andIsPersLessThanOrEqualTo(Boolean value) {
+        public Criteria andIsPersLessThanOrEqualTo(Integer value) {
             addCriterion("is_pers <=", value, "isPers");
             return (Criteria) this;
         }
 
-        public Criteria andIsPersIn(List<Boolean> values) {
+        public Criteria andIsPersIn(List<Integer> values) {
             addCriterion("is_pers in", values, "isPers");
             return (Criteria) this;
         }
 
-        public Criteria andIsPersNotIn(List<Boolean> values) {
+        public Criteria andIsPersNotIn(List<Integer> values) {
             addCriterion("is_pers not in", values, "isPers");
             return (Criteria) this;
         }
 
-        public Criteria andIsPersBetween(Boolean value1, Boolean value2) {
+        public Criteria andIsPersBetween(Integer value1, Integer value2) {
             addCriterion("is_pers between", value1, value2, "isPers");
             return (Criteria) this;
         }
 
-        public Criteria andIsPersNotBetween(Boolean value1, Boolean value2) {
+        public Criteria andIsPersNotBetween(Integer value1, Integer value2) {
             addCriterion("is_pers not between", value1, value2, "isPers");
             return (Criteria) this;
         }

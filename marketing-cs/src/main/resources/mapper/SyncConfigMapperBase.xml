@@ -30,7 +30,7 @@
     <result column="customized_type" property="customizedType" jdbcType="INTEGER" />
     <result column="execute_time" property="executeTime" jdbcType="VARCHAR" />
     <result column="sync_start_time" property="syncStartTime" jdbcType="VARCHAR" />
-    <result column="is_pers" property="isPers" jdbcType="BIT" />
+    <result column="is_pers" property="isPers" jdbcType="INTEGER" />
     <result column="path_template_id" property="pathTemplateId" jdbcType="BIGINT" />
   </resultMap>
   <sql id="Example_Where_Clause" >
@@ -151,7 +151,7 @@
     #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{srcType,jdbcType=VARCHAR},
     #{targetType,jdbcType=VARCHAR}, #{exclusionTime,jdbcType=VARCHAR}, #{type,jdbcType=INTEGER},
     #{customizedType,jdbcType=INTEGER}, #{executeTime,jdbcType=VARCHAR}, #{syncStartTime,jdbcType=VARCHAR},
-    #{isPers,jdbcType=BIT}, #{pathTemplateId,jdbcType=BIGINT})
+    #{isPers,jdbcType=INTEGER}, #{pathTemplateId,jdbcType=BIGINT})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.SyncConfig" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -330,7 +330,7 @@
         #{syncStartTime,jdbcType=VARCHAR},
       </if>
       <if test="isPers != null" >
-        #{isPers,jdbcType=BIT},
+        #{isPers,jdbcType=INTEGER},
       </if>
       <if test="pathTemplateId != null" >
         #{pathTemplateId,jdbcType=BIGINT},
@@ -431,7 +431,7 @@
         sync_start_time = #{record.syncStartTime,jdbcType=VARCHAR},
       </if>
       <if test="record.isPers != null" >
-        is_pers = #{record.isPers,jdbcType=BIT},
+        is_pers = #{record.isPers,jdbcType=INTEGER},
       </if>
       <if test="record.pathTemplateId != null" >
         path_template_id = #{record.pathTemplateId,jdbcType=BIGINT},
@@ -471,7 +471,7 @@
     customized_type = #{record.customizedType,jdbcType=INTEGER},
     execute_time = #{record.executeTime,jdbcType=VARCHAR},
     sync_start_time = #{record.syncStartTime,jdbcType=VARCHAR},
-    is_pers = #{record.isPers,jdbcType=BIT},
+    is_pers = #{record.isPers,jdbcType=INTEGER},
     path_template_id = #{record.pathTemplateId,jdbcType=BIGINT}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -562,7 +562,7 @@
         sync_start_time = #{syncStartTime,jdbcType=VARCHAR},
       </if>
       <if test="isPers != null" >
-        is_pers = #{isPers,jdbcType=BIT},
+        is_pers = #{isPers,jdbcType=INTEGER},
       </if>
       <if test="pathTemplateId != null" >
         path_template_id = #{pathTemplateId,jdbcType=BIGINT},
@@ -599,7 +599,7 @@
         customized_type = #{customizedType,jdbcType=INTEGER},
         execute_time = #{executeTime,jdbcType=VARCHAR},
         sync_start_time = #{syncStartTime,jdbcType=VARCHAR},
-        is_pers = #{isPers,jdbcType=BIT},
+        is_pers = #{isPers,jdbcType=INTEGER},
         path_template_id = #{pathTemplateId,jdbcType=BIGINT}
     where id = #{id,jdbcType=BIGINT}
   </update>

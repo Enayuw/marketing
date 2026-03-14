@@ -145,8 +145,9 @@ public class SyncConfig {
 
     /**
      * 是否持久化到业务表：0-否 1-是
+     * @see com.br.marketing.enums.clean.IsPersEnum
      */
-    private Boolean isPers;
+    private Integer isPers;
 
     /**
      * 文件路径模板id
@@ -377,11 +378,11 @@ public class SyncConfig {
         this.syncStartTime = syncStartTime == null ? null : syncStartTime.trim();
     }
 
-    public Boolean getIsPers() {
+    public Integer getIsPers() {
         return isPers;
     }
 
-    public void setIsPers(Boolean isPers) {
+    public void setIsPers(Integer isPers) {
         this.isPers = isPers;
     }
 
