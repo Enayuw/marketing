@@ -164,7 +164,7 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
             log.error(ex.getMessage(), ex);
         }
         List<JSONObject> jsonList = dataCleanService.fileDataAssemble(
-                batchLines, dataFile.getFileHeader().split(","), cleanDataFile.getFileName(), 0);
+                batchLines, dataFile.getFileHeader().split(","), cleanDataFile.getFileName(), 0, null);
         dataFile.setId(cleanDataFile.getId());
         dataFile.setReceiveDate(LocalDate.now().toString());
         dataFile.setTestRunData(JSON.toJSONString(jsonList));
@@ -226,7 +226,7 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
             log.error(ex.getMessage(), ex);
         }
         List<JSONObject> jsonList = dataCleanService.fileDataAssemble(
-                batchLines, dataFile.getFileHeader().split(","), fileName, 0);
+                batchLines, dataFile.getFileHeader().split(","), fileName, 0, null);
         dataFile.setApiCode(syncConfig.getApiCode());
         dataFile.setFileName(fileName);
         dataFile.setLocalPath(path);
