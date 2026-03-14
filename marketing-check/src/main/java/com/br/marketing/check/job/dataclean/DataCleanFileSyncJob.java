@@ -19,7 +19,9 @@ import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.service.IFileActionService;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.clean.common.impl.DataCleanServiceImpl;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
+import com.googlecode.aviator.AviatorEvaluatorInstance;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.google.common.collect.Lists;
 import com.marketingkit.tracking.model.indicator.DataFlowDirection;
@@ -39,7 +41,9 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Component
 @Slf4j
@@ -66,6 +70,12 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
     private TrackingService trackingService;
     @Resource
     private DataCleanServiceImpl dataCleanService;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
+    @Resource(name = "cleanRuleAviatorEvaluatorInstance")
+    private AviatorEvaluatorInstance cleanRuleAviatorEvaluatorInstance;
 
     @Value("${otherConfig.warning.sftpHost:00}")
     private String sftpHost;
@@ -153,10 +163,16 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
         }
-        List<JSONObject> jsonList = dataCleanService.fileDataAssemble(batchLines,dataFile.getFileHeader().split(","),cleanDataFile.getFileName(),0);
+        List<JSONObject> jsonList = dataCleanService.fileDataAssemble(
+                batchLines, dataFile.getFileHeader().split(","), cleanDataFile.getFileName(), 0);
         dataFile.setId(cleanDataFile.getId());
         dataFile.setReceiveDate(LocalDate.now().toString());
         dataFile.setTestRunData(JSON.toJSONString(jsonList));
+        String virtualHeadersJson = evaluateVirtualHeadersScript(
+                cleanDataFile.getSyncConfigId(), cleanDataFile.getFileName());
+        if (virtualHeadersJson != null) {
+            dataFile.setVirtualHeaders(virtualHeadersJson);
+        }
         marketingCleanDataFileMapper.updateByPrimaryKeySelective(dataFile);
 
         try {
@@ -209,7 +225,8 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
         }
-        List<JSONObject> jsonList = dataCleanService.fileDataAssemble(batchLines,dataFile.getFileHeader().split(","),fileName,0);
+        List<JSONObject> jsonList = dataCleanService.fileDataAssemble(
+                batchLines, dataFile.getFileHeader().split(","), fileName, 0);
         dataFile.setApiCode(syncConfig.getApiCode());
         dataFile.setFileName(fileName);
         dataFile.setLocalPath(path);
@@ -219,6 +236,11 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
         dataFile.setUpdateTime(new Date());
         dataFile.setReceiveDate(LocalDate.now().toString());
         dataFile.setTestRunData(JSON.toJSONString(jsonList));
+        String virtualHeadersJson = evaluateVirtualHeadersScript(
+                syncConfig.getId(), fileName);
+        if (virtualHeadersJson != null) {
+            dataFile.setVirtualHeaders(virtualHeadersJson);
+        }
         marketingCleanDataFileMapper.insertSelective(dataFile);
 
         try {
@@ -239,5 +261,43 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
                     , ex);
         }
 
+    }
+
+    /**
+     * 根据 sync_config_id 从 speed 配置取 Aviator 脚本，入参 file_name 执行，
+     * 将返回的虚拟 header 键值对序列化为 JSON 写入 virtual_headers。
+     *
+     * @param syncConfigId b_sync_config.id
+     * @param fileName     文件名，作为脚本入参 file_name
+     * @return JSON 字符串，异常或未配置时返回 null
+     */
+    private String evaluateVirtualHeadersScript(Long syncConfigId, String fileName) {
+        if (syncConfigId == null
+                || marketingCommonConfig.getVirtualHeaderAviatorScriptConfig() == null) {
+            return null;
+        }
+        String script = marketingCommonConfig.getVirtualHeaderAviatorScriptConfig()
+                .get(String.valueOf(syncConfigId));
+        if (StringUtils.isBlank(script)) {
+            return null;
+        }
+        Map<String, Object> env = new HashMap<>();
+        env.put("file_name", fileName != null ? fileName : "");
+        try {
+            Object result = cleanRuleAviatorEvaluatorInstance.execute(script, env);
+            if (result == null) {
+                return null;
+            }
+            return JSON.toJSONString(result);
+        } catch (Exception e) {
+            String msg = String.format(
+                    "虚拟header Aviator脚本执行失败 syncConfigId=%s fileName=%s error=%s",
+                    syncConfigId, fileName, e.getMessage());
+            log.warn(AlertLog.buildWarnMessage(
+                    AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                    msg,
+                    "虚拟header Aviator脚本执行异常"), e);
+            return null;
+        }
     }
 }
