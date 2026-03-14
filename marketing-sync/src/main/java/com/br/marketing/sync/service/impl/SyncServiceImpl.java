@@ -11,6 +11,7 @@ import com.br.marketing.common.enums.ExecuteTimeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.common.utils.file.ZipUtils;
 import com.br.marketing.entity.MarketingCleanDataFile;
 import com.br.marketing.entity.SyncConfig;
 import com.br.marketing.entity.SyncLog;
@@ -932,8 +933,15 @@ public class SyncServiceImpl implements SyncService {
                 }
                 // 获取MD5值生成
                 String md5Value = DatatypeConverter.printHexBinary(md.digest());
-                // 保存文件信息
-                return saveDataFileInfo(fileName, loanSyncConfig, targetPath, srcPath, md5Value);
+                String suffixStr = loanSyncConfig.getSuffix();
+                boolean isZip = suffixStr != null && suffixStr.toLowerCase().contains("zip");
+                if (isZip) {
+                    // 压缩包：不插入 zip 本身，解压后为每个解压文件插入一条记录
+                    return unzipAndSaveExtractedFiles(fileName, loanSyncConfig, targetPath, srcPath, file);
+                } else {
+                    // 非压缩包：插入一条文件记录
+                    return saveDataFileInfo(fileName, loanSyncConfig, targetPath, srcPath, md5Value);
+                }
             } catch (Exception e) {
                 log.warn("文件下载错误文件出错！srcPath:{},fileName:{},targetPath{},syncConfigId:{}"
                         , srcPath, fileName, targetPath, loanSyncConfig.getId(), e);
@@ -995,6 +1003,48 @@ public class SyncServiceImpl implements SyncService {
             return Boolean.FALSE;
         }
         return Boolean.TRUE;
+    }
+
+    /**
+     * 解压 zip 到同级目录，并为每个解压出的文件插入一条 b_marketing_clean_data_file（zip_name 为压缩包名）
+     */
+    private Boolean unzipAndSaveExtractedFiles(String zipFileName, SyncConfig loanSyncConfig,
+                                                String targetPath, String srcPath, File zipFile) {
+        try {
+            List<String> extractedPaths = ZipUtils.unZipAndReturnExtractedPaths(zipFile, targetPath, "");
+            if (extractedPaths == null || extractedPaths.isEmpty()) {
+                log.warn("压缩包内无文件或解压未得到文件列表，zipFileName:{}, syncConfigId:{}", zipFileName, loanSyncConfig.getId());
+                return Boolean.TRUE;
+            }
+            Date now = new Date();
+            for (String relPath : extractedPaths) {
+                File f = new File(targetPath, relPath);
+                String parent = f.getParent();
+                String localPath = parent == null ? targetPath : (parent.endsWith(File.separator) ? parent : parent + File.separator);
+                String extractedFileName = f.getName();
+                MarketingCleanDataFile dataFile = new MarketingCleanDataFile();
+                dataFile.setFileName(extractedFileName);
+                dataFile.setZipName(zipFileName);
+                dataFile.setApiCode(loanSyncConfig.getApiCode());
+                dataFile.setCreateTime(now);
+                dataFile.setUpdateTime(now);
+                dataFile.setLocalPath(localPath);
+                dataFile.setTargetSftpPath(srcPath);
+                dataFile.setSyncConfigId(loanSyncConfig.getId());
+                int i = marketingCleanDataFileMapper.insertSelective(dataFile);
+                if (i < 1) {
+                    log.warn("解压文件落库失败！zipFileName:{}, extractedFile:{}, syncConfigId:{}",
+                            zipFileName, extractedFileName, loanSyncConfig.getId());
+                }
+            }
+            log.warn("压缩包解压并落库完成，zipFileName:{}, 解压文件数:{}, syncConfigId:{}",
+                    zipFileName, extractedPaths.size(), loanSyncConfig.getId());
+            return Boolean.TRUE;
+        } catch (Exception e) {
+            log.warn("压缩包解压或落库异常，zipFileName:{}, syncConfigId:{}, error:{}",
+                    zipFileName, loanSyncConfig.getId(), e.getMessage(), e);
+            return Boolean.FALSE;
+        }
     }
 
 }
