@@ -1,4 +1,4 @@
-package com.br.marketing.sync.job;
+package com.br.marketing.bridge.job;
 
 import com.br.marketing.entity.MarketingCleanPersistTask;
 import com.br.marketing.entity.MarketingCleanPersistTaskExample;
@@ -22,31 +22,34 @@ import java.util.List;
 @Slf4j
 public class LocalFileToDbJob extends AbstractSimpleElasticJob {
 
+    private static final String TITLE = "[本地文件落库]";
+
     @Resource
     private MarketingCleanPersistTaskMapper marketingCleanPersistTaskMapper;
     @Resource
     private LocalFilePersistService localFilePersistService;
 
-    private static final String TITLE = "[本地文件落库]";
-
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
         long start = System.currentTimeMillis();
-        log.warn(TITLE + "任务开始");
+        log.warn("{}任务开始", TITLE);
+
         MarketingCleanPersistTaskExample ex = new MarketingCleanPersistTaskExample();
         ex.createCriteria().andStatusEqualTo(CleanPersistTaskStatusEnum.PENDING.getCode());
         ex.setOrderByClause("id asc");
         List<MarketingCleanPersistTask> tasks = marketingCleanPersistTaskMapper.selectByExample(ex);
+
         if (CollectionUtils.isEmpty(tasks)) {
-            log.warn(TITLE + "无待处理任务");
+            log.warn("{}无待处理任务", TITLE);
             return;
         }
-        log.warn(TITLE + "待处理任务数: {}", tasks.size());
+        log.warn("{}待处理任务数: {}", TITLE, tasks.size());
+
         for (MarketingCleanPersistTask task : tasks) {
             String fullPath = buildFullPath(task.getLocalPath(), task.getFileName());
             localFilePersistService.processTask(task, fullPath);
         }
-        log.warn(TITLE + "任务结束，耗时: {}ms", System.currentTimeMillis() - start);
+        log.warn("{}任务结束，耗时: {}ms", TITLE, System.currentTimeMillis() - start);
     }
 
     private static String buildFullPath(String localPath, String fileName) {

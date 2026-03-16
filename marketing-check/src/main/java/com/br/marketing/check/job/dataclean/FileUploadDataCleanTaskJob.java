@@ -83,21 +83,33 @@ public class FileUploadDataCleanTaskJob extends AbstractSimpleElasticJob {
         ruleList.forEach(config -> {
             SyncConfigExample syncConfigCycle = new SyncConfigExample();
             SyncConfigExample.Criteria criteriaCycle = syncConfigCycle.createCriteria();
-            criteriaCycle.andStatusEqualTo(1).andDataTypeEqualTo(DataTypeEnum.MARKETING_UP_CYCLE_DATA.getValue()).andApiCodeEqualTo(config.getApiCode())
-                    .andSrcPathEqualTo(config.getSftpPath()).andTypeEqualTo(1);
+            criteriaCycle.andStatusEqualTo(1).andDataTypeEqualTo(DataTypeEnum.MARKETING_UP_CYCLE_DATA.getValue())
+                    .andApiCodeEqualTo(config.getApiCode()).andSrcPathEqualTo(config.getSftpPath()).andTypeEqualTo(1);
             List<SyncConfig> syncCycleConfigs = syncConfigMapper.selectByExample(syncConfigCycle);
-            String localPath = syncCycleConfigs.get(0).getTargetPath();
-            //获取待清洗的文件任务
-            MarketingCleanDataFile cleanFile = getCleanFileTask(config, appletDateList,localPath);
-            if (Objects.isNull(cleanFile)) {
+            if (CollectionUtils.isEmpty(syncCycleConfigs)) {
                 return;
             }
-            //文件清洗
-            dataCleanService.fileUploadDataClean(cleanFile, config);
-            MarketingCleanDataFile update = new MarketingCleanDataFile();
-            update.setStatus(DataProcessEnum.FileStatusEnum.SUCCESS.getCode());
-            update.setId(cleanFile.getId());
-            marketingCleanDataFileMapper.updateByPrimaryKeySelective(update);
+            String localPath = syncCycleConfigs.get(0).getTargetPath();
+            while (true) {
+                MarketingCleanDataFile cleanFile = getCleanFileTask(config, appletDateList, localPath);
+                if (Objects.isNull(cleanFile)) {
+                    break;
+                }
+                try {
+                    dataCleanService.fileUploadDataClean(cleanFile, config);
+                    MarketingCleanDataFile update = new MarketingCleanDataFile();
+                    update.setStatus(DataProcessEnum.FileStatusEnum.SUCCESS.getCode());
+                    update.setId(cleanFile.getId());
+                    marketingCleanDataFileMapper.updateByPrimaryKeySelective(update);
+                } catch (Exception e) {
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(),
+                            String.format("文件清洗失败, cleanFileId=%s, apiCode=%s", cleanFile.getId(), config.getApiCode())), e);
+                    MarketingCleanDataFile failUpdate = new MarketingCleanDataFile();
+                    failUpdate.setId(cleanFile.getId());
+                    failUpdate.setStatus(DataProcessEnum.FileStatusEnum.FAIL.getCode());
+                    marketingCleanDataFileMapper.updateByPrimaryKeySelective(failUpdate);
+                }
+            }
         });
 
     }
