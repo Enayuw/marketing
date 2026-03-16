@@ -1043,7 +1043,7 @@ public class SyncServiceImpl implements SyncService {
     private Boolean unzipAndSaveExtractedFiles(String zipFileName, SyncConfig loanSyncConfig,
                                                 String targetPath, String srcPath, File zipFile) {
         try {
-            List<String> extractedPaths = ZipUtils.unZipAndReturnExtractedPaths(zipFile, targetPath, "");
+            List<String> extractedPaths = ZipUtils.unZipAndReturnExtractedPaths(zipFile, targetPath, "", "GBK");
             if (extractedPaths == null || extractedPaths.isEmpty()) {
                 log.warn("压缩包内无文件或解压未得到文件列表，zipFileName:{}, syncConfigId:{}", zipFileName, loanSyncConfig.getId());
                 return Boolean.TRUE;

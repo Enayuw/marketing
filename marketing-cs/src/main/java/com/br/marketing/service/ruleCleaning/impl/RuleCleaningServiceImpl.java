@@ -2082,16 +2082,15 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         criteriaCycle.andStatusEqualTo(1).andDataTypeEqualTo(DataTypeEnum.MARKETING_UP_CYCLE_DATA.getValue()).andApiCodeEqualTo(config.getApiCode())
                 .andSrcPathEqualTo(config.getSftpPath()).andTypeEqualTo(1);
         List<SyncConfig> syncCycleConfigs = syncConfigMapper.selectByExample(syncConfigCycle);
-        String localPath = syncCycleConfigs.get(0).getTargetPath();
-        // b_marketing_clean_data_file
-        MarketingCleanDataFileExample fileExample = new MarketingCleanDataFileExample();
-        fileExample.createCriteria().andApiCodeEqualTo(config.getApiCode()).andLocalPathEqualTo(localPath);
-        fileExample.setOrderByClause("create_time desc limit 1");
-        List<MarketingCleanDataFile> cleanDataFiles = marketingCleanDataFileMapper.selectByExample(fileExample);
-        if (CollectionUtils.isEmpty(cleanDataFiles) || StringUtils.isEmpty(cleanDataFiles.get(0).getFileHeader())) {
+        if (CollectionUtils.isEmpty(syncCycleConfigs)) {
             return;
         }
-        MarketingCleanDataFile cleanDataFile = cleanDataFiles.get(0);
+        String targetPathTemplate = syncCycleConfigs.get(0).getTargetPath();
+        // b_marketing_clean_data_file：若有 yyyyMMdd/yyyy-MM-dd 则按该格式匹配任意日期的路径，取 create_time 最新一条
+        MarketingCleanDataFile cleanDataFile = findLatestDataFileByPathTemplate(config.getApiCode(), targetPathTemplate);
+        if (cleanDataFile == null || StringUtils.isEmpty(cleanDataFile.getFileHeader())) {
+            return;
+        }
         List<String> fileHeader = Arrays.asList(cleanDataFile.getFileHeader().split(","));
         List<String> fileData = Arrays.asList(cleanDataFile.getFileData().split(",", -1));
 
@@ -2137,8 +2136,55 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             // 添加到结果列表
             result.add(dto);
         }
+    }
 
+    /**
+     * 按 targetPath 模板查最新一条 dataFile。若模板含 yyyyMMdd/yyyy-MM-dd 则按该格式匹配任意日期的路径（不一定是当天），取 create_time 最新。
+     */
+    private MarketingCleanDataFile findLatestDataFileByPathTemplate(String apiCode, String targetPathTemplate) {
+        if (StringUtils.isBlank(targetPathTemplate)) {
+            return null;
+        }
+        boolean hasDatePlaceholder = targetPathTemplate.contains("yyyyMMdd") || targetPathTemplate.contains("yyyy-MM-dd");
+        if (!hasDatePlaceholder) {
+            MarketingCleanDataFileExample ex = new MarketingCleanDataFileExample();
+            ex.createCriteria().andApiCodeEqualTo(apiCode).andLocalPathEqualTo(targetPathTemplate);
+            ex.setOrderByClause("create_time desc limit 1");
+            List<MarketingCleanDataFile> list = marketingCleanDataFileMapper.selectByExample(ex);
+            return CollectionUtils.isEmpty(list) ? null : list.get(0);
+        }
+        MarketingCleanDataFileExample ex = new MarketingCleanDataFileExample();
+        ex.createCriteria().andApiCodeEqualTo(apiCode);
+        ex.setOrderByClause("create_time desc limit 500");
+        List<MarketingCleanDataFile> list = marketingCleanDataFileMapper.selectByExample(ex);
+        if (CollectionUtils.isEmpty(list)) {
+            return null;
+        }
+        Pattern pathPattern = templateToPathRegex(targetPathTemplate);
+        for (MarketingCleanDataFile file : list) {
+            if (file.getLocalPath() != null && pathPattern.matcher(file.getLocalPath()).matches()) {
+                return file;
+            }
+        }
+        return null;
+    }
 
+    /** 将含 yyyyMMdd、yyyy-MM-dd 的模板转成匹配“任意日期”的正则 */
+    private Pattern templateToPathRegex(String template) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < template.length(); ) {
+            if (template.startsWith("yyyy-MM-dd", i)) {
+                sb.append("\\d{4}-\\d{2}-\\d{2}");
+                i += 10;
+            } else if (template.startsWith("yyyyMMdd", i)) {
+                sb.append("\\d{8}");
+                i += 8;
+            } else {
+                sb.append(Pattern.quote(template.substring(i, i + 1)));
+                i++;
+            }
+        }
+        return Pattern.compile(sb.toString());
     }
 
     @Override

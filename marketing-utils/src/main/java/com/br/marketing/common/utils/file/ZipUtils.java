@@ -32,14 +32,12 @@ public class ZipUtils {
             }
             zFile.extractAll(dest);
             List<FileHeader> headerList = zFile.getFileHeaders();
-            List<File> extractedFileList = new ArrayList<File>();
+            List<File> extractedFileList = new ArrayList<>();
             for (FileHeader fileHeader : headerList) {
                 if (!fileHeader.isDirectory()) {
                     extractedFileList.add(new File(destDir, fileHeader.getFileName()));
                 }
             }
-            File[] extractedFiles = new File[extractedFileList.size()];
-            extractedFileList.toArray(extractedFiles);
             for (File f : extractedFileList) {
                 log.info(  "{} 文件解压成功!",f.getAbsolutePath());
             }
@@ -52,15 +50,16 @@ public class ZipUtils {
     /**
      * 解压 zip 到指定目录，并返回解压出的文件相对路径列表（不含目录）
      *
-     * @param zipFile 压缩包文件
-     * @param dest    解压目标目录（与压缩包同级目录时，解压文件在该目录下）
+     * @param zipFile  压缩包文件
+     * @param dest     解压目标目录（与压缩包同级目录时，解压文件在该目录下）
      * @param password 解压密码，可为空
+     * @param charset  文件名编码，如 "GBK"、"UTF-8"；为空时使用 GBK
      * @return 解压出的文件相对 dest 的路径列表，如 ["a.txt", "sub/b.txt"]
      */
-    public static List<String> unZipAndReturnExtractedPaths(File zipFile, String dest, String password) {
+    public static List<String> unZipAndReturnExtractedPaths(File zipFile, String dest, String password, String charset) {
         try {
             ZipFile zFile = new ZipFile(zipFile);
-            zFile.setFileNameCharset("GBK");
+            zFile.setFileNameCharset(charset != null && !charset.isEmpty() ? charset : "GBK");
             List<FileHeader> headerList = zFile.getFileHeaders();
             List<String> extractedPaths = new ArrayList<>();
             for (FileHeader fileHeader : headerList) {
