@@ -236,11 +236,6 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
         dataFile.setUpdateTime(new Date());
         dataFile.setReceiveDate(LocalDate.now().toString());
         dataFile.setTestRunData(JSON.toJSONString(jsonList));
-        String virtualHeadersJson = evaluateVirtualHeadersScript(
-                syncConfig.getId(), fileName);
-        if (virtualHeadersJson != null) {
-            dataFile.setVirtualHeaders(virtualHeadersJson);
-        }
         marketingCleanDataFileMapper.insertSelective(dataFile);
 
         try {
