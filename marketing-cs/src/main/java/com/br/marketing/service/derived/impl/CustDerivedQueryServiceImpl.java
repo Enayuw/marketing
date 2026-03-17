@@ -65,7 +65,7 @@ public class CustDerivedQueryServiceImpl implements CustDerivedQueryService {
 
             Result<ResponseData<QryCallRealTimeResp>> result = methodRetryHandlerService.qryCallRealTime(qryReq, 0);
             if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                String errMsg = StringUtils.isNotBlank(result.getMessage()) ? result.getMessage() : "卷信息查询失败";
+                String errMsg = StringUtils.isNotBlank(result.getMessage()) ? result.getMessage() : "360查询卷信息接口查询失败";
                 return new ApiResult<List<CustDerivedItemVO>>().fail(errMsg);
             }
 
