@@ -11,15 +11,20 @@ import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.entity.MarketingCleanDataFile;
 import com.br.marketing.entity.MarketingCleanDataFileExample;
+import com.br.marketing.entity.SftpVirtualHeaderScriptConfig;
+import com.br.marketing.entity.SftpVirtualHeaderScriptConfigExample;
 import com.br.marketing.entity.SyncConfig;
 import com.br.marketing.entity.SyncConfigExample;
 import com.br.marketing.enums.clean.DataProcessEnum;
+import com.br.marketing.enums.clean.SftpVirtualHeaderScriptStatusEnum;
 import com.br.marketing.mapper.MarketingCleanDataFileMapper;
+import com.br.marketing.mapper.SftpVirtualHeaderScriptConfigMapper;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.service.IFileActionService;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.clean.common.impl.DataCleanServiceImpl;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.utils.CleanDataFileReader;
+import com.br.marketing.utils.CleanDataFileReader.HeaderAndLines;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.googlecode.aviator.AviatorEvaluatorInstance;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -39,6 +44,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -70,9 +76,8 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
     private TrackingService trackingService;
     @Resource
     private DataCleanServiceImpl dataCleanService;
-
-    @Resource
-    private MarketingCommonConfig marketingCommonConfig;
+    @Autowired
+    private SftpVirtualHeaderScriptConfigMapper sftpVirtualHeaderScriptConfigMapper;
 
     @Resource(name = "cleanRuleAviatorEvaluatorInstance")
     private AviatorEvaluatorInstance cleanRuleAviatorEvaluatorInstance;
@@ -120,10 +125,11 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
                 .andTypeEqualTo(1);
         List<SyncConfig> syncCycleConfigs = syncConfigMapper.selectByExample(syncConfigCycle);
         for (SyncConfig syncCycleConfig : syncCycleConfigs) {
-            //填充b_marketing_clean_data_file表的表头及字段
+            //填充b_marketing_clean_data_file表的表头及字段（targetPath 中 yyyyMMdd/yyyy-MM-dd 替换为当天日期后查询）
+            String localPathForQuery = replaceDateInTargetPath(syncCycleConfig.getTargetPath());
             MarketingCleanDataFileExample fileExample = new MarketingCleanDataFileExample();
             fileExample.createCriteria().andCreateTimeGreaterThanOrEqualTo(date).andApiCodeEqualTo(syncCycleConfig.getApiCode())
-                    .andLocalPathEqualTo(syncCycleConfig.getTargetPath()).andFileHeaderIsNull();
+                    .andLocalPathEqualTo(localPathForQuery).andFileHeaderIsNull();
             fileExample.setOrderByClause("create_time desc");
             List<MarketingCleanDataFile> cleanDataFiles = marketingCleanDataFileMapper.selectByExample(fileExample);
             cleanDataFiles.forEach(cleanDataFile -> {
@@ -135,36 +141,21 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
     }
 
     private void fillHeaderAndData(MarketingCleanDataFile cleanDataFile) {
-        MarketingCleanDataFile dataFile = new MarketingCleanDataFile();
         File file = new File(cleanDataFile.getLocalPath().concat(cleanDataFile.getFileName()));
-        List<String> batchLines = new ArrayList<>();
-        Integer line = 0;
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            String row;
-            while (line < 11 && (row = br.readLine()) != null) {
-                String rowData = row.trim();
-                // 跳过空行（包含空白字符行）
-                if (rowData.isEmpty()) {
-                    continue;
-                }
-                if (line == 0) {
-                    // 第一行作为表头
-                    dataFile.setFileHeader(rowData);
-                } else {
-                    // 除表头外的所有数据行都添加到batchLines
-                    batchLines.add(rowData);
-                    if (line == 1) {
-                        // 第一行数据设置为FileData
-                        dataFile.setFileData(rowData);
-                    }
-                }
-                line++;
-            }
-        } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
+        HeaderAndLines headerAndLines = CleanDataFileReader.read(file, cleanDataFile.getFileName(), 10);
+        String headerLine = headerAndLines.getHeaderLine();
+        List<String> batchLines = headerAndLines.getDataLines();
+        if (StringUtils.isBlank(headerLine)) {
+            log.warn("文件表头为空，跳过填充 fileName={}", cleanDataFile.getFileName());
+            return;
+        }
+        MarketingCleanDataFile dataFile = new MarketingCleanDataFile();
+        dataFile.setFileHeader(headerLine);
+        if (!batchLines.isEmpty()) {
+            dataFile.setFileData(batchLines.get(0));
         }
         List<JSONObject> jsonList = dataCleanService.fileDataAssemble(
-                batchLines, dataFile.getFileHeader().split(","), cleanDataFile.getFileName(), 0, null);
+                batchLines, headerLine.split(","), cleanDataFile.getFileName(), 0, null);
         dataFile.setId(cleanDataFile.getId());
         dataFile.setReceiveDate(LocalDate.now().toString());
         dataFile.setTestRunData(JSON.toJSONString(jsonList));
@@ -259,7 +250,25 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
     }
 
     /**
-     * 根据 sync_config_id 从 speed 配置取 Aviator 脚本，入参 file_name 执行，
+     * 将路径中的 yyyyMMdd 或 yyyy-MM-dd 替换为当天日期，用于按本地路径查询 dataFile（与 FileUploadDownloadServiceImpl.replaceDateInPath 逻辑一致）。
+     */
+    private String replaceDateInTargetPath(String targetPath) {
+        if (StringUtils.isBlank(targetPath)) {
+            return targetPath;
+        }
+        String todayYyyyMMdd = DateHelper.getDateAddYyMmDd(0);
+        if (targetPath.contains("yyyy-MM-dd")) {
+            String todayYyyyMmDd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            return targetPath.replace("yyyy-MM-dd", todayYyyyMmDd);
+        }
+        if (targetPath.contains("yyyyMMdd")) {
+            return targetPath.replace("yyyyMMdd", todayYyyyMMdd);
+        }
+        return targetPath;
+    }
+
+    /**
+     * 根据 sync_config_id 从 b_sftp_virtual_header_script_config 表取 Aviator 脚本，入参 file_name 执行，
      * 将返回的虚拟 header 键值对序列化为 JSON 写入 virtual_headers。
      *
      * @param syncConfigId b_sync_config.id
@@ -267,12 +276,19 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
      * @return JSON 字符串，异常或未配置时返回 null
      */
     private String evaluateVirtualHeadersScript(Long syncConfigId, String fileName) {
-        if (syncConfigId == null
-                || marketingCommonConfig.getVirtualHeaderAviatorScriptConfig() == null) {
+        if (syncConfigId == null) {
             return null;
         }
-        String script = marketingCommonConfig.getVirtualHeaderAviatorScriptConfig()
-                .get(String.valueOf(syncConfigId));
+        SftpVirtualHeaderScriptConfigExample example = new SftpVirtualHeaderScriptConfigExample();
+        example.createCriteria()
+                .andSyncConfigIdEqualTo(syncConfigId)
+                .andStatusEqualTo(SftpVirtualHeaderScriptStatusEnum.ENABLED.getValue());
+        example.setOrderByClause("id asc");
+        List<SftpVirtualHeaderScriptConfig> list = sftpVirtualHeaderScriptConfigMapper.selectByExample(example);
+        if (list == null || list.isEmpty()) {
+            return null;
+        }
+        String script = list.get(0).getScriptContent();
         if (StringUtils.isBlank(script)) {
             return null;
         }

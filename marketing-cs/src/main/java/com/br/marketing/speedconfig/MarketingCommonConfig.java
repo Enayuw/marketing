@@ -3643,11 +3643,4 @@ public class MarketingCommonConfig {
      * 跑分rediskey的scoreStatus的最终执行时间
      */
     private String scoreStatusFinalDate;
-
-    /**
-     * 虚拟 header Aviator 脚本配置，key 为 b_sync_config.id，value 为脚本内容；
-     * 入参 file_name，出参为虚拟 header 键值对（Map 或 List&lt;Map&gt;），
-     * 用于从文件名解析并写入 b_marketing_clean_data_file.virtual_headers。
-     */
-    private Map<String, String> virtualHeaderAviatorScriptConfig;
  }
