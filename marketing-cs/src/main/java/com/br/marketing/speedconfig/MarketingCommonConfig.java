@@ -3643,4 +3643,11 @@ public class MarketingCommonConfig {
      * 跑分rediskey的scoreStatus的最终执行时间
      */
     private String scoreStatusFinalDate;
+
+    private JSONObject sftpToDbSpecialHandleJson;
+
+    /**
+     * 58AI配置
+     */
+    private JSONObject wuBaAIConfig;
  }
