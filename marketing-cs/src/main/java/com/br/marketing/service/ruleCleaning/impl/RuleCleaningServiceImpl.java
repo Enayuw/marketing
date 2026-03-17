@@ -2088,12 +2088,26 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         String targetPathTemplate = syncCycleConfigs.get(0).getTargetPath();
         // b_marketing_clean_data_file：若有 yyyyMMdd/yyyy-MM-dd 则按该格式匹配任意日期的路径，取 create_time 最新一条
         MarketingCleanDataFile cleanDataFile = findLatestDataFileByPathTemplate(config.getApiCode(), targetPathTemplate);
-        if (cleanDataFile == null || StringUtils.isEmpty(cleanDataFile.getFileHeader())) {
+        boolean hasFileData = cleanDataFile != null && StringUtils.isNotEmpty(cleanDataFile.getFileHeader());
+
+        if (!hasFileData) {
+            // 无 dataFile 或 fileHeader 为空：仍按配置返回字段，仅不填充 fieldSample
+            for (MarketingDataCleanGeneralRuleConfig ruleConfig : ruleConfigList) {
+                FieldSampleDTO dto = new FieldSampleDTO();
+                dto.setFieldName(ruleConfig.getCleanFields());
+                dto.setFieldSample("");
+                dto.setMappingRule(ruleConfig.getMappingRule());
+                dto.setRelatedField(ruleConfig.getMappingField());
+                dto.setResultPreview(ruleConfig.getResultPreview());
+                dto.setNeedCleaning(ruleConfig.getIsMapping());
+                dto.setFieldType(ruleConfig.getIsDerived());
+                result.add(dto);
+            }
             return;
         }
+
         List<String> fileHeader = Arrays.asList(cleanDataFile.getFileHeader().split(","));
         List<String> fileData = Arrays.asList(cleanDataFile.getFileData().split(",", -1));
-
         if (fileHeader.size() != fileData.size()) {
             throw new BusinessException("文件表头与文件数据不匹配");
         }
@@ -2102,7 +2116,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             String cleanField = ruleConfig.getCleanFields();
             String fieldSample;
             try {
-                fieldSample  = fileData.get(fileHeader.indexOf(cleanField));
+                fieldSample = fileData.get(fileHeader.indexOf(cleanField));
             } catch (Exception e) {
                 fieldSample = "";
             }
@@ -2115,25 +2129,21 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             dto.setResultPreview(ruleConfig.getResultPreview());
             dto.setNeedCleaning(ruleConfig.getIsMapping());
             dto.setFieldType(ruleConfig.getIsDerived());
-            // 添加到结果列表
             result.add(dto);
         }
         List<String> fileFields =
-                result.stream().filter((FieldSampleDTO file) ->  DerivedTypeEnum.NORMAL.getCode().equals(file.getFieldType()))
+                result.stream().filter((FieldSampleDTO file) -> DerivedTypeEnum.NORMAL.getCode().equals(file.getFieldType()))
                         .map(FieldSampleDTO::getFieldName).collect(Collectors.toList());
-
         for (int i = 0; i < fileHeader.size(); i++) {
             if (fileFields.contains(fileHeader.get(i))) {
                 continue;
             }
             FieldSampleDTO dto = new FieldSampleDTO();
-            // 设置字段名称
             dto.setFieldName(fileHeader.get(i));
             dto.setFieldSample(fileData.get(i));
             dto.setFirstUploadTime(cleanDataFile.getCreateTime());
             dto.setFieldType(0);
             dto.setNeedCleaning(false);
-            // 添加到结果列表
             result.add(dto);
         }
     }
