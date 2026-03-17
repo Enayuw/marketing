@@ -903,4 +903,19 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
+
+    <job:simple id="【monkey】-WuBaAITransferDataJob"
+                class="com.br.marketing.monkey.job.wuba.WuBaAITransferDataJob"
+                cron="0 30 8 * * ? *"
+                description="58AI转化数据拉取"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
 </beans>
