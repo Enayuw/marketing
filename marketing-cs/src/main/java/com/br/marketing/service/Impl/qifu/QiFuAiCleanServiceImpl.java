@@ -1,11 +1,10 @@
-package com.br.marketing.check.service.Impl.qifu;
+package com.br.marketing.service.Impl.qifu;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.TypeReference;
 import com.br.common.log.AlertLog;
-import com.br.marketing.check.service.qifu.QiFuAiCleanService;
+import com.br.marketing.client.qifu.callrealtime.CallRealTimeDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -17,6 +16,7 @@ import com.br.marketing.entity.BQifuUploadDataOriginal;
 import com.br.marketing.mapper.BQifuUploadDataOriginalMapper;
 import com.br.marketing.service.Impl.qifu.enums.QiFuProcessStatusEnum;
 import com.br.marketing.service.PushInfoService;
+import com.br.marketing.service.qifu.QiFuAiCleanService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.marketingkit.tracking.model.indicator.DataFlowDirection;
 import com.marketingkit.tracking.service.TrackingService;
@@ -204,7 +204,7 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
             // 对每个 batchNo 和 flowNo 分组进行处理
             for (Map.Entry<String, List<BQifuUploadDataOriginal>> batchFlowEntry : batchFlowGroupMap.entrySet()) {
                 List<BQifuUploadDataOriginal> batchFlowDataList = batchFlowEntry.getValue();
-                
+
                 if (CollectionUtils.isEmpty(batchFlowDataList)) {
                     continue;
                 }
@@ -262,6 +262,36 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
 
         // 批量更新status
         batchUpdateStatus(updateRecords);
+    }
+
+    @Override
+    public List<MarketingPreUserDetailDTO> buildListFromCallRealTimeDetails(List<CallRealTimeDTO> dataDetails) {
+        if (CollectionUtils.isEmpty(dataDetails)) {
+            return new ArrayList<>();
+        }
+        List<MarketingPreUserDetailDTO> list = new ArrayList<>();
+        for (CallRealTimeDTO dto : dataDetails) {
+            JSONObject detailJson = new JSONObject();
+            detailJson.put("serialNo", dto.getSerialNo());
+            detailJson.put("surname", dto.getSurname());
+            detailJson.put("gender", dto.getGender());
+
+            JSONObject extendJsonObject = new JSONObject();
+            extendJsonObject.put("increaseCustomer", dto.getIncreaseCustomer());
+            extendJsonObject.put("temporaryIncrease", dto.getTemporaryIncrease());
+            extendJsonObject.put("rTotalAvailableAmt", dto.getRTotalAvailableAmt());
+            extendJsonObject.put("rTaLastAdjustmentAmount", dto.getRTaLastAdjustmentAmount());
+            extendJsonObject.put("rTaTemporaryAmountExpireDate", dto.getRTaTemporaryAmountExpireDate());
+            extendJsonObject.put("rCouponInfo", dto.getRCouponInfo());
+            extendJsonObject.put("pricingValidPeriod", dto.getPricingValidPeriod());
+            extendJsonObject.put("pricingDiscount", dto.getPricingDiscount());
+            extendJsonObject.put("pricingExpireDays", dto.getPricingExpireDays());
+
+            JSONObject reserField1 = new JSONObject();
+            MarketingPreUserDetailDTO detailDTO = buildListDto(detailJson, reserField1, extendJsonObject);
+            list.add(detailDTO);
+        }
+        return list;
     }
 
     /**
@@ -718,4 +748,3 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
     }
 
 }
-
