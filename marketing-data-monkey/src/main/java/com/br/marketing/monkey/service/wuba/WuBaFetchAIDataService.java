@@ -4,5 +4,5 @@ import java.util.Date;
 
 public interface WuBaFetchAIDataService {
 
-    boolean fetchAndProcessData(Date collectDate);
+    void fetchAndProcessData(Date collectDate);
 }

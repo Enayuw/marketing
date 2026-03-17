@@ -81,7 +81,7 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
     );
 
     @Override
-    public boolean fetchAndProcessData(Date collectDate) {
+    public void fetchAndProcessData(Date collectDate) {
         JSONObject wuBaAIConfig = marketingCommonConfig.getWuBaAIConfig();
         String orgCode = wuBaAIConfig.getString("orgCode");
         String password = wuBaAIConfig.getString("password");
@@ -98,7 +98,7 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
                 .andStatusIn(Arrays.asList(1, 2));
         if (fetchTaskMapper.countByExample(example) > 0) {
             log.warn("{} 已存在处理中或成功任务(collectDate={})，跳过本次执行", TITLE, collectDate);
-            return false;
+            return;
         }
 
         WuBaAiFetchTask task = new WuBaAiFetchTask();
@@ -112,16 +112,20 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
             log.warn("{} 开始调用58接口，taskId: {}", TITLE, taskId);
             HttpResponse response = wuBaAIClient.downloadConversionFile(orgCode, password);
             if (response == null) {
-                log.error("{} 接口调用失败，未获取到响应，taskId: {}", TITLE, taskId);
-                throw new RuntimeException("接口调用失败，未获取到响应");
+                String errorMsg = AlertLog.buildErrorMessage(AlarmSendCodeEnum.WUBA_AI_SERVICEERROR.getCode(),
+                        TITLE + " 接口调用失败，未获取到响应，taskId:" + taskId, null);
+                log.error(errorMsg);
+                return;
             }
 
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode != HttpStatus.HTTP_OK) {
                 String errorBody = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
-                log.error("{} 接口请求失败，taskId: {}, 状态码: {}, 返回: {}", TITLE, taskId, statusCode, errorBody);
+                String errorMsg = AlertLog.buildErrorMessage(AlarmSendCodeEnum.WUBA_AI_SERVICEERROR.getCode(),
+                        TITLE + " 接口请求失败，taskId:" + taskId + ", 状态码:" + statusCode + ", 返回:" + errorBody, null);
+                log.error(errorMsg);
                 EntityUtils.consumeQuietly(response.getEntity());
-                throw new RuntimeException(String.format("接口响应异常，状态码: %d", statusCode));
+                return;
             }
 
             Header contentTypeHeader = response.getFirstHeader("Content-Type");
@@ -131,37 +135,39 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
                 String jsonBody = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
                 EntityUtils.consumeQuietly(response.getEntity());
                 JSONObject jsonResponse = JSON.parseObject(jsonBody);
-                log.error("{} 接口返回业务错误，taskId: {}, code={}, message={}", TITLE, taskId,
-                        jsonResponse.getString("code"), jsonResponse.getString("message"));
-                throw new RuntimeException(String.format("接口业务错误: %s", jsonResponse.getString("message")));
+                String errorMsg = AlertLog.buildErrorMessage(AlarmSendCodeEnum.WUBA_AI_SERVICEERROR.getCode(),
+                        TITLE + " 接口返回业务错误，taskId:" + taskId + ", code=" + jsonResponse.getString("code") +
+                                ", message=" + jsonResponse.getString("message"), null);
+                log.error(errorMsg);
             } else if (contentType != null && contentType.contains("application/octet-stream")) {
                 byte[] fileBytes = EntityUtils.toByteArray(response.getEntity());
-                log.info("{} 成功获取文件流，大小: {} bytes, taskId: {}", TITLE, fileBytes.length, taskId);
+                log.warn("{} 成功获取文件流，大小: {} bytes, taskId: {}", TITLE, fileBytes.length, taskId);
 
-                // 尝试保存文件，即使失败也不影响主流程
                 try {
                     tempZipFile = saveFileToTempPath(response, fileBytes, task, baseFilePath, apiCode, dateStr);
                     log.debug("{} 临时文件保存成功，路径: {}, taskId: {}", TITLE, tempZipFile.getAbsolutePath(), taskId);
                 } catch (Exception saveEx) {
-                    log.error("{} 保存临时文件失败，taskId: {}。将继续尝试从内存流解析数据。", TITLE, taskId, saveEx);
+                    log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.WUBA_AI_SERVICEERROR.getCode(),
+                            TITLE + " 保存临时文件失败，taskId:" + taskId), saveEx);
                 }
 
                 processDataFromBytes(fileBytes, task, limit, apiCode);
                 task.setStatus(2);
                 fetchTaskMapper.updateByPrimaryKey(task);
                 log.warn("{} 任务处理完成，taskId: {}, 处理{}条数据", TITLE, taskId, task.getSuccessCount());
-                return true;
             } else {
                 EntityUtils.consumeQuietly(response.getEntity());
-                log.error("{} 未知的响应类型: {}, taskId: {}", TITLE, contentType, taskId);
-                throw new RuntimeException(String.format("未知的响应类型: %s", contentType));
+                String errorMsg = AlertLog.buildErrorMessage(AlarmSendCodeEnum.WUBA_AI_SERVICEERROR.getCode(),
+                        TITLE + " 未知的响应类型: " + contentType + ", taskId:" + taskId, null);
+                log.error(errorMsg);
             }
         } catch (Exception e) {
-            log.error("{} 数据处理过程发生异常，taskId: {}", TITLE, taskId, e);
+            String errorMsg = AlertLog.buildErrorMessage(AlarmSendCodeEnum.WUBA_AI_SERVICEERROR.getCode(),
+                    TITLE + " 数据处理过程发生异常，taskId:" + taskId);
+            log.error(errorMsg, e);
             task.setStatus(3);
             task.setErrorMessage(StrUtil.subPre(e.getMessage(), 2000));
             fetchTaskMapper.updateByPrimaryKey(task);
-            return false;
         }
     }
 
@@ -204,8 +210,10 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
                 }
             }
         } catch (Exception e) {
-            log.error("{} 从字节流解析ZIP/CSV数据失败，taskId: {}", TITLE, task.getId(), e);
-            throw new IOException("解析ZIP/CSV数据失败", e);
+            String errorMsg = AlertLog.buildErrorMessage(AlarmSendCodeEnum.WUBA_AI_SERVICEERROR.getCode(),
+                    TITLE + " 从字节流解析ZIP/CSV数据失败，taskId:" + task.getId());
+            log.error(errorMsg, e);
+            throw new IOException(errorMsg, e);
         }
     }
 
@@ -235,7 +243,7 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
         }
 
         if (!extraHeaders.isEmpty()) {
-            log.info("{} 检测到CSV中包含未定义的字段: {}，taskId: {}", TITLE, extraHeaders, task.getId());
+            log.warn("{} 检测到CSV中包含未定义的字段: {}，taskId: {}", TITLE, extraHeaders, task.getId());
         }
 
         for (int i = 1; i < lines.length; i++) {
@@ -253,7 +261,8 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
                     dataList.clear();
                 }
             } catch (Exception e) {
-                log.error("{} 解析CSV第{}行数据失败，taskId: {}", TITLE, i + 1, task.getId(), e);
+                log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.WUBA_AI_SERVICEERROR.getCode(),
+                        TITLE + " 解析CSV第" + (i + 1) + "行数据失败，taskId:" + task.getId()), e);
             }
         }
 
@@ -281,7 +290,8 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
 
             Result transferResult = generalDataCleanService.transferClean(jsonObjectList, apiCode);
             if (transferResult == null || !transferResult.isSuccess()) {
-                log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(), TITLE + " 数据清洗失败"));
+                log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.WUBA_AI_SERVICEERROR.getCode(),
+                        TITLE + " 数据清洗失败", null));
             } else {
                 List<TransferDataItemDTO> transferDataItemDTOS = (List<TransferDataItemDTO>) transferResult.getData();
                 PushTransferDataDetailDTO dto = initTransferData(apiCode, transferDataItemDTOS);
@@ -300,7 +310,7 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
         task.setTotalCount(totalCount);
         task.setSuccessCount(successCount);
         fetchTaskMapper.updateByPrimaryKey(task);
-        log.info("{} CSV解析完成，共{}行，成功解析{}行，taskId: {}", TITLE, totalCount, successCount, task.getId());
+        log.warn("{} CSV解析完成，共{}行，成功解析{}行，taskId: {}", TITLE, totalCount, successCount, task.getId());
     }
 
     private PushTransferDataDetailDTO initTransferData(String apiCode, List<TransferDataItemDTO> transferDataItems) {
@@ -316,8 +326,10 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
         return dto;
     }
 
-    private WuBaAiConversionData convertCsvLineToEntity(String[] fields, Map<String, Integer> headerIndexMap,
-                                                        List<String> extraHeaders, Long taskId) {
+    private WuBaAiConversionData convertCsvLineToEntity(String[] fields,
+                                                        Map<String, Integer> headerIndexMap,
+                                                        List<String> extraHeaders,
+                                                        Long taskId) {
         WuBaAiConversionData data = new WuBaAiConversionData();
         data.setTaskId(taskId);
 
