@@ -513,6 +513,9 @@ public class QiFuAiCleanServiceImpl implements QiFuAiCleanService {
                 case "pricingExpireDays":
                     reserField1.put("pricingExpireDays", value);
                     break;
+                case "productType":
+                    reserField1.put("productType", value);
+                    break;
                 default:
                     break;
             }

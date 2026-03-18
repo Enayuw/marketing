@@ -37,6 +37,11 @@ public class CustDerivedQueryServiceImpl implements CustDerivedQueryService {
 
     private static final List<String> GENERAL_FIELDS = Arrays.asList("dataItems", "item", "reserveField1", "reserveField2");
 
+    /** VO 固定字段名，与 CustDerivedItemVO 属性一致，避免与 config mappingField 重复 */
+    private static final Set<String> FIXED_VO_FIELDS = new HashSet<>(Arrays.asList(
+            "custNum", "lowAmount_derived", "changeAmount_derived", "remainDayys_derived", "changeIncrease_derived",
+            "pricingValidPeriod", "pricingDiscount", "pricingExpireDays"));
+
     private static final String TITLE = "[360查询券等衍生信息接口]";
 
     @Resource
@@ -106,11 +111,12 @@ public class CustDerivedQueryServiceImpl implements CustDerivedQueryService {
                 }
             }
 
-            // 2.4 按 custNumList 顺序封装返回
+            // 2.4 按 custNumList 顺序封装返回（固定字段 + config 的 mappingField 动态字段）
             Map<String, MarketingPreUserDetailDTO> dtoMap = detailList.stream()
                     .collect(Collectors.toMap(MarketingPreUserDetailDTO::getCustNum, d -> d, (a, b) -> a));
+            Map<String, MarketingDataCleanGeneralRuleConfig> finalConfigRule = configRule;
             List<CustDerivedItemVO> list = custNumList.stream()
-                    .map(custNum -> dtoMap.containsKey(custNum) ? toItemVO(dtoMap.get(custNum)) : emptyItem(custNum))
+                    .map(custNum -> dtoMap.containsKey(custNum) ? toItemVO(dtoMap.get(custNum), finalConfigRule) : emptyItem(custNum))
                     .collect(Collectors.toList());
             return new ApiResult<List<CustDerivedItemVO>>().success(list);
         } catch (Exception ex) {
@@ -129,43 +135,40 @@ public class CustDerivedQueryServiceImpl implements CustDerivedQueryService {
         vo.setPricingValidPeriod("");
         vo.setPricingDiscount("");
         vo.setPricingExpireDays("");
-        vo.setCoupon_derived1("");
-        vo.setCoupon_derived2("");
-        vo.setCoupon_derived3("");
+        vo.setExtraFields(new HashMap<>());
         return vo;
     }
 
-    private CustDerivedItemVO toItemVO(MarketingPreUserDetailDTO dto) {
+    private CustDerivedItemVO toItemVO(MarketingPreUserDetailDTO dto, Map<String, MarketingDataCleanGeneralRuleConfig> configRule) {
         CustDerivedItemVO vo = new CustDerivedItemVO();
         vo.setCustNum(dto.getCustNum());
+        vo.setExtraFields(new HashMap<>());
+        JSONObject jo = null;
         String reserveField1 = dto.getReserveField1();
         if (StringUtils.isNotBlank(reserveField1)) {
             try {
-                JSONObject jo = JSON.parseObject(reserveField1);
-                vo.setLowAmount_derived(jo.getString("lowAmount_derived"));
-                vo.setChangeAmount_derived(jo.getString("changeAmount_derived"));
-                vo.setRemainDayys_derived(jo.getString("remainDayys_derived"));
-                vo.setChangeIncrease_derived(jo.getString("changeIncrease_derived"));
-                vo.setPricingValidPeriod(jo.getString("pricingValidPeriod"));
-                vo.setPricingDiscount(jo.getString("pricingDiscount"));
-                vo.setPricingExpireDays(jo.getString("pricingExpireDays"));
-                vo.setCoupon_derived1(jo.getString("coupon_derived1"));
-                vo.setCoupon_derived2(jo.getString("coupon_derived2"));
-                vo.setCoupon_derived3(jo.getString("coupon_derived3"));
+                jo = JSON.parseObject(reserveField1);
+                String v;
+                vo.setLowAmount_derived((v = jo.getString("lowAmount_derived")) != null ? v : "");
+                vo.setChangeAmount_derived((v = jo.getString("changeAmount_derived")) != null ? v : "");
+                vo.setRemainDayys_derived((v = jo.getString("remainDayys_derived")) != null ? v : "");
+                vo.setChangeIncrease_derived((v = jo.getString("changeIncrease_derived")) != null ? v : "");
+                vo.setPricingValidPeriod((v = jo.getString("pricingValidPeriod")) != null ? v : "");
+                vo.setPricingDiscount((v = jo.getString("pricingDiscount")) != null ? v : "");
+                vo.setPricingExpireDays((v = jo.getString("pricingExpireDays")) != null ? v : "");
             } catch (Exception e) {
                 log.warn("解析 reserveField1 异常, custNum={}", dto.getCustNum(), e);
             }
         }
-        if (vo.getLowAmount_derived() == null) vo.setLowAmount_derived("");
-        if (vo.getChangeAmount_derived() == null) vo.setChangeAmount_derived("");
-        if (vo.getRemainDayys_derived() == null) vo.setRemainDayys_derived("");
-        if (vo.getChangeIncrease_derived() == null) vo.setChangeIncrease_derived("");
-        if (vo.getPricingValidPeriod() == null) vo.setPricingValidPeriod("");
-        if (vo.getPricingDiscount() == null) vo.setPricingDiscount("");
-        if (vo.getPricingExpireDays() == null) vo.setPricingExpireDays("");
-        if (vo.getCoupon_derived1() == null) vo.setCoupon_derived1("");
-        if (vo.getCoupon_derived2() == null) vo.setCoupon_derived2("");
-        if (vo.getCoupon_derived3() == null) vo.setCoupon_derived3("");
+        // 填充清洗系统配置的 mappingField 动态字段（与固定字段取并集，不重复）
+        if (!CollectionUtils.isEmpty(configRule)) {
+            for (String mappingField : configRule.keySet()) {
+                if (!FIXED_VO_FIELDS.contains(mappingField)) {
+                    String val = (jo != null && jo.containsKey(mappingField)) ? jo.getString(mappingField) : null;
+                    vo.getExtraFields().put(mappingField, val != null ? val : "");
+                }
+            }
+        }
         return vo;
     }
 }
