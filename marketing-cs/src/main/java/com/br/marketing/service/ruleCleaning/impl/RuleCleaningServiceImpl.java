@@ -2216,6 +2216,15 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 .collect(Collectors.toList());
     }
 
+    /** 将路径模板中的 yyyyMMdd、yyyy-MM-dd 替换为指定日期。appletDate 格式为 yyyy-MM-dd（如 2026-03-18） */
+    private String resolvePathWithDate(String template, String appletDate) {
+        if (template == null || appletDate == null) {
+            return template;
+        }
+        String yyyyMMdd = appletDate.replace("-", "");
+        return template.replace("yyyy-MM-dd", appletDate).replace("yyyyMMdd", yyyyMMdd);
+    }
+
     /** 将含 yyyyMMdd、yyyy-MM-dd 的模板转成匹配“任意日期”的正则 */
     private Pattern templateToPathRegex(String template) {
         StringBuilder sb = new StringBuilder();
@@ -2311,7 +2320,15 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             criteriaCycle.andStatusEqualTo(1).andDataTypeEqualTo(DataTypeEnum.MARKETING_UP_CYCLE_DATA.getValue()).andApiCodeEqualTo(apiCode)
                     .andSrcPathEqualTo(sftpPath).andTypeEqualTo(1);
             List<SyncConfig> syncCycleConfigs = syncConfigMapper.selectByExample(syncConfigCycle);
-            String localPath = syncCycleConfigs.get(0).getTargetPath();
+            if (CollectionUtils.isEmpty(syncCycleConfigs)) {
+                throw new BusinessException("未找到SFTP同步配置");
+            }
+            String targetPathTemplate = syncCycleConfigs.get(0).getTargetPath();
+            boolean pathHasDatePlaceholder = targetPathTemplate != null
+                    && (targetPathTemplate.contains("yyyyMMdd") || targetPathTemplate.contains("yyyy-MM-dd"));
+            String localPath = pathHasDatePlaceholder
+                    ? resolvePathWithDate(targetPathTemplate, appletDate)
+                    : targetPathTemplate;
             MarketingCleanDataFile marketingCleanDataFile =
                     marketingCleanDataFileMapper.getCleanDataFileByDate(apiCode, appletDate, localPath);
             if (Objects.isNull(marketingCleanDataFile)) {
