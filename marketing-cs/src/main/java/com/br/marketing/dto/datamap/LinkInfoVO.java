@@ -43,6 +43,15 @@ public class LinkInfoVO {
     @Schema(description = "状态（0-禁用 1-启用）")
     private Byte status;
 
+    @Schema(description = "来源类型：MANUAL-手动创建 AUTO-自动发现")
+    private String sourceType;
+
+    @Schema(description = "匹配的模板ID")
+    private String templateId;
+
+    @Schema(description = "自动匹配时间")
+    private Date matchTime;
+
     @Schema(description = "总调用次数")
     private Long totalCount;
 

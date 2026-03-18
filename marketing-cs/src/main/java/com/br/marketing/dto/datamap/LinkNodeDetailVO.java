@@ -36,6 +36,9 @@ public class LinkNodeDetailVO {
     @Schema(description = "状态（0-禁用 1-启用）")
     private Integer status;
 
+    @Schema(description = "边类型：SOLID-实线(必须) DASHED-虚线(可选)")
+    private String edgeType;
+
     @Schema(description = "总调用次数")
     private Long totalCount;
 

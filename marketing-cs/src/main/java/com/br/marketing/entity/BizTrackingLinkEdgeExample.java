@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class BizTrackingLinkNodeExample {
+public class BizTrackingLinkEdgeExample {
     protected String orderByClause;
 
     protected boolean distinct;
 
     protected List<Criteria> oredCriteria;
 
-    public BizTrackingLinkNodeExample() {
+    public BizTrackingLinkEdgeExample() {
         oredCriteria = new ArrayList<Criteria>();
     }
 
@@ -225,193 +225,123 @@ public class BizTrackingLinkNodeExample {
             return (Criteria) this;
         }
 
-        public Criteria andNodeIdIsNull() {
-            addCriterion("node_id is null");
+        public Criteria andFromNodeIdIsNull() {
+            addCriterion("from_node_id is null");
             return (Criteria) this;
         }
 
-        public Criteria andNodeIdIsNotNull() {
-            addCriterion("node_id is not null");
+        public Criteria andFromNodeIdIsNotNull() {
+            addCriterion("from_node_id is not null");
             return (Criteria) this;
         }
 
-        public Criteria andNodeIdEqualTo(Long value) {
-            addCriterion("node_id =", value, "nodeId");
+        public Criteria andFromNodeIdEqualTo(Long value) {
+            addCriterion("from_node_id =", value, "fromNodeId");
             return (Criteria) this;
         }
 
-        public Criteria andNodeIdNotEqualTo(Long value) {
-            addCriterion("node_id <>", value, "nodeId");
+        public Criteria andFromNodeIdNotEqualTo(Long value) {
+            addCriterion("from_node_id <>", value, "fromNodeId");
             return (Criteria) this;
         }
 
-        public Criteria andNodeIdGreaterThan(Long value) {
-            addCriterion("node_id >", value, "nodeId");
+        public Criteria andFromNodeIdGreaterThan(Long value) {
+            addCriterion("from_node_id >", value, "fromNodeId");
             return (Criteria) this;
         }
 
-        public Criteria andNodeIdGreaterThanOrEqualTo(Long value) {
-            addCriterion("node_id >=", value, "nodeId");
+        public Criteria andFromNodeIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("from_node_id >=", value, "fromNodeId");
             return (Criteria) this;
         }
 
-        public Criteria andNodeIdLessThan(Long value) {
-            addCriterion("node_id <", value, "nodeId");
+        public Criteria andFromNodeIdLessThan(Long value) {
+            addCriterion("from_node_id <", value, "fromNodeId");
             return (Criteria) this;
         }
 
-        public Criteria andNodeIdLessThanOrEqualTo(Long value) {
-            addCriterion("node_id <=", value, "nodeId");
+        public Criteria andFromNodeIdLessThanOrEqualTo(Long value) {
+            addCriterion("from_node_id <=", value, "fromNodeId");
             return (Criteria) this;
         }
 
-        public Criteria andNodeIdIn(List<Long> values) {
-            addCriterion("node_id in", values, "nodeId");
+        public Criteria andFromNodeIdIn(List<Long> values) {
+            addCriterion("from_node_id in", values, "fromNodeId");
             return (Criteria) this;
         }
 
-        public Criteria andNodeIdNotIn(List<Long> values) {
-            addCriterion("node_id not in", values, "nodeId");
+        public Criteria andFromNodeIdNotIn(List<Long> values) {
+            addCriterion("from_node_id not in", values, "fromNodeId");
             return (Criteria) this;
         }
 
-        public Criteria andNodeIdBetween(Long value1, Long value2) {
-            addCriterion("node_id between", value1, value2, "nodeId");
+        public Criteria andFromNodeIdBetween(Long value1, Long value2) {
+            addCriterion("from_node_id between", value1, value2, "fromNodeId");
             return (Criteria) this;
         }
 
-        public Criteria andNodeIdNotBetween(Long value1, Long value2) {
-            addCriterion("node_id not between", value1, value2, "nodeId");
+        public Criteria andFromNodeIdNotBetween(Long value1, Long value2) {
+            addCriterion("from_node_id not between", value1, value2, "fromNodeId");
             return (Criteria) this;
         }
 
-        public Criteria andNodeDictIdIsNull() {
-            addCriterion("node_dict_id is null");
+        public Criteria andToNodeIdIsNull() {
+            addCriterion("to_node_id is null");
             return (Criteria) this;
         }
 
-        public Criteria andNodeDictIdIsNotNull() {
-            addCriterion("node_dict_id is not null");
+        public Criteria andToNodeIdIsNotNull() {
+            addCriterion("to_node_id is not null");
             return (Criteria) this;
         }
 
-        public Criteria andNodeDictIdEqualTo(Long value) {
-            addCriterion("node_dict_id =", value, "nodeDictId");
+        public Criteria andToNodeIdEqualTo(Long value) {
+            addCriterion("to_node_id =", value, "toNodeId");
             return (Criteria) this;
         }
 
-        public Criteria andNodeDictIdNotEqualTo(Long value) {
-            addCriterion("node_dict_id <>", value, "nodeDictId");
+        public Criteria andToNodeIdNotEqualTo(Long value) {
+            addCriterion("to_node_id <>", value, "toNodeId");
             return (Criteria) this;
         }
 
-        public Criteria andNodeDictIdGreaterThan(Long value) {
-            addCriterion("node_dict_id >", value, "nodeDictId");
+        public Criteria andToNodeIdGreaterThan(Long value) {
+            addCriterion("to_node_id >", value, "toNodeId");
             return (Criteria) this;
         }
 
-        public Criteria andNodeDictIdGreaterThanOrEqualTo(Long value) {
-            addCriterion("node_dict_id >=", value, "nodeDictId");
+        public Criteria andToNodeIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("to_node_id >=", value, "toNodeId");
             return (Criteria) this;
         }
 
-        public Criteria andNodeDictIdLessThan(Long value) {
-            addCriterion("node_dict_id <", value, "nodeDictId");
+        public Criteria andToNodeIdLessThan(Long value) {
+            addCriterion("to_node_id <", value, "toNodeId");
             return (Criteria) this;
         }
 
-        public Criteria andNodeDictIdLessThanOrEqualTo(Long value) {
-            addCriterion("node_dict_id <=", value, "nodeDictId");
+        public Criteria andToNodeIdLessThanOrEqualTo(Long value) {
+            addCriterion("to_node_id <=", value, "toNodeId");
             return (Criteria) this;
         }
 
-        public Criteria andNodeDictIdIn(List<Long> values) {
-            addCriterion("node_dict_id in", values, "nodeDictId");
+        public Criteria andToNodeIdIn(List<Long> values) {
+            addCriterion("to_node_id in", values, "toNodeId");
             return (Criteria) this;
         }
 
-        public Criteria andNodeDictIdNotIn(List<Long> values) {
-            addCriterion("node_dict_id not in", values, "nodeDictId");
+        public Criteria andToNodeIdNotIn(List<Long> values) {
+            addCriterion("to_node_id not in", values, "toNodeId");
             return (Criteria) this;
         }
 
-        public Criteria andNodeDictIdBetween(Long value1, Long value2) {
-            addCriterion("node_dict_id between", value1, value2, "nodeDictId");
+        public Criteria andToNodeIdBetween(Long value1, Long value2) {
+            addCriterion("to_node_id between", value1, value2, "toNodeId");
             return (Criteria) this;
         }
 
-        public Criteria andNodeDictIdNotBetween(Long value1, Long value2) {
-            addCriterion("node_dict_id not between", value1, value2, "nodeDictId");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeAliasIsNull() {
-            addCriterion("node_alias is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeAliasIsNotNull() {
-            addCriterion("node_alias is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeAliasEqualTo(String value) {
-            addCriterion("node_alias =", value, "nodeAlias");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeAliasNotEqualTo(String value) {
-            addCriterion("node_alias <>", value, "nodeAlias");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeAliasGreaterThan(String value) {
-            addCriterion("node_alias >", value, "nodeAlias");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeAliasGreaterThanOrEqualTo(String value) {
-            addCriterion("node_alias >=", value, "nodeAlias");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeAliasLessThan(String value) {
-            addCriterion("node_alias <", value, "nodeAlias");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeAliasLessThanOrEqualTo(String value) {
-            addCriterion("node_alias <=", value, "nodeAlias");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeAliasLike(String value) {
-            addCriterion("node_alias like", value, "nodeAlias");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeAliasNotLike(String value) {
-            addCriterion("node_alias not like", value, "nodeAlias");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeAliasIn(List<String> values) {
-            addCriterion("node_alias in", values, "nodeAlias");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeAliasNotIn(List<String> values) {
-            addCriterion("node_alias not in", values, "nodeAlias");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeAliasBetween(String value1, String value2) {
-            addCriterion("node_alias between", value1, value2, "nodeAlias");
-            return (Criteria) this;
-        }
-
-        public Criteria andNodeAliasNotBetween(String value1, String value2) {
-            addCriterion("node_alias not between", value1, value2, "nodeAlias");
+        public Criteria andToNodeIdNotBetween(Long value1, Long value2) {
+            addCriterion("to_node_id not between", value1, value2, "toNodeId");
             return (Criteria) this;
         }
 
@@ -485,63 +415,73 @@ public class BizTrackingLinkNodeExample {
             return (Criteria) this;
         }
 
-        public Criteria andStatusIsNull() {
-            addCriterion("`status` is null");
+        public Criteria andDescriptionIsNull() {
+            addCriterion("description is null");
             return (Criteria) this;
         }
 
-        public Criteria andStatusIsNotNull() {
-            addCriterion("`status` is not null");
+        public Criteria andDescriptionIsNotNull() {
+            addCriterion("description is not null");
             return (Criteria) this;
         }
 
-        public Criteria andStatusEqualTo(Byte value) {
-            addCriterion("`status` =", value, "status");
+        public Criteria andDescriptionEqualTo(String value) {
+            addCriterion("description =", value, "description");
             return (Criteria) this;
         }
 
-        public Criteria andStatusNotEqualTo(Byte value) {
-            addCriterion("`status` <>", value, "status");
+        public Criteria andDescriptionNotEqualTo(String value) {
+            addCriterion("description <>", value, "description");
             return (Criteria) this;
         }
 
-        public Criteria andStatusGreaterThan(Byte value) {
-            addCriterion("`status` >", value, "status");
+        public Criteria andDescriptionGreaterThan(String value) {
+            addCriterion("description >", value, "description");
             return (Criteria) this;
         }
 
-        public Criteria andStatusGreaterThanOrEqualTo(Byte value) {
-            addCriterion("`status` >=", value, "status");
+        public Criteria andDescriptionGreaterThanOrEqualTo(String value) {
+            addCriterion("description >=", value, "description");
             return (Criteria) this;
         }
 
-        public Criteria andStatusLessThan(Byte value) {
-            addCriterion("`status` <", value, "status");
+        public Criteria andDescriptionLessThan(String value) {
+            addCriterion("description <", value, "description");
             return (Criteria) this;
         }
 
-        public Criteria andStatusLessThanOrEqualTo(Byte value) {
-            addCriterion("`status` <=", value, "status");
+        public Criteria andDescriptionLessThanOrEqualTo(String value) {
+            addCriterion("description <=", value, "description");
             return (Criteria) this;
         }
 
-        public Criteria andStatusIn(List<Byte> values) {
-            addCriterion("`status` in", values, "status");
+        public Criteria andDescriptionLike(String value) {
+            addCriterion("description like", value, "description");
             return (Criteria) this;
         }
 
-        public Criteria andStatusNotIn(List<Byte> values) {
-            addCriterion("`status` not in", values, "status");
+        public Criteria andDescriptionNotLike(String value) {
+            addCriterion("description not like", value, "description");
             return (Criteria) this;
         }
 
-        public Criteria andStatusBetween(Byte value1, Byte value2) {
-            addCriterion("`status` between", value1, value2, "status");
+        public Criteria andDescriptionIn(List<String> values) {
+            addCriterion("description in", values, "description");
             return (Criteria) this;
         }
 
-        public Criteria andStatusNotBetween(Byte value1, Byte value2) {
-            addCriterion("`status` not between", value1, value2, "status");
+        public Criteria andDescriptionNotIn(List<String> values) {
+            addCriterion("description not in", values, "description");
+            return (Criteria) this;
+        }
+
+        public Criteria andDescriptionBetween(String value1, String value2) {
+            addCriterion("description between", value1, value2, "description");
+            return (Criteria) this;
+        }
+
+        public Criteria andDescriptionNotBetween(String value1, String value2) {
+            addCriterion("description not between", value1, value2, "description");
             return (Criteria) this;
         }
 

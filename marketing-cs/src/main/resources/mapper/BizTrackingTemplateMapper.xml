@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.BizTrackingTemplateMapper">
+
+    <!-- 批量删除 -->
+    <delete id="deleteByIds">
+        DELETE FROM biz_tracking_template WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- 查询模板列表 -->
+    <select id="selectTemplateList" resultType="com.br.marketing.dto.datamap.template.TemplateListItemVO">
+        SELECT
+            t.id,
+            t.template_name AS templateName,
+            t.description,
+            t.status,
+            COUNT(tn.id) AS nodeCount,
+            t.create_time AS createTime,
+            t.update_time AS updateTime
+        FROM biz_tracking_template t
+        LEFT JOIN biz_tracking_template_node tn ON t.id = tn.template_id
+        <where>
+            <if test="query.templateName != null and query.templateName != ''">
+                AND t.template_name LIKE CONCAT('%', #{query.templateName}, '%')
+            </if>
+            <if test="query.description != null and query.description != ''">
+                AND t.description LIKE CONCAT('%', #{query.description}, '%')
+            </if>
+            <if test="query.status != null">
+                AND t.status = #{query.status}
+            </if>
+        </where>
+        GROUP BY t.id
+        ORDER BY t.id DESC
+    </select>
+
+    <!-- 批量更新模板状态 -->
+    <update id="updateTemplateStatus">
+        UPDATE biz_tracking_template
+        SET status = #{status},
+            update_time = NOW()
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+</mapper>

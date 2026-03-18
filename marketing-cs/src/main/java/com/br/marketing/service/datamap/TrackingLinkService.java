@@ -23,12 +23,13 @@ public interface TrackingLinkService {
     ApiResult<List<NodeDictVO>> selectNodesByApiCode(String apiCode);
     
     /**
-     * 创建链路
+     * 保存链路（创建或更新）
+     * linkId为空时创建，不为空时更新
      * 
-     * @param request 创建链路请求
-     * @return 创建结果
+     * @param request 链路请求
+     * @return 保存结果
      */
-    ApiResult<CreateLinkResponse> createLink(CreateLinkRequest request);
+    ApiResult<CreateLinkResponse> saveLink(CreateLinkRequest request);
     
     /**
      * 获取链路详情
@@ -45,14 +46,6 @@ public interface TrackingLinkService {
      * @return 链路详情列表
      */
     ApiResult<List<LinkDetailResponse>> getLinkDetailListByApiCode(QueryLinkByApiCodeRequest request);
-    
-    /**
-     * 更新链路
-     *
-     * @param request 更新链路请求
-     * @return 是否成功
-     */
-    ApiResult<Boolean> updateLink(CreateLinkRequest request);
     
     /**
      * 查询链路列表

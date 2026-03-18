@@ -25,6 +25,9 @@ public class LinkListRequest {
     @Schema(description = "状态（0-禁用 1-启用）")
     private Integer status;
 
+    @Schema(description = "来源类型：MANUAL-手动创建 AUTO-自动发现")
+    private String sourceType;
+
     @Schema(description = "页码")
     private Integer pageNum;
 

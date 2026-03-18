@@ -2,7 +2,7 @@ package com.br.marketing.entity;
 
 import java.util.Date;
 
-public class BizTrackingLinkNode {
+public class BizTrackingLinkEdge {
     /**
      * 主键ID
      */
@@ -14,29 +14,24 @@ public class BizTrackingLinkNode {
     private Long linkId;
 
     /**
-     * 节点ID
+     * 起始节点ID（关联biz_tracking_link_node.id）
      */
-    private Long nodeId;
+    private Long fromNodeId;
 
     /**
-     * 节点字典ID
+     * 目标节点ID（关联biz_tracking_link_node.id）
      */
-    private Long nodeDictId;
+    private Long toNodeId;
 
     /**
-     * 节点别名（在链路中的显示名称）
-     */
-    private String nodeAlias;
-
-    /**
-     * 边类型：SOLID/DASHED
+     * 边类型：SOLID-实线(必须) DASHED-虚线(可选)
      */
     private String edgeType;
 
     /**
-     * 状态（0-禁用 1-启用）
+     * 边描述
      */
-    private Byte status;
+    private String description;
 
     /**
      * 创建时间
@@ -64,28 +59,20 @@ public class BizTrackingLinkNode {
         this.linkId = linkId;
     }
 
-    public Long getNodeId() {
-        return nodeId;
+    public Long getFromNodeId() {
+        return fromNodeId;
     }
 
-    public void setNodeId(Long nodeId) {
-        this.nodeId = nodeId;
+    public void setFromNodeId(Long fromNodeId) {
+        this.fromNodeId = fromNodeId;
     }
 
-    public Long getNodeDictId() {
-        return nodeDictId;
+    public Long getToNodeId() {
+        return toNodeId;
     }
 
-    public void setNodeDictId(Long nodeDictId) {
-        this.nodeDictId = nodeDictId;
-    }
-
-    public String getNodeAlias() {
-        return nodeAlias;
-    }
-
-    public void setNodeAlias(String nodeAlias) {
-        this.nodeAlias = nodeAlias == null ? null : nodeAlias.trim();
+    public void setToNodeId(Long toNodeId) {
+        this.toNodeId = toNodeId;
     }
 
     public String getEdgeType() {
@@ -96,12 +83,12 @@ public class BizTrackingLinkNode {
         this.edgeType = edgeType == null ? null : edgeType.trim();
     }
 
-    public Byte getStatus() {
-        return status;
+    public String getDescription() {
+        return description;
     }
 
-    public void setStatus(Byte status) {
-        this.status = status;
+    public void setDescription(String description) {
+        this.description = description == null ? null : description.trim();
     }
 
     public Date getCreatedTime() {
