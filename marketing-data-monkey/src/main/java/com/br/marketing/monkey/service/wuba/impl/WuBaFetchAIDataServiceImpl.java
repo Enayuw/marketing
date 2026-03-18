@@ -11,6 +11,7 @@ import com.br.marketing.client.marketingapi.input.PushTransferDataDetailDTO;
 import com.br.marketing.client.wuba.WuBaAIClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.TransferDataDTO;
 import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.entity.MarketingSyncUser;
@@ -39,6 +40,8 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -107,7 +110,6 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
         fetchTaskMapper.insertSelective(task);
         Long taskId = task.getId();
 
-        File tempZipFile;
         try {
             log.warn("{} 开始调用58接口，taskId: {}", TITLE, taskId);
             HttpResponse response = wuBaAIClient.downloadConversionFile(orgCode, password);
@@ -127,10 +129,8 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
                 EntityUtils.consumeQuietly(response.getEntity());
                 return;
             }
-
             Header contentTypeHeader = response.getFirstHeader("Content-Type");
             String contentType = contentTypeHeader != null ? contentTypeHeader.getValue() : null;
-
             if (contentType != null && contentType.contains("application/json")) {
                 String jsonBody = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
                 EntityUtils.consumeQuietly(response.getEntity());
@@ -140,20 +140,17 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
                                 ", message=" + jsonResponse.getString("message"), null);
                 log.error(errorMsg);
             } else if (contentType != null && contentType.contains("application/octet-stream")) {
-                byte[] fileBytes = EntityUtils.toByteArray(response.getEntity());
-                log.warn("{} 成功获取文件流，大小: {} bytes, taskId: {}", TITLE, fileBytes.length, taskId);
-
+                byte[] fileBytes = FileUtil.readBytes("E:\\opt\\data1\\inloan\\download\\marketing\\7491850\\20260318\\bairong_wt_2026-03-18.csv.zip");
+//                byte[] fileBytes = EntityUtils.toByteArray(response.getEntity());
                 try {
-                    tempZipFile = saveFileToTempPath(response, fileBytes, task, baseFilePath, apiCode, dateStr);
-                    log.debug("{} 临时文件保存成功，路径: {}, taskId: {}", TITLE, tempZipFile.getAbsolutePath(), taskId);
+                    saveFileToTempPath(response, fileBytes, task, baseFilePath, apiCode, dateStr);
                 } catch (Exception saveEx) {
                     log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.WUBA_AI_SERVICEERROR.getCode(),
                             TITLE + " 保存临时文件失败，taskId:" + taskId), saveEx);
                 }
-
                 processDataFromBytes(fileBytes, task, limit, apiCode);
                 task.setStatus(2);
-                fetchTaskMapper.updateByPrimaryKey(task);
+                fetchTaskMapper.updateByPrimaryKeySelective(task);
                 log.warn("{} 任务处理完成，taskId: {}, 处理{}条数据", TITLE, taskId, task.getSuccessCount());
             } else {
                 EntityUtils.consumeQuietly(response.getEntity());
@@ -167,7 +164,7 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
             log.error(errorMsg, e);
             task.setStatus(3);
             task.setErrorMessage(StrUtil.subPre(e.getMessage(), 2000));
-            fetchTaskMapper.updateByPrimaryKey(task);
+            fetchTaskMapper.updateByPrimaryKeySelective(task);
         }
     }
 
@@ -309,7 +306,7 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
 
         task.setTotalCount(totalCount);
         task.setSuccessCount(successCount);
-        fetchTaskMapper.updateByPrimaryKey(task);
+        fetchTaskMapper.updateByPrimaryKeySelective(task);
         log.warn("{} CSV解析完成，共{}行，成功解析{}行，taskId: {}", TITLE, totalCount, successCount, task.getId());
     }
 
@@ -342,9 +339,12 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
         data.setDebtPassTime(getFieldValue("debtPassTime", fields, headerIndexMap));
 
         if (data.getDwEventTime() != null) {
-            data.setExpireDate(data.getDwEventTime());
+            Date date = DateUtil.parse(data.getDwEventTime());
+            Date expireDate = DateUtil.offsetDay(date, 7);
+            String expireDateStr = DateUtil.formatDateTime(expireDate);
+            data.setExpireDate(expireDateStr);
         }
-        data.setInversionStatus(data.getDebtPassTime() != null ? "0" : "1");
+        data.setInversionStatus(StringUtils.isNotEmpty(data.getDebtPassTime()) ? "0" : "1");
         data.setPushDecisionStatus("0");
 
         if (!extraHeaders.isEmpty()) {
