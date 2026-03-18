@@ -26,6 +26,7 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.regex.Pattern;
 
 @Component
 @Slf4j
@@ -114,7 +115,7 @@ public class FileUploadDataCleanTaskJob extends AbstractSimpleElasticJob {
 
     }
 
-    private MarketingCleanDataFile getCleanFileTask(MarketingDataCleanGeneralConfig config, List<String> appletDateList,String localPath) {
+    private MarketingCleanDataFile getCleanFileTask(MarketingDataCleanGeneralConfig config, List<String> appletDateList, String localPath) {
 
         String reidsKey = RedisKeyConstant.DATA_CLEAN_TASK_LOCK.concat(":").concat(config.getApiCode()).concat(":").concat(config.getDataType().toString())
                 .concat(":").concat(config.getAcceptType().toString());
@@ -122,10 +123,21 @@ public class FileUploadDataCleanTaskJob extends AbstractSimpleElasticJob {
         try {
             redisChgService.lockLoop(reidsKey, value, 10000L, 30000L);
             MarketingCleanDataFileExample fileExample = new MarketingCleanDataFileExample();
-            fileExample.createCriteria().andApiCodeEqualTo(config.getApiCode()).andStatusEqualTo(DataProcessEnum.FileStatusEnum.READY.getCode())
-                    .andIsDelEqualTo(1).andLocalPathEqualTo(localPath).andReceiveDateIn(appletDateList);
+            MarketingCleanDataFileExample.Criteria criteria = fileExample.createCriteria();
+            criteria.andApiCodeEqualTo(config.getApiCode()).andStatusEqualTo(DataProcessEnum.FileStatusEnum.READY.getCode())
+                    .andIsDelEqualTo(1).andReceiveDateIn(appletDateList);
+            boolean pathHasDatePlaceholder = localPath != null
+                    && (localPath.contains("yyyyMMdd") || localPath.contains("yyyy-MM-dd"));
+            if (!pathHasDatePlaceholder) {
+                criteria.andLocalPathEqualTo(localPath);
+            }
             fileExample.setOrderByClause("create_time desc");
             List<MarketingCleanDataFile> cleanDataFiles = marketingCleanDataFileMapper.selectByExample(fileExample);
+            if (pathHasDatePlaceholder && !cleanDataFiles.isEmpty()) {
+                Pattern pathPattern = templateToPathRegex(localPath);
+                cleanDataFiles = new ArrayList<>(cleanDataFiles);
+                cleanDataFiles.removeIf(f -> f.getLocalPath() == null || !pathPattern.matcher(f.getLocalPath()).matches());
+            }
             if (cleanDataFiles.isEmpty()) {
                 return null;
             }
@@ -140,5 +152,26 @@ public class FileUploadDataCleanTaskJob extends AbstractSimpleElasticJob {
         } finally {
             redisChgService.unlock(reidsKey, value);
         }
+    }
+
+    /** 将含 yyyyMMdd、yyyy-MM-dd 的路径模板转成匹配“任意日期”的正则 */
+    private Pattern templateToPathRegex(String template) {
+        if (template == null) {
+            return Pattern.compile("^$");
+        }
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < template.length(); ) {
+            if (template.startsWith("yyyy-MM-dd", i)) {
+                sb.append("\\d{4}-\\d{2}-\\d{2}");
+                i += 10;
+            } else if (template.startsWith("yyyyMMdd", i)) {
+                sb.append("\\d{8}");
+                i += 8;
+            } else {
+                sb.append(Pattern.quote(template.substring(i, i + 1)));
+                i++;
+            }
+        }
+        return Pattern.compile(sb.toString());
     }
 }
