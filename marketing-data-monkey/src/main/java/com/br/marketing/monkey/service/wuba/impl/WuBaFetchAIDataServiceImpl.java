@@ -27,7 +27,6 @@ import com.br.marketing.service.PushInfoService;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.clean.common.GeneralDataCleanService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import io.micrometer.core.instrument.util.IOUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.http.Header;
@@ -36,12 +35,9 @@ import org.apache.http.util.EntityUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -103,7 +99,7 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
             log.warn("{} 已存在处理中或成功任务(collectDate={})，跳过本次执行", TITLE, collectDate);
             return;
         }
-
+//
         WuBaAiFetchTask task = new WuBaAiFetchTask();
         task.setCollectDate(collectDate);
         task.setStatus(0);
@@ -140,8 +136,8 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
                                 ", message=" + jsonResponse.getString("message"), null);
                 log.error(errorMsg);
             } else if (contentType != null && contentType.contains("application/octet-stream")) {
-                byte[] fileBytes = FileUtil.readBytes("E:\\opt\\data1\\inloan\\download\\marketing\\7491850\\20260318\\bairong_wt_2026-03-18.csv.zip");
-//                byte[] fileBytes = EntityUtils.toByteArray(response.getEntity());
+//                byte[] fileBytes = FileUtil.readBytes("E:\\opt\\data1\\inloan\\download\\marketing\\7491850\\20260318\\bairong_wt_2026-03-18.csv.zip");
+                byte[] fileBytes = EntityUtils.toByteArray(response.getEntity());
                 try {
                     saveFileToTempPath(response, fileBytes, task, baseFilePath, apiCode, dateStr);
                 } catch (Exception saveEx) {
@@ -201,7 +197,8 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
                 if (!entry.isDirectory()) {
-                    String csvContent = IOUtils.toString(zis, StandardCharsets.UTF_8);
+                    byte[] csvBytes = readAllBytes(zis);
+                    String csvContent = detectEncodingAndConvertToString(csvBytes);
                     processCsvContent(csvContent, task, limit, apiCode);
                     break;
                 }
@@ -212,6 +209,61 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
             log.error(errorMsg, e);
             throw new IOException(errorMsg, e);
         }
+    }
+
+    private byte[] readAllBytes(InputStream inputStream) throws IOException {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        byte[] data = new byte[4096];
+        int bytesRead;
+
+        while ((bytesRead = inputStream.read(data, 0, data.length)) != -1) {
+            buffer.write(data, 0, bytesRead);
+        }
+
+        return buffer.toByteArray();
+    }
+
+    public String detectEncodingAndConvertToString(byte[] fileBytes) throws IOException {
+        if (fileBytes.length == 0) {
+            throw new IOException("文件为空");
+        }
+
+        boolean hasUtf8Bom = false;
+
+        if (fileBytes.length >= 3 &&
+                (fileBytes[0] & 0xFF) == 0xEF &&
+                (fileBytes[1] & 0xFF) == 0xBB &&
+                (fileBytes[2] & 0xFF) == 0xBF) {
+            hasUtf8Bom = true;
+            log.warn("检测到 UTF-8 BOM 标记，将自动处理");
+        }
+
+        // 如果有BOM，跳过BOM
+        byte[] contentBytes = fileBytes;
+        if (hasUtf8Bom) {
+            contentBytes = new byte[fileBytes.length - 3];
+            System.arraycopy(fileBytes, 3, contentBytes, 0, contentBytes.length);
+        }
+
+        // 尝试多种编码
+        Charset[] charsets = {
+                Charset.forName("GBK"),
+                Charset.forName("GB2312"),
+                StandardCharsets.UTF_8,
+                StandardCharsets.ISO_8859_1
+        };
+
+        for (Charset charset : charsets) {
+            try {
+                String content = new String(contentBytes, charset);
+                log.warn("使用 {} 编码成功读取文件", charset.name());
+                return content;
+            } catch (Exception e) {
+                // 继续尝试下一个编码
+            }
+        }
+
+        throw new IOException("无法解析内容，尝试了多种编码格式均失败");
     }
 
     private void processCsvContent(String csvContent, WuBaAiFetchTask task, Integer limit, String apiCode) {
