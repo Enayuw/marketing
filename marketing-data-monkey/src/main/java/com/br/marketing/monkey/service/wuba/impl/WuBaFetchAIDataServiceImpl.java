@@ -331,6 +331,10 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
                                 : new JSONObject();
                         JSONObject recordJson = (JSONObject) JSONObject.toJSON(record);
                         reserveField1.putAll(recordJson);
+                        EXPECTED_HEADERS.forEach(header -> {
+                            String value = recordJson.getString(header);
+                            reserveField1.put(header, Objects.nonNull(value) ? value : "");
+                        });
                         syncUser.setReserveField1(reserveField1.toJSONString());
                         return (JSONObject) JSONObject.toJSON(syncUser);
                     })
