@@ -1728,15 +1728,24 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             //定制上传：根据apiCode查询b_marketing_customer_original_data，查询数据日期
             dates = marketingCustomerOriginalDataMapper.getLastMonthDataDates(apiCode);
         }else if (Objects.equals(acceptType, DataProcessEnum.AcceptTypeEnum.FTP.getCode())){
-            //SFTP上传：根据apiCode和sftp路径进行查询b_marketing_clean_data_file
+            //SFTP上传：根据apiCode和sftp路径查询b_marketing_clean_data_file；若 targetPath 含 yyyyMMdd/yyyy-MM-dd 则按 findLatestDataFileByPathTemplate 思路：先按 apiCode+近一月查，再在内存按路径模板过滤取日期
             if (StringUtils.isNotBlank(sftpPath)){
                 SyncConfigExample syncConfigCycle = new SyncConfigExample();
                 SyncConfigExample.Criteria criteriaCycle = syncConfigCycle.createCriteria();
                 criteriaCycle.andStatusEqualTo(1).andDataTypeEqualTo(DataTypeEnum.MARKETING_UP_CYCLE_DATA.getValue()).andApiCodeEqualTo(apiCode)
                         .andSrcPathEqualTo(sftpPath).andTypeEqualTo(1);
                 List<SyncConfig> syncCycleConfigs = syncConfigMapper.selectByExample(syncConfigCycle);
-                String localPath = syncCycleConfigs.get(0).getTargetPath();
-                dates = marketingCleanDataFileMapper.getLastMonthDataDates(apiCode,localPath);
+                if (CollectionUtils.isEmpty(syncCycleConfigs)) {
+                    return dates;
+                }
+                String targetPathTemplate = syncCycleConfigs.get(0).getTargetPath();
+                boolean pathHasDatePlaceholder = targetPathTemplate != null
+                        && (targetPathTemplate.contains("yyyyMMdd") || targetPathTemplate.contains("yyyy-MM-dd"));
+                if (pathHasDatePlaceholder) {
+                    dates = getLastMonthDataDatesByPathTemplate(apiCode, targetPathTemplate);
+                } else {
+                    dates = marketingCleanDataFileMapper.getLastMonthDataDates(apiCode, targetPathTemplate);
+                }
             }else {
                 throw new BusinessException("sftpPath不能为空！");
             }
@@ -1750,14 +1759,14 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     @Override
     public boolean saveCleanConfig(CleanConfigDTO configDTO) {
         MarketingDataCleanGeneralConfigExample configExample = new MarketingDataCleanGeneralConfigExample();
-        configExample.createCriteria()
-                .andApiCodeEqualTo(configDTO.getApiCode())
+        MarketingDataCleanGeneralConfigExample.Criteria configCriteria = configExample.createCriteria();
+        configCriteria.andApiCodeEqualTo(configDTO.getApiCode())
                 .andSystemTypeEqualTo(configDTO.getSystemType())
                 .andDataTypeEqualTo(configDTO.getDataType())
                 .andAcceptTypeEqualTo(configDTO.getAcceptType())
                 .andIsDelEqualTo(1);
         if (StringUtils.isNotEmpty(configDTO.getSftpPath())) {
-            configExample.createCriteria().andSftpPathEqualTo(configDTO.getSftpPath());
+            configCriteria.andSftpPathEqualTo(configDTO.getSftpPath());
         }
         List<MarketingDataCleanGeneralConfig> configs = cleanGeneralConfigMapper.selectByExample(configExample);
         if (!CollectionUtils.isEmpty(configs)) {
@@ -2177,6 +2186,34 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             }
         }
         return null;
+    }
+
+    /**
+     * 路径含 yyyyMMdd/yyyy-MM-dd 时：按 apiCode + 近一月查 dataFile，再按路径模板过滤，取不重复的 receive_date（与 findLatestDataFileByPathTemplate 同思路）
+     */
+    private List<String> getLastMonthDataDatesByPathTemplate(String apiCode, String targetPathTemplate) {
+        if (StringUtils.isBlank(targetPathTemplate)) {
+            return Collections.emptyList();
+        }
+        String start = LocalDate.now().minusMonths(1).toString();
+        String end = LocalDate.now().toString();
+        MarketingCleanDataFileExample ex = new MarketingCleanDataFileExample();
+        ex.createCriteria().andApiCodeEqualTo(apiCode)
+                .andReceiveDateBetween(start, end)
+                .andIsDelEqualTo(1);
+        ex.setOrderByClause("receive_date desc");
+        List<MarketingCleanDataFile> list = marketingCleanDataFileMapper.selectByExample(ex);
+        if (CollectionUtils.isEmpty(list)) {
+            return Collections.emptyList();
+        }
+        Pattern pathPattern = templateToPathRegex(targetPathTemplate);
+        return list.stream()
+                .filter(f -> f.getLocalPath() != null && pathPattern.matcher(f.getLocalPath()).matches())
+                .map(MarketingCleanDataFile::getReceiveDate)
+                .filter(Objects::nonNull)
+                .distinct()
+                .sorted(Comparator.reverseOrder())
+                .collect(Collectors.toList());
     }
 
     /** 将含 yyyyMMdd、yyyy-MM-dd 的模板转成匹配“任意日期”的正则 */
