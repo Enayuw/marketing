@@ -10,6 +10,7 @@ import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.io.File;
@@ -46,6 +47,10 @@ public class LocalFileToDbJob extends AbstractSimpleElasticJob {
         log.warn("{}待处理任务数: {}", TITLE, tasks.size());
 
         for (MarketingCleanPersistTask task : tasks) {
+            if (!StringUtils.hasText(task.getFileHeader())) {
+                log.warn("{}跳过 fileHeader 为空的任务, taskId={}", TITLE, task.getId());
+                continue;
+            }
             String fullPath = buildFullPath(task.getLocalPath(), task.getFileName());
             localFilePersistService.processTask(task, fullPath);
         }
