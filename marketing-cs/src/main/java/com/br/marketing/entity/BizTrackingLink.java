@@ -53,6 +53,21 @@ public class BizTrackingLink {
      */
     private String apiCode;
 
+    /**
+     * 匹配的模板ID
+     */
+    private String templateId;
+
+    /**
+     * 来源：MANUAL/AUTO
+     */
+    private String sourceType;
+
+    /**
+     * 自动匹配时间
+     */
+    private Date matchTime;
+
     public Long getId() {
         return id;
     }
@@ -131,5 +146,29 @@ public class BizTrackingLink {
 
     public void setApiCode(String apiCode) {
         this.apiCode = apiCode == null ? null : apiCode.trim();
+    }
+
+    public String getTemplateId() {
+        return templateId;
+    }
+
+    public void setTemplateId(String templateId) {
+        this.templateId = templateId == null ? null : templateId.trim();
+    }
+
+    public String getSourceType() {
+        return sourceType;
+    }
+
+    public void setSourceType(String sourceType) {
+        this.sourceType = sourceType == null ? null : sourceType.trim();
+    }
+
+    public Date getMatchTime() {
+        return matchTime;
+    }
+
+    public void setMatchTime(Date matchTime) {
+        this.matchTime = matchTime;
     }
 }
