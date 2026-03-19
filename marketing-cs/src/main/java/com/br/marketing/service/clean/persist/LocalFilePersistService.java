@@ -205,78 +205,113 @@ public class LocalFilePersistService {
         localFilePersistMapper.executeDdl(ddl.toString());
     }
 
+    /**
+     * 分批读文件并插入：每次最多读 BATCH_INSERT_SIZE 行，插入后继续下一批，避免整文件进内存。
+     */
     private int readFileAndInsert(String fullPath, String fileName, Long cleanDataFileRecordId, Long persistTaskId, MarketingCleanHeaderTableMapping mapping) {
-        List<List<String>> rows = readFileToRows(fullPath, fileName);
-        if (rows == null || rows.isEmpty()) {
-            return 0;
+        File file = new File(fullPath);
+        if (!file.exists() || !file.isFile()) {
+            log.warn("文件不存在: {}", fullPath);
+            return -1;
         }
         String[] columns = mapping.getColumnSchemaEn().split(",");
         for (int i = 0; i < columns.length; i++) {
             columns[i] = columns[i].trim();
         }
+        if (isExcelFile(fileName)) {
+            return readExcelBatchAndInsert(fullPath, columns, cleanDataFileRecordId, persistTaskId, mapping);
+        } else {
+            return readCsvBatchAndInsert(fullPath, columns, cleanDataFileRecordId, persistTaskId, mapping);
+        }
+    }
+
+    /**
+     * CSV/文本：流式按行读，攒满一批插入一批，不整文件进内存。
+     */
+    private int readCsvBatchAndInsert(String fullPath, String[] columns, Long cleanDataFileRecordId, Long persistTaskId, MarketingCleanHeaderTableMapping mapping) {
         int total = 0;
-        for (int start = 0; start < rows.size(); start += BATCH_INSERT_SIZE) {
-            int end = Math.min(start + BATCH_INSERT_SIZE, rows.size());
-            List<List<String>> batch = rows.subList(start, end);
-            String sql = buildBatchInsertSql(mapping.getTableName(), columns, cleanDataFileRecordId, persistTaskId, batch);
-            try {
-                localFilePersistMapper.executeInsert(sql);
-                total += batch.size();
-            } catch (Exception e) {
-                log.error("批量插入失败，table={}, start={}", mapping.getTableName(), start, e);
-                return -1;
+        List<List<String>> batch = new ArrayList<>(BATCH_INSERT_SIZE);
+        try (BufferedReader reader = new BufferedReader(new FileReader(fullPath, StandardCharsets.UTF_8))) {
+            String line;
+            boolean first = true;
+            while ((line = reader.readLine()) != null) {
+                String t = line.trim();
+                if (t.isEmpty()) continue;
+                if (first) {
+                    first = false;
+                    continue;
+                }
+                List<String> cells = new ArrayList<>();
+                for (String s : t.split(",", -1)) {
+                    cells.add(s.trim().replaceAll("^\"|\"$", ""));
+                }
+                batch.add(cells);
+                if (batch.size() >= BATCH_INSERT_SIZE) {
+                    int n = insertBatch(mapping.getTableName(), columns, cleanDataFileRecordId, persistTaskId, batch);
+                    if (n < 0) return -1;
+                    total += n;
+                    batch.clear();
+                }
             }
+            if (!batch.isEmpty()) {
+                int n = insertBatch(mapping.getTableName(), columns, cleanDataFileRecordId, persistTaskId, batch);
+                if (n < 0) return -1;
+                total += n;
+            }
+        } catch (IOException e) {
+            log.error("读取文件失败: {}", fullPath, e);
+            return -1;
         }
         return total;
     }
 
-    private List<List<String>> readFileToRows(String fullPath, String fileName) {
-        File file = new File(fullPath);
-        if (!file.exists() || !file.isFile()) {
-            log.warn("文件不存在: {}", fullPath);
-            return null;
-        }
-        List<List<String>> dataRows = new ArrayList<>();
-        if (isExcelFile(fileName)) {
-            try (FileInputStream fis = new FileInputStream(file); Workbook wb = WorkbookFactory.create(fis)) {
-                Sheet sheet = wb.getSheetAt(0);
-                DataFormatter formatter = new DataFormatter();
-                for (int r = 1; r <= sheet.getLastRowNum(); r++) {
-                    Row row = sheet.getRow(r);
-                    if (row == null) continue;
-                    List<String> cells = new ArrayList<>();
-                    for (int c = 0; c < row.getLastCellNum(); c++) {
-                        cells.add(formatter.formatCellValue(row.getCell(c)));
-                    }
-                    if (!cells.isEmpty()) dataRows.add(cells);
+    /**
+     * Excel：按行遍历，攒满一批插入一批，仅保留当前批在内存（Workbook 仍会加载整个文件，由 POI 限制）。
+     */
+    private int readExcelBatchAndInsert(String fullPath, String[] columns, Long cleanDataFileRecordId, Long persistTaskId, MarketingCleanHeaderTableMapping mapping) {
+        int total = 0;
+        List<List<String>> batch = new ArrayList<>(BATCH_INSERT_SIZE);
+        try (FileInputStream fis = new FileInputStream(fullPath); Workbook wb = WorkbookFactory.create(fis)) {
+            Sheet sheet = wb.getSheetAt(0);
+            if (sheet == null) return 0;
+            DataFormatter formatter = new DataFormatter();
+            for (int r = 1; r <= sheet.getLastRowNum(); r++) {
+                Row row = sheet.getRow(r);
+                if (row == null) continue;
+                List<String> cells = new ArrayList<>();
+                for (int c = 0; c < row.getLastCellNum(); c++) {
+                    cells.add(formatter.formatCellValue(row.getCell(c)));
                 }
-            } catch (Exception e) {
-                log.error("读取 Excel 失败: {}", fullPath, e);
-                return null;
-            }
-        } else {
-            try (BufferedReader reader = new BufferedReader(new FileReader(file, StandardCharsets.UTF_8))) {
-                String line;
-                boolean first = true;
-                while ((line = reader.readLine()) != null) {
-                    String t = line.trim();
-                    if (t.isEmpty()) continue;
-                    if (first) {
-                        first = false;
-                        continue;
-                    }
-                    List<String> cells = new ArrayList<>();
-                    for (String s : t.split(",", -1)) {
-                        cells.add(s.trim().replaceAll("^\"|\"$", ""));
-                    }
-                    dataRows.add(cells);
+                if (cells.isEmpty()) continue;
+                batch.add(cells);
+                if (batch.size() >= BATCH_INSERT_SIZE) {
+                    int n = insertBatch(mapping.getTableName(), columns, cleanDataFileRecordId, persistTaskId, batch);
+                    if (n < 0) return -1;
+                    total += n;
+                    batch.clear();
                 }
-            } catch (IOException e) {
-                log.error("读取文件失败: {}", fullPath, e);
-                return null;
             }
+            if (!batch.isEmpty()) {
+                int n = insertBatch(mapping.getTableName(), columns, cleanDataFileRecordId, persistTaskId, batch);
+                if (n < 0) return -1;
+                total += n;
+            }
+        } catch (Exception e) {
+            log.error("读取 Excel 失败: {}", fullPath, e);
+            return -1;
         }
-        return dataRows;
+        return total;
+    }
+
+    private int insertBatch(String tableName, String[] columns, Long cleanDataFileRecordId, Long persistTaskId, List<List<String>> batch) {
+        try {
+            String sql = buildBatchInsertSql(tableName, columns, cleanDataFileRecordId, persistTaskId, batch);
+            localFilePersistMapper.executeInsert(sql);
+            return batch.size();
+        } catch (Exception e) {
+            log.error("批量插入失败，table={}", tableName, e);
+            return -1;
+        }
     }
 
     private String buildBatchInsertSql(String tableName, String[] columns, Long cleanDataFileRecordId, Long persistTaskId, List<List<String>> batch) {
