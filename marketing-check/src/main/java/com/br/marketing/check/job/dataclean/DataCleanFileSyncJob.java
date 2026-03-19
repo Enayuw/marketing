@@ -11,13 +11,18 @@ import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.entity.MarketingCleanDataFile;
 import com.br.marketing.entity.MarketingCleanDataFileExample;
+import com.br.marketing.entity.MarketingCleanPersistTask;
+import com.br.marketing.entity.MarketingCleanPersistTaskExample;
 import com.br.marketing.entity.SftpVirtualHeaderScriptConfig;
 import com.br.marketing.entity.SftpVirtualHeaderScriptConfigExample;
 import com.br.marketing.entity.SyncConfig;
 import com.br.marketing.entity.SyncConfigExample;
+import com.br.marketing.enums.clean.CleanPersistTaskStatusEnum;
 import com.br.marketing.enums.clean.DataProcessEnum;
+import com.br.marketing.enums.clean.IsPersEnum;
 import com.br.marketing.enums.clean.SftpVirtualHeaderScriptStatusEnum;
 import com.br.marketing.mapper.MarketingCleanDataFileMapper;
+import com.br.marketing.mapper.MarketingCleanPersistTaskMapper;
 import com.br.marketing.mapper.SftpVirtualHeaderScriptConfigMapper;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.service.IFileActionService;
@@ -72,6 +77,8 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
 
     @Autowired
     MarketingCleanDataFileMapper marketingCleanDataFileMapper;
+    @Resource
+    private MarketingCleanPersistTaskMapper marketingCleanPersistTaskMapper;
     @Resource
     private TrackingService trackingService;
     @Resource
@@ -166,6 +173,8 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
         }
         marketingCleanDataFileMapper.updateByPrimaryKeySelective(dataFile);
 
+        insertPersistTaskIfNeeded(cleanDataFile, headerLine);
+
         try {
             String remark = String.format("手动清洗-文件样例同步,文件名称：%s"
                     , cleanDataFile.getFileName());
@@ -184,6 +193,40 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
                     , ex);
         }
 
+    }
+
+    /**
+     * is_pers=1 时创建文件清洗持久化任务（在更新完 dataFile 表头后插入，保证 fileHeader 有值）
+     */
+    private void insertPersistTaskIfNeeded(MarketingCleanDataFile cleanDataFile, String fileHeader) {
+        if (cleanDataFile.getSyncConfigId() == null) {
+            return;
+        }
+        SyncConfig syncConfig = syncConfigMapper.selectByPrimaryKey(cleanDataFile.getSyncConfigId());
+        if (syncConfig == null || !IsPersEnum.isPers(syncConfig.getIsPers())) {
+            return;
+        }
+        MarketingCleanPersistTaskExample ex = new MarketingCleanPersistTaskExample();
+        ex.createCriteria().andCleanDataFileRecordIdEqualTo(cleanDataFile.getId());
+        if (marketingCleanPersistTaskMapper.countByExample(ex) > 0) {
+            return;
+        }
+        try {
+            MarketingCleanPersistTask task = new MarketingCleanPersistTask();
+            task.setCleanDataFileRecordId(cleanDataFile.getId());
+            task.setSyncConfigId(syncConfig.getId());
+            task.setFileHeader(fileHeader);
+            task.setFileName(cleanDataFile.getFileName());
+            task.setLocalPath(cleanDataFile.getLocalPath());
+            task.setStatus(CleanPersistTaskStatusEnum.PENDING.getCode());
+            Date now = new Date();
+            task.setCreateTime(now);
+            task.setUpdateTime(now);
+            marketingCleanPersistTaskMapper.insertSelective(task);
+        } catch (Exception e) {
+            log.warn("创建清洗持久化任务失败，cleanDataFileId:{}, syncConfigId:{}, error:{}",
+                    cleanDataFile.getId(), syncConfig.getId(), e.getMessage(), e);
+        }
     }
 
     private void fileSyncTable(SyncConfig syncConfig, String path, String fileName) {

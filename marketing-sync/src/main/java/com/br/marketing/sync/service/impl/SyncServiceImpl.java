@@ -13,15 +13,11 @@ import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.common.utils.file.ZipUtils;
 import com.br.marketing.entity.MarketingCleanDataFile;
-import com.br.marketing.entity.MarketingCleanPersistTask;
 import com.br.marketing.entity.SyncConfig;
-import com.br.marketing.enums.clean.CleanPersistTaskStatusEnum;
-import com.br.marketing.enums.clean.IsPersEnum;
 import com.br.marketing.entity.SyncLog;
 import com.br.marketing.enums.SyncConfigCustomizedTypeEnum;
 import com.br.marketing.enums.file.FileServerType;
 import com.br.marketing.mapper.MarketingCleanDataFileMapper;
-import com.br.marketing.mapper.MarketingCleanPersistTaskMapper;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.mapper.SyncLogMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -72,9 +68,6 @@ public class SyncServiceImpl implements SyncService {
 
     @Resource
     private MarketingCleanDataFileMapper marketingCleanDataFileMapper;
-
-    @Resource
-    private MarketingCleanPersistTaskMapper marketingCleanPersistTaskMapper;
 
     @Resource
     MarketingCommonConfig marketingCommonConfig;
@@ -1009,32 +1002,7 @@ public class SyncServiceImpl implements SyncService {
                     , fileName, targetPath, srcPath, md5Value, loanSyncConfig.getId());
             return Boolean.FALSE;
         }
-        if (IsPersEnum.isPers(loanSyncConfig.getIsPers())) {
-            insertPersistTask(dataFile, loanSyncConfig);
-        }
         return Boolean.TRUE;
-    }
-
-    /**
-     * is_pers=1 时创建文件清洗持久化任务
-     */
-    private void insertPersistTask(MarketingCleanDataFile dataFile, SyncConfig syncConfig) {
-        try {
-            MarketingCleanPersistTask task = new MarketingCleanPersistTask();
-            task.setCleanDataFileRecordId(dataFile.getId());
-            task.setSyncConfigId(syncConfig.getId());
-            task.setFileHeader(dataFile.getFileHeader());
-            task.setFileName(dataFile.getFileName());
-            task.setLocalPath(dataFile.getLocalPath());
-            task.setStatus(CleanPersistTaskStatusEnum.PENDING.getCode());
-            Date now = new Date();
-            task.setCreateTime(now);
-            task.setUpdateTime(now);
-            marketingCleanPersistTaskMapper.insertSelective(task);
-        } catch (Exception e) {
-            log.warn("创建清洗持久化任务失败，cleanDataFileId:{}, syncConfigId:{}, error:{}",
-                    dataFile.getId(), syncConfig.getId(), e.getMessage(), e);
-        }
     }
 
     /**
@@ -1043,7 +1011,14 @@ public class SyncServiceImpl implements SyncService {
     private Boolean unzipAndSaveExtractedFiles(String zipFileName, SyncConfig loanSyncConfig,
                                                 String targetPath, String srcPath, File zipFile) {
         try {
-            List<String> extractedPaths = ZipUtils.unZipAndReturnExtractedPaths(zipFile, targetPath, "", "GBK");
+            String encoding = "GBK";
+            if (marketingCommonConfig.getSyncUnzipEncoding() != null) {
+                String cfg = marketingCommonConfig.getSyncUnzipEncoding().get(String.valueOf(loanSyncConfig.getId()));
+                if (cfg != null && !cfg.trim().isEmpty()) {
+                    encoding = cfg.trim();
+                }
+            }
+            List<String> extractedPaths = ZipUtils.unZipAndReturnExtractedPaths(zipFile, targetPath, "", encoding);
             if (extractedPaths == null || extractedPaths.isEmpty()) {
                 log.warn("压缩包内无文件或解压未得到文件列表，zipFileName:{}, syncConfigId:{}", zipFileName, loanSyncConfig.getId());
                 return Boolean.TRUE;
@@ -1067,8 +1042,6 @@ public class SyncServiceImpl implements SyncService {
                 if (i < 1) {
                     log.warn("解压文件落库失败！zipFileName:{}, extractedFile:{}, syncConfigId:{}",
                             zipFileName, extractedFileName, loanSyncConfig.getId());
-                } else if (IsPersEnum.isPers(loanSyncConfig.getIsPers())) {
-                    insertPersistTask(dataFile, loanSyncConfig);
                 }
             }
             log.warn("压缩包解压并落库完成，zipFileName:{}, 解压文件数:{}, syncConfigId:{}",
