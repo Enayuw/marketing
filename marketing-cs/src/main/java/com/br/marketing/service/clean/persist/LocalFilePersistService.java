@@ -197,6 +197,7 @@ public class LocalFilePersistService {
         ddl.append("`id` bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,");
         ddl.append("`clean_data_file_record_id` bigint DEFAULT NULL,");
         ddl.append("`persist_task_record_id` bigint DEFAULT NULL,");
+        ddl.append("`row_index` int DEFAULT NULL COMMENT '数据在文件中的行号（从1起，表头为第1行）',");
         for (String c : cols) {
             ddl.append("`").append(c.trim()).append("` varchar(512) DEFAULT NULL,");
         }
@@ -230,6 +231,7 @@ public class LocalFilePersistService {
      */
     private int readCsvBatchAndInsert(String fullPath, String[] columns, Long cleanDataFileRecordId, Long persistTaskId, MarketingCleanHeaderTableMapping mapping) {
         int total = 0;
+        int rowIndex = 2;
         List<List<String>> batch = new ArrayList<>(BATCH_INSERT_SIZE);
         try (BufferedReader reader = new BufferedReader(new FileReader(fullPath, StandardCharsets.UTF_8))) {
             String line;
@@ -247,14 +249,15 @@ public class LocalFilePersistService {
                 }
                 batch.add(cells);
                 if (batch.size() >= BATCH_INSERT_SIZE) {
-                    int n = insertBatch(mapping.getTableName(), columns, cleanDataFileRecordId, persistTaskId, batch);
+                    int n = insertBatch(mapping.getTableName(), columns, cleanDataFileRecordId, persistTaskId, rowIndex, batch);
                     if (n < 0) return -1;
                     total += n;
+                    rowIndex += batch.size();
                     batch.clear();
                 }
             }
             if (!batch.isEmpty()) {
-                int n = insertBatch(mapping.getTableName(), columns, cleanDataFileRecordId, persistTaskId, batch);
+                int n = insertBatch(mapping.getTableName(), columns, cleanDataFileRecordId, persistTaskId, rowIndex, batch);
                 if (n < 0) return -1;
                 total += n;
             }
@@ -270,6 +273,7 @@ public class LocalFilePersistService {
      */
     private int readExcelBatchAndInsert(String fullPath, String[] columns, Long cleanDataFileRecordId, Long persistTaskId, MarketingCleanHeaderTableMapping mapping) {
         int total = 0;
+        int rowIndex = 2;
         List<List<String>> batch = new ArrayList<>(BATCH_INSERT_SIZE);
         try (FileInputStream fis = new FileInputStream(fullPath); Workbook wb = WorkbookFactory.create(fis)) {
             Sheet sheet = wb.getSheetAt(0);
@@ -285,14 +289,15 @@ public class LocalFilePersistService {
                 if (cells.isEmpty()) continue;
                 batch.add(cells);
                 if (batch.size() >= BATCH_INSERT_SIZE) {
-                    int n = insertBatch(mapping.getTableName(), columns, cleanDataFileRecordId, persistTaskId, batch);
+                    int n = insertBatch(mapping.getTableName(), columns, cleanDataFileRecordId, persistTaskId, rowIndex, batch);
                     if (n < 0) return -1;
                     total += n;
+                    rowIndex += batch.size();
                     batch.clear();
                 }
             }
             if (!batch.isEmpty()) {
-                int n = insertBatch(mapping.getTableName(), columns, cleanDataFileRecordId, persistTaskId, batch);
+                int n = insertBatch(mapping.getTableName(), columns, cleanDataFileRecordId, persistTaskId, rowIndex, batch);
                 if (n < 0) return -1;
                 total += n;
             }
@@ -303,9 +308,9 @@ public class LocalFilePersistService {
         return total;
     }
 
-    private int insertBatch(String tableName, String[] columns, Long cleanDataFileRecordId, Long persistTaskId, List<List<String>> batch) {
+    private int insertBatch(String tableName, String[] columns, Long cleanDataFileRecordId, Long persistTaskId, int startRowIndex, List<List<String>> batch) {
         try {
-            String sql = buildBatchInsertSql(tableName, columns, cleanDataFileRecordId, persistTaskId, batch);
+            String sql = buildBatchInsertSql(tableName, columns, cleanDataFileRecordId, persistTaskId, startRowIndex, batch);
             localFilePersistMapper.executeInsert(sql);
             return batch.size();
         } catch (Exception e) {
@@ -314,8 +319,8 @@ public class LocalFilePersistService {
         }
     }
 
-    private String buildBatchInsertSql(String tableName, String[] columns, Long cleanDataFileRecordId, Long persistTaskId, List<List<String>> batch) {
-        StringBuilder sql = new StringBuilder("INSERT INTO `").append(tableName).append("` (`clean_data_file_record_id`,`persist_task_record_id`");
+    private String buildBatchInsertSql(String tableName, String[] columns, Long cleanDataFileRecordId, Long persistTaskId, int startRowIndex, List<List<String>> batch) {
+        StringBuilder sql = new StringBuilder("INSERT INTO `").append(tableName).append("` (`clean_data_file_record_id`,`persist_task_record_id`,`row_index`");
         for (String col : columns) {
             sql.append(",`").append(col).append("`");
         }
@@ -323,8 +328,10 @@ public class LocalFilePersistService {
         for (int i = 0; i < batch.size(); i++) {
             if (i > 0) sql.append(",");
             List<String> row = batch.get(i);
+            int rowIndex = startRowIndex + i;
             sql.append("(").append(cleanDataFileRecordId != null ? cleanDataFileRecordId : "NULL");
             sql.append(",").append(persistTaskId != null ? persistTaskId : "NULL");
+            sql.append(",").append(rowIndex);
             for (int c = 0; c < columns.length; c++) {
                 String val = c < row.size() ? row.get(c) : "";
                 sql.append(",").append(escapeSqlValue(val));
