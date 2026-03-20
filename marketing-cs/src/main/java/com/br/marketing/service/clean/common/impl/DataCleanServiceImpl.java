@@ -736,7 +736,7 @@ public class DataCleanServiceImpl implements DataCleanService {
             String expectedPath = JsonParseUtils.processNodePaths(parentPath);
             
             // 确定目标字段名：如果 mappingField 不为空且与 cleanFields 不同，则使用 mappingField，否则使用 cleanFields
-            String targetKey = (StringUtils.isNotEmpty(mappingField) && !mappingField.equals(cleanFields)) 
+            String targetKey = (StringUtils.isNotEmpty(mappingField) && !mappingField.equals(cleanFields))
                     ? mappingField : cleanFields;
             boolean needRename = StringUtils.isNotEmpty(mappingField) && !mappingField.equals(cleanFields);
             
@@ -890,6 +890,9 @@ public class DataCleanServiceImpl implements DataCleanService {
                                 MarketingPreUserDetailDTO marketingPreUserDetailDTO) {
         ruleConfigList.forEach(ruleConfig -> {
             Object result = ruleCleaningService.executeCleaningRule(jsonObject, ruleConfig);
+            if (StringUtils.isEmpty(result)) {
+                return;
+            }
             switch (ruleConfig.getMappingField()) {
                 case "name":
                     marketingPreUserDetailDTO.setName((String) result);
