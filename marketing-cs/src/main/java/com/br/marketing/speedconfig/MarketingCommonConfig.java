@@ -3643,4 +3643,14 @@ public class MarketingCommonConfig {
      * 跑分rediskey的scoreStatus的最终执行时间
      */
     private String scoreStatusFinalDate;
+
+    /**
+     * 同程新场景批次号前缀标识配置
+     */
+    private List<String> tcSceneBatchNoSuffixConfig;
+
+    /**
+     * * 同程批次号前缀对场景映射配置
+     */
+    private Map<String,String> tcBatchNoSuffixToSceneConfig;
  }
