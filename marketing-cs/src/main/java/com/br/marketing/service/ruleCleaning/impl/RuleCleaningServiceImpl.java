@@ -603,6 +603,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 .andCleanConfigIdEqualTo(cleanConfigId)
                 .andApiCodeEqualTo(configDTO.getApiCode())
                 .andMappingFieldEqualTo(configDTO.getMappingField())
+                .andIsDerivedEqualTo(configDTO.getFieldType())
                 .andIsDelEqualTo(1);
 
         List<MarketingDataCleanGeneralRuleConfig> existingRules = cleanGeneralRuleConfigMapper.selectByExample(example);
