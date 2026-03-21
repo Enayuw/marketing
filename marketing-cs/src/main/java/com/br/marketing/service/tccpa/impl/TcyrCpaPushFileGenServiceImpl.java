@@ -13,7 +13,6 @@ import com.br.marketing.entity.*;
 import com.br.marketing.enums.*;
 import com.br.marketing.mapper.MarketingTcyrCpaPushFileScriptMapper;
 import com.br.marketing.mapper.MarketingTcyrCpaPushFileTaskMapper;
-import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.service.Impl.SftpInnerServiceImpl;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.tccpa.TcyrCpaPushFileGenService;
@@ -43,9 +42,10 @@ public class TcyrCpaPushFileGenServiceImpl implements TcyrCpaPushFileGenService 
     @Value("${innerSftp.uploadpath:00}")
     private String upLoadPath;
 
-    private final static String TITLE = "【同程易融CPA-推送文件数据生成】";
+    private final static String TITLE = "【同程易融新场景-推送文件数据生成】";
 
-    private final static String FILE_PATH = "/tongcheng_cpa_push_file/";
+    /** apiCode 与 scene 目录之间的固定片段 */
+    private static final String FILE_PATH = "/tcxcj/";
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -59,39 +59,99 @@ public class TcyrCpaPushFileGenServiceImpl implements TcyrCpaPushFileGenService 
     private MarketingTcyrCpaPushFileScriptMapper tcyrCpaPushFileScriptMapper;
 
     @Resource
-    SyncConfigService syncConfigService;
+    private SftpInnerServiceImpl sftpInnerService;
 
     @Resource
-    private SftpInnerServiceImpl sftpInnerService;
+    private SyncConfigService syncConfigService;
 
     @Override
     public void fileGen() {
-        String apiCode = marketingCommonConfig.getTcyrCpaApiCode();
-        //1.查询今天是否已有推送文件任务
+        String apiCode = marketingCommonConfig.getTcyrApiCode();
+        // 仅读取当天 push_date 的脚本，避免 Job 次日未关时重复扫到昨日配置
+        java.sql.Date todayPushDate = java.sql.Date.valueOf(LocalDate.now());
+        MarketingTcyrCpaPushFileScriptExample scriptExample = new MarketingTcyrCpaPushFileScriptExample();
+        scriptExample.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andPushDateEqualTo(todayPushDate)
+                .andIsDelEqualTo(TcCpaIsDelEnum.DEL_NO.getValue());
+        scriptExample.setOrderByClause("priority asc");
+        List<MarketingTcyrCpaPushFileScript> allScripts = tcyrCpaPushFileScriptMapper.selectByExample(scriptExample);
+        if (CollectionUtils.isEmpty(allScripts)) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
+                    "未配置提取脚本，请检查！", TITLE));
+            return;
+        }
+        Map<String, Long> sceneCount = allScripts.stream()
+                .collect(Collectors.groupingBy(this::sceneKey, Collectors.counting()));
+        Set<String> duplicateSceneKeys = sceneCount.entrySet().stream()
+                .filter(e -> e.getValue() > 1)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
+        if (!duplicateSceneKeys.isEmpty()) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
+                    "b_tcyr_cpa_push_file_script 存在重复 scene，已剔除这些 scene 下全部脚本，重复 sceneKey=" + duplicateSceneKeys, TITLE));
+        }
+        List<MarketingTcyrCpaPushFileScript> validScripts = allScripts.stream()
+                .filter(s -> sceneCount.getOrDefault(sceneKey(s), 0L) == 1L)
+                .collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(validScripts)) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
+                    "无可用脚本（全部为重复 scene 或未配置），已跳过生成", TITLE));
+            return;
+        }
+        String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
+        for (MarketingTcyrCpaPushFileScript script : validScripts) {
+            processOneSceneTask(apiCode, script, yyyyMMdd);
+        }
+    }
+
+    private String sceneKey(MarketingTcyrCpaPushFileScript s) {
+        if (s == null || s.getScene() == null) {
+            return "";
+        }
+        return s.getScene().trim();
+    }
+
+    /**
+     * 路径片段：空 scene 用 default，并替换路径分隔符
+     */
+    private String scenePathSegment(String scene) {
+        String s = scene == null ? "" : scene.trim();
+        if (s.isEmpty()) {
+            return "default";
+        }
+        return s.replace('/', '_').replace('\\', '_');
+    }
+
+    /**
+     * 每个 scene 一条任务：{getPath()}/{apiCode}/tcxcj/{scene}/yyyyMMdd/
+     */
+    private void processOneSceneTask(String apiCode, MarketingTcyrCpaPushFileScript script, String yyyyMMdd) {
         MarketingTcyrCpaPushFileTaskExample taskExample = new MarketingTcyrCpaPushFileTaskExample();
-        taskExample.createCriteria()
+        MarketingTcyrCpaPushFileTaskExample.Criteria tc = taskExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
                 .andPushDateEqualTo(new Date())
                 .andStatusNotEqualTo(TcCpaPushFileTaskStatusEnum.STATUS_FAIL.getValue())
                 .andIsDelEqualTo(TcCpaIsDelEnum.DEL_NO.getValue());
-        List<MarketingTcyrCpaPushFileTask> tasks = tcyrCpaPushFileTaskMapper.selectByExample(taskExample);
-        if (tasks.size() > 0) {
+        if (StringUtils.isEmpty(script.getScene())) {
+            tc.andSceneIsNull();
+        } else {
+            tc.andSceneEqualTo(script.getScene());
+        }
+        if (tcyrCpaPushFileTaskMapper.countByExample(taskExample) > 0) {
             return;
         }
-        //2.服务器路径
-        String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
+        String segment = scenePathSegment(script.getScene());
         String localPath = syncConfigService.getPath()
                 .concat(apiCode)
                 .concat(FILE_PATH)
+                .concat(segment)
+                .concat("/")
                 .concat(yyyyMMdd)
                 .concat("/");
-//        String localPath = "D:/"
-//                .concat("tongcheng_cpa_push_file/")
-//                .concat(yyyyMMdd)
-//                .concat("/");
-        //3.新增一条推送文件任务
         MarketingTcyrCpaPushFileTask task = new MarketingTcyrCpaPushFileTask();
         task.setApiCode(apiCode);
+        task.setScene(script.getScene());
         task.setLocalPath(localPath);
         task.setPushDate(new Date());
         task.setStatus(TcCpaPushFileTaskStatusEnum.STATUS_GENINAG.getValue());
@@ -100,10 +160,8 @@ public class TcyrCpaPushFileGenServiceImpl implements TcyrCpaPushFileGenService 
         FilePushTaskInfo info = new FilePushTaskInfo();
         String infoString = null;
         try {
-            //4.文件写入
-            Boolean isCompleted = write(apiCode, localPath, yyyyMMdd, info);
-            //5.整理并核验info
-            if (isCompleted) {
+            Boolean isCompleted = write(apiCode, localPath, yyyyMMdd, info, Collections.singletonList(script));
+            if (Boolean.TRUE.equals(isCompleted)) {
                 checkInfo(info);
             }
         } catch (Exception e) {
@@ -117,7 +175,6 @@ public class TcyrCpaPushFileGenServiceImpl implements TcyrCpaPushFileGenService 
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
                     e.getMessage(), TITLE), e);
         }
-        //6.更新推送文件任务
         MarketingTcyrCpaPushFileTask updateTaskGen = new MarketingTcyrCpaPushFileTask();
         updateTaskGen.setId(task.getId());
         updateTaskGen.setTotal(info.getExtraNumAct());
@@ -133,11 +190,10 @@ public class TcyrCpaPushFileGenServiceImpl implements TcyrCpaPushFileGenService 
         if (updateTaskGen.getStatus() == TcCpaPushFileTaskStatusEnum.STATUS_FAIL.getValue()) {
             return;
         }
-        //7.上传至内部sftp
-        List<String> fileNames = info.getFiles().stream()
+        List<String> fileNames = info.getFiles() == null ? Collections.emptyList() : info.getFiles().stream()
                 .map(FilePushTaskFileDTO::getFileName)
                 .collect(Collectors.toList());
-        String uploadPath = upLoadPath.concat(apiCode).concat(FILE_PATH).concat(yyyyMMdd);
+        String uploadPath = upLoadPath.concat(apiCode).concat(FILE_PATH).concat(segment).concat("/").concat(yyyyMMdd);
         sftpInnerService.pushInnerSftp(localPath, uploadPath, fileNames);
         MarketingTcyrCpaPushFileTask updateTaskPutInnerSftp = new MarketingTcyrCpaPushFileTask();
         updateTaskPutInnerSftp.setId(task.getId());
@@ -187,8 +243,9 @@ public class TcyrCpaPushFileGenServiceImpl implements TcyrCpaPushFileGenService 
      * @author hedongshuo
      * @date 2025/8/26 16:19
      **/
-    private Boolean write(String apiCode, String localPath, String yyyyMMdd, FilePushTaskInfo info) {
-        Map<String, ImmutablePair<BufferedWriter, FilePushTaskFileDTO>> fwMap = new HashMap();
+    private Boolean write(String apiCode, String localPath, String yyyyMMdd, FilePushTaskInfo info,
+                          List<MarketingTcyrCpaPushFileScript> scriptsForScene) {
+        Map<String, ImmutablePair<BufferedWriter, FilePushTaskFileDTO>> fwMap = new HashMap<>();
         try {
             //1.创建目录
             File writeDic = new File(localPath);
@@ -204,7 +261,7 @@ public class TcyrCpaPushFileGenServiceImpl implements TcyrCpaPushFileGenService 
             info.setOnlyOk(onlyOk);
             if(!onlyOk){
                 //2.生成数据文件
-                Boolean writeSuccess = writeFile(apiCode, localPath, yyyyMMdd, info, fwMap);
+                Boolean writeSuccess = writeFile(apiCode, localPath, yyyyMMdd, info, fwMap, scriptsForScene);
                 if (!writeSuccess) return false;
             }
             //3.生成标识文件
@@ -242,14 +299,9 @@ public class TcyrCpaPushFileGenServiceImpl implements TcyrCpaPushFileGenService 
         return true;
     }
 
-    private Boolean writeFile(String apiCode, String localPath, String yyyyMMdd, FilePushTaskInfo info, Map<String, ImmutablePair<BufferedWriter, FilePushTaskFileDTO>> fwMap) throws Exception {
-        //1.查询提取脚本
-        MarketingTcyrCpaPushFileScriptExample scriptExample = new MarketingTcyrCpaPushFileScriptExample();
-        scriptExample.createCriteria()
-                .andApiCodeEqualTo(apiCode)
-                .andIsDelEqualTo(TcCpaIsDelEnum.DEL_NO.getValue());
-        scriptExample.setOrderByClause("priority asc");
-        List<MarketingTcyrCpaPushFileScript> scripts = tcyrCpaPushFileScriptMapper.selectByExample(scriptExample);
+    private Boolean writeFile(String apiCode, String localPath, String yyyyMMdd, FilePushTaskInfo info,
+                              Map<String, ImmutablePair<BufferedWriter, FilePushTaskFileDTO>> fwMap,
+                              List<MarketingTcyrCpaPushFileScript> scripts) throws Exception {
         if (CollectionUtils.isEmpty(scripts)) {
             logWarnAndinfoRecord("未配置提取脚本，请检查！", info);
             return false;
