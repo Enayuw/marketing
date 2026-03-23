@@ -104,7 +104,10 @@ api:
     scas: "0001"
     channelId: 3140738836439875
     channelIdMap: "{bairong:'3140738836439875',bairongA:'3140738898634899'}"
-    isProxy: false
+    isProxy: true
+  wuba:
+    transferUrl: https://gateway-convenientloan.58v5.cn/thirdpartnar/v1/getConversionList}
+    isProxy: true
   qifu:
     baseUri: https://stg1-gws-bps-web.daikuan.360.cn
     baseCuDongZhiUri: https://stg2-gws-bps-web.daikuan.360.cn

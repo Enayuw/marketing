@@ -16,10 +16,10 @@ import javax.annotation.Resource;
 @Service
 public class WuBaAIClient {
 
-    @Value("${api.didi.transferUrl:https://gateway-convenientloan.58v5.cn/thirdpartnar/v1/getConversionList}")
+    @Value("${api.wuba.transferUrl:https://gateway-convenientloan.58v5.cn/thirdpartnar/v1/getConversionList}")
     private String transferUrl;
 
-    @Value("${api.didi.isProxy:true}")
+    @Value("${api.wuba.isProxy:true}")
     private Boolean isProxy;
 
     @Resource
