@@ -906,7 +906,7 @@
 
     <job:simple id="【monkey】-WuBaAITransferDataJob"
                 class="com.br.marketing.monkey.job.wuba.WuBaAITransferDataJob"
-                cron="0 30 8 * * ? *"
+                cron="0 10/20 8-23 * * ? *"
                 description="58AI转化数据拉取"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
