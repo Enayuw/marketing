@@ -37,7 +37,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.io.*;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Function;
@@ -50,6 +49,12 @@ import java.util.zip.ZipInputStream;
 public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
 
     private final static String TITLE = "【58AI】-转化数据拉取";
+
+    public static final String FILENAME = "filename=";
+
+    public static final String REGEX = "\\r?\\n";
+
+    private static final Random RANDOM = new Random();
 
     @Resource
     private MarketingSyncUserMapper marketingSyncUserMapper;
@@ -100,7 +105,7 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
             log.warn("{} 已存在处理中或成功任务(collectDate={})，跳过本次执行", TITLE, collectDate);
             return;
         }
-//
+
         WuBaAiFetchTask task = new WuBaAiFetchTask();
         task.setCollectDate(collectDate);
         task.setStatus(0);
@@ -137,7 +142,6 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
                                 ", message=" + jsonResponse.getString("message"), null);
                 log.error(errorMsg);
             } else if (contentType != null && contentType.contains("application/octet-stream")) {
-//                byte[] fileBytes = FileUtil.readBytes("E:\\opt\\data1\\inloan\\download\\marketing\\7491850\\20260323\\bairong_wt_2026-03-23.csv.zip");
                 byte[] fileBytes = EntityUtils.toByteArray(response.getEntity());
                 try {
                     saveFileToTempPath(response, fileBytes, task, baseFilePath, apiCode, dateStr);
@@ -175,8 +179,8 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
         Header dispositionHeader = response.getFirstHeader("Content-Disposition");
         if (dispositionHeader != null && dispositionHeader.getValue() != null) {
             String contentDisposition = dispositionHeader.getValue();
-            if (contentDisposition.contains("filename=")) {
-                fileName = contentDisposition.split("filename=")[1].replace("\"", "");
+            if (contentDisposition.contains(FILENAME)) {
+                fileName = contentDisposition.split(FILENAME)[1].replace("\"", "");
             }
         }
         String saveDirPath = baseFilePath + apiCode + File.separator + dateStr + File.separator;
@@ -212,7 +216,7 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
     }
 
     private void processCsvContent(String csvContent, WuBaAiFetchTask task, Integer limit, String apiCode) {
-        String[] lines = csvContent.split("\\r?\\n");
+        String[] lines = csvContent.split(REGEX);
         if (lines.length == 0) {
             log.warn("{} CSV内容无有效行，taskId: {}", TITLE, task.getId());
             task.setTotalCount(0);
@@ -315,8 +319,7 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
         PushTransferDataDetailDTO dto = new PushTransferDataDetailDTO();
         TransferDataDTO transferDataDTO = new TransferDataDTO();
         transferDataDTO.setDataItems(transferDataItems);
-        Random random = new Random();
-        int randomNumber = 10000 + random.nextInt(90000);
+        int randomNumber = 10000 + RANDOM.nextInt(90000);
         String requestId = apiCode + "_" + System.currentTimeMillis() + "_" + randomNumber;
         transferDataDTO.setRequestId(requestId);
         dto.setApiCode(apiCode);
