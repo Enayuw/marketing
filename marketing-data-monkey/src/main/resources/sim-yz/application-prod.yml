@@ -195,7 +195,7 @@ api:
     channelIdMap: "{bairong:'3140738836439875',bairongA:'3140738898634899'}"
     isProxy: true
   wuba:
-    transferUrl: https://common-gateway.58.com/thirdpartnar/v1/getConversionList}
+    transferUrl: https://common-gateway.58.com/thirdpartnar/v1/getConversionList
     isProxy: true
   qifu:
     baseUri: https://gws-bps.daikuan.360.cn

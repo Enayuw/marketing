@@ -189,7 +189,7 @@ api:
     channelIdMap: "{bairong:'3140738836439875',bairongA:'3140738898634899'}"
     isProxy: true
   wuba:
-    transferUrl: https://gateway-convenientloan.58v5.cn/thirdpartnar/v1/getConversionList}
+    transferUrl: https://gateway-convenientloan.58v5.cn/thirdpartnar/v1/getConversionList
     isProxy: true
   qifu:
     baseUri: https://stg1-gws-bps-web.daikuan.360.cn
