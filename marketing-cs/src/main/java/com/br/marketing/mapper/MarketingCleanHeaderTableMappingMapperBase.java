@@ -22,7 +22,8 @@ public interface MarketingCleanHeaderTableMappingMapperBase {
 
     MarketingCleanHeaderTableMapping selectByPrimaryKey(Long id);
 
-    int updateByExampleSelective(@Param("record") MarketingCleanHeaderTableMapping record, @Param("example") MarketingCleanHeaderTableMappingExample example);
+    int updateByExampleSelective(@Param("record") MarketingCleanHeaderTableMapping record,
+                                 @Param("example") MarketingCleanHeaderTableMappingExample example);
 
     int updateByExample(@Param("record") MarketingCleanHeaderTableMapping record, @Param("example") MarketingCleanHeaderTableMappingExample example);
 

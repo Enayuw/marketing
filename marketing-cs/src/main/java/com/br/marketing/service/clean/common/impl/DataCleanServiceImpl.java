@@ -996,7 +996,7 @@ public class DataCleanServiceImpl implements DataCleanService {
         }
         DataFormatter formatter = new DataFormatter();
         String[] headers = rowToCellStrings(headerRow, formatter);
-        if (headers == null || headers.length == 0) {
+        if (headers.length == 0) {
             log.error("Excel 表头解析失败");
             return null;
         }
@@ -1007,7 +1007,7 @@ public class DataCleanServiceImpl implements DataCleanService {
                 continue;
             }
             String line = rowToCommaSeparated(row, formatter, headers.length);
-            if (line != null && !line.trim().isEmpty()) {
+            if (line != null && !line.isBlank()) {
                 lines.add(line);
             }
         }

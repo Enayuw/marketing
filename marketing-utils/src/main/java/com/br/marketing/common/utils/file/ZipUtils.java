@@ -68,10 +68,8 @@ public class ZipUtils {
                 }
             }
             File destDir = new File(dest);
-            if (!destDir.exists()) {
-                if (!destDir.mkdirs()) {
-                    log.error("mkdir error {}", dest);
-                }
+            if (!destDir.exists() && !destDir.mkdirs()) {
+                log.error("mkdir error {}", dest);
             }
             if (zFile.isEncrypted() && password != null && !password.isEmpty()) {
                 zFile.setPassword(password.toCharArray());

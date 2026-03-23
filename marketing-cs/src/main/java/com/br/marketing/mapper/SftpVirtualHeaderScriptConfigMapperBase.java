@@ -21,7 +21,8 @@ public interface SftpVirtualHeaderScriptConfigMapperBase {
 
     SftpVirtualHeaderScriptConfig selectByPrimaryKey(Long id);
 
-    int updateByExampleSelective(@Param("record") SftpVirtualHeaderScriptConfig record, @Param("example") SftpVirtualHeaderScriptConfigExample example);
+    int updateByExampleSelective(@Param("record") SftpVirtualHeaderScriptConfig record,
+                                 @Param("example") SftpVirtualHeaderScriptConfigExample example);
 
     int updateByExample(@Param("record") SftpVirtualHeaderScriptConfig record, @Param("example") SftpVirtualHeaderScriptConfigExample example);
 

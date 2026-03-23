@@ -1729,7 +1729,9 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             //定制上传：根据apiCode查询b_marketing_customer_original_data，查询数据日期
             dates = marketingCustomerOriginalDataMapper.getLastMonthDataDates(apiCode);
         }else if (Objects.equals(acceptType, DataProcessEnum.AcceptTypeEnum.FTP.getCode())){
-            //SFTP上传：根据apiCode和sftp路径查询b_marketing_clean_data_file；若 targetPath 含 yyyyMMdd/yyyy-MM-dd 则按 findLatestDataFileByPathTemplate 思路：先按 apiCode+近一月查，再在内存按路径模板过滤取日期
+            //SFTP上传：根据apiCode和sftp路径查询b_marketing_clean_data_file；
+            // 若 targetPath 含 yyyyMMdd/yyyy-MM-dd 则按 findLatestDataFileByPathTemplate 思路：
+            // 先按 apiCode+近一月查，再在内存按路径模板过滤取日期
             if (StringUtils.isNotBlank(sftpPath)){
                 SyncConfigExample syncConfigCycle = new SyncConfigExample();
                 SyncConfigExample.Criteria criteriaCycle = syncConfigCycle.createCriteria();

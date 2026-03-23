@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -25,6 +26,9 @@ import java.util.stream.Collectors;
 public final class HeaderToColumnUtil {
 
     private static final HanyuPinyinOutputFormat PINYIN_FORMAT = new HanyuPinyinOutputFormat();
+
+    private static final Pattern MULTIPLE_UNDERSCORE = Pattern.compile("_+");
+    private static final Pattern LEADING_TRAILING_UNDERSCORE = Pattern.compile("^_|_$");
 
     static {
         PINYIN_FORMAT.setCaseType(HanyuPinyinCaseType.LOWERCASE);
@@ -127,7 +131,8 @@ public final class HeaderToColumnUtil {
                 }
             }
         }
-        return sb.toString().replaceAll("_+", "_").replaceAll("^_|_$", "");
+        String temp = MULTIPLE_UNDERSCORE.matcher(sb.toString()).replaceAll("_");
+        return LEADING_TRAILING_UNDERSCORE.matcher(temp).replaceAll("");
     }
 
     /**
@@ -142,13 +147,13 @@ public final class HeaderToColumnUtil {
             char c = s.charAt(i);
             if (Character.isLetterOrDigit(c)) {
                 sb.append(Character.toLowerCase(c));
-            } else if (c == ' ' || c == '\t' || c == '-' || c == '.' || c == '_') {
-                if (sb.length() > 0 && sb.charAt(sb.length() - 1) != '_') {
+            } else if ((c == ' ' || c == '\t' || c == '-' || c == '.' || c == '_')
+                    && sb.length() > 0 && sb.charAt(sb.length() - 1) != '_') {
                     sb.append('_');
-                }
             }
         }
-        String r = sb.toString().replaceAll("_+", "_").replaceAll("^_|_$", "");
+        String temp = MULTIPLE_UNDERSCORE.matcher(sb.toString()).replaceAll("_");
+        String r = LEADING_TRAILING_UNDERSCORE.matcher(temp).replaceAll("");
         return r.isEmpty() ? "" : r;
     }
 

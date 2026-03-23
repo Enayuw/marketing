@@ -31,6 +31,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * 本地文件落库：根据 persist_task 读文件并写入动态表
@@ -52,6 +53,8 @@ public class LocalFilePersistService {
 
     private static final String TABLE_PREFIX = "b_local_file_";
     private static final int BATCH_INSERT_SIZE = 500;
+
+    private static final Pattern QUOTE_PATTERN = Pattern.compile("^\"|\"$");
 
     /**
      * 处理单条持久化任务：更新为执行中 → 解析/匹配 mapping → 建表(若无) → 读文件写表 → 更新任务结果
@@ -131,11 +134,15 @@ public class LocalFilePersistService {
             try (FileInputStream fis = new FileInputStream(file); Workbook wb = WorkbookFactory.create(fis)) {
                 Sheet sheet = wb.getSheetAt(0);
                 Row row = sheet.getRow(0);
-                if (row == null) return null;
+                if (row == null) {
+                    return null;
+                }
                 DataFormatter formatter = new DataFormatter();
                 StringBuilder sb = new StringBuilder();
                 for (int c = 0; c < row.getLastCellNum(); c++) {
-                    if (c > 0) sb.append(',');
+                    if (c > 0) {
+                        sb.append(',');
+                    }
                     sb.append(formatter.formatCellValue(row.getCell(c)));
                 }
                 return sb.toString();
@@ -148,7 +155,9 @@ public class LocalFilePersistService {
             String line;
             while ((line = reader.readLine()) != null) {
                 String t = line.trim();
-                if (!t.isEmpty()) return t;
+                if (!t.isEmpty()) {
+                    return t;
+                }
             }
         } catch (IOException e) {
             log.warn("读取文件首行失败: {}", fullPath, e);
@@ -173,7 +182,10 @@ public class LocalFilePersistService {
         String apiCode = syncConfig.getApiCode();
         String yyMMdd = new SimpleDateFormat("yyMMdd").format(new Date());
         String headerSign = HeaderToColumnUtil.headerSignMd5(normalizedHeader);
-        String tableName = TABLE_PREFIX + apiCode + "_" + task.getSyncConfigId() + "_" + yyMMdd + "_" + (headerSign.length() > 12 ? headerSign.substring(0, 12) : headerSign);
+        String tableName = TABLE_PREFIX + apiCode + "_" +
+                task.getSyncConfigId() + "_" +
+                yyMMdd + "_" +
+                (headerSign.length() > 12 ? headerSign.substring(0, 12) : headerSign);
         String columnSchemaEn = HeaderToColumnUtil.headerSchemaToColumnSchemaEn(normalizedHeader);
 
         MarketingCleanHeaderTableMapping mapping = new MarketingCleanHeaderTableMapping();
@@ -193,11 +205,12 @@ public class LocalFilePersistService {
 
     private void createTable(String tableName, String columnSchemaEn) {
         String[] cols = columnSchemaEn.split(",");
-        StringBuilder ddl = new StringBuilder("CREATE TABLE IF NOT EXISTS `").append(tableName).append("` (");
-        ddl.append("`id` bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,");
-        ddl.append("`clean_data_file_record_id` bigint DEFAULT NULL,");
-        ddl.append("`persist_task_record_id` bigint DEFAULT NULL,");
-        ddl.append("`row_index` int DEFAULT NULL COMMENT '数据在文件中的行号（从1起，表头为第1行）',");
+        StringBuilder ddl = new StringBuilder()
+                .append("CREATE TABLE IF NOT EXISTS `").append(tableName).append("` (")
+                .append("`id` bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,")
+                .append("`clean_data_file_record_id` bigint DEFAULT NULL,")
+                .append("`persist_task_record_id` bigint DEFAULT NULL,")
+                .append("`row_index` int DEFAULT NULL COMMENT '数据在文件中的行号（从1起，表头为第1行）',");
         for (String c : cols) {
             ddl.append("`").append(c.trim()).append("` varchar(512) DEFAULT NULL,");
         }
@@ -209,7 +222,8 @@ public class LocalFilePersistService {
     /**
      * 分批读文件并插入：每次最多读 BATCH_INSERT_SIZE 行，插入后继续下一批，避免整文件进内存。
      */
-    private int readFileAndInsert(String fullPath, String fileName, Long cleanDataFileRecordId, Long persistTaskId, MarketingCleanHeaderTableMapping mapping) {
+    private int readFileAndInsert(String fullPath, String fileName, Long cleanDataFileRecordId,
+                                  Long persistTaskId, MarketingCleanHeaderTableMapping mapping) {
         File file = new File(fullPath);
         if (!file.exists() || !file.isFile()) {
             log.warn("文件不存在: {}", fullPath);
@@ -229,7 +243,8 @@ public class LocalFilePersistService {
     /**
      * CSV/文本：流式按行读，攒满一批插入一批，不整文件进内存。
      */
-    private int readCsvBatchAndInsert(String fullPath, String[] columns, Long cleanDataFileRecordId, Long persistTaskId, MarketingCleanHeaderTableMapping mapping) {
+    private int readCsvBatchAndInsert(String fullPath, String[] columns, Long cleanDataFileRecordId,
+                                      Long persistTaskId, MarketingCleanHeaderTableMapping mapping) {
         int total = 0;
         int rowIndex = 2;
         List<List<String>> batch = new ArrayList<>(BATCH_INSERT_SIZE);
@@ -238,19 +253,23 @@ public class LocalFilePersistService {
             boolean first = true;
             while ((line = reader.readLine()) != null) {
                 String t = line.trim();
-                if (t.isEmpty()) continue;
+                if (t.isEmpty()) {
+                    continue;
+                }
                 if (first) {
                     first = false;
                     continue;
                 }
                 List<String> cells = new ArrayList<>();
                 for (String s : t.split(",", -1)) {
-                    cells.add(s.trim().replaceAll("^\"|\"$", ""));
+                    cells.add(QUOTE_PATTERN.matcher(s.trim()).replaceAll(""));
                 }
                 batch.add(cells);
                 if (batch.size() >= BATCH_INSERT_SIZE) {
                     int n = insertBatch(mapping.getTableName(), columns, cleanDataFileRecordId, persistTaskId, rowIndex, batch);
-                    if (n < 0) return -1;
+                    if (n < 0) {
+                        return -1;
+                    }
                     total += n;
                     rowIndex += batch.size();
                     batch.clear();
@@ -258,7 +277,9 @@ public class LocalFilePersistService {
             }
             if (!batch.isEmpty()) {
                 int n = insertBatch(mapping.getTableName(), columns, cleanDataFileRecordId, persistTaskId, rowIndex, batch);
-                if (n < 0) return -1;
+                if (n < 0) {
+                    return -1;
+                }
                 total += n;
             }
         } catch (IOException e) {
@@ -271,26 +292,36 @@ public class LocalFilePersistService {
     /**
      * Excel：按行遍历，攒满一批插入一批，仅保留当前批在内存（Workbook 仍会加载整个文件，由 POI 限制）。
      */
-    private int readExcelBatchAndInsert(String fullPath, String[] columns, Long cleanDataFileRecordId, Long persistTaskId, MarketingCleanHeaderTableMapping mapping) {
+    private int readExcelBatchAndInsert(String fullPath, String[] columns, Long cleanDataFileRecordId,
+                                        Long persistTaskId, MarketingCleanHeaderTableMapping mapping) {
         int total = 0;
         int rowIndex = 2;
         List<List<String>> batch = new ArrayList<>(BATCH_INSERT_SIZE);
         try (FileInputStream fis = new FileInputStream(fullPath); Workbook wb = WorkbookFactory.create(fis)) {
             Sheet sheet = wb.getSheetAt(0);
-            if (sheet == null) return 0;
+            if (sheet == null) {
+                return 0;
+            }
+
             DataFormatter formatter = new DataFormatter();
             for (int r = 1; r <= sheet.getLastRowNum(); r++) {
                 Row row = sheet.getRow(r);
-                if (row == null) continue;
+                if (row == null) {
+                    continue;
+                }
                 List<String> cells = new ArrayList<>();
                 for (int c = 0; c < row.getLastCellNum(); c++) {
                     cells.add(formatter.formatCellValue(row.getCell(c)));
                 }
-                if (cells.isEmpty()) continue;
+                if (cells.isEmpty()) {
+                    continue;
+                }
                 batch.add(cells);
                 if (batch.size() >= BATCH_INSERT_SIZE) {
                     int n = insertBatch(mapping.getTableName(), columns, cleanDataFileRecordId, persistTaskId, rowIndex, batch);
-                    if (n < 0) return -1;
+                    if (n < 0) {
+                        return -1;
+                    }
                     total += n;
                     rowIndex += batch.size();
                     batch.clear();
@@ -298,7 +329,9 @@ public class LocalFilePersistService {
             }
             if (!batch.isEmpty()) {
                 int n = insertBatch(mapping.getTableName(), columns, cleanDataFileRecordId, persistTaskId, rowIndex, batch);
-                if (n < 0) return -1;
+                if (n < 0) {
+                    return -1;
+                }
                 total += n;
             }
         } catch (Exception e) {
@@ -308,7 +341,8 @@ public class LocalFilePersistService {
         return total;
     }
 
-    private int insertBatch(String tableName, String[] columns, Long cleanDataFileRecordId, Long persistTaskId, int startRowIndex, List<List<String>> batch) {
+    private int insertBatch(String tableName, String[] columns, Long cleanDataFileRecordId,
+                            Long persistTaskId, int startRowIndex, List<List<String>> batch) {
         try {
             String sql = buildBatchInsertSql(tableName, columns, cleanDataFileRecordId, persistTaskId, startRowIndex, batch);
             localFilePersistMapper.executeInsert(sql);
@@ -319,14 +353,19 @@ public class LocalFilePersistService {
         }
     }
 
-    private String buildBatchInsertSql(String tableName, String[] columns, Long cleanDataFileRecordId, Long persistTaskId, int startRowIndex, List<List<String>> batch) {
-        StringBuilder sql = new StringBuilder("INSERT INTO `").append(tableName).append("` (`clean_data_file_record_id`,`persist_task_record_id`,`row_index`");
+    private String buildBatchInsertSql(String tableName, String[] columns, Long cleanDataFileRecordId,
+                                       Long persistTaskId, int startRowIndex, List<List<String>> batch) {
+        StringBuilder sql = new StringBuilder("INSERT INTO `")
+                .append(tableName)
+                .append("` (`clean_data_file_record_id`,`persist_task_record_id`,`row_index`");
         for (String col : columns) {
             sql.append(",`").append(col).append("`");
         }
         sql.append(") VALUES ");
         for (int i = 0; i < batch.size(); i++) {
-            if (i > 0) sql.append(",");
+            if (i > 0) {
+                sql.append(",");
+            }
             List<String> row = batch.get(i);
             int rowIndex = startRowIndex + i;
             sql.append("(").append(cleanDataFileRecordId != null ? cleanDataFileRecordId : "NULL");
@@ -342,12 +381,16 @@ public class LocalFilePersistService {
     }
 
     private static String escapeSqlValue(String value) {
-        if (value == null) return "NULL";
+        if (value == null) {
+            return "NULL";
+        }
         return "'" + value.replace("\\", "\\\\").replace("'", "''") + "'";
     }
 
     private static boolean isExcelFile(String fileName) {
-        if (fileName == null) return false;
+        if (fileName == null) {
+            return false;
+        }
         String lower = fileName.toLowerCase();
         return lower.endsWith(".xlsx") || lower.endsWith(".xls");
     }
