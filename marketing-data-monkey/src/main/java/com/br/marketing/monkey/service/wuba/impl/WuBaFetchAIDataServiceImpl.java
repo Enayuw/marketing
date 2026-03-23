@@ -40,6 +40,8 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -52,7 +54,9 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
 
     public static final String FILENAME = "filename=";
 
-    public static final String REGEX = "\\r?\\n";
+    private static final Pattern CSV_SPLIT_PATTERN = Pattern.compile("\\n");
+
+    private static final Pattern FILENAME_PATTERN = Pattern.compile(FILENAME + "=([^\"]*)");
 
     private static final Random RANDOM = new Random();
 
@@ -179,8 +183,9 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
         Header dispositionHeader = response.getFirstHeader("Content-Disposition");
         if (dispositionHeader != null && dispositionHeader.getValue() != null) {
             String contentDisposition = dispositionHeader.getValue();
-            if (contentDisposition.contains(FILENAME)) {
-                fileName = contentDisposition.split(FILENAME)[1].replace("\"", "");
+            Matcher matcher = FILENAME_PATTERN.matcher(contentDisposition);
+            if (matcher.find()) {
+                fileName = matcher.group(1);
             }
         }
         String saveDirPath = baseFilePath + apiCode + File.separator + dateStr + File.separator;
@@ -216,7 +221,7 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
     }
 
     private void processCsvContent(String csvContent, WuBaAiFetchTask task, Integer limit, String apiCode) {
-        String[] lines = csvContent.split(REGEX);
+        String[] lines = CSV_SPLIT_PATTERN.split(csvContent);
         if (lines.length == 0) {
             log.warn("{} CSV内容无有效行，taskId: {}", TITLE, task.getId());
             task.setTotalCount(0);
