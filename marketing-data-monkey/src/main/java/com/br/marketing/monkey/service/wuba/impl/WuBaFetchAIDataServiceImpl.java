@@ -137,8 +137,8 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
                                 ", message=" + jsonResponse.getString("message"), null);
                 log.error(errorMsg);
             } else if (contentType != null && contentType.contains("application/octet-stream")) {
-                byte[] fileBytes = FileUtil.readBytes("E:\\opt\\data1\\inloan\\download\\marketing\\7491850\\20260323\\bairong_wt_2026-03-23.csv.zip");
-//                byte[] fileBytes = EntityUtils.toByteArray(response.getEntity());
+//                byte[] fileBytes = FileUtil.readBytes("E:\\opt\\data1\\inloan\\download\\marketing\\7491850\\20260323\\bairong_wt_2026-03-23.csv.zip");
+                byte[] fileBytes = EntityUtils.toByteArray(response.getEntity());
                 try {
                     saveFileToTempPath(response, fileBytes, task, baseFilePath, apiCode, dateStr);
                 } catch (Exception saveEx) {
