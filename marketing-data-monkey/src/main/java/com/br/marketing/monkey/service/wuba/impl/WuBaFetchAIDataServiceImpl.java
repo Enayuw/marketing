@@ -137,8 +137,8 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
                                 ", message=" + jsonResponse.getString("message"), null);
                 log.error(errorMsg);
             } else if (contentType != null && contentType.contains("application/octet-stream")) {
-//                byte[] fileBytes = FileUtil.readBytes("E:\\opt\\data1\\inloan\\download\\marketing\\7491850\\20260319\\bairong_wt_2026-03-19.csv.zip");
-                byte[] fileBytes = EntityUtils.toByteArray(response.getEntity());
+                byte[] fileBytes = FileUtil.readBytes("E:\\opt\\data1\\inloan\\download\\marketing\\7491850\\20260323\\bairong_wt_2026-03-23.csv.zip");
+//                byte[] fileBytes = EntityUtils.toByteArray(response.getEntity());
                 try {
                     saveFileToTempPath(response, fileBytes, task, baseFilePath, apiCode, dateStr);
                 } catch (Exception saveEx) {
@@ -198,7 +198,7 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
                 if (!entry.isDirectory()) {
-                    String csvContent = IOUtils.toString(zis, StandardCharsets.UTF_8);
+                    String csvContent = IOUtils.toString(zis, StandardCharsets.UTF_8).replaceAll("\uFEFF", "");
                     processCsvContent(csvContent, task, limit, apiCode);
                     break;
                 }
@@ -229,7 +229,7 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
         Map<String, Integer> headerIndexMap = new HashMap<>();
 
         for (int i = 0; i < actualHeaders.size(); i++) {
-            String header = actualHeaders.get(i);
+            String header = actualHeaders.get(i).trim();
             headerIndexMap.put(header, i);
             if (!EXPECTED_HEADERS.contains(header)) {
                 extraHeaders.add(header);
