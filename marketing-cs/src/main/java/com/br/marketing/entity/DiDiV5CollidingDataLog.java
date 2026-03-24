@@ -1,7 +1,8 @@
 package com.br.marketing.entity;
 
-import java.util.Date;
 import lombok.Data;
+
+import java.util.Date;
 
 @Data
 public class DiDiV5CollidingDataLog {
@@ -89,4 +90,9 @@ public class DiDiV5CollidingDataLog {
      * 修改时间
      */
     private Date updateTime;
+
+    /**
+     * 券类型
+     */
+    private String couponType;
 }
