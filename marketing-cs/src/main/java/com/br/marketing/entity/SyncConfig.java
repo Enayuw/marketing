@@ -143,6 +143,17 @@ public class SyncConfig {
      */
     private String syncStartTime;
 
+    /**
+     * 是否持久化到业务表：0-否 1-是
+     * @see com.br.marketing.enums.clean.IsPersEnum
+     */
+    private Integer isPers;
+
+    /**
+     * 文件路径模板id
+     */
+    private Long pathTemplateId;
+
     public Long getId() {
         return id;
     }
@@ -365,5 +376,21 @@ public class SyncConfig {
 
     public void setSyncStartTime(String syncStartTime) {
         this.syncStartTime = syncStartTime == null ? null : syncStartTime.trim();
+    }
+
+    public Integer getIsPers() {
+        return isPers;
+    }
+
+    public void setIsPers(Integer isPers) {
+        this.isPers = isPers;
+    }
+
+    public Long getPathTemplateId() {
+        return pathTemplateId;
+    }
+
+    public void setPathTemplateId(Long pathTemplateId) {
+        this.pathTemplateId = pathTemplateId;
     }
 }
