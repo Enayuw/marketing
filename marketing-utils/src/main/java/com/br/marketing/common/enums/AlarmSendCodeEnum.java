@@ -380,6 +380,8 @@ public enum AlarmSendCodeEnum {
 
     XYF_SERVICEERROR("7011001", "信用飞业务异常"),
 
+    WUBA_AI_SERVICEERROR("7012001", "58AI接口异常"),
+
     ;
 
     /**

@@ -26,6 +26,8 @@ public class LinkListItemDTO {
     private String bizScene;
     private String description;
     private Integer status;
+    private String sourceType;
+    private String templateId;
     private Integer nodeCount;
     private Date createdTime;
     private Date updatedTime;

@@ -11,6 +11,7 @@
             ln.node_dict_id AS nodeDictId,
             ln.node_alias AS nodeAlias,
             ln.status,
+            ln.edge_type AS edgeType,
             nd.node_code AS nodeCode,
             nd.api_code AS apiCode,
             nd.node_type AS nodeType,
