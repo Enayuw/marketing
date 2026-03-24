@@ -38,6 +38,7 @@ import java.util.regex.Pattern;
  */
 public class FileUploadDataCleanTaskJob extends AbstractSimpleElasticJob {
 
+    private static final Pattern EMPTY_PATH_PATTERN = Pattern.compile("^$");
 
     @Resource
     private MarketingDataCleanGeneralConfigMapper cleanGeneralConfigMapper;
@@ -157,10 +158,11 @@ public class FileUploadDataCleanTaskJob extends AbstractSimpleElasticJob {
     /** 将含 yyyyMMdd、yyyy-MM-dd 的路径模板转成匹配“任意日期”的正则 */
     private Pattern templateToPathRegex(String template) {
         if (template == null) {
-            return Pattern.compile("^$");
+            return EMPTY_PATH_PATTERN;
         }
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < template.length(); ) {
+        int i = 0;
+        while (i < template.length()) {
             if (template.startsWith("yyyy-MM-dd", i)) {
                 sb.append("\\d{4}-\\d{2}-\\d{2}");
                 i += 10;

@@ -136,6 +136,13 @@ public final class HeaderToColumnUtil {
     }
 
     /**
+     * 英文列名归一化时，可作为连续下划线合并触发的分隔字符
+     */
+    private static boolean isEnglishColumnSeparator(char c) {
+        return c == ' ' || c == '\t' || c == '-' || c == '.' || c == '_';
+    }
+
+    /**
      * 英文/数字表头规范化为列名：小写，非字母数字替为下划线，多下划线合并，首尾去下划线；若为空则返回 null 供 fallback
      */
     private static String normalizeEnglishColumn(String s) {
@@ -147,9 +154,9 @@ public final class HeaderToColumnUtil {
             char c = s.charAt(i);
             if (Character.isLetterOrDigit(c)) {
                 sb.append(Character.toLowerCase(c));
-            } else if ((c == ' ' || c == '\t' || c == '-' || c == '.' || c == '_')
+            } else if (isEnglishColumnSeparator(c)
                     && sb.length() > 0 && sb.charAt(sb.length() - 1) != '_') {
-                    sb.append('_');
+                sb.append('_');
             }
         }
         String temp = MULTIPLE_UNDERSCORE.matcher(sb.toString()).replaceAll("_");

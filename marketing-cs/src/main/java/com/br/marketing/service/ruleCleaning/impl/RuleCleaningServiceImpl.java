@@ -2231,7 +2231,8 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     /** 将含 yyyyMMdd、yyyy-MM-dd 的模板转成匹配“任意日期”的正则 */
     private Pattern templateToPathRegex(String template) {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < template.length(); ) {
+        int i = 0;
+        while (i < template.length()) {
             if (template.startsWith("yyyy-MM-dd", i)) {
                 sb.append("\\d{4}-\\d{2}-\\d{2}");
                 i += 10;

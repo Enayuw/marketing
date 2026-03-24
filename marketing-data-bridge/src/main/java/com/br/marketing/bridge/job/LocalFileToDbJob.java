@@ -63,6 +63,6 @@ public class LocalFileToDbJob extends AbstractSimpleElasticJob {
         if (path.endsWith(File.separator)) {
             return path + name;
         }
-        return path.isEmpty() ? name : path + File.separator + name;
+        return path.isEmpty() ? name : (path + File.separator + name);
     }
 }

@@ -1014,7 +1014,7 @@ public class SyncServiceImpl implements SyncService {
             String encoding = "GBK";
             if (marketingCommonConfig.getSyncUnzipEncoding() != null) {
                 String cfg = marketingCommonConfig.getSyncUnzipEncoding().get(String.valueOf(loanSyncConfig.getId()));
-                if (cfg != null && !cfg.trim().isEmpty()) {
+                if (StringUtils.isNotBlank(cfg)) {
                     encoding = cfg.trim();
                 }
             }
@@ -1027,7 +1027,14 @@ public class SyncServiceImpl implements SyncService {
             for (String relPath : extractedPaths) {
                 File f = new File(targetPath, relPath);
                 String parent = f.getParent();
-                String localPath = parent == null ? targetPath : (parent.endsWith(File.separator) ? parent : parent + File.separator);
+                String localPath;
+                if (parent == null) {
+                    localPath = targetPath;
+                } else if (parent.endsWith(File.separator)) {
+                    localPath = parent;
+                } else {
+                    localPath = parent + File.separator;
+                }
                 String extractedFileName = f.getName();
                 MarketingCleanDataFile dataFile = new MarketingCleanDataFile();
                 dataFile.setFileName(extractedFileName);
