@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.BizTrackingLinkEdgeMapper">
+
+    <!-- 批量插入边 -->
+    <insert id="batchInsert">
+        INSERT INTO biz_tracking_link_edge (link_id, from_node_id, to_node_id, edge_type, description, created_time, updated_time)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.linkId}, #{item.fromNodeId}, #{item.toNodeId}, #{item.edgeType},
+             #{item.description}, #{item.createdTime}, #{item.updatedTime})
+        </foreach>
+    </insert>
+
+    <!-- 根据链路ID查询边详情列表 -->
+    <select id="selectEdgeDetailsByLinkId" resultType="com.br.marketing.dto.datamap.LinkEdgeDetailVO">
+        SELECT
+            id,
+            link_id AS linkId,
+            from_node_id AS fromNodeId,
+            to_node_id AS toNodeId,
+            edge_type AS edgeType,
+            description,
+            created_time AS createdTime,
+            updated_time AS updatedTime
+        FROM biz_tracking_link_edge
+        WHERE link_id = #{linkId}
+        ORDER BY id ASC
+    </select>
+
+    <!-- 根据链路ID删除边 -->
+    <delete id="deleteByLinkId">
+        DELETE FROM biz_tracking_link_edge WHERE link_id = #{linkId}
+    </delete>
+
+</mapper>

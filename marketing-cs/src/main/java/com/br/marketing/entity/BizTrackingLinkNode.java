@@ -29,6 +29,11 @@ public class BizTrackingLinkNode {
     private String nodeAlias;
 
     /**
+     * 边类型：SOLID/DASHED
+     */
+    private String edgeType;
+
+    /**
      * 状态（0-禁用 1-启用）
      */
     private Byte status;
@@ -81,6 +86,14 @@ public class BizTrackingLinkNode {
 
     public void setNodeAlias(String nodeAlias) {
         this.nodeAlias = nodeAlias == null ? null : nodeAlias.trim();
+    }
+
+    public String getEdgeType() {
+        return edgeType;
+    }
+
+    public void setEdgeType(String edgeType) {
+        this.edgeType = edgeType == null ? null : edgeType.trim();
     }
 
     public Byte getStatus() {

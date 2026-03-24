@@ -7,6 +7,7 @@
     <result column="node_id" property="nodeId" jdbcType="BIGINT" />
     <result column="node_dict_id" property="nodeDictId" jdbcType="BIGINT" />
     <result column="node_alias" property="nodeAlias" jdbcType="VARCHAR" />
+    <result column="edge_type" property="edgeType" jdbcType="VARCHAR" />
     <result column="status" property="status" jdbcType="TINYINT" />
     <result column="created_time" property="createdTime" jdbcType="TIMESTAMP" />
     <result column="updated_time" property="updatedTime" jdbcType="TIMESTAMP" />
@@ -70,7 +71,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, link_id, node_id, node_dict_id, node_alias, `status`, created_time, updated_time
+    id, link_id, node_id, node_dict_id, node_alias, edge_type, `status`, created_time, 
+    updated_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.BizTrackingLinkNodeExample" >
     select
@@ -107,11 +109,11 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into biz_tracking_link_node (link_id, node_id, node_dict_id, 
-      node_alias, `status`, created_time, 
-      updated_time)
+      node_alias, edge_type, `status`, 
+      created_time, updated_time)
     values (#{linkId,jdbcType=BIGINT}, #{nodeId,jdbcType=BIGINT}, #{nodeDictId,jdbcType=BIGINT}, 
-      #{nodeAlias,jdbcType=VARCHAR}, #{status,jdbcType=TINYINT}, #{createdTime,jdbcType=TIMESTAMP}, 
-      #{updatedTime,jdbcType=TIMESTAMP})
+      #{nodeAlias,jdbcType=VARCHAR}, #{edgeType,jdbcType=VARCHAR}, #{status,jdbcType=TINYINT}, 
+      #{createdTime,jdbcType=TIMESTAMP}, #{updatedTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.BizTrackingLinkNode" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -130,6 +132,9 @@
       </if>
       <if test="nodeAlias != null" >
         node_alias,
+      </if>
+      <if test="edgeType != null" >
+        edge_type,
       </if>
       <if test="status != null" >
         `status`,
@@ -153,6 +158,9 @@
       </if>
       <if test="nodeAlias != null" >
         #{nodeAlias,jdbcType=VARCHAR},
+      </if>
+      <if test="edgeType != null" >
+        #{edgeType,jdbcType=VARCHAR},
       </if>
       <if test="status != null" >
         #{status,jdbcType=TINYINT},
@@ -189,6 +197,9 @@
       <if test="record.nodeAlias != null" >
         node_alias = #{record.nodeAlias,jdbcType=VARCHAR},
       </if>
+      <if test="record.edgeType != null" >
+        edge_type = #{record.edgeType,jdbcType=VARCHAR},
+      </if>
       <if test="record.status != null" >
         `status` = #{record.status,jdbcType=TINYINT},
       </if>
@@ -210,6 +221,7 @@
       node_id = #{record.nodeId,jdbcType=BIGINT},
       node_dict_id = #{record.nodeDictId,jdbcType=BIGINT},
       node_alias = #{record.nodeAlias,jdbcType=VARCHAR},
+      edge_type = #{record.edgeType,jdbcType=VARCHAR},
       `status` = #{record.status,jdbcType=TINYINT},
       created_time = #{record.createdTime,jdbcType=TIMESTAMP},
       updated_time = #{record.updatedTime,jdbcType=TIMESTAMP}
@@ -232,6 +244,9 @@
       <if test="nodeAlias != null" >
         node_alias = #{nodeAlias,jdbcType=VARCHAR},
       </if>
+      <if test="edgeType != null" >
+        edge_type = #{edgeType,jdbcType=VARCHAR},
+      </if>
       <if test="status != null" >
         `status` = #{status,jdbcType=TINYINT},
       </if>
@@ -250,6 +265,7 @@
       node_id = #{nodeId,jdbcType=BIGINT},
       node_dict_id = #{nodeDictId,jdbcType=BIGINT},
       node_alias = #{nodeAlias,jdbcType=VARCHAR},
+      edge_type = #{edgeType,jdbcType=VARCHAR},
       `status` = #{status,jdbcType=TINYINT},
       created_time = #{createdTime,jdbcType=TIMESTAMP},
       updated_time = #{updatedTime,jdbcType=TIMESTAMP}

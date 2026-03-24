@@ -39,6 +39,12 @@ public class LinkListItemVO {
     @Schema(description = "状态（0-禁用 1-启用）")
     private Integer status;
 
+    @Schema(description = "来源类型：MANUAL-手动创建 AUTO-自动发现")
+    private String sourceType;
+
+    @Schema(description = "匹配的模板ID")
+    private String templateId;
+
     @Schema(description = "节点数量")
     private Integer nodeCount;
 

@@ -110,7 +110,7 @@ public class CustomerUploadDataServiceImpl implements CustomerUploadDataService 
                     customerUploadDataHandler.setSourceParam(apiCode, decryptData, adapter);
                     // 2. 有数据验证,包括字段空值及验签
                     respCustomer = customerUploadDataHandler.verifyFields(adapter);
-                    if (CustomerResponseDTO.StatusEnum.VALID.equals(respCustomer.getStatusEnum())) {
+                    if (CustomerResponseDTO.StatusEnum.VALID == respCustomer.getStatusEnum()) {
                         // 3. 计算业务数据量
                         int number = customerUploadDataHandler.countBizDataNumber(adapter);
                         uploadData.setBizDataNumber(number);

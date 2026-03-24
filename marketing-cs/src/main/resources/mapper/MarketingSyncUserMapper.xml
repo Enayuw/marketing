@@ -1224,4 +1224,16 @@
         </if>
     </select>
 
+    <select id="getSyncUserByMD5" resultType="com.br.marketing.entity.MarketingSyncUser">
+        SELECT * FROM (
+        SELECT *, ROW_NUMBER() OVER (PARTITION BY cell_md5 ORDER BY create_time DESC) AS rn
+        FROM b_marketing_sync_${apiCode}
+        WHERE cell_md5 IN
+        <foreach collection="cellMD5" item="md5" open="(" separator="," close=")">
+            #{md5}
+        </foreach>
+        ) t
+        WHERE t.rn = 1
+    </select>
+
 </mapper>
