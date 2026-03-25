@@ -11,6 +11,7 @@ import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.entity.MarketingCleanDataFile;
 import com.br.marketing.entity.MarketingCleanDataFileExample;
+import com.br.marketing.entity.MarketingDataCleanGeneralConfig;
 import com.br.marketing.entity.MarketingCleanPersistTask;
 import com.br.marketing.entity.MarketingCleanPersistTaskExample;
 import com.br.marketing.entity.SftpVirtualHeaderScriptConfig;
@@ -25,9 +26,11 @@ import com.br.marketing.mapper.MarketingCleanDataFileMapper;
 import com.br.marketing.mapper.MarketingCleanPersistTaskMapper;
 import com.br.marketing.mapper.SftpVirtualHeaderScriptConfigMapper;
 import com.br.marketing.mapper.SyncConfigMapper;
+import com.br.marketing.mapper.rulecleaning.MarketingDataCleanGeneralConfigMapper;
 import com.br.marketing.service.IFileActionService;
 import com.br.marketing.service.SyncConfigService;
-import com.br.marketing.service.clean.common.impl.DataCleanServiceImpl;
+import com.br.marketing.service.clean.common.DataCleanService;
+import com.br.marketing.util.DataCleanDelimiterUtils;
 import com.br.marketing.utils.CleanDataFileReader;
 import com.br.marketing.utils.CleanDataFileReader.HeaderAndLines;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -38,6 +41,7 @@ import com.marketingkit.tracking.model.indicator.DataFlowDirection;
 import com.marketingkit.tracking.service.TrackingService;
 import com.marketingkit.tracking.util.TrackingContext;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -82,7 +86,10 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
     @Resource
     private TrackingService trackingService;
     @Resource
-    private DataCleanServiceImpl dataCleanService;
+    private DataCleanService dataCleanService;
+
+    @Resource
+    private MarketingDataCleanGeneralConfigMapper cleanGeneralConfigMapper;
     @Autowired
     private SftpVirtualHeaderScriptConfigMapper sftpVirtualHeaderScriptConfigMapper;
 
@@ -156,13 +163,22 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
             log.warn("文件表头为空，跳过填充 fileName={}", cleanDataFile.getFileName());
             return;
         }
+        String syncSrcPath = null;
+        if (cleanDataFile.getSyncConfigId() != null) {
+            SyncConfig sc = syncConfigMapper.selectByPrimaryKey(cleanDataFile.getSyncConfigId());
+            if (sc != null) {
+                syncSrcPath = sc.getSrcPath();
+            }
+        }
+        String fieldDelimiter = resolveFieldDelimiter(cleanDataFile.getApiCode(), syncSrcPath);
+        String[] headerCols = DataCleanDelimiterUtils.splitLine(headerLine, fieldDelimiter);
         MarketingCleanDataFile dataFile = new MarketingCleanDataFile();
         dataFile.setFileHeader(headerLine);
         if (!batchLines.isEmpty()) {
             dataFile.setFileData(batchLines.get(0));
         }
         List<JSONObject> jsonList = dataCleanService.fileDataAssemble(
-                batchLines, headerLine.split(","), cleanDataFile.getFileName(), 0, null);
+                batchLines, headerCols, cleanDataFile.getFileName(), 0, null, fieldDelimiter);
         dataFile.setId(cleanDataFile.getId());
         dataFile.setReceiveDate(LocalDate.now().toString());
         dataFile.setTestRunData(JSON.toJSONString(jsonList));
@@ -259,8 +275,10 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
         }
+        String fieldDelimiter = resolveFieldDelimiter(syncConfig.getApiCode(), syncConfig.getSrcPath());
+        String[] headerCols = DataCleanDelimiterUtils.splitLine(dataFile.getFileHeader(), fieldDelimiter);
         List<JSONObject> jsonList = dataCleanService.fileDataAssemble(
-                batchLines, dataFile.getFileHeader().split(","), fileName, 0, null);
+                batchLines, headerCols, fileName, 0, null, fieldDelimiter);
         dataFile.setApiCode(syncConfig.getApiCode());
         dataFile.setFileName(fileName);
         dataFile.setLocalPath(path);
@@ -353,5 +371,26 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
                     "虚拟header Aviator脚本执行异常"), e);
             return null;
         }
+    }
+
+    /**
+     * 与 FTP 上传清洗配置一致：按 apiCode、SFTP 源路径匹配规则，取 sftp_file_separator；无配置时默认逗号。
+     */
+    private String resolveFieldDelimiter(String apiCode, String syncSrcPath) {
+        if (StringUtils.isBlank(apiCode)) {
+            return DataCleanDelimiterUtils.resolveDelimiter(null);
+        }
+        MarketingDataCleanGeneralConfig queryParam = new MarketingDataCleanGeneralConfig();
+        queryParam.setAcceptType(DataProcessEnum.AcceptTypeEnum.FTP.getCode());
+        queryParam.setDataType(DataProcessEnum.DataTypeEnum.UPLOAD.getCode());
+        queryParam.setApiCode(apiCode);
+        if (StringUtils.isNotBlank(syncSrcPath)) {
+            queryParam.setSftpPath(syncSrcPath);
+        }
+        List<MarketingDataCleanGeneralConfig> list = cleanGeneralConfigMapper.selectRuleList(queryParam);
+        if (CollectionUtils.isEmpty(list)) {
+            return DataCleanDelimiterUtils.resolveDelimiter(null);
+        }
+        return DataCleanDelimiterUtils.resolveDelimiter(list.get(0).getSftpFileSeparator());
     }
 }
