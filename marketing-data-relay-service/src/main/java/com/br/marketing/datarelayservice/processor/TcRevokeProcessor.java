@@ -65,7 +65,7 @@ public class TcRevokeProcessor extends AbstractTcCustomizeProcessor{
             jsonObject = new JSONObject();
         }
         jsonObject.put("scene", scene);
-        jsonObject.put("isPushOutBound", scene != null ? 0 : 1);
+        jsonObject.put("isPushOutBound", scene != null ? "0" : "1");
         return jsonObject.toJSONString();
     }
 
