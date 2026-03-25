@@ -1,5 +1,6 @@
 package com.br.marketing.datarelayservice.service.impl;
 
+import com.br.marketing.datarelayservice.context.TcMarketDataPushContext;
 import com.br.marketing.datarelayservice.processor.AbstractTcCustomizeProcessor;
 import com.br.marketing.datarelayservice.service.TcCpaCustomizeService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -63,8 +64,13 @@ public class TcCpaCustomizeServiceImpl implements TcCpaCustomizeService {
     public TcResponseDTO marketDataPush(TcRequestDTO tcRequestDTO, String apiCode) {
         String batchNo = parseBatchNo(tcRequestDTO);
         if (!matchAnyPrefix(batchNo, marketingCommonConfig.getTcCpaBatchNoPrefixConfig())) {
-            return tcDataPushProcessor.process(tcRequestDTO, marketingCommonConfig.getTcyrApiCode(),
-                    TcDataPushDto.class, BIZ_CODE_CPA_DATA_PUSH);
+            TcMarketDataPushContext.set(TcMarketDataPushContext.Entry.CPA_SYNC_FALLBACK);
+            try {
+                return tcDataPushProcessor.process(tcRequestDTO, marketingCommonConfig.getTcyrApiCode(),
+                        TcDataPushDto.class, BIZ_CODE_CPA_DATA_PUSH);
+            } finally {
+                TcMarketDataPushContext.clear();
+            }
         }
         return tcCpaDataPushProcessor.process(tcRequestDTO, apiCode, TcDataPushDto.class, BIZ_CODE_CPA_DATA_PUSH);
     }

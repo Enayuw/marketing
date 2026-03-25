@@ -1,5 +1,6 @@
 package com.br.marketing.datarelayservice.service.impl;
 
+import com.br.marketing.datarelayservice.context.TcMarketDataPushContext;
 import com.br.marketing.datarelayservice.processor.AbstractTcCustomizeProcessor;
 import com.br.marketing.datarelayservice.service.TcCustomizeService;
 import com.br.marketing.dto.tc.*;
@@ -46,7 +47,12 @@ public class TcCustomizeServiceImpl implements TcCustomizeService {
      **/
     @Override
     public TcResponseDTO marketDataPush(TcRequestDTO tcRequestDTO, String apiCode) {
-        return tcDataPushProcessor.process(tcRequestDTO, apiCode, TcDataPushDto.class, BIZ_CODE_DATA_PUSH);
+        TcMarketDataPushContext.set(TcMarketDataPushContext.Entry.STANDARD_SYNC);
+        try {
+            return tcDataPushProcessor.process(tcRequestDTO, apiCode, TcDataPushDto.class, BIZ_CODE_DATA_PUSH);
+        } finally {
+            TcMarketDataPushContext.clear();
+        }
     }
 
     /**
