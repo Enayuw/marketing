@@ -135,6 +135,17 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
             return;
         }
         MarketingTcyrSyncRecord syncRecord = tcyrSyncRecordMapper.selectByPrimaryKey(tcyrSyncFile.getSyncRecordId());
+        if (syncRecord == null) {
+            tcyrSyncFileMapper.updateQuickDealStatus(tcyrSyncFile.getId(), 3);
+            return;
+        }
+        String scene = StringUtils.isNotBlank(syncRecord.getScene())
+                ? syncRecord.getScene()
+                : resolveScene(syncRecord.getBatchNo());
+        if ("NEW".equals(scene)) {
+            tcyrSyncFileMapper.updateQuickDealAndSuccesCount(tcyrSyncFile.getId(), 2, 0L);
+            return;
+        }
         //2.csvFileQuickDeal流程
         AtomicLong successCount = new AtomicLong(0L);
         List<CompletableFuture<Void>> futures = new ArrayList<>();
@@ -153,7 +164,7 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
                     List<String> batchDealData = new ArrayList<>(batchData);
                     futures.add(CompletableFuture.runAsync(() ->
                                     quickDealBatchLine(tcyrSyncFile.getApiCode(), syncRecord.getBatchNo(),
-                                            syncRecord.getData(), tcyrSyncFile.getId(),batchDealData, successCount,randomNumber
+                                            syncRecord.getData(), scene, tcyrSyncFile.getId(),batchDealData, successCount,randomNumber
                                     ),actionPool));
                     batchData.clear();
                 }
@@ -163,7 +174,7 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
                 List<String> batchDealData = new ArrayList<>(batchData);
                 futures.add(CompletableFuture.runAsync(() ->
                                 quickDealBatchLine(tcyrSyncFile.getApiCode(), syncRecord.getBatchNo(),
-                                        syncRecord.getData(), tcyrSyncFile.getId(),batchDealData, successCount,randomNumber
+                                        syncRecord.getData(), scene, tcyrSyncFile.getId(),batchDealData, successCount,randomNumber
                                 ),actionPool));
                 batchData.clear();
             }
@@ -182,7 +193,7 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
     /**
      * 批次数据处理，匹配封装->上传清洗->上传调用
      */
-    private void quickDealBatchLine(String apiCode, String batchNo, String customerData,
+    private void quickDealBatchLine(String apiCode, String batchNo, String customerData, String scene,
                                     Long syncFileId, List<String> batchData,
                                     AtomicLong successCount,Integer randomNumber) {
         long startTime = System.currentTimeMillis();
@@ -194,7 +205,9 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
             }
             // 2.上传清洗
             List<JSONObject> jsonObjectList = JSON.parseArray(JSON.toJSONString(tcyrSyncList), JSONObject.class);
-            Result callResult = generalDataCleanService.uploadClean(jsonObjectList, apiCode);
+            Result callResult = StringUtils.isNotBlank(scene)
+                    ? generalDataCleanService.uploadClean(jsonObjectList, apiCode, scene)
+                    : generalDataCleanService.uploadClean(jsonObjectList, apiCode);
             if (callResult!=null && callResult.isSuccess()) {
                 String requestId = apiCode+"_"+batchNo+"_"+System.currentTimeMillis()+"_"+randomNumber;
                 //3.调用定制化上传接口
@@ -390,5 +403,22 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
             }
         }
         return false;
+    }
+
+    private String resolveScene(String batchNo) {
+        Map<String, String> sceneMap = marketingCommonConfig.getTcBatchNoSuffixToSceneConfig();
+        if (StringUtils.isBlank(batchNo) || sceneMap == null || sceneMap.isEmpty()) {
+            return null;
+        }
+        for (Map.Entry<String, String> entry : sceneMap.entrySet()) {
+            String prefix = entry.getKey();
+            if (StringUtils.isBlank(prefix)) {
+                continue;
+            }
+            if (batchNo.equals(prefix) || batchNo.startsWith(prefix + "_")) {
+                return entry.getValue();
+            }
+        }
+        return null;
     }
 }

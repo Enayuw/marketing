@@ -10,7 +10,6 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.TransferDataDTO;
 import com.br.marketing.dto.TransferDataItemDTO;
-import com.br.marketing.entity.MarketingTcyrSync;
 import com.br.marketing.entity.MarketingTcyrTransferRecord;
 import com.br.marketing.enums.TcTransferRecordStatusEnum;
 import com.br.marketing.service.PushInfoService;
@@ -22,12 +21,13 @@ import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -126,30 +126,54 @@ public class TcTransferCleanJob extends AbstractSimpleElasticJob {
         for (List<MarketingTcyrTransferRecord> tcyrSyncItemList : partitionList) {
             List<Long> idList = tcyrSyncItemList.stream().map(MarketingTcyrTransferRecord::getId).collect(Collectors.toList());
             try {
-                List<JSONObject> jsonObjectList = tcyrSyncItemList.stream().map(
-                        m->JSONObject.parseObject(m.getData())).collect(Collectors.toList());
-                Result transferResult = generalDataCleanService.transferClean(jsonObjectList,apiCode);
-                log.warn("{},调用transfer方法 code:{},isSuccess:{},msg:{}",TITLE,transferResult.getCode(),transferResult.isSuccess(),transferResult.getMessage());
-                if (transferResult !=null && transferResult.isSuccess()) {
-                    List<TransferDataItemDTO> transferDataItemDTOS = (List<TransferDataItemDTO>) transferResult.getData();
-                    if (CollectionUtils.isEmpty(transferDataItemDTOS)) {
-                        return result.success();
+                Map<String, List<JSONObject>> bizActionDataMap = new LinkedHashMap<>();
+                for (MarketingTcyrTransferRecord record : tcyrSyncItemList) {
+                    JSONObject dataObject = JSONObject.parseObject(record.getData());
+                    if (dataObject == null) {
+                        continue;
                     }
-                    PushTransferDataDetailDTO dto = initTransferData(apiCode,transferDataItemDTOS);
-                    Result pushResult = pushInfoService.pushTransferByRetry(dto, null);
-                    log.warn("{},调用push接口 code:{},isSuccess:{},msg:{}",TITLE,pushResult.getCode(),pushResult.isSuccess(),pushResult.getMessage());
-                    if (pushResult!=null && pushResult.isSuccess()) {
-                        tcTransferRecordService.updateCleanStatus(idList,1);
-                    }else {
-                        tcTransferRecordService.updateCleanStatus(idList,3);
+                    if (StringUtils.isBlank(dataObject.getString("batchNo"))) {
+                        dataObject.put("batchNo", record.getBatchNo());
+                    }
+                    String scene = dataObject.getString("scene");
+                    String bizAction = StringUtils.isNotBlank(scene) ? "transfer-" + scene : "common";
+                    bizActionDataMap.computeIfAbsent(bizAction, key -> new ArrayList<>()).add(dataObject);
+                }
+                List<TransferDataItemDTO> transferDataItemDTOS = new ArrayList<>();
+                for (Map.Entry<String, List<JSONObject>> entry : bizActionDataMap.entrySet()) {
+                    String bizAction = entry.getKey();
+                    Result transferResult = generalDataCleanService.transferClean(entry.getValue(), apiCode, bizAction);
+                    if (transferResult == null || !transferResult.isSuccess()) {
+                        log.warn("{},调用transferClean失败,bizAction:{},msg:{}", TITLE, bizAction,
+                                transferResult == null ? "result is null" : transferResult.getMessage());
+                        tcTransferRecordService.updateCleanStatus(idList,2);
                         return result.failure();
                     }
+                    List<TransferDataItemDTO> cleanResultList = (List<TransferDataItemDTO>) transferResult.getData();
+                    if (!CollectionUtils.isEmpty(cleanResultList)) {
+                        transferDataItemDTOS.addAll(cleanResultList);
+                    }
+                }
+                if (CollectionUtils.isEmpty(transferDataItemDTOS)) {
+                    tcTransferRecordService.updateCleanStatus(idList,1);
+                    continue;
+                }
+                PushTransferDataDetailDTO dto = initTransferData(apiCode,transferDataItemDTOS);
+                Result pushResult = pushInfoService.pushTransferByRetry(dto, null);
+                log.warn("{},调用push接口 code:{},isSuccess:{},msg:{}", TITLE,
+                        pushResult == null ? null : pushResult.getCode(),
+                        pushResult != null && pushResult.isSuccess(),
+                        pushResult == null ? "result is null" : pushResult.getMessage());
+                if (pushResult!=null && pushResult.isSuccess()) {
+                    tcTransferRecordService.updateCleanStatus(idList,1);
                 }else {
-                    tcTransferRecordService.updateCleanStatus(idList,2);
+                    tcTransferRecordService.updateCleanStatus(idList,3);
                     return result.failure();
                 }
             }catch (Exception e) {
-                tcTransferRecordService.updateCleanStatus(idList,4);
+                if (!CollectionUtils.isEmpty(idList)) {
+                    tcTransferRecordService.updateCleanStatus(idList,4);
+                }
                 log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
                 return result.failure();
             }

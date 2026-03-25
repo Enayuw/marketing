@@ -4,7 +4,6 @@ import com.br.marketing.entity.MarketingTcyrSync;
 import com.br.marketing.entity.MarketingTcyrSyncRecord;
 import org.apache.ibatis.annotations.Param;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -27,5 +26,9 @@ public interface MarketingTcyrSyncRecordMapper extends MarketingTcyrSyncRecordMa
     List<Map<String, String>> selectLastCustNumCelltikv_ (@Param("apiCode") String apiCode ,@Param("userKeyList") List<String> userKeyList);
 
     String selectSingleLastCustNumCelltikv_ (@Param("apiCode") String apiCode ,@Param("userKey")String userKey);
+
+    String selectLatestSceneByBatchNo(@Param("apiCode") String apiCode, @Param("batchNo") String batchNo);
+
+    Integer countTodayByApiCodeAndBatchPrefix(@Param("apiCode") String apiCode, @Param("batchPrefix") String batchPrefix);
 
 }

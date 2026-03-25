@@ -24,6 +24,11 @@ public class MarketingTcyrSyncRecord extends MarketingTcyrSyncRecordExample{
     private String batchNo;
 
     /**
+     * 场景标识
+     */
+    private String scene;
+
+    /**
      * 数据
      */
     private String data;
@@ -96,6 +101,14 @@ public class MarketingTcyrSyncRecord extends MarketingTcyrSyncRecordExample{
 
     public void setData(String data) {
         this.data = data == null ? null : data.trim();
+    }
+
+    public String getScene() {
+        return scene;
+    }
+
+    public void setScene(String scene) {
+        this.scene = scene == null ? null : scene.trim();
     }
 
     public Integer getStatus() {

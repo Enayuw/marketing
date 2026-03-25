@@ -3645,6 +3645,11 @@ public class MarketingCommonConfig {
     private String scoreStatusFinalDate;
 
     /**
+     * * 同程批次号前缀对场景映射配置 3710208 匹配PL
+     */
+    private List<String> tcCpaBatchNoPrefixConfig;
+
+    /**
      * * 同程批次号前缀对场景映射配置
      */
     private Map<String,String> tcBatchNoSuffixToSceneConfig;
