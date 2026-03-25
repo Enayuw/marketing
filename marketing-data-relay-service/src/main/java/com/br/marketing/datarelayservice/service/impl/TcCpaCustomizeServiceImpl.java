@@ -149,6 +149,6 @@ public class TcCpaCustomizeServiceImpl implements TcCpaCustomizeService {
         if (StringUtils.isBlank(batchNo) || StringUtils.isBlank(prefix)) {
             return false;
         }
-        return StringUtils.equals(batchNo, prefix) || StringUtils.startsWith(batchNo, prefix + "_");
+        return StringUtils.startsWith(batchNo, prefix);
     }
 }

@@ -415,7 +415,7 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
             if (StringUtils.isBlank(prefix)) {
                 continue;
             }
-            if (batchNo.equals(prefix) || batchNo.startsWith(prefix + "_")) {
+            if (batchNo.startsWith(prefix)) {
                 return entry.getValue();
             }
         }

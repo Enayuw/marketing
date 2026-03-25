@@ -1,11 +1,14 @@
 package com.br.marketing.datarelayservice.processor;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.dto.tc.TcRequestDTO;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingTcyrSyncRecord;
+import com.br.marketing.enums.DingDingAlarmFunctionEnum;
 import com.br.marketing.mapper.MarketingTcyrSyncRecordMapper;
 import com.br.marketing.service.EmailService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import groovy.util.logging.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -24,7 +27,7 @@ public class TcDataPushProcessor extends AbstractTcCustomizeProcessor{
     private MarketingCommonConfig marketingCommonConfig;
 
     @Resource
-    private EmailService systemExceptionServiceImpl;
+    private DingDingRobotHookService dingDingRobotHookService;
 
     @Override
     protected String fetchApiCode() {
@@ -69,7 +72,7 @@ public class TcDataPushProcessor extends AbstractTcCustomizeProcessor{
 
     private String resolveScene(String batchNo) {
         Map<String, String> sceneMap = marketingCommonConfig.getTcBatchNoSuffixToSceneConfig();
-        if (StringUtils.isBlank(batchNo) || sceneMap == null || sceneMap.isEmpty()) {
+        if (sceneMap == null || sceneMap.isEmpty()) {
             return "NEW";
         }
         for (Map.Entry<String, String> entry : sceneMap.entrySet()) {
@@ -77,7 +80,7 @@ public class TcDataPushProcessor extends AbstractTcCustomizeProcessor{
             if (StringUtils.isBlank(prefix)) {
                 continue;
             }
-            if (batchNo.equals(prefix) || batchNo.startsWith(prefix + "_")) {
+            if (batchNo.startsWith(prefix)) {
                 return entry.getValue();
             }
         }
@@ -99,10 +102,19 @@ public class TcDataPushProcessor extends AbstractTcCustomizeProcessor{
             }
             String content = String.format("同程NEW前缀告警：apiCode=%s,batchNo=%s,batchPrefix=%s,requestNo=%s,scene=%s",
                     apiCode, batchNo, batchPrefix, tcRequestDTO.getRequestNo(), scene);
-            systemExceptionServiceImpl.sendAlarm(content, "Marketing-data-relay-service");
+            notice(content); // 推送钉钉告警
         } catch (Exception ignore) {
             // 告警异常不影响主流程
         }
+    }
+
+    /**
+     * 推送钉钉告警
+     */
+    private void notice(String message) {
+        Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
+        Map<String, Object> groupInfo = webHookInfo.get(DingDingAlarmFunctionEnum.TOCHENG_CPA_NOTICE.toString());
+        dingDingRobotHookService.sendDingDingTextMessage(message, groupInfo);
     }
 
     private String extractBatchPrefix(String batchNo) {
