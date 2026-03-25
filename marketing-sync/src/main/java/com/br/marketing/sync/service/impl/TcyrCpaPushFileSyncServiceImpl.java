@@ -48,8 +48,8 @@ public class TcyrCpaPushFileSyncServiceImpl implements TcyrCpaPushFileSyncServic
 
     @Override
     public void fileSync(String pushDate) {
-        String apiCode = marketingCommonConfig.getTcyrCpaApiCode();
-        // 1. 先拉齐 SFTP 配置（条件与原先 fileSyncProcess 内查询一致，仅 dataType 按业务改为 18），再按 task.scene 与 remark 匹配
+        String apiCode = marketingCommonConfig.getTcyrApiCode();
+        // 1. 先拉齐 SFTP 配置（条件与原先 fileSyncProcess 内查询一致，仅 dataType 按业务改为 18），再按 task.scene 与 srcPath 包含关系匹配
         SyncConfigExample sceneCfgExample = new SyncConfigExample();
         sceneCfgExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
@@ -89,6 +89,8 @@ public class TcyrCpaPushFileSyncServiceImpl implements TcyrCpaPushFileSyncServic
                 boolean synced = fileSyncProcess(task, updateTask, sceneSyncConfigs);
                 if (synced) {
                     updateTask.setStatus(TcCpaPushFileTaskStatusEnum.STATUS_OPE_SFTP.getValue());
+                } else {
+                    updateTask.setUpdateTime(new Date());
                 }
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
@@ -99,12 +101,13 @@ public class TcyrCpaPushFileSyncServiceImpl implements TcyrCpaPushFileSyncServic
     }
 
     /**
-     * scene 与 {@link SyncConfig#getRemark()} 对齐（空 scene 与空 remark 均按 default 匹配，与生成侧 scene 目录一致）
+     * 按 {@link SyncConfig#getSrcPath()} 是否包含 scene 片段匹配（空 scene 按 default）
      */
     private SyncConfig findSyncConfigByScene(List<SyncConfig> sceneSyncConfigs, String scene) {
         String sceneKey = normalizeSceneKey(scene);
         for (SyncConfig c : sceneSyncConfigs) {
-            if (sceneKey.equals(normalizeSceneKey(c.getRemark()))) {
+            String srcPath = c.getSrcPath();
+            if (srcPath != null && srcPath.contains(sceneKey)) {
                 return c;
             }
         }
@@ -126,7 +129,7 @@ public class TcyrCpaPushFileSyncServiceImpl implements TcyrCpaPushFileSyncServic
         SyncConfig syncConfig = findSyncConfigByScene(sceneSyncConfigs, task.getScene());
         if (syncConfig == null) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
-                    "未找到与 scene 匹配的同程易融新场景推送 SFTP 配置（remark 需与 scene 一致，空 scene 对应 remark 空或 default），scene="
+                    "未找到与 scene 匹配的同程易融新场景推送 SFTP 配置（srcPath 需包含 scene，空 scene 按 default），scene="
                             + task.getScene(), TITLE));
             return false;
         }
