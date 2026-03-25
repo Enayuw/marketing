@@ -96,10 +96,6 @@ public class TcDataPushProcessor extends AbstractTcCustomizeProcessor{
             return;
         }
         try {
-            Integer count = tcyrSyncRecordMapper.countTodayByApiCodeAndBatchPrefix(apiCode, batchPrefix);
-            if (count == null || count != 1) {
-                return;
-            }
             String content = String.format("同程NEW前缀告警：apiCode=%s,batchNo=%s,batchPrefix=%s,requestNo=%s,scene=%s",
                     apiCode, batchNo, batchPrefix, tcRequestDTO.getRequestNo(), scene);
             notice(content); // 推送钉钉告警
