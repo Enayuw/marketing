@@ -490,4 +490,7 @@ public interface MarketingSyncUserMapper {
                             @Param("repushTime") String repushTime,
                             @Param("filterCondition") String filterCondition);
 
+    List<MarketingSyncUser> getSyncUserByMD5(@Param("apiCode") String apiCode, @Param("cellMD5") List<String> cellMD5);
+
+
 }
