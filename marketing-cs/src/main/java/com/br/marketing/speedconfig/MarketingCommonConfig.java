@@ -3644,6 +3644,9 @@ public class MarketingCommonConfig {
      */
     private String scoreStatusFinalDate;
 
+    /**
+     * SftpToDbByCommonJob 特殊字段处理配置
+     */
     private JSONObject sftpToDbSpecialHandleJson;
 
     /**
