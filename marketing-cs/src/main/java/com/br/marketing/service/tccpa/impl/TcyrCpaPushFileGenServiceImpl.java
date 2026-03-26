@@ -160,7 +160,7 @@ public class TcyrCpaPushFileGenServiceImpl implements TcyrCpaPushFileGenService 
         FilePushTaskInfo info = new FilePushTaskInfo();
         String infoString = null;
         try {
-            Boolean isCompleted = write(apiCode, localPath, yyyyMMdd, info, Collections.singletonList(script));
+            Boolean isCompleted = write(localPath, yyyyMMdd, info, Collections.singletonList(script));
             if (Boolean.TRUE.equals(isCompleted)) {
                 checkInfo(info);
             }
@@ -234,7 +234,6 @@ public class TcyrCpaPushFileGenServiceImpl implements TcyrCpaPushFileGenService 
 
     /**
      * 写入主流程
-     * @param apiCode
      * @param localPath 服务器路径
      * @param yyyyMMdd  日期
      * @param info 执行情况
@@ -243,7 +242,7 @@ public class TcyrCpaPushFileGenServiceImpl implements TcyrCpaPushFileGenService 
      * @author hedongshuo
      * @date 2025/8/26 16:19
      **/
-    private Boolean write(String apiCode, String localPath, String yyyyMMdd, FilePushTaskInfo info,
+    private Boolean write(String localPath, String yyyyMMdd, FilePushTaskInfo info,
                           List<MarketingTcyrCpaPushFileScript> scriptsForScene) {
         Map<String, ImmutablePair<BufferedWriter, FilePushTaskFileDTO>> fwMap = new HashMap<>();
         try {
