@@ -261,7 +261,7 @@ public class TcyrCpaPushFileGenServiceImpl implements TcyrCpaPushFileGenService 
             info.setOnlyOk(onlyOk);
             if(!onlyOk){
                 //2.生成数据文件
-                Boolean writeSuccess = writeFile(apiCode, localPath, yyyyMMdd, info, fwMap, scriptsForScene);
+                Boolean writeSuccess = writeFile(localPath, yyyyMMdd, info, fwMap, scriptsForScene);
                 if (!writeSuccess) return false;
             }
             //3.生成标识文件
@@ -299,7 +299,7 @@ public class TcyrCpaPushFileGenServiceImpl implements TcyrCpaPushFileGenService 
         return true;
     }
 
-    private Boolean writeFile(String apiCode, String localPath, String yyyyMMdd, FilePushTaskInfo info,
+    private Boolean writeFile(String localPath, String yyyyMMdd, FilePushTaskInfo info,
                               Map<String, ImmutablePair<BufferedWriter, FilePushTaskFileDTO>> fwMap,
                               List<MarketingTcyrCpaPushFileScript> scripts) throws Exception {
         if (CollectionUtils.isEmpty(scripts)) {
