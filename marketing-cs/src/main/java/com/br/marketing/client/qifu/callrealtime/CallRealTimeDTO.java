@@ -94,5 +94,10 @@ public class CallRealTimeDTO {
      */
     private String couponName;
 
+    /**
+     * 产品类型
+     */
+    private String productType;
+
 
 }

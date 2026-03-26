@@ -30,6 +30,8 @@
     <result column="customized_type" property="customizedType" jdbcType="INTEGER" />
     <result column="execute_time" property="executeTime" jdbcType="VARCHAR" />
     <result column="sync_start_time" property="syncStartTime" jdbcType="VARCHAR" />
+    <result column="is_pers" property="isPers" jdbcType="INTEGER" />
+    <result column="path_template_id" property="pathTemplateId" jdbcType="BIGINT" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -94,7 +96,7 @@
     check_success, `status`, remark, src_sftp_host, src_sftp_port, src_sftp_user, src_sftp_pwd,
     target_sftp_host, target_sftp_port, target_sftp_user, target_sftp_pwd, create_time,
     update_time, src_type, target_type, exclusion_time, `type`, customized_type, execute_time,
-    sync_start_time
+    sync_start_time, is_pers, path_template_id
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.SyncConfigExample" >
     select
@@ -138,8 +140,8 @@
     target_sftp_port, target_sftp_user, target_sftp_pwd,
     create_time, update_time, src_type,
     target_type, exclusion_time, `type`,
-    customized_type, execute_time, sync_start_time
-    )
+    customized_type, execute_time, sync_start_time,
+    is_pers, path_template_id)
     values (#{apiCode,jdbcType=VARCHAR}, #{dataType,jdbcType=INTEGER}, #{srcPath,jdbcType=VARCHAR},
     #{targetPath,jdbcType=VARCHAR}, #{callbackPath,jdbcType=VARCHAR}, #{suffix,jdbcType=VARCHAR},
     #{checkFinish,jdbcType=INTEGER}, #{checkSuccess,jdbcType=INTEGER}, #{status,jdbcType=INTEGER},
@@ -148,8 +150,8 @@
     #{targetSftpPort,jdbcType=INTEGER}, #{targetSftpUser,jdbcType=VARCHAR}, #{targetSftpPwd,jdbcType=VARCHAR},
     #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{srcType,jdbcType=VARCHAR},
     #{targetType,jdbcType=VARCHAR}, #{exclusionTime,jdbcType=VARCHAR}, #{type,jdbcType=INTEGER},
-    #{customizedType,jdbcType=INTEGER}, #{executeTime,jdbcType=VARCHAR}, #{syncStartTime,jdbcType=VARCHAR}
-    )
+    #{customizedType,jdbcType=INTEGER}, #{executeTime,jdbcType=VARCHAR}, #{syncStartTime,jdbcType=VARCHAR},
+    #{isPers,jdbcType=INTEGER}, #{pathTemplateId,jdbcType=BIGINT})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.SyncConfig" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -238,6 +240,12 @@
       <if test="syncStartTime != null" >
         sync_start_time,
       </if>
+      <if test="isPers != null" >
+        is_pers,
+      </if>
+      <if test="pathTemplateId != null" >
+        path_template_id,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
@@ -320,6 +328,12 @@
       </if>
       <if test="syncStartTime != null" >
         #{syncStartTime,jdbcType=VARCHAR},
+      </if>
+      <if test="isPers != null" >
+        #{isPers,jdbcType=INTEGER},
+      </if>
+      <if test="pathTemplateId != null" >
+        #{pathTemplateId,jdbcType=BIGINT},
       </if>
     </trim>
   </insert>
@@ -416,6 +430,12 @@
       <if test="record.syncStartTime != null" >
         sync_start_time = #{record.syncStartTime,jdbcType=VARCHAR},
       </if>
+      <if test="record.isPers != null" >
+        is_pers = #{record.isPers,jdbcType=INTEGER},
+      </if>
+      <if test="record.pathTemplateId != null" >
+        path_template_id = #{record.pathTemplateId,jdbcType=BIGINT},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -450,7 +470,9 @@
     `type` = #{record.type,jdbcType=INTEGER},
     customized_type = #{record.customizedType,jdbcType=INTEGER},
     execute_time = #{record.executeTime,jdbcType=VARCHAR},
-    sync_start_time = #{record.syncStartTime,jdbcType=VARCHAR}
+    sync_start_time = #{record.syncStartTime,jdbcType=VARCHAR},
+    is_pers = #{record.isPers,jdbcType=INTEGER},
+    path_template_id = #{record.pathTemplateId,jdbcType=BIGINT}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -539,6 +561,12 @@
       <if test="syncStartTime != null" >
         sync_start_time = #{syncStartTime,jdbcType=VARCHAR},
       </if>
+      <if test="isPers != null" >
+        is_pers = #{isPers,jdbcType=INTEGER},
+      </if>
+      <if test="pathTemplateId != null" >
+        path_template_id = #{pathTemplateId,jdbcType=BIGINT},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -570,7 +598,9 @@
         `type` = #{type,jdbcType=INTEGER},
         customized_type = #{customizedType,jdbcType=INTEGER},
         execute_time = #{executeTime,jdbcType=VARCHAR},
-        sync_start_time = #{syncStartTime,jdbcType=VARCHAR}
+        sync_start_time = #{syncStartTime,jdbcType=VARCHAR},
+        is_pers = #{isPers,jdbcType=INTEGER},
+        path_template_id = #{pathTemplateId,jdbcType=BIGINT}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

@@ -45,9 +45,16 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
+
 import javax.annotation.Resource;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.time.LocalDate;
@@ -729,7 +736,7 @@ public class DataCleanServiceImpl implements DataCleanService {
             String expectedPath = JsonParseUtils.processNodePaths(parentPath);
             
             // 确定目标字段名：如果 mappingField 不为空且与 cleanFields 不同，则使用 mappingField，否则使用 cleanFields
-            String targetKey = (StringUtils.isNotEmpty(mappingField) && !mappingField.equals(cleanFields)) 
+            String targetKey = (StringUtils.isNotEmpty(mappingField) && !mappingField.equals(cleanFields))
                     ? mappingField : cleanFields;
             boolean needRename = StringUtils.isNotEmpty(mappingField) && !mappingField.equals(cleanFields);
             
@@ -879,10 +886,13 @@ public class DataCleanServiceImpl implements DataCleanService {
     }
 
     @Override
-    public void dataCleanHandler(JSONObject jsonObject, Collection<MarketingDataCleanGeneralRuleConfig> ruleConfigList, MarketingPreUserDetailDTO marketingPreUserDetailDTO) {
+    public void dataCleanHandler(JSONObject jsonObject, Collection<MarketingDataCleanGeneralRuleConfig> ruleConfigList,
+                                MarketingPreUserDetailDTO marketingPreUserDetailDTO) {
         ruleConfigList.forEach(ruleConfig -> {
-            //数据清洗
             Object result = ruleCleaningService.executeCleaningRule(jsonObject, ruleConfig);
+            if (StringUtils.isEmpty(result)) {
+                return;
+            }
             switch (ruleConfig.getMappingField()) {
                 case "name":
                     marketingPreUserDetailDTO.setName((String) result);
@@ -906,6 +916,30 @@ public class DataCleanServiceImpl implements DataCleanService {
         });
     }
 
+    /**
+     * 解析 b_marketing_clean_data_file.virtual_headers 的 JSON 为 Map。
+     * 读完全部真实 header 与行数据后，将虚拟 header 的 key 作为列、value 追加到每行，当作一般列参与清洗。
+     */
+    private Map<String, String> parseVirtualHeaders(String virtualHeadersJson) {
+        if (StringUtils.isBlank(virtualHeadersJson)) {
+            return Collections.emptyMap();
+        }
+        try {
+            JSONObject jo = JSON.parseObject(virtualHeadersJson);
+            if (jo == null) {
+                return Collections.emptyMap();
+            }
+            Map<String, String> map = new HashMap<>();
+            for (String key : jo.keySet()) {
+                Object v = jo.get(key);
+                map.put(key, v != null ? v.toString() : "");
+            }
+            return map;
+        } catch (Exception e) {
+            log.warn("解析 virtual_headers 失败: {}", e.getMessage());
+            return Collections.emptyMap();
+        }
+    }
 
     @Override
     public void fileUploadDataClean(MarketingCleanDataFile cleanFile, MarketingDataCleanGeneralConfig config) {
@@ -925,9 +959,10 @@ public class DataCleanServiceImpl implements DataCleanService {
             log.warn("未找到清洗规则配置，apiCode: {}", apiCode);
             return;
         }
+        Map<String, String> virtualHeadersMap = parseVirtualHeaders(cleanFile.getVirtualHeaders());
         try {
             // 批量读取并处理文件
-            processByBatch(filePath, fileName, apiCode, ruleConfigList);
+            processByBatch(filePath, fileName, apiCode, ruleConfigList, virtualHeadersMap);
         } catch (Exception e) {
             log.error(TITLE + "文件读取异常，文件路径: " + filePath, e);
         }
@@ -935,81 +970,179 @@ public class DataCleanServiceImpl implements DataCleanService {
     }
 
     /**
-     * 批量处理文件数据 - 每500行为一批，同步处理
+     * 是否为 Excel 文件（.xlsx / .xls）
+     */
+    private static boolean isExcelFile(String fileName) {
+        if (fileName == null) {
+            return false;
+        }
+        String lower = fileName.toLowerCase();
+        return lower.endsWith(".xlsx") || lower.endsWith(".xls");
+    }
+
+    /**
+     * 从 Excel 第一 sheet 读取：第一行为表头，其余行为数据；每行转为逗号分隔字符串，与 CSV 下游一致。
+     */
+    private ExcelReadResult readExcelToHeadersAndLines(Workbook workbook) {
+        Sheet sheet = workbook.getSheetAt(0);
+        if (sheet == null) {
+            log.error("Excel 第一个 sheet 为空");
+            return null;
+        }
+        Row headerRow = sheet.getRow(0);
+        if (headerRow == null) {
+            log.error("Excel 表头行为空");
+            return null;
+        }
+        DataFormatter formatter = new DataFormatter();
+        String[] headers = rowToCellStrings(headerRow, formatter);
+        if (headers.length == 0) {
+            log.error("Excel 表头解析失败");
+            return null;
+        }
+        List<String> lines = new ArrayList<>();
+        for (int r = 1; r <= sheet.getLastRowNum(); r++) {
+            Row row = sheet.getRow(r);
+            if (row == null) {
+                continue;
+            }
+            String line = rowToCommaSeparated(row, formatter, headers.length);
+            if (line != null && !line.isBlank()) {
+                lines.add(line);
+            }
+        }
+        ExcelReadResult result = new ExcelReadResult();
+        result.headers = headers;
+        result.lines = lines;
+        return result;
+    }
+
+    private static String[] rowToCellStrings(Row row, DataFormatter formatter) {
+        int lastCellNum = row.getLastCellNum();
+        if (lastCellNum <= 0) {
+            return new String[0];
+        }
+        String[] arr = new String[lastCellNum];
+        for (int c = 0; c < lastCellNum; c++) {
+            arr[c] = formatter.formatCellValue(row.getCell(c));
+        }
+        return arr;
+    }
+
+    private static String rowToCommaSeparated(Row row, DataFormatter formatter, int maxCells) {
+        StringBuilder sb = new StringBuilder();
+        int lastCellNum = maxCells > 0 ? Math.min(row.getLastCellNum(), maxCells) : row.getLastCellNum();
+        for (int c = 0; c < lastCellNum; c++) {
+            if (c > 0) {
+                sb.append(',');
+            }
+            sb.append(formatter.formatCellValue(row.getCell(c)));
+        }
+        return sb.toString();
+    }
+
+    private static class ExcelReadResult {
+        String[] headers;
+        List<String> lines;
+    }
+
+    /**
+     * 批量处理文件数据 - 每500行为一批，同步处理；支持 CSV/文本 与 xlsx/xls
      */
     private void processByBatch(String filePath, String fileName, String apiCode,
-                               List<MarketingDataCleanGeneralRuleConfig> ruleConfigList) {
+                               List<MarketingDataCleanGeneralRuleConfig> ruleConfigList,
+                               Map<String, String> virtualHeadersMap) {
         final int BATCH_SIZE = 500;
         String[] headers = null;
         List<String> batchLines = new ArrayList<>();
         int totalProcessed = 0;
         File file = new File(filePath + fileName);
-        ThreadPoolExecutor pool = BrExecutors.getThreadPool(5, 5,50);
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line;
-            boolean isFirstLine = true;
-            while ((line = reader.readLine()) != null) {
-                String lineData = line.trim();
-                // 处理表头
-                if (isFirstLine) {
-                    headers = lineData.split(",");
-                    if (headers == null || headers.length == 0) {
-                        log.error("文件表头解析失败，文件路径: {}", filePath);
-                        return;
-                    }
-                    isFirstLine = false;
-                    continue;
+        ThreadPoolExecutor pool = BrExecutors.getThreadPool(5, 5, 50);
+
+        if (isExcelFile(fileName)) {
+            try (FileInputStream fis = new FileInputStream(file);
+                 Workbook workbook = WorkbookFactory.create(fis)) {
+                ExcelReadResult result = readExcelToHeadersAndLines(workbook);
+                if (result == null) {
+                    return;
                 }
-                // 跳过空行
-                if (StringUtils.isEmpty(lineData)) {
-                    continue;
-                }
-                batchLines.add(lineData);
-                // 当达到批次大小时，处理这一批数据
-                if (batchLines.size() >= BATCH_SIZE) {
+                headers = result.headers;
+                List<String> allLines = result.lines;
+                for (int start = 0; start < allLines.size(); start += BATCH_SIZE) {
+                    int end = Math.min(start + BATCH_SIZE, allLines.size());
+                    List<String> batch = new ArrayList<>(allLines.subList(start, end));
                     modifyFilePoolSize(pool);
                     String[] finalHeaders = headers;
-                    int finalTotalProcessed = totalProcessed;
-                    List<String> dataList = new ArrayList<>();
-                    dataList.addAll(batchLines);
-                    pool.submit(() -> {
-                        processBatchDataSync(dataList, finalHeaders, ruleConfigList, apiCode, fileName, finalTotalProcessed);
-                    });
-                    totalProcessed += batchLines.size();
-                    batchLines.clear();
+                    int finalStart = start;
+                    Map<String, String> finalVirtualHeaders = virtualHeadersMap;
+                    pool.submit(() -> processBatchDataSync(batch, finalHeaders, ruleConfigList, apiCode, fileName,
+                            finalStart, finalVirtualHeaders));
+                    totalProcessed += batch.size();
                 }
+            } catch (Exception e) {
+                log.error("读取 Excel 失败，文件路径: " + filePath + fileName, e);
             }
-            // 处理最后一批数据（不足500行）
-            if (!batchLines.isEmpty()) {
-                processBatchDataSync(batchLines, headers, ruleConfigList, apiCode, fileName, totalProcessed);
-                totalProcessed += batchLines.size();
+        } else {
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                String line;
+                boolean isFirstLine = true;
+                while ((line = reader.readLine()) != null) {
+                    String lineData = line.trim();
+                    if (isFirstLine) {
+                        headers = lineData.split(",");
+                        if (headers == null || headers.length == 0) {
+                            log.error("文件表头解析失败，文件路径: {}", filePath);
+                            return;
+                        }
+                        isFirstLine = false;
+                        continue;
+                    }
+                    if (StringUtils.isEmpty(lineData)) {
+                        continue;
+                    }
+                    batchLines.add(lineData);
+                    if (batchLines.size() >= BATCH_SIZE) {
+                        modifyFilePoolSize(pool);
+                        String[] finalHeaders = headers;
+                        int finalTotalProcessed = totalProcessed;
+                        List<String> dataList = new ArrayList<>(batchLines);
+                        Map<String, String> finalVirtualHeaders = virtualHeadersMap;
+                        pool.submit(() -> {
+                            processBatchDataSync(dataList, finalHeaders, ruleConfigList, apiCode, fileName,
+                                    finalTotalProcessed, finalVirtualHeaders);
+                        });
+                        totalProcessed += batchLines.size();
+                        batchLines.clear();
+                    }
+                }
+                if (!batchLines.isEmpty()) {
+                    processBatchDataSync(batchLines, headers, ruleConfigList, apiCode, fileName, totalProcessed,
+                            virtualHeadersMap);
+                    totalProcessed += batchLines.size();
+                }
+            } catch (IOException e) {
+                log.error("读取文件失败，文件路径: " + filePath, e);
             }
-
-            // 埋点
-            try {
-                String remark = String.format("清洗系统-文件清洗作业,清洗文件：%s"
-                        , filePath + fileName);
-                trackingService.trackPointLog(DataFlowDirection.OUT
-                        , apiCode
-                        , "清洗系统-文件清洗作业"
-                        , Long.valueOf(totalProcessed)
-                        , remark
-                        , TrackingContext.generateBatchId());
-            } catch (Exception ex) {
-                log.warn(
-                        AlertLog.buildWarnMessage(
-                                AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
-                                , ex.getMessage()
-                                , "埋点异常")
-                        , ex);
-            }
-
-            log.warn("文件处理完成，总共处理数据行数: {}", totalProcessed);
-
-        } catch (IOException e) {
-            log.error("读取文件失败，文件路径: " + filePath, e);
         }
-        // 关闭线程池
+
+        try {
+            String remark = String.format("清洗系统-文件清洗作业,清洗文件：%s", filePath + fileName);
+            trackingService.trackPointLog(DataFlowDirection.OUT
+                    , apiCode
+                    , "清洗系统-文件清洗作业"
+                    , Long.valueOf(totalProcessed)
+                    , remark
+                    , TrackingContext.generateBatchId());
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.TRACKING_POINT_SERVICEERROR.getCode()
+                            , ex.getMessage()
+                            , "埋点异常")
+                    , ex);
+        }
+        log.warn("文件处理完成，总共处理数据行数: {}", totalProcessed);
+
         pool.shutdown();
         try {
             while (!pool.awaitTermination(10L, TimeUnit.SECONDS)) {
@@ -1035,24 +1168,31 @@ public class DataCleanServiceImpl implements DataCleanService {
     @Override
     public void processBatchDataSync(List<String> batchLines, String[] headers,
                                      List<MarketingDataCleanGeneralRuleConfig> ruleConfigList,
-                                     String apiCode, String fileName, int startIndex) {
+                                     String apiCode, String fileName, int startIndex,
+                                     Map<String, String> virtualHeadersMap) {
         try {
-            List<JSONObject> fileJsonData = fileDataAssemble(batchLines,headers,fileName,startIndex);
-            cleanData(fileJsonData,ruleConfigList,apiCode,fileName,Boolean.FALSE);
+            List<JSONObject> fileJsonData = fileDataAssemble(batchLines, headers, fileName, startIndex,
+                    virtualHeadersMap);
+            cleanData(fileJsonData, ruleConfigList, apiCode, fileName, Boolean.FALSE, virtualHeadersMap);
         } catch (Exception e) {
             log.error("批次数据处理异常", e);
         }
     }
 
-    public MarketingPreUserDTO cleanData(List<JSONObject> jsonObjectList, List<MarketingDataCleanGeneralRuleConfig> ruleConfigList, String apiCode, String fileName,Boolean isTest) {
+    public MarketingPreUserDTO cleanData(List<JSONObject> jsonObjectList,
+                                         List<MarketingDataCleanGeneralRuleConfig> ruleConfigList,
+                                         String apiCode, String fileName, Boolean isTest,
+                                         Map<String, String> virtualHeadersMap) {
         List<MarketingPreUserDetailDTO> syncUsers = new ArrayList<>();
         // 处理数据清洗
         MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
         AtomicInteger index = new AtomicInteger(0);
         List<Long> ids = snowflakeRedisGeneratorHandle.nextIds(jsonObjectList.size());
+        if (virtualHeadersMap != null && !virtualHeadersMap.isEmpty()) {
+            jsonObjectList.forEach(jo -> jo.putAll(virtualHeadersMap));
+        }
         jsonObjectList.forEach(jsonData -> {
             MarketingPreUserDetailDTO marketingPreUserDetailDTO = new MarketingPreUserDetailDTO();
-            // 调用数据清洗处理方法
             dataCleanHandler(jsonData, ruleConfigList, marketingPreUserDetailDTO);
             marketingPreUserDetailDTO.setFingerprint(ids.get(index.getAndIncrement()));
             syncUsers.add(marketingPreUserDetailDTO);
@@ -1092,18 +1232,19 @@ public class DataCleanServiceImpl implements DataCleanService {
     }
 
     @Override
-    public List<JSONObject> fileDataAssemble(List<String> batchLines, String[] headers, String fileName, int startIndex) {
+    public List<JSONObject> fileDataAssemble(List<String> batchLines, String[] headers, String fileName, int startIndex,
+                                            Map<String, String> virtualHeadersMap) {
         List<JSONObject> jsonArray = new ArrayList<>();
-        // 同步处理当前批次的所有行
         for (int i = 0; i < batchLines.size(); i++) {
             String line = batchLines.get(i);
-            // +2 是因为跳过了表头，且索引从1开始
             int actualRowIndex = startIndex + i + 2;
-            // 根据表头和行数据构建JSON对象
             JSONObject jsonData = buildJsonFromLineData(line, headers, actualRowIndex);
             if (jsonData == null) {
-                log.error("文件{},第{}行数据解析失败，跳过处理: {}", fileName,actualRowIndex, line);
+                log.error("文件{},第{}行数据解析失败，跳过处理: {}", fileName, actualRowIndex, line);
                 continue;
+            }
+            if (virtualHeadersMap != null && !virtualHeadersMap.isEmpty()) {
+                jsonData.putAll(virtualHeadersMap);
             }
             jsonArray.add(jsonData);
         }
@@ -1215,9 +1356,12 @@ public class DataCleanServiceImpl implements DataCleanService {
 
     @Override
     public void fileUploadCleanPre(List<List<RuleCleaningResult>> resultList, List<MarketingDataCleanGeneralRuleConfig> ruleList,
-                                   MarketingCleanDataFile cleanDataFile,Integer actualNum) {
-        List<JSONObject> jsonObjects = JSON.parseObject(cleanDataFile.getTestRunData(), new TypeReference<List<JSONObject>>() {});
-        MarketingPreUserDTO marketingPreUserDTO = cleanData(jsonObjects,ruleList,cleanDataFile.getApiCode(),cleanDataFile.getFileName(),Boolean.TRUE);
+                                   MarketingCleanDataFile cleanDataFile, Integer actualNum) {
+        List<JSONObject> jsonObjects = JSON.parseObject(cleanDataFile.getTestRunData(),
+                new TypeReference<List<JSONObject>>() {});
+        Map<String, String> virtualHeadersMap = parseVirtualHeaders(cleanDataFile.getVirtualHeaders());
+        MarketingPreUserDTO marketingPreUserDTO = cleanData(jsonObjects, ruleList, cleanDataFile.getApiCode(),
+                cleanDataFile.getFileName(), Boolean.TRUE, virtualHeadersMap);
         //查询明细表
         List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getSyncUserByRequestBatch(marketingCommonConfig.getDatacleanTestRunApiCode()
                 ,marketingPreUserDTO.getRequestId());

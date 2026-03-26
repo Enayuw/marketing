@@ -1,6 +1,6 @@
 package com.br.marketing.check.job.qifu;
 
-import com.br.marketing.check.service.qifu.QiFuAiCleanService;
+import com.br.marketing.service.qifu.QiFuAiCleanService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;

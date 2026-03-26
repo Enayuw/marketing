@@ -30,18 +30,21 @@ public interface DataCleanService {
     void customUploadDataClean(MarketingDataCleanGeneralConfig config, List<String> appletDateList);
 
 
-    void dataCleanHandler(JSONObject jsonObject, Collection<MarketingDataCleanGeneralRuleConfig> ruleConfigList, MarketingPreUserDetailDTO marketingPreUserDetailDTO);
+    void dataCleanHandler(JSONObject jsonObject, Collection<MarketingDataCleanGeneralRuleConfig> ruleConfigList,
+                          MarketingPreUserDetailDTO marketingPreUserDetailDTO);
 
     void fileUploadDataClean(MarketingCleanDataFile cleanFile, MarketingDataCleanGeneralConfig config);
 
     void processBatchDataSync(List<String> batchLines, String[] headers,
                               List<MarketingDataCleanGeneralRuleConfig> ruleConfigList,
-                              String apiCode, String fileName, int startIndex);
+                              String apiCode, String fileName, int startIndex,
+                              Map<String, String> virtualHeadersMap);
 
     void fileUploadCleanPre(List<List<RuleCleaningResult>> ruleCleaningResultList, List<MarketingDataCleanGeneralRuleConfig> ruleList,
                             MarketingCleanDataFile marketingCleanDataFile,Integer actualNum);
 
-    List<JSONObject> fileDataAssemble(List<String> batchLines, String[] headers, String fileName, int startIndex);
+    List<JSONObject> fileDataAssemble(List<String> batchLines, String[] headers, String fileName, int startIndex,
+                                     Map<String, String> virtualHeadersMap);
 
     void uploadDetailCleanHandler(JSONObject jsonObject, Collection<MarketingDataCleanGeneralRuleConfig> ruleConfigList,
                                   MarketingSyncUser marketingSyncUser);

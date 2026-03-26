@@ -3643,4 +3643,16 @@ public class MarketingCommonConfig {
      * 跑分rediskey的scoreStatus的最终执行时间
      */
     private String scoreStatusFinalDate;
+
+    private JSONObject sftpToDbSpecialHandleJson;
+
+    /**
+     * 58AI配置
+     */
+    private JSONObject wuBaAIConfig;
+
+    /**
+     * 解压 zip 时按 sync_config.id 指定编码，格式：syncConfigId : GBK 或 UTF-8，如 "123:GBK","456:UTF-8"。未配置时默认 GBK。
+     */
+    private Map<String, String> syncUnzipEncoding;
  }
