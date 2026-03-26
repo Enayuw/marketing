@@ -1,11 +1,16 @@
 package com.br.marketing.datarelayservice.service.impl;
 
+import com.br.marketing.datarelayservice.context.TcMarketDataPushContext;
 import com.br.marketing.datarelayservice.processor.AbstractTcCustomizeProcessor;
 import com.br.marketing.datarelayservice.service.TcCpaCustomizeService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.dto.tc.*;
+import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * @description: 同程易融实现
@@ -30,6 +35,9 @@ public class TcCpaCustomizeServiceImpl implements TcCpaCustomizeService {
     private AbstractTcCustomizeProcessor tcCpaDataPushProcessor;
 
     @Resource
+    private AbstractTcCustomizeProcessor tcDataPushProcessor;
+
+    @Resource
     private AbstractTcCustomizeProcessor tcCpaTransformNotifyProcessor;
 
     @Resource
@@ -41,6 +49,9 @@ public class TcCpaCustomizeServiceImpl implements TcCpaCustomizeService {
     @Resource
     private AbstractTcCustomizeProcessor tcCpaFailDataPushProcessor;
 
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
     /**
      * @param tcRequestDTO
      * @param apiCode
@@ -51,6 +62,16 @@ public class TcCpaCustomizeServiceImpl implements TcCpaCustomizeService {
      **/
     @Override
     public TcResponseDTO marketDataPush(TcRequestDTO tcRequestDTO, String apiCode) {
+        String batchNo = parseBatchNo(tcRequestDTO);
+        if (!matchAnyPrefix(batchNo, marketingCommonConfig.getTcCpaBatchNoPrefixConfig())) {
+            TcMarketDataPushContext.set(TcMarketDataPushContext.Entry.CPA_SYNC_FALLBACK);
+            try {
+                return tcDataPushProcessor.process(tcRequestDTO, marketingCommonConfig.getTcyrApiCode(),
+                        TcDataPushDto.class, BIZ_CODE_CPA_DATA_PUSH);
+            } finally {
+                TcMarketDataPushContext.clear();
+            }
+        }
         return tcCpaDataPushProcessor.process(tcRequestDTO, apiCode, TcDataPushDto.class, BIZ_CODE_CPA_DATA_PUSH);
     }
 
@@ -104,5 +125,36 @@ public class TcCpaCustomizeServiceImpl implements TcCpaCustomizeService {
     @Override
     public TcResponseDTO marketFailDataPush(TcRequestDTO tcRequestDTO, String apiCode) {
         return tcCpaFailDataPushProcessor.process(tcRequestDTO, apiCode, TcFailDataPushDto.class, BIZ_CODE_CPA_FAIL_DATA_PUSH);
+    }
+
+    private String parseBatchNo(TcRequestDTO tcRequestDTO) {
+        if (tcRequestDTO == null || StringUtils.isBlank(tcRequestDTO.getData())) {
+            return null;
+        }
+        try {
+            JSONObject data = JSONObject.parseObject(tcRequestDTO.getData());
+            return data == null ? null : data.getString("batchNo");
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private boolean matchAnyPrefix(String batchNo, List<String> prefixList) {
+        if (StringUtils.isBlank(batchNo) || prefixList == null || prefixList.isEmpty()) {
+            return false;
+        }
+        for (String prefix : prefixList) {
+            if (matchPrefix(batchNo, prefix)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean matchPrefix(String batchNo, String prefix) {
+        if (StringUtils.isBlank(batchNo) || StringUtils.isBlank(prefix)) {
+            return false;
+        }
+        return StringUtils.startsWith(batchNo, prefix);
     }
 }

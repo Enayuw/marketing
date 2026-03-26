@@ -14,6 +14,11 @@ public class MarketingTcyrCpaPushFileTask {
     private String apiCode;
 
     /**
+     * 场景
+     */
+    private String scene;
+
+    /**
      * 本地路径
      */
     private String localPath;
@@ -77,6 +82,14 @@ public class MarketingTcyrCpaPushFileTask {
 
     public void setApiCode(String apiCode) {
         this.apiCode = apiCode == null ? null : apiCode.trim();
+    }
+
+    public String getScene() {
+        return scene;
+    }
+
+    public void setScene(String scene) {
+        this.scene = scene == null ? null : scene.trim();
     }
 
     public String getLocalPath() {
