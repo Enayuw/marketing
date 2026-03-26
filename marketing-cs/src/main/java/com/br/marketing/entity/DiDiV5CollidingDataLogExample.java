@@ -1234,6 +1234,76 @@ public class DiDiV5CollidingDataLogExample {
             addCriterion("update_time not between", value1, value2, "updateTime");
             return (Criteria) this;
         }
+
+        public Criteria andCouponTypeIsNull() {
+            addCriterion("coupon_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponTypeIsNotNull() {
+            addCriterion("coupon_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponTypeEqualTo(String value) {
+            addCriterion("coupon_type =", value, "couponType");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponTypeNotEqualTo(String value) {
+            addCriterion("coupon_type <>", value, "couponType");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponTypeGreaterThan(String value) {
+            addCriterion("coupon_type >", value, "couponType");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponTypeGreaterThanOrEqualTo(String value) {
+            addCriterion("coupon_type >=", value, "couponType");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponTypeLessThan(String value) {
+            addCriterion("coupon_type <", value, "couponType");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponTypeLessThanOrEqualTo(String value) {
+            addCriterion("coupon_type <=", value, "couponType");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponTypeLike(String value) {
+            addCriterion("coupon_type like", value, "couponType");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponTypeNotLike(String value) {
+            addCriterion("coupon_type not like", value, "couponType");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponTypeIn(List<String> values) {
+            addCriterion("coupon_type in", values, "couponType");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponTypeNotIn(List<String> values) {
+            addCriterion("coupon_type not in", values, "couponType");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponTypeBetween(String value1, String value2) {
+            addCriterion("coupon_type between", value1, value2, "couponType");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponTypeNotBetween(String value1, String value2) {
+            addCriterion("coupon_type not between", value1, value2, "couponType");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

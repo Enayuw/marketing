@@ -1,5 +1,7 @@
-package com.br.marketing.check.service.qifu;
+package com.br.marketing.service.qifu;
 
+import com.br.marketing.client.qifu.callrealtime.CallRealTimeDTO;
+import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.entity.BQifuUploadDataOriginal;
 
 import java.util.List;
@@ -17,5 +19,9 @@ public interface QiFuAiCleanService {
      * 处理BQifuUploadDataOriginal数据的上传
      */
     void pushProcessForOriginal(List<BQifuUploadDataOriginal> dataList, String operateType);
-}
 
+    /**
+     * 从实时卷查询结果构建 MarketingPreUserDetailDTO 列表（复用 buildNewListDto 逻辑）
+     */
+    List<MarketingPreUserDetailDTO> buildListFromCallRealTimeDetails(List<CallRealTimeDTO> dataDetails);
+}

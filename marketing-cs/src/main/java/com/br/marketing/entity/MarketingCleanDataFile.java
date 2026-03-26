@@ -33,9 +33,19 @@ public class MarketingCleanDataFile implements Serializable {
     private String fileName;
 
     /**
+     * 压缩包名称
+     */
+    private String zipName;
+
+    /**
      * 文件表头
      */
     private String fileHeader;
+
+    /**
+     * 虚拟文件头
+     */
+    private String virtualHeaders;
 
     /**
      * 文件数据
@@ -67,6 +77,9 @@ public class MarketingCleanDataFile implements Serializable {
      */
     private Date createTime;
 
+    /**
+     * 
+     */
     private Date updateTime;
 
     /**
@@ -83,6 +96,16 @@ public class MarketingCleanDataFile implements Serializable {
      * 文件MD5值
      */
     private String md5Value;
+
+    /**
+     * 执行状态0:未执行，1:执行中，2:执行成功，3:执行失败
+     */
+    private Integer processStatus;
+
+    /**
+     * 文件类型
+     */
+    private Integer dataType;
 
     /**
      * 接收时间

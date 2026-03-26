@@ -3644,6 +3644,18 @@ public class MarketingCommonConfig {
      */
     private String scoreStatusFinalDate;
 
+    private JSONObject sftpToDbSpecialHandleJson;
+
+    /**
+     * 58AI配置
+     */
+    private JSONObject wuBaAIConfig;
+
+    /**
+     * 解压 zip 时按 sync_config.id 指定编码，格式：syncConfigId : GBK 或 UTF-8，如 "123:GBK","456:UTF-8"。未配置时默认 GBK。
+     */
+    private Map<String, String> syncUnzipEncoding;
+
     /**
      * * 同程批次号前缀对场景映射配置 3710208 匹配PL
      */

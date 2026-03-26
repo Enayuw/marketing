@@ -425,6 +425,76 @@ public class MarketingCleanDataFileExample {
             return (Criteria) this;
         }
 
+        public Criteria andZipNameIsNull() {
+            addCriterion("zip_name is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andZipNameIsNotNull() {
+            addCriterion("zip_name is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andZipNameEqualTo(String value) {
+            addCriterion("zip_name =", value, "zipName");
+            return (Criteria) this;
+        }
+
+        public Criteria andZipNameNotEqualTo(String value) {
+            addCriterion("zip_name <>", value, "zipName");
+            return (Criteria) this;
+        }
+
+        public Criteria andZipNameGreaterThan(String value) {
+            addCriterion("zip_name >", value, "zipName");
+            return (Criteria) this;
+        }
+
+        public Criteria andZipNameGreaterThanOrEqualTo(String value) {
+            addCriterion("zip_name >=", value, "zipName");
+            return (Criteria) this;
+        }
+
+        public Criteria andZipNameLessThan(String value) {
+            addCriterion("zip_name <", value, "zipName");
+            return (Criteria) this;
+        }
+
+        public Criteria andZipNameLessThanOrEqualTo(String value) {
+            addCriterion("zip_name <=", value, "zipName");
+            return (Criteria) this;
+        }
+
+        public Criteria andZipNameLike(String value) {
+            addCriterion("zip_name like", value, "zipName");
+            return (Criteria) this;
+        }
+
+        public Criteria andZipNameNotLike(String value) {
+            addCriterion("zip_name not like", value, "zipName");
+            return (Criteria) this;
+        }
+
+        public Criteria andZipNameIn(List<String> values) {
+            addCriterion("zip_name in", values, "zipName");
+            return (Criteria) this;
+        }
+
+        public Criteria andZipNameNotIn(List<String> values) {
+            addCriterion("zip_name not in", values, "zipName");
+            return (Criteria) this;
+        }
+
+        public Criteria andZipNameBetween(String value1, String value2) {
+            addCriterion("zip_name between", value1, value2, "zipName");
+            return (Criteria) this;
+        }
+
+        public Criteria andZipNameNotBetween(String value1, String value2) {
+            addCriterion("zip_name not between", value1, value2, "zipName");
+            return (Criteria) this;
+        }
+
         public Criteria andFileHeaderIsNull() {
             addCriterion("file_header is null");
             return (Criteria) this;
@@ -492,6 +562,76 @@ public class MarketingCleanDataFileExample {
 
         public Criteria andFileHeaderNotBetween(String value1, String value2) {
             addCriterion("file_header not between", value1, value2, "fileHeader");
+            return (Criteria) this;
+        }
+
+        public Criteria andVirtualHeadersIsNull() {
+            addCriterion("virtual_headers is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andVirtualHeadersIsNotNull() {
+            addCriterion("virtual_headers is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andVirtualHeadersEqualTo(String value) {
+            addCriterion("virtual_headers =", value, "virtualHeaders");
+            return (Criteria) this;
+        }
+
+        public Criteria andVirtualHeadersNotEqualTo(String value) {
+            addCriterion("virtual_headers <>", value, "virtualHeaders");
+            return (Criteria) this;
+        }
+
+        public Criteria andVirtualHeadersGreaterThan(String value) {
+            addCriterion("virtual_headers >", value, "virtualHeaders");
+            return (Criteria) this;
+        }
+
+        public Criteria andVirtualHeadersGreaterThanOrEqualTo(String value) {
+            addCriterion("virtual_headers >=", value, "virtualHeaders");
+            return (Criteria) this;
+        }
+
+        public Criteria andVirtualHeadersLessThan(String value) {
+            addCriterion("virtual_headers <", value, "virtualHeaders");
+            return (Criteria) this;
+        }
+
+        public Criteria andVirtualHeadersLessThanOrEqualTo(String value) {
+            addCriterion("virtual_headers <=", value, "virtualHeaders");
+            return (Criteria) this;
+        }
+
+        public Criteria andVirtualHeadersLike(String value) {
+            addCriterion("virtual_headers like", value, "virtualHeaders");
+            return (Criteria) this;
+        }
+
+        public Criteria andVirtualHeadersNotLike(String value) {
+            addCriterion("virtual_headers not like", value, "virtualHeaders");
+            return (Criteria) this;
+        }
+
+        public Criteria andVirtualHeadersIn(List<String> values) {
+            addCriterion("virtual_headers in", values, "virtualHeaders");
+            return (Criteria) this;
+        }
+
+        public Criteria andVirtualHeadersNotIn(List<String> values) {
+            addCriterion("virtual_headers not in", values, "virtualHeaders");
+            return (Criteria) this;
+        }
+
+        public Criteria andVirtualHeadersBetween(String value1, String value2) {
+            addCriterion("virtual_headers between", value1, value2, "virtualHeaders");
+            return (Criteria) this;
+        }
+
+        public Criteria andVirtualHeadersNotBetween(String value1, String value2) {
+            addCriterion("virtual_headers not between", value1, value2, "virtualHeaders");
             return (Criteria) this;
         }
 
@@ -1145,6 +1285,126 @@ public class MarketingCleanDataFileExample {
             return (Criteria) this;
         }
 
+        public Criteria andProcessStatusIsNull() {
+            addCriterion("process_status is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andProcessStatusIsNotNull() {
+            addCriterion("process_status is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andProcessStatusEqualTo(Integer value) {
+            addCriterion("process_status =", value, "processStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andProcessStatusNotEqualTo(Integer value) {
+            addCriterion("process_status <>", value, "processStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andProcessStatusGreaterThan(Integer value) {
+            addCriterion("process_status >", value, "processStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andProcessStatusGreaterThanOrEqualTo(Integer value) {
+            addCriterion("process_status >=", value, "processStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andProcessStatusLessThan(Integer value) {
+            addCriterion("process_status <", value, "processStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andProcessStatusLessThanOrEqualTo(Integer value) {
+            addCriterion("process_status <=", value, "processStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andProcessStatusIn(List<Integer> values) {
+            addCriterion("process_status in", values, "processStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andProcessStatusNotIn(List<Integer> values) {
+            addCriterion("process_status not in", values, "processStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andProcessStatusBetween(Integer value1, Integer value2) {
+            addCriterion("process_status between", value1, value2, "processStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andProcessStatusNotBetween(Integer value1, Integer value2) {
+            addCriterion("process_status not between", value1, value2, "processStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataTypeIsNull() {
+            addCriterion("data_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataTypeIsNotNull() {
+            addCriterion("data_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataTypeEqualTo(Integer value) {
+            addCriterion("data_type =", value, "dataType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataTypeNotEqualTo(Integer value) {
+            addCriterion("data_type <>", value, "dataType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataTypeGreaterThan(Integer value) {
+            addCriterion("data_type >", value, "dataType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("data_type >=", value, "dataType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataTypeLessThan(Integer value) {
+            addCriterion("data_type <", value, "dataType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("data_type <=", value, "dataType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataTypeIn(List<Integer> values) {
+            addCriterion("data_type in", values, "dataType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataTypeNotIn(List<Integer> values) {
+            addCriterion("data_type not in", values, "dataType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataTypeBetween(Integer value1, Integer value2) {
+            addCriterion("data_type between", value1, value2, "dataType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("data_type not between", value1, value2, "dataType");
+            return (Criteria) this;
+        }
+
         public Criteria andReceiveDateIsNull() {
             addCriterion("receive_date is null");
             return (Criteria) this;
@@ -1216,9 +1476,8 @@ public class MarketingCleanDataFileExample {
         }
     }
 
-    /**
-     */
     public static class Criteria extends GeneratedCriteria {
+
         protected Criteria() {
             super();
         }

@@ -12,7 +12,10 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.dto.customer.CallRecordDTO;
 import com.br.marketing.dto.customer.SmsRecordDTO;
+import com.br.marketing.dto.derived.CustDerivedItemVO;
+import com.br.marketing.dto.derived.CustDerivedQueryRequest;
 import com.br.marketing.service.ZnkfPushService;
+import com.br.marketing.service.derived.CustDerivedQueryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,6 +43,9 @@ public class ZnkfPushController {
 
     @Resource
     private DassServiceClient dassServiceClient;
+
+    @Resource
+    private CustDerivedQueryService custDerivedQueryService;
 
     @Operation(summary = "客服推送营销数据 回调接口")
     @PostMapping("/znkfPushCallBack")
@@ -107,6 +114,13 @@ public class ZnkfPushController {
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(), ex.getMessage()), ex);
             throw ex;
         }
+    }
+
+    @Operation(summary = "360查询券等衍生信息接口")
+    @PostMapping("/custDerivedQuery")
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
+    public ApiResult<List<CustDerivedItemVO>> custDerivedQuery(@RequestBody @Valid CustDerivedQueryRequest request) {
+        return custDerivedQueryService.queryByCustNumList(request);
     }
 
     @Operation(summary = "接收回调数据并入库（通用接口，支持不同版本）")

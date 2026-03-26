@@ -383,6 +383,7 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
             diDiV5CollidingDataLog.setFailReason(String.valueOf(diDiV5CollidingResultResponseDTO.getData().getFailReason()));
             diDiV5CollidingDataLog.setUserGroup(String.valueOf(diDiV5CollidingResultResponseDTO.getData().getUserGroup()));
             diDiV5CollidingDataLog.setNextTime(String.valueOf(diDiV5CollidingResultResponseDTO.getData().getNextTime()));
+            diDiV5CollidingDataLog.setCouponType(diDiV5CollidingResultResponseDTO.getData().getCouponType());
             mqJson.put("diDiV5CollidingResultResponseDTO", diDiV5CollidingResultResponseDTO);
 
             data.setUpdateTime(new Date());
@@ -426,6 +427,7 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
             diDiV5CollidingDataLog.setFailReason(String.valueOf(diDiV5CollidingResultResponseDTO.getData().getFailReason()));
             diDiV5CollidingDataLog.setUserGroup(String.valueOf(diDiV5CollidingResultResponseDTO.getData().getUserGroup()));
             diDiV5CollidingDataLog.setNextTime(String.valueOf(diDiV5CollidingResultResponseDTO.getData().getNextTime()));
+            diDiV5CollidingDataLog.setCouponType(diDiV5CollidingResultResponseDTO.getData().getCouponType());
             mqJson.put("diDiV5CollidingResultResponseDTO", diDiV5CollidingResultResponseDTO);
 
             data.setUpdateTime(new Date());
