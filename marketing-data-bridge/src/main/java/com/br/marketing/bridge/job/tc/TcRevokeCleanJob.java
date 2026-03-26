@@ -1,6 +1,7 @@
 package com.br.marketing.bridge.job.tc;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.marketingapi.input.PushTransferDataDetailDTO;
@@ -26,6 +27,7 @@ import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -110,11 +112,17 @@ public class TcRevokeCleanJob extends AbstractSimpleElasticJob {
         updateRecord.setId(record.getId());
         try {
             String batchNo = record.getBatchNo();
-            TcRevokeDto tcRevokeDto = objectMapper.readValue(record.getData(), TcRevokeDto.class);
             JSONObject recordData = JSONObject.parseObject(record.getData());
             String scene = recordData == null ? null : recordData.getString("scene");
-            if (CollectionUtils.isNotEmpty(tcRevokeDto.getUserKeyList())) {
-                processUserKeyList(apiCode, batchNo, scene, tcRevokeDto.getUserKeyList(), updateRecord, record.getId());
+            List<String> userKeyList = Collections.emptyList();
+            if (recordData != null) {
+                JSONArray arr = recordData.getJSONArray("userKeyList");
+                if (arr != null && !arr.isEmpty()) {
+                    userKeyList = arr.toJavaList(String.class);
+                }
+            }
+            if (CollectionUtils.isNotEmpty(userKeyList)) {
+                processUserKeyList(apiCode, batchNo, scene, userKeyList, updateRecord, record.getId());
             } else {
                 processUserKeyListFromDB(apiCode, batchNo, scene, updateRecord, record.getId());
             }
