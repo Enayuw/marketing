@@ -3128,6 +3128,15 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(overAmt);
     }
 
+    @Override
+    public Result<MarketingSyncUser> queryLatestSyncUser(String apiCode, String custNum, String userType) {
+        MarketingSyncUser user = marketingUserMapper.selectLatestSyncUser(apiCode, custNum, userType);
+        if (user == null) {
+            return new Result<MarketingSyncUser>().setCode(ResultCode.FAIL.getValue()).setMessage("数据为空！");
+        }
+        return new Result<MarketingSyncUser>().setCode(ResultCode.SUCCESS.getValue()).setDate(user);
+    }
+
     public void sendJsonParseMq(String apiCode,Integer dataSourceType,Integer systemType,Integer dataType,Integer acceptType,String jsonData){
         //发送Json解析消息,定制清洗不在发送MQ
         if (dataSourceType != null && 1 == dataSourceType) {

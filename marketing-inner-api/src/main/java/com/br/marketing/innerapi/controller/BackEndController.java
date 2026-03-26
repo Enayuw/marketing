@@ -10,6 +10,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.service.Impl.MarketingCustomertestImpl;
+import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.thirdpartner.ThirdPartnerDataService;
 import com.br.marketing.service.thirdpartner.dto.ThirdPartnerDataDTO;
@@ -115,6 +116,21 @@ public class BackEndController {
         } catch (Exception ex) {
             log.error("外呼查询上传逾期金额接口异常", ex);
             return new Result<String>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(ex.getMessage());
+        }
+    }
+
+    @Operation(summary = "查询最新变量接口")
+    @GetMapping("/queryLatestSyncUser")
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
+    public Result<MarketingSyncUser> queryLatestSyncUser(
+            @RequestParam String apiCode,
+            @RequestParam String custNum,
+            @RequestParam(required = false) String userType) {
+        try {
+            return pushRuleService.queryLatestSyncUser(apiCode, custNum, userType);
+        } catch (Exception ex) {
+            log.error("查询最新变量接口异常, apiCode={}, custNum={}", apiCode, custNum, ex);
+            return new Result<MarketingSyncUser>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(ex.getMessage());
         }
     }
 
