@@ -12,6 +12,7 @@ import com.br.marketing.mapper.BizTrackingTemplateMapper;
 import com.br.marketing.mapper.BizTrackingTemplateNodeMapper;
 import com.br.marketing.service.datamap.TrackingTemplateService;
 import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -169,8 +170,8 @@ public class TrackingTemplateServiceImpl implements TrackingTemplateService {
         PageHelper.startPage(page, pageSize);
 
         List<TemplateListItemVO> list = templateMapper.selectTemplateList(request);
-
-        return PageResultReturn.setPageResult(list, page, pageSize);
+        long total = new PageInfo<>(list).getTotal();
+        return PageResultReturn.setPageResult(list, page, pageSize, total);
     }
 
     @Override
