@@ -197,7 +197,7 @@ public class TcRevokeCleanJob extends AbstractSimpleElasticJob {
     // 清洗+调用转化接口
     private boolean processTransferClean(String apiCode, String scene, List<JSONObject> jsonObjects,
                                          MarketingTcyrRevokeRecord updateRecord, Long recordId) {
-        String bizAction = StringUtils.isNotBlank(scene) ? "revoke-" + scene : "revoke";
+        String bizAction = StringUtils.isNotBlank(scene) ? ("revoke-" + scene) : "revoke";
         //清洗
         Result result = generalDataCleanService.transferClean(jsonObjects, apiCode, bizAction);
         if (result == null || !result.isSuccess()) {

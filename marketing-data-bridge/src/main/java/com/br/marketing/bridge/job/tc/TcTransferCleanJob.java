@@ -136,7 +136,7 @@ public class TcTransferCleanJob extends AbstractSimpleElasticJob {
                         dataObject.put("batchNo", record.getBatchNo());
                     }
                     String scene = dataObject.getString("scene");
-                    String bizAction = StringUtils.isNotBlank(scene) ? "transfer-" + scene : "common";
+                    String bizAction = StringUtils.isNotBlank(scene) ? ("transfer-" + scene) : "common";
                     bizActionDataMap.computeIfAbsent(bizAction, key -> new ArrayList<>()).add(dataObject);
                 }
                 List<TransferDataItemDTO> transferDataItemDTOS = new ArrayList<>();
