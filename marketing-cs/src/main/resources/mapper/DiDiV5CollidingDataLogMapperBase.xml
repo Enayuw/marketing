@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.DiDiV5CollidingDataLogMapperBase" >
+<mapper namespace="com.br.marketing.mapper.DiDiV5CollidingDataLogMapper" >
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.DiDiV5CollidingDataLog" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="data_id" property="dataId" jdbcType="BIGINT" />
@@ -19,6 +19,7 @@
     <result column="is_delete" property="isDelete" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="coupon_type" property="couponType" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -79,9 +80,9 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, data_id, local_id, api_code, cell, `result`, fail_reason, user_group, next_time, 
-    http_code, error_code, error_message, return_content, extend, is_delete, create_time, 
-    update_time
+    id, data_id, local_id, api_code, cell, `result`, fail_reason, user_group, next_time,
+    http_code, error_code, error_message, return_content, extend, is_delete, create_time,
+    update_time, coupon_type
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.DiDiV5CollidingDataLogExample" >
     select
@@ -98,7 +99,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     from b_didi_v5_colliding_data_log
     where id = #{id,jdbcType=BIGINT}
@@ -117,18 +118,18 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_didi_v5_colliding_data_log (data_id, local_id, api_code, 
-      cell, `result`, fail_reason, 
-      user_group, next_time, http_code, 
-      error_code, error_message, return_content, 
-      extend, is_delete, create_time, 
-      update_time)
-    values (#{dataId,jdbcType=BIGINT}, #{localId,jdbcType=BIGINT}, #{apiCode,jdbcType=VARCHAR}, 
-      #{cell,jdbcType=VARCHAR}, #{result,jdbcType=VARCHAR}, #{failReason,jdbcType=VARCHAR}, 
-      #{userGroup,jdbcType=VARCHAR}, #{nextTime,jdbcType=VARCHAR}, #{httpCode,jdbcType=VARCHAR}, 
-      #{errorCode,jdbcType=VARCHAR}, #{errorMessage,jdbcType=VARCHAR}, #{returnContent,jdbcType=VARCHAR}, 
-      #{extend,jdbcType=VARCHAR}, #{isDelete,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP})
+    insert into b_didi_v5_colliding_data_log (data_id, local_id, api_code,
+    cell, `result`, fail_reason,
+    user_group, next_time, http_code,
+    error_code, error_message, return_content,
+    extend, is_delete, create_time,
+    update_time, coupon_type)
+    values (#{dataId,jdbcType=BIGINT}, #{localId,jdbcType=BIGINT}, #{apiCode,jdbcType=VARCHAR},
+    #{cell,jdbcType=VARCHAR}, #{result,jdbcType=VARCHAR}, #{failReason,jdbcType=VARCHAR},
+    #{userGroup,jdbcType=VARCHAR}, #{nextTime,jdbcType=VARCHAR}, #{httpCode,jdbcType=VARCHAR},
+    #{errorCode,jdbcType=VARCHAR}, #{errorMessage,jdbcType=VARCHAR}, #{returnContent,jdbcType=VARCHAR},
+    #{extend,jdbcType=VARCHAR}, #{isDelete,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP},
+    #{updateTime,jdbcType=TIMESTAMP}, #{couponType,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.DiDiV5CollidingDataLog" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -184,6 +185,9 @@
       <if test="updateTime != null" >
         update_time,
       </if>
+      <if test="couponType != null" >
+        coupon_type,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="dataId != null" >
@@ -233,6 +237,9 @@
       </if>
       <if test="updateTime != null" >
         #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="couponType != null" >
+        #{couponType,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -296,6 +303,9 @@
       <if test="record.updateTime != null" >
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="record.couponType != null" >
+        coupon_type = #{record.couponType,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -304,22 +314,23 @@
   <update id="updateByExample" parameterType="map" >
     update b_didi_v5_colliding_data_log
     set id = #{record.id,jdbcType=BIGINT},
-      data_id = #{record.dataId,jdbcType=BIGINT},
-      local_id = #{record.localId,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      cell = #{record.cell,jdbcType=VARCHAR},
-      `result` = #{record.result,jdbcType=VARCHAR},
-      fail_reason = #{record.failReason,jdbcType=VARCHAR},
-      user_group = #{record.userGroup,jdbcType=VARCHAR},
-      next_time = #{record.nextTime,jdbcType=VARCHAR},
-      http_code = #{record.httpCode,jdbcType=VARCHAR},
-      error_code = #{record.errorCode,jdbcType=VARCHAR},
-      error_message = #{record.errorMessage,jdbcType=VARCHAR},
-      return_content = #{record.returnContent,jdbcType=VARCHAR},
-      extend = #{record.extend,jdbcType=VARCHAR},
-      is_delete = #{record.isDelete,jdbcType=INTEGER},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    data_id = #{record.dataId,jdbcType=BIGINT},
+    local_id = #{record.localId,jdbcType=BIGINT},
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    cell = #{record.cell,jdbcType=VARCHAR},
+    `result` = #{record.result,jdbcType=VARCHAR},
+    fail_reason = #{record.failReason,jdbcType=VARCHAR},
+    user_group = #{record.userGroup,jdbcType=VARCHAR},
+    next_time = #{record.nextTime,jdbcType=VARCHAR},
+    http_code = #{record.httpCode,jdbcType=VARCHAR},
+    error_code = #{record.errorCode,jdbcType=VARCHAR},
+    error_message = #{record.errorMessage,jdbcType=VARCHAR},
+    return_content = #{record.returnContent,jdbcType=VARCHAR},
+    extend = #{record.extend,jdbcType=VARCHAR},
+    is_delete = #{record.isDelete,jdbcType=INTEGER},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    coupon_type = #{record.couponType,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -375,27 +386,31 @@
       <if test="updateTime != null" >
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="couponType != null" >
+        coupon_type = #{couponType,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.DiDiV5CollidingDataLog" >
     update b_didi_v5_colliding_data_log
     set data_id = #{dataId,jdbcType=BIGINT},
-      local_id = #{localId,jdbcType=BIGINT},
-      api_code = #{apiCode,jdbcType=VARCHAR},
-      cell = #{cell,jdbcType=VARCHAR},
-      `result` = #{result,jdbcType=VARCHAR},
-      fail_reason = #{failReason,jdbcType=VARCHAR},
-      user_group = #{userGroup,jdbcType=VARCHAR},
-      next_time = #{nextTime,jdbcType=VARCHAR},
-      http_code = #{httpCode,jdbcType=VARCHAR},
-      error_code = #{errorCode,jdbcType=VARCHAR},
-      error_message = #{errorMessage,jdbcType=VARCHAR},
-      return_content = #{returnContent,jdbcType=VARCHAR},
-      extend = #{extend,jdbcType=VARCHAR},
-      is_delete = #{isDelete,jdbcType=INTEGER},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+        local_id = #{localId,jdbcType=BIGINT},
+        api_code = #{apiCode,jdbcType=VARCHAR},
+        cell = #{cell,jdbcType=VARCHAR},
+        `result` = #{result,jdbcType=VARCHAR},
+        fail_reason = #{failReason,jdbcType=VARCHAR},
+        user_group = #{userGroup,jdbcType=VARCHAR},
+        next_time = #{nextTime,jdbcType=VARCHAR},
+        http_code = #{httpCode,jdbcType=VARCHAR},
+        error_code = #{errorCode,jdbcType=VARCHAR},
+        error_message = #{errorMessage,jdbcType=VARCHAR},
+        return_content = #{returnContent,jdbcType=VARCHAR},
+        extend = #{extend,jdbcType=VARCHAR},
+        is_delete = #{isDelete,jdbcType=INTEGER},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        coupon_type = #{couponType,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

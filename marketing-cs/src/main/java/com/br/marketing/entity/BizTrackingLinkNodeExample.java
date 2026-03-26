@@ -415,6 +415,76 @@ public class BizTrackingLinkNodeExample {
             return (Criteria) this;
         }
 
+        public Criteria andEdgeTypeIsNull() {
+            addCriterion("edge_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andEdgeTypeIsNotNull() {
+            addCriterion("edge_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andEdgeTypeEqualTo(String value) {
+            addCriterion("edge_type =", value, "edgeType");
+            return (Criteria) this;
+        }
+
+        public Criteria andEdgeTypeNotEqualTo(String value) {
+            addCriterion("edge_type <>", value, "edgeType");
+            return (Criteria) this;
+        }
+
+        public Criteria andEdgeTypeGreaterThan(String value) {
+            addCriterion("edge_type >", value, "edgeType");
+            return (Criteria) this;
+        }
+
+        public Criteria andEdgeTypeGreaterThanOrEqualTo(String value) {
+            addCriterion("edge_type >=", value, "edgeType");
+            return (Criteria) this;
+        }
+
+        public Criteria andEdgeTypeLessThan(String value) {
+            addCriterion("edge_type <", value, "edgeType");
+            return (Criteria) this;
+        }
+
+        public Criteria andEdgeTypeLessThanOrEqualTo(String value) {
+            addCriterion("edge_type <=", value, "edgeType");
+            return (Criteria) this;
+        }
+
+        public Criteria andEdgeTypeLike(String value) {
+            addCriterion("edge_type like", value, "edgeType");
+            return (Criteria) this;
+        }
+
+        public Criteria andEdgeTypeNotLike(String value) {
+            addCriterion("edge_type not like", value, "edgeType");
+            return (Criteria) this;
+        }
+
+        public Criteria andEdgeTypeIn(List<String> values) {
+            addCriterion("edge_type in", values, "edgeType");
+            return (Criteria) this;
+        }
+
+        public Criteria andEdgeTypeNotIn(List<String> values) {
+            addCriterion("edge_type not in", values, "edgeType");
+            return (Criteria) this;
+        }
+
+        public Criteria andEdgeTypeBetween(String value1, String value2) {
+            addCriterion("edge_type between", value1, value2, "edgeType");
+            return (Criteria) this;
+        }
+
+        public Criteria andEdgeTypeNotBetween(String value1, String value2) {
+            addCriterion("edge_type not between", value1, value2, "edgeType");
+            return (Criteria) this;
+        }
+
         public Criteria andStatusIsNull() {
             addCriterion("`status` is null");
             return (Criteria) this;
