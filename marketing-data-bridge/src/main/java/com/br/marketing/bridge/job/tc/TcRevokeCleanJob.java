@@ -1,6 +1,7 @@
 package com.br.marketing.bridge.job.tc;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.marketingapi.input.PushTransferDataDetailDTO;
@@ -23,9 +24,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
-import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -110,11 +112,19 @@ public class TcRevokeCleanJob extends AbstractSimpleElasticJob {
         updateRecord.setId(record.getId());
         try {
             String batchNo = record.getBatchNo();
-            TcRevokeDto tcRevokeDto = objectMapper.readValue(record.getData(), TcRevokeDto.class);
-            if (CollectionUtils.isNotEmpty(tcRevokeDto.getUserKeyList())) {
-                processUserKeyList(apiCode, batchNo, tcRevokeDto.getUserKeyList(), updateRecord, record.getId());
+            JSONObject recordData = JSONObject.parseObject(record.getData());
+            String scene = recordData == null ? null : recordData.getString("scene");
+            List<String> userKeyList = Collections.emptyList();
+            if (recordData != null) {
+                JSONArray arr = recordData.getJSONArray("userKeyList");
+                if (arr != null && !arr.isEmpty()) {
+                    userKeyList = arr.toJavaList(String.class);
+                }
+            }
+            if (CollectionUtils.isNotEmpty(userKeyList)) {
+                processUserKeyList(apiCode, batchNo, scene, userKeyList, updateRecord, record.getId());
             } else {
-                processUserKeyListFromDB(apiCode, batchNo, updateRecord, record.getId());
+                processUserKeyListFromDB(apiCode, batchNo, scene, updateRecord, record.getId());
             }
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
@@ -125,17 +135,17 @@ public class TcRevokeCleanJob extends AbstractSimpleElasticJob {
     }
 
     // 处理记录中上送的userKeyList
-    private void processUserKeyList(String apiCode, String batchNo, List<String> userKeyList,
+    private void processUserKeyList(String apiCode, String batchNo, String scene, List<String> userKeyList,
                                     MarketingTcyrRevokeRecord updateRecord, Long recordId) {
         List<List<String>> partitions = ListUtils.partition(userKeyList, 1000);
-        if (processPartitions(apiCode, batchNo, partitions, updateRecord, recordId)) {
+        if (processPartitions(apiCode, batchNo, scene, partitions, updateRecord, recordId)) {
             updateRecord.setIsClean(1);
             marketingTcyrRevokeRecordMapper.updateByPrimaryKeySelective(updateRecord);
         }
     }
 
     // 记录中无userKeyList，从DB中获取并处理
-    private void processUserKeyListFromDB(String apiCode, String batchNo,
+    private void processUserKeyListFromDB(String apiCode, String batchNo, String scene,
                                           MarketingTcyrRevokeRecord updateRecord, Long recordId) {
         Long minId = null;
         Integer pageSize = marketingCommonConfig.getTcRevokePageSize();
@@ -151,7 +161,7 @@ public class TcRevokeCleanJob extends AbstractSimpleElasticJob {
                     .distinct()
                     .collect(Collectors.toList());
             List<List<String>> partitions = ListUtils.partition(userKeyList, 1000);
-            if (!processPartitions(apiCode, batchNo, partitions, updateRecord, recordId)) {
+            if (!processPartitions(apiCode, batchNo, scene, partitions, updateRecord, recordId)) {
                 return;
             }
         }
@@ -160,16 +170,17 @@ public class TcRevokeCleanJob extends AbstractSimpleElasticJob {
     }
 
     // 抽取方法：处理分区数据
-    private boolean processPartitions(String apiCode, String batchNo, List<List<String>> partitions,
+    private boolean processPartitions(String apiCode, String batchNo, String scene, List<List<String>> partitions,
                                    MarketingTcyrRevokeRecord updateRecord, Long recordId) {
         for (List<String> partition : partitions) {
             List<JSONObject> jsonObjects = partition.stream()
                     .map(userKey -> new JSONObject()
                             .fluentPut("userKey", userKey)
-                            .fluentPut("batchNo", batchNo))
+                            .fluentPut("batchNo", batchNo)
+                            .fluentPut("scene", scene))
                     .collect(Collectors.toList());
             try {
-                if (!processTransferClean(apiCode, jsonObjects, updateRecord, recordId)) {
+                if (!processTransferClean(apiCode, scene, jsonObjects, updateRecord, recordId)) {
                     return false;
                 }
             } catch (Exception e) {
@@ -184,13 +195,14 @@ public class TcRevokeCleanJob extends AbstractSimpleElasticJob {
     }
 
     // 清洗+调用转化接口
-    private boolean processTransferClean(String apiCode, List<JSONObject> jsonObjects,
+    private boolean processTransferClean(String apiCode, String scene, List<JSONObject> jsonObjects,
                                          MarketingTcyrRevokeRecord updateRecord, Long recordId) {
+        String bizAction = StringUtils.isNotBlank(scene) ? ("revoke-" + scene) : "revoke";
         //清洗
-        Result result = generalDataCleanService.transferClean(jsonObjects, apiCode, "revoke");
+        Result result = generalDataCleanService.transferClean(jsonObjects, apiCode, bizAction);
         if (result == null || !result.isSuccess()) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
-                    TITLE + "-数据id：" + recordId + "调用transferClean方法失败"));
+                    TITLE + "-数据id：" + recordId + "调用transferClean方法失败,bizAction:" + bizAction));
             updateRecord.setIsClean(2);
             marketingTcyrRevokeRecordMapper.updateByPrimaryKeySelective(updateRecord);
             return false;

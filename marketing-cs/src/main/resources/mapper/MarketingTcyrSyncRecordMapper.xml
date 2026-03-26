@@ -3,7 +3,7 @@
 <mapper namespace="com.br.marketing.mapper.MarketingTcyrSyncRecordMapper" >
 
     <select id="searchAllTcyrSyncList" resultType="com.br.marketing.entity.MarketingTcyrSyncRecord">
-        SELECT  id, api_code, request_no, batch_no, `data`, `status`, msg, create_time, update_time,down_status,is_del
+        SELECT  id, api_code, request_no, batch_no, scene, `data`, `status`, msg, create_time, update_time,down_status,is_del
         FROM b_marketing_tcyr_sync_record
         WHERE api_code = #{apiCode}
           AND status = #{status}
@@ -11,11 +11,33 @@
     </select>
 
     <select id="searchTcyrSyncList" resultType="com.br.marketing.entity.MarketingTcyrSyncRecord">
-        SELECT  id, api_code, request_no, batch_no, `data`, `status`, msg, create_time, update_time,down_status,is_del
+        SELECT  id, api_code, request_no, batch_no, scene, `data`, `status`, msg, create_time, update_time,down_status,is_del
         FROM b_marketing_tcyr_sync_record
         WHERE api_code = #{apiCode}
           AND status = #{status}
           AND down_status = 0
+          AND is_del = 1
+    </select>
+
+    <select id="selectLatestSceneByBatchNo" resultType="java.lang.String">
+        SELECT scene
+        FROM b_marketing_tcyr_sync_record
+        WHERE api_code = #{apiCode}
+          AND batch_no = #{batchNo}
+          AND is_del = 1
+        ORDER BY id DESC
+        LIMIT 1
+    </select>
+
+    <select id="countTodayByApiCodeAndBatchPrefix" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM b_marketing_tcyr_sync_record
+        WHERE api_code = #{apiCode}
+          AND (
+            batch_no = #{batchPrefix}
+            OR batch_no LIKE CONCAT(#{batchPrefix}, '\_%')
+          )
+          AND DATE(create_time) = CURRENT_DATE()
           AND is_del = 1
     </select>
 

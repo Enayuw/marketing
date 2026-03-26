@@ -4,6 +4,7 @@
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingTcyrCpaPushFileTask" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="scene" property="scene" jdbcType="VARCHAR" />
     <result column="local_path" property="localPath" jdbcType="VARCHAR" />
     <result column="inner_sftp_path" property="innerSftpPath" jdbcType="VARCHAR" />
     <result column="ope_sftp_path" property="opeSftpPath" jdbcType="VARCHAR" />
@@ -74,7 +75,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, local_path, inner_sftp_path, ope_sftp_path, push_date, `status`, total,
+    id, api_code, scene, local_path, inner_sftp_path, ope_sftp_path, push_date, `status`, total,
     info, is_del, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingTcyrCpaPushFileTaskExample" >
@@ -111,11 +112,11 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_tcyr_cpa_push_file_task (api_code, local_path, inner_sftp_path,
+    insert into b_tcyr_cpa_push_file_task (api_code, scene, local_path, inner_sftp_path,
     ope_sftp_path, push_date, `status`,
     total, info, is_del,
     create_time, update_time)
-    values (#{apiCode,jdbcType=VARCHAR}, #{localPath,jdbcType=VARCHAR}, #{innerSftpPath,jdbcType=VARCHAR},
+    values (#{apiCode,jdbcType=VARCHAR}, #{scene,jdbcType=VARCHAR}, #{localPath,jdbcType=VARCHAR}, #{innerSftpPath,jdbcType=VARCHAR},
     #{opeSftpPath,jdbcType=VARCHAR}, #{pushDate,jdbcType=DATE}, #{status,jdbcType=INTEGER},
     #{total,jdbcType=INTEGER}, #{info,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER},
     #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
@@ -128,6 +129,9 @@
     <trim prefix="(" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
         api_code,
+      </if>
+      <if test="scene != null" >
+        scene,
       </if>
       <if test="localPath != null" >
         local_path,
@@ -163,6 +167,9 @@
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
         #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="scene != null" >
+        #{scene,jdbcType=VARCHAR},
       </if>
       <if test="localPath != null" >
         #{localPath,jdbcType=VARCHAR},
@@ -211,6 +218,9 @@
       <if test="record.apiCode != null" >
         api_code = #{record.apiCode,jdbcType=VARCHAR},
       </if>
+      <if test="record.scene != null" >
+        scene = #{record.scene,jdbcType=VARCHAR},
+      </if>
       <if test="record.localPath != null" >
         local_path = #{record.localPath,jdbcType=VARCHAR},
       </if>
@@ -250,6 +260,7 @@
     update b_tcyr_cpa_push_file_task
     set id = #{record.id,jdbcType=BIGINT},
     api_code = #{record.apiCode,jdbcType=VARCHAR},
+    scene = #{record.scene,jdbcType=VARCHAR},
     local_path = #{record.localPath,jdbcType=VARCHAR},
     inner_sftp_path = #{record.innerSftpPath,jdbcType=VARCHAR},
     ope_sftp_path = #{record.opeSftpPath,jdbcType=VARCHAR},
@@ -269,6 +280,9 @@
     <set >
       <if test="apiCode != null" >
         api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="scene != null" >
+        scene = #{scene,jdbcType=VARCHAR},
       </if>
       <if test="localPath != null" >
         local_path = #{localPath,jdbcType=VARCHAR},
@@ -306,6 +320,7 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingTcyrCpaPushFileTask" >
     update b_tcyr_cpa_push_file_task
     set api_code = #{apiCode,jdbcType=VARCHAR},
+        scene = #{scene,jdbcType=VARCHAR},
         local_path = #{localPath,jdbcType=VARCHAR},
         inner_sftp_path = #{innerSftpPath,jdbcType=VARCHAR},
         ope_sftp_path = #{opeSftpPath,jdbcType=VARCHAR},

@@ -32,7 +32,7 @@ import java.util.*;
 @Slf4j
 public class TcyrCpaPushFileSyncServiceImpl implements TcyrCpaPushFileSyncService {
 
-    private final static String TITLE = "【同程易融CPA-推送文件数据同步】";
+    private final static String TITLE = "【同程易融新场景-推送文件数据同步】";
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -48,8 +48,22 @@ public class TcyrCpaPushFileSyncServiceImpl implements TcyrCpaPushFileSyncServic
 
     @Override
     public void fileSync(String pushDate) {
-        String apiCode = marketingCommonConfig.getTcyrCpaApiCode();
-        //1.查询今天是否有待同步文件任务
+        String apiCode = marketingCommonConfig.getTcyrApiCode();
+        // 1. 先拉齐 SFTP 配置（条件与原先 fileSyncProcess 内查询一致，仅 dataType 按业务改为 18），再按 task.scene 与 srcPath 包含关系匹配
+        SyncConfigExample sceneCfgExample = new SyncConfigExample();
+        sceneCfgExample.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andStatusEqualTo(SyncConfigTypeEnum.STATUS_USABLE.getValue())
+                .andTypeEqualTo(SyncConfigCustomizedTypeEnum.TC_CPA_PUSH_FILE.getCode())
+                .andDataTypeEqualTo(DataTypeEnum.TC_CUSTOMIZE_SCENE.getValue())
+                .andCustomizedTypeEqualTo(SyncConfigCustomizedTypeEnum.TC_CPA_PUSH_FILE.getCode());
+        List<SyncConfig> sceneSyncConfigs = syncConfigMapper.selectByExample(sceneCfgExample);
+        if (CollectionUtils.isEmpty(sceneSyncConfigs)) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
+                    "未找到同程易融新场景推送 SFTP 配置（type/customizedType=TC_CPA_PUSH_FILE，dataType=18），请检查！", TITLE));
+            return;
+        }
+        // 2. 查询今天是否有待同步文件任务
         MarketingTcyrCpaPushFileTaskExample taskExample = new MarketingTcyrCpaPushFileTaskExample();
         if (StringUtils.isEmpty(pushDate)) {
             taskExample.createCriteria()
@@ -72,8 +86,12 @@ public class TcyrCpaPushFileSyncServiceImpl implements TcyrCpaPushFileSyncServic
             MarketingTcyrCpaPushFileTask updateTask = new MarketingTcyrCpaPushFileTask();
             try {
                 updateTask.setId(task.getId());
-                fileSyncProcess(task, updateTask);
-                updateTask.setStatus(TcCpaPushFileTaskStatusEnum.STATUS_OPE_SFTP.getValue());
+                boolean synced = fileSyncProcess(task, updateTask, sceneSyncConfigs);
+                if (synced) {
+                    updateTask.setStatus(TcCpaPushFileTaskStatusEnum.STATUS_OPE_SFTP.getValue());
+                } else {
+                    updateTask.setUpdateTime(new Date());
+                }
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
                         "sftp同步异常！", TITLE), e);
@@ -82,32 +100,49 @@ public class TcyrCpaPushFileSyncServiceImpl implements TcyrCpaPushFileSyncServic
         }
     }
 
-    private void fileSyncProcess(MarketingTcyrCpaPushFileTask task, MarketingTcyrCpaPushFileTask updateTask) {
-        //1.查询sftp配置
-        SyncConfigExample syncConfigExample = new SyncConfigExample();
-        syncConfigExample.createCriteria()
-                .andApiCodeEqualTo(task.getApiCode())
-                .andStatusEqualTo(SyncConfigTypeEnum.STATUS_USABLE.getValue())
-                .andTypeEqualTo(SyncConfigCustomizedTypeEnum.TC_CPA_PUSH_FILE.getCode())
-                .andDataTypeEqualTo(DataTypeEnum.TC_CPA_PUSH_FILE.getValue())
-                .andCustomizedTypeEqualTo(SyncConfigCustomizedTypeEnum.TC_CPA_PUSH_FILE.getCode());
-        List<SyncConfig> syncConfigs = syncConfigMapper.selectByExample(syncConfigExample);
-        if (CollectionUtils.isEmpty(syncConfigs)) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
-                    "未找到sftp配置，请检查！", TITLE));
-        }
-        for (SyncConfig syncConfig : syncConfigs) {
-            fillDate(syncConfig);
-            updateTask.setOpeSftpPath(syncConfig.getTargetPath());
-            Map<String, List<String>> listMap = listFile(syncConfig);
-            if (listMap.size() == 0 || (listMap.containsKey("csv") && !listMap.containsKey("ok"))) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
-                        "未找到ok标识文件，请检查！", TITLE));
-                return;
+    /**
+     * 按 {@link SyncConfig#getSrcPath()} 是否包含 scene 片段匹配（空 scene 按 default）
+     */
+    private SyncConfig findSyncConfigByScene(List<SyncConfig> sceneSyncConfigs, String scene) {
+        String sceneKey = normalizeSceneKey(scene);
+        for (SyncConfig c : sceneSyncConfigs) {
+            String srcPath = c.getSrcPath();
+            if (srcPath != null && srcPath.contains(sceneKey)) {
+                return c;
             }
-            syncFile(syncConfig, listMap);
         }
+        return null;
+    }
 
+    private static String normalizeSceneKey(String scene) {
+        if (StringUtils.isEmpty(scene)) {
+            return "default";
+        }
+        return scene.trim();
+    }
+
+    /**
+     * @return true 表示已同步并应更新为运营 SFTP 完成状态
+     */
+    private boolean fileSyncProcess(MarketingTcyrCpaPushFileTask task, MarketingTcyrCpaPushFileTask updateTask,
+                                    List<SyncConfig> sceneSyncConfigs) {
+        SyncConfig syncConfig = findSyncConfigByScene(sceneSyncConfigs, task.getScene());
+        if (syncConfig == null) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
+                    "未找到与 scene 匹配的同程易融新场景推送 SFTP 配置（srcPath 需包含 scene，空 scene 按 default），scene="
+                            + task.getScene(), TITLE));
+            return false;
+        }
+        fillDate(syncConfig);
+        updateTask.setOpeSftpPath(syncConfig.getTargetPath());
+        Map<String, List<String>> listMap = listFile(syncConfig);
+        if (listMap.size() == 0 || (listMap.containsKey("csv") && !listMap.containsKey("ok"))) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
+                    "未找到ok标识文件，请检查！", TITLE));
+            return false;
+        }
+        syncFile(syncConfig, listMap);
+        return true;
     }
 
     private void fillDate(SyncConfig syncConfig) {
