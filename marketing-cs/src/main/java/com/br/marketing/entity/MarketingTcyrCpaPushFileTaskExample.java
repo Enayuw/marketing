@@ -262,6 +262,76 @@ public class MarketingTcyrCpaPushFileTaskExample {
             return (Criteria) this;
         }
 
+        public Criteria andSceneIsNull() {
+            addCriterion("scene is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSceneIsNotNull() {
+            addCriterion("scene is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSceneEqualTo(String value) {
+            addCriterion("scene =", value, "scene");
+            return (Criteria) this;
+        }
+
+        public Criteria andSceneNotEqualTo(String value) {
+            addCriterion("scene <>", value, "scene");
+            return (Criteria) this;
+        }
+
+        public Criteria andSceneGreaterThan(String value) {
+            addCriterion("scene >", value, "scene");
+            return (Criteria) this;
+        }
+
+        public Criteria andSceneGreaterThanOrEqualTo(String value) {
+            addCriterion("scene >=", value, "scene");
+            return (Criteria) this;
+        }
+
+        public Criteria andSceneLessThan(String value) {
+            addCriterion("scene <", value, "scene");
+            return (Criteria) this;
+        }
+
+        public Criteria andSceneLessThanOrEqualTo(String value) {
+            addCriterion("scene <=", value, "scene");
+            return (Criteria) this;
+        }
+
+        public Criteria andSceneLike(String value) {
+            addCriterion("scene like", value, "scene");
+            return (Criteria) this;
+        }
+
+        public Criteria andSceneNotLike(String value) {
+            addCriterion("scene not like", value, "scene");
+            return (Criteria) this;
+        }
+
+        public Criteria andSceneIn(List<String> values) {
+            addCriterion("scene in", values, "scene");
+            return (Criteria) this;
+        }
+
+        public Criteria andSceneNotIn(List<String> values) {
+            addCriterion("scene not in", values, "scene");
+            return (Criteria) this;
+        }
+
+        public Criteria andSceneBetween(String value1, String value2) {
+            addCriterion("scene between", value1, value2, "scene");
+            return (Criteria) this;
+        }
+
+        public Criteria andSceneNotBetween(String value1, String value2) {
+            addCriterion("scene not between", value1, value2, "scene");
+            return (Criteria) this;
+        }
+
         public Criteria andLocalPathIsNull() {
             addCriterion("local_path is null");
             return (Criteria) this;

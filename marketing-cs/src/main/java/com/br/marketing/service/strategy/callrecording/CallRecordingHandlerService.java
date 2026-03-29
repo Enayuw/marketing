@@ -4,6 +4,8 @@ import com.br.marketing.mapper.CallRecordConfigMapper;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
@@ -32,7 +34,8 @@ public class CallRecordingHandlerService {
                 .build(new CacheLoader<String, String>() {
                     @Override
                     public String load(String key) {
-                        return callRecordConfigMapper.customerRuleLabels(key);
+                        String result = callRecordConfigMapper.customerRuleLabels(key);
+                        return Objects.requireNonNullElse(result, "");
                     }
                 });
     }

@@ -74,20 +74,16 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
                     pushConfig.getString("mediaName") : "bairongC";
             String token = pushConfig.getString("token") != null ?
                     pushConfig.getString("token") : "9Hqeoi36CJfdA7n4";
-            Double samplingCallRate = pushConfig.getDouble("samplingCallRate") != null ?
-                    pushConfig.getDouble("samplingCallRate") : 0;
-            Double samplingSmsRate = pushConfig.getDouble("samplingSmsRate") != null ?
-                    pushConfig.getDouble("samplingSmsRate") : 0;
             String apiCode = pushConfig.getString("apiCode");
 
             // 推送拨打成功的数据
-            processStageData(pushPool, mediaName, token, null, 1, apiCode);
+            processStageData(pushPool, mediaName, token,  1, apiCode);
             // 推送短信成功的数据
-            processStageData(pushPool, mediaName, token, null, 2, apiCode);
-            // 构造拨打成功的数据
-            processStageData(pushPool, mediaName, token, samplingCallRate, 3, apiCode);
-            // 构造短信成功的数据
-            processStageData(pushPool, mediaName, token, samplingSmsRate, 4, apiCode);
+            processStageData(pushPool, mediaName, token, 2, apiCode);
+            // 推送构造拨打成功的数据
+            processStageData(pushPool, mediaName, token,3, apiCode);
+            // 推送构造短信成功的数据
+            processStageData(pushPool, mediaName, token, 4, apiCode);
             // 处理触达失败数据
             processFailedData(pushPool, mediaName, token, apiCode);
         } catch (Exception e) {
@@ -101,8 +97,7 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
     /**
      * 分阶段处理数据
      */
-    private void processStageData(TpDynamicExecutor pushPool, String mediaName, String token, Double samplingRate, int stage,
-                                  String apiCode) {
+    private void processStageData(TpDynamicExecutor pushPool, String mediaName, String token, int stage, String apiCode) {
         Long lastId = 0L;
         int pageSize = marketingCommonConfig.getDiDiV5Config().getInteger("limit");
         while (true) {
@@ -144,23 +139,13 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
             for (List<DidiCallBackData> cellDataList : cellGroupMap.values()) {
                 DidiCallBackData selectedData = cellDataList.get(0);
                 uniqueData.add(selectedData);
-
                 // 标记同cell的其他数据为不推送
                 if (cellDataList.size() > 1) {
                     markDuplicateCellsAsNotPush(cellDataList, selectedData.getId());
                 }
             }
-
-            List<DidiCallBackData> dataToPush;
-            if (stage == 1 || stage == 2) {
-                dataToPush = uniqueData;
-            } else {
-                // 抽样并构造拨打/短信数据
-                dataToPush = samplingData(uniqueData, samplingRate, stage);
-            }
-
             // 推送数据
-            pushStageData(pushPool, dataToPush, mediaName, token, stage);
+            pushStageData(pushPool, uniqueData, mediaName, token, stage);
             lastId = pageData.get(pageData.size() - 1).getId();
         }
     }
@@ -263,59 +248,6 @@ public class DidiCallbackDataServiceImpl implements DidiCallbackDataService {
                 .setTimestamp(timestamp)
                 .setSignature(MD5Util.encode(custNum + timestamp + token))
                 .setScas(data.getScas());
-    }
-
-    /**
-     * 蓄水池抽样
-     */
-    private List<DidiCallBackData> samplingData(List<DidiCallBackData> dataList, Double samplingRate, int stage) {
-        if (CollectionUtils.isEmpty(dataList) || samplingRate >= 1.0) {
-            return dataList;
-        }
-        if (samplingRate == 0) {
-            return Lists.newArrayList();
-        }
-
-        int sampleSize = new BigDecimal(dataList.size())
-                .multiply(BigDecimal.valueOf(samplingRate))
-                .setScale(0, RoundingMode.UP)
-                .intValue();
-        List<DidiCallBackData> reservoirs = new ArrayList<>(sampleSize);
-        // 前k个元素直接放入蓄水池
-        for (int i = 0; i < sampleSize; i++) {
-            DidiCallBackData sample = prepareSample(dataList.get(i), stage);
-            reservoirs.add(sample);
-        }
-        // 处理剩余元素
-        for (int i = sampleSize; i < dataList.size(); i++) {
-            int j = RandomUtils.nextInt(0, i + 1);
-            if (j < sampleSize) {
-                DidiCallBackData sample = prepareSample(dataList.get(i), stage);
-                reservoirs.set(j, sample);
-            }
-        }
-        return reservoirs;
-    }
-
-    private DidiCallBackData prepareSample(DidiCallBackData data, int stage) {
-        DidiCallBackData sample = new DidiCallBackData();
-        sample.setId(data.getId());
-        sample.setCustNum(data.getCustNum());
-        sample.setCell(data.getCell());
-        sample.setScas(data.getScas());
-        sample.setApiCode(data.getApiCode());
-        sample.setCreateTime(data.getCreateTime());
-        sample.setExtend(data.getExtend());
-
-        // 根据阶段设置特定字段
-        if (stage == 3) {
-            sample.setIsConnect(1);
-            sample.setCallbackType(1);
-        } else {
-            sample.setSmsSendStatus(1);
-            sample.setCallbackType(2);
-        }
-        return sample;
     }
 
     /**

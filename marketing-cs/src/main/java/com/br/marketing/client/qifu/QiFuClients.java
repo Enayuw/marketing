@@ -556,7 +556,7 @@ public class QiFuClients {
             long start = System.currentTimeMillis();
             Map<String, String> httpResponseMap = httpProxyClient.sendByCodeWithLog(requestParam, qryCallRealTimeUrl, isProxy,
                     MediaType.APPLICATION_JSON_UTF8_VALUE,
-                    JSON.toJSONString(requestParam), true, true);
+                    JSON.toJSONString(bizData), true, true);
 
             long end = System.currentTimeMillis();
 

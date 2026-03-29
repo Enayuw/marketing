@@ -44,4 +44,14 @@
 		  and file_name=#{fileName}
 	</select>
 
+	<select id="querySyncLogBatch" resultType="com.br.marketing.entity.SyncLog">
+		SELECT * FROM b_sync_log
+		WHERE api_code = #{apiCode}
+		  AND src_path = #{srcPath}
+		  AND file_name IN
+		  <foreach collection="fileNames" item="fileName" open="(" close=")" separator=",">
+			#{fileName}
+		  </foreach>
+	</select>
+
 </mapper>

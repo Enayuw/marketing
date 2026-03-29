@@ -19,6 +19,9 @@ public class QueryLinkByApiCodeRequest {
     @Schema(description = "apiCode", requiredMode = Schema.RequiredMode.REQUIRED)
     private String apiCode;
 
+    @Schema(description = "来源：MANUAL/AUTO")
+    private String sourceType;
+
     @Schema(description = "开始日期，格式：yyyy-MM-dd，不传则默认为当天")
     private String startDate;
 

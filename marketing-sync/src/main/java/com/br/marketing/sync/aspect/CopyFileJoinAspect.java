@@ -51,8 +51,12 @@ public class CopyFileJoinAspect {
     public void downloadFileToLocalDisk() {
     }
 
+    @Pointcut("execution(public Boolean com.br.marketing.sync.service.impl.SyncServiceImpl.sftpFileUploadToMiNio(..))")
+    public void sftpFileUploadToMiNio() {
+    }
+
     @Around("com.br.marketing.sync.aspect.CopyFileJoinAspect.copyFile()")
-    public void copyFile(ProceedingJoinPoint joinPoint) {
+    public Object copyFile(ProceedingJoinPoint joinPoint) {
         Object[] args = joinPoint.getArgs();
         SyncConfig loanSyncConfig = new SyncConfig();
         String fileName = "";
@@ -72,29 +76,34 @@ public class CopyFileJoinAspect {
                 break;
             }
         }
-        if(srcClient==null||targetClient==null){
+        if (srcClient == null || targetClient == null) {
             log.error("targetClient or srcClient is null");
-            return;
+            return Boolean.FALSE;
         }
-        SyncLog loanSyncLog = setSyncLog(loanSyncConfig, fileName,srcClient);
+        Boolean success = false;
+        Object result = Boolean.FALSE;
         try {
-            joinPoint.proceed(args);
+            result = joinPoint.proceed(args);
+            success = Boolean.TRUE.equals(result);
         } catch (Throwable throwable) {
-            log.error("copyFile error",throwable);
+            log.error("copyFile error", throwable);
         }
-        if(DataTypeEnum.TRANSFER.getValue().equals(loanSyncConfig.getDataType())){
-            insertSyncLog(loanSyncConfig,fileName,true,loanSyncLog);
-            TransferFileTaskExample example = new TransferFileTaskExample();
-            example.createCriteria().andApiCodeEqualTo(loanSyncConfig.getApiCode()).andFileNameEqualTo(fileName);
-            TransferFileTask task = new TransferFileTask();
-            task.setStatus(4);
-            transferFileTaskMapper.updateByExampleSelective(task, example);
-        } else {
-            boolean b = vaildatorFile(loanSyncConfig, fileName, loanSyncLog, targetClient);
-            insertSyncLog(loanSyncConfig, fileName, b, loanSyncLog);
-            updateFileHisStatus(loanSyncConfig, fileName, b);
+        if (success) {
+            SyncLog loanSyncLog = setSyncLog(loanSyncConfig, fileName, srcClient);
+            if (DataTypeEnum.TRANSFER.getValue().equals(loanSyncConfig.getDataType())) {
+                insertSyncLog(loanSyncConfig, fileName, true, loanSyncLog);
+                TransferFileTaskExample example = new TransferFileTaskExample();
+                example.createCriteria().andApiCodeEqualTo(loanSyncConfig.getApiCode()).andFileNameEqualTo(fileName);
+                TransferFileTask task = new TransferFileTask();
+                task.setStatus(4);
+                transferFileTaskMapper.updateByExampleSelective(task, example);
+            } else {
+                boolean b = vaildatorFile(loanSyncConfig, fileName, loanSyncLog, targetClient);
+                insertSyncLog(loanSyncConfig, fileName, b, loanSyncLog);
+                updateFileHisStatus(loanSyncConfig, fileName, b);
+            }
         }
-
+        return result;
     }
 
     @Around("downloadFileToLocalDisk()")
@@ -131,6 +140,37 @@ public class CopyFileJoinAspect {
         return proceed;
     }
 
+    @Around("sftpFileUploadToMiNio()")
+    public Object uploadToMiNio(ProceedingJoinPoint joinPoint) {
+        Object[] args = joinPoint.getArgs();
+        SyncConfig loanSyncConfig = null;
+        String fileName = "";
+        BaseFtpClient srcClient = null;
+        for (int i = 0; i < args.length; i++) {
+            if (0 == i) {
+                loanSyncConfig = (SyncConfig) args[i];
+            } else if (1 == i) {
+                fileName = (String) args[i];
+            } else if (2 == i) {
+                srcClient = (BaseFtpClient) args[i];
+            } else {
+                break;
+            }
+        }
+        if (srcClient == null || loanSyncConfig == null) {
+            log.warn("Upload To MiNio srcClient or loanSyncConfig is null");
+            return Boolean.FALSE;
+        }
+        Object proceed = Boolean.FALSE;
+        SyncLog loanSyncLog = setSyncLog(loanSyncConfig, fileName, srcClient);
+        try {
+            proceed = joinPoint.proceed(args);
+            insertSyncLog(loanSyncConfig, fileName, (Boolean) proceed, loanSyncLog);
+        } catch (Throwable throwable) {
+            log.error("upload To MiNio error", throwable);
+        }
+        return proceed;
+    }
 
     /**
      * 回传给客户的结果文件，同步完成之后需要更新stra_his_file表中的status字段

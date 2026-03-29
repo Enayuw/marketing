@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 
 /**
- * @description 同程易融cpa推送文件生成任务
+ * @description 同程易融新场景推送文件生成任务
  * document https://c.100credit.cn/pages/viewpage.action?pageId=217148341
  * @author hedongshuo
  * @date 2025/8/26 11:49

@@ -60,9 +60,44 @@ public class CallRealTimeDTO {
     private String rCouponInfo;
 
     /**
+     * 姓氏
+     */
+    @JsonProperty("surname")
+    private String surname;
+
+    /**
+     * 性别
+     */
+    @JsonProperty("gender")
+    private String gender;
+
+    /**
+     * 定价有效期
+     */
+    @JsonProperty("pricingValidPeriod")
+    private String pricingValidPeriod;
+
+    /**
+     * 定价折扣
+     */
+    @JsonProperty("pricingDiscount")
+    private String pricingDiscount;
+
+    /**
+     * 定价到期天数
+     */
+    @JsonProperty("pricingExpireDays")
+    private String pricingExpireDays;
+
+    /**
      * 券名称
      */
     private String couponName;
+
+    /**
+     * 产品类型
+     */
+    private String productType;
 
 
 }

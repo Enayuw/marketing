@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.TaikangDingDingTransferDetailMapper" >
+
+
+    <insert id="batchInsert">
+        INSERT IGNORE INTO b_dd_taikang_transfer_detail
+        (cell, browse_date, application_name, return_result1, extend,
+        push_status, create_time,update_time, `status`, error_msg, api_code)
+        VALUES
+        <foreach collection="detailList" item="item" separator=",">
+            (
+             #{item.cell}, #{item.browseDate}, #{item.applicationName}, #{item.returnResult1},
+             #{item.extend},#{item.pushStatus}, NOW(),NOW(), #{item.status}, #{item.errorMsg}, #{item.apiCode}
+            )
+        </foreach>
+    </insert>
+
+    <update id="updatePushStatusByIds">
+        UPDATE b_dd_taikang_transfer_detail
+            SET push_status = #{pushStatus}
+        WHERE id in
+            <foreach collection="idList" item="id" separator="," open="(" close=")">
+                #{id}
+            </foreach>
+    </update>
+
+    <select id="selectDetailList" resultType="com.br.marketing.entity.TaikangDingDingTransferDetail">
+        SELECT
+            id, cell, browse_date, application_name, return_result1, extend, push_status, create_time,
+            update_time, `status`, error_msg, api_code
+        FROM b_dd_taikang_transfer_detail
+        WHERE
+            id > #{searchId}
+            AND status = 1
+            AND push_status = #{pushStatus}
+        ORDER BY id ASC
+        LIMIT #{searchSize}
+    </select>
+</mapper>

@@ -7,6 +7,7 @@ import lombok.Data;
 @Data
 public class DiDiV5CollidingResult {
 
+    private String couponType;
     private Boolean result;
     private Integer failReason;
     private Integer userGroup;

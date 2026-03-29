@@ -305,6 +305,146 @@ public class AutoCheckConfigExample {
             return (Criteria) this;
         }
 
+        public Criteria andTableNameIsNull() {
+            addCriterion("`table_name` is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTableNameIsNotNull() {
+            addCriterion("`table_name` is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTableNameEqualTo(String value) {
+            addCriterion("`table_name` =", value, "tableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andTableNameNotEqualTo(String value) {
+            addCriterion("`table_name` <>", value, "tableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andTableNameGreaterThan(String value) {
+            addCriterion("`table_name` >", value, "tableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andTableNameGreaterThanOrEqualTo(String value) {
+            addCriterion("`table_name` >=", value, "tableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andTableNameLessThan(String value) {
+            addCriterion("`table_name` <", value, "tableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andTableNameLessThanOrEqualTo(String value) {
+            addCriterion("`table_name` <=", value, "tableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andTableNameLike(String value) {
+            addCriterion("`table_name` like", value, "tableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andTableNameNotLike(String value) {
+            addCriterion("`table_name` not like", value, "tableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andTableNameIn(List<String> values) {
+            addCriterion("`table_name` in", values, "tableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andTableNameNotIn(List<String> values) {
+            addCriterion("`table_name` not in", values, "tableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andTableNameBetween(String value1, String value2) {
+            addCriterion("`table_name` between", value1, value2, "tableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andTableNameNotBetween(String value1, String value2) {
+            addCriterion("`table_name` not between", value1, value2, "tableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldNameIsNull() {
+            addCriterion("field_name is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldNameIsNotNull() {
+            addCriterion("field_name is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldNameEqualTo(String value) {
+            addCriterion("field_name =", value, "fieldName");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldNameNotEqualTo(String value) {
+            addCriterion("field_name <>", value, "fieldName");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldNameGreaterThan(String value) {
+            addCriterion("field_name >", value, "fieldName");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldNameGreaterThanOrEqualTo(String value) {
+            addCriterion("field_name >=", value, "fieldName");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldNameLessThan(String value) {
+            addCriterion("field_name <", value, "fieldName");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldNameLessThanOrEqualTo(String value) {
+            addCriterion("field_name <=", value, "fieldName");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldNameLike(String value) {
+            addCriterion("field_name like", value, "fieldName");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldNameNotLike(String value) {
+            addCriterion("field_name not like", value, "fieldName");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldNameIn(List<String> values) {
+            addCriterion("field_name in", values, "fieldName");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldNameNotIn(List<String> values) {
+            addCriterion("field_name not in", values, "fieldName");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldNameBetween(String value1, String value2) {
+            addCriterion("field_name between", value1, value2, "fieldName");
+            return (Criteria) this;
+        }
+
+        public Criteria andFieldNameNotBetween(String value1, String value2) {
+            addCriterion("field_name not between", value1, value2, "fieldName");
+            return (Criteria) this;
+        }
+
         public Criteria andIsDeletedIsNull() {
             addCriterion("is_deleted is null");
             return (Criteria) this;

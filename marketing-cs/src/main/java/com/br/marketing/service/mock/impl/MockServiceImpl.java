@@ -96,7 +96,7 @@ public class MockServiceImpl implements MockService {
                 int count = mockCaseMapper.countByExample(caseExample);
                 policy.setCaseCount(count);
             }
-            return PageResultReturn.setPageResult(mockPolicies, dto.getCurrent(), dto.getSize(), 1L);
+            return PageResultReturn.setPageResult(mockPolicies, dto.getCurrent(), dto.getSize());
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(
                     AlarmSendCodeEnum.MOCK_SERVICEERROR.getCode(),

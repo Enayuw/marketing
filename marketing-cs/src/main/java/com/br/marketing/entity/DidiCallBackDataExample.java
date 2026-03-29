@@ -1004,6 +1004,126 @@ public class DidiCallBackDataExample {
             addCriterion("extend not between", value1, value2, "extend");
             return (Criteria) this;
         }
+
+        public Criteria andPushTypeIsNull() {
+            addCriterion("push_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeIsNotNull() {
+            addCriterion("push_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeEqualTo(Integer value) {
+            addCriterion("push_type =", value, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeNotEqualTo(Integer value) {
+            addCriterion("push_type <>", value, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeGreaterThan(Integer value) {
+            addCriterion("push_type >", value, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("push_type >=", value, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeLessThan(Integer value) {
+            addCriterion("push_type <", value, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("push_type <=", value, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeIn(List<Integer> values) {
+            addCriterion("push_type in", values, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeNotIn(List<Integer> values) {
+            addCriterion("push_type not in", values, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeBetween(Integer value1, Integer value2) {
+            addCriterion("push_type between", value1, value2, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPushTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("push_type not between", value1, value2, "pushType");
+            return (Criteria) this;
+        }
+
+        public Criteria andConstructTimeIsNull() {
+            addCriterion("construct_time is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andConstructTimeIsNotNull() {
+            addCriterion("construct_time is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andConstructTimeEqualTo(Date value) {
+            addCriterion("construct_time =", value, "constructTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andConstructTimeNotEqualTo(Date value) {
+            addCriterion("construct_time <>", value, "constructTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andConstructTimeGreaterThan(Date value) {
+            addCriterion("construct_time >", value, "constructTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andConstructTimeGreaterThanOrEqualTo(Date value) {
+            addCriterion("construct_time >=", value, "constructTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andConstructTimeLessThan(Date value) {
+            addCriterion("construct_time <", value, "constructTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andConstructTimeLessThanOrEqualTo(Date value) {
+            addCriterion("construct_time <=", value, "constructTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andConstructTimeIn(List<Date> values) {
+            addCriterion("construct_time in", values, "constructTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andConstructTimeNotIn(List<Date> values) {
+            addCriterion("construct_time not in", values, "constructTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andConstructTimeBetween(Date value1, Date value2) {
+            addCriterion("construct_time between", value1, value2, "constructTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andConstructTimeNotBetween(Date value1, Date value2) {
+            addCriterion("construct_time not between", value1, value2, "constructTime");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

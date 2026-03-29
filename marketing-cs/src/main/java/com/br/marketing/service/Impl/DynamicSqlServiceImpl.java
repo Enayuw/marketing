@@ -94,7 +94,9 @@ public class DynamicSqlServiceImpl implements IDynamicSqlService {
     }
 
     @Override
-    public List<MarketingSyncUser> selectDataRuleScoreWithDate(String apiCode, String whereStr, Long id, Integer pageSize, String labelName) {
+    public List<MarketingSyncUser> selectDataRuleScoreWithDate(String apiCode, String whereStr,
+                                                               Long id, Integer pageSize, String labelName,
+                                                               Long minUnCompleteId,Long maxId) {
         HashMap<String, Integer> sqlType = marketingCommonConfig.getSqlType();
         Integer type = sqlType == null ? 0 : sqlType.getOrDefault(SCORE_DATA_KEY, 0);
         List<MarketingSyncUser> users = new ArrayList<>();
@@ -103,7 +105,7 @@ public class DynamicSqlServiceImpl implements IDynamicSqlService {
         long start = System.currentTimeMillis();
         if (StringUtils.isNotBlank(labelName)) {
             Long labelId = getIdByLabelName(whereStr, labelName);
-            List<Long> syncIdList = marketingSyncLabelMapper.getSyncIdByLabelId(apiCode, whereStr, id, pageSize, labelId);
+            List<Long> syncIdList = marketingSyncLabelMapper.getSyncIdByLabelId(apiCode, whereStr, id, pageSize, labelId, minUnCompleteId, maxId);
             if (syncIdList != null && !syncIdList.isEmpty()) {
                 if (type.equals(1)) {
                     labelUsers = marketingSyncInfoMapper.selectDataRuleScoreLabelWithDatetiflash_(apiCode, syncIdList);
@@ -115,9 +117,9 @@ public class DynamicSqlServiceImpl implements IDynamicSqlService {
             }
         } else {
             if (type.equals(1)) {
-                users = marketingSyncInfoMapper.selectDataRuleScoreWithDatetiflash_(apiCode, whereStr, id, pageSize);
+                users = marketingSyncInfoMapper.selectDataRuleScoreWithDatetiflash_(apiCode, whereStr, id, pageSize, minUnCompleteId, maxId);
             } else {
-                users = marketingSyncInfoMapper.selectDataRuleScoreWithDate(apiCode, whereStr, id, pageSize);
+                users = marketingSyncInfoMapper.selectDataRuleScoreWithDate(apiCode, whereStr, id, pageSize, minUnCompleteId, maxId);
             }
         }
         logExecutionTime(SCORE_DATA_KEY, storageType, start);

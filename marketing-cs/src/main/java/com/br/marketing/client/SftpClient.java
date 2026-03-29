@@ -26,7 +26,10 @@ public class SftpClient extends BaseFtpClient{
     private ChannelSftp sftp = null;
     private Channel channel = null;
     private Session session = null;
-    private static final int DEFAULT_TIMEOUT = 60 * 1000;
+    /** 连接建立超时（毫秒） */
+    private static final int CONNECT_TIMEOUT = 60 * 1000;
+    /** 会话读写空闲超时（毫秒），超过该时间无数据读写则超时 */
+    private static final int SESSION_TIMEOUT = 5 * 60 * 1000;
 
     /**
      * Instantiates a new Sftp config.
@@ -61,10 +64,12 @@ public class SftpClient extends BaseFtpClient{
             session.setPassword(password);
             session.setConfig(this.getSshConfig());
 
-            session.connect(DEFAULT_TIMEOUT);
+            session.connect(CONNECT_TIMEOUT);
+
+            session.setTimeout(SESSION_TIMEOUT);
 
             channel = session.openChannel("sftp");
-            channel.connect();
+            channel.connect(CONNECT_TIMEOUT);
 
             sftp = (ChannelSftp) channel;
             log.debug("登陆成功:{} 欢迎：{}" , sftp.getServerVersion(),userName);

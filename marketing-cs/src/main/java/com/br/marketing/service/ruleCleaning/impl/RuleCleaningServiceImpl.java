@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
+import com.br.marketing.client.llm.CybotstarAgentApiClient;
 import com.br.marketing.client.rulecleaning.CleanConfigDTO;
 import com.br.marketing.client.rulecleaning.*;
 import com.br.marketing.common.commondto.Result;
@@ -21,6 +22,7 @@ import com.br.marketing.entity.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.enums.clean.DataProcessEnum;
 import com.br.marketing.enums.clean.DerivedTypeEnum;
+import com.br.marketing.enums.llm.CybotstarAgentEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.mapper.rulecleaning.MarketingCustomerOriginalDataMapper;
 import com.br.marketing.mapper.rulecleaning.MarketingDataCleanGeneralConfigMapper;
@@ -35,7 +37,10 @@ import com.br.marketing.vo.dataclean.CleanFieldConfigVO;
 import com.github.pagehelper.PageHelper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.googlecode.aviator.AviatorEvaluator;
+import com.googlecode.aviator.AviatorEvaluatorInstance;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.util.StringUtil;
 import org.springframework.beans.BeanUtils;
@@ -109,6 +114,12 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    private CybotstarAgentApiClient cybotstarAgentApiClient;
+
+    @Resource
+    private AviatorEvaluatorInstance cleanRuleAviatorEvaluatorInstance;
 
     /**
      * 规则列表查询
@@ -592,6 +603,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 .andCleanConfigIdEqualTo(cleanConfigId)
                 .andApiCodeEqualTo(configDTO.getApiCode())
                 .andMappingFieldEqualTo(configDTO.getMappingField())
+                .andIsDerivedEqualTo(configDTO.getFieldType())
                 .andIsDelEqualTo(1);
 
         List<MarketingDataCleanGeneralRuleConfig> existingRules = cleanGeneralRuleConfigMapper.selectByExample(example);
@@ -851,6 +863,10 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             case "condition":
                 // 条件判断
                 result = handleConditionOperation(fieldSample, ruleMap);
+                break;
+            case "LLMCode":
+                // 大模型代码配置
+                result = handleAviatorScriptOperation(fieldSample, ruleMap, nodeParse);
                 break;
             default:
                 log.warn("未知的操作类型: {}", operator);
@@ -1713,15 +1729,26 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             //定制上传：根据apiCode查询b_marketing_customer_original_data，查询数据日期
             dates = marketingCustomerOriginalDataMapper.getLastMonthDataDates(apiCode);
         }else if (Objects.equals(acceptType, DataProcessEnum.AcceptTypeEnum.FTP.getCode())){
-            //SFTP上传：根据apiCode和sftp路径进行查询b_marketing_clean_data_file
+            //SFTP上传：根据apiCode和sftp路径查询b_marketing_clean_data_file；
+            // 若 targetPath 含 yyyyMMdd/yyyy-MM-dd 则按 findLatestDataFileByPathTemplate 思路：
+            // 先按 apiCode+近一月查，再在内存按路径模板过滤取日期
             if (StringUtils.isNotBlank(sftpPath)){
                 SyncConfigExample syncConfigCycle = new SyncConfigExample();
                 SyncConfigExample.Criteria criteriaCycle = syncConfigCycle.createCriteria();
                 criteriaCycle.andStatusEqualTo(1).andDataTypeEqualTo(DataTypeEnum.MARKETING_UP_CYCLE_DATA.getValue()).andApiCodeEqualTo(apiCode)
                         .andSrcPathEqualTo(sftpPath).andTypeEqualTo(1);
                 List<SyncConfig> syncCycleConfigs = syncConfigMapper.selectByExample(syncConfigCycle);
-                String localPath = syncCycleConfigs.get(0).getTargetPath();
-                dates = marketingCleanDataFileMapper.getLastMonthDataDates(apiCode,localPath);
+                if (CollectionUtils.isEmpty(syncCycleConfigs)) {
+                    return dates;
+                }
+                String targetPathTemplate = syncCycleConfigs.get(0).getTargetPath();
+                boolean pathHasDatePlaceholder = targetPathTemplate != null
+                        && (targetPathTemplate.contains("yyyyMMdd") || targetPathTemplate.contains("yyyy-MM-dd"));
+                if (pathHasDatePlaceholder) {
+                    dates = getLastMonthDataDatesByPathTemplate(apiCode, targetPathTemplate);
+                } else {
+                    dates = marketingCleanDataFileMapper.getLastMonthDataDates(apiCode, targetPathTemplate);
+                }
             }else {
                 throw new BusinessException("sftpPath不能为空！");
             }
@@ -1735,14 +1762,14 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     @Override
     public boolean saveCleanConfig(CleanConfigDTO configDTO) {
         MarketingDataCleanGeneralConfigExample configExample = new MarketingDataCleanGeneralConfigExample();
-        configExample.createCriteria()
-                .andApiCodeEqualTo(configDTO.getApiCode())
+        MarketingDataCleanGeneralConfigExample.Criteria configCriteria = configExample.createCriteria();
+        configCriteria.andApiCodeEqualTo(configDTO.getApiCode())
                 .andSystemTypeEqualTo(configDTO.getSystemType())
                 .andDataTypeEqualTo(configDTO.getDataType())
                 .andAcceptTypeEqualTo(configDTO.getAcceptType())
                 .andIsDelEqualTo(1);
         if (StringUtils.isNotEmpty(configDTO.getSftpPath())) {
-            configExample.createCriteria().andSftpPathEqualTo(configDTO.getSftpPath());
+            configCriteria.andSftpPathEqualTo(configDTO.getSftpPath());
         }
         List<MarketingDataCleanGeneralConfig> configs = cleanGeneralConfigMapper.selectByExample(configExample);
         if (!CollectionUtils.isEmpty(configs)) {
@@ -2067,19 +2094,32 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         criteriaCycle.andStatusEqualTo(1).andDataTypeEqualTo(DataTypeEnum.MARKETING_UP_CYCLE_DATA.getValue()).andApiCodeEqualTo(config.getApiCode())
                 .andSrcPathEqualTo(config.getSftpPath()).andTypeEqualTo(1);
         List<SyncConfig> syncCycleConfigs = syncConfigMapper.selectByExample(syncConfigCycle);
-        String localPath = syncCycleConfigs.get(0).getTargetPath();
-        // b_marketing_clean_data_file
-        MarketingCleanDataFileExample fileExample = new MarketingCleanDataFileExample();
-        fileExample.createCriteria().andApiCodeEqualTo(config.getApiCode()).andLocalPathEqualTo(localPath);
-        fileExample.setOrderByClause("create_time desc limit 1");
-        List<MarketingCleanDataFile> cleanDataFiles = marketingCleanDataFileMapper.selectByExample(fileExample);
-        if (CollectionUtils.isEmpty(cleanDataFiles) || StringUtils.isEmpty(cleanDataFiles.get(0).getFileHeader())) {
+        if (CollectionUtils.isEmpty(syncCycleConfigs)) {
             return;
         }
-        MarketingCleanDataFile cleanDataFile = cleanDataFiles.get(0);
+        String targetPathTemplate = syncCycleConfigs.get(0).getTargetPath();
+        // b_marketing_clean_data_file：若有 yyyyMMdd/yyyy-MM-dd 则按该格式匹配任意日期的路径，取 create_time 最新一条
+        MarketingCleanDataFile cleanDataFile = findLatestDataFileByPathTemplate(config.getApiCode(), targetPathTemplate);
+        boolean hasFileData = cleanDataFile != null && StringUtils.isNotEmpty(cleanDataFile.getFileHeader());
+
+        if (!hasFileData) {
+            // 无 dataFile 或 fileHeader 为空：仍按配置返回字段，仅不填充 fieldSample
+            for (MarketingDataCleanGeneralRuleConfig ruleConfig : ruleConfigList) {
+                FieldSampleDTO dto = new FieldSampleDTO();
+                dto.setFieldName(ruleConfig.getCleanFields());
+                dto.setFieldSample("");
+                dto.setMappingRule(ruleConfig.getMappingRule());
+                dto.setRelatedField(ruleConfig.getMappingField());
+                dto.setResultPreview(ruleConfig.getResultPreview());
+                dto.setNeedCleaning(ruleConfig.getIsMapping());
+                dto.setFieldType(ruleConfig.getIsDerived());
+                result.add(dto);
+            }
+            return;
+        }
+
         List<String> fileHeader = Arrays.asList(cleanDataFile.getFileHeader().split(","));
         List<String> fileData = Arrays.asList(cleanDataFile.getFileData().split(",", -1));
-
         if (fileHeader.size() != fileData.size()) {
             throw new BusinessException("文件表头与文件数据不匹配");
         }
@@ -2088,7 +2128,7 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             String cleanField = ruleConfig.getCleanFields();
             String fieldSample;
             try {
-                fieldSample  = fileData.get(fileHeader.indexOf(cleanField));
+                fieldSample = fileData.get(fileHeader.indexOf(cleanField));
             } catch (Exception e) {
                 fieldSample = "";
             }
@@ -2101,29 +2141,110 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             dto.setResultPreview(ruleConfig.getResultPreview());
             dto.setNeedCleaning(ruleConfig.getIsMapping());
             dto.setFieldType(ruleConfig.getIsDerived());
-            // 添加到结果列表
             result.add(dto);
         }
         List<String> fileFields =
-                result.stream().filter((FieldSampleDTO file) ->  DerivedTypeEnum.NORMAL.getCode().equals(file.getFieldType()))
+                result.stream().filter((FieldSampleDTO file) -> DerivedTypeEnum.NORMAL.getCode().equals(file.getFieldType()))
                         .map(FieldSampleDTO::getFieldName).collect(Collectors.toList());
-
         for (int i = 0; i < fileHeader.size(); i++) {
             if (fileFields.contains(fileHeader.get(i))) {
                 continue;
             }
             FieldSampleDTO dto = new FieldSampleDTO();
-            // 设置字段名称
             dto.setFieldName(fileHeader.get(i));
             dto.setFieldSample(fileData.get(i));
             dto.setFirstUploadTime(cleanDataFile.getCreateTime());
             dto.setFieldType(0);
             dto.setNeedCleaning(false);
-            // 添加到结果列表
             result.add(dto);
         }
+    }
 
+    /**
+     * 按 targetPath 模板查最新一条 dataFile。若模板含 yyyyMMdd/yyyy-MM-dd 则按该格式匹配任意日期的路径（不一定是当天），取 create_time 最新。
+     */
+    private MarketingCleanDataFile findLatestDataFileByPathTemplate(String apiCode, String targetPathTemplate) {
+        if (StringUtils.isBlank(targetPathTemplate)) {
+            return null;
+        }
+        boolean hasDatePlaceholder = targetPathTemplate.contains("yyyyMMdd") || targetPathTemplate.contains("yyyy-MM-dd");
+        if (!hasDatePlaceholder) {
+            MarketingCleanDataFileExample ex = new MarketingCleanDataFileExample();
+            ex.createCriteria().andApiCodeEqualTo(apiCode).andLocalPathEqualTo(targetPathTemplate);
+            ex.setOrderByClause("create_time desc limit 1");
+            List<MarketingCleanDataFile> list = marketingCleanDataFileMapper.selectByExample(ex);
+            return CollectionUtils.isEmpty(list) ? null : list.get(0);
+        }
+        MarketingCleanDataFileExample ex = new MarketingCleanDataFileExample();
+        ex.createCriteria().andApiCodeEqualTo(apiCode);
+        ex.setOrderByClause("create_time desc limit 500");
+        List<MarketingCleanDataFile> list = marketingCleanDataFileMapper.selectByExample(ex);
+        if (CollectionUtils.isEmpty(list)) {
+            return null;
+        }
+        Pattern pathPattern = templateToPathRegex(targetPathTemplate);
+        for (MarketingCleanDataFile file : list) {
+            if (file.getLocalPath() != null && pathPattern.matcher(file.getLocalPath()).matches()) {
+                return file;
+            }
+        }
+        return null;
+    }
 
+    /**
+     * 路径含 yyyyMMdd/yyyy-MM-dd 时：按 apiCode + 近一月查 dataFile，再按路径模板过滤，取不重复的 receive_date（与 findLatestDataFileByPathTemplate 同思路）
+     */
+    private List<String> getLastMonthDataDatesByPathTemplate(String apiCode, String targetPathTemplate) {
+        if (StringUtils.isBlank(targetPathTemplate)) {
+            return Collections.emptyList();
+        }
+        String start = LocalDate.now().minusMonths(1).toString();
+        String end = LocalDate.now().toString();
+        MarketingCleanDataFileExample ex = new MarketingCleanDataFileExample();
+        ex.createCriteria().andApiCodeEqualTo(apiCode)
+                .andReceiveDateBetween(start, end)
+                .andIsDelEqualTo(1);
+        ex.setOrderByClause("receive_date desc");
+        List<MarketingCleanDataFile> list = marketingCleanDataFileMapper.selectByExample(ex);
+        if (CollectionUtils.isEmpty(list)) {
+            return Collections.emptyList();
+        }
+        Pattern pathPattern = templateToPathRegex(targetPathTemplate);
+        return list.stream()
+                .filter(f -> f.getLocalPath() != null && pathPattern.matcher(f.getLocalPath()).matches())
+                .map(MarketingCleanDataFile::getReceiveDate)
+                .filter(Objects::nonNull)
+                .distinct()
+                .sorted(Comparator.reverseOrder())
+                .collect(Collectors.toList());
+    }
+
+    /** 将路径模板中的 yyyyMMdd、yyyy-MM-dd 替换为指定日期。appletDate 格式为 yyyy-MM-dd（如 2026-03-18） */
+    private String resolvePathWithDate(String template, String appletDate) {
+        if (template == null || appletDate == null) {
+            return template;
+        }
+        String yyyyMMdd = appletDate.replace("-", "");
+        return template.replace("yyyy-MM-dd", appletDate).replace("yyyyMMdd", yyyyMMdd);
+    }
+
+    /** 将含 yyyyMMdd、yyyy-MM-dd 的模板转成匹配“任意日期”的正则 */
+    private Pattern templateToPathRegex(String template) {
+        StringBuilder sb = new StringBuilder();
+        int i = 0;
+        while (i < template.length()) {
+            if (template.startsWith("yyyy-MM-dd", i)) {
+                sb.append("\\d{4}-\\d{2}-\\d{2}");
+                i += 10;
+            } else if (template.startsWith("yyyyMMdd", i)) {
+                sb.append("\\d{8}");
+                i += 8;
+            } else {
+                sb.append(Pattern.quote(template.substring(i, i + 1)));
+                i++;
+            }
+        }
+        return Pattern.compile(sb.toString());
     }
 
     @Override
@@ -2203,7 +2324,15 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             criteriaCycle.andStatusEqualTo(1).andDataTypeEqualTo(DataTypeEnum.MARKETING_UP_CYCLE_DATA.getValue()).andApiCodeEqualTo(apiCode)
                     .andSrcPathEqualTo(sftpPath).andTypeEqualTo(1);
             List<SyncConfig> syncCycleConfigs = syncConfigMapper.selectByExample(syncConfigCycle);
-            String localPath = syncCycleConfigs.get(0).getTargetPath();
+            if (CollectionUtils.isEmpty(syncCycleConfigs)) {
+                throw new BusinessException("未找到SFTP同步配置");
+            }
+            String targetPathTemplate = syncCycleConfigs.get(0).getTargetPath();
+            boolean pathHasDatePlaceholder = targetPathTemplate != null
+                    && (targetPathTemplate.contains("yyyyMMdd") || targetPathTemplate.contains("yyyy-MM-dd"));
+            String localPath = pathHasDatePlaceholder
+                    ? resolvePathWithDate(targetPathTemplate, appletDate)
+                    : targetPathTemplate;
             MarketingCleanDataFile marketingCleanDataFile =
                     marketingCleanDataFileMapper.getCleanDataFileByDate(apiCode, appletDate, localPath);
             if (Objects.isNull(marketingCleanDataFile)) {
@@ -2574,6 +2703,102 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
                 .andAcceptTypeEqualTo(acceptType)
                 .andIsDelEqualTo(Constants.DATA_VALID);
         return cleanGeneralConfigMapper.selectByExample(example);
+    }
+
+    @Override
+    public String generateAviatorScriptRule(String question) {
+        // 参数校验
+        if(StringUtils.isBlank(question)) {
+            throw new BusinessException("问题内容不能为空");
+        }
+
+        // 调用大模型接口生成Aviator脚本
+        Result<String> result = cybotstarAgentApiClient.dialog(CybotstarAgentEnum.SCRIPT_GENERATOR.getCode(), question);
+        if(result == null || !result.isSuccess()) {
+            if(result != null && StringUtils.isNotBlank(result.getMessage())) {
+                throw new BusinessException(result.getMessage());
+            }
+            throw new BusinessException("调用大模型接口生成Aviator脚本失败");
+        }
+        return result.getData();
+    }
+
+    /**
+     * 处理Aviator脚本，计算结果
+     * @param fieldSample 字段样本值
+     * @param ruleMap 规则配置
+     * @param nodeParse 原始数据对象
+     * @return 处理后的结果
+     */
+    private Object handleAviatorScriptOperation(String fieldSample, Map<String, Object> ruleMap, Object nodeParse) {
+
+        // 参数校验
+        if (MapUtils.isEmpty(ruleMap)) {
+            return fieldSample;
+        }
+        // 获取Aviator脚本
+        String aviatorScript = ruleMap.containsKey("aviatorScript") ? String.valueOf(ruleMap.get("aviatorScript")) : null;
+        if(StringUtils.isBlank(aviatorScript)) {
+            return fieldSample;
+        }
+        // 获取字段配置列表
+        List<Map<String, Object>> fields = null;
+        if(ruleMap.containsKey("fields")) {
+            fields = (List<Map<String, Object>>) ruleMap.get("fields");
+        }
+
+        // 组装aviatorScript中的输入参数
+        Map<String, Object> env = getLLMCodeFieldsParam(fields, nodeParse);
+        String fieldName = String.valueOf(ruleMap.get("fieldName"));
+        // 将目标清洗字段最新的值放到map中
+        env.put(fieldName,fieldSample);
+
+        // 执行Aviator脚本
+        try {
+            return cleanRuleAviatorEvaluatorInstance.execute(aviatorScript, env);
+        } catch (Exception e) {
+            log.warn("大模型代码配置操作失败！脚本: {}, 脚本输入参数: {}, 错误信息：{}", aviatorScript, env, e.getMessage(), e);
+            throw new BusinessException("执行大模型代码配置操作失败！请检查脚本或者脚本输入参数值是否正确");
+        }
+
+    }
+
+    /**
+     * 获取大模型代码配置规则fields中字段及参数值
+     * @param fields 字段list
+     * @param nodeParse 原始对象数据
+     * @return  fields中字段及参数值Map
+     */
+    private Map<String,Object> getLLMCodeFieldsParam(List<Map<String, Object>> fields, Object nodeParse) {
+        Map<String, Object> env = new HashMap<>();
+        if(CollectionUtils.isEmpty(fields)) {
+            return env;
+        }
+        // 处理所有字段
+        for (int i = 0; i < fields.size(); i++) {
+            Map<String, Object> fieldConfig = fields.get(i);
+            String fieldName = String.valueOf(fieldConfig.get("fieldName"));
+
+            // 获取字段值
+            Object fieldValue = null;
+            if (ObjectUtil.isNotEmpty(nodeParse)) {
+                // 从nodeParse中获取字段值
+                String parentPath = String.valueOf(fieldConfig.get("parentPath"));
+                String level = String.valueOf(fieldConfig.get("level"));
+                boolean a = !"null".equals(parentPath) && ObjectUtil.isNotEmpty(parentPath);
+                boolean b = !"null".equals(level) && ObjectUtil.isNotEmpty(level);
+                if (a || b) {
+                    fieldValue = JsonParseUtils.findFirstValueByKey(nodeParse, fieldName, parentPath);
+                } else {
+                    fieldValue = JsonParseUtils.findFirstValueByKey(nodeParse, fieldName);
+                }
+            } else {
+                // 使用规则中的预设值
+                fieldValue = fieldConfig.get("fieldValue");
+            }
+            env.put(fieldName, fieldValue);
+        }
+        return env;
     }
 
 }

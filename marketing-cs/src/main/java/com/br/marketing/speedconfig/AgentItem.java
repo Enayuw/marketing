@@ -48,6 +48,8 @@ public class AgentItem {
 
     private String callRecordConfig;
 
+    private String cybotstarAgentConfig;
+
     @SpeedItem(topic = "marketing",key = "marketing_broadcast_notice_item")
     public String getMessage(){
         return message;

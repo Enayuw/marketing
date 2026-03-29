@@ -5,11 +5,13 @@
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="scene_code" property="sceneCode" jdbcType="VARCHAR" />
+    <result column="table_name" property="tableName" jdbcType="VARCHAR" />
     <result column="last_data" property="lastData" jdbcType="VARCHAR" />
     <result column="today_data" property="todayData" jdbcType="VARCHAR" />
     <result column="today_data_id" property="todayDataId" jdbcType="BIGINT" />
     <result column="compare_time" property="compareTime" jdbcType="VARCHAR" />
     <result column="result" property="result" jdbcType="VARCHAR" />
+    <result column="batch_id" property="batchId" jdbcType="VARCHAR" />
     <result column="is_deleted" property="isDeleted" jdbcType="TINYINT" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
@@ -73,8 +75,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, scene_code, last_data, today_data, today_data_id, compare_time, `result`, 
-    is_deleted, create_time, update_time
+    id, api_code, scene_code, `table_name`, last_data, today_data, today_data_id, compare_time,
+    `result`, batch_id, is_deleted, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.AutoCheckResultLogExample" >
     select
@@ -91,7 +93,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     from b_auto_check_result_log
     where id = #{id,jdbcType=BIGINT}
@@ -110,14 +112,16 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_auto_check_result_log (api_code, scene_code, last_data, 
-      today_data, today_data_id, compare_time, 
-      `result`, is_deleted, create_time, 
-      update_time)
-    values (#{apiCode,jdbcType=VARCHAR}, #{sceneCode,jdbcType=VARCHAR}, #{lastData,jdbcType=VARCHAR}, 
-      #{todayData,jdbcType=VARCHAR}, #{todayDataId,jdbcType=BIGINT}, #{compareTime,jdbcType=VARCHAR}, 
-      #{result,jdbcType=VARCHAR}, #{isDeleted,jdbcType=TINYINT}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP})
+    insert into b_auto_check_result_log (api_code, scene_code, `table_name`,
+    last_data, today_data, today_data_id,
+    compare_time, `result`, batch_id,
+    is_deleted, create_time, update_time
+    )
+    values (#{apiCode,jdbcType=VARCHAR}, #{sceneCode,jdbcType=VARCHAR}, #{tableName,jdbcType=VARCHAR},
+    #{lastData,jdbcType=VARCHAR}, #{todayData,jdbcType=VARCHAR}, #{todayDataId,jdbcType=BIGINT},
+    #{compareTime,jdbcType=VARCHAR}, #{result,jdbcType=VARCHAR}, #{batchId,jdbcType=VARCHAR},
+    #{isDeleted,jdbcType=TINYINT}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+    )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.AutoCheckResultLog" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -130,6 +134,9 @@
       </if>
       <if test="sceneCode != null" >
         scene_code,
+      </if>
+      <if test="tableName != null" >
+        `table_name`,
       </if>
       <if test="lastData != null" >
         last_data,
@@ -145,6 +152,9 @@
       </if>
       <if test="result != null" >
         `result`,
+      </if>
+      <if test="batchId != null" >
+        batch_id,
       </if>
       <if test="isDeleted != null" >
         is_deleted,
@@ -163,6 +173,9 @@
       <if test="sceneCode != null" >
         #{sceneCode,jdbcType=VARCHAR},
       </if>
+      <if test="tableName != null" >
+        #{tableName,jdbcType=VARCHAR},
+      </if>
       <if test="lastData != null" >
         #{lastData,jdbcType=VARCHAR},
       </if>
@@ -177,6 +190,9 @@
       </if>
       <if test="result != null" >
         #{result,jdbcType=VARCHAR},
+      </if>
+      <if test="batchId != null" >
+        #{batchId,jdbcType=VARCHAR},
       </if>
       <if test="isDeleted != null" >
         #{isDeleted,jdbcType=TINYINT},
@@ -207,6 +223,9 @@
       <if test="record.sceneCode != null" >
         scene_code = #{record.sceneCode,jdbcType=VARCHAR},
       </if>
+      <if test="record.tableName != null" >
+        `table_name` = #{record.tableName,jdbcType=VARCHAR},
+      </if>
       <if test="record.lastData != null" >
         last_data = #{record.lastData,jdbcType=VARCHAR},
       </if>
@@ -221,6 +240,9 @@
       </if>
       <if test="record.result != null" >
         `result` = #{record.result,jdbcType=VARCHAR},
+      </if>
+      <if test="record.batchId != null" >
+        batch_id = #{record.batchId,jdbcType=VARCHAR},
       </if>
       <if test="record.isDeleted != null" >
         is_deleted = #{record.isDeleted,jdbcType=TINYINT},
@@ -239,16 +261,18 @@
   <update id="updateByExample" parameterType="map" >
     update b_auto_check_result_log
     set id = #{record.id,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      scene_code = #{record.sceneCode,jdbcType=VARCHAR},
-      last_data = #{record.lastData,jdbcType=VARCHAR},
-      today_data = #{record.todayData,jdbcType=VARCHAR},
-      today_data_id = #{record.todayDataId,jdbcType=BIGINT},
-      compare_time = #{record.compareTime,jdbcType=VARCHAR},
-      `result` = #{record.result,jdbcType=VARCHAR},
-      is_deleted = #{record.isDeleted,jdbcType=TINYINT},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    scene_code = #{record.sceneCode,jdbcType=VARCHAR},
+    `table_name` = #{record.tableName,jdbcType=VARCHAR},
+    last_data = #{record.lastData,jdbcType=VARCHAR},
+    today_data = #{record.todayData,jdbcType=VARCHAR},
+    today_data_id = #{record.todayDataId,jdbcType=BIGINT},
+    compare_time = #{record.compareTime,jdbcType=VARCHAR},
+    `result` = #{record.result,jdbcType=VARCHAR},
+    batch_id = #{record.batchId,jdbcType=VARCHAR},
+    is_deleted = #{record.isDeleted,jdbcType=TINYINT},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -261,6 +285,9 @@
       </if>
       <if test="sceneCode != null" >
         scene_code = #{sceneCode,jdbcType=VARCHAR},
+      </if>
+      <if test="tableName != null" >
+        `table_name` = #{tableName,jdbcType=VARCHAR},
       </if>
       <if test="lastData != null" >
         last_data = #{lastData,jdbcType=VARCHAR},
@@ -277,6 +304,9 @@
       <if test="result != null" >
         `result` = #{result,jdbcType=VARCHAR},
       </if>
+      <if test="batchId != null" >
+        batch_id = #{batchId,jdbcType=VARCHAR},
+      </if>
       <if test="isDeleted != null" >
         is_deleted = #{isDeleted,jdbcType=TINYINT},
       </if>
@@ -292,15 +322,17 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.AutoCheckResultLog" >
     update b_auto_check_result_log
     set api_code = #{apiCode,jdbcType=VARCHAR},
-      scene_code = #{sceneCode,jdbcType=VARCHAR},
-      last_data = #{lastData,jdbcType=VARCHAR},
-      today_data = #{todayData,jdbcType=VARCHAR},
-      today_data_id = #{todayDataId,jdbcType=BIGINT},
-      compare_time = #{compareTime,jdbcType=VARCHAR},
-      `result` = #{result,jdbcType=VARCHAR},
-      is_deleted = #{isDeleted,jdbcType=TINYINT},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+        scene_code = #{sceneCode,jdbcType=VARCHAR},
+        `table_name` = #{tableName,jdbcType=VARCHAR},
+        last_data = #{lastData,jdbcType=VARCHAR},
+        today_data = #{todayData,jdbcType=VARCHAR},
+        today_data_id = #{todayDataId,jdbcType=BIGINT},
+        compare_time = #{compareTime,jdbcType=VARCHAR},
+        `result` = #{result,jdbcType=VARCHAR},
+        batch_id = #{batchId,jdbcType=VARCHAR},
+        is_deleted = #{isDeleted,jdbcType=TINYINT},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

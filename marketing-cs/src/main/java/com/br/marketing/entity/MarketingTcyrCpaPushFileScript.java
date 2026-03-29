@@ -14,6 +14,11 @@ public class MarketingTcyrCpaPushFileScript {
     private String apiCode;
 
     /**
+     * 场景
+     */
+    private String scene;
+
+    /**
      * 提取脚本
      */
     private String extractScript;
@@ -32,6 +37,11 @@ public class MarketingTcyrCpaPushFileScript {
      * 执行优先级
      */
     private Integer priority;
+
+    /**
+     * 计划推送/生成日期（仅当天脚本会被任务读取）
+     */
+    private Date pushDate;
 
     /**
      * 1-正常；9-删除
@@ -64,6 +74,14 @@ public class MarketingTcyrCpaPushFileScript {
         this.apiCode = apiCode == null ? null : apiCode.trim();
     }
 
+    public String getScene() {
+        return scene;
+    }
+
+    public void setScene(String scene) {
+        this.scene = scene == null ? null : scene.trim();
+    }
+
     public String getExtractScript() {
         return extractScript;
     }
@@ -94,6 +112,14 @@ public class MarketingTcyrCpaPushFileScript {
 
     public void setPriority(Integer priority) {
         this.priority = priority;
+    }
+
+    public Date getPushDate() {
+        return pushDate;
+    }
+
+    public void setPushDate(Date pushDate) {
+        this.pushDate = pushDate;
     }
 
     public Integer getIsDel() {

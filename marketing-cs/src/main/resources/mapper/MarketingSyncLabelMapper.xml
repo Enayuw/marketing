@@ -65,6 +65,12 @@
         <if test="syncId != null and syncId >0">
             <![CDATA[  and sync_id>#{syncId} ]]>
         </if>
+        <if test="minUnCompleteId != null">
+            <![CDATA[  and sync_id>=#{minUnCompleteId} ]]>
+        </if>
+        <if test="maxId != null">
+            <![CDATA[  and sync_id<=#{maxId} ]]>
+        </if>
         and is_repeat in (1,2)
         and status = 1
         and label_id = #{labelId}

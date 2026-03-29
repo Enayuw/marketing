@@ -13,6 +13,13 @@
     <result column="create_date" jdbcType="VARCHAR" property="createDate" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="push_target_type" jdbcType="INTEGER" property="pushTargetType" />
+    <result column="target_sftp_host" jdbcType="VARCHAR" property="targetSftpHost" />
+    <result column="target_sftp_port" jdbcType="INTEGER" property="targetSftpPort" />
+    <result column="target_sftp_user" jdbcType="VARCHAR" property="targetSftpUser" />
+    <result column="target_sftp_pwd" jdbcType="VARCHAR" property="targetSftpPwd" />
+    <result column="target_type" jdbcType="VARCHAR" property="targetType" />
+    <result column="target_path" jdbcType="VARCHAR" property="targetPath" />
   </resultMap>
   <sql id="Example_Where_Clause">
     <where>
@@ -73,8 +80,9 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    id, api_code, local_path, file_name, data_type, `status`, post_sql_process, extend, 
-    create_date, create_time, update_time
+    id, api_code, local_path, file_name, data_type, `status`, post_sql_process, extend,
+    create_date, create_time, update_time, push_target_type, target_sftp_host, target_sftp_port,
+    target_sftp_user, target_sftp_pwd, target_type, target_path
   </sql>
   <select id="selectByExample" parameterType="com.br.marketing.entity.FileSyncTaskExample" resultMap="BaseResultMap">
     select
@@ -107,14 +115,16 @@
     </if>
   </delete>
   <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.FileSyncTask" useGeneratedKeys="true">
-    insert into b_file_sync_task (api_code, local_path, file_name, 
-      data_type, `status`, post_sql_process, 
-      extend, create_date, create_time, 
-      update_time)
-    values (#{apiCode,jdbcType=VARCHAR}, #{localPath,jdbcType=VARCHAR}, #{fileName,jdbcType=VARCHAR}, 
-      #{dataType,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, #{postSqlProcess,jdbcType=VARCHAR}, 
-      #{extend,jdbcType=VARCHAR}, #{createDate,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP})
+    insert into b_file_sync_task (api_code, local_path, file_name,
+      data_type, `status`, post_sql_process,
+      extend, create_date, create_time,
+      update_time, push_target_type, target_sftp_host, target_sftp_port,
+      target_sftp_user, target_sftp_pwd, target_type, target_path)
+    values (#{apiCode,jdbcType=VARCHAR}, #{localPath,jdbcType=VARCHAR}, #{fileName,jdbcType=VARCHAR},
+      #{dataType,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, #{postSqlProcess,jdbcType=VARCHAR},
+      #{extend,jdbcType=VARCHAR}, #{createDate,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP},
+      #{updateTime,jdbcType=TIMESTAMP}, #{pushTargetType,jdbcType=INTEGER}, #{targetSftpHost,jdbcType=VARCHAR}, #{targetSftpPort,jdbcType=INTEGER},
+      #{targetSftpUser,jdbcType=VARCHAR}, #{targetSftpPwd,jdbcType=VARCHAR}, #{targetType,jdbcType=VARCHAR}, #{targetPath,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.FileSyncTask" useGeneratedKeys="true">
     insert into b_file_sync_task
@@ -149,6 +159,27 @@
       <if test="updateTime != null">
         update_time,
       </if>
+      <if test="pushTargetType != null">
+        push_target_type,
+      </if>
+      <if test="targetSftpHost != null">
+        target_sftp_host,
+      </if>
+      <if test="targetSftpPort != null">
+        target_sftp_port,
+      </if>
+      <if test="targetSftpUser != null">
+        target_sftp_user,
+      </if>
+      <if test="targetSftpPwd != null">
+        target_sftp_pwd,
+      </if>
+      <if test="targetType != null">
+        target_type,
+      </if>
+      <if test="targetPath != null">
+        target_path,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="apiCode != null">
@@ -180,6 +211,27 @@
       </if>
       <if test="updateTime != null">
         #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="pushTargetType != null">
+        #{pushTargetType,jdbcType=INTEGER},
+      </if>
+      <if test="targetSftpHost != null">
+        #{targetSftpHost,jdbcType=VARCHAR},
+      </if>
+      <if test="targetSftpPort != null">
+        #{targetSftpPort,jdbcType=INTEGER},
+      </if>
+      <if test="targetSftpUser != null">
+        #{targetSftpUser,jdbcType=VARCHAR},
+      </if>
+      <if test="targetSftpPwd != null">
+        #{targetSftpPwd,jdbcType=VARCHAR},
+      </if>
+      <if test="targetType != null">
+        #{targetType,jdbcType=VARCHAR},
+      </if>
+      <if test="targetPath != null">
+        #{targetPath,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -225,6 +277,27 @@
       <if test="record.updateTime != null">
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="record.pushTargetType != null">
+        push_target_type = #{record.pushTargetType,jdbcType=INTEGER},
+      </if>
+      <if test="record.targetSftpHost != null">
+        target_sftp_host = #{record.targetSftpHost,jdbcType=VARCHAR},
+      </if>
+      <if test="record.targetSftpPort != null">
+        target_sftp_port = #{record.targetSftpPort,jdbcType=INTEGER},
+      </if>
+      <if test="record.targetSftpUser != null">
+        target_sftp_user = #{record.targetSftpUser,jdbcType=VARCHAR},
+      </if>
+      <if test="record.targetSftpPwd != null">
+        target_sftp_pwd = #{record.targetSftpPwd,jdbcType=VARCHAR},
+      </if>
+      <if test="record.targetType != null">
+        target_type = #{record.targetType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.targetPath != null">
+        target_path = #{record.targetPath,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
@@ -242,7 +315,14 @@
       extend = #{record.extend,jdbcType=VARCHAR},
       create_date = #{record.createDate,jdbcType=VARCHAR},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      push_target_type = #{record.pushTargetType,jdbcType=INTEGER},
+      target_sftp_host = #{record.targetSftpHost,jdbcType=VARCHAR},
+      target_sftp_port = #{record.targetSftpPort,jdbcType=INTEGER},
+      target_sftp_user = #{record.targetSftpUser,jdbcType=VARCHAR},
+      target_sftp_pwd = #{record.targetSftpPwd,jdbcType=VARCHAR},
+      target_type = #{record.targetType,jdbcType=VARCHAR},
+      target_path = #{record.targetPath,jdbcType=VARCHAR}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -280,6 +360,27 @@
       <if test="updateTime != null">
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="pushTargetType != null">
+        push_target_type = #{pushTargetType,jdbcType=INTEGER},
+      </if>
+      <if test="targetSftpHost != null">
+        target_sftp_host = #{targetSftpHost,jdbcType=VARCHAR},
+      </if>
+      <if test="targetSftpPort != null">
+        target_sftp_port = #{targetSftpPort,jdbcType=INTEGER},
+      </if>
+      <if test="targetSftpUser != null">
+        target_sftp_user = #{targetSftpUser,jdbcType=VARCHAR},
+      </if>
+      <if test="targetSftpPwd != null">
+        target_sftp_pwd = #{targetSftpPwd,jdbcType=VARCHAR},
+      </if>
+      <if test="targetType != null">
+        target_type = #{targetType,jdbcType=VARCHAR},
+      </if>
+      <if test="targetPath != null">
+        target_path = #{targetPath,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -294,7 +395,14 @@
       extend = #{extend,jdbcType=VARCHAR},
       create_date = #{createDate,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      push_target_type = #{pushTargetType,jdbcType=INTEGER},
+      target_sftp_host = #{targetSftpHost,jdbcType=VARCHAR},
+      target_sftp_port = #{targetSftpPort,jdbcType=INTEGER},
+      target_sftp_user = #{targetSftpUser,jdbcType=VARCHAR},
+      target_sftp_pwd = #{targetSftpPwd,jdbcType=VARCHAR},
+      target_type = #{targetType,jdbcType=VARCHAR},
+      target_path = #{targetPath,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

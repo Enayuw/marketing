@@ -894,6 +894,126 @@ public class TaikangTransferDataLogExample {
             addCriterion("update_time not between", value1, value2, "updateTime");
             return (Criteria) this;
         }
+
+        public Criteria andDataTypeIsNull() {
+            addCriterion("data_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataTypeIsNotNull() {
+            addCriterion("data_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataTypeEqualTo(Integer value) {
+            addCriterion("data_type =", value, "dataType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataTypeNotEqualTo(Integer value) {
+            addCriterion("data_type <>", value, "dataType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataTypeGreaterThan(Integer value) {
+            addCriterion("data_type >", value, "dataType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("data_type >=", value, "dataType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataTypeLessThan(Integer value) {
+            addCriterion("data_type <", value, "dataType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("data_type <=", value, "dataType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataTypeIn(List<Integer> values) {
+            addCriterion("data_type in", values, "dataType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataTypeNotIn(List<Integer> values) {
+            addCriterion("data_type not in", values, "dataType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataTypeBetween(Integer value1, Integer value2) {
+            addCriterion("data_type between", value1, value2, "dataType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("data_type not between", value1, value2, "dataType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDdRecordIdIsNull() {
+            addCriterion("dd_record_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDdRecordIdIsNotNull() {
+            addCriterion("dd_record_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDdRecordIdEqualTo(Long value) {
+            addCriterion("dd_record_id =", value, "ddRecordId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDdRecordIdNotEqualTo(Long value) {
+            addCriterion("dd_record_id <>", value, "ddRecordId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDdRecordIdGreaterThan(Long value) {
+            addCriterion("dd_record_id >", value, "ddRecordId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDdRecordIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("dd_record_id >=", value, "ddRecordId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDdRecordIdLessThan(Long value) {
+            addCriterion("dd_record_id <", value, "ddRecordId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDdRecordIdLessThanOrEqualTo(Long value) {
+            addCriterion("dd_record_id <=", value, "ddRecordId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDdRecordIdIn(List<Long> values) {
+            addCriterion("dd_record_id in", values, "ddRecordId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDdRecordIdNotIn(List<Long> values) {
+            addCriterion("dd_record_id not in", values, "ddRecordId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDdRecordIdBetween(Long value1, Long value2) {
+            addCriterion("dd_record_id between", value1, value2, "ddRecordId");
+            return (Criteria) this;
+        }
+
+        public Criteria andDdRecordIdNotBetween(Long value1, Long value2) {
+            addCriterion("dd_record_id not between", value1, value2, "ddRecordId");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

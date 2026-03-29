@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class TcCpaCollidingDataCleanServiceImpl implements TcCpaCollidingDataCleanService {
-    
+
     @Resource
     TcyrCpaCollidingDataCleanTaskMapper tcyrCpaCollidingDataCleanTaskMapper;
 

@@ -7,6 +7,8 @@ import com.br.marketing.client.dingding.aitable.DingDingAiTableFieldDTO;
 import com.br.marketing.client.dingding.aitable.DingDingAiTableFieldsResponse;
 import com.br.marketing.client.dingding.aitable.DingDingAiTableRecordDTO;
 import com.br.marketing.client.dingding.aitable.DingDingAiTableRecordsResponse;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.mapper.DingDingTableSyncMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -125,9 +127,19 @@ public class DingDingTableSyncToDbJob extends AbstractSimpleElasticJob {
         }
 
         // 获取钉钉表格字段信息
-        DingDingAiTableFieldsResponse fieldsResponse = dingDingAiTableClient.getSheetFields(
+        Result<DingDingAiTableFieldsResponse> fieldsResult = dingDingAiTableClient.getSheetFields(
                 accessToken, baseId, sheetId, operatorId);
 
+        // 检查调用结果，最终失败后触发报警
+        if (fieldsResult == null || !ResultCode.SUCCESS.getValue().equals(fieldsResult.getCode())) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                    "获取钉钉表格字段失败，表名:" + tableName + ", code: " + (fieldsResult != null ? fieldsResult.getCode() : "null") +
+                            ", message: " + (fieldsResult != null ? fieldsResult.getMessage() : "返回结果为空")
+                    , "钉钉AI表格数据同步作业异常"));
+            return;
+        }
+
+        DingDingAiTableFieldsResponse fieldsResponse = fieldsResult.getData();
         // 构建字段名到formatter的映射
         Map<String, String> fieldFormatterMap = new HashMap<>();
         if (fieldsResponse != null && !CollectionUtils.isEmpty(fieldsResponse.getValue())) {
@@ -253,9 +265,19 @@ public class DingDingTableSyncToDbJob extends AbstractSimpleElasticJob {
 
         do {
             pageNum++;
-            DingDingAiTableRecordsResponse response = dingDingAiTableClient.getSheetRecords(
+            Result<DingDingAiTableRecordsResponse> recordsResult = dingDingAiTableClient.getSheetRecords(
                     accessToken, baseId, sheetId, operatorId, nextToken, 100);
 
+            // 检查调用结果，最终失败后触发报警
+            if (recordsResult == null || !ResultCode.SUCCESS.getValue().equals(recordsResult.getCode())) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                        "获取钉钉表格数据失败，第" + pageNum + "页, code: " + (recordsResult != null ? recordsResult.getCode() : "null") +
+                                ", message: " + (recordsResult != null ? recordsResult.getMessage() : "返回结果为空")
+                        , "钉钉AI表格数据同步作业异常"));
+                break;
+            }
+
+            DingDingAiTableRecordsResponse response = recordsResult.getData();
             if (response == null || CollectionUtils.isEmpty(response.getRecords())) {
                 break;
             }
