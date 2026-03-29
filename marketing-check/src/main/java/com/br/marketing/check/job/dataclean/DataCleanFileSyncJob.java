@@ -189,7 +189,7 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
         }
         marketingCleanDataFileMapper.updateByPrimaryKeySelective(dataFile);
 
-        insertPersistTaskIfNeeded(cleanDataFile, headerLine);
+        insertPersistTaskIfNeeded(cleanDataFile, headerLine, fieldDelimiter);
 
         try {
             String remark = String.format("手动清洗-文件样例同步,文件名称：%s"
@@ -214,7 +214,10 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
     /**
      * is_pers=1 时创建文件清洗持久化任务（在更新完 dataFile 表头后插入，保证 fileHeader 有值）
      */
-    private void insertPersistTaskIfNeeded(MarketingCleanDataFile cleanDataFile, String fileHeader) {
+    /**
+     * @param fieldDelimiter 与表头/样例解析一致的分隔符（{@link #resolveFieldDelimiter}），落库供本地文件按列切分
+     */
+    private void insertPersistTaskIfNeeded(MarketingCleanDataFile cleanDataFile, String fileHeader, String fieldDelimiter) {
         if (cleanDataFile.getSyncConfigId() == null) {
             return;
         }
@@ -233,6 +236,7 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
             task.setSyncConfigId(syncConfig.getId());
             task.setFileHeader(fileHeader);
             task.setFileName(cleanDataFile.getFileName());
+            task.setSftpFileSeparator(fieldDelimiter);
             task.setLocalPath(cleanDataFile.getLocalPath());
             task.setStatus(CleanPersistTaskStatusEnum.PENDING.getCode());
             Date now = new Date();

@@ -7,6 +7,7 @@
     <result column="sync_config_id" property="syncConfigId" jdbcType="BIGINT" />
     <result column="file_header" property="fileHeader" jdbcType="VARCHAR" />
     <result column="file_name" property="fileName" jdbcType="VARCHAR" />
+    <result column="sftp_file_separator" property="sftpFileSeparator" jdbcType="VARCHAR" />
     <result column="local_path" property="localPath" jdbcType="VARCHAR" />
     <result column="header_mapping_id" property="headerMappingId" jdbcType="BIGINT" />
     <result column="status" property="status" jdbcType="INTEGER" />
@@ -73,7 +74,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    id, clean_data_file_record_id, sync_config_id, file_header, file_name, local_path,
+    id, clean_data_file_record_id, sync_config_id, file_header, file_name, sftp_file_separator, local_path,
     header_mapping_id, `status`, total_row_count, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingCleanPersistTaskExample">
@@ -111,11 +112,11 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_marketing_clean_persist_task (clean_data_file_record_id, sync_config_id,
-      file_header, file_name, local_path,
+      file_header, file_name, sftp_file_separator, local_path,
       header_mapping_id, `status`, total_row_count,
       create_time, update_time)
     values (#{cleanDataFileRecordId,jdbcType=BIGINT}, #{syncConfigId,jdbcType=BIGINT},
-      #{fileHeader,jdbcType=VARCHAR}, #{fileName,jdbcType=VARCHAR}, #{localPath,jdbcType=VARCHAR},
+      #{fileHeader,jdbcType=VARCHAR}, #{fileName,jdbcType=VARCHAR}, #{sftpFileSeparator,jdbcType=VARCHAR}, #{localPath,jdbcType=VARCHAR},
       #{headerMappingId,jdbcType=BIGINT}, #{status,jdbcType=INTEGER}, #{totalRowCount,jdbcType=INTEGER},
       #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
@@ -136,6 +137,9 @@
       </if>
       <if test="fileName != null">
         file_name,
+      </if>
+      <if test="sftpFileSeparator != null">
+        sftp_file_separator,
       </if>
       <if test="localPath != null">
         local_path,
@@ -168,6 +172,9 @@
       </if>
       <if test="fileName != null">
         #{fileName,jdbcType=VARCHAR},
+      </if>
+      <if test="sftpFileSeparator != null">
+        #{sftpFileSeparator,jdbcType=VARCHAR},
       </if>
       <if test="localPath != null">
         #{localPath,jdbcType=VARCHAR},
@@ -213,6 +220,9 @@
       <if test="record.fileName != null">
         file_name = #{record.fileName,jdbcType=VARCHAR},
       </if>
+      <if test="record.sftpFileSeparator != null">
+        sftp_file_separator = #{record.sftpFileSeparator,jdbcType=VARCHAR},
+      </if>
       <if test="record.localPath != null">
         local_path = #{record.localPath,jdbcType=VARCHAR},
       </if>
@@ -243,6 +253,7 @@
       sync_config_id = #{record.syncConfigId,jdbcType=BIGINT},
       file_header = #{record.fileHeader,jdbcType=VARCHAR},
       file_name = #{record.fileName,jdbcType=VARCHAR},
+      sftp_file_separator = #{record.sftpFileSeparator,jdbcType=VARCHAR},
       local_path = #{record.localPath,jdbcType=VARCHAR},
       header_mapping_id = #{record.headerMappingId,jdbcType=BIGINT},
       `status` = #{record.status,jdbcType=INTEGER},
@@ -267,6 +278,9 @@
       </if>
       <if test="fileName != null">
         file_name = #{fileName,jdbcType=VARCHAR},
+      </if>
+      <if test="sftpFileSeparator != null">
+        sftp_file_separator = #{sftpFileSeparator,jdbcType=VARCHAR},
       </if>
       <if test="localPath != null">
         local_path = #{localPath,jdbcType=VARCHAR},
@@ -295,6 +309,7 @@
       sync_config_id = #{syncConfigId,jdbcType=BIGINT},
       file_header = #{fileHeader,jdbcType=VARCHAR},
       file_name = #{fileName,jdbcType=VARCHAR},
+      sftp_file_separator = #{sftpFileSeparator,jdbcType=VARCHAR},
       local_path = #{localPath,jdbcType=VARCHAR},
       header_mapping_id = #{headerMappingId,jdbcType=BIGINT},
       `status` = #{status,jdbcType=INTEGER},
