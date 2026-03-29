@@ -21,7 +21,7 @@
 
     <update id="updateIsDelByIds">
         update b_tcyr_cpa_colliding_data
-        set is_del = 9
+        set is_del = #{isDel}
         where is_del = 1
         and id in
         <foreach collection="ids" item="id" open="(" separator="," close=")">
@@ -73,6 +73,10 @@
             and ${fieldName} > #{minUserKey}
         </if>
         order by ${fieldName} limit #{pageSize}
+    </select>
+
+    <select id="queryMaxIsDel" resultType="java.lang.Integer">
+        select max(is_del) from b_tcyr_cpa_colliding_data
     </select>
 
 </mapper>

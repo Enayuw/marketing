@@ -2930,7 +2930,6 @@ public class MarketingCommonConfig {
      */
     private JSONObject tcyrServerConfig;
 
-
     /**
      * 携程上报新接口
      */
@@ -3577,15 +3576,98 @@ public class MarketingCommonConfig {
     private JSONObject tcyrCpaPushFileVTConfig;
 
     /**
+     * 同程易融CPA周期打标配置
+     * 格式：startDate,endDate，例如："2026-01-19,2026-01-25"
+     * 若为空，则默认取上一自然周（周一至周日）
+     */
+    private String tcyrCpaCyclePeriodConfig;
+
+    /**
      * 随意记获取黑名单RSA私钥
      */
     private String suiyijiBlackBrPrivateKey;
+
+    /**
+     * 携程分天剔除量级查询优化开关
+     */
+    private Boolean xcDeleteMagnitudeOptSwitch;
 
 
     /**
      * 滴滴V5相关配置
      */
     private JSONObject diDiV5Config;
+
+    /**
+     * job任务开关配置,key：任务名称，value：true任务暂停，false任务恢复
+     */
+    private Map<String,Boolean> marketingJobTaskSwitch;
+    /**
+     * * 推送人工配置
+     * 支持灵活的嵌套配置结构
+     * 示例：
+     * {"specialFileNamePrefixes":["A","special"]
+     * ,"A":{"list":["province","city"]}
+     * ,"special":{"couponsList":["province","city","district"]}}
+     */
+    private JSONObject daasConfig;
+
+    /**
+     * 大模型回调分发控制，根据版本区分：存在的apiCode会走下游逻辑
+     * key：版本
+     * value：apiCode集合
+     */
+    private Map<String,List<String>> versionApiCodes;
+
+    /**
+     * sftp下载单个文件超时时间
+     */
+    private Long sftpDownLoadTimeOut;
+
+    /**
+     * 信用飞加密配置
+     */
+    private JSONObject xyfEncryptionConfig;
+
+    /**
+     * 信用飞模拟客户加密配置
+     */
+    private JSONObject xyfSimCusEncryptionConfig;
+
+    /**
+     * 信用飞apiCode
+     */
+    private String xyfApiCode;
+
+    /**
+     * 跑分rediskey的scoreStatus的最终执行时间
+     */
+    private String scoreStatusFinalDate;
+
+    /**
+     * SftpToDbByCommonJob 特殊字段处理配置
+     */
+    private JSONObject sftpToDbSpecialHandleJson;
+
+    /**
+     * 58AI配置
+     */
+    private JSONObject wuBaAIConfig;
+
+    /**
+     * 解压 zip 时按 sync_config.id 指定编码，格式：syncConfigId : GBK 或 UTF-8，如 "123:GBK","456:UTF-8"。未配置时默认 GBK。
+     */
+    private Map<String, String> syncUnzipEncoding;
+
+    /**
+     * * 同程批次号前缀对场景映射配置 3710208 匹配PL
+     */
+    private List<String> tcCpaBatchNoPrefixConfig;
+
+    /**
+     * * 同程批次号前缀对场景映射配置
+     */
+    private Map<String,String> tcBatchNoSuffixToSceneConfig;
 
     /**
      * 同程易融cpa-failMsg配置
