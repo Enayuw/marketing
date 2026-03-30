@@ -3129,12 +3129,12 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     @Override
-    public Result<MarketingSyncUser> queryLatestSyncUser(String apiCode, String custNum, String userType) {
+    public Result<MarketingSyncUserVO> queryLatestSyncUser(String apiCode, String custNum, String userType) {
         MarketingSyncUser user = marketingUserMapper.selectLatestSyncUser(apiCode, custNum, userType);
         if (user == null) {
-            return new Result<MarketingSyncUser>().setCode(ResultCode.FAIL.getValue()).setMessage("数据为空！");
+            return new Result<MarketingSyncUserVO>().setCode(ResultCode.FAIL.getValue()).setMessage("数据为空！");
         }
-        return new Result<MarketingSyncUser>().setCode(ResultCode.SUCCESS.getValue()).setDate(user);
+        return new Result<MarketingSyncUserVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(MarketingSyncUserVO.fromEntity(user));
     }
 
     public void sendJsonParseMq(String apiCode,Integer dataSourceType,Integer systemType,Integer dataType,Integer acceptType,String jsonData){

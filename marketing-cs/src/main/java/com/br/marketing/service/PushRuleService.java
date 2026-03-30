@@ -241,7 +241,7 @@ public interface PushRuleService {
 
     Result<String> queryUploadOverAmt(String custNum, HttpServletRequest request);
 
-    Result<MarketingSyncUser> queryLatestSyncUser(String apiCode, String custNum, String userType);
+    Result<MarketingSyncUserVO> queryLatestSyncUser(String apiCode, String custNum, String userType);
 
     void sendJsonParseMq(String apiCode,Integer dataSourceType,Integer systemType,Integer dataType,Integer acceptType,String jsonData);
     Result<List<ConditionVO>> getConditionList(String apiCode, String content);
