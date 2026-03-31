@@ -38,5 +38,7 @@ public class CleanConfigDTO implements Serializable {
     @Schema(description = "文件路径")
     private String sftpPath;
 
+    @Schema(description = "SFTP 文件分隔符，不传或空时落库为逗号")
+    private String sftpFileSeparator;
 
 }

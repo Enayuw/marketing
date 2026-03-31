@@ -34,6 +34,7 @@ import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.clean.common.DataCleanService;
 import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.DataCleanDelimiterUtils;
 import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.br.marketing.vo.dataclean.CommonCleanResponseVO;
 import com.marketingkit.tracking.model.indicator.DataFlowDirection;
@@ -960,9 +961,10 @@ public class DataCleanServiceImpl implements DataCleanService {
             return;
         }
         Map<String, String> virtualHeadersMap = parseVirtualHeaders(cleanFile.getVirtualHeaders());
+        String fieldDelimiter = DataCleanDelimiterUtils.resolveDelimiter(config.getSftpFileSeparator());
         try {
             // 批量读取并处理文件
-            processByBatch(filePath, fileName, apiCode, ruleConfigList, virtualHeadersMap);
+            processByBatch(filePath, fileName, apiCode, ruleConfigList, virtualHeadersMap, fieldDelimiter);
         } catch (Exception e) {
             log.error(TITLE + "文件读取异常，文件路径: " + filePath, e);
         }
@@ -1051,7 +1053,7 @@ public class DataCleanServiceImpl implements DataCleanService {
      */
     private void processByBatch(String filePath, String fileName, String apiCode,
                                List<MarketingDataCleanGeneralRuleConfig> ruleConfigList,
-                               Map<String, String> virtualHeadersMap) {
+                               Map<String, String> virtualHeadersMap, String fieldDelimiter) {
         final int BATCH_SIZE = 500;
         String[] headers = null;
         List<String> batchLines = new ArrayList<>();
@@ -1075,8 +1077,9 @@ public class DataCleanServiceImpl implements DataCleanService {
                     String[] finalHeaders = headers;
                     int finalStart = start;
                     Map<String, String> finalVirtualHeaders = virtualHeadersMap;
+                    String finalDelim = fieldDelimiter;
                     pool.submit(() -> processBatchDataSync(batch, finalHeaders, ruleConfigList, apiCode, fileName,
-                            finalStart, finalVirtualHeaders));
+                            finalStart, finalVirtualHeaders, finalDelim));
                     totalProcessed += batch.size();
                 }
             } catch (Exception e) {
@@ -1089,7 +1092,7 @@ public class DataCleanServiceImpl implements DataCleanService {
                 while ((line = reader.readLine()) != null) {
                     String lineData = line.trim();
                     if (isFirstLine) {
-                        headers = lineData.split(",");
+                        headers = DataCleanDelimiterUtils.splitLine(lineData, fieldDelimiter);
                         if (headers == null || headers.length == 0) {
                             log.error("文件表头解析失败，文件路径: {}", filePath);
                             return;
@@ -1107,9 +1110,10 @@ public class DataCleanServiceImpl implements DataCleanService {
                         int finalTotalProcessed = totalProcessed;
                         List<String> dataList = new ArrayList<>(batchLines);
                         Map<String, String> finalVirtualHeaders = virtualHeadersMap;
+                        String finalDelimCsv = fieldDelimiter;
                         pool.submit(() -> {
                             processBatchDataSync(dataList, finalHeaders, ruleConfigList, apiCode, fileName,
-                                    finalTotalProcessed, finalVirtualHeaders);
+                                    finalTotalProcessed, finalVirtualHeaders, finalDelimCsv);
                         });
                         totalProcessed += batchLines.size();
                         batchLines.clear();
@@ -1117,7 +1121,7 @@ public class DataCleanServiceImpl implements DataCleanService {
                 }
                 if (!batchLines.isEmpty()) {
                     processBatchDataSync(batchLines, headers, ruleConfigList, apiCode, fileName, totalProcessed,
-                            virtualHeadersMap);
+                            virtualHeadersMap, fieldDelimiter);
                     totalProcessed += batchLines.size();
                 }
             } catch (IOException e) {
@@ -1169,10 +1173,10 @@ public class DataCleanServiceImpl implements DataCleanService {
     public void processBatchDataSync(List<String> batchLines, String[] headers,
                                      List<MarketingDataCleanGeneralRuleConfig> ruleConfigList,
                                      String apiCode, String fileName, int startIndex,
-                                     Map<String, String> virtualHeadersMap) {
+                                     Map<String, String> virtualHeadersMap, String fieldDelimiter) {
         try {
             List<JSONObject> fileJsonData = fileDataAssemble(batchLines, headers, fileName, startIndex,
-                    virtualHeadersMap);
+                    virtualHeadersMap, fieldDelimiter);
             cleanData(fileJsonData, ruleConfigList, apiCode, fileName, Boolean.FALSE, virtualHeadersMap);
         } catch (Exception e) {
             log.error("批次数据处理异常", e);
@@ -1233,12 +1237,12 @@ public class DataCleanServiceImpl implements DataCleanService {
 
     @Override
     public List<JSONObject> fileDataAssemble(List<String> batchLines, String[] headers, String fileName, int startIndex,
-                                            Map<String, String> virtualHeadersMap) {
+                                            Map<String, String> virtualHeadersMap, String fieldDelimiter) {
         List<JSONObject> jsonArray = new ArrayList<>();
         for (int i = 0; i < batchLines.size(); i++) {
             String line = batchLines.get(i);
             int actualRowIndex = startIndex + i + 2;
-            JSONObject jsonData = buildJsonFromLineData(line, headers, actualRowIndex);
+            JSONObject jsonData = buildJsonFromLineData(line, headers, actualRowIndex, fieldDelimiter);
             if (jsonData == null) {
                 log.error("文件{},第{}行数据解析失败，跳过处理: {}", fileName, actualRowIndex, line);
                 continue;
@@ -1392,10 +1396,9 @@ public class DataCleanServiceImpl implements DataCleanService {
     /**
      * 根据表头和行数据构建JSON对象 - 简化版本
      */
-    private JSONObject buildJsonFromLineData(String lineData, String[] headers, int rowIndex) {
+    private JSONObject buildJsonFromLineData(String lineData, String[] headers, int rowIndex, String fieldDelimiter) {
         try {
-            // 只使用逗号分隔解析行数据
-            String[] values = lineData.split(",");
+            String[] values = DataCleanDelimiterUtils.splitLine(lineData, fieldDelimiter);
 
             if (values.length == 0) {
                 log.warn("第{}行数据为空", rowIndex);
