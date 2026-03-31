@@ -3,10 +3,12 @@ package com.br.marketing.bridge.service.todb.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
+import com.br.common.util.MD5Utils;
 import com.br.marketing.bridge.common.utils.SftpToDbUtils;
 import com.br.marketing.bridge.model.dto.FileContext;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.SftpClient;
+import com.br.marketing.client.xiecheng.MD5Util;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
@@ -22,11 +24,14 @@ import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
+import com.google.api.client.util.Lists;
 import com.google.common.base.Function;
 import com.marketingkit.tracking.model.indicator.DataFlowDirection;
 import com.marketingkit.tracking.service.TrackingService;
 import com.marketingkit.tracking.util.TrackingContext;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.curator.shaded.com.google.common.base.Splitter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -35,10 +40,7 @@ import javax.annotation.Resource;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -149,7 +151,7 @@ public class SftpToDbByCommonService {
         AtomicInteger errorMark = new AtomicInteger(0);
         try (
                 FileReader read = new FileReader(filepath);
-                BufferedReader br = new BufferedReader(read);) {
+                BufferedReader br = new BufferedReader(read)) {
             String row;
             Integer line = 1;
             ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(20, 20);
@@ -315,7 +317,7 @@ public class SftpToDbByCommonService {
         AtomicInteger success = new AtomicInteger(0);
         try (
                 FileReader read = new FileReader(filepath);
-                BufferedReader br = new BufferedReader(read);) {
+                BufferedReader br = new BufferedReader(read)) {
             Integer line = 1;
             Integer threadNum = 20;
             if (marketingCommonConfig.getThreadNumSftpToDbByCommon() != null && marketingCommonConfig.getThreadNumSftpToDbByCommon() > 0) {
@@ -330,6 +332,15 @@ public class SftpToDbByCommonService {
             Integer hasNum = 0;
             HashMap<Integer,String> datasHp = new HashMap<>();
             Boolean readFile = Boolean.TRUE;
+
+            // 获取需要MD5加密的字段配置
+            JSONObject md5EncryptConfig = marketingCommonConfig.getSftpToDbSpecialHandleJson();
+            String apiCode = localFile.getApiCode();
+            List<String> md5Fields = Lists.newArrayList();
+            if (md5EncryptConfig != null && md5EncryptConfig.containsKey(apiCode)) {
+                md5Fields = md5EncryptConfig.getJSONArray(apiCode).toJavaList(String.class);
+            }
+
             while (readFile) {
                 String row = br.readLine();
                 if(line == 1){
@@ -341,6 +352,9 @@ public class SftpToDbByCommonService {
                 }else{
                     String trim = row.trim();
                     if (StringUtils.isNotEmpty(row) && StringUtils.isNotEmpty(trim)) {
+                        if (CollectionUtils.isNotEmpty(md5Fields)) {
+                            trim = encryptFields(trim, address, md5Fields);
+                        }
                         datasHp.put(line,trim);
                         hasNum++;
                     }
@@ -452,6 +466,33 @@ public class SftpToDbByCommonService {
 
         //endregion
         return true;
+    }
+
+    /**
+     * 对指定字段进行MD5加密
+     *
+     * @param row       原始行数据
+     * @param address   字段坐标映射
+     * @param md5Fields 需要加密的字段列表
+     * @return 加密后的行数据
+     */
+    private String encryptFields(String row, HashMap<Integer, String> address, List<String> md5Fields) {
+        String[] columns = row.split(",", -1);
+        for (String field : md5Fields) {
+            for (Map.Entry<Integer, String> entry : address.entrySet()) {
+                if (field.equals(entry.getValue())) {
+                    int index = entry.getKey();
+                    if (index < columns.length) {
+                        String originalValue = columns[index];
+                        if (StringUtils.isNotEmpty(originalValue)) {
+                            columns[index] = MD5Util.encode(originalValue);
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+        return String.join(",", columns);
     }
 
     /**
