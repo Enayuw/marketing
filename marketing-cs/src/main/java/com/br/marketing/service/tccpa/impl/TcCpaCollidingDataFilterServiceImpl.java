@@ -208,7 +208,7 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
         String joinFrag = tcCpaCommonService.getDeleteSqlFrag(task.getDeleteRuleIds());
         log.warn(TITLE + "joinFrag: " + joinFrag);
         for (TcyrCpaCollidingTaskPackage taskPackage : taskPackages) {
-            insertAbleNum = getInsertAbleNum(taskPackage.getPackageId(), colldingDate);
+            insertAbleNum = getInsertAbleNum(task, taskPackage.getPackageId(), colldingDate);
             if (insertAbleNum <= 0) {
                 break;
             }
@@ -247,16 +247,26 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
         return true;
     }
 
-    private int getInsertAbleNum(Long packageId, Date colldingDate) {
-        Integer extraNumTotal = marketingCommonConfig.getTcyrCpaPushFileVTConfig().getInteger("extraNumTotal");
+    /**
+     * 当日推送池剩余可插入量级：以撞库任务 {@link TcyrCpaCollidingTask#getCollidingNum()} 为总上限（撞库量级），
+     * 未配置时回退 {@code tcyrCpaPushFileVTConfig.extraNumTotal}。
+     */
+    private int getInsertAbleNum(TcyrCpaCollidingTask task, Long packageId, Date colldingDate) {
+        Integer totalLimit = task.getCollidingNum();
+        if (totalLimit == null) {
+            totalLimit = marketingCommonConfig.getTcyrCpaPushFileVTConfig().getInteger("extraNumTotal");
+        }
+        if (totalLimit == null) {
+            totalLimit = 0;
+        }
         TcyrCpaPushDataExample pushDataExample = new TcyrCpaPushDataExample();
         pushDataExample.createCriteria()
                 .andCollidingDateEqualTo(colldingDate)
                 .andPackageIdNotEqualTo(packageId)
                 .andIsDelEqualTo(Constants.DATA_VALID);
-        //插入完成的数据包量级
+        // 当日其他数据包已插入量级
         int countInserted = tcyrCpaPushDataMapper.countByExample(pushDataExample);
-        return extraNumTotal - countInserted;
+        return totalLimit - countInserted;
     }
 
     /**
