@@ -140,6 +140,7 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
         basicTask.setPackageIds(String.join(",", packageIds));
         basicTask.setPackageNames(packageNames);
         basicTask.setDeleteRuleIds(String.join(",", ruleDTO.getDeleteRuleIds()));
+        basicTask.setCollidingNum(ruleDTO.getCollidingNum());
         //1.1创建补包信息
         if (CollectionUtils.isNotEmpty(ruleDTO.getFailMsgSupplyGroups())) {
             //过滤掉isSupply=false的数据
@@ -249,6 +250,7 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
         task.setEstNum(null);
         task.setSupplyNum(null);
         task.setDeleteNum(null);
+        task.setCollidingNum(ruleDTO.getCollidingNum());
         //todo 更新时需要更新量级不
         //3.赋值补包字段
         if (CollectionUtils.isEmpty(ruleDTO.getFailMsgSupplyGroups())) {

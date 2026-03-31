@@ -8,8 +8,10 @@
     <result column="package_names" property="packageNames" jdbcType="VARCHAR" />
     <result column="colliding_date" property="collidingDate" jdbcType="DATE" />
     <result column="colliding_time" property="collidingTime" jdbcType="TIMESTAMP" />
+    <result column="colliding_num" property="collidingNum" jdbcType="INTEGER" />
     <result column="delete_rule_ids" property="deleteRuleIds" jdbcType="VARCHAR" />
     <result column="delete_num" property="deleteNum" jdbcType="INTEGER" />
+    <result column="delete_info" property="deleteInfo" jdbcType="VARCHAR" />
     <result column="supply_rule_info" property="supplyRuleInfo" jdbcType="VARCHAR" />
     <result column="supply_num" property="supplyNum" jdbcType="INTEGER" />
     <result column="est_num" property="estNum" jdbcType="INTEGER" />
@@ -80,8 +82,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, package_ids, package_names, colliding_date, colliding_time, delete_rule_ids,
-    delete_num, supply_rule_info, supply_num, est_num, push_num, `status`, enabled, is_del,
+    id, api_code, package_ids, package_names, colliding_date, colliding_time, colliding_num, delete_rule_ids,
+    delete_num, delete_info, supply_rule_info, supply_num, est_num, push_num, `status`, enabled, is_del,
     extend, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.TcyrCpaCollidingTaskExample" >
@@ -119,14 +121,14 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_tcyr_cpa_colliding_task (api_code, package_ids, package_names,
-    colliding_date, colliding_time, delete_rule_ids,
-    delete_num, supply_rule_info, supply_num,
+    colliding_date, colliding_time, colliding_num, delete_rule_ids,
+    delete_num, delete_info, supply_rule_info, supply_num,
     est_num, push_num, `status`,
     enabled, is_del, extend,
     create_time, update_time)
     values (#{apiCode,jdbcType=VARCHAR}, #{packageIds,jdbcType=VARCHAR}, #{packageNames,jdbcType=VARCHAR},
-    #{collidingDate,jdbcType=DATE}, #{collidingTime,jdbcType=TIMESTAMP}, #{deleteRuleIds,jdbcType=VARCHAR},
-    #{deleteNum,jdbcType=INTEGER}, #{supplyRuleInfo,jdbcType=VARCHAR}, #{supplyNum,jdbcType=INTEGER},
+    #{collidingDate,jdbcType=DATE}, #{collidingTime,jdbcType=TIMESTAMP}, #{collidingNum,jdbcType=INTEGER}, #{deleteRuleIds,jdbcType=VARCHAR},
+    #{deleteNum,jdbcType=INTEGER}, #{deleteInfo,jdbcType=VARCHAR}, #{supplyRuleInfo,jdbcType=VARCHAR}, #{supplyNum,jdbcType=INTEGER},
     #{estNum,jdbcType=INTEGER}, #{pushNum,jdbcType=INTEGER}, #{status,jdbcType=INTEGER},
     #{enabled,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR},
     #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
@@ -152,11 +154,17 @@
       <if test="collidingTime != null" >
         colliding_time,
       </if>
+      <if test="collidingNum != null" >
+        colliding_num,
+      </if>
       <if test="deleteRuleIds != null" >
         delete_rule_ids,
       </if>
       <if test="deleteNum != null" >
         delete_num,
+      </if>
+      <if test="deleteInfo != null" >
+        delete_info,
       </if>
       <if test="supplyRuleInfo != null" >
         supply_rule_info,
@@ -205,11 +213,17 @@
       <if test="collidingTime != null" >
         #{collidingTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="collidingNum != null" >
+        #{collidingNum,jdbcType=INTEGER},
+      </if>
       <if test="deleteRuleIds != null" >
         #{deleteRuleIds,jdbcType=VARCHAR},
       </if>
       <if test="deleteNum != null" >
         #{deleteNum,jdbcType=INTEGER},
+      </if>
+      <if test="deleteInfo != null" >
+        #{deleteInfo,jdbcType=VARCHAR},
       </if>
       <if test="supplyRuleInfo != null" >
         #{supplyRuleInfo,jdbcType=VARCHAR},
@@ -270,11 +284,17 @@
       <if test="record.collidingTime != null" >
         colliding_time = #{record.collidingTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="record.collidingNum != null" >
+        colliding_num = #{record.collidingNum,jdbcType=INTEGER},
+      </if>
       <if test="record.deleteRuleIds != null" >
         delete_rule_ids = #{record.deleteRuleIds,jdbcType=VARCHAR},
       </if>
       <if test="record.deleteNum != null" >
         delete_num = #{record.deleteNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.deleteInfo != null" >
+        delete_info = #{record.deleteInfo,jdbcType=VARCHAR},
       </if>
       <if test="record.supplyRuleInfo != null" >
         supply_rule_info = #{record.supplyRuleInfo,jdbcType=VARCHAR},
@@ -319,8 +339,10 @@
     package_names = #{record.packageNames,jdbcType=VARCHAR},
     colliding_date = #{record.collidingDate,jdbcType=DATE},
     colliding_time = #{record.collidingTime,jdbcType=TIMESTAMP},
+    colliding_num = #{record.collidingNum,jdbcType=INTEGER},
     delete_rule_ids = #{record.deleteRuleIds,jdbcType=VARCHAR},
     delete_num = #{record.deleteNum,jdbcType=INTEGER},
+    delete_info = #{record.deleteInfo,jdbcType=VARCHAR},
     supply_rule_info = #{record.supplyRuleInfo,jdbcType=VARCHAR},
     supply_num = #{record.supplyNum,jdbcType=INTEGER},
     est_num = #{record.estNum,jdbcType=INTEGER},
@@ -353,11 +375,17 @@
       <if test="collidingTime != null" >
         colliding_time = #{collidingTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="collidingNum != null" >
+        colliding_num = #{collidingNum,jdbcType=INTEGER},
+      </if>
       <if test="deleteRuleIds != null" >
         delete_rule_ids = #{deleteRuleIds,jdbcType=VARCHAR},
       </if>
       <if test="deleteNum != null" >
         delete_num = #{deleteNum,jdbcType=INTEGER},
+      </if>
+      <if test="deleteInfo != null" >
+        delete_info = #{deleteInfo,jdbcType=VARCHAR},
       </if>
       <if test="supplyRuleInfo != null" >
         supply_rule_info = #{supplyRuleInfo,jdbcType=VARCHAR},
@@ -399,8 +427,10 @@
         package_names = #{packageNames,jdbcType=VARCHAR},
         colliding_date = #{collidingDate,jdbcType=DATE},
         colliding_time = #{collidingTime,jdbcType=TIMESTAMP},
+        colliding_num = #{collidingNum,jdbcType=INTEGER},
         delete_rule_ids = #{deleteRuleIds,jdbcType=VARCHAR},
         delete_num = #{deleteNum,jdbcType=INTEGER},
+        delete_info = #{deleteInfo,jdbcType=VARCHAR},
         supply_rule_info = #{supplyRuleInfo,jdbcType=VARCHAR},
         supply_num = #{supplyNum,jdbcType=INTEGER},
         est_num = #{estNum,jdbcType=INTEGER},
