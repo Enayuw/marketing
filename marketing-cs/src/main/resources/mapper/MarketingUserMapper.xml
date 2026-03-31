@@ -527,7 +527,7 @@
 		<if test="userType != null and userType != ''">
 			and user_type = #{userType}
 		</if>
-		order by id desc limit 1
+		order by create_time desc limit 1
 	</select>
 
 	<update id="createUserLabelTable" parameterType="java.lang.String">
