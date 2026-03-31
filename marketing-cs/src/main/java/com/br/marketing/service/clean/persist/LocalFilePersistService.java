@@ -10,6 +10,7 @@ import com.br.marketing.mapper.MarketingCleanDataFileMapper;
 import com.br.marketing.mapper.MarketingCleanHeaderTableMappingMapper;
 import com.br.marketing.mapper.MarketingCleanPersistTaskMapper;
 import com.br.marketing.mapper.SyncConfigMapper;
+import com.br.marketing.util.DataCleanDelimiterUtils;
 import com.br.marketing.utils.HeaderToColumnUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.DataFormatter;
@@ -93,7 +94,8 @@ public class LocalFilePersistService {
             }
 
             // 4. 读文件并写入动态表
-            int rowCount = readFileAndInsert(fullPath, task.getFileName(), task.getCleanDataFileRecordId(), taskId, mapping);
+            int rowCount = readFileAndInsert(fullPath, task.getFileName(), task.getCleanDataFileRecordId(), taskId, mapping,
+                    task.getSftpFileSeparator());
             if (rowCount < 0) {
                 updateTaskFail(taskId, 0);
                 return;
@@ -222,8 +224,12 @@ public class LocalFilePersistService {
     /**
      * 分批读文件并插入：每次最多读 BATCH_INSERT_SIZE 行，插入后继续下一批，避免整文件进内存。
      */
+    /**
+     * @param sftpFileSeparator 非 Excel 时按此分隔符切分列（与清洗配置 fieldDelimiter 一致）；null 时按逗号
+     */
     private int readFileAndInsert(String fullPath, String fileName, Long cleanDataFileRecordId,
-                                  Long persistTaskId, MarketingCleanHeaderTableMapping mapping) {
+                                  Long persistTaskId, MarketingCleanHeaderTableMapping mapping,
+                                  String sftpFileSeparator) {
         File file = new File(fullPath);
         if (!file.exists() || !file.isFile()) {
             log.warn("文件不存在: {}", fullPath);
@@ -236,15 +242,16 @@ public class LocalFilePersistService {
         if (isExcelFile(fileName)) {
             return readExcelBatchAndInsert(fullPath, columns, cleanDataFileRecordId, persistTaskId, mapping);
         } else {
-            return readCsvBatchAndInsert(fullPath, columns, cleanDataFileRecordId, persistTaskId, mapping);
+            return readCsvBatchAndInsert(fullPath, columns, cleanDataFileRecordId, persistTaskId, mapping, sftpFileSeparator);
         }
     }
 
     /**
-     * CSV/文本：流式按行读，攒满一批插入一批，不整文件进内存。
+     * CSV/文本：流式按行读，攒满一批插入一批，不整文件进内存。按 {@code fieldDelimiter} 字面量分列（非正则）。
      */
     private int readCsvBatchAndInsert(String fullPath, String[] columns, Long cleanDataFileRecordId,
-                                      Long persistTaskId, MarketingCleanHeaderTableMapping mapping) {
+                                      Long persistTaskId, MarketingCleanHeaderTableMapping mapping,
+                                      String fieldDelimiter) {
         int total = 0;
         int rowIndex = 2;
         List<List<String>> batch = new ArrayList<>(BATCH_INSERT_SIZE);
@@ -261,7 +268,7 @@ public class LocalFilePersistService {
                     continue;
                 }
                 List<String> cells = new ArrayList<>();
-                for (String s : t.split(",", -1)) {
+                for (String s : DataCleanDelimiterUtils.splitLine(t, fieldDelimiter)) {
                     cells.add(QUOTE_PATTERN.matcher(s.trim()).replaceAll(""));
                 }
                 batch.add(cells);

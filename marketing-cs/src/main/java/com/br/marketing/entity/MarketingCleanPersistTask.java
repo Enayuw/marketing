@@ -36,6 +36,11 @@ public class MarketingCleanPersistTask implements Serializable {
     private String fileName;
 
     /**
+     * SFTP 文件分隔符
+     */
+    private String sftpFileSeparator;
+
+    /**
      * 文件在服务器上的路径
      */
     private String localPath;
