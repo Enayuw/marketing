@@ -78,7 +78,8 @@ public class CustomerTagsValue {
 
             // 自动判断状态
             int status = 2; // 默认其他=2
-            if (enumItem == PushJc3keyTypeEnum.AES_COMMON) {
+            if (enumItem == PushJc3keyTypeEnum.AES_COMMON
+                    || enumItem == PushJc3keyTypeEnum.SM4) {
                 status = 0;
             } else if (enumItem == PushJc3keyTypeEnum.AES_NMD) {
                 status = 1;
