@@ -139,6 +139,11 @@ public class RedisKeyConstant {
     public static final String encryptyKey = prefix.concat("threek:encrypty");
 
     /**
+     * 上传数据检测到SM3时自动升级加密类型的分布式锁
+     */
+    public static final String ENCRYPT_UPGRADE_SM3_LOCK = prefix.concat("encrypt:upgrade:sm3:");
+
+    /**
      * 2023-07-06 15:00
      * 上传有效期
      */

@@ -34,7 +34,9 @@ public class CustomerTagsValue {
         SHA256_ALL(2,"3Ksha256","checkCellServiceImpl"),
         PLAINTEXT(3,"log加密","checkCellServiceImpl"),
         AES_COMMON(4,"AES通用","aesCommonStrategy"),
-        AES_NMD(5,"AES你我贷定制版","aesNmdStrategy");
+        AES_NMD(5,"AES你我贷定制版","aesNmdStrategy"),
+        SM3(6,"SM3国密哈希","sm3CheckServiceImpl"),
+        SM4(7,"SM4国密加密","sm4CheckServiceImpl");
 
         private Integer value;
         private String desc;
