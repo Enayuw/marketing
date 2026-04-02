@@ -61,7 +61,6 @@ public class TcDataPushProcessor extends AbstractTcCustomizeProcessor {
         record.setUpdateTime(new Date());
         try {
             tcyrSyncRecordMapper.insertSelective(record);
-            notifyNewSceneAlarm(tcRequestDTO, apiCode, batchNo, scene);
             return record.getId();
         } catch (DuplicateKeyException e) {
             //告警 todo
@@ -104,23 +103,6 @@ public class TcDataPushProcessor extends AbstractTcCustomizeProcessor {
         return "NEW";
     }
 
-    private void notifyNewSceneAlarm(TcRequestDTO tcRequestDTO, String apiCode, String batchNo, String scene) {
-        if (!"NEW".equals(scene)) {
-            return;
-        }
-        String batchPrefix = extractBatchPrefix(batchNo);
-        if (StringUtils.isBlank(batchPrefix)) {
-            return;
-        }
-        try {
-            String content = String.format("同程NEW前缀告警：apiCode=%s,batchNo=%s,batchPrefix=%s,requestNo=%s,scene=%s",
-                    apiCode, batchNo, batchPrefix, tcRequestDTO.getRequestNo(), scene);
-            notice(content); // 推送钉钉告警
-        } catch (Exception ignore) {
-            // 告警异常不影响主流程
-        }
-    }
-
     /**
      * 推送钉钉告警
      */
@@ -129,14 +111,5 @@ public class TcDataPushProcessor extends AbstractTcCustomizeProcessor {
         Map<String, Object> groupInfo = webHookInfo.get(DingDingAlarmFunctionEnum.TOCHENG_CPA_NOTICE.toString());
         dingDingRobotHookService.sendDingDingTextMessage(message, groupInfo);
     }
-
-    private String extractBatchPrefix(String batchNo) {
-        if (StringUtils.isBlank(batchNo)) {
-            return null;
-        }
-        int delimiterIndex = batchNo.indexOf('_');
-        return delimiterIndex > 0 ? batchNo.substring(0, delimiterIndex) : batchNo;
-    }
-
 
 }
