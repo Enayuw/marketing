@@ -47,4 +47,10 @@ public class CustomerTagsVO {
      */
     private String dynamicKeys;
 
+    /**
+     * 适配模式解析后的跑分加密类型（非持久化字段）
+     * {@link com.br.marketing.enums.ScoreThreeKeyEncryptEnum}
+     */
+    private transient Integer resolvedScoreEncryptType;
+
 }
