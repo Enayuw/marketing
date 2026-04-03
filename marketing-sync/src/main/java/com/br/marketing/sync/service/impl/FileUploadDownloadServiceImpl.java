@@ -597,6 +597,7 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
         long startTime = System.currentTimeMillis();
         List<FileSyncInfo> result = new ArrayList<>();
         String srcPath = config.getSrcPath();
+        String targetPath = config.getTargetPath();
         String apiCode = config.getApiCode();
         BaseFtpClient client = null;
         try {
@@ -609,7 +610,8 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
             }
             // 判断源路径格式
             boolean containsDatePattern = srcPath.contains("yyyyMMdd") || srcPath.contains("yyyy-MM-dd");
-            if (containsDatePattern) {
+            boolean targetDatePattern = targetPath.contains("yyyyMMdd") || targetPath.contains("yyyy-MM-dd");
+            if (containsDatePattern || targetDatePattern) {
                 // 包含日期格式：使用当前日期(T)和(T-60min)日期
                 Set<String> dateSet = new TreeSet<>();
                 dateSet.add(DateHelper.getDateByMinute(-60));
