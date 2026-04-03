@@ -1,11 +1,14 @@
 package com.br.marketing.service.rulecenter.impl.push;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.encryption.Sha256Util;
 import com.br.common.log.AlertLog;
+import com.br.common.util.BrCipherMaker;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.dto.AesGeneralDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.*;
 import com.br.marketing.es.bean.MarketingHistory;
@@ -17,6 +20,9 @@ import com.br.marketing.mapper.ErrorMarkMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.service.Impl.PushRuleServiceImpl;
 import com.br.marketing.service.ToPolicyByRuleService;
+import com.br.marketing.service.customertagsprocess.CustomerTagsProcessServiceImpl;
+import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
+import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
 import com.br.marketing.service.rulecenter.IEsActionService;
 import com.br.marketing.service.rulecenter.IRuleCenterPushStrategy;
 import com.br.marketing.service.rulecenter.RuleCenterPushContext;
@@ -25,18 +31,25 @@ import com.br.marketing.service.rulecenter.impl.esquery.EsQueryResult;
 import com.br.marketing.service.rulecenter.impl.esquery.EsQueryExecutor;
 import com.br.marketing.service.rulecenter.impl.esquery.EsQueryParams;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.aes.AesUtil;
 import com.br.marketing.util.GeneScriptUtil;
+import com.br.marketing.util.sm4.Sm4Util;
 import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.security.MessageDigest;
+import java.security.Security;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -76,6 +89,9 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
 
     @Autowired
     IEsActionService iEsActionService;
+
+    @Resource
+    CustomerTagsProcessServiceImpl customerTagsProcessService;
 
     @Resource
     CustomerInfoPushBatchMapper customerInfoPushBatchMapper;
@@ -205,8 +221,25 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
                     String.format("该推送不符合推送决策的限制条件 流水号：%s,原因：%s", pushMain.getId().toString(), integerResult.getMessage())));
             return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
         }
-        //赋值加密方式
-        context.setEncryptType(integerResult.getData());
+        Integer encryptType = integerResult.getData();
+        String apiCode = pushMain.getmApiCode();
+        if (ScoreThreeKeyEncryptEnum.adapt.getValue().equals(encryptType)) {
+            CustomerTagsVO tags = resolveAdaptEncryptType(apiCode);
+            if (tags != null) {
+                encryptType = tags.getResolvedScoreEncryptType();
+                context.setCustomerTagsVO(tags);
+            } else {
+                encryptType = ScoreThreeKeyEncryptEnum.md5.getValue();
+            }
+        }
+        if (ScoreThreeKeyEncryptEnum.sm4.getValue().equals(encryptType)
+                || ScoreThreeKeyEncryptEnum.aes.getValue().equals(encryptType)) {
+            if (context.getCustomerTagsVO() == null) {
+                CustomerTagsVO tags = customerTagsProcessService.getTags(apiCode);
+                context.setCustomerTagsVO(tags);
+            }
+        }
+        context.setEncryptType(encryptType);
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(true);
     }
 
@@ -498,5 +531,114 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
      */
     protected abstract RuleCenterPushContext setThreadPoolNum(RuleCenterPushContext pushContext);
 
+    /**
+     * 推决策3Key加密（保持原有风格：对BrCipherMaker编码串直接哈希）
+     * SM4/AES需要先解码BrCipherMaker再加密
+     */
+    protected String encrypt3k(Integer type, String content, CustomerTagsVO tags) {
+        if (StringUtils.isBlank(content)) {
+            return "";
+        }
+        if (ScoreThreeKeyEncryptEnum.md5.getValue().equals(type)) {
+            return DigestUtils.md5DigestAsHex(content.getBytes());
+        }
+        if (ScoreThreeKeyEncryptEnum.sha256.getValue().equals(type)) {
+            return Sha256Util.getSHA256Encrypt(content);
+        }
+        if (ScoreThreeKeyEncryptEnum.sm3.getValue().equals(type)) {
+            return sm3Digest(content);
+        }
+        if (ScoreThreeKeyEncryptEnum.sm4.getValue().equals(type) && tags != null) {
+            String plainText = BrCipherMaker.getInstance().decode(content);
+            if (StringUtils.isBlank(plainText)) {
+                return content;
+            }
+            return symmetricEncrypt(plainText, tags, true);
+        }
+        if (ScoreThreeKeyEncryptEnum.aes.getValue().equals(type) && tags != null) {
+            String plainText = BrCipherMaker.getInstance().decode(content);
+            if (StringUtils.isBlank(plainText)) {
+                return content;
+            }
+            return symmetricEncrypt(plainText, tags, false);
+        }
+        return content;
+    }
+
+    private String sm3Digest(String input) {
+        try {
+            if (Security.getProvider("BC") == null) {
+                Security.addProvider(new BouncyCastleProvider());
+            }
+            MessageDigest digest = MessageDigest.getInstance("SM3", "BC");
+            byte[] hash = digest.digest(input.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            return Hex.toHexString(hash);
+        } catch (Exception e) {
+            log.error("SM3摘要计算失败", e);
+            return input;
+        }
+    }
+
+    private String symmetricEncrypt(String plainText, CustomerTagsVO tags, boolean isSm4) {
+        try {
+            AesGeneralDTO dto = new AesGeneralDTO();
+            dto.setText(plainText);
+            dto.setCipherMode(tags.getCipherMode());
+            dto.setPaddingScheme(tags.getPaddingScheme());
+            dto.setCharset(tags.getCharset());
+            dto.setDynamicKeys(tags.getDynamicKeys());
+            dto.setIv(tags.getIv());
+            if (isSm4) {
+                return Sm4Util.encrypt(dto);
+            } else {
+                return AesUtil.encrypt(dto);
+            }
+        } catch (Exception e) {
+            log.error("{}加密失败", isSm4 ? "SM4" : "AES", e);
+            return plainText;
+        }
+    }
+
+    /**
+     * 适配模式：读取客户配置的加密类型，映射为跑分加密枚举值
+     */
+    protected CustomerTagsVO resolveAdaptEncryptType(String apiCode) {
+        try {
+            CustomerTagsVO tags = customerTagsProcessService.getTags(apiCode);
+            if (tags == null || tags.getPushJc3keyType() == null) {
+                return null;
+            }
+            Integer pushType = tags.getPushJc3keyType();
+            CustomerTagsValue.PushJc3keyTypeEnum pushEnum = CustomerTagsValue.getEnumByValue(pushType, CustomerTagsValue.PushJc3keyTypeEnum.class);
+            if (pushEnum == null) {
+                tags.setResolvedScoreEncryptType(ScoreThreeKeyEncryptEnum.md5.getValue());
+                return tags;
+            }
+            switch (pushEnum) {
+                case MD5_ALL:
+                    tags.setResolvedScoreEncryptType(ScoreThreeKeyEncryptEnum.md5.getValue());
+                    break;
+                case SHA256_ALL:
+                    tags.setResolvedScoreEncryptType(ScoreThreeKeyEncryptEnum.sha256.getValue());
+                    break;
+                case SM3:
+                    tags.setResolvedScoreEncryptType(ScoreThreeKeyEncryptEnum.sm3.getValue());
+                    break;
+                case SM4:
+                    tags.setResolvedScoreEncryptType(ScoreThreeKeyEncryptEnum.sm4.getValue());
+                    break;
+                case AES_COMMON:
+                    tags.setResolvedScoreEncryptType(ScoreThreeKeyEncryptEnum.aes.getValue());
+                    break;
+                default:
+                    tags.setResolvedScoreEncryptType(ScoreThreeKeyEncryptEnum.init.getValue());
+                    break;
+            }
+            return tags;
+        } catch (Exception e) {
+            log.error("解析adapt加密类型失败, apiCode={}", apiCode, e);
+            return null;
+        }
+    }
 
 }

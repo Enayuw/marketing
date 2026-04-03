@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.entity.CustomerInfoPushBatch;
 import com.br.marketing.entity.CustomerInfoPushMain;
 import com.br.marketing.entity.StraHisFile;
+import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
 import lombok.Data;
 
 import java.util.HashMap;
@@ -91,5 +92,10 @@ public class RuleCenterPushContext {
      * 扩展字段存储
      */
     private JSONObject extendDataJson;
+
+    /**
+     * 客户加密配置（SM4/AES需要的参数）
+     */
+    private CustomerTagsVO customerTagsVO;
 
 }

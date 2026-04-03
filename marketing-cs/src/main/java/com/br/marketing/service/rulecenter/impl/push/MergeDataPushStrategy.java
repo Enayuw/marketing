@@ -2,7 +2,6 @@ package com.br.marketing.service.rulecenter.impl.push;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.br.common.encryption.Sha256Util;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
@@ -23,6 +22,7 @@ import com.br.marketing.mapper.ErrorMarkMapper;
 import com.br.marketing.mapper.FlagDataMapper;
 import com.br.marketing.mapper.MarketingRuleCenterMergePushDataMapper;
 import com.br.marketing.service.ToPolicyByRuleService;
+import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
 import com.br.marketing.service.datagroup.rulecenter.RuleCenterLabelService;
 import com.br.marketing.service.rulecenter.RuleCenterPushContext;
 import com.br.marketing.util.GeneScriptUtil;
@@ -35,7 +35,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.DigestUtils;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
@@ -90,7 +89,9 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
                 context.getCustomerInfoPushMain(),
                 partitionIndex.toString(),
                 context.getMarkWithEsFlag(),
-                context.getLabelObject()
+                context.getLabelObject(),
+                context.getEncryptType(),
+                context.getCustomerTagsVO()
         );
     }
 
@@ -191,14 +192,19 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
         private String part;
         private Boolean markWithEsFlag;
         private Object lableObject;
+        private Integer _3kEncrypt;
+        private CustomerTagsVO customerTagsVO;
 
-        public MergePushPolicyTask(ThreadPoolExecutor pushJcPool, CustomerInfoPushMain customerInfoPushMain, String part, Boolean markWithEsFlag, Object lableObject) {
+        public MergePushPolicyTask(ThreadPoolExecutor pushJcPool, CustomerInfoPushMain customerInfoPushMain,
+                                   String part, Boolean markWithEsFlag, Object lableObject,
+                                   Integer _3kEncrypt, CustomerTagsVO customerTagsVO) {
             this.pushJcPool = pushJcPool;
             this.customerInfoPushMain = customerInfoPushMain;
             this.part = part;
             this.markWithEsFlag = markWithEsFlag;
             this.lableObject = lableObject;
-
+            this._3kEncrypt = _3kEncrypt;
+            this.customerTagsVO = customerTagsVO;
         }
 
         @Override
@@ -239,12 +245,12 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
                                 (StringUtils.isNotBlank(marketingRuleCenterMergePushData.getBatchNumber()) ? marketingRuleCenterMergePushData.getBatchNumber() : ""));
                     }
                     dto1.setCaseNumber(marketingRuleCenterMergePushData.getCusNum());
-                    dto1.setPhone(marketingRuleCenterMergePushData.getCell());
+                    dto1.setPhone(encrypt3k(_3kEncrypt, marketingRuleCenterMergePushData.getCell(), customerTagsVO));
+                    dto1.setLogCell(marketingRuleCenterMergePushData.getCell());
                     JSONObject varObject = JSON.parseObject(marketingRuleCenterMergePushData.getExtend());
                     if (varObject == null) {
                         varObject = new JSONObject();
                     }
-                    //构建conditions
                     List<MarketingCondition> conditions = new ArrayList<>();
                     Set<Map.Entry<String, Object>> entrySet = varObject.entrySet();
                     for (Map.Entry<String, Object> entry : entrySet) {
@@ -259,8 +265,8 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
                     }
 
                     varObject.put("custNum", marketingRuleCenterMergePushData.getCusNum());
-                    varObject.put("idCard", marketingRuleCenterMergePushData.getIdCard());
-                    varObject.put("name", marketingRuleCenterMergePushData.getName());
+                    varObject.put("idCard", encrypt3k(_3kEncrypt, marketingRuleCenterMergePushData.getIdCard(), customerTagsVO));
+                    varObject.put("name", encrypt3k(_3kEncrypt, marketingRuleCenterMergePushData.getName(), customerTagsVO));
                     varObject.put("batchNumber", marketingRuleCenterMergePushData.getBatchNumber());
                     varObject.put("taskId", marketingRuleCenterMergePushData.getmId());
                     varObject.put("userType", marketingRuleCenterMergePushData.getUserType());
