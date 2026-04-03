@@ -4,6 +4,7 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.es.bean.MarketingCondition;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,7 @@ import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.ShuHeCuFuJieData;
+import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.MarketingHistoryEsService;
@@ -33,8 +35,10 @@ import com.br.marketing.es.util.es.EsIceType;
 import com.br.marketing.es.util.es.rpcclient.RpcClientProxy;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.mapper.ShuHeCuFuJieDataMapper;
+import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.service.ShuHeCuFuJieMatchDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.EsNewIndexRuleUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -58,6 +62,8 @@ public class ShuHeCuFuJieMatchDataServiceImpl implements ShuHeCuFuJieMatchDataSe
     private MarketingSyncUserMapper marketingSyncUserMapper;
     @Autowired
     private MarketingHistoryEsService marketingHistoryEsService;
+    @Resource
+    private StraHisFileMapper straHisFileMapper;
 
     /**
      * @param condition 跑分规则筛选条件
@@ -83,6 +89,7 @@ public class ShuHeCuFuJieMatchDataServiceImpl implements ShuHeCuFuJieMatchDataSe
         if (minId == null) {
             return;
         }
+        final StraHisFile straHisFileForEs = fieldId != null ? straHisFileMapper.selectByPrimaryKey(fieldId) : null;
         log.warn("数禾促复借{}自动化匹配数据清洗开始", date);
         minId = minId - 1;
         while (mark) {
@@ -153,6 +160,9 @@ public class ShuHeCuFuJieMatchDataServiceImpl implements ShuHeCuFuJieMatchDataSe
                     queryBaseBean.setFileIds(String.valueOf(fieldId));
                     queryBaseBean.setJsonData(jsonData.toJSONString());
                     queryBaseBean.setPageSize(2000);
+                    queryBaseBean.setUseNewIndexRule(EsNewIndexRuleUtils.resolveAsMap(
+                            straHisFileForEs != null ? Collections.singletonList(straHisFileForEs) : null,
+                            marketingCommonConfig));
                     List<Map<String, MarketingHistory>> marketingHistoryMapList =
                             marketingHistoryEsService.builderMarketingWithIdList(queryBaseBean, null, false);
                     for (Map<String, MarketingHistory> marketingHistoryMap : marketingHistoryMapList) {

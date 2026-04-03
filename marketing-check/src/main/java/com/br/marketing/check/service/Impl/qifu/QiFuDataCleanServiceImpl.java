@@ -18,6 +18,7 @@ import com.br.marketing.mapper.QueryUserRealMessageMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.service.Impl.DynamicParameterServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.EsNewIndexRuleUtils;
 import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
@@ -272,6 +273,7 @@ public class QiFuDataCleanServiceImpl implements QiFuDataCleanService {
             queryBaseBean.setFileIds(String.valueOf(straHisFile.getId()));
             queryBaseBean.setJsonData(jsonData.toJSONString());
             queryBaseBean.setPageSize(2000);
+            queryBaseBean.setUseNewIndexRule(EsNewIndexRuleUtils.resolveAsMap(Collections.singletonList(straHisFile), marketingCommonConfig));
             List<Map<String, MarketingHistory>> marketingHistoryMapList =
                     marketingHistoryEsService.builderMarketingWithIdList(queryBaseBean, null, false);
             log.warn("奇富促动支ES中查询的数据量级为num={}", marketingHistoryMapList.size());

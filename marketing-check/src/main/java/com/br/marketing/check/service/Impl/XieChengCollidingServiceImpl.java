@@ -26,9 +26,11 @@ import com.br.marketing.mapper.CustomerInfoPushMainMapper;
 import com.br.marketing.mapper.XieChengCollidingDataLogMapper;
 import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
 import com.br.marketing.service.PushRuleService;
+import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.EncAndDecUtil;
 import com.br.marketing.util.EsConditionTransferSqlUtil;
+import com.br.marketing.util.EsNewIndexRuleUtils;
 import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.br.marketing.util.xiecheng.XieChengEsJsonHandler;
 import com.google.common.base.Joiner;
@@ -84,6 +86,9 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
     @Resource
     XieChengCollidingDataLogMapper xieChengCollidingDataLogMapper;
 
+    @Resource
+    StraHisFileMapper straHisFileMapper;
+
     /**
      * 携程撞库数据推决策
      *
@@ -102,6 +107,14 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
         for (CustomerInfoPushBatch customerInfoPushBatch : customerInfoPushBatches) {
             numList.add(customerInfoPushBatch.getmBatchNumber());
             fileIds.add(customerInfoPushBatch.getmFileId());
+        }
+        List<StraHisFile> straHisFilesForIndex;
+        if (fileIds.isEmpty()) {
+            straHisFilesForIndex = new ArrayList<>();
+        } else {
+            StraHisFileExample fileExampleForIndex = new StraHisFileExample();
+            fileExampleForIndex.createCriteria().andIdIn(fileIds);
+            straHisFilesForIndex = straHisFileMapper.selectByExample(fileExampleForIndex);
         }
         Result<Integer> integerResult = pushRuleService.checkThreekEnc(fileIds);
         Integer threeEncrypt = integerResult.getData();
@@ -135,7 +148,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             //数据切分，为了兼容跑分文件重复数据，业务侧若保证撞库本次跑分文件不重复，该段逻辑去掉
             List<List<XieChengCollidingDataLoopCycle>> dataLoopCycleLists = Lists.partition(list, 1500);
             dataLoopCycleLists.forEach((List dataLoopCycleList) -> {
-                resList.add(threadPool.submit(() -> pushPolicy(dataLoopCycleList, numList, fileIds, customerInfoPushMain, threeEncrypt)));
+                resList.add(threadPool.submit(() -> pushPolicy(dataLoopCycleList, numList, fileIds, customerInfoPushMain, threeEncrypt, straHisFilesForIndex)));
             });
         }
         try {
@@ -171,7 +184,8 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
 
 
     private Result<Integer> pushPolicy(List<XieChengCollidingDataLoopCycle> list, List<String> numList, List<Long> fileIds,
-                                       CustomerInfoPushMain customerInfoPushMain, Integer threeEncrypt) {
+                                       CustomerInfoPushMain customerInfoPushMain, Integer threeEncrypt,
+                                       List<StraHisFile> straHisFilesForIndex) {
         Result<Integer> result = new Result<>();
         try {
             List<String> cells = list.stream().map(XieChengCollidingDataLoopCycle::getCellSha256CodeList).collect(Collectors.toList());
@@ -198,6 +212,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             queryBaseBean.setBatchNumbers(Joiner.on(",").join(numList));
             queryBaseBean.setFileIds(Joiner.on(",").join(fileIds));
             queryBaseBean.setJsonData(jsonRule.toString());
+            queryBaseBean.setUseNewIndexRule(EsNewIndexRuleUtils.resolveAsMap(straHisFilesForIndex, marketingCommonConfig));
             //兼容数据重复的情况
             queryBaseBean.setPageSize(2000);
             //根据跑分条件查询ES，符合条件的数据即为要推送数据

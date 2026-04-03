@@ -14,6 +14,7 @@ import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.service.rulecenter.IEsActionService;
 import com.br.marketing.service.rulecenter.IRuleCenterCustomEsService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.EsNewIndexRuleUtils;
 import com.br.marketing.util.GeneScriptUtil;
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
@@ -149,7 +150,7 @@ public class RuleCenterCustomEsServiceImpl implements IRuleCenterCustomEsService
                 final Integer partitionIndex = i;
                 Future<Map<String, Object>> future = esThreadPool.submit(() ->
                         queryPartitionData(customerInfoPushMain, partitionIndex, numList, fileIds,
-                                isSingle, lableObject, markWithEsFlag)
+                                isSingle, lableObject, markWithEsFlag, straHisFiles)
                 );
                 futures.add(future);
             }
@@ -222,7 +223,8 @@ public class RuleCenterCustomEsServiceImpl implements IRuleCenterCustomEsService
                                                    List<Long> fileIds,
                                                    Boolean isSingle,
                                                    Object lableObject,
-                                                   Boolean markWithEsFlag) {
+                                                   Boolean markWithEsFlag,
+                                                   List<StraHisFile> straHisFiles) {
         long partStartTime = System.currentTimeMillis();
         String part = partitionIndex.toString();
         Map<String, Object> partitionInfo = new HashMap<>();
@@ -231,7 +233,7 @@ public class RuleCenterCustomEsServiceImpl implements IRuleCenterCustomEsService
         try {
             Integer pageSize = 2000;
             Integer partDataNum = isSingle ? customerInfoPushMain.getmRealyNum()
-                    : getPartitionDataNum(customerInfoPushMain, part, numList, fileIds, isSingle);
+                    : getPartitionDataNum(customerInfoPushMain, part, numList, fileIds, isSingle, straHisFiles);
 
             Integer total = partDataNum;
             int totalYuShu = total % pageSize;
@@ -253,7 +255,8 @@ public class RuleCenterCustomEsServiceImpl implements IRuleCenterCustomEsService
                     totalPage,
                     isSingle,
                     lableObject,
-                    markWithEsFlag
+                    markWithEsFlag,
+                    straHisFiles
             );
 
             // 设置自定义索引
@@ -324,7 +327,8 @@ public class RuleCenterCustomEsServiceImpl implements IRuleCenterCustomEsService
                                         String part,
                                         List<String> numList,
                                         List<Long> fileIds,
-                                        Boolean isSingle) {
+                                        Boolean isSingle,
+                                        List<StraHisFile> straHisFiles) {
         try {
             if (isSingle) {
                 return customerInfoPushMain.getmRealyNum();
@@ -336,6 +340,7 @@ public class RuleCenterCustomEsServiceImpl implements IRuleCenterCustomEsService
             queryBaseBean.setFileIds(Joiner.on(",").join(fileIds));
             queryBaseBean.setJsonData(customerInfoPushMain.getmRuleCondition());
             queryBaseBean.setPart(part);
+            queryBaseBean.setUseNewIndexRule(EsNewIndexRuleUtils.resolveAsMap(straHisFiles, marketingCommonConfig));
 
             JSONObject policyCustomIndexes = marketingCommonConfig.getPolicyCustomIndexes();
             if (policyCustomIndexes != null) {
