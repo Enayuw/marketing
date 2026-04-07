@@ -53,27 +53,27 @@ public class MarketingMockApiService {
     @RetryMethod(retryNowNum = 2)
     public Result<String> queryMockConfig(String cacheKey) {
         try {
-            //Map<String, String> params = new HashMap<>();
-            //params.put("cacheKey", cacheKey);
-            //
-            //ThirdApiResultTransfer result = new ApiCallerUtil(restTemplate, null, interfaceLogDbpool)
-            //        .setUrl(redisUrl)
-            //        .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
-            //        .setRequestParam(params)
-            //        .setEncode(Boolean.TRUE)
-            //        .postTransferStr();
-            //if (Integer.valueOf(200).equals(result.getHttpCode())) {
-            //    JSONObject jsonObject = JSON.parseObject(result.getResult());
-            //    String code = jsonObject.getString("code");
-            //    String data = jsonObject.getString("data");
-            //    if ("000000".equals(code)) {
-            //        return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(data);
-            //    } else {
-            //        return new Result<String>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE.toString());
-            //    }
-            //} else {
-            //    return new Result<String>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
-            //}
+            Map<String, String> params = new HashMap<>();
+            params.put("cacheKey", cacheKey);
+
+            ThirdApiResultTransfer result = new ApiCallerUtil(restTemplate, null, interfaceLogDbpool)
+                    .setUrl(redisUrl)
+                    .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .setRequestParam(params)
+                    .setEncode(Boolean.TRUE)
+                    .postTransferStr();
+            if (Integer.valueOf(200).equals(result.getHttpCode())) {
+                JSONObject jsonObject = JSON.parseObject(result.getResult());
+                String code = jsonObject.getString("code");
+                String data = jsonObject.getString("data");
+                if ("000000".equals(code)) {
+                    return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(data);
+                } else {
+                    return new Result<String>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE.toString());
+                }
+            } else {
+                return new Result<String>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+            }
         } catch (Exception ex) {
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.MOCK_APIERROR.getCode(), "调用查询Mock挡板配置信息接口报错!，url："+redisUrl), ex);
         }
