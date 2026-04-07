@@ -22,6 +22,7 @@ import com.br.marketing.mapper.ErrorMarkMapper;
 import com.br.marketing.mapper.FlagDataMapper;
 import com.br.marketing.mapper.MarketingRuleCenterMergePushDataMapper;
 import com.br.marketing.service.ToPolicyByRuleService;
+import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
 import com.br.marketing.service.datagroup.rulecenter.RuleCenterLabelService;
 import com.br.marketing.service.rulecenter.RuleCenterPushContext;
 import com.br.marketing.util.GeneScriptUtil;
@@ -88,7 +89,9 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
                 context.getCustomerInfoPushMain(),
                 partitionIndex.toString(),
                 context.getMarkWithEsFlag(),
-                context.getLabelObject()
+                context.getLabelObject(),
+                context.getEncryptType(),
+                context.getCustomerTagsVO()
         );
     }
 
@@ -189,14 +192,19 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
         private String part;
         private Boolean markWithEsFlag;
         private Object lableObject;
+        private Integer _3kEncrypt;
+        private CustomerTagsVO customerTagsVO;
 
         public MergePushPolicyTask(ThreadPoolExecutor pushJcPool, CustomerInfoPushMain customerInfoPushMain,
-                                   String part, Boolean markWithEsFlag, Object lableObject) {
+                                   String part, Boolean markWithEsFlag, Object lableObject,
+                                   Integer _3kEncrypt, CustomerTagsVO customerTagsVO) {
             this.pushJcPool = pushJcPool;
             this.customerInfoPushMain = customerInfoPushMain;
             this.part = part;
             this.markWithEsFlag = markWithEsFlag;
             this.lableObject = lableObject;
+            this._3kEncrypt = _3kEncrypt;
+            this.customerTagsVO = customerTagsVO;
         }
 
         @Override
@@ -238,6 +246,7 @@ public class MergeDataPushStrategy extends AbstractRuleCenterPushStrategy {
                     }
                     dto1.setCaseNumber(marketingRuleCenterMergePushData.getCusNum());
                     dto1.setPhone(marketingRuleCenterMergePushData.getCell());
+                    dto1.setLogCell(resolveLogCell(_3kEncrypt, marketingRuleCenterMergePushData.getCell(), customerTagsVO));
                     JSONObject varObject = JSON.parseObject(marketingRuleCenterMergePushData.getExtend());
                     if (varObject == null) {
                         varObject = new JSONObject();

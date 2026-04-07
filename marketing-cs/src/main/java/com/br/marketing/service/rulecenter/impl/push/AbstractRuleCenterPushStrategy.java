@@ -31,6 +31,7 @@ import com.br.marketing.service.rulecenter.impl.esquery.EsQueryResult;
 import com.br.marketing.service.rulecenter.impl.esquery.EsQueryExecutor;
 import com.br.marketing.service.rulecenter.impl.esquery.EsQueryParams;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.util.aes.AesUtil;
 import com.br.marketing.util.GeneScriptUtil;
 import com.br.marketing.util.sm4.Sm4Util;
@@ -596,6 +597,58 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
         } catch (Exception e) {
             log.error("{}加密失败", isSm4 ? "SM4" : "AES", e);
             return plainText;
+        }
+    }
+
+    /**
+     * 根据加密类型对已加密的cell值进行反向解密，再用BrCipherMaker编码，用于logCell字段。
+     * 适用于合并数据推决策等场景，数据来源的cell已经是加密后的最终值。
+     */
+    protected String resolveLogCell(Integer encryptType, String encryptedCell, CustomerTagsVO tags) {
+        if (StringUtils.isBlank(encryptedCell)) {
+            return "";
+        }
+        try {
+            String plainText = null;
+            if (ScoreThreeKeyEncryptEnum.md5.getValue().equals(encryptType)) {
+                plainText = RpcClientProxy.decode(encryptedCell, "cell", "md5", "");
+            } else if (ScoreThreeKeyEncryptEnum.sha256.getValue().equals(encryptType)) {
+                plainText = RpcClientProxy.decode(encryptedCell, "cell", "sha", "");
+            } else if (ScoreThreeKeyEncryptEnum.sm3.getValue().equals(encryptType)) {
+                plainText = RpcClientProxy.decode(encryptedCell, "cell", "sm3", "");
+            } else if (ScoreThreeKeyEncryptEnum.sm4.getValue().equals(encryptType) && tags != null) {
+                plainText = symmetricDecrypt(encryptedCell, tags, true);
+            } else if (ScoreThreeKeyEncryptEnum.aes.getValue().equals(encryptType) && tags != null) {
+                plainText = symmetricDecrypt(encryptedCell, tags, false);
+            } else {
+                return BrCipherMaker.getInstance().encode(encryptedCell);
+            }
+            if (StringUtils.isNotBlank(plainText)) {
+                return BrCipherMaker.getInstance().encode(plainText);
+            }
+        } catch (Exception e) {
+            log.error("resolveLogCell失败, encryptType={}", encryptType, e);
+        }
+        return "";
+    }
+
+    private String symmetricDecrypt(String cipherText, CustomerTagsVO tags, boolean isSm4) {
+        try {
+            AesGeneralDTO dto = new AesGeneralDTO();
+            dto.setText(cipherText);
+            dto.setCipherMode(tags.getCipherMode());
+            dto.setPaddingScheme(tags.getPaddingScheme());
+            dto.setCharset(tags.getCharset());
+            dto.setDynamicKeys(tags.getDynamicKeys());
+            dto.setIv(tags.getIv());
+            if (isSm4) {
+                return Sm4Util.decrypt(dto);
+            } else {
+                return AesUtil.decrypt(dto);
+            }
+        } catch (Exception e) {
+            log.error("{}解密失败", isSm4 ? "SM4" : "AES", e);
+            return null;
         }
     }
 
