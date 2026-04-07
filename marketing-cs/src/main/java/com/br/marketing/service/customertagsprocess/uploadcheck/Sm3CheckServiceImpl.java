@@ -54,9 +54,19 @@ public class Sm3CheckServiceImpl implements IUploadCheckService {
         // 已确定为SM3，直接走SM3 gRPC反查
         String plainText = RpcClientProxy.decode(content, type, "sm3", "");
         if (StringUtils.isBlank(plainText)) {
+            // cell解密失败则报错
             if ("cell".equals(type)) {
                 user.setFailType(MonitorTypeEnum.FAIL_TYPE_SM3.getType());
                 user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
+            }
+            // id、name解密失败认为是明文
+            if ("id".equals(type)) {
+                user.setIdOriginal(BrCipherMaker.getInstance().encode(content));
+                user.setId(BrCipherMaker.getInstance().encode(content));
+            }
+            if ("name".equals(type)) {
+                user.setNameOriginal(BrCipherMaker.getInstance().encode(content));
+                user.setName(BrCipherMaker.getInstance().encode(content));
             }
             return;
         }
