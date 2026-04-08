@@ -1,5 +1,6 @@
 package com.br.marketing.service.didi.impl;
 
+import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -74,11 +75,14 @@ public class DidiDataSyncServiceImpl implements DiDiDataSyncService {
         }
 
         // 记录已处理的数据总量
-        int totalProcessedCount = 0;
+        int cycleCount = diDiV5DataLoopCycleMapper.queryCollidingDataAmount(DateUtil.beginOfDay(DateUtil.tomorrow()),
+                DateUtil.endOfDay(DateUtil.tomorrow()));
+        int preCount = diDiV5CollidingDataRobMapper.queryCollidingDataAmount(DateUtil.beginOfDay(DateUtil.tomorrow()));
+        int totalProcessedCount = cycleCount + preCount;
 
         for (LocalFile localFile : localFiles) {
             try {
-                process(localFile);
+                totalProcessedCount += process(localFile);
                 updatePushStatus(localFile);
             } catch (Exception e) {
                 String subject = TITLE + localFile.getId();
@@ -198,7 +202,7 @@ public class DidiDataSyncServiceImpl implements DiDiDataSyncService {
     /**
      * 处理文件数据
      */
-    private void process(LocalFile localFile) {
+    private int process(LocalFile localFile) {
         String apiCode = localFile.getApiCode();
         TpDynamicExecutor pushPool = TpDynamicExecutorFactory.getThreadPool(
                 ThreadPoolNameEnum.DIDI_V5_FILTER.getName(), 50, 50);
@@ -227,7 +231,7 @@ public class DidiDataSyncServiceImpl implements DiDiDataSyncService {
             diDiV5CollidingDataMapper.updatePushStatusByIds(3, ids);
         }
         pushPool.shutdownAndAwaitTermination();
-        processedCount.get();
+        return processedCount.get();
     }
 
     private void removeDuplicateAndInsertToRob(List<DiDiV5CollidingData> list, LocalFile localFile,
@@ -289,7 +293,6 @@ public class DidiDataSyncServiceImpl implements DiDiDataSyncService {
                     return Lists.newArrayList();
                 }
             }
-
             return list.stream().filter(t -> cells.contains(t.getCell()))
                     .map(t -> {
                         DiDiCollidingDataRob diDiCollidingDataRob = new DiDiCollidingDataRob();

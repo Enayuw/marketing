@@ -13,6 +13,9 @@ public interface DiDiV5DataLoopCycleMapper extends DiDiV5DataLoopCycleMapperBase
                                                          @Param("startTime") Date startTime,
                                                          @Param("endTime") Date endTime);
 
+    Integer queryCollidingDataAmount(@Param("startTime") Date startTime,
+                                     @Param("endTime") Date endTime);
+
 
     void updatePushTimeByIds(@Param("pushTime") Date pushTime, @Param("ids") List<Long> ids);
 
