@@ -293,7 +293,7 @@ public class DidiDataSyncServiceImpl implements DiDiDataSyncService {
                     return Lists.newArrayList();
                 }
             }
-            return list.stream().filter(t -> cells.contains(t.getCell()))
+            List<DiDiCollidingDataRob> robList = list.stream().filter(t -> cells.contains(t.getCell()))
                     .map(t -> {
                         DiDiCollidingDataRob diDiCollidingDataRob = new DiDiCollidingDataRob();
                         BeanUtils.copyProperties(t, diDiCollidingDataRob);
@@ -306,6 +306,11 @@ public class DidiDataSyncServiceImpl implements DiDiDataSyncService {
                         }
                         return diDiCollidingDataRob;
                     }).collect(Collectors.toList());
+            if (newCollidingTime != null) {
+                List<Long> ids = robList.stream().map(DiDiCollidingDataRob::getDataId).toList();
+                diDiV5CollidingDataMapper.updateCollidingTimeByIds(newCollidingTime, ids);
+            }
+            return robList;
         } catch (Exception e) {
             String subject = TITLE + "数据剔除，子线程处理异常！";
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(), e.getMessage()

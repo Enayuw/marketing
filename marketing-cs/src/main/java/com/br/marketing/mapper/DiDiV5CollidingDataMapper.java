@@ -29,6 +29,9 @@ public interface DiDiV5CollidingDataMapper extends DiDiV5CollidingDataMapperBase
 
     void updatePushStatusByIds(@Param("pushStatus") int pushStatus, @Param("ids") List<Long> ids);
 
+    void updateCollidingTimeByIds(@Param("collidingTime") Date collidingTime, @Param("ids") List<Long> ids);
+
+
     List<Long> queryCollidingFileIds(@Param("startTime") Date startTime, @Param("endTime") Date endTime);
 
     int getPushStatusCountByLocalId(@Param("fileId") Long fileId, @Param("pushStatus") int pushStatus, @Param("startTime") Date startTime, @Param(
