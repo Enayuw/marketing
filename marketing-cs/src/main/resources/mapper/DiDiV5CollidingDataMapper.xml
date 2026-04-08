@@ -94,4 +94,15 @@
         ORDER BY c.id
             LIMIT #{pageSize}
     </select>
+
+    <select id="selectNoDupDataByDateAndId" resultMap="BaseResultMap">
+        SELECT *
+        FROM t_didi_v5_colliding_data
+        WHERE api_code = #{apiCode}
+        AND push_status = 0
+        AND DATE(colliding_time) = DATE(#{collidingTime})
+        AND id > #{minId}
+        ORDER BY id ASC
+        LIMIT #{pageSize}
+    </select>
 </mapper>

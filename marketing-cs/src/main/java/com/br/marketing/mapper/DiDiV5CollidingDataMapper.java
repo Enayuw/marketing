@@ -1,11 +1,10 @@
 package com.br.marketing.mapper;
 
 import com.br.marketing.entity.DiDiV5CollidingData;
+import org.apache.ibatis.annotations.Param;
+
 import java.util.Date;
 import java.util.List;
-
-import com.br.marketing.entity.WubaCollidingDataFront;
-import org.apache.ibatis.annotations.Param;
 
 public interface DiDiV5CollidingDataMapper extends DiDiV5CollidingDataMapperBase {
     List<DiDiV5CollidingData> queryCollidingData(@Param("limit") int limit, @Param("startTime") Date startTime, @Param("endTime") Date endTime);
@@ -37,4 +36,11 @@ public interface DiDiV5CollidingDataMapper extends DiDiV5CollidingDataMapperBase
 
     List<DiDiV5CollidingData> selectNoDupDataByLocalIdtikv_(@Param("localId") Long localId, @Param("apiCode") String apiCode,
                                                                @Param("minId") Long minId, @Param("pageSize") Integer pageSize);
+
+
+    List<DiDiV5CollidingData> selectNoDupDataByDateAndId(
+            @Param("apiCode") String apiCode,
+            @Param("collidingTime") Date collidingTime,
+            @Param("minId") Long minId,
+            @Param("pageSize") Integer pageSize);
 }

@@ -16,14 +16,13 @@ import com.google.common.collect.Lists;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -62,6 +61,9 @@ public class DidiDataSyncServiceImpl implements DiDiDataSyncService {
     public void sync() {
         JSONObject pushConfig = marketingCommonConfig.getDiDiV5Config();
         String apiCode = pushConfig.getString("apiCode");
+        Integer collidingLimit = pushConfig.getInteger("collidingLimit");
+        Integer pageSize = pushConfig.getInteger("limit");
+
         LocalFileExample example = new LocalFileExample();
         // 查询待推送文件 查询条件b_local_file：status=2 且 push_status=空
         example.createCriteria().andFileTypeEqualTo(SftpFileTypeEnum.DD.getValue())
@@ -70,10 +72,13 @@ public class DidiDataSyncServiceImpl implements DiDiDataSyncService {
         if (CollectionUtils.isEmpty(localFiles)) {
             return;
         }
+
+        // 记录已处理的数据总量
+        int totalProcessedCount = 0;
+
         for (LocalFile localFile : localFiles) {
             try {
                 process(localFile);
-                // 只有process执行成功，才更新push_status，否则下次调度时会重新执行
                 updatePushStatus(localFile);
             } catch (Exception e) {
                 String subject = TITLE + localFile.getId();
@@ -81,13 +86,124 @@ public class DidiDataSyncServiceImpl implements DiDiDataSyncService {
                         , subject), e);
             }
         }
+
+        // 检查是否需要从后天数据中补数
+        if (totalProcessedCount < collidingLimit) {
+            int needCount = collidingLimit - totalProcessedCount;
+            log.info("已处理数据量{}不足collidingLimit{}, 需要从后天数据中补充{}条",
+                    totalProcessedCount, collidingLimit, needCount);
+
+            // 从后天数据中补数
+            supplementDataFromAfterTomorrow(apiCode, pageSize, needCount);
+        }
     }
 
+    /**
+     * 从后天数据中补充数据
+     */
+    private void supplementDataFromAfterTomorrow(String apiCode, Integer pageSize, int needCount) {
+        // 获取后天0点时间
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DATE, 2);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        Date afterTomorrow = calendar.getTime();
+
+        // 获取明天0点时间
+        calendar.add(Calendar.DATE, -1);
+        Date tomorrow = calendar.getTime();
+
+        TpDynamicExecutor pushPool = TpDynamicExecutorFactory.getThreadPool(
+                ThreadPoolNameEnum.DIDI_V5_FILTER.getName(), 50, 50);
+
+        Long minId = 0L;
+        AtomicInteger currentSupplementedCount = new AtomicInteger();
+
+        while (currentSupplementedCount.get() < needCount) {
+            JSONObject pushConfig = marketingCommonConfig.getDiDiV5Config();
+            if (pushConfig.getBooleanValue("syncSwitch")) {
+                log.warn("检测到中断信号，停止补充数据");
+                break;
+            }
+
+            // 查询后天数据
+            List<DiDiV5CollidingData> afterTomorrowDataList = diDiV5CollidingDataMapper.selectNoDupDataByDateAndId(
+                    apiCode, afterTomorrow, minId, pageSize);
+            if (CollectionUtils.isEmpty(afterTomorrowDataList)) {
+                break;
+            }
+            minId = afterTomorrowDataList.get(afterTomorrowDataList.size() - 1).getId();
+            List<List<DiDiV5CollidingData>> partitions = Lists.partition(afterTomorrowDataList, PARTATION_SIZE);
+            for (List<DiDiV5CollidingData> partition : partitions) {
+                if (currentSupplementedCount.get() >= needCount) {
+                    break;
+                }
+                List<DiDiV5CollidingData> list = new ArrayList<>(partition);
+                pushPool.submit(() -> supplementAndInsertToRob(list, apiCode, tomorrow,
+                        needCount, currentSupplementedCount));
+            }
+            pushPool.shutdownAndAwaitTermination();
+        }
+    }
+
+    private void updatePushStatus(LocalFile localFile) {
+        localFile.setPushStatus("2");
+        localFileMapper.updateByPrimaryKeySelective(localFile);
+    }
+
+    private void supplementAndInsertToRob(List<DiDiV5CollidingData> list, String apiCode,
+                                          Date tomorrow, int needCount, AtomicInteger currentCount) {
+        try {
+            // 过滤数据
+            List<DiDiCollidingDataRob> insertToRobData = filter(list, apiCode, tomorrow);
+            if (CollectionUtils.isEmpty(insertToRobData)) {
+                return;
+            }
+            int actualInsertCount;
+            while (true) {
+                int expected = currentCount.get();
+                if (expected >= needCount) {
+                    return;
+                }
+                int remaining = needCount - expected;
+                if (remaining <= 0) {
+                    return;
+                }
+                int canInsert = Math.min(insertToRobData.size(), remaining);
+                if (currentCount.compareAndSet(expected, expected + canInsert)) {
+                    actualInsertCount = canInsert;
+                    break;
+                }
+            }
+
+            if (actualInsertCount < insertToRobData.size()) {
+                insertToRobData = insertToRobData.subList(0, actualInsertCount);
+            }
+            if (CollectionUtils.isNotEmpty(insertToRobData)) {
+                diDiV5CollidingDataRobMapper.insertToRobAndUpdateFront(insertToRobData);
+                List<Long> ids = insertToRobData.stream()
+                        .map(DiDiCollidingDataRob::getDataId)
+                        .collect(Collectors.toList());
+                diDiV5CollidingDataMapper.updatePushStatusByIds(3, ids);
+            }
+
+        } catch (Exception e) {
+            log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(), e.getMessage()
+                    , TITLE + "补充数据"), e);
+        }
+    }
+
+    /**
+     * 处理文件数据
+     */
     private void process(LocalFile localFile) {
         String apiCode = localFile.getApiCode();
         TpDynamicExecutor pushPool = TpDynamicExecutorFactory.getThreadPool(
                 ThreadPoolNameEnum.DIDI_V5_FILTER.getName(), 50, 50);
         Long minId = 0L;
+        AtomicInteger processedCount = new AtomicInteger(0);
         while (true) {
             JSONObject pushConfig = marketingCommonConfig.getDiDiV5Config();
             if (pushConfig.getBooleanValue("syncSwitch")) {
@@ -106,32 +222,35 @@ public class DidiDataSyncServiceImpl implements DiDiDataSyncService {
             List<List<DiDiV5CollidingData>> partitions = Lists.partition(collidingDataList, PARTATION_SIZE);
             for (List<DiDiV5CollidingData> partition : partitions) {
                 List<DiDiV5CollidingData> list = new ArrayList<>(partition);
-                pushPool.submit(() -> removeDuplicateAndInsertToRob(list, localFile, apiCode));
+                pushPool.submit(() -> removeDuplicateAndInsertToRob(list, localFile, apiCode, processedCount));
             }
             diDiV5CollidingDataMapper.updatePushStatusByIds(3, ids);
         }
         pushPool.shutdownAndAwaitTermination();
+        processedCount.get();
     }
 
-    private void updatePushStatus(LocalFile localFile) {
-        localFile.setPushStatus("2");
-        localFileMapper.updateByPrimaryKeySelective(localFile);
-    }
-
-    private void removeDuplicateAndInsertToRob(List<DiDiV5CollidingData> list, LocalFile localFile, String apiCode) {
+    private void removeDuplicateAndInsertToRob(List<DiDiV5CollidingData> list, LocalFile localFile,
+                                               String apiCode, AtomicInteger processedCount) {
         try {
-            List<DiDiCollidingDataRob> insertToRobData = filter(list, apiCode);
+            List<DiDiCollidingDataRob> insertToRobData = filter(list, apiCode, null);
             if (CollectionUtils.isEmpty(insertToRobData)) {
                 return;
             }
             diDiV5CollidingDataRobMapper.insertToRobAndUpdateFront(insertToRobData);
+            processedCount.addAndGet(insertToRobData.size());
         } catch (Exception e) {
             log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(), e.getMessage()
                     , TITLE + localFile.getId()), e);
         }
     }
 
-    private List<DiDiCollidingDataRob> filter(List<DiDiV5CollidingData> list, String apiCode) {
+    /**
+     * 过滤数据
+     *
+     * @param newCollidingTime 新的碰撞时间，如果为null则使用原始时间
+     */
+    private List<DiDiCollidingDataRob> filter(List<DiDiV5CollidingData> list, String apiCode, Date newCollidingTime) {
         try {
             JSONObject pushConfig = marketingCommonConfig.getDiDiV5Config();
             Set<String> cells = list.stream().map(DiDiV5CollidingData::getCell).collect(Collectors.toSet());
@@ -170,6 +289,7 @@ public class DidiDataSyncServiceImpl implements DiDiDataSyncService {
                     return Lists.newArrayList();
                 }
             }
+
             return list.stream().filter(t -> cells.contains(t.getCell()))
                     .map(t -> {
                         DiDiCollidingDataRob diDiCollidingDataRob = new DiDiCollidingDataRob();
@@ -177,6 +297,10 @@ public class DidiDataSyncServiceImpl implements DiDiDataSyncService {
                         diDiCollidingDataRob.setPackageId(t.getLocalId());
                         diDiCollidingDataRob.setSourceType("F");
                         diDiCollidingDataRob.setIsDelete(0);
+                        diDiCollidingDataRob.setDataId(t.getId());
+                        if (newCollidingTime != null) {
+                            diDiCollidingDataRob.setCollidingTime(newCollidingTime);
+                        }
                         return diDiCollidingDataRob;
                     }).collect(Collectors.toList());
         } catch (Exception e) {
@@ -186,5 +310,4 @@ public class DidiDataSyncServiceImpl implements DiDiDataSyncService {
             return new ArrayList<>();
         }
     }
-
 }
