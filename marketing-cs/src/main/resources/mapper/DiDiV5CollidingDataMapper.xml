@@ -61,7 +61,8 @@
 
     <update id="updateCollidingTimeByIds">
         update b_didi_v5_colliding_data
-        set colliding_time = #{collidingTime}
+        set colliding_time = #{collidingTime},
+        push_status = #{pushStatus,jdbcType=INTEGER}
         where id in
         <foreach collection="ids" item="id" open="(" separator="," close=")">
             #{id}
@@ -93,6 +94,7 @@
                 AND a.api_code = #{apiCode}
                 AND a.local_id = #{localId}
                 AND a.push_status = 0
+                AND date(a.colliding_time) = date(#{collidingDate})
                 AND NOT EXISTS (SELECT 1
                                 FROM b_didi_v5_colliding_data_rob rob
                                 WHERE rob.cell = a.cell

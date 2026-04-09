@@ -29,7 +29,7 @@ public interface DiDiV5CollidingDataMapper extends DiDiV5CollidingDataMapperBase
 
     void updatePushStatusByIds(@Param("pushStatus") int pushStatus, @Param("ids") List<Long> ids);
 
-    void updateCollidingTimeByIds(@Param("collidingTime") Date collidingTime, @Param("ids") List<Long> ids);
+    void updateCollidingTimeByIds(@Param("pushStatus") int pushStatus, @Param("collidingTime") Date collidingTime, @Param("ids") List<Long> ids);
 
 
     List<Long> queryCollidingFileIds(@Param("startTime") Date startTime, @Param("endTime") Date endTime);
@@ -38,7 +38,8 @@ public interface DiDiV5CollidingDataMapper extends DiDiV5CollidingDataMapperBase
             "endTime") Date endTime);
 
     List<DiDiV5CollidingData> selectNoDupDataByLocalIdtikv_(@Param("localId") Long localId, @Param("apiCode") String apiCode,
-                                                               @Param("minId") Long minId, @Param("pageSize") Integer pageSize);
+                                                               @Param("minId") Long minId, @Param("pageSize") Integer pageSize,
+                                                            @Param("collidingDate") Date collidingDate);
 
 
     List<DiDiV5CollidingData> selectNoDupDataByDateAndId(

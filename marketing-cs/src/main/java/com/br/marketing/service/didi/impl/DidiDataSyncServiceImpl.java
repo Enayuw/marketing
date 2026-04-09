@@ -6,10 +6,7 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
-import com.br.marketing.entity.DiDiCollidingDataRob;
-import com.br.marketing.entity.DiDiV5CollidingData;
-import com.br.marketing.entity.LocalFile;
-import com.br.marketing.entity.LocalFileExample;
+import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.didi.DiDiDataSyncService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -81,6 +78,12 @@ public class DidiDataSyncServiceImpl implements DiDiDataSyncService {
         int totalProcessedCount = cycleCount + preCount;
 
         for (LocalFile localFile : localFiles) {
+            DiDiV5CollidingDataExample dataExample = new DiDiV5CollidingDataExample();
+            dataExample.createCriteria().andApiCodeEqualTo(apiCode).andLocalIdEqualTo(localFile.getId()).andPushStatusEqualTo(0)
+                    .andCollidingTimeBetween(DateUtil.beginOfDay(DateUtil.tomorrow()), DateUtil.endOfDay(DateUtil.tomorrow()));
+            if (diDiV5CollidingDataMapper.countByExample(dataExample) == 0) {
+                continue;
+            }
             try {
                 totalProcessedCount += process(localFile);
                 updatePushStatus(localFile);
@@ -89,16 +92,15 @@ public class DidiDataSyncServiceImpl implements DiDiDataSyncService {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(), e.getMessage()
                         , subject), e);
             }
-        }
+            // 检查是否需要从后天数据中补数
+            if (totalProcessedCount < collidingLimit) {
+                int needCount = collidingLimit - totalProcessedCount;
+                log.info("已处理数据量{}不足collidingLimit{}, 需要从后天数据中补充{}条",
+                        totalProcessedCount, collidingLimit, needCount);
 
-        // 检查是否需要从后天数据中补数
-        if (totalProcessedCount < collidingLimit) {
-            int needCount = collidingLimit - totalProcessedCount;
-            log.info("已处理数据量{}不足collidingLimit{}, 需要从后天数据中补充{}条",
-                    totalProcessedCount, collidingLimit, needCount);
-
-            // 从后天数据中补数
-            supplementDataFromAfterTomorrow(apiCode, pageSize, needCount);
+                // 从后天数据中补数
+                supplementDataFromAfterTomorrow(apiCode, pageSize, needCount);
+            }
         }
     }
 
@@ -190,7 +192,7 @@ public class DidiDataSyncServiceImpl implements DiDiDataSyncService {
                 List<Long> ids = insertToRobData.stream()
                         .map(DiDiCollidingDataRob::getDataId)
                         .collect(Collectors.toList());
-                diDiV5CollidingDataMapper.updatePushStatusByIds(3, ids);
+                diDiV5CollidingDataMapper.updateCollidingTimeByIds(3, tomorrow, ids);
             }
 
         } catch (Exception e) {
@@ -216,7 +218,7 @@ public class DidiDataSyncServiceImpl implements DiDiDataSyncService {
             }
             Integer pageSize = pushConfig.getInteger("limit");
             List<DiDiV5CollidingData> collidingDataList = diDiV5CollidingDataMapper.selectNoDupDataByLocalIdtikv_(localFile.getId(),
-                    apiCode, minId, pageSize);
+                    apiCode, minId, pageSize, DateUtil.tomorrow());
             if (CollectionUtils.isEmpty(collidingDataList)) {
                 break;
             }
@@ -306,10 +308,6 @@ public class DidiDataSyncServiceImpl implements DiDiDataSyncService {
                         }
                         return diDiCollidingDataRob;
                     }).collect(Collectors.toList());
-            if (newCollidingTime != null) {
-                List<Long> ids = robList.stream().map(DiDiCollidingDataRob::getDataId).toList();
-                diDiV5CollidingDataMapper.updateCollidingTimeByIds(newCollidingTime, ids);
-            }
             return robList;
         } catch (Exception e) {
             String subject = TITLE + "数据剔除，子线程处理异常！";
