@@ -1,10 +1,11 @@
 package com.br.marketing.service.tccpa.impl;
 
 import com.br.marketing.common.utils.Constants;
+import com.br.marketing.config.biz.TcyrCpaConfigManager;
 import com.br.marketing.dto.tccpa.TcCpaDeleteRuleExecuteInfoDTO;
+import com.br.marketing.dto.tccpa.TcCpaDeleteRuleVolumeItemDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.TcCpaDeleteRuleSourceTypeEnum;
-import com.br.marketing.enums.TcCpaFailMsgEnum;
 import com.br.marketing.mapper.TcyrCpaCommonMapper;
 import com.br.marketing.mapper.TcyrCpaDeleteRuleMapper;
 import com.br.marketing.service.tccpa.TcCpaCommonService;
@@ -30,6 +31,9 @@ public class TcCpaCommonServiceImpl implements TcCpaCommonService {
     @Resource
     private TcyrCpaDeleteRuleMapper tcyrCpaDeleteRuleMapper;
 
+    @Resource
+    TcyrCpaConfigManager tcyrCpaConfigManager;
+
     @Override
     public void updateVolumeByTask(TcyrCpaCollidingTask collidingTask) throws IOException {
         String joinFrag = getDeleteSqlFrag(collidingTask.getDeleteRuleIds());
@@ -47,19 +51,26 @@ public class TcCpaCommonServiceImpl implements TcCpaCommonService {
                 .concat(" and pck.package_id in " + packageIdStr);
         //数据包预估
         int packageEstWithDelNum = tcyrCpaCommonMapper.magnitudeQuerytiflash_(packageEstWithDelSql);
+        // 1.1 按单规则统计数据包剔除明细
+        // 仅启用该规则时：deleteNum = packageEstNum − 应用该规则后的量级
+        collidingTask.setDeleteInfo(
+                buildPackageDeleteInfoJson(packageEstNum, packageIdStr, collidingTask.getDeleteRuleIds()));
         //2.补充包预估
         //补充包全量
         int supplyEstNum = 0;
         //补充包预估
         int supplyEstNumWithDel = 0;
+
+        //failMsg与lockBelong的映射Map
+        Map<Integer, Integer> failMsgToLbMap = tcyrCpaConfigManager.getFailMsgToBlMap();
         if (StringUtils.isNotEmpty(collidingTask.getSupplyRuleInfo())) {
             List<TcyrSupplyRuleInfo> supplyRuleInfos =
                     objectMapper.readValue(collidingTask.getSupplyRuleInfo(),
                             new TypeReference<List<TcyrSupplyRuleInfo>>() {
                             });
             for (TcyrSupplyRuleInfo ruleInfo : supplyRuleInfos) {
-                if (TcCpaFailMsgEnum.isLock(ruleInfo.getFailMsg())) {
-                    Integer lockBelong = convertFailMsgToLockBelong(ruleInfo.getFailMsg());
+                if (failMsgToLbMap.containsKey(ruleInfo.getFailMsg())) {
+                    Integer lockBelong = failMsgToLbMap.get(ruleInfo.getFailMsg());
                     String lockEstSql = "select count(distinct pck.user_key) from b_tcyr_cpa_lock_data pck "
                             .concat(" where pck.is_del = 1")
                             .concat(" and pck.lock_belong = " + lockBelong)
@@ -89,6 +100,47 @@ public class TcCpaCommonServiceImpl implements TcCpaCommonService {
         collidingTask.setEstNum(estWithDelNum);
         collidingTask.setSupplyNum(supplyEstNumWithDel);
         collidingTask.setDeleteNum(estNum - estWithDelNum);
+    }
+
+    /**
+     * 数据包维度：对每个剔除规则单独生成 {@link #getDeleteSqlFrag(String)}，
+     * 计算「仅该规则」下的剔除量级，序列化为 JSON 写入 deleteInfo。
+     */
+    private String buildPackageDeleteInfoJson(int packageEstNum, String packageIdStr, String deleteRuleIdsStr)
+            throws IOException {
+        List<Long> ruleIds = com.br.marketing.common.utils.StringUtils.StrsConvertLongs(deleteRuleIdsStr);
+        if (CollectionUtils.isEmpty(ruleIds)) {
+            return null;
+        }
+        Map<Long, String> idToName = loadDeleteRuleNames(ruleIds);
+        List<TcCpaDeleteRuleVolumeItemDTO> items = new ArrayList<>();
+        for (Long ruleId : ruleIds) {
+            String singleFrag = getDeleteSqlFrag(String.valueOf(ruleId));
+            int withDelSingle = countPackageEstWithDeleteFrag(singleFrag, packageIdStr);
+            int deleteNumForRule = Math.max(0, packageEstNum - withDelSingle);
+            items.add(new TcCpaDeleteRuleVolumeItemDTO(
+                    ruleId,
+                    idToName.getOrDefault(ruleId, ""),
+                    deleteNumForRule));
+        }
+        return objectMapper.writeValueAsString(items);
+    }
+
+    private Map<Long, String> loadDeleteRuleNames(List<Long> ruleIds) {
+        TcyrCpaDeleteRuleExample example = new TcyrCpaDeleteRuleExample();
+        example.createCriteria().andIdIn(ruleIds);
+        return tcyrCpaDeleteRuleMapper.selectByExample(example).stream()
+                .collect(Collectors.toMap(
+                        TcyrCpaDeleteRule::getId,
+                        r -> StringUtils.defaultString(r.getRuleName()),
+                        (a, b) -> a));
+    }
+
+    private int countPackageEstWithDeleteFrag(String joinFrag, String packageIdStr) {
+        String sql = "select count(distinct pck.user_key) from b_tcyr_cpa_colliding_data pck "
+                .concat(joinFrag)
+                .concat(" and pck.package_id in " + packageIdStr);
+        return tcyrCpaCommonMapper.magnitudeQuerytiflash_(sql);
     }
 
     @Override
@@ -151,32 +203,6 @@ public class TcCpaCommonServiceImpl implements TcCpaCommonService {
         return scripts.size() == 1 ?
                 tcyrCpaCommonMapper.calculateDeleteNumByScript(scripts.get(0)) :
                 tcyrCpaCommonMapper.executeUnionQueriestikv_(scripts);
-    }
-
-    @Override
-    public Integer convertFailMsgToLockBelong(Integer failMsg) {
-        if (failMsg == null) {
-            return null;
-        }
-        for (TcCpaFailMsgEnum enumItem : TcCpaFailMsgEnum.values()) {
-            if (failMsg.equals(enumItem.getValue())) {
-                return enumItem.getLockValue();
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public Integer convertLockBelongToFailMsg(Integer lockBelong) {
-        if (lockBelong == null) {
-            return null;
-        }
-        for (TcCpaFailMsgEnum enumItem : TcCpaFailMsgEnum.values()) {
-            if (lockBelong.equals(enumItem.getLockValue())) {
-                return enumItem.getValue();
-            }
-        }
-        return null;
     }
 
     @Override

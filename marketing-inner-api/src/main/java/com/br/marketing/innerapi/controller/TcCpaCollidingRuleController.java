@@ -37,7 +37,8 @@ public class TcCpaCollidingRuleController {
     @PostMapping("/magnitudeDist")
     public ApiResult magnitudeDist(@RequestParam("releaseTimes") String releaseTimes,
                                    @RequestParam(name = "taskId", required = false) Long taskId) {
-        return new ApiResult<List<TcyrFailMsgSupplyGroupDTO>>().fromResult(tcCpaCollidingRuleService.magnitudeDist(releaseTimes, taskId), CODE_1);
+        return new ApiResult<List<TcyrFailMsgSupplyGroupDTO>>()
+                .fromResult(tcCpaCollidingRuleService.magnitudeDist(releaseTimes, taskId), CODE_1);
     }
 
     @Operation(summary = "同程CPA撞库规则新增", description = "同程CPA撞库规则新增")

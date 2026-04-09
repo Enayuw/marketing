@@ -10,7 +10,10 @@
   </insert>
 
   <select id="queryMagnitudeWithBelong" resultType="com.br.marketing.entity.TcyrCpaMagnitude">
-    SELECT DATE_FORMAT(release_time, '%Y-%m-%d') AS releaseTime, lock_belong AS lockBelong, count(0) AS magnitude
+    SELECT DATE_FORMAT(release_time, '%Y-%m-%d') AS releaseTime,
+           lock_belong AS lockBelong,
+           #{failMsg} AS failMsg,
+           count(0) AS magnitude
     FROM b_tcyr_cpa_lock_data
     WHERE is_del = 1
     AND lock_belong = #{lockBelong,jdbcType=INTEGER}

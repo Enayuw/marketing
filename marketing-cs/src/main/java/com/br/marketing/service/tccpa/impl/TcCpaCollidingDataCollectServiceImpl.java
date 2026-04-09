@@ -4,10 +4,10 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.Constants;
+import com.br.marketing.config.biz.TcyrCpaConfigManager;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.TcCpaCollectStatusEnum;
 import com.br.marketing.enums.TcCpaCollidingSourceTypeEnum;
-import com.br.marketing.enums.TcCpaLockBelongEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.tccpa.TcCpaCollidingDataCollectService;
 import com.google.common.collect.Lists;
@@ -15,14 +15,10 @@ import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
-
 import javax.annotation.Resource;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -31,6 +27,8 @@ import java.util.stream.Collectors;
 public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataCollectService {
 
     private final static String TITLE = "【同程易融CPA-colliding data collect任务】";
+
+    private final static Integer LOCK_BELONG_BR = 1;
 
     @Resource
     private TcyrCpaLockDataMapper tcyrCpaLockDataMapper;
@@ -46,6 +44,9 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
 
     @Resource
     private MarketingTcyrCpaSuccessDataMapper marketingTcyrCpaSuccessDataMapper;
+
+    @Resource
+    TcyrCpaConfigManager tcyrCpaConfigManager;
 
     @Override
     public void process() {
@@ -160,7 +161,7 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
             TcyrCpaLockData lockData = new TcyrCpaLockData();
             BeanUtils.copyProperties(successData, lockData);
             lockData.setReleaseTime(successData.getEndDate());
-            lockData.setLockBelong(TcCpaLockBelongEnum.BELONG_BR.getValue());
+            lockData.setLockBelong(LOCK_BELONG_BR);
             lockData.setTaskId(taskId);
             lockData.setIsDel(1);
             lockData.setExtend(successData.getExtend());
@@ -191,7 +192,8 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
             long rangeSize = (totalRecords + threadCount - 1) / threadCount;
 
             List<CompletableFuture<Void>> futures = Lists.newArrayList();
-
+            //failMsg与lockBelong的映射Map
+            Map<String, Integer> failMsgToLbMap = tcyrCpaConfigManager.getFailMsgToBlMapVT();
             for (int i = 0; i < threadCount; i++) {
                 long startId = minId + i * rangeSize;
                 long endId = Math.min(startId + rangeSize - 1, maxId);
@@ -202,7 +204,7 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
                 final long threadEndId = endId;
 
                 CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-                    processIdRange(threadStartId, threadEndId, syncFileId, tcyrCpaCollectTask.getId());
+                    processIdRange(threadStartId, threadEndId, syncFileId, tcyrCpaCollectTask.getId(), failMsgToLbMap);
                 }, actionPool);
 
                 futures.add(future);
@@ -224,11 +226,11 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
         }
     }
 
-    private void processIdRange(long startId, long endId, Long syncFileId, Long taskId) {
+    private void processIdRange(long startId, long endId, Long syncFileId,
+                                Long taskId, Map<String, Integer> failMsgToLbMap) {
         try {
             long currentStartId = startId;
             int batchSize = 2000;
-
             while (currentStartId <= endId) {
                 long currentEndId = Math.min(currentStartId + batchSize - 1, endId);
                 List<MarketingTcyrCpaFailData> batchData = marketingTcyrCpaFailDataMapper
@@ -239,7 +241,7 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
                     continue;
                 }
 
-                processBatchData(batchData, taskId);
+                processBatchData(batchData, taskId, failMsgToLbMap);
                 currentStartId = currentEndId + 1;
             }
         } catch (Exception e) {
@@ -248,56 +250,55 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
         }
     }
 
-    private void processBatchData(List<MarketingTcyrCpaFailData> batch, Long taskId) {
-        List<TcyrCpaLockData> batchLockData = batch.stream()
-                .filter(failData -> StringUtils.equals(failData.getFailMsg(), "2"))
-                .map(failData -> getTcyrCpaLockData(failData, taskId, TcCpaLockBelongEnum.BELONG_OTR))
-                .collect(Collectors.toList());
-
-        if (CollectionUtils.isNotEmpty(batchLockData)) {
-            tcyrCpaLockDataMapper.batchSave(batchLockData);
+    private void processBatchData(List<MarketingTcyrCpaFailData> batchData,
+                                  Long taskId,
+                                  Map<String, Integer> failMsgToLbMap) {
+        //进【b_tcyr_cpa_lock_data】的数据
+        List<TcyrCpaLockData> lockData = new ArrayList<>();
+        //进【b_tcyr_cpa_invalue_data】的数据
+        List<TcyrCpaInvalueData> invalueData = new ArrayList<>();
+        for (MarketingTcyrCpaFailData datum : batchData) {
+            if (failMsgToLbMap.containsKey(datum.getFailMsg())) {
+                lockData.add(getTcyrCpaLockData(datum, taskId, failMsgToLbMap.get(datum.getFailMsg())));
+            } else {
+                invalueData.add(getTcyrCpaInvalueData(datum, taskId));
+            }
         }
-
-        List<TcyrCpaLockData> batchBlankData = batch.stream()
-                .filter(failData -> StringUtils.equals(failData.getFailMsg(), "6"))
-                .map(failData -> getTcyrCpaLockData(failData, taskId, TcCpaLockBelongEnum.BELON_BLANK))
-                .collect(Collectors.toList());
-
-        if (CollectionUtils.isNotEmpty(batchBlankData)) {
-            tcyrCpaLockDataMapper.batchSave(batchBlankData);
+        if (CollectionUtils.isNotEmpty(lockData)) {
+            tcyrCpaLockDataMapper.batchSave(lockData);
         }
-
-        List<TcyrCpaInvalueData> invalueData = batch.stream()
-                .filter(failData -> !StringUtils.equals(failData.getFailMsg(), "2"))
-                .filter(failData -> !StringUtils.equals(failData.getFailMsg(), "6"))
-                .map(failData -> {
-                    TcyrCpaInvalueData invalue = new TcyrCpaInvalueData();
-                    BeanUtils.copyProperties(failData, invalue);
-                    invalue.setReleaseTime(failData.getReleaseTime());
-                    invalue.setFailMsg(failData.getFailMsg());
-                    invalue.setTaskId(taskId);
-                    invalue.setExtend(failData.getExtend());
-                    invalue.setCreateTime(new Date());
-                    invalue.setUpdateTime(new Date());
-                    return invalue;
-                }).collect(Collectors.toList());
-
         if (CollectionUtils.isNotEmpty(invalueData)) {
             tcyrCpaInvalueDataMapper.batchSave(invalueData);
         }
     }
 
-    private static TcyrCpaLockData getTcyrCpaLockData(MarketingTcyrCpaFailData failData, Long taskId,
-                                                      TcCpaLockBelongEnum lockBelongEnum) {
+    private TcyrCpaLockData getTcyrCpaLockData(MarketingTcyrCpaFailData failData,
+                                               Long taskId,
+                                               Integer lockBelong) {
         TcyrCpaLockData lockData = new TcyrCpaLockData();
         BeanUtils.copyProperties(failData, lockData);
         lockData.setReleaseTime(failData.getReleaseTime());
         lockData.setTaskId(taskId);
-        lockData.setLockBelong(lockBelongEnum.getValue());
+        lockData.setLockBelong(lockBelong);
         lockData.setIsDel(Constants.DATA_VALID);
         lockData.setExtend(failData.getExtend());
         lockData.setCreateTime(new Date());
         lockData.setUpdateTime(new Date());
         return lockData;
     }
+
+    private TcyrCpaInvalueData getTcyrCpaInvalueData(MarketingTcyrCpaFailData failData,
+                                                     Long taskId) {
+        TcyrCpaInvalueData invalue = new TcyrCpaInvalueData();
+        BeanUtils.copyProperties(failData, invalue);
+        invalue.setReleaseTime(failData.getReleaseTime());
+        invalue.setFailMsg(failData.getFailMsg());
+        invalue.setTaskId(taskId);
+        invalue.setExtend(failData.getExtend());
+        invalue.setCreateTime(new Date());
+        invalue.setUpdateTime(new Date());
+        return invalue;
+    }
+
+
 }
