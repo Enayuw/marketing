@@ -109,7 +109,7 @@
         FROM b_didi_v5_colliding_data
         WHERE api_code = #{apiCode}
         AND push_status = 0
-        AND DATE(colliding_time) = DATE(#{collidingTime})
+        AND DATE(colliding_time) >= DATE(#{collidingTime})
         AND id > #{minId}
         ORDER BY id ASC
         LIMIT #{pageSize}
