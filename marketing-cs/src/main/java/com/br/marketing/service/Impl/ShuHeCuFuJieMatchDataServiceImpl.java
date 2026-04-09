@@ -30,7 +30,6 @@ import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.MarketingHistoryEsService;
-import com.br.marketing.es.util.es.EsHandleUtil;
 import com.br.marketing.es.util.es.EsIceType;
 import com.br.marketing.es.util.es.rpcclient.RpcClientProxy;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
@@ -79,7 +78,8 @@ public class ShuHeCuFuJieMatchDataServiceImpl implements ShuHeCuFuJieMatchDataSe
         Integer threadSize = shuHeCuFuJieMatchDataConfig.getInteger("threadSize");
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadSize, threadSize);
         String redisKey = RedisKeyConstant.SHU_HE_CUFUJIE_MATCH_DATA_FLAG + ":" + date + ":" + batchNumber;
-        String index = EsHandleUtil.getDateFromBatchNumber(batchNumber);
+        final StraHisFile straHisFileForEs = fieldId != null ? straHisFileMapper.selectByPrimaryKey(fieldId) : null;
+        String index = EsNewIndexRuleUtils.indexForModify(batchNumber, straHisFileForEs, marketingCommonConfig);
         boolean mark = Boolean.TRUE;
         Long minId = StringUtils.isNotEmpty(redisChgService.get(redisKey)) ? Long.valueOf(redisChgService.get(redisKey))
             : shuHeCuFuJieDataMapper.shuHeCuFuJieMatchDataOfMinId(date);
@@ -89,7 +89,6 @@ public class ShuHeCuFuJieMatchDataServiceImpl implements ShuHeCuFuJieMatchDataSe
         if (minId == null) {
             return;
         }
-        final StraHisFile straHisFileForEs = fieldId != null ? straHisFileMapper.selectByPrimaryKey(fieldId) : null;
         log.warn("数禾促复借{}自动化匹配数据清洗开始", date);
         minId = minId - 1;
         while (mark) {

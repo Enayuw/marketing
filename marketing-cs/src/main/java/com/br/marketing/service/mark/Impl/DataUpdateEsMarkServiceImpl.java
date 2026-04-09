@@ -16,7 +16,6 @@ import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.MarketingHistoryEsService;
-import com.br.marketing.es.util.es.EsHandleUtil;
 import com.br.marketing.es.util.es.EsIceType;
 import com.br.marketing.es.util.es.rpcclient.RpcClientProxy;
 import com.br.marketing.mapper.FlagDataMapper;
@@ -126,7 +125,7 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
     private void updateEsMarkData(List<FlagDataEsMark> flagDataList, StraHisFile straHisFile, ThreadPoolExecutor threadUpdatePool) {
         List<Long> ids = flagDataList.stream().map(FlagDataEsMark::getId).collect(Collectors.toList());
         try {
-            String index = EsHandleUtil.getDateFromBatchNumber(straHisFile.getBatchNumber());
+            String index = EsNewIndexRuleUtils.indexForModify(straHisFile.getBatchNumber(), straHisFile, marketingCommonConfig);
 
             List<String> cellLogList = flagDataList.stream().map(FlagDataEsMark::getCellLog).collect(Collectors.toList());
             Map<String, FlagDataEsMark> groupedByCellLog = flagDataList.stream()

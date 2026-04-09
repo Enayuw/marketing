@@ -3,6 +3,7 @@ package com.br.marketing.util;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.StraHisFile;
+import com.br.marketing.es.util.es.EsHandleUtil;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,7 +13,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 跑分历史 ES 新索引判定工具：StraHisFile.createTime 晚于配置的上线时间则走新索引。
+ * 跑分历史 ES 新索引判定：StraHisFile.createTime 晚于配置的上线时间则走新索引；
+ * {@link #indexForModify} 供 RpcClientProxy.modify 等与 {@link #resolve} 使用同一套新旧索引名。
  */
 @Slf4j
 public final class EsNewIndexRuleUtils {
@@ -55,6 +57,20 @@ public final class EsNewIndexRuleUtils {
             }
         }
         return map;
+    }
+
+    /**
+     * RpcClientProxy.modify 等写 ES 时的索引名：与 {@link #resolve(StraHisFile, MarketingCommonConfig)} 一致，
+     * 新规则用 {@link EsHandleUtil#getDateFromBatchNumberNew}，否则 {@link EsHandleUtil#getDateFromBatchNumberLegacy}。
+     *
+     * @param batchNumber 跑分批次号
+     * @param straHisFile 可为 null（按旧索引名）
+     */
+    public static String indexForModify(String batchNumber, StraHisFile straHisFile, MarketingCommonConfig config) {
+        if (resolve(straHisFile, config)) {
+            return EsHandleUtil.getDateFromBatchNumberNew(batchNumber);
+        }
+        return EsHandleUtil.getDateFromBatchNumberLegacy(batchNumber);
     }
 
     private static boolean resolveMillis(long createTimeMillis, String onlineTimeStr) {
