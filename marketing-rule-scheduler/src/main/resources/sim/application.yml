@@ -1,0 +1,48 @@
+# 使用 sim 配置启动时建议同时指定本目录，例如：
+spring:
+  web.interceptors.enabled: true
+  application:
+    name: marketing-rule-scheduler
+  profiles.active: sim
+  main:
+    allow-circular-references: true  # 允许循环依赖
+  autoconfigure:
+    exclude:
+      - com.br.transfer.config.log.Log4j2DynamicAutoConfiguration
+      - com.br.transfer.config.log.TempLog4j2DynamicAutoConfiguration
+  lifecycle:
+    timeout-per-shutdown-phase: 30s  # 优雅关闭超时时间
+  aop:
+   proxy-target-class: true
+   auto: true
+  threadpool:
+    queueCapacity: 10000
+    # 线程池所使用的缓冲队列
+    corePoolSize: 8
+    # 线程池维护线程的最少数量
+    maxPoolSize: 100
+    # 线程池维护线程的最大数量
+    keepAliveSeconds: 30000
+    # 线程池维护线程所允许的空闲时间
+    threadNamePrefix: ThreadPool-Common
+    # 线程池所生产的线程名前缀
+  mail:
+    host: mail.brgroup.com
+    port: 25
+    username: marketing-br@brgroup.com
+    password: 1S9D9ocaNwk#
+    default-encoding: UTF-8
+server:
+  port: 19809
+  shutdown: graceful  # 启用优雅关闭
+mybatis-plus:
+  mapper-locations: mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+#exporter监控
+endpoints:
+  prometheus:
+    enabled: true
+    path: /prometheus
+    sensitive: false
