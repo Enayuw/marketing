@@ -34,6 +34,11 @@ public class TcyrCpaCollidingTask {
     private Date collidingTime;
 
     /**
+     * 撞库量级
+     */
+    private Integer collidingNum;
+
+    /**
      * 剔除规则id集合
      */
     private String deleteRuleIds;
@@ -42,6 +47,11 @@ public class TcyrCpaCollidingTask {
      * 剔除量级
      */
     private Integer deleteNum;
+
+    /**
+     * 剔除详情
+     */
+    private String deleteInfo;
 
     /**
      * 补充规则信息
@@ -141,6 +151,14 @@ public class TcyrCpaCollidingTask {
         this.collidingTime = collidingTime;
     }
 
+    public Integer getCollidingNum() {
+        return collidingNum;
+    }
+
+    public void setCollidingNum(Integer collidingNum) {
+        this.collidingNum = collidingNum;
+    }
+
     public String getDeleteRuleIds() {
         return deleteRuleIds;
     }
@@ -155,6 +173,14 @@ public class TcyrCpaCollidingTask {
 
     public void setDeleteNum(Integer deleteNum) {
         this.deleteNum = deleteNum;
+    }
+
+    public String getDeleteInfo() {
+        return deleteInfo;
+    }
+
+    public void setDeleteInfo(String deleteInfo) {
+        this.deleteInfo = deleteInfo == null ? null : deleteInfo.trim();
     }
 
     public String getSupplyRuleInfo() {

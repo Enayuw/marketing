@@ -7,11 +7,11 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.config.biz.TcyrCpaConfigManager;
 import com.br.marketing.dto.tccpa.TcCpaDeleteRuleExecuteInfoDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.TcCpaCollidingTaskStatusEnum;
 import com.br.marketing.enums.TcCpaDeleteRuleSourceTypeEnum;
-import com.br.marketing.enums.TcCpaFailMsgEnum;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.TcyrCpaCollidingTaskMapper;
 import com.br.marketing.mapper.TcyrCpaDeleteRuleMapper;
@@ -26,7 +26,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
-
 import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -50,6 +49,9 @@ public class TcCpaDeleteRuleServiceImpl implements TcCpaDataDeleteRuleService {
 
     @Resource
     private TcCpaCommonService tcCpaCommonService;
+
+    @Resource
+    TcyrCpaConfigManager tcyrCpaConfigManager;
 
     @Override
     public Result rule(TcyrCpaDeleteRuleVO ruleVO) {
@@ -111,13 +113,15 @@ public class TcCpaDeleteRuleServiceImpl implements TcCpaDataDeleteRuleService {
             return;
         }
         String[] failMsgArray = rule.getFailMsgs().split(",");
-        List<Integer> invalues = Arrays.stream(failMsgArray).map(String::trim)
-                .filter(tcCpaFailMsgEnum -> Objects.isNull(TcCpaFailMsgEnum.getByValue(Integer.valueOf(tcCpaFailMsgEnum)).getLockValue()))
-                .map(Integer::parseInt).collect(Collectors.toList());
+        //failMsg与lockBelong的映射Map
+        Map<String, Integer> failMsgToLbMap = tcyrCpaConfigManager.getFailMsgToBlMapVT();
         List<Integer> lockData = Arrays.stream(failMsgArray).map(String::trim)
-                .filter(tcCpaFailMsgEnum -> Objects.nonNull(TcCpaFailMsgEnum.getByValue(Integer.valueOf(tcCpaFailMsgEnum)).getLockValue()))
-                .map(x -> TcCpaFailMsgEnum.getByValue(Integer.valueOf(x)).getLockValue())
+                .filter(failMsg -> failMsgToLbMap.containsKey(failMsg))
+                .map(failMsg -> failMsgToLbMap.get(failMsg))
                 .collect(Collectors.toList());
+        List<Integer> invalues = Arrays.stream(failMsgArray).map(String::trim)
+                .filter(failMsg -> !failMsgToLbMap.containsKey(failMsg))
+                .map(Integer::parseInt).collect(Collectors.toList());
 
         List<TcCpaDeleteRuleExecuteInfoDTO> executeInfos = Lists.newArrayList();
         if (CollectionUtils.isNotEmpty(invalues)) {

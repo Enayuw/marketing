@@ -5,17 +5,13 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.dto.tccpa.TcCpaDeleteRuleExecuteInfoDTO;
 import com.br.marketing.entity.*;
-import com.br.marketing.enums.TcCpaCollectStatusEnum;
-import com.br.marketing.enums.TcCpaCollidingSourceTypeEnum;
 import com.br.marketing.enums.TcCpaCollidingTaskStatusEnum;
-import com.br.marketing.mapper.TcyrCpaCollectTaskMapper;
 import com.br.marketing.mapper.TcyrCpaCollidingTaskMapper;
 import com.br.marketing.mapper.TcyrCpaDeleteRuleMapper;
 import com.br.marketing.service.tccpa.TcCpaCollidingDataMagnitudeService;
 import com.br.marketing.service.tccpa.TcCpaCommonService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
@@ -30,9 +26,6 @@ public class TcCpaCollidingDataMagnitudeServiceImpl implements TcCpaCollidingDat
 
     @Resource
     private ObjectMapper objectMapper;
-
-    @Resource
-    private TcyrCpaCollectTaskMapper tcyrCpaCollectTaskMapper;
 
     @Resource
     private TcyrCpaCollidingTaskMapper tcyrCpaCollidingTaskMapper;
@@ -74,6 +67,7 @@ public class TcCpaCollidingDataMagnitudeServiceImpl implements TcCpaCollidingDat
             try {
                 tcCpaCommonService.updateVolumeByTask(collidingTask);
                 collidingTask.setStatus(TcCpaCollidingTaskStatusEnum.STATUS_STA_COMPLETED.getValue());
+                collidingTask.setUpdateTime(new Date());
                 tcyrCpaCollidingTaskMapper.updateByPrimaryKey(collidingTask);
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
