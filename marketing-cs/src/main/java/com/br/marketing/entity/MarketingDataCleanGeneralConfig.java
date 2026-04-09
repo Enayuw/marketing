@@ -49,6 +49,11 @@ public class MarketingDataCleanGeneralConfig {
     private String sftpPath;
 
     /**
+     * SFTP 文件分隔符
+     */
+    private String sftpFileSeparator;
+
+    /**
      * 是否删除：1-正常；9-删除
      */
     private Integer isDel;
@@ -143,6 +148,14 @@ public class MarketingDataCleanGeneralConfig {
 
     public void setSftpPath(String sftpPath) {
         this.sftpPath = sftpPath == null ? null : sftpPath.trim();
+    }
+
+    public String getSftpFileSeparator() {
+        return sftpFileSeparator;
+    }
+
+    public void setSftpFileSeparator(String sftpFileSeparator) {
+        this.sftpFileSeparator = sftpFileSeparator == null ? null : sftpFileSeparator.trim();
     }
 
     public Integer getIsDel() {

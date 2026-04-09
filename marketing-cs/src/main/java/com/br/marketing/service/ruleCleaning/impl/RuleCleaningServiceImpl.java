@@ -33,6 +33,7 @@ import com.br.marketing.service.clean.common.impl.DataCleanServiceImpl;
 import com.br.marketing.service.ruleCleaning.RuleCleaningService;
 import com.br.marketing.service.template.TemplateJsonParseService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.DataCleanDelimiterUtils;
 import com.br.marketing.vo.dataclean.CleanFieldConfigVO;
 import com.github.pagehelper.PageHelper;
 import com.google.common.collect.Lists;
@@ -1782,6 +1783,11 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
         config.setDataType(configDTO.getDataType());
         config.setAcceptType(configDTO.getAcceptType());
         config.setSftpPath(configDTO.getSftpPath());
+        if (StringUtils.isNotBlank(configDTO.getSftpFileSeparator())) {
+            config.setSftpFileSeparator(configDTO.getSftpFileSeparator().trim());
+        } else {
+            config.setSftpFileSeparator(",");
+        }
         MarketingCustomerExample marketingCustomerExample = new MarketingCustomerExample();
         MarketingCustomerExample.Criteria criteria = marketingCustomerExample.createCriteria();
         criteria.andApiCodeEqualTo(config.getApiCode());
@@ -2118,8 +2124,9 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
             return;
         }
 
-        List<String> fileHeader = Arrays.asList(cleanDataFile.getFileHeader().split(","));
-        List<String> fileData = Arrays.asList(cleanDataFile.getFileData().split(",", -1));
+        String fieldDelim = DataCleanDelimiterUtils.resolveDelimiter(config.getSftpFileSeparator());
+        List<String> fileHeader = Arrays.asList(DataCleanDelimiterUtils.splitLine(cleanDataFile.getFileHeader(), fieldDelim));
+        List<String> fileData = Arrays.asList(DataCleanDelimiterUtils.splitLine(cleanDataFile.getFileData(), fieldDelim));
         if (fileHeader.size() != fileData.size()) {
             throw new BusinessException("文件表头与文件数据不匹配");
         }

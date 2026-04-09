@@ -38,13 +38,13 @@ public interface DataCleanService {
     void processBatchDataSync(List<String> batchLines, String[] headers,
                               List<MarketingDataCleanGeneralRuleConfig> ruleConfigList,
                               String apiCode, String fileName, int startIndex,
-                              Map<String, String> virtualHeadersMap);
+                              Map<String, String> virtualHeadersMap, String fieldDelimiter);
 
     void fileUploadCleanPre(List<List<RuleCleaningResult>> ruleCleaningResultList, List<MarketingDataCleanGeneralRuleConfig> ruleList,
                             MarketingCleanDataFile marketingCleanDataFile,Integer actualNum);
 
     List<JSONObject> fileDataAssemble(List<String> batchLines, String[] headers, String fileName, int startIndex,
-                                     Map<String, String> virtualHeadersMap);
+                                     Map<String, String> virtualHeadersMap, String fieldDelimiter);
 
     void uploadDetailCleanHandler(JSONObject jsonObject, Collection<MarketingDataCleanGeneralRuleConfig> ruleConfigList,
                                   MarketingSyncUser marketingSyncUser);

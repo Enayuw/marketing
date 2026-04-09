@@ -15,6 +15,7 @@ import com.br.marketing.mapper.MkNodeStatisticsMapper;
 import com.br.marketing.enums.LinkSourceTypeEnum;
 import com.br.marketing.service.datamap.TrackingLinkService;
 import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -483,10 +484,11 @@ public class TrackingLinkServiceImpl implements TrackingLinkService {
         Integer pageSize = request.getPageSize();
         PageHelper.startPage(page, pageSize);
 
-        // 查询列表
+        // 查询列表（PageHelper 返回的是 Page，含总条数等元数据）
         List<LinkListItemDTO> list = linkMapper.selectLinkList(request);
+        // 必须在 stream 转新 List 之前取 PageInfo，否则 total 会变成当前页条数
+        long total = new PageInfo<>(list).getTotal();
 
-        // 转换为 VO
         List<LinkListItemVO> voList = list.stream()
                 .map(item -> LinkListItemVO.builder()
                         .id(item.getId())
@@ -496,16 +498,13 @@ public class TrackingLinkServiceImpl implements TrackingLinkService {
                         .bizScene(item.getBizScene())
                         .description(item.getDescription())
                         .status(item.getStatus())
-                        .sourceType(item.getSourceType())
-                        .templateId(item.getTemplateId())
                         .nodeCount(item.getNodeCount())
                         .createdTime(item.getCreatedTime())
                         .updatedTime(item.getUpdatedTime())
                         .build())
                 .collect(Collectors.toList());
 
-        // 返回结果
-        return PageResultReturn.setPageResult(voList, page, pageSize);
+        return PageResultReturn.setPageResult(voList, page, pageSize, total);
     }
 
     @Override

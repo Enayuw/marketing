@@ -675,6 +675,76 @@ public class MarketingDataCleanGeneralConfigExample {
             return (Criteria) this;
         }
 
+        public Criteria andSftpFileSeparatorIsNull() {
+            addCriterion("sftp_file_separator is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpFileSeparatorIsNotNull() {
+            addCriterion("sftp_file_separator is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpFileSeparatorEqualTo(String value) {
+            addCriterion("sftp_file_separator =", value, "sftpFileSeparator");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpFileSeparatorNotEqualTo(String value) {
+            addCriterion("sftp_file_separator <>", value, "sftpFileSeparator");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpFileSeparatorGreaterThan(String value) {
+            addCriterion("sftp_file_separator >", value, "sftpFileSeparator");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpFileSeparatorGreaterThanOrEqualTo(String value) {
+            addCriterion("sftp_file_separator >=", value, "sftpFileSeparator");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpFileSeparatorLessThan(String value) {
+            addCriterion("sftp_file_separator <", value, "sftpFileSeparator");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpFileSeparatorLessThanOrEqualTo(String value) {
+            addCriterion("sftp_file_separator <=", value, "sftpFileSeparator");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpFileSeparatorLike(String value) {
+            addCriterion("sftp_file_separator like", value, "sftpFileSeparator");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpFileSeparatorNotLike(String value) {
+            addCriterion("sftp_file_separator not like", value, "sftpFileSeparator");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpFileSeparatorIn(List<String> values) {
+            addCriterion("sftp_file_separator in", values, "sftpFileSeparator");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpFileSeparatorNotIn(List<String> values) {
+            addCriterion("sftp_file_separator not in", values, "sftpFileSeparator");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpFileSeparatorBetween(String value1, String value2) {
+            addCriterion("sftp_file_separator between", value1, value2, "sftpFileSeparator");
+            return (Criteria) this;
+        }
+
+        public Criteria andSftpFileSeparatorNotBetween(String value1, String value2) {
+            addCriterion("sftp_file_separator not between", value1, value2, "sftpFileSeparator");
+            return (Criteria) this;
+        }
+
         public Criteria andIsDelIsNull() {
             addCriterion("is_del is null");
             return (Criteria) this;

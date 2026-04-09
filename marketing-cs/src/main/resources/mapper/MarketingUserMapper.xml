@@ -521,6 +521,15 @@
 	</select>
 
 
+	<select id="selectLatestSyncUser" resultType="com.br.marketing.entity.MarketingSyncUser">
+		select * from b_marketing_sync_${apiCode}
+		where cust_num = #{custNum} and status = 1
+		<if test="userType != null and userType != ''">
+			and user_type = #{userType}
+		</if>
+		order by create_time desc limit 1
+	</select>
+
 	<update id="createUserLabelTable" parameterType="java.lang.String">
 		CREATE TABLE
 			IF NOT EXISTS ${tableName} (
