@@ -3650,6 +3650,11 @@ public class MarketingCommonConfig {
     private JSONObject sftpToDbSpecialHandleJson;
 
     /**
+     * FileDownloadJob 特殊字段处理配置
+     */
+    private JSONObject fileDownloadSpecialHandleJson;
+
+    /**
      * 58AI配置
      */
     private JSONObject wuBaAIConfig;

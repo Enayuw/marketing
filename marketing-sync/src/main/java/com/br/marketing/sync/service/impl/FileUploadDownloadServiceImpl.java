@@ -1,5 +1,6 @@
 package com.br.marketing.sync.service.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.common.validator.DateUtils;
 import com.br.marketing.client.BaseFtpClient;
@@ -49,6 +50,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 @Slf4j
@@ -616,6 +618,11 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
                 Set<String> dateSet = new TreeSet<>();
                 dateSet.add(DateHelper.getDateByMinute(-60));
                 dateSet.add(DateHelper.getDateAddYyMmDd(0));
+                JSONObject specialHandleJson = marketingCommonConfig.getFileDownloadSpecialHandleJson();
+                if (specialHandleJson != null && specialHandleJson.containsKey(apiCode)) {
+                    Integer days = specialHandleJson.getInteger(apiCode);
+                    IntStream.range(1, days + 1).forEach(day -> dateSet.add(DateHelper.getDateAdd(day)));
+                }
                 for (String date : dateSet) {
                     SyncConfig configCopy = copyConfig(config);
                     // 替换路径中的日期
