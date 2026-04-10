@@ -15,6 +15,7 @@ import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -74,7 +75,8 @@ public class DidiDataSyncServiceImpl implements DiDiDataSyncService {
         // 记录已处理的数据总量
         int cycleCount = diDiV5DataLoopCycleMapper.queryCollidingDataAmount(DateUtil.beginOfDay(DateUtil.tomorrow()),
                 DateUtil.endOfDay(DateUtil.tomorrow()));
-        int preCount = diDiV5CollidingDataRobMapper.queryCollidingDataAmount(DateUtil.beginOfDay(DateUtil.tomorrow()));
+        Date afterTomorrow = getAfterTomorrow();
+        int preCount = diDiV5CollidingDataRobMapper.queryCollidingDataAmount(DateUtil.beginOfDay(afterTomorrow));
         int totalProcessedCount = cycleCount + preCount;
 
         for (LocalFile localFile : localFiles) {
@@ -92,16 +94,26 @@ public class DidiDataSyncServiceImpl implements DiDiDataSyncService {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(), e.getMessage()
                         , subject), e);
             }
-            // 检查是否需要从后天数据中补数
-            if (totalProcessedCount < collidingLimit) {
-                int needCount = collidingLimit - totalProcessedCount;
-                log.info("已处理数据量{}不足collidingLimit{}, 需要从后天数据中补充{}条",
-                        totalProcessedCount, collidingLimit, needCount);
-
-                // 从后天数据中补数
-                supplementDataFromAfterTomorrow(apiCode, pageSize, needCount);
-            }
         }
+        // 检查是否需要从后天数据中补数
+        if (totalProcessedCount < collidingLimit) {
+            int needCount = collidingLimit - totalProcessedCount;
+            log.info("已处理数据量{}不足collidingLimit{}, 需要从后天数据中补充{}条",
+                    totalProcessedCount, collidingLimit, needCount);
+
+            // 从后天数据中补数
+            supplementDataFromAfterTomorrow(apiCode, pageSize, needCount);
+        }
+    }
+
+    private static Date getAfterTomorrow() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DATE, 2);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        return calendar.getTime();
     }
 
     /**
