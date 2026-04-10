@@ -71,6 +71,7 @@ public class DidiDataSyncServiceImpl implements DiDiDataSyncService {
         if (CollectionUtils.isEmpty(localFiles)) {
             return;
         }
+        localFiles = localFiles.stream().sorted(Comparator.comparing(LocalFile::getFileName)).collect(Collectors.toList());
 
         // 记录已处理的数据总量
         int cycleCount = diDiV5DataLoopCycleMapper.queryCollidingDataAmount(DateUtil.beginOfDay(DateUtil.tomorrow()),
