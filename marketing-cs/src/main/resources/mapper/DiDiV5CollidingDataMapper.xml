@@ -107,13 +107,22 @@
     </select>
 
     <select id="selectNoDupDataByDateAndId" resultMap="BaseResultMap">
-        SELECT *
-        FROM b_didi_v5_colliding_data
-        WHERE api_code = #{apiCode}
-        AND push_status = 0
-        AND DATE(colliding_time) >= DATE(#{collidingTime})
-        AND id > #{minId}
-        ORDER BY id ASC
-        LIMIT #{pageSize}
+        SELECT c.*
+        FROM (SELECT a.*, ROW_NUMBER() OVER (PARTITION BY a.cell ORDER BY a.id ASC) AS row_num
+              FROM b_didi_v5_colliding_data a
+              WHERE a.api_code = #{apiCode}
+                AND a.push_status = 0
+                AND DATE (a.colliding_time) >= DATE(#{collidingTime})
+            AND NOT EXISTS (
+                SELECT 1
+                FROM b_didi_v5_colliding_data_rob rob
+                WHERE rob.cell = a.cell
+                AND rob.api_code = a.api_code
+                AND rob.package_id = a.local_id
+            )) AS c
+        WHERE c.row_num = 1
+          AND c.id > #{minId}
+        ORDER BY c.id ASC
+            LIMIT #{pageSize}
     </select>
 </mapper>
