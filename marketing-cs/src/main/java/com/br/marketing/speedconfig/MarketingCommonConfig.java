@@ -3673,4 +3673,9 @@ public class MarketingCommonConfig {
      * * 同程批次号前缀对场景映射配置
      */
     private Map<String,String> tcBatchNoSuffixToSceneConfig;
+
+    /**
+     * 同程易融cpa-failMsg配置
+     */
+    private List<JSONObject> tcyrCpaFailMsgConfig;
  }

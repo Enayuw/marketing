@@ -5,6 +5,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.*;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.config.biz.TcyrCpaConfigManager;
 import com.br.marketing.dto.tccpa.*;
 import com.br.marketing.dto.tc.TcCpaMagnitudeDistDTO;
 import com.br.marketing.dto.tc.TcyrCpaCollidingDataPackageInfo;
@@ -12,12 +13,10 @@ import com.br.marketing.dto.tc.TcyrCpaDeleteRuleInfo;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.TcCpaCleanStatusEnum;
 import com.br.marketing.enums.TcCpaCollidingTaskStatusEnum;
-import com.br.marketing.enums.TcCpaFailMsgEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.tccpa.TcCpaCollidingRuleService;
 import com.br.marketing.service.tccpa.TcCpaCommonService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.br.marketing.vo.tccpa.TcyrCpaDeleteRuleVO;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.pagehelper.PageHelper;
@@ -60,6 +59,9 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
 
     @Resource
     private TcCpaCommonService tcCpaCommonService;
+
+    @Resource
+    TcyrCpaConfigManager tcyrCpaConfigManager;
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -114,21 +116,11 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
                 .collect(Collectors.toList());
         //2.查询量级
         List<TcyrCpaMagnitude> magnitudeList = getTcyrCpaMagnitudes(releaseTimeList, supplyFailMsgList);
-        //3.将lockBelong转成failMsg
-        magnitudeList = magnitudeList.stream()
-                .map(item -> {
-                    if (item.getLockBelong() != null) {
-                        Integer failMsg = tcCpaCommonService.convertLockBelongToFailMsg(item.getLockBelong());
-                        item.setFailMsg(failMsg);
-                    }
-                    return item;
-                })
-                .collect(Collectors.toList());
-        //4.补充量级为0的数据
+        //3.补充量级为0的数据
         List<TcyrCpaMagnitude> allMagnitudeList = fillMissingData(magnitudeList, releaseTimeList, supplyFailMsgList);
-        //5.查询上次勾选的格子
+        //4.查询上次勾选的格子
         List<String> isSupplyList = isSupplyData(taskId);
-        //6.按releaseTime分组
+        //5.按releaseTime分组
         List<TcyrFailMsgSupplyGroupDTO> result = groupByDate(allMagnitudeList, isSupplyList);
         return new Result<List<TcCpaMagnitudeDistDTO>>()
                 .setCode(ResultCode.SUCCESS.getValue())
@@ -148,6 +140,7 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
         basicTask.setPackageIds(String.join(",", packageIds));
         basicTask.setPackageNames(packageNames);
         basicTask.setDeleteRuleIds(String.join(",", ruleDTO.getDeleteRuleIds()));
+        basicTask.setCollidingNum(ruleDTO.getCollidingNum());
         //1.1创建补包信息
         if (CollectionUtils.isNotEmpty(ruleDTO.getFailMsgSupplyGroups())) {
             //过滤掉isSupply=false的数据
@@ -257,6 +250,7 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
         task.setEstNum(null);
         task.setSupplyNum(null);
         task.setDeleteNum(null);
+        task.setCollidingNum(ruleDTO.getCollidingNum());
         //todo 更新时需要更新量级不
         //3.赋值补包字段
         if (CollectionUtils.isEmpty(ruleDTO.getFailMsgSupplyGroups())) {
@@ -335,24 +329,19 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
      **/
     private List<TcyrCpaMagnitude> getTcyrCpaMagnitudes(List<String> releaseTimeList, List<Integer> supplyFailMsgList) {
         List<TcyrCpaMagnitude> magnitudeList = new ArrayList<>();
-        Map<Integer, TcCpaFailMsgEnum> failMsgToEnumMap = new HashMap<>();
-        for (TcCpaFailMsgEnum failMsgEnum : TcCpaFailMsgEnum.values()) {
-            failMsgToEnumMap.put(failMsgEnum.getValue(), failMsgEnum);
-        }
+        //failMsg与lockBelong的映射Map
+        Map<Integer, Integer> failMsgToLbMap = tcyrCpaConfigManager.getFailMsgToBlMap();
         for (Integer failMsg : supplyFailMsgList) {
-            TcCpaFailMsgEnum failMsgEnum = failMsgToEnumMap.get(failMsg);
-            if (failMsgEnum == null) {
-                continue; // 没有对应的枚举，跳过
-            }
+            Integer lockBelong = failMsgToLbMap.get(failMsg);
             List<TcyrCpaMagnitude> magnitudeInnerList;
-            if (failMsgEnum.getLockValue() != null) {
+            if (lockBelong != null) {
                 //查询【b_tcyr_cpa_lock_data】
                 magnitudeInnerList = tcyrCpaLockDataMapper
-                        .queryMagnitudeWithBelong(releaseTimeList, failMsgEnum.getLockValue());
+                        .queryMagnitudeWithBelong(releaseTimeList, failMsg, lockBelong);
             } else {
                 //查询【b_tcyr_cpa_invalue_data】
                 magnitudeInnerList = tcyrCpaInvalueDataMapper
-                        .queryMagnitudeWithFailMsg(releaseTimeList, failMsgEnum.getValue().toString());
+                        .queryMagnitudeWithFailMsg(releaseTimeList, failMsg.toString());
             }
             magnitudeList.addAll(magnitudeInnerList);
         }
@@ -513,6 +502,8 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
                 groupData.addDate(releaseTime);
             }
         }
+        //failMsg与lockBelong的映射Map
+        Map<Integer, Integer> failMsgToLbMap = tcyrCpaConfigManager.getFailMsgToBlMap();
         //2.将数据转换为TcyrSupplyRuleInfo
         List<TcyrSupplyRuleInfo> result = new ArrayList<>();
         for (Map.Entry<Integer, SupplyGroupData> entry : groupByFailMsg.entrySet()) {
@@ -522,7 +513,8 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
             ruleInfo.setPriority(priority != null ? (100 + priority) : 99);
             ruleInfo.setReleaseTimes(groupData.getDates());
             ruleInfo.setFailMsg(groupData.getFailMsg());
-            String supplyScript = generateDynamicSql(groupData.getFailMsg(), groupData.getDates());
+            String supplyScript = generateDynamicSql(
+                    groupData.getFailMsg(), failMsgToLbMap.get(groupData.getFailMsg()), groupData.getDates());
             ruleInfo.setSupplyScript(supplyScript);
             result.add(ruleInfo);
         }
@@ -534,14 +526,12 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
     /**
      * 生成动态SQL
      */
-    private String generateDynamicSql(Integer failMsg, List<String> dates) {
-        //1.根据failMsg获取lockBelong
-        Integer lockBelong = tcCpaCommonService.convertFailMsgToLockBelong(failMsg);
+    private String generateDynamicSql(Integer failMsg, Integer lockBelong, List<String> dates) {
+        //1.日期
+        String dateConditions = dates.stream()
+                .map(date -> "'" + date + "'")
+                .collect(Collectors.joining(","));
         if (lockBelong == null) {
-            //查询【b_tcyr_cpa_invalue_data】
-            String dateConditions = dates.stream()
-                    .map(date -> "'" + date + "'")
-                    .collect(Collectors.joining(","));
             return String.format(
                     "select user_key from b_tcyr_cpa_invalue_data " +
                             "where fail_msg = %d " +
@@ -549,10 +539,6 @@ public class TcCpaCollidingRuleServiceImpl implements TcCpaCollidingRuleService 
                     failMsg, dateConditions
             );
         } else {
-            //查询【b_tcyr_cpa_lock_data】
-            String dateConditions = dates.stream()
-                    .map(date -> "'" + date + "'")
-                    .collect(Collectors.joining(","));
             return String.format(
                     "select user_key from b_tcyr_cpa_lock_data " +
                             "where lock_belong = %d " +

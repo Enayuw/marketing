@@ -522,6 +522,66 @@ public class TcyrCpaCollidingTaskExample {
             return (Criteria) this;
         }
 
+        public Criteria andCollidingNumIsNull() {
+            addCriterion("colliding_num is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingNumIsNotNull() {
+            addCriterion("colliding_num is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingNumEqualTo(Integer value) {
+            addCriterion("colliding_num =", value, "collidingNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingNumNotEqualTo(Integer value) {
+            addCriterion("colliding_num <>", value, "collidingNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingNumGreaterThan(Integer value) {
+            addCriterion("colliding_num >", value, "collidingNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingNumGreaterThanOrEqualTo(Integer value) {
+            addCriterion("colliding_num >=", value, "collidingNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingNumLessThan(Integer value) {
+            addCriterion("colliding_num <", value, "collidingNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingNumLessThanOrEqualTo(Integer value) {
+            addCriterion("colliding_num <=", value, "collidingNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingNumIn(List<Integer> values) {
+            addCriterion("colliding_num in", values, "collidingNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingNumNotIn(List<Integer> values) {
+            addCriterion("colliding_num not in", values, "collidingNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingNumBetween(Integer value1, Integer value2) {
+            addCriterion("colliding_num between", value1, value2, "collidingNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingNumNotBetween(Integer value1, Integer value2) {
+            addCriterion("colliding_num not between", value1, value2, "collidingNum");
+            return (Criteria) this;
+        }
+
         public Criteria andDeleteRuleIdsIsNull() {
             addCriterion("delete_rule_ids is null");
             return (Criteria) this;
@@ -649,6 +709,76 @@ public class TcyrCpaCollidingTaskExample {
 
         public Criteria andDeleteNumNotBetween(Integer value1, Integer value2) {
             addCriterion("delete_num not between", value1, value2, "deleteNum");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeleteInfoIsNull() {
+            addCriterion("delete_info is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeleteInfoIsNotNull() {
+            addCriterion("delete_info is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeleteInfoEqualTo(String value) {
+            addCriterion("delete_info =", value, "deleteInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeleteInfoNotEqualTo(String value) {
+            addCriterion("delete_info <>", value, "deleteInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeleteInfoGreaterThan(String value) {
+            addCriterion("delete_info >", value, "deleteInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeleteInfoGreaterThanOrEqualTo(String value) {
+            addCriterion("delete_info >=", value, "deleteInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeleteInfoLessThan(String value) {
+            addCriterion("delete_info <", value, "deleteInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeleteInfoLessThanOrEqualTo(String value) {
+            addCriterion("delete_info <=", value, "deleteInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeleteInfoLike(String value) {
+            addCriterion("delete_info like", value, "deleteInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeleteInfoNotLike(String value) {
+            addCriterion("delete_info not like", value, "deleteInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeleteInfoIn(List<String> values) {
+            addCriterion("delete_info in", values, "deleteInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeleteInfoNotIn(List<String> values) {
+            addCriterion("delete_info not in", values, "deleteInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeleteInfoBetween(String value1, String value2) {
+            addCriterion("delete_info between", value1, value2, "deleteInfo");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeleteInfoNotBetween(String value1, String value2) {
+            addCriterion("delete_info not between", value1, value2, "deleteInfo");
             return (Criteria) this;
         }
 
