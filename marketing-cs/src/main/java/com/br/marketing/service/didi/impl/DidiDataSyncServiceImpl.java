@@ -15,7 +15,6 @@ import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -148,7 +147,7 @@ public class DidiDataSyncServiceImpl implements DiDiDataSyncService {
             }
 
             // 查询后天数据
-            List<DiDiV5CollidingData> afterTomorrowDataList = diDiV5CollidingDataMapper.selectNoDupDataByDateAndId(
+            List<DiDiV5CollidingData> afterTomorrowDataList = diDiV5CollidingDataMapper.selectNoDupDataByDateAndIdtikv_(
                     apiCode, afterTomorrow, minId, pageSize);
             if (CollectionUtils.isEmpty(afterTomorrowDataList)) {
                 break;

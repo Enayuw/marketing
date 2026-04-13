@@ -42,7 +42,7 @@ public interface DiDiV5CollidingDataMapper extends DiDiV5CollidingDataMapperBase
                                                             @Param("collidingDate") Date collidingDate);
 
 
-    List<DiDiV5CollidingData> selectNoDupDataByDateAndId(
+    List<DiDiV5CollidingData> selectNoDupDataByDateAndIdtikv_(
             @Param("apiCode") String apiCode,
             @Param("collidingTime") Date collidingTime,
             @Param("minId") Long minId,

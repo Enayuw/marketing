@@ -106,7 +106,7 @@
             LIMIT #{pageSize}
     </select>
 
-    <select id="selectNoDupDataByDateAndId" resultMap="BaseResultMap">
+    <select id="selectNoDupDataByDateAndIdtikv_" resultMap="BaseResultMap">
         SELECT c.*
         FROM (SELECT a.*, ROW_NUMBER() OVER (PARTITION BY a.cell ORDER BY a.id ASC) AS row_num
               FROM b_didi_v5_colliding_data a
