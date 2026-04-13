@@ -148,8 +148,8 @@ public class DidiDataSyncServiceImpl implements DiDiDataSyncService {
                 pushPool.submit(() -> supplementAndInsertToRob(list, apiCode, tomorrow,
                         needCount, currentSupplementedCount));
             }
-            pushPool.shutdownAndAwaitTermination();
         }
+        pushPool.shutdownAndAwaitTermination();
     }
 
     private void updatePushStatus(LocalFile localFile) {
