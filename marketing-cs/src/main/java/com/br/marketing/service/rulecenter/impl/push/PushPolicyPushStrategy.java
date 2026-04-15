@@ -230,7 +230,8 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
                                     (StringUtils.isNotBlank(marketingHistory.getBatchNumber()) ? marketingHistory.getBatchNumber() : ""));
                         }
                         dto1.setCaseNumber(marketingHistory.getCusNum());
-                        dto1.setPhone(encrypt3k(_3kEncrypt, marketingHistory.getCell()));
+                        dto1.setPhone(marketingHistory.getCellOriginal());
+                        dto1.setLogCell(marketingHistory.getCell_log());
                         JSONObject varObject = JSON.parseObject(marketingHistory.getReserveField());
                         if (varObject == null) {
                             varObject = new JSONObject();
@@ -243,8 +244,12 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
                             }
                         }
                         varObject.put("custNum", marketingHistory.getCusNum());
-                        varObject.put("idCard", encrypt3k(_3kEncrypt, marketingHistory.getIdCard()));
-                        varObject.put("name", encrypt3k(_3kEncrypt, marketingHistory.getName()));
+                        // 原值
+                        varObject.put("idCard", marketingHistory.getIdCardOriginal());
+                        varObject.put("name", marketingHistory.getNameOriginal());
+                        // log加密
+                        varObject.put("logIdCard", marketingHistory.getIdCard_log());
+                        varObject.put("logName", marketingHistory.getName_log());
                         varObject.put("batchNumber", marketingHistory.getBatchNumber());
                         varObject.put("taskId", marketingHistory.getTaskId());
                         varObject.put("userType", marketingHistory.getUserType());
