@@ -140,8 +140,15 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
             Header contentTypeHeader = response.getFirstHeader("Content-Type");
             String contentType = contentTypeHeader != null ? contentTypeHeader.getValue() : null;
             if (contentType != null && contentType.contains("application/json")) {
+                String jsonBody = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+                EntityUtils.consumeQuietly(response.getEntity());
+                JSONObject jsonResponse = JSON.parseObject(jsonBody);
+                String errorMsg = AlertLog.buildErrorMessage(AlarmSendCodeEnum.WUBA_AI_SERVICEERROR.getCode(),
+                        TITLE + " 接口返回业务错误，taskId:" + taskId + ", code=" + jsonResponse.getString("code") +
+                                ", message=" + jsonResponse.getString("message"), null);
+                log.error(errorMsg);
+            } else if (contentType != null && contentType.contains("application/octet-stream")) {
                 byte[] fileBytes = EntityUtils.toByteArray(response.getEntity());
-//                byte[] fileBytes = FileUtil.readBytes("E:\\opt\\data1\\inloan\\download\\marketing\\7491850\\20260323\\7491850test_2026-04-15.csv.zip");
                 try {
                     saveFileToTempPath(response, fileBytes, task, baseFilePath, apiCode, dateStr);
                 } catch (Exception saveEx) {

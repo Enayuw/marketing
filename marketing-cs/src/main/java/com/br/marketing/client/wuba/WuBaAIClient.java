@@ -19,7 +19,7 @@ public class WuBaAIClient {
     @Value("${api.wuba.transferUrl:https://gateway-convenientloan.58v5.cn/thirdpartnar/v1/getConversionList}")
     private String transferUrl;
 
-    @Value("${api.wuba.isProxy:true}")
+    @Value("${api.wuba.isProxy:false}")
     private Boolean isProxy;
 
     @Resource
