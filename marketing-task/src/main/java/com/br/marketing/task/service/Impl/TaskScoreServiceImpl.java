@@ -569,7 +569,7 @@ public class TaskScoreServiceImpl {
 
                 Integer resolvedType = configType;
                 CustomerTagsVO customerTags = null;
-                if (ScoreThreeKeyEncryptEnum.adapt.getValue().equals(configType)) {
+                if (ScoreThreeKeyEncryptEnum.general.getValue().equals(configType)) {
                     customerTags = resolveAdaptEncryptType(blt.getApiCode());
                     resolvedType = customerTags != null ? customerTags.getResolvedScoreEncryptType() : ScoreThreeKeyEncryptEnum.md5.getValue();
                 }
