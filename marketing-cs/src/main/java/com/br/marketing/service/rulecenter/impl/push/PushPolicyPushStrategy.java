@@ -2,6 +2,7 @@ package com.br.marketing.service.rulecenter.impl.push;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.encryption.Sha256Util;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
@@ -23,7 +24,6 @@ import com.br.marketing.mapper.CustomerInfoPushMainMapper;
 import com.br.marketing.mapper.ErrorMarkMapper;
 import com.br.marketing.mapper.TagDataDetailMapper;
 import com.br.marketing.service.ToPolicyByRuleService;
-import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
 import com.br.marketing.service.rulecenter.RuleCenterPushContext;
 import com.br.marketing.service.rulecenter.impl.esquery.EsQueryExecutor;
 import com.br.marketing.service.rulecenter.impl.esquery.EsQueryResult;
@@ -35,6 +35,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.DigestUtils;
 import org.springframework.util.ObjectUtils;
 import com.br.marketing.service.rulecenter.impl.esquery.EsQueryParams;
 
@@ -86,8 +87,7 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
                 context.getSinglePartition(),
                 context.getPartitionDataCount().get(partitionIndex),
                 context.getMarkWithEsFlag(),
-                context.getLabelObject(),
-                context.getCustomerTagsVO()
+                context.getLabelObject()
         );
     }
 
@@ -113,13 +113,11 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
         private Integer partDataNum;
         private Boolean markWithEsFlag;
         private Object lableObject;
-        private CustomerTagsVO customerTagsVO;
 
         public PushPolicyTask(ThreadPoolExecutor pushJcPool
                 , CustomerInfoPushMain customerInfoPushMain
                 , List<Long> fileIds, List<String> numList
-                , String part, Integer _3kEncrypt, Boolean isPerOrTop, Integer partDataNum,
-                Boolean markWithEsFlag, Object lableObject, CustomerTagsVO customerTagsVO) {
+                , String part, Integer _3kEncrypt, Boolean isPerOrTop, Integer partDataNum, Boolean markWithEsFlag, Object lableObject) {
             this.pushJcPool = pushJcPool;
             this.customerInfoPushMain = customerInfoPushMain;
             this.fileIds = fileIds;
@@ -130,7 +128,6 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
             this.partDataNum = partDataNum;
             this.markWithEsFlag = markWithEsFlag;
             this.lableObject = lableObject;
-            this.customerTagsVO = customerTagsVO;
         }
 
         @Override
@@ -233,8 +230,7 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
                                     (StringUtils.isNotBlank(marketingHistory.getBatchNumber()) ? marketingHistory.getBatchNumber() : ""));
                         }
                         dto1.setCaseNumber(marketingHistory.getCusNum());
-                        dto1.setPhone(encrypt3k(_3kEncrypt, marketingHistory.getCell(), customerTagsVO));
-                        dto1.setLogCell(marketingHistory.getCell_log());
+                        dto1.setPhone(encrypt3k(_3kEncrypt, marketingHistory.getCell()));
                         JSONObject varObject = JSON.parseObject(marketingHistory.getReserveField());
                         if (varObject == null) {
                             varObject = new JSONObject();
@@ -247,8 +243,8 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
                             }
                         }
                         varObject.put("custNum", marketingHistory.getCusNum());
-                        varObject.put("idCard", encrypt3k(_3kEncrypt, marketingHistory.getIdCard(), customerTagsVO));
-                        varObject.put("name", encrypt3k(_3kEncrypt, marketingHistory.getName(), customerTagsVO));
+                        varObject.put("idCard", encrypt3k(_3kEncrypt, marketingHistory.getIdCard()));
+                        varObject.put("name", encrypt3k(_3kEncrypt, marketingHistory.getName()));
                         varObject.put("batchNumber", marketingHistory.getBatchNumber());
                         varObject.put("taskId", marketingHistory.getTaskId());
                         varObject.put("userType", marketingHistory.getUserType());
@@ -430,6 +426,18 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
     }
 
 
+    public String encrypt3k(Integer type, String content) {
+        if (com.br.marketing.common.utils.StringUtils.isBlank(content)) {
+            return "";
+        }
+        if (ScoreThreeKeyEncryptEnum.md5.getValue().equals(type)) {
+            return DigestUtils.md5DigestAsHex(content.getBytes());
+        }
+        if (ScoreThreeKeyEncryptEnum.sha256.getValue().equals(type)) {
+            return Sha256Util.getSHA256Encrypt(content);
+        }
+        return content;
+    }
 
     @Override
     protected RuleCenterPushContext setThreadPoolNum(RuleCenterPushContext pushContext) {

@@ -6,11 +6,6 @@ import lombok.Data;
 public class CustomerTagsVO {
 
     /**
-     * 客户编码
-     */
-    private String apiCode;
-
-    /**
      * 校验类型
      * {@link com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue.CheckTypeEnum}
      */

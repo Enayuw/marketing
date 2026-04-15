@@ -53,7 +53,6 @@ public class CustomerTagsProcessServiceImpl {
         }
 
         CustomerTagsVO customerTagsVO = new CustomerTagsVO();
-        customerTagsVO.setApiCode(apiCode);
         MarketingCustomerConfigExample configExample = new MarketingCustomerConfigExample();
         configExample.createCriteria().andApiCodeEqualTo(apiCode).andIsDelEqualTo(Constants.DATA_VALID);
         List<MarketingCustomerConfig> configs = marketingCustomerConfigMapper.selectByExample(configExample);
