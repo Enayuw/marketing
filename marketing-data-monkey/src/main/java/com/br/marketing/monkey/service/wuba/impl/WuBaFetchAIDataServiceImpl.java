@@ -303,7 +303,10 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
                         String value = recordJson.getString(header);
                         reserveField1.put(header, Objects.nonNull(value) ? value : "");
                     });
+                    String userType = keepFromRight13(record.getUserType());
+                    reserveField1.put("userType", userType);
                     syncUser.setReserveField1(reserveField1.toJSONString());
+                    syncUser.setUserType(userType);
                     return (JSONObject) JSONObject.toJSON(syncUser);
                 })
                 .filter(Objects::nonNull)
@@ -325,6 +328,19 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
                 dataList.forEach(data -> data.setCleanStatus(TcRecordCleanStatusEnum.CLEAN_PUSH.getValue()));
             }
         }
+    }
+
+    private static String keepFromRight13(String str) {
+        if (str == null) {
+            return null;
+        }
+        int length = str.length();
+        if (length < 13) {
+            return str;
+        }
+        int startIndex = 0;
+        int endIndex = length - 13;
+        return str.substring(startIndex, endIndex + 1);
     }
 
     private PushTransferDataDetailDTO initTransferData(String apiCode, List<TransferDataItemDTO> transferDataItems) {
