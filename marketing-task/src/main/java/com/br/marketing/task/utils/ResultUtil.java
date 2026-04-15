@@ -284,6 +284,9 @@ public class ResultUtil {
             }
             mh.setCondition(conditionList);
             mh.setReserveField(esResult.toJSONString());
+            mh.setCellOriginal(user.getCellOriginal());
+            mh.setIdCardOriginal(user.getIdCardOriginal());
+            mh.setNameOriginal(user.getNameOriginal());
             String id = UuidUtils.getUuid();
             MarketingHistoryEsServiceImpl service = new MarketingHistoryEsServiceImpl();
             // 模拟ES异常
