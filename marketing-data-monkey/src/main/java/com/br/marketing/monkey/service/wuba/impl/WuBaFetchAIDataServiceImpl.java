@@ -36,7 +36,9 @@ import org.apache.http.util.EntityUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Function;
@@ -52,7 +54,7 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
 
     private final static String TITLE = "【58AI】-转化数据拉取";
 
-    public static final String FILENAME = "filename=";
+    public static final String FILENAME = "filename";
 
     private static final Pattern CSV_SPLIT_PATTERN = Pattern.compile("\\n");
 
@@ -138,15 +140,8 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
             Header contentTypeHeader = response.getFirstHeader("Content-Type");
             String contentType = contentTypeHeader != null ? contentTypeHeader.getValue() : null;
             if (contentType != null && contentType.contains("application/json")) {
-                String jsonBody = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
-                EntityUtils.consumeQuietly(response.getEntity());
-                JSONObject jsonResponse = JSON.parseObject(jsonBody);
-                String errorMsg = AlertLog.buildErrorMessage(AlarmSendCodeEnum.WUBA_AI_SERVICEERROR.getCode(),
-                        TITLE + " 接口返回业务错误，taskId:" + taskId + ", code=" + jsonResponse.getString("code") +
-                                ", message=" + jsonResponse.getString("message"), null);
-                log.error(errorMsg);
-            } else if (contentType != null && contentType.contains("application/octet-stream")) {
                 byte[] fileBytes = EntityUtils.toByteArray(response.getEntity());
+//                byte[] fileBytes = FileUtil.readBytes("E:\\opt\\data1\\inloan\\download\\marketing\\7491850\\20260323\\7491850test_2026-04-15.csv.zip");
                 try {
                     saveFileToTempPath(response, fileBytes, task, baseFilePath, apiCode, dateStr);
                 } catch (Exception saveEx) {
@@ -261,6 +256,7 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
                 successCount++;
                 if (dataList.size() >= limit) {
                     saveBatchData(dataList, task);
+                    pushTransferData(apiCode, dataList);
                     dataList.clear();
                 }
             } catch (Exception e) {
@@ -270,47 +266,7 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
         }
 
         if (CollectionUtils.isNotEmpty(dataList)) {
-            List<String> cellMD5List = dataList.stream().map(WuBaAiConversionData::getMobileEncrypt).toList();
-            Map<String, MarketingSyncUser> syncUserMap = marketingSyncUserMapper.getSyncUserByMD5(apiCode, cellMD5List)
-                    .stream().collect(Collectors.toMap(MarketingSyncUser::getCellMd5, Function.identity()));
-
-            List<JSONObject> jsonObjectList = dataList.stream()
-                    .map(record -> {
-                        MarketingSyncUser syncUser = syncUserMap.get(record.getMobileEncrypt());
-                        if (Objects.isNull(syncUser)) {
-                            return null;
-                        }
-                        JSONObject reserveField1 = syncUser.getReserveField1() != null
-                                ? JSONObject.parseObject(syncUser.getReserveField1())
-                                : new JSONObject();
-                        JSONObject recordJson = (JSONObject) JSONObject.toJSON(record);
-                        reserveField1.putAll(recordJson);
-                        EXPECTED_HEADERS.forEach(header -> {
-                            String value = recordJson.getString(header);
-                            reserveField1.put(header, Objects.nonNull(value) ? value : "");
-                        });
-                        syncUser.setReserveField1(reserveField1.toJSONString());
-                        return (JSONObject) JSONObject.toJSON(syncUser);
-                    })
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-
-            Result transferResult = generalDataCleanService.transferClean(jsonObjectList, apiCode);
-            if (transferResult == null || !transferResult.isSuccess()) {
-                log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.WUBA_AI_SERVICEERROR.getCode(),
-                        TITLE + " 数据清洗失败", null));
-            } else {
-                List<TransferDataItemDTO> transferDataItemDTOS = (List<TransferDataItemDTO>) transferResult.getData();
-                PushTransferDataDetailDTO dto = initTransferData(apiCode, transferDataItemDTOS);
-                Result pushResult = pushInfoService.pushTransferByRetry(dto, null);
-                log.warn("{},调用push接口 code:{},isSuccess:{},msg:{}", TITLE,
-                        pushResult.getCode(), pushResult.isSuccess(), pushResult.getMessage());
-                if (pushResult.isSuccess()) {
-                    dataList.forEach(data -> data.setCleanStatus(TcRecordCleanStatusEnum.CLEAN_COMPLETED.getValue()));
-                } else {
-                    dataList.forEach(data -> data.setCleanStatus(TcRecordCleanStatusEnum.CLEAN_PUSH.getValue()));
-                }
-            }
+            pushTransferData(apiCode, dataList);
             saveBatchData(dataList, task);
         }
 
@@ -318,6 +274,50 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
         task.setSuccessCount(successCount);
         fetchTaskMapper.updateByPrimaryKeySelective(task);
         log.warn("{} CSV解析完成，共{}行，成功解析{}行，taskId: {}", TITLE, totalCount, successCount, task.getId());
+    }
+
+    private void pushTransferData(String apiCode, List<WuBaAiConversionData> dataList) {
+        List<String> cellMD5List = dataList.stream().map(WuBaAiConversionData::getMobileEncrypt).toList();
+        Map<String, MarketingSyncUser> syncUserMap = marketingSyncUserMapper.getSyncUserByMD5(apiCode, cellMD5List)
+                .stream().collect(Collectors.toMap(MarketingSyncUser::getCellMd5, Function.identity()));
+
+        List<JSONObject> jsonObjectList = dataList.stream()
+                .map(record -> {
+                    MarketingSyncUser syncUser = syncUserMap.get(record.getMobileEncrypt());
+                    if (Objects.isNull(syncUser)) {
+                        return null;
+                    }
+                    JSONObject reserveField1 = syncUser.getReserveField1() != null
+                            ? JSONObject.parseObject(syncUser.getReserveField1())
+                            : new JSONObject();
+                    JSONObject recordJson = (JSONObject) JSONObject.toJSON(record);
+                    reserveField1.putAll(recordJson);
+                    EXPECTED_HEADERS.forEach(header -> {
+                        String value = recordJson.getString(header);
+                        reserveField1.put(header, Objects.nonNull(value) ? value : "");
+                    });
+                    syncUser.setReserveField1(reserveField1.toJSONString());
+                    return (JSONObject) JSONObject.toJSON(syncUser);
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        Result transferResult = generalDataCleanService.transferClean(jsonObjectList, apiCode);
+        if (transferResult == null || !transferResult.isSuccess()) {
+            log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.WUBA_AI_SERVICEERROR.getCode(),
+                    TITLE + " 数据清洗失败", null));
+        } else {
+            List<TransferDataItemDTO> transferDataItemDTOS = (List<TransferDataItemDTO>) transferResult.getData();
+            PushTransferDataDetailDTO dto = initTransferData(apiCode, transferDataItemDTOS);
+            Result pushResult = pushInfoService.pushTransferByRetry(dto, null);
+            log.warn("{},调用push接口 code:{},isSuccess:{},msg:{}", TITLE,
+                    pushResult.getCode(), pushResult.isSuccess(), pushResult.getMessage());
+            if (pushResult.isSuccess()) {
+                dataList.forEach(data -> data.setCleanStatus(TcRecordCleanStatusEnum.CLEAN_COMPLETED.getValue()));
+            } else {
+                dataList.forEach(data -> data.setCleanStatus(TcRecordCleanStatusEnum.CLEAN_PUSH.getValue()));
+            }
+        }
     }
 
     private PushTransferDataDetailDTO initTransferData(String apiCode, List<TransferDataItemDTO> transferDataItems) {
@@ -374,7 +374,7 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
     private void saveBatchData(List<WuBaAiConversionData> dataList, WuBaAiFetchTask task) {
         if (!dataList.isEmpty()) {
             dataList.forEach(conversionDataMapper::insertSelective);
-            log.debug("{} 批量插入{}条数据成功，taskId: {}", TITLE, dataList.size(), task.getId());
+            log.warn("{} 批量插入{}条数据成功，taskId: {}", TITLE, dataList.size(), task.getId());
         }
     }
 
