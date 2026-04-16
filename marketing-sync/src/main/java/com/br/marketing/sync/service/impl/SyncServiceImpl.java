@@ -15,6 +15,8 @@ import com.br.marketing.common.utils.file.ZipUtils;
 import com.br.marketing.entity.MarketingCleanDataFile;
 import com.br.marketing.entity.SyncConfig;
 import com.br.marketing.entity.SyncLog;
+import com.br.marketing.enums.sync.SyncConfigIsUnzipEnum;
+import com.br.marketing.enums.sync.UnzipFilenameCharsetEnum;
 import com.br.marketing.enums.SyncConfigCustomizedTypeEnum;
 import com.br.marketing.enums.file.FileServerType;
 import com.br.marketing.mapper.MarketingCleanDataFileMapper;
@@ -936,8 +938,12 @@ public class SyncServiceImpl implements SyncService {
                 String suffixStr = loanSyncConfig.getSuffix();
                 boolean isZip = suffixStr != null && suffixStr.toLowerCase().contains("zip");
                 if (isZip) {
-                    // 压缩包：不插入 zip 本身，解压后为每个解压文件插入一条记录
-                    return unzipAndSaveExtractedFiles(fileName, loanSyncConfig, targetPath, srcPath, file);
+                    // is_unzip=1：解压后为每个解压文件插入一条；b_marketing_clean_data_file.zip_name=压缩包名
+                    // is_unzip=0 或未配置为解压：不解压，仅对 zip 文件本身插入一条记录
+                    if (SyncConfigIsUnzipEnum.needUnzip(loanSyncConfig.getIsUnzip())) {
+                        return unzipAndSaveExtractedFiles(fileName, loanSyncConfig, targetPath, srcPath, file);
+                    }
+                    return saveDataFileInfo(fileName, loanSyncConfig, targetPath, srcPath, md5Value);
                 } else {
                     // 非压缩包：插入一条文件记录
                     return saveDataFileInfo(fileName, loanSyncConfig, targetPath, srcPath, md5Value);
@@ -1011,14 +1017,10 @@ public class SyncServiceImpl implements SyncService {
     private Boolean unzipAndSaveExtractedFiles(String zipFileName, SyncConfig loanSyncConfig,
                                                 String targetPath, String srcPath, File zipFile) {
         try {
-            String encoding = "GBK";
-            if (marketingCommonConfig.getSyncUnzipEncoding() != null) {
-                String cfg = marketingCommonConfig.getSyncUnzipEncoding().get(String.valueOf(loanSyncConfig.getId()));
-                if (StringUtils.isNotBlank(cfg)) {
-                    encoding = cfg.trim();
-                }
-            }
-            List<String> extractedPaths = ZipUtils.unZipAndReturnExtractedPaths(zipFile, targetPath, "", encoding);
+            String encoding = UnzipFilenameCharsetEnum.defaultIfBlank(loanSyncConfig.getUnzipFilenameCharset());
+            String unzipPwd = loanSyncConfig.getUnzipPwd();
+            String pwdArg = StringUtils.isBlank(unzipPwd) ? "" : unzipPwd;
+            List<String> extractedPaths = ZipUtils.unZipAndReturnExtractedPaths(zipFile, targetPath, pwdArg, encoding);
             if (extractedPaths == null || extractedPaths.isEmpty()) {
                 log.warn("压缩包内无文件或解压未得到文件列表，zipFileName:{}, syncConfigId:{}", zipFileName, loanSyncConfig.getId());
                 return Boolean.TRUE;
