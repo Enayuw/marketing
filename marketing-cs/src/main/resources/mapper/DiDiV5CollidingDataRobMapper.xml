@@ -55,4 +55,12 @@
             #{cell}
         </foreach>
     </select>
+
+    <select id="queryCollidingDataAmount" resultType="java.lang.Integer">
+        SELECT count(1)
+        FROM b_didi_v5_colliding_data_rob
+        WHERE push_time is null
+          AND is_delete = 0
+          AND colliding_time &lt; #{startTime}
+    </select>
 </mapper>

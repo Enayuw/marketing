@@ -1,7 +1,6 @@
 package com.br.marketing.enums;
 
 import lombok.Getter;
-
 import java.util.HashMap;
 import java.util.Map;
 

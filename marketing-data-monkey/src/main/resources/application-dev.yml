@@ -107,7 +107,7 @@ api:
     isProxy: true
   wuba:
     transferUrl: https://gateway-convenientloan.58v5.cn/thirdpartnar/v1/getConversionList
-    isProxy: true
+    isProxy: false
   qifu:
     baseUri: https://stg1-gws-bps-web.daikuan.360.cn
     baseCuDongZhiUri: https://stg2-gws-bps-web.daikuan.360.cn

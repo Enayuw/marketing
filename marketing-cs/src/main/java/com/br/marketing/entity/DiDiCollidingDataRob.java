@@ -1,5 +1,8 @@
 package com.br.marketing.entity;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.Date;
 
 public class DiDiCollidingDataRob {
@@ -7,6 +10,13 @@ public class DiDiCollidingDataRob {
      * 主键id
      */
     private Long id;
+
+    /**
+     * 数据id（未落库）
+     */
+    @Setter
+    @Getter
+    private Long dataId;
 
     /**
      * package id

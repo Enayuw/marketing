@@ -6,6 +6,7 @@ import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.JsonParseUtils;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.config.biz.TcyrCpaConfigManager;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.*;
 import com.br.marketing.mapper.*;
@@ -56,6 +57,9 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
+    @Resource
+    TcyrCpaConfigManager tcyrCpaConfigManager;
+
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private final Random random = new Random();
@@ -81,10 +85,12 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
                 .getThreadPool(ThreadPoolNameEnum.TCYR_CPA_COLLIDING_DATA_FILTER.getName(), 50, 100);
         List<CompletableFuture<Void>> futures = new ArrayList<>();
         Date colldingDate = Date.from(LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+        //failMsg与lockBelong的映射Map
+        Map<Integer, Integer> failMsgToLbMap = tcyrCpaConfigManager.getFailMsgToBlMap();
         //3.遍历撞库任务
         for (TcyrCpaCollidingTask task : tasks) {
             try {
-                boolean isSuccess = process(task, colldingDate, threadPool, futures);
+                boolean isSuccess = process(task, colldingDate, failMsgToLbMap, threadPool, futures);
                 if (isSuccess) {
                     break;
                 }
@@ -102,7 +108,7 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
      * @param task
      * @return
      */
-    private boolean process(TcyrCpaCollidingTask task, Date colldingDate,
+    private boolean process(TcyrCpaCollidingTask task, Date colldingDate, Map<Integer, Integer> failMsgToLbMap,
                             TpDynamicExecutor threadPool, List<CompletableFuture<Void>> futures) throws IOException {
         //1.数据包查出来备用
         List<Long> packageIds = StringUtils.StrsConvertLongs(task.getPackageIds());
@@ -122,10 +128,11 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
         //3.更新撞库任务状态为3-筛选中
         if (!Objects.equals(task.getStatus(), TcCpaCollidingTaskStatusEnum.STATUS_FILTERING.getValue())) {
             task.setStatus(TcCpaCollidingTaskStatusEnum.STATUS_FILTERING.getValue());
+            task.setUpdateTime(new Date());
             tcyrCpaCollidingTaskMapper.updateByPrimaryKeySelective(task);
         }
         //3.筛选撞库数据
-        boolean isSuccess = filter(task, taskPackages, colldingDate, threadPool, futures);
+        boolean isSuccess = filter(task, taskPackages, colldingDate, failMsgToLbMap, threadPool, futures);
         if (isSuccess) {
             //计算总量级
             int pushNum = taskPackages.stream()
@@ -137,6 +144,7 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
         } else {
             task.setStatus(TcCpaCollidingTaskStatusEnum.STATUS_STA_COMPLETED.getValue());
         }
+        task.setUpdateTime(new Date());
         tcyrCpaCollidingTaskMapper.updateByPrimaryKeySelective(task);
         return isSuccess;
     }
@@ -183,6 +191,7 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
      * @param task 撞库任务
      * @param taskPackages 任务数据包
      * @param colldingDate 撞库日期
+     * @param failMsgToLbMap
      * @param threadPool
      * @param futures
      * @return void
@@ -190,7 +199,8 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
      * @author hedongshuo
      * @date 2025/12/8 10:17
      **/
-    private boolean filter(TcyrCpaCollidingTask task, List<TcyrCpaCollidingTaskPackage> taskPackages, Date colldingDate,
+    private boolean filter(TcyrCpaCollidingTask task, List<TcyrCpaCollidingTaskPackage> taskPackages,
+                           Date colldingDate, Map<Integer, Integer> failMsgToLbMap,
                            TpDynamicExecutor threadPool, List<CompletableFuture<Void>> futures) throws IOException {
         int insertAbleNum;
         String querySql;
@@ -198,7 +208,7 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
         String joinFrag = tcCpaCommonService.getDeleteSqlFrag(task.getDeleteRuleIds());
         log.warn(TITLE + "joinFrag: " + joinFrag);
         for (TcyrCpaCollidingTaskPackage taskPackage : taskPackages) {
-            insertAbleNum = getInsertAbleNum(taskPackage.getPackageId(), colldingDate);
+            insertAbleNum = getInsertAbleNum(task, taskPackage.getPackageId(), colldingDate);
             if (insertAbleNum <= 0) {
                 break;
             }
@@ -208,11 +218,12 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
                             .concat(joinFrag)
                             .concat(" and pck.package_id = " + taskPackage.getPackageId());
                 } else {
-                    querySql = genSupplyQuerySql(joinFrag, taskPackage.getSupplyRuleInfo());
+                    querySql = genSupplyQuerySql(joinFrag, taskPackage.getSupplyRuleInfo(), failMsgToLbMap);
                 }
                 log.warn(TITLE + "querySql: " + querySql);
                 taskPackage.setExecuteSql(querySql);
                 taskPackage.setStatus(TcCpaCollidingTaskPackageStatus.STATUS_EXECUTING.getValue());
+                taskPackage.setUpdateTime(new Date());
                 tcyrCpaCollidingTaskPackageMapper.updateByPrimaryKeySelective(taskPackage);
                 isSuccess = packageProcess(task.getId().intValue(), taskPackage.getPackageId(), taskPackage.getPriority(),
                         colldingDate, querySql, "pck.user_key",
@@ -221,6 +232,7 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
                     int packageCount = queryPackageCount(taskPackage.getPackageId(), colldingDate);
                     taskPackage.setMagnitude(packageCount);
                     taskPackage.setStatus(TcCpaCollidingTaskPackageStatus.STATUS_EXECUTED.getValue());
+                    taskPackage.setUpdateTime(new Date());
                     tcyrCpaCollidingTaskPackageMapper.updateByPrimaryKeySelective(taskPackage);
                 } else {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
@@ -235,30 +247,43 @@ public class TcCpaCollidingDataFilterServiceImpl implements TcCpaCollidingDataFi
         return true;
     }
 
-    private int getInsertAbleNum(Long packageId, Date colldingDate) {
-        Integer extraNumTotal = marketingCommonConfig.getTcyrCpaPushFileVTConfig().getInteger("extraNumTotal");
+    /**
+     * 当日推送池剩余可插入量级：以撞库任务 {@link TcyrCpaCollidingTask#getCollidingNum()} 为总上限（撞库量级），
+     * 未配置时回退 {@code tcyrCpaPushFileVTConfig.extraNumTotal}。
+     */
+    private int getInsertAbleNum(TcyrCpaCollidingTask task, Long packageId, Date colldingDate) {
+        Integer totalLimit = task.getCollidingNum();
+        if (totalLimit == null) {
+            totalLimit = marketingCommonConfig.getTcyrCpaPushFileVTConfig().getInteger("extraNumTotal");
+        }
+        if (totalLimit == null) {
+            totalLimit = 0;
+        }
         TcyrCpaPushDataExample pushDataExample = new TcyrCpaPushDataExample();
         pushDataExample.createCriteria()
                 .andCollidingDateEqualTo(colldingDate)
                 .andPackageIdNotEqualTo(packageId)
                 .andIsDelEqualTo(Constants.DATA_VALID);
-        //插入完成的数据包量级
+        // 当日其他数据包已插入量级
         int countInserted = tcyrCpaPushDataMapper.countByExample(pushDataExample);
-        return extraNumTotal - countInserted;
+        return totalLimit - countInserted;
     }
 
     /**
      * 生成补充包查询sql
+     *
      * @param joinFrag
      * @param supplyRuleInfoStr
+     * @param failMsgToLbMap
      */
-    private String genSupplyQuerySql(String joinFrag, String supplyRuleInfoStr) throws IOException {
+    private String genSupplyQuerySql(String joinFrag, String supplyRuleInfoStr,
+                                     Map<Integer, Integer> failMsgToLbMap) throws IOException {
         TcyrSupplyRuleInfo supplyRuleInfo =
                 objectMapper.readValue(supplyRuleInfoStr,
                         new TypeReference<TcyrSupplyRuleInfo>() {
                         });
         Integer failMsg = supplyRuleInfo.getFailMsg();
-        Integer lockBelong = tcCpaCommonService.convertFailMsgToLockBelong(failMsg);
+        Integer lockBelong =  failMsgToLbMap.get(failMsg);
         String querySql;
         if (lockBelong == null) {
             //查询【b_tcyr_cpa_invalue_data】

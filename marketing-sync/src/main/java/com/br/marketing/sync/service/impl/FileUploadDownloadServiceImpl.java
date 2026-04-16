@@ -8,9 +8,8 @@ import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.common.enums.PushTargetTypeEnum;
-import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.enums.SyncConfigCustomizedTypeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
@@ -18,6 +17,7 @@ import com.br.marketing.entity.FileSyncTask;
 import com.br.marketing.entity.SyncConfig;
 import com.br.marketing.entity.SyncConfigExample;
 import com.br.marketing.entity.SyncLog;
+import com.br.marketing.enums.SyncConfigCustomizedTypeEnum;
 import com.br.marketing.enums.clean.DataProcessEnum;
 import com.br.marketing.enums.file.FileServerType;
 import com.br.marketing.mapper.FileSyncTaskMapper;
@@ -47,7 +47,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 @Service
@@ -313,6 +316,7 @@ public class FileUploadDownloadServiceImpl implements FileUploadDownloadService 
      * @param status 新状态：0-待上传，1-上传中，2-上传成功，3-上传失败
      * @return 更新结果
      */
+    @Override
     public Boolean updateTaskStatus(Long taskId, Integer status) {
         try {
             FileSyncTask task = new FileSyncTask();
