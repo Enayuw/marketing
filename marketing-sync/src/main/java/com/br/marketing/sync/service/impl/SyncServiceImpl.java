@@ -935,19 +935,14 @@ public class SyncServiceImpl implements SyncService {
                 }
                 // 获取MD5值生成
                 String md5Value = DatatypeConverter.printHexBinary(md.digest());
+                // 清洗落库：非 zip / zip 但不解压 → 整文件一条；zip 且 is_unzip=1 → 解压后按文件各一条
                 String suffixStr = loanSyncConfig.getSuffix();
-                boolean isZip = suffixStr != null && suffixStr.toLowerCase().contains("zip");
-                if (isZip) {
-                    // is_unzip=1：解压后为每个解压文件插入一条；b_marketing_clean_data_file.zip_name=压缩包名
-                    // is_unzip=0 或未配置为解压：不解压，仅对 zip 文件本身插入一条记录
-                    if (SyncConfigIsUnzipEnum.needUnzip(loanSyncConfig.getIsUnzip())) {
-                        return unzipAndSaveExtractedFiles(fileName, loanSyncConfig, targetPath, srcPath, file);
-                    }
-                    return saveDataFileInfo(fileName, loanSyncConfig, targetPath, srcPath, md5Value);
-                } else {
-                    // 非压缩包：插入一条文件记录
+                boolean zipSuffix = suffixStr != null && suffixStr.toLowerCase().contains("zip");
+                boolean needUnzip = zipSuffix && SyncConfigIsUnzipEnum.needUnzip(loanSyncConfig.getIsUnzip());
+                if (!zipSuffix || !needUnzip) {
                     return saveDataFileInfo(fileName, loanSyncConfig, targetPath, srcPath, md5Value);
                 }
+                return unzipAndSaveExtractedFiles(fileName, loanSyncConfig, targetPath, srcPath, file);
             } catch (Exception e) {
                 log.warn("文件下载错误文件出错！srcPath:{},fileName:{},targetPath{},syncConfigId:{}"
                         , srcPath, fileName, targetPath, loanSyncConfig.getId(), e);
