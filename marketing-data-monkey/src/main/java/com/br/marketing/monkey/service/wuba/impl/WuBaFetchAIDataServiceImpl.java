@@ -204,7 +204,8 @@ public class WuBaFetchAIDataServiceImpl implements WuBaFetchAIDataService {
         return tempFile;
     }
 
-    private void processDataFromBytes(byte[] zipFileBytes, WuBaAiFetchTask task, Integer limit, String apiCode, Integer userTypeTruncate) throws IOException {
+    private void processDataFromBytes(byte[] zipFileBytes, WuBaAiFetchTask task, Integer limit, String apiCode,
+                                      Integer userTypeTruncate) throws IOException {
         try (ByteArrayInputStream bais = new ByteArrayInputStream(zipFileBytes);
              ZipInputStream zis = new ZipInputStream(bais, StandardCharsets.UTF_8)) {
             ZipEntry entry;
