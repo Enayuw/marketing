@@ -25,7 +25,7 @@ public interface SyncConfigService {
     ApiResult<Boolean> copySftp(String id, String apiCode, String srcPath, String targetPath, Integer type, Integer dataType,
                                 String suffix, String srcSftpHost, Integer srcSftpPort, String srcSftpUser, String srcSftpPwd,
                                 String targetSftpHost, Integer targetSftpPort, String targetSftpUser, String targetSftpPwd,String srcType,
-                                String targetType);
+                                String targetType, Integer isUnzip, String unzipFilenameCharset, String unzipPwd);
 
 
     /**
@@ -55,4 +55,9 @@ public interface SyncConfigService {
     String getPullCustomerFilePath(String apiCode);
 
     ApiResult<Boolean> batchDeleteSftpList(List<Long> ids);
+
+    /**
+     * SFTP 文件后缀可选项（来自 speed：sftpFileSuffixOptions）
+     */
+    List<String> getSftpSuffixConfigs();
 }

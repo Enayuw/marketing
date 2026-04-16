@@ -1,5 +1,6 @@
 package com.br.marketing.vo;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -118,5 +119,15 @@ public class SyncConfigEditVO {
      */
     @Schema(description = "定时执行时间")
     private String executeTime;
+
+    @Schema(description = "是否需要解压：0-否 1-是", implementation = Integer.class, allowableValues = {"0", "1"})
+    private Integer isUnzip;
+
+    @Schema(description = "解压文件名编码，默认 GBK", implementation = String.class, allowableValues = {"GBK", "UTF-8"})
+    @JsonProperty("unzipfilenameCharset")
+    private String unzipFilenameCharset;
+
+    @Schema(description = "zip 解压密码")
+    private String unzipPwd;
 
 }

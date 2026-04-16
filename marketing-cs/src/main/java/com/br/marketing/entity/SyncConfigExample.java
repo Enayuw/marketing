@@ -2074,6 +2074,206 @@ public class SyncConfigExample {
             addCriterion("path_template_id not between", value1, value2, "pathTemplateId");
             return (Criteria) this;
         }
+
+        public Criteria andIsUnzipIsNull() {
+            addCriterion("is_unzip is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsUnzipIsNotNull() {
+            addCriterion("is_unzip is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsUnzipEqualTo(Integer value) {
+            addCriterion("is_unzip =", value, "isUnzip");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsUnzipNotEqualTo(Integer value) {
+            addCriterion("is_unzip <>", value, "isUnzip");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsUnzipGreaterThan(Integer value) {
+            addCriterion("is_unzip >", value, "isUnzip");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsUnzipGreaterThanOrEqualTo(Integer value) {
+            addCriterion("is_unzip >=", value, "isUnzip");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsUnzipLessThan(Integer value) {
+            addCriterion("is_unzip <", value, "isUnzip");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsUnzipLessThanOrEqualTo(Integer value) {
+            addCriterion("is_unzip <=", value, "isUnzip");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsUnzipIn(List<Integer> values) {
+            addCriterion("is_unzip in", values, "isUnzip");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsUnzipNotIn(List<Integer> values) {
+            addCriterion("is_unzip not in", values, "isUnzip");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsUnzipBetween(Integer value1, Integer value2) {
+            addCriterion("is_unzip between", value1, value2, "isUnzip");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsUnzipNotBetween(Integer value1, Integer value2) {
+            addCriterion("is_unzip not between", value1, value2, "isUnzip");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnzipFilenameCharsetIsNull() {
+            addCriterion("unzip_filename_charset is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnzipFilenameCharsetIsNotNull() {
+            addCriterion("unzip_filename_charset is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnzipFilenameCharsetEqualTo(String value) {
+            addCriterion("unzip_filename_charset =", value, "unzipFilenameCharset");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnzipFilenameCharsetNotEqualTo(String value) {
+            addCriterion("unzip_filename_charset <>", value, "unzipFilenameCharset");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnzipFilenameCharsetGreaterThan(String value) {
+            addCriterion("unzip_filename_charset >", value, "unzipFilenameCharset");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnzipFilenameCharsetGreaterThanOrEqualTo(String value) {
+            addCriterion("unzip_filename_charset >=", value, "unzipFilenameCharset");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnzipFilenameCharsetLessThan(String value) {
+            addCriterion("unzip_filename_charset <", value, "unzipFilenameCharset");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnzipFilenameCharsetLessThanOrEqualTo(String value) {
+            addCriterion("unzip_filename_charset <=", value, "unzipFilenameCharset");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnzipFilenameCharsetLike(String value) {
+            addCriterion("unzip_filename_charset like", value, "unzipFilenameCharset");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnzipFilenameCharsetNotLike(String value) {
+            addCriterion("unzip_filename_charset not like", value, "unzipFilenameCharset");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnzipFilenameCharsetIn(List<String> values) {
+            addCriterion("unzip_filename_charset in", values, "unzipFilenameCharset");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnzipFilenameCharsetNotIn(List<String> values) {
+            addCriterion("unzip_filename_charset not in", values, "unzipFilenameCharset");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnzipFilenameCharsetBetween(String value1, String value2) {
+            addCriterion("unzip_filename_charset between", value1, value2, "unzipFilenameCharset");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnzipFilenameCharsetNotBetween(String value1, String value2) {
+            addCriterion("unzip_filename_charset not between", value1, value2, "unzipFilenameCharset");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnzipPwdIsNull() {
+            addCriterion("unzip_pwd is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnzipPwdIsNotNull() {
+            addCriterion("unzip_pwd is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnzipPwdEqualTo(String value) {
+            addCriterion("unzip_pwd =", value, "unzipPwd");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnzipPwdNotEqualTo(String value) {
+            addCriterion("unzip_pwd <>", value, "unzipPwd");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnzipPwdGreaterThan(String value) {
+            addCriterion("unzip_pwd >", value, "unzipPwd");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnzipPwdGreaterThanOrEqualTo(String value) {
+            addCriterion("unzip_pwd >=", value, "unzipPwd");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnzipPwdLessThan(String value) {
+            addCriterion("unzip_pwd <", value, "unzipPwd");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnzipPwdLessThanOrEqualTo(String value) {
+            addCriterion("unzip_pwd <=", value, "unzipPwd");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnzipPwdLike(String value) {
+            addCriterion("unzip_pwd like", value, "unzipPwd");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnzipPwdNotLike(String value) {
+            addCriterion("unzip_pwd not like", value, "unzipPwd");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnzipPwdIn(List<String> values) {
+            addCriterion("unzip_pwd in", values, "unzipPwd");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnzipPwdNotIn(List<String> values) {
+            addCriterion("unzip_pwd not in", values, "unzipPwd");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnzipPwdBetween(String value1, String value2) {
+            addCriterion("unzip_pwd between", value1, value2, "unzipPwd");
+            return (Criteria) this;
+        }
+
+        public Criteria andUnzipPwdNotBetween(String value1, String value2) {
+            addCriterion("unzip_pwd not between", value1, value2, "unzipPwd");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

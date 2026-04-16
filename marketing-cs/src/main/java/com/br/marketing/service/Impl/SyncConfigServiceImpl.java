@@ -9,6 +9,8 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.SyncConfig;
 import com.br.marketing.entity.SyncConfigExample;
+import com.br.marketing.enums.sync.SyncConfigIsUnzipEnum;
+import com.br.marketing.enums.sync.UnzipFilenameCharsetEnum;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -25,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -85,7 +88,7 @@ public class SyncConfigServiceImpl implements SyncConfigService {
         , Integer type, Integer dataType,
                                        String suffix, String srcSftpHost, Integer srcSftpPort, String srcSftpUser, String srcSftpPwd,
                                        String targetSftpHost, Integer targetSftpPort, String targetSftpUser, String targetSftpPwd,String srcType,
-                                       String targetType) {
+                                       String targetType, Integer isUnzip, String unzipFilenameCharset, String unzipPwd) {
         SyncConfig syncConfig = syncConfigMapper.selectByPrimaryKey(Long.parseLong(id));
         syncConfig.setId(null);
         syncConfig.setCreateTime(null);
@@ -118,6 +121,9 @@ public class SyncConfigServiceImpl implements SyncConfigService {
             syncConfigNew.setTargetSftpPwd(targetSftpPwd);
             syncConfigNew.setSrcType(srcType);
             syncConfigNew.setTargetType(targetType);
+            syncConfigNew.setIsUnzip(SyncConfigIsUnzipEnum.defaultIfNull(isUnzip));
+            syncConfigNew.setUnzipFilenameCharset(UnzipFilenameCharsetEnum.defaultIfBlank(unzipFilenameCharset));
+            syncConfigNew.setUnzipPwd(unzipPwd);
             syncConfigNew.setCreateTime(new Date());
             syncConfigNew.setUpdateTime(new Date());
         } catch (Exception e) {
@@ -158,6 +164,9 @@ public class SyncConfigServiceImpl implements SyncConfigService {
         syncConfig.setTargetSftpPort(vo.getTargetSftpPort());
         syncConfig.setDataType(vo.getDataType());
         syncConfig.setType(vo.getType());
+        syncConfig.setIsUnzip(SyncConfigIsUnzipEnum.defaultIfNull(vo.getIsUnzip()));
+        syncConfig.setUnzipFilenameCharset(UnzipFilenameCharsetEnum.defaultIfBlank(vo.getUnzipFilenameCharset()));
+        syncConfig.setUnzipPwd(vo.getUnzipPwd());
         syncConfig.setUpdateTime(new Date());
         int update = syncConfigMapper.updateByPrimaryKeySelective(syncConfig);
         if (StringUtils.isEmpty(update) || update <= 0) {
@@ -251,6 +260,15 @@ public class SyncConfigServiceImpl implements SyncConfigService {
             log.error("批量删除SFTP配置失败", e);
             return new ApiResult<Boolean>().fail("删除失败: {}", e.getMessage());
         }
+    }
+
+    @Override
+    public List<String> getSftpSuffixConfigs() {
+        List<String> list = marketingCommonConfig.getSftpFileSuffixOptions();
+        if (list == null) {
+            return Collections.emptyList();
+        }
+        return list;
     }
 
 }
