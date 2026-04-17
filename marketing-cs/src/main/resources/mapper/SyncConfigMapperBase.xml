@@ -34,7 +34,6 @@
     <result column="path_template_id" property="pathTemplateId" jdbcType="BIGINT" />
     <result column="is_unzip" property="isUnzip" jdbcType="INTEGER" />
     <result column="unzip_filename_charset" property="unzipFilenameCharset" jdbcType="VARCHAR" />
-    <result column="unzip_pwd" property="unzipPwd" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -99,7 +98,7 @@
     check_success, `status`, remark, src_sftp_host, src_sftp_port, src_sftp_user, src_sftp_pwd,
     target_sftp_host, target_sftp_port, target_sftp_user, target_sftp_pwd, create_time,
     update_time, src_type, target_type, exclusion_time, `type`, customized_type, execute_time,
-    sync_start_time, is_pers, path_template_id, is_unzip, unzip_filename_charset, unzip_pwd
+    sync_start_time, is_pers, path_template_id, is_unzip, unzip_filename_charset
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.SyncConfigExample" >
     select
@@ -144,7 +143,7 @@
     create_time, update_time, src_type,
     target_type, exclusion_time, `type`,
     customized_type, execute_time, sync_start_time,
-    is_pers, path_template_id, is_unzip, unzip_filename_charset, unzip_pwd)
+    is_pers, path_template_id, is_unzip, unzip_filename_charset)
     values (#{apiCode,jdbcType=VARCHAR}, #{dataType,jdbcType=INTEGER}, #{srcPath,jdbcType=VARCHAR},
     #{targetPath,jdbcType=VARCHAR}, #{callbackPath,jdbcType=VARCHAR}, #{suffix,jdbcType=VARCHAR},
     #{checkFinish,jdbcType=INTEGER}, #{checkSuccess,jdbcType=INTEGER}, #{status,jdbcType=INTEGER},
@@ -155,7 +154,7 @@
     #{targetType,jdbcType=VARCHAR}, #{exclusionTime,jdbcType=VARCHAR}, #{type,jdbcType=INTEGER},
     #{customizedType,jdbcType=INTEGER}, #{executeTime,jdbcType=VARCHAR}, #{syncStartTime,jdbcType=VARCHAR},
     #{isPers,jdbcType=INTEGER}, #{pathTemplateId,jdbcType=BIGINT}, #{isUnzip,jdbcType=INTEGER},
-    #{unzipFilenameCharset,jdbcType=VARCHAR}, #{unzipPwd,jdbcType=VARCHAR})
+    #{unzipFilenameCharset,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.SyncConfig" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -256,9 +255,6 @@
       <if test="unzipFilenameCharset != null" >
         unzip_filename_charset,
       </if>
-      <if test="unzipPwd != null" >
-        unzip_pwd,
-      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
@@ -353,9 +349,6 @@
       </if>
       <if test="unzipFilenameCharset != null" >
         #{unzipFilenameCharset,jdbcType=VARCHAR},
-      </if>
-      <if test="unzipPwd != null" >
-        #{unzipPwd,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -464,9 +457,6 @@
       <if test="record.unzipFilenameCharset != null" >
         unzip_filename_charset = #{record.unzipFilenameCharset,jdbcType=VARCHAR},
       </if>
-      <if test="record.unzipPwd != null" >
-        unzip_pwd = #{record.unzipPwd,jdbcType=VARCHAR},
-      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -505,8 +495,7 @@
     is_pers = #{record.isPers,jdbcType=INTEGER},
     path_template_id = #{record.pathTemplateId,jdbcType=BIGINT},
     is_unzip = #{record.isUnzip,jdbcType=INTEGER},
-    unzip_filename_charset = #{record.unzipFilenameCharset,jdbcType=VARCHAR},
-    unzip_pwd = #{record.unzipPwd,jdbcType=VARCHAR}
+    unzip_filename_charset = #{record.unzipFilenameCharset,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -607,9 +596,6 @@
       <if test="unzipFilenameCharset != null" >
         unzip_filename_charset = #{unzipFilenameCharset,jdbcType=VARCHAR},
       </if>
-      <if test="unzipPwd != null" >
-        unzip_pwd = #{unzipPwd,jdbcType=VARCHAR},
-      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -645,8 +631,7 @@
         is_pers = #{isPers,jdbcType=INTEGER},
         path_template_id = #{pathTemplateId,jdbcType=BIGINT},
         is_unzip = #{isUnzip,jdbcType=INTEGER},
-        unzip_filename_charset = #{unzipFilenameCharset,jdbcType=VARCHAR},
-        unzip_pwd = #{unzipPwd,jdbcType=VARCHAR}
+        unzip_filename_charset = #{unzipFilenameCharset,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

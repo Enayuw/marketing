@@ -170,11 +170,6 @@ public class SyncConfig {
      */
     private String unzipFilenameCharset;
 
-    /**
-     * zip 解压密码
-     */
-    private String unzipPwd;
-
     public Long getId() {
         return id;
     }
@@ -429,13 +424,5 @@ public class SyncConfig {
 
     public void setUnzipFilenameCharset(String unzipFilenameCharset) {
         this.unzipFilenameCharset = unzipFilenameCharset == null ? null : unzipFilenameCharset.trim();
-    }
-
-    public String getUnzipPwd() {
-        return unzipPwd;
-    }
-
-    public void setUnzipPwd(String unzipPwd) {
-        this.unzipPwd = unzipPwd == null ? null : unzipPwd.trim();
     }
 }

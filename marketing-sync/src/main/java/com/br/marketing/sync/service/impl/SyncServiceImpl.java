@@ -1013,9 +1013,7 @@ public class SyncServiceImpl implements SyncService {
                                                 String targetPath, String srcPath, File zipFile) {
         try {
             String encoding = UnzipFilenameCharsetEnum.defaultIfBlank(loanSyncConfig.getUnzipFilenameCharset());
-            String unzipPwd = loanSyncConfig.getUnzipPwd();
-            String pwdArg = StringUtils.isBlank(unzipPwd) ? "" : unzipPwd;
-            List<String> extractedPaths = ZipUtils.unZipAndReturnExtractedPaths(zipFile, targetPath, pwdArg, encoding);
+            List<String> extractedPaths = ZipUtils.unZipAndReturnExtractedPaths(zipFile, targetPath, "", encoding);
             if (extractedPaths == null || extractedPaths.isEmpty()) {
                 log.warn("压缩包内无文件或解压未得到文件列表，zipFileName:{}, syncConfigId:{}", zipFileName, loanSyncConfig.getId());
                 return Boolean.TRUE;

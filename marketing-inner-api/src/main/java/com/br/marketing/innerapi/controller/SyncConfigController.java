@@ -85,8 +85,6 @@ public class SyncConfigController {
         , @Parameter(name = "targetType", description = "目标服务器类型")
         , @Parameter(name = "isUnzip", description = "是否需要解压：0-否 1-是")
         , @Parameter(name = "unzipfilenameCharset", description = "解压文件名编码，默认 GBK")
-        , @Parameter(name = "unzipPwd", description = "zip解压密码")
-
 
     })
     @GetMapping("/copySftp")
@@ -108,12 +106,11 @@ public class SyncConfigController {
                                        @RequestParam(required = false) String srcType,
                                        @RequestParam(required = false) String targetType,
                                        @RequestParam(required = false) Integer isUnzip,
-                                       @RequestParam(required = false) String unzipfilenameCharset,
-                                       @RequestParam(required = false) String unzipPwd) {
+                                       @RequestParam(required = false) String unzipfilenameCharset) {
         try {
             return syncConfigService.copySftp(id, apiCode, srcPath, targetPath, type, dataType, suffix, srcSftpHost, srcSftpPort,
                 srcSftpUser, srcSftpPwd, targetSftpHost, targetSftpPort, targetSftpUser, targetSftpPwd, srcType, targetType,
-                isUnzip, unzipfilenameCharset, unzipPwd);
+                isUnzip, unzipfilenameCharset);
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
             return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);

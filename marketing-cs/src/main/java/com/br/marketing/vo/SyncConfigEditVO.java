@@ -127,7 +127,4 @@ public class SyncConfigEditVO {
     @JsonProperty("unzipfilenameCharset")
     private String unzipFilenameCharset;
 
-    @Schema(description = "zip 解压密码")
-    private String unzipPwd;
-
 }

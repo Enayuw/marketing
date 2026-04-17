@@ -88,7 +88,7 @@ public class SyncConfigServiceImpl implements SyncConfigService {
         , Integer type, Integer dataType,
                                        String suffix, String srcSftpHost, Integer srcSftpPort, String srcSftpUser, String srcSftpPwd,
                                        String targetSftpHost, Integer targetSftpPort, String targetSftpUser, String targetSftpPwd,String srcType,
-                                       String targetType, Integer isUnzip, String unzipFilenameCharset, String unzipPwd) {
+                                       String targetType, Integer isUnzip, String unzipFilenameCharset) {
         SyncConfig syncConfig = syncConfigMapper.selectByPrimaryKey(Long.parseLong(id));
         syncConfig.setId(null);
         syncConfig.setCreateTime(null);
@@ -123,7 +123,6 @@ public class SyncConfigServiceImpl implements SyncConfigService {
             syncConfigNew.setTargetType(targetType);
             syncConfigNew.setIsUnzip(SyncConfigIsUnzipEnum.defaultIfNull(isUnzip));
             syncConfigNew.setUnzipFilenameCharset(UnzipFilenameCharsetEnum.defaultIfBlank(unzipFilenameCharset));
-            syncConfigNew.setUnzipPwd(unzipPwd);
             syncConfigNew.setCreateTime(new Date());
             syncConfigNew.setUpdateTime(new Date());
         } catch (Exception e) {
@@ -166,7 +165,6 @@ public class SyncConfigServiceImpl implements SyncConfigService {
         syncConfig.setType(vo.getType());
         syncConfig.setIsUnzip(SyncConfigIsUnzipEnum.defaultIfNull(vo.getIsUnzip()));
         syncConfig.setUnzipFilenameCharset(UnzipFilenameCharsetEnum.defaultIfBlank(vo.getUnzipFilenameCharset()));
-        syncConfig.setUnzipPwd(vo.getUnzipPwd());
         syncConfig.setUpdateTime(new Date());
         int update = syncConfigMapper.updateByPrimaryKeySelective(syncConfig);
         if (StringUtils.isEmpty(update) || update <= 0) {

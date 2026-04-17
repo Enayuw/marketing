@@ -25,7 +25,7 @@ public interface SyncConfigService {
     ApiResult<Boolean> copySftp(String id, String apiCode, String srcPath, String targetPath, Integer type, Integer dataType,
                                 String suffix, String srcSftpHost, Integer srcSftpPort, String srcSftpUser, String srcSftpPwd,
                                 String targetSftpHost, Integer targetSftpPort, String targetSftpUser, String targetSftpPwd,String srcType,
-                                String targetType, Integer isUnzip, String unzipFilenameCharset, String unzipPwd);
+                                String targetType, Integer isUnzip, String unzipFilenameCharset);
 
 
     /**
