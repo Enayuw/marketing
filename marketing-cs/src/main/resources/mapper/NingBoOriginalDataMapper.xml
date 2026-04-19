@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.bingbo.NingBoOriginalDataMapper" >
+<mapper namespace="com.br.marketing.mapper.ningbo.NingBoOriginalDataMapper" >
     <insert id="batchSave" parameterType="list">
         INSERT INTO b_ningbo_original_data (
         task_id, task_date, bank_name, bank_name2, first_name, gender,

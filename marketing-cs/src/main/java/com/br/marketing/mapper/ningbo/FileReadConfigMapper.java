@@ -1,4 +1,4 @@
-package com.br.marketing.mapper.bingbo;
+package com.br.marketing.mapper.ningbo;
 
 import com.br.marketing.entity.ningbo.FileReadConfig;
 import org.apache.ibatis.annotations.Param;

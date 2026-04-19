@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.br.marketing.mapper.bingbo.NingBoDataTaskMapper">
-
+<mapper namespace="com.br.marketing.mapper.ningbo.NingBoDataTaskMapper">
     <select id="createOrUpdateRunningTask" resultMap="BaseResultMap" parameterType="map">
         <![CDATA[
         INSERT INTO b_ningbo_data_task (task_date, task_type, status, result_message, create_time, update_time)
