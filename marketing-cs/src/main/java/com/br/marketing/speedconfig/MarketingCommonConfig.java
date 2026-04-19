@@ -3673,4 +3673,9 @@ public class MarketingCommonConfig {
      * 同程易融cpa-failMsg配置
      */
     private List<JSONObject> tcyrCpaFailMsgConfig;
+
+    /**
+     * 宁波银行配置
+     */
+    private JSONObject ningboBankConfig;
  }

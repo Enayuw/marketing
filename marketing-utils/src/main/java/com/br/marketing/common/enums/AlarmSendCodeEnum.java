@@ -382,6 +382,8 @@ public enum AlarmSendCodeEnum {
 
     WUBA_AI_SERVICEERROR("7012001", "58AI接口异常"),
 
+    NINGBO_BANK_SERVICEERROR("7013001", "宁波银行接口异常"),
+
     ;
 
     /**
