@@ -33,17 +33,6 @@
           AND task_type = #{taskType,jdbcType=TINYINT}
     </select>
 
-    <insert id="insert" parameterType="com.br.marketing.entity.ningbo.NingBoDataTask" useGeneratedKeys="true"
-            keyProperty="id">
-        INSERT INTO b_ningbo_data_task (task_date, task_type, status, result_message, create_time, update_time)
-        VALUES (#{taskDate,jdbcType=DATE},
-                #{taskType,jdbcType=TINYINT},
-                #{status,jdbcType=TINYINT},
-                #{resultMessage,jdbcType=VARCHAR},
-                NOW(),
-                NOW())
-    </insert>
-
     <!-- 更新任务 -->
     <update id="update" parameterType="com.br.marketing.entity.ningbo.NingBoDataTask">
         UPDATE b_ningbo_data_task

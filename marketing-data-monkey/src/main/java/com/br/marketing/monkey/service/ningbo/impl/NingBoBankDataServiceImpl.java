@@ -4,6 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
+import com.br.marketing.client.SftpClient;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -119,8 +120,8 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
             if (!mockEnable) {
                 downloadFileFromBank(collectDate, config, localFilePath, filePrefix);
             }
-
-            File downloadedFile = new File(tempFileName);
+            log.warn("文件地址：{}", localFilePath);
+            File downloadedFile = new File(localFilePath);
             if (!downloadedFile.exists() || downloadedFile.length() == 0) {
                 throw new RuntimeException("文件下载失败，本地文件不存在或为空");
             }

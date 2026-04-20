@@ -40,15 +40,6 @@ public interface NingBoDataTaskMapper extends NingBoDataTaskMapperBase {
                                        @Param("taskType") Integer taskType);
 
     /**
-     * 插入新任务
-     *
-     * @param task 任务对象
-     * @return 影响的行数
-     */
-    @Override
-    int insert(NingBoDataTask task);
-
-    /**
      * 更新任务
      *
      * @param task 任务对象
