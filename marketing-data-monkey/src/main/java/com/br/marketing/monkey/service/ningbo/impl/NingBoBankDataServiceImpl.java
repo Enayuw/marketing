@@ -115,7 +115,6 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
             String tempFileName = filePrefix + DateUtil.format(DateUtil.date(), "yyyyMMdd") + ".txt";
             String tempDir = syncConfigService.getPath() + apiCode + File.separator;
             String localFilePath = Paths.get(tempDir, tempFileName).toString();
-//            String localFilePath = "D:\\Program Files\\stocks\\baostock_download\\orginal_bank2br_20260419.txt";
 
             if (!mockEnable) {
                 downloadFileFromBank(collectDate, config, localFilePath, filePrefix);
@@ -129,7 +128,7 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
 
             processFileContentBatched(
                     localFilePath, charset, fieldMapping, currentTask.getId(),
-                    apiCode, collectDate, separator, limit
+                    apiCode, collectDate, separator, limit, tempFileName
             );
 
             // 更新任务状态为成功
@@ -150,7 +149,7 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
      */
     private void processFileContentBatched(String filePath, String charset, Map<String, String> fieldMapping,
                                            Long taskId, String apiCode, Date collectDate,
-                                           String separator, int limit) {
+                                           String separator, int limit, String tempFileName) {
         String escapedSeparator = Pattern.quote(separator);
         Map<String, Integer> headerIndexMap;
         AtomicInteger successCount = new AtomicInteger(0);
@@ -182,6 +181,11 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
             int currentLineNum = 1;
             String line;
             while ((line = reader.readLine()) != null) {
+                JSONObject config = commonConfig.getNingboBankConfig();
+                if(config.getBoolean("downloadSwitch")) {
+                    break;
+                }
+
                 currentLineNum++;
                 batchLines.add(line);
 
@@ -191,7 +195,7 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
                     CompletableFuture<Void> future = CompletableFuture.runAsync(
                             () -> processBatchLines(linesToProcess, escapedSeparator, headerIndexMap,
                                     fieldMapping, taskId, apiCode, collectDate,
-                                    finalCurrentLineNum - linesToProcess.size() + 1, successCount),
+                                    finalCurrentLineNum - linesToProcess.size() + 1, successCount, tempFileName),
                             executor
                     );
                     futures.add(future);
@@ -204,7 +208,7 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
                 CompletableFuture<Void> future = CompletableFuture.runAsync(
                         () -> processBatchLines(batchLines, escapedSeparator, headerIndexMap,
                                 fieldMapping, taskId, apiCode, collectDate,
-                                finalCurrentLineNum1 - batchLines.size() + 1, successCount),
+                                finalCurrentLineNum1 - batchLines.size() + 1, successCount, tempFileName),
                         executor
                 );
                 futures.add(future);
@@ -225,7 +229,7 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
     private void processBatchLines(List<String> batchLines, String escapedSeparator,
                                    Map<String, Integer> headerIndexMap, Map<String, String> fieldMapping,
                                    Long taskId, String apiCode, Date collectDate,
-                                   int startLineNum, AtomicInteger successCount) {
+                                   int startLineNum, AtomicInteger successCount, String tempFileName) {
         List<NingBoOriginalData> batchData = Lists.newArrayList();
 
         for (int i = 0; i < batchLines.size(); i++) {
@@ -279,6 +283,7 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
             successCount.addAndGet(batchData.size());
             log.warn("线程{}成功入库{}条数据", Thread.currentThread().getName(), batchData.size());
 
+            String tempTaskId = tempFileName.split("\\.")[0];
             List<JSONObject> jsonObjectList = batchData.stream()
                     .map(record -> {
                         JSONObject jsonObject = new JSONObject();
@@ -286,7 +291,9 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
                         jsonObject.put("cell", record.getMoPhone());
                         jsonObject.put("custNum", record.getMoPhone());
                         jsonObject.put("operateType", 6);
-                        jsonObject.put("reserveField1", JSON.toJSONString(record));
+                        JSONObject reserveField1 = JSONObject.parseObject(JSON.toJSONString(record));
+                        reserveField1.put("taskId", tempTaskId);
+                        jsonObject.put("reserveField1", reserveField1.toJSONString());
                         return jsonObject;
                     }).collect(Collectors.toList());
             Result uploadResult = generalDataCleanService.uploadClean(jsonObjectList, apiCode);
@@ -296,7 +303,7 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
                         TITLE + " 数据清洗失败", null));
             } else {
                 List<MarketingPreUserDetailDTO> transferDataItemDTOS = (List<MarketingPreUserDetailDTO>) uploadResult.getData();
-                UploadDataDTO dto = initUploadData(apiCode, transferDataItemDTOS);
+                UploadDataDTO dto = initUploadData(apiCode, transferDataItemDTOS, tempTaskId);
                 Result pushResult = pushInfoService.pushUploadByRetry(dto, null);
                 log.warn("{},调用push接口 code:{},isSuccess:{},msg:{}", TITLE,
                         pushResult.getCode(), pushResult.isSuccess(), pushResult.getMessage());
@@ -307,13 +314,13 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
         }
     }
 
-    private UploadDataDTO initUploadData(String apiCode, List<MarketingPreUserDetailDTO> syncUsers) {
+    private UploadDataDTO initUploadData(String apiCode, List<MarketingPreUserDetailDTO> syncUsers, String taskId) {
         int randomNumber = 10000 + RANDOM.nextInt(90000);
-        String requestId = apiCode + "_" + System.currentTimeMillis() + "_" + randomNumber;
+        String requestId = apiCode + "_" + taskId + "_" + System.currentTimeMillis() + randomNumber;
         MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
         marketingPreUserDTO.setRequestId(requestId);
         marketingPreUserDTO.setDataItems(syncUsers);
-        marketingPreUserDTO.setTaskId(apiCode + "_" + LocalDate.now());
+        marketingPreUserDTO.setTaskId(taskId);
         UploadDataDTO uploadDataDTO = new UploadDataDTO();
         uploadDataDTO.setApiCode(apiCode);
         uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
@@ -358,7 +365,9 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
 
         try {
             JSONObject config = commonConfig.getNingboBankConfig();
-
+            if(config.getBoolean("uploadSwitch")) {
+                return;
+            }
             SyncConfig syncConfig = new SyncConfig();
             syncConfig.setApiCode(config.getString("apiCode"));
             syncConfig.setDataType(DataTypeEnum.TRANSFER.getValue());
