@@ -10,7 +10,6 @@ import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.MarketingHistoryEsService;
-import com.br.marketing.es.util.es.EsHandleUtil;
 import com.br.marketing.es.util.es.EsIceType;
 import com.br.marketing.es.util.es.rpcclient.RpcClientProxy;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
@@ -253,7 +252,7 @@ public class QiFuDataCleanServiceImpl implements QiFuDataCleanService {
             //清洗es 存入log加密的cell
             String apiCode = userRealMessageList.get(0).getApiCode();
             String batchNumber = straHisFile.getBatchNumber();
-            String index = EsHandleUtil.getDateFromBatchNumber(batchNumber);
+            String index = EsNewIndexRuleUtils.indexForModify(batchNumber, straHisFile, marketingCommonConfig);
             List<String> cells = userRealMessageList.stream().map(QueryUserRealMessage::getCell).collect(Collectors.toList());
             Map<String, List<QueryUserRealMessage>> userRealMessageMap = userRealMessageList.stream().collect(Collectors.groupingBy(QueryUserRealMessage::getCell));
             JSONObject jsonData = new JSONObject();
