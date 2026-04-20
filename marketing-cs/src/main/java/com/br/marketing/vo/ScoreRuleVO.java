@@ -103,7 +103,7 @@ public class ScoreRuleVO implements Serializable {
     @Schema(description = "产品信息")
     private String productInfo;
 
-    @Schema(description = "3k值加密方式 0-不加密；1-md5；2-sha256；3-适配")
+    @Schema(description = "3k值加密方式 0-不加密；1-md5；2-sha256")
     private Integer threekEncryptType;
 
     @Schema(description = "是否是在线跑分 1-在线；2-离线")

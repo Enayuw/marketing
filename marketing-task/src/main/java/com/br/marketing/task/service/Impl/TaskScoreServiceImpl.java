@@ -29,9 +29,6 @@ import com.br.marketing.enums.DingDingAlarmFunctionEnum;
 import com.br.marketing.enums.ScoreStatusEnum;
 import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
 import com.br.marketing.enums.ZkScoreStatusEnum;
-import com.br.marketing.service.customertagsprocess.CustomerTagsProcessServiceImpl;
-import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
-import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
 import com.br.marketing.mapper.*;
 import com.br.marketing.monitor.PrometheusMonitorUtils;
 import com.br.marketing.service.*;
@@ -156,9 +153,6 @@ public class TaskScoreServiceImpl {
 
     @Resource
     private RocketMqSwitch rocketMqSwitch;
-
-    @Resource
-    private CustomerTagsProcessServiceImpl customerTagsProcessService;
 
     private static final String TITLE = "【跑分监控】";
 
@@ -563,80 +557,17 @@ public class TaskScoreServiceImpl {
             String extendConfigInfo = marketingTaskExtend.getExtendConfigInfo();
             if (StringUtils.isNotBlank(extendConfigInfo)) {
                 TaskExtendExtendFieldDTO taskExtendExtendFieldDTO1 = JSONObject.parseObject(extendConfigInfo, TaskExtendExtendFieldDTO.class);
-                Integer configType = (taskExtendExtendFieldDTO1 == null || taskExtendExtendFieldDTO1.getThreekEncryptType() == null)
-                        ? ScoreThreeKeyEncryptEnum.md5.getValue()
-                        : taskExtendExtendFieldDTO1.getThreekEncryptType();
-
-                Integer resolvedType = configType;
-                CustomerTagsVO customerTags = null;
-                if (ScoreThreeKeyEncryptEnum.general.getValue().equals(configType)) {
-                    customerTags = resolveAdaptEncryptType(blt.getApiCode());
-                    resolvedType = customerTags != null ? customerTags.getResolvedScoreEncryptType() : ScoreThreeKeyEncryptEnum.md5.getValue();
-                }
-
-                final Integer finalResolvedType = resolvedType;
-                final CustomerTagsVO finalCustomerTags = customerTags;
                 baseHeadConfigVO.getBaseHead().forEach(t -> {
                     String key = t.getName().toLowerCase();
                     if (key.equals("name") || key.equals("id") || key.equals("idcard") || key.equals("cell")) {
-                        t.setThreekEncryptType(finalResolvedType);
-                        if (finalCustomerTags != null
-                                && (ScoreThreeKeyEncryptEnum.sm4.getValue().equals(finalResolvedType)
-                                    || ScoreThreeKeyEncryptEnum.aes.getValue().equals(finalResolvedType))) {
-                            t.setEncryptKey(finalCustomerTags.getDynamicKeys());
-                            t.setEncryptCipherMode(finalCustomerTags.getCipherMode());
-                            t.setEncryptPaddingScheme(finalCustomerTags.getPaddingScheme());
-                            t.setEncryptIv(finalCustomerTags.getIv());
-                            t.setEncryptCharset(finalCustomerTags.getCharset());
-                        }
+                        t.setThreekEncryptType(taskExtendExtendFieldDTO1 == null || taskExtendExtendFieldDTO1.getThreekEncryptType() == null
+                                ? ScoreThreeKeyEncryptEnum.md5.getValue()
+                                : taskExtendExtendFieldDTO1.getThreekEncryptType());
                     }
                 });
             }
         }
         return baseHeadConfigVO;
-    }
-
-    /**
-     * 适配模式：读取客户配置的加密类型，映射为跑分加密枚举值
-     */
-    private CustomerTagsVO resolveAdaptEncryptType(String apiCode) {
-        try {
-            CustomerTagsVO tags = customerTagsProcessService.getTags(apiCode);
-            if (tags == null || tags.getPushJc3keyType() == null) {
-                return null;
-            }
-            Integer pushType = tags.getPushJc3keyType();
-            CustomerTagsValue.PushJc3keyTypeEnum pushEnum = CustomerTagsValue.getEnumByValue(pushType, CustomerTagsValue.PushJc3keyTypeEnum.class);
-            if (pushEnum == null) {
-                tags.setResolvedScoreEncryptType(ScoreThreeKeyEncryptEnum.md5.getValue());
-                return tags;
-            }
-            switch (pushEnum) {
-                case MD5_ALL:
-                    tags.setResolvedScoreEncryptType(ScoreThreeKeyEncryptEnum.md5.getValue());
-                    break;
-                case SHA256_ALL:
-                    tags.setResolvedScoreEncryptType(ScoreThreeKeyEncryptEnum.sha256.getValue());
-                    break;
-                case SM3:
-                    tags.setResolvedScoreEncryptType(ScoreThreeKeyEncryptEnum.sm3.getValue());
-                    break;
-                case SM4:
-                    tags.setResolvedScoreEncryptType(ScoreThreeKeyEncryptEnum.sm4.getValue());
-                    break;
-                case AES_COMMON:
-                case AES_NMD:
-                    tags.setResolvedScoreEncryptType(ScoreThreeKeyEncryptEnum.aes.getValue());
-                    break;
-                default:
-                    tags.setResolvedScoreEncryptType(ScoreThreeKeyEncryptEnum.init.getValue());
-                    break;
-            }
-            return tags;
-        } catch (Exception e) {
-            log.error("适配模式解析客户加密类型失败, apiCode={}", apiCode, e);
-            return null;
-        }
     }
 
     /**

@@ -1,7 +1,5 @@
 package com.br.marketing.task.utils;
 
-import java.security.MessageDigest;
-import java.security.Security;
 import java.sql.SQLException;
 import java.util.Date;
 
@@ -25,16 +23,12 @@ import com.br.marketing.mapper.MarketingRetryEsMapper;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.MarketingTaskService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.br.marketing.util.aes.AesUtil;
-import com.br.marketing.util.sm4.Sm4Util;
 import com.br.marketing.vo.BaseHead;
 import com.br.marketing.vo.BaseHeadConfigVO;
 import com.br.marketing.vo.StrategyProductDetailVO;
 
 import cn.hutool.core.lang.Pair;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.util.encoders.Hex;
 import org.mybatis.spring.MyBatisSystemException;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.util.DigestUtils;
@@ -376,7 +370,7 @@ public class ResultUtil {
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
-    private static String encrypt3k(Integer type, String content, BaseHead head) {
+    private static String encrypt3k(Integer type, String content, String original) {
         if (StringUtils.isBlank(content)) {
             return "";
         }
@@ -391,54 +385,12 @@ public class ResultUtil {
         if (ScoreThreeKeyEncryptEnum.sha256.getValue().equals(type)) {
             return Sha256Util.getSHA256Encrypt(decode);
         }
-        if (ScoreThreeKeyEncryptEnum.sm3.getValue().equals(type)) {
-            return sm3Digest(decode);
+
+        if (ScoreThreeKeyEncryptEnum.general.getValue().equals(type)) {
+            return original;
         }
-        if (ScoreThreeKeyEncryptEnum.sm4.getValue().equals(type) && head != null) {
-            return symmetricEncrypt(decode, head, true);
-        }
-        if (ScoreThreeKeyEncryptEnum.aes.getValue().equals(type) && head != null) {
-            return symmetricEncrypt(decode, head, false);
-        }
+
         return content;
-    }
-
-    private static String sm3Digest(String plainText) {
-        try {
-            if (Security.getProvider("BC") == null) {
-                Security.addProvider(new BouncyCastleProvider());
-            }
-            MessageDigest digest = MessageDigest.getInstance("SM3", "BC");
-            byte[] hash = digest.digest(plainText.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-            return Hex.toHexString(hash);
-        } catch (Exception e) {
-            log.error("SM3摘要计算失败", e);
-            return plainText;
-        }
-    }
-
-    /**
-     * 对称加密（SM4/AES通用）
-     * @param isSm4 true=SM4, false=AES
-     */
-    private static String symmetricEncrypt(String plainText, BaseHead head, boolean isSm4) {
-        try {
-            com.br.marketing.dto.AesGeneralDTO dto = new com.br.marketing.dto.AesGeneralDTO();
-            dto.setText(plainText);
-            dto.setDynamicKeys(head.getEncryptKey());
-            dto.setCipherMode(head.getEncryptCipherMode() != null ? head.getEncryptCipherMode() : "ECB");
-            dto.setPaddingScheme(head.getEncryptPaddingScheme() != null ? head.getEncryptPaddingScheme() : "PKCS5Padding");
-            dto.setCharset(head.getEncryptCharset());
-            dto.setIv(head.getEncryptIv());
-            if (isSm4) {
-                return Sm4Util.encrypt(dto);
-            } else {
-                return AesUtil.encrypt(dto);
-            }
-        } catch (Exception e) {
-            log.error("{}加密失败", isSm4 ? "SM4" : "AES", e);
-            return plainText;
-        }
     }
 
     private static void getCustomerHead(MarketingSyncUser syncUser
@@ -496,19 +448,23 @@ public class ResultUtil {
                             str = syncUser.getCustNum();
                             break;
                         case "idcard":
-                            str = encrypt3k(head.getThreekEncryptType(), syncUser.getIdCard(), head);
+                            str = encrypt3k(head.getThreekEncryptType(), syncUser.getIdCard(),
+                                    syncUser.getIdCardOriginal());
                             strId = syncUser.getIdCard();
                             break;
                         case "id":
-                            str = encrypt3k(head.getThreekEncryptType(), syncUser.getIdCard(), head);
+                            str = encrypt3k(head.getThreekEncryptType(), syncUser.getIdCard(),
+                                    syncUser.getIdCardOriginal());
                             strId = syncUser.getIdCard();
                             break;
                         case "cell":
-                            str = encrypt3k(head.getThreekEncryptType(), syncUser.getCell(), head);
+                            str = encrypt3k(head.getThreekEncryptType(), syncUser.getCell(),
+                                    syncUser.getCellOriginal());
                             strCell = syncUser.getCell();
                             break;
                         case "name":
-                            str = encrypt3k(head.getThreekEncryptType(), syncUser.getName(), head);
+                            str = encrypt3k(head.getThreekEncryptType(), syncUser.getName(),
+                                    syncUser.getNameOriginal());
                             strNm = syncUser.getName();
                             break;
                         case "grouptype":
@@ -536,7 +492,7 @@ public class ResultUtil {
                                 || "idcard".equals(title)
                                 || "cell".equals(title)
                                 || "name".equals(title)) {
-                            extend3KeyPair = decryptAndEncrypt(icData.getString(head.getName()), head.getThreekEncryptType(), title, head);
+                            extend3KeyPair = decryptAndEncrypt(icData.getString(head.getName()), head.getThreekEncryptType(), title);
                             str = extend3KeyPair.getKey();
                         } else {
                             str = icData.getString(head.getName());
@@ -598,7 +554,8 @@ public class ResultUtil {
         }
     }
 
-    private static Pair<String, String> decryptAndEncrypt(String value, int encryptType, String dataKey, BaseHead head) {
+    // 返回两个字符串 一个是加密后的值 一个是解密后的值
+    private static Pair<String, String> decryptAndEncrypt(String value, int encryptType, String dataKey) {
         String toValue = "";
         String logValue = "";
         if (StringUtils.isBlank(value)) {
@@ -610,11 +567,7 @@ public class ResultUtil {
         if (value.length() == 32) {
             sourceEncryptType = ScoreThreeKeyEncryptEnum.md5.getValue();
         } else if (value.length() == 64) {
-            if (ScoreThreeKeyEncryptEnum.sm3.getValue().equals(encryptType)) {
-                sourceEncryptType = ScoreThreeKeyEncryptEnum.sm3.getValue();
-            } else {
-                sourceEncryptType = ScoreThreeKeyEncryptEnum.sha256.getValue();
-            }
+            sourceEncryptType = ScoreThreeKeyEncryptEnum.sha256.getValue();
         }
 
 
@@ -636,8 +589,6 @@ public class ResultUtil {
             decryptValue = RpcClientProxy.decode(value, decryptDataType, "md5", "");
         } else if (sourceEncryptType.equals(ScoreThreeKeyEncryptEnum.sha256.getValue())) {
             decryptValue = RpcClientProxy.decode(value, decryptDataType, "sha", "");
-        } else if (sourceEncryptType.equals(ScoreThreeKeyEncryptEnum.sm3.getValue())) {
-            decryptValue = RpcClientProxy.decode(value, decryptDataType, "sm3", "");
         }
         logValue = BrCipherMaker.getInstance().encode(decryptValue);
         // 如果值的加密类型与目标加密类型相同，则直接返回
@@ -646,7 +597,7 @@ public class ResultUtil {
             return new Pair<String, String>(toValue, logValue);
         }
 
-        toValue = encrypt3k(encryptType, decryptValue, head);
+        toValue = encrypt3k(encryptType, decryptValue, decryptValue);
         return new Pair<String, String>(toValue, logValue);
     }
 }

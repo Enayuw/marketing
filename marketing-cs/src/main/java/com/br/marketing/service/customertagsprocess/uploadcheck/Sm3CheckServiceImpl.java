@@ -22,7 +22,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Slf4j
-public class Sm3CheckServiceImpl implements IUploadCheckService {
+class Sm3CheckServiceImpl implements IUploadCheckService {
 
     @Override
     public void check3key(MarketingPreUserDetailDTO user, Integer isCheck, CustomerTagsVO customerTagsVO) {

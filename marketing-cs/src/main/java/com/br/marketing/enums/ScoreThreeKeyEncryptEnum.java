@@ -2,7 +2,7 @@ package com.br.marketing.enums;
 
 public enum ScoreThreeKeyEncryptEnum {
 
-    init(0),md5(1),sha256(2),general(3),sm3(4),sm4(5),aes(6);
+    init(0),md5(1),sha256(2),general(3);
 
     ScoreThreeKeyEncryptEnum(Integer value) {
         this.value = value;
