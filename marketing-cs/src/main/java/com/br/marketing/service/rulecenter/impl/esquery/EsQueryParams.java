@@ -2,6 +2,7 @@ package com.br.marketing.service.rulecenter.impl.esquery;
 
 import com.br.marketing.entity.CustomerInfoPushMain;
 import com.br.marketing.entity.ErrorMark;
+import com.br.marketing.entity.StraHisFile;
 
 import java.util.List;
 
@@ -22,6 +23,7 @@ public class EsQueryParams {
     private Object labelObject;
     private Boolean markWithEsFlag;
     private String customIndexes;
+    private List<StraHisFile> straHisFiles;
 
     // 状态变量
     private ErrorMark errorMark = new ErrorMark();
@@ -175,5 +177,13 @@ public class EsQueryParams {
 
     public void setCustomIndexes(String customIndexes) {
         this.customIndexes = customIndexes;
+    }
+
+    public List<StraHisFile> getStraHisFiles() {
+        return straHisFiles;
+    }
+
+    public void setStraHisFiles(List<StraHisFile> straHisFiles) {
+        this.straHisFiles = straHisFiles;
     }
 }
