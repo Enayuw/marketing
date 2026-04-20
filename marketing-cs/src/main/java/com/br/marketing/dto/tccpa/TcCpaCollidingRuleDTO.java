@@ -31,4 +31,7 @@ public class TcCpaCollidingRuleDTO {
 
     @Schema(description = "撞库时间")
     private String collidingTime;
+
+    @Schema(description = "撞库量级")
+    private Integer collidingNum;
 }

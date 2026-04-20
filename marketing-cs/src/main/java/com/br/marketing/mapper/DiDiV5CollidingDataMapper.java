@@ -1,11 +1,10 @@
 package com.br.marketing.mapper;
 
 import com.br.marketing.entity.DiDiV5CollidingData;
+import org.apache.ibatis.annotations.Param;
+
 import java.util.Date;
 import java.util.List;
-
-import com.br.marketing.entity.WubaCollidingDataFront;
-import org.apache.ibatis.annotations.Param;
 
 public interface DiDiV5CollidingDataMapper extends DiDiV5CollidingDataMapperBase {
     List<DiDiV5CollidingData> queryCollidingData(@Param("limit") int limit, @Param("startTime") Date startTime, @Param("endTime") Date endTime);
@@ -30,11 +29,22 @@ public interface DiDiV5CollidingDataMapper extends DiDiV5CollidingDataMapperBase
 
     void updatePushStatusByIds(@Param("pushStatus") int pushStatus, @Param("ids") List<Long> ids);
 
+    void updateCollidingTimeByIds(@Param("pushStatus") int pushStatus, @Param("collidingTime") Date collidingTime, @Param("ids") List<Long> ids);
+
+
     List<Long> queryCollidingFileIds(@Param("startTime") Date startTime, @Param("endTime") Date endTime);
 
     int getPushStatusCountByLocalId(@Param("fileId") Long fileId, @Param("pushStatus") int pushStatus, @Param("startTime") Date startTime, @Param(
             "endTime") Date endTime);
 
     List<DiDiV5CollidingData> selectNoDupDataByLocalIdtikv_(@Param("localId") Long localId, @Param("apiCode") String apiCode,
-                                                               @Param("minId") Long minId, @Param("pageSize") Integer pageSize);
+                                                               @Param("minId") Long minId, @Param("pageSize") Integer pageSize,
+                                                            @Param("collidingDate") Date collidingDate);
+
+
+    List<DiDiV5CollidingData> selectNoDupDataByDateAndIdtikv_(
+            @Param("apiCode") String apiCode,
+            @Param("collidingTime") Date collidingTime,
+            @Param("minId") Long minId,
+            @Param("pageSize") Integer pageSize);
 }

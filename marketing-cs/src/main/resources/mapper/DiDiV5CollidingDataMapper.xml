@@ -59,6 +59,16 @@
         </foreach>
     </update>
 
+    <update id="updateCollidingTimeByIds">
+        update b_didi_v5_colliding_data
+        set colliding_time = #{collidingTime},
+        push_status = #{pushStatus,jdbcType=INTEGER}
+        where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
     <select id="queryCollidingFileIds" resultType="java.lang.Long">
         SELECT local_id
         FROM b_didi_v5_colliding_data
@@ -84,6 +94,7 @@
                 AND a.api_code = #{apiCode}
                 AND a.local_id = #{localId}
                 AND a.push_status = 0
+                AND date(a.colliding_time) = date(#{collidingDate})
                 AND NOT EXISTS (SELECT 1
                                 FROM b_didi_v5_colliding_data_rob rob
                                 WHERE rob.cell = a.cell
@@ -92,6 +103,26 @@
         WHERE c.row_num = 1
           AND c.id > #{minId}
         ORDER BY c.id
+            LIMIT #{pageSize}
+    </select>
+
+    <select id="selectNoDupDataByDateAndIdtikv_" resultMap="BaseResultMap">
+        SELECT c.*
+        FROM (SELECT a.*, ROW_NUMBER() OVER (PARTITION BY a.cell ORDER BY a.id ASC) AS row_num
+              FROM b_didi_v5_colliding_data a
+              WHERE a.api_code = #{apiCode}
+                AND a.push_status = 0
+                AND DATE (a.colliding_time) >= DATE(#{collidingTime})
+            AND NOT EXISTS (
+                SELECT 1
+                FROM b_didi_v5_colliding_data_rob rob
+                WHERE rob.cell = a.cell
+                AND rob.api_code = a.api_code
+                AND rob.package_id = a.local_id
+            )) AS c
+        WHERE c.row_num = 1
+          AND c.id > #{minId}
+        ORDER BY c.id ASC
             LIMIT #{pageSize}
     </select>
 </mapper>

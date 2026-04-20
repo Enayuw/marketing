@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:reg="http://www.dangdang.com/schema/ddframe/reg"
+       xmlns:job="http://www.dangdang.com/schema/ddframe/job"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                        http://www.springframework.org/schema/beans/spring-beans.xsd 
+                        http://www.springframework.org/schema/context 
+                        http://www.springframework.org/schema/context/spring-context.xsd 
+                        http://www.dangdang.com/schema/ddframe/reg 
+                        http://www.dangdang.com/schema/ddframe/reg/reg.xsd 
+                        http://www.dangdang.com/schema/ddframe/job 
+                        http://www.dangdang.com/schema/ddframe/job/job.xsd 
+                        ">
+    <context:component-scan base-package="com.br.marketing.rule.job"/>
+    <context:component-scan base-package="com.br.marketing.rule.monitor"/>
+
+    <reg:zookeeper id="regCenter"
+                   server-lists="${SERVER_LISTS}"
+                   namespace="${NAMESPACE}"
+                   base-sleep-time-milliseconds="${BASE_SLEEP_TIME_MILLISECONDS}"
+                   max-sleep-time-milliseconds="${MAX_SLEEP_TIME_MILLISECONDS}"
+                   max-retries="${MAX_RETRIES}"
+                   nested-port="${NESTED_PORT}"
+                   nested-data-dir="${NESTED_DATA_DIR}"/>
+
+
+    <job:simple id="【rule】-ToPolicyByRuleJob"
+                class="com.br.marketing.rule.job.ToPolicyByRuleJob"
+                cron="0 0 18 29 9 ? 2050-2050"
+                description="规则中心推送决策任务"
+                registry-center-ref="regCenter"
+                sharding-total-count="4"
+                sharding-item-parameters="0=A,1=B,2=C,3=D"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
+    <job:simple id="【rule】-CustomerPushStatusQueryJob"
+                class="com.br.marketing.rule.job.CustomerPushStatusQueryJob"
+                cron="0 0 18 29 9 ? 2050-2050"
+                description="规则中心推送决策结果查询"
+                registry-center-ref="regCenter"
+                sharding-total-count="4"
+                sharding-item-parameters="0=A,1=B,2=C,3=D"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
+    <job:simple id="【rule】-AutoBuildPushPolicyJob"
+                class="com.br.marketing.rule.job.AutoBuildPushPolicyJob"
+                cron="0 0 18 29 9 ? 2050-2050"
+                description="创建推送决策任务"
+                registry-center-ref="regCenter"
+                sharding-total-count="4"
+                sharding-item-parameters="0=A,1=B,2=C,3=D"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
+    <job:simple id="【rule】-AutoRefreshConfigJob"
+                class="com.br.marketing.rule.job.AutoRefreshConfigJob"
+                cron="0 0 18 29 9 ? 2050-2050"
+                description="自动刷新推送决策任务"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
+    <job:simple id="【rule】-ValidPeriodResendJob"
+                class="com.br.marketing.rule.job.ValidPeriodResendJob"
+                cron="0 0 18 29 9 ? 2050-2050"
+                description="有效期任务变更重推任务"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
+    <job:simple id="【rule】-EsCustomQueryJob"
+                class="com.br.marketing.rule.job.EsCustomQueryJob"
+                cron="0 0 18 29 9 ? 2050-2050"
+                description="ES自定义索引查询"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
+    <job:simple id="【rule】RuleSchedulerJobSwitchGuardJob"
+                class="com.br.marketing.rule.monitor.RuleSchedulerJobSwitchGuardJob"
+                cron="0 0 18 29 9 ? 2050-2050"
+                description="rule-scheduler服务Job开关守护任务，每5分钟扫描一次，开关开启超过30分钟则告警"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="false"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+</beans>

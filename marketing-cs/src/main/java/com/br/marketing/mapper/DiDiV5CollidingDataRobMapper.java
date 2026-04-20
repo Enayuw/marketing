@@ -15,6 +15,8 @@ public interface DiDiV5CollidingDataRobMapper extends DiDiV5CollidingDataRobMapp
                                                             @Param("startTime") Date startTime,
                                                             @Param("endTime") Date endTime);
 
+    int queryCollidingDataAmount(@Param("startTime") Date startTime);
+
     List<DiDiCollidingDataRob> queryUploadedData(@Param("limit") int limit,
                                                  @Param("startTime") Date startTime,
                                                  @Param("endTime") Date endTime);

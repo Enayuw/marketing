@@ -3672,4 +3672,9 @@ public class MarketingCommonConfig {
      * 跑分写入 ES 新索引的上线时间,格式：yyyy-MM-dd HH:mm:ss
      */
     private String esNewIndexOnlineTime;
+
+    /**
+     * 同程易融cpa-failMsg配置
+     */
+    private List<JSONObject> tcyrCpaFailMsgConfig;
  }

@@ -1,0 +1,13 @@
+spring:
+  redis:
+    maxConnection: 6
+    etcdEndpoint: http://etcd-speed-01.brapp.com:23790,http://etcd-speed-02.brapp.com:23790,http://etcd-speed-03.brapp.com:23790
+    multiple:
+      name: marketing_redis
+      password: 2_pd1-marketing_Fy3Iiu6l
+      timeout: 10000
+      max-attempts: 5
+      codec: string.utf8
+      proxy-uri: redis://pd1-2-marketing.brapp.com:6401
+      gray-proxy-uri: redis://pd1-2-marketing.brapp.com:7401
+      proxy-id: camellia-pd1
