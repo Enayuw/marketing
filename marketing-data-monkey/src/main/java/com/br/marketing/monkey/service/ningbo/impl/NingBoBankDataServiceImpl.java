@@ -121,7 +121,7 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
                 downloadFileFromBank(collectDate, config, localFilePath, filePrefix);
             }
 
-            File downloadedFile = new File(localFilePath);
+            File downloadedFile = new File(filePrefix + ".txt");
             if (!downloadedFile.exists() || downloadedFile.length() == 0) {
                 throw new RuntimeException("文件下载失败，本地文件不存在或为空");
             }
