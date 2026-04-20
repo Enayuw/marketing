@@ -3673,4 +3673,25 @@ public class MarketingCommonConfig {
      * 同程易融cpa-failMsg配置
      */
     private List<JSONObject> tcyrCpaFailMsgConfig;
- }
+
+    /**
+     * 滴滴 AI 定制化上传：默认业务 apiCode（请求头 Test-ApiCode 为空时使用）。
+     */
+    private String didiaiApicode;
+//            = "7413678";
+
+    /**
+     * 滴滴 AI：appKey 与 appSecret 映射，用于验签与 AES；后续 Speed 配置。
+     */
+    private Map<String, String> didiaiAppSecretMap;
+//            = new HashMap<>(
+//                    Map.of(
+//                            "appKey_upload", "appSecret_upload",
+//                            "appKey_marketing", "appSecret_marketing"));
+
+    /**
+     * 滴滴 AI：业务 apiCode 与分表 cid（无符号数字串）对应，物理表 b_drs_customize_upload_data_{cid}。
+     */
+    private Map<String, String> didiaiApicodeToCidMap;
+//            = new HashMap<>(Map.of("7413678", "9356"));
+}
