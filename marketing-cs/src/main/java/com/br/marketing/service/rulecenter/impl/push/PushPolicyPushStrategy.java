@@ -230,7 +230,8 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
                                     (StringUtils.isNotBlank(marketingHistory.getBatchNumber()) ? marketingHistory.getBatchNumber() : ""));
                         }
                         dto1.setCaseNumber(marketingHistory.getCusNum());
-                        dto1.setPhone(marketingHistory.getCellOriginal());
+                        dto1.setPhone(encrypt3k(_3kEncrypt, marketingHistory.getCell(),
+                                marketingHistory.getCellOriginal()));
                         dto1.setLogCell(marketingHistory.getCell_log());
                         JSONObject varObject = JSON.parseObject(marketingHistory.getReserveField());
                         if (varObject == null) {
@@ -245,8 +246,10 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
                         }
                         varObject.put("custNum", marketingHistory.getCusNum());
                         // 原值
-                        varObject.put("idCard", marketingHistory.getIdCardOriginal());
-                        varObject.put("name", marketingHistory.getNameOriginal());
+                        varObject.put("idCard", encrypt3k(_3kEncrypt, marketingHistory.getIdCard(),
+                                marketingHistory.getIdCardOriginal()));
+                        varObject.put("name", encrypt3k(_3kEncrypt, marketingHistory.getName(),
+                                marketingHistory.getNameOriginal()));
                         // log加密
                         varObject.put("logIdCard", marketingHistory.getIdCard_log());
                         varObject.put("logName", marketingHistory.getName_log());
@@ -431,7 +434,7 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
     }
 
 
-    public String encrypt3k(Integer type, String content) {
+    public String encrypt3k(Integer type, String content, String original) {
         if (com.br.marketing.common.utils.StringUtils.isBlank(content)) {
             return "";
         }
@@ -440,6 +443,9 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
         }
         if (ScoreThreeKeyEncryptEnum.sha256.getValue().equals(type)) {
             return Sha256Util.getSHA256Encrypt(content);
+        }
+        if(ScoreThreeKeyEncryptEnum.general.getValue().equals(type)){
+            return original;
         }
         return content;
     }
