@@ -111,8 +111,7 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
             String separator = fieldConfig.getFileSeparator();
             String charset = fieldConfig.getFileCharset();
 
-            String timestamp = String.valueOf(System.currentTimeMillis());
-            String tempFileName = filePrefix + timestamp + ".txt";
+            String tempFileName = filePrefix + DateUtil.format(DateUtil.date(), "yyyyMMdd") + ".txt";
             String tempDir = syncConfigService.getPath() + apiCode + File.separator;
             String localFilePath = Paths.get(tempDir, tempFileName).toString();
 //            String localFilePath = "D:\\Program Files\\stocks\\baostock_download\\orginal_bank2br_20260419.txt";
@@ -121,7 +120,7 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
                 downloadFileFromBank(collectDate, config, localFilePath, filePrefix);
             }
 
-            File downloadedFile = new File(filePrefix + ".txt");
+            File downloadedFile = new File(tempFileName);
             if (!downloadedFile.exists() || downloadedFile.length() == 0) {
                 throw new RuntimeException("文件下载失败，本地文件不存在或为空");
             }
