@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.bingbo.FileReadConfigMapper">
+<mapper namespace="com.br.marketing.mapper.ningbo.FileReadConfigMapper">
 
     <select id="getActiveConfigByApiCode" resultMap="BaseResultMap" parameterType="string">
         SELECT `api_code`, `config_name`, `field_mapping`, `file_separator`, `file_charset`
