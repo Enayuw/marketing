@@ -257,11 +257,7 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
                 collidingConfig.getString("firstBatchStartTime") : "00:00:00";
         String firstBatchEndTime = collidingConfig.getString("firstBatchEndTime") != null ?
                 collidingConfig.getString("firstBatchEndTime") : "02:00:00";
-        DateTime startTime = DateUtil.parseTimeToday(firstBatchStartTime);
-        DateTime endTime = DateUtil.parseTimeToday(firstBatchEndTime);
-        DateTime now = DateUtil.date();
-        boolean inRange = !now.isBefore(startTime) && !now.isAfter(endTime);
-        String userType = inRange ? "1" : "2";
+        String userType = "1";
         // 数据包装
         JSONObject cleanJson = (JSONObject) JSONObject.toJSON(responseDTO.getData());
         cleanJson.put("cell", dataLog.getCell());
