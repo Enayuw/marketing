@@ -447,8 +447,6 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
                 diDiDataLoopCycle.setCollidingTime(new Date(Long.parseLong(diDiV5CollidingDataLog.getNextTime())));
                 diDiV5DataLoopCycleMapper.insertSelective(diDiDataLoopCycle);
             }
-            data.setPushTime(new Date());
-            diDiV5CollidingDataRobMapper.updateByPrimaryKey(data);
         }
         mqJson.put("diDiV5CollidingDataLog", diDiV5CollidingDataLog);
         log.warn("滴滴V5推送撞库日志消息体:{}", mqJson.toJSONString());
