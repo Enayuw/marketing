@@ -89,7 +89,13 @@ public enum DidiaiErrorCodeEnum {
     SIM_DISABLED(40020, "模拟上传未开启"),
 
     /** 单条记录 properties 中缺少非空的 userType（映射至 reserveField1.userType）。 */
-    USER_TYPE_MISSING(40021, "缺少 properties.userType");
+    USER_TYPE_MISSING(40021, "缺少 properties.userType"),
+
+    /** 根据 appKey 未能获取到对应的 apiCode。 */
+    APICODE_NOT_FOUND(40022, "未获取到对应的 apiCode"),
+
+    /** Test-ApiCode 请求头传入的 apiCode 不在配置白名单中。 */
+    TEST_APICODE_NOT_IN_WHITELIST(40023, "测试 apiCode 不在配置白名单中，请检查");
 
     private final int code;
     private final String message;

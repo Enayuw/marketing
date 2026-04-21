@@ -12,6 +12,8 @@ import com.br.marketing.util.didiai.DidiaiClientApps;
 import com.br.marketing.util.didiai.DidiaiKeyUtil;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.didiai.DidiaiApicodeResolveUtil;
+import com.br.marketing.util.didiai.DidiaiApicodeResolveUtil.ApiCodeResolveResult;
+import com.br.marketing.util.didiai.DidiaiApicodeResolveUtil.ResolveError;
 import com.br.marketing.util.didiai.DidiaiSignUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -201,9 +203,16 @@ public class DidiaiSimUploadController {
         body.setData(cipher);
         String clientIp = resolveClientIp(request);
         String testHeader = request.getHeader(DidiaiUploadController.HEADER_TEST_API_CODE);
-        String effectiveApiCode =
+        ApiCodeResolveResult apiCodeResult =
                 DidiaiApicodeResolveUtil.resolveEffectiveApiCode(
-                        testHeader, marketingCommonConfig.getDidiaiApicode());
+                        testHeader,
+                        appKey,
+                        marketingCommonConfig.getDidiaiAppkeyToApicodeMap(),
+                        marketingCommonConfig.getTestApicodeList());
+        if (!apiCodeResult.isSuccess()) {
+            return buildApiCodeErrorResponse(apiCodeResult.getError());
+        }
+        String effectiveApiCode = apiCodeResult.getApiCode();
         String cid =
                 DidiaiApicodeResolveUtil.resolveCid(
                         effectiveApiCode, marketingCommonConfig.getDidiaiApicodeToCidMap());
@@ -217,6 +226,23 @@ public class DidiaiSimUploadController {
         String drsSuffix = DidiaiApicodeResolveUtil.cidToDrsTableSuffix(cid);
         return didiaiUploadService.handle(
                 body, appKey, timestamp, sign, clientIp, effectiveApiCode, drsSuffix);
+    }
+
+    /**
+     * 根据 apiCode 解析失败原因构造对应的错误响应。
+     *
+     * @param error 解析失败原因枚举
+     * @return 包含对应错误码和错误信息的响应
+     */
+    private static DidiaiResponseDTO buildApiCodeErrorResponse(ResolveError error) {
+        if (error == ResolveError.TEST_APICODE_NOT_IN_WHITELIST) {
+            return DidiaiResponseDTO.fail(
+                    DidiaiErrorCodeEnum.TEST_APICODE_NOT_IN_WHITELIST.getCode(),
+                    DidiaiErrorCodeEnum.TEST_APICODE_NOT_IN_WHITELIST.getMessage());
+        }
+        return DidiaiResponseDTO.fail(
+                DidiaiErrorCodeEnum.APICODE_NOT_FOUND.getCode(),
+                DidiaiErrorCodeEnum.APICODE_NOT_FOUND.getMessage());
     }
 
     /**

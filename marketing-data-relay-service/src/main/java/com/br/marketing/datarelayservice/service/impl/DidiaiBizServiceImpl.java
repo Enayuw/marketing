@@ -255,7 +255,7 @@ public class DidiaiBizServiceImpl implements DidiaiBizService {
      *
      * @param apiCode        接口编号
      * @param tCid           分表后缀
-     * @param firstRequestId 首条 requestId
+     * @param firstRequestId 首条明文行的 requestId（直接透传客户值）
      * @param trimmed        完整明文字符串
      * @param batchSize      本批次条数
      * @param appKey         应用标识，写入 extend JSON

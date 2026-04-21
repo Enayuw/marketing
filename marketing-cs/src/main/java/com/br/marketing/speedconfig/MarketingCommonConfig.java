@@ -3675,10 +3675,27 @@ public class MarketingCommonConfig {
     private List<JSONObject> tcyrCpaFailMsgConfig;
 
     /**
-     * 滴滴 AI 定制化上传：默认业务 apiCode（请求头 Test-ApiCode 为空时使用）。
+     * 滴滴 AI：appKey 与 apiCode 映射，请求进来后根据 appKey 查此 Map 获取对应 apiCode。
+     *
+     * <p>示例：{@code "appKey_upload" -> "3700401", "appKey_marketing" -> "3700405"}
      */
-    private String didiaiApicode;
-//            = "7413678";
+    private Map<String, String> didiaiAppkeyToApicodeMap;
+//            = new HashMap<>(
+//                    Map.of(
+//                            "appKey_upload", "7413678",
+//                            "appKey_marketing", "7413678",
+//                            "cwg/WMWxpIsvZg6x", "3700405",  // 营销生产
+//                            "4e/rp5B4T0YP2tre", "3760058"  // 贷后生产
+//                    ));
+
+    /**
+     * 滴滴 AI：测试 apiCode 白名单。当请求头包含 Test-ApiCode 时，需验证其值在此列表中，否则返回错误。
+     *
+     * <p>示例：{@code ["7413678", "3700401", "3700405", "9999999"]}
+     */
+    private List<String> testApicodeList;
+//            = new ArrayList<>(
+//                    Arrays.asList("7413678", "3700401", "3700405", "3760057", "3760058"));
 
     /**
      * 滴滴 AI：appKey 与 appSecret 映射，用于验签与 AES；后续 Speed 配置。
@@ -3687,11 +3704,20 @@ public class MarketingCommonConfig {
 //            = new HashMap<>(
 //                    Map.of(
 //                            "appKey_upload", "appSecret_upload",
-//                            "appKey_marketing", "appSecret_marketing"));
+//                            "appKey_marketing", "appSecret_marketing",
+//                            "cwg/WMWxpIsvZg6x", "s7Dbf0jVxwb5czD3FGevpv+NSs03QopL",  // 营销
+//                            "4e/rp5B4T0YP2tre", "00griLDc0ExP8sH53l+gPS81liA3YOcd" // 贷后
+//                    ));
 
     /**
      * 滴滴 AI：业务 apiCode 与分表 cid（无符号数字串）对应，物理表 b_drs_customize_upload_data_{cid}。
      */
     private Map<String, String> didiaiApicodeToCidMap;
-//            = new HashMap<>(Map.of("7413678", "9356"));
+//            = new HashMap<>(
+//                    Map.of("7413678", "9356",
+//                            "3700401", "22106",
+//                            "3700405", "22106",
+//                            "3760057", "22106",
+//                            "3760058", "22106"
+//                    ));
 }

@@ -3,12 +3,14 @@ package com.br.marketing.util.didiai;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * 滴滴 AI 定制化上传：业务 apiCode、分表 cid 与 Drs 表后缀的解析工具（从 {@code MarketingCommonConfig} 拆出，避免配置类膨胀）。
  *
- * <p>配置字段 {@code didiaiApicode}、{@code didiaiApicodeToCidMap} 仍由 Speed 绑定在 {@code MarketingCommonConfig}，本类仅承载无状态解析逻辑。
+ * <p>配置字段 {@code didiaiAppkeyToApicodeMap}、{@code testApicodeList}、{@code didiaiApicodeToCidMap}
+ * 由 Speed 绑定在 {@code MarketingCommonConfig}，本类仅承载无状态解析逻辑。
  *
  * @author yueping.bai
  */
@@ -17,20 +19,84 @@ public final class DidiaiApicodeResolveUtil {
     private DidiaiApicodeResolveUtil() {}
 
     /**
-     * 解析生效业务 apiCode：请求头 Test-ApiCode 非空则取其 trim，否则使用配置中的 didiaiApicode，再否则返回 {@code 7413678}。
-     *
-     * @param testApiCodeHeader Test-ApiCode 请求头值，可为空
-     * @param didiaiApicode     Speed 配置的默认 apiCode，可为空
-     * @return 非空 apiCode 字符串
+     * apiCode 解析结果封装类，区分成功/失败及失败原因。
      */
-    public static String resolveEffectiveApiCode(String testApiCodeHeader, String didiaiApicode) {
+    public static class ApiCodeResolveResult {
+        private final String apiCode;
+        private final ResolveError error;
+
+        private ApiCodeResolveResult(String apiCode, ResolveError error) {
+            this.apiCode = apiCode;
+            this.error = error;
+        }
+
+        public static ApiCodeResolveResult ok(String apiCode) {
+            return new ApiCodeResolveResult(apiCode, null);
+        }
+
+        public static ApiCodeResolveResult fail(ResolveError error) {
+            return new ApiCodeResolveResult(null, error);
+        }
+
+        public boolean isSuccess() {
+            return error == null && apiCode != null;
+        }
+
+        public String getApiCode() {
+            return apiCode;
+        }
+
+        public ResolveError getError() {
+            return error;
+        }
+    }
+
+    /**
+     * 解析失败原因枚举。
+     */
+    public enum ResolveError {
+        /** 根据 appKey 未能获取到对应的 apiCode。 */
+        APICODE_NOT_FOUND,
+        /** Test-ApiCode 请求头传入的 apiCode 不在配置白名单中。 */
+        TEST_APICODE_NOT_IN_WHITELIST
+    }
+
+    /**
+     * 解析有效的 apiCode（新版，支持 appKey 映射与 Test-ApiCode 白名单校验）。
+     *
+     * <p>解析优先级：
+     * <ol>
+     *   <li>若请求头包含 Test-ApiCode，校验其是否在 testApicodeList 白名单中，在则使用，不在则返回错误</li>
+     *   <li>否则按 appKey 查 didiaiAppkeyToApicodeMap，找到则使用，未找到则返回错误</li>
+     * </ol>
+     *
+     * @param testApiCodeHeader    请求头 Test-ApiCode（测试覆盖，优先级最高）
+     * @param appKey               请求头 appKey
+     * @param appkeyToApicodeMap   Speed 配置的 appKey → apiCode 映射
+     * @param testApicodeList      测试 apiCode 白名单
+     * @return 解析结果（含 apiCode 或错误类型）
+     */
+    public static ApiCodeResolveResult resolveEffectiveApiCode(
+            String testApiCodeHeader,
+            String appKey,
+            Map<String, String> appkeyToApicodeMap,
+            List<String> testApicodeList) {
+        // 1. Test-ApiCode 优先（测试覆盖）
         if (StringUtils.isNotBlank(testApiCodeHeader)) {
-            return testApiCodeHeader.trim();
+            String testCode = testApiCodeHeader.trim();
+            if (testApicodeList == null || !testApicodeList.contains(testCode)) {
+                return ApiCodeResolveResult.fail(ResolveError.TEST_APICODE_NOT_IN_WHITELIST);
+            }
+            return ApiCodeResolveResult.ok(testCode);
         }
-        if (StringUtils.isNotBlank(didiaiApicode)) {
-            return didiaiApicode.trim();
+        // 2. 按 appKey 查 Map
+        if (appkeyToApicodeMap != null && StringUtils.isNotBlank(appKey)) {
+            String apiCode = appkeyToApicodeMap.get(appKey);
+            if (StringUtils.isNotBlank(apiCode)) {
+                return ApiCodeResolveResult.ok(apiCode);
+            }
         }
-        return "7413678";
+        return ApiCodeResolveResult.fail(ResolveError.APICODE_NOT_FOUND);
     }
 
     /**

@@ -10,7 +10,6 @@ import org.springframework.util.DigestUtils;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * 滴滴离线链路中，在「明文行列表」与「营销标准上传批次结构」之间做转换的纯静态工具。
@@ -25,24 +24,19 @@ public final class DidiaiOfflinePreUserAssembler {
     private DidiaiOfflinePreUserAssembler() {}
 
     /**
-     * 从滴滴明文行构造标准上传批次：逐行做清洗映射后填入 {@code dataItems}，并生成批次 {@code taskId}/{@code requestId}。
+     * 从滴滴明文行构造标准上传批次：逐行做清洗映射后填入 {@code dataItems}，透传客户侧 {@code taskId}/{@code requestId}。
      *
-     * @param apiCode 业务接口编号
-     * @param row     汇总表当前行
+     * <p>按 §23 设计，{@code requestId} 直接透传客户明文首条的值，不做服务端生成。
+     *
+     * @param apiCode 业务接口编号（当前未使用，保留参数以兼容调用方）
+     * @param row     汇总表当前行（当前未使用，保留参数以兼容调用方）
      * @param rows    非空明文行列表
      * @return 非空的批次对象，可序列化后走标准上传
      */
     public static MarketingPreUserDTO buildMarketingPreUserByCleaningMapping(
             String apiCode, DrsCustomizeUploadData row, List<JSONObject> rows) {
         String taskIdStr = resolveBatchTaskId(rows, row);
-        String requestIdStr =
-                apiCode
-                        + "_"
-                        + row.getId()
-                        + "_"
-                        + System.currentTimeMillis()
-                        + "_"
-                        + ThreadLocalRandom.current().nextInt(1_000_000);
+        String requestIdStr = resolveBatchRequestId(rows, row);
         List<MarketingPreUserDetailDTO> items = new ArrayList<>(rows.size());
         for (JSONObject r : rows) {
             items.add(mapPlainRowToDetailByCleaningMapping(r));
@@ -52,6 +46,26 @@ public final class DidiaiOfflinePreUserAssembler {
         dto.setRequestId(requestIdStr);
         dto.setDataItems(items);
         return dto;
+    }
+
+    /**
+     * 解析本批次的请求号字符串：优先透传首行业务请求号；若无则尝试汇总表请求号；仍无则抛异常。
+     *
+     * <p>按 §23 设计，{@code requestId} 由客户侧按格式生成并传入，百融侧直接透传，**不生成兜底值**。
+     * 若无法取到有效 requestId，抛出 {@link IllegalStateException}，由调用方标记 sync_status=4。
+     */
+    private static String resolveBatchRequestId(List<JSONObject> rows, DrsCustomizeUploadData row) {
+        if (rows != null && !rows.isEmpty()) {
+            String rid = rows.get(0).getString("requestId");
+            if (StringUtils.isNotBlank(rid)) {
+                return rid;
+            }
+        }
+        if (row != null && StringUtils.isNotBlank(row.getRequestId())) {
+            return row.getRequestId();
+        }
+        throw new IllegalStateException(
+                "离线清洗映射失败：requestId 缺失或空白，无法透传至 b_marketing_sync_info");
     }
 
     /**
@@ -75,6 +89,16 @@ public final class DidiaiOfflinePreUserAssembler {
 
     /**
      * 将单条滴滴明文 JSON 清洗映射为一条营销标准明细。
+     *
+     * <p>映射规则对齐 {@code json-mapping-rule.md} 与设计 §22：
+     * <ul>
+     *   <li>{@code phone} → UTF-8 MD5 小写 hex → {@code cell}
+     *   <li>{@code properties.uid} → {@code custNum}
+     *   <li>{@code properties.userType}（必填）→ {@code reserveField1.userType}
+     *   <li>{@code properties.userName}（选填）→ {@code reserveField1.userName}
+     *   <li>{@code properties.productName}（选填）→ {@code reserveField1.productName}
+     *   <li>{@code properties.strategyCode}（选填）→ {@code reserveField1.strategyCode}
+     * </ul>
      */
     private static MarketingPreUserDetailDTO mapPlainRowToDetailByCleaningMapping(JSONObject r) {
         MarketingPreUserDetailDTO d = new MarketingPreUserDetailDTO();
@@ -87,10 +111,9 @@ public final class DidiaiOfflinePreUserAssembler {
             d.setCustNum(properties.getString("uid"));
         }
         d.setOperateType("3");
-        Object taskIdObj = r.get("taskId");
-        String strategyCode = taskIdObj == null ? "" : String.valueOf(taskIdObj);
         String userName = properties == null ? null : properties.getString("userName");
         String productName = properties == null ? null : properties.getString("productName");
+        String strategyCode = properties == null ? null : properties.getString("strategyCode");
         String userType =
                 properties == null ? null : StringUtils.trimToNull(properties.getString("userType"));
         if (userType == null) {
@@ -99,7 +122,9 @@ public final class DidiaiOfflinePreUserAssembler {
         }
         JSONObject reserve = new JSONObject();
         reserve.put("userType", userType);
-        reserve.put("strategyCode", strategyCode);
+        if (StringUtils.isNotBlank(strategyCode)) {
+            reserve.put("strategyCode", strategyCode);
+        }
         if (StringUtils.isNotBlank(userName)) {
             reserve.put("userName", userName);
         }
