@@ -252,7 +252,6 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
     }
 
     private Result<Boolean> cleanAndUpload(DiDiV5CollidingResultResponseDTO responseDTO, DiDiV5CollidingDataLog dataLog) throws NoSuchFieldException {
-        JSONObject collidingConfig = marketingCommonConfig.getDiDiV5Config();
         String userType = "1";
         // 数据包装
         JSONObject cleanJson = (JSONObject) JSONObject.toJSON(responseDTO.getData());
