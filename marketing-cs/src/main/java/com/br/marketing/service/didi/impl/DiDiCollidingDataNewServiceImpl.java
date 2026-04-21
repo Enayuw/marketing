@@ -28,6 +28,7 @@ import com.google.api.client.util.Sets;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.curator.shaded.com.google.common.util.concurrent.RateLimiter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -133,6 +134,7 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
         while (true) {
             JSONObject collidingConfig2 = marketingCommonConfig.getDiDiV5Config();
             boolean collidingSwitch = collidingConfig2.getBoolean("collidingSwitch");
+            Integer partition = collidingConfig.getInteger("partition");
             if (collidingSwitch) {
                 break;
             }
@@ -156,9 +158,14 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
             leftLimit.addAndGet(-dataList.size());
 
             markAsPushing(dataList);
-            dataList.forEach(data -> {
+            List<List<DiDiDataLoopCycle>> lists = ListUtils.partition(dataList, partition);
+            lists.forEach(list -> {
                 CompletableFuture<Void> future = CompletableFuture.runAsync(
-                        () -> collidingData(data, mediaName, token, rateLimiter, retryHttpCode),
+                        () -> {
+                            for (DiDiDataLoopCycle data : list) {
+                                collidingData(data, mediaName, token, rateLimiter, retryHttpCode);
+                            }
+                        },
                         pushPool
                 );
                 futures.add(future);
@@ -212,6 +219,7 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
             if (leftLimit.get() <= 0) {
                 break;
             }
+            Integer partition = collidingConfig.getInteger("partition");
             int limit = collidingConfig.getInteger("limit") != null ? collidingConfig.getInteger("limit") : 2000;
             int actualLimit = Math.min(leftLimit.get(), limit);
             List<DiDiCollidingDataRob> dataList;
@@ -231,9 +239,14 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
             leftLimit.addAndGet(-dataList.size());
 
             markRobAsPushing(dataList);
-            dataList.forEach(data -> {
+            List<List<DiDiCollidingDataRob>> lists = ListUtils.partition(dataList, partition);
+            lists.forEach(list -> {
                 CompletableFuture<Void> future = CompletableFuture.runAsync(
-                        () -> collidingData(data, mediaName, token, rateLimiter, retryHttpCode),
+                        () -> {
+                            for (DiDiCollidingDataRob data : list) {
+                                collidingData(data, mediaName, token, rateLimiter, retryHttpCode);
+                            }
+                        },
                         pushPool
                 );
                 futures3.add(future);
