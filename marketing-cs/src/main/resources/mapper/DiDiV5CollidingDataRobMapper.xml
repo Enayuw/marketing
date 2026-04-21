@@ -21,7 +21,6 @@
         WHERE push_time is null
         AND is_delete = 0
         AND colliding_time &lt; #{startTime}
-        ORDER BY colliding_time, id ASC
         LIMIT #{limit}
     </select>
 
@@ -31,7 +30,6 @@
         WHERE push_time is null
         AND is_delete = 0
         AND colliding_time BETWEEN #{startTime} AND #{endTime}
-        ORDER BY id ASC
         LIMIT #{limit}
     </select>
 
