@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
 
-    private final static String TITLE = "【滴滴V5-短信流量数据】";
+    private final static String TITLE = "【滴滴V5-撞库任务消费者】";
 
     private List<String> scasValues = Lists.newCopyOnWriteArrayList();
 
@@ -221,6 +221,8 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
 
     @Override
     public Result<Boolean> saveDiDiCollidingDataLog(String bodyString) {
+        log.warn(TITLE + "，开始");
+        long startTimeMillis = System.currentTimeMillis();
         Result<Boolean> result = new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(false);
         refreshScasConfig();
         try {
@@ -234,6 +236,7 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
             if(diDiV5CollidingResultResponseDTO.getData().getResult()) {
                 cleanAndUpload(diDiV5CollidingResultResponseDTO, dataLog);
             }
+            log.warn(TITLE + "处理非周期锁定的数据，耗时：{}", System.currentTimeMillis() - startTimeMillis);
         } catch (Exception ex) {
             log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(), "数清据洗/上传失败,bodyString:" + bodyString,
                     TITLE), ex);

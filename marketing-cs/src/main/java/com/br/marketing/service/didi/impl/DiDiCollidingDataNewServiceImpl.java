@@ -65,6 +65,8 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
     @Resource
     private LocalFileMapper localFileMapper;
 
+    private static final String TITLE = "【滴滴V5】撞库任务";
+
     @Override
     public void colliding(JobExecutionMultipleShardingContext context) {
         TpDynamicExecutor pushPool = TpDynamicExecutorFactory.getThreadPool(ThreadPoolNameEnum.DIDI_V5_COLLIDING.getName(), 50, 50);
@@ -222,6 +224,8 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
             Integer partition = collidingConfig.getInteger("partition");
             int limit = collidingConfig.getInteger("limit") != null ? collidingConfig.getInteger("limit") : 2000;
             int actualLimit = Math.min(leftLimit.get(), limit);
+            log.warn(TITLE + "处理非周期锁定的数据，开始");
+            long startTimeMillis = System.currentTimeMillis();
             List<DiDiCollidingDataRob> dataList;
             if (priority == 2) {
                 dataList = diDiV5CollidingDataRobMapper.queryCollidingDataBySharding(
@@ -251,6 +255,7 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
                 );
                 futures3.add(future);
             });
+            log.warn(TITLE + "处理非周期锁定的数据，耗时：{}", System.currentTimeMillis() - startTimeMillis);
             if (leftLimit.get() <= 0) {
                 break;
             }
