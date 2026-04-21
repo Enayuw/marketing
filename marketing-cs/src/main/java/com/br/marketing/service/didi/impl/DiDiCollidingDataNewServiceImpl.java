@@ -222,7 +222,6 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
             Integer partition = collidingConfig.getInteger("partition");
             int limit = collidingConfig.getInteger("limit") != null ? collidingConfig.getInteger("limit") : 2000;
             int actualLimit = Math.min(leftLimit.get(), limit);
-            long startTimeMillis = System.currentTimeMillis();
             List<DiDiCollidingDataRob> dataList;
             if (priority == 2) {
                 dataList = diDiV5CollidingDataRobMapper.queryCollidingDataBySharding(

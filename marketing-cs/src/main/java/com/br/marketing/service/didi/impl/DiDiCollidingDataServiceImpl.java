@@ -220,7 +220,6 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
     @Override
     public Result<Boolean> saveDiDiCollidingDataLog(String bodyString) {
         log.warn(TITLE + "，开始");
-        long startTimeMillis = System.currentTimeMillis();
         Result<Boolean> result = new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(false);
         refreshScasConfig();
         try {
@@ -234,7 +233,6 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
             if(diDiV5CollidingResultResponseDTO.getData().getResult()) {
                 cleanAndUpload(diDiV5CollidingResultResponseDTO, dataLog);
             }
-            log.warn(TITLE + "处理非周期锁定的数据，耗时：{}", System.currentTimeMillis() - startTimeMillis);
         } catch (Exception ex) {
             log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(), "数清据洗/上传失败,bodyString:" + bodyString,
                     TITLE), ex);
