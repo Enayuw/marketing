@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
 
-    private final static String TITLE = "【滴滴V5-撞库任务消费者】";
+    private final static String TITLE = "【滴滴V5-撞库任务】";
 
     private List<String> scasValues = Lists.newCopyOnWriteArrayList();
 
@@ -188,7 +188,6 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
     }
 
     private void pushToMq(DiDiV5CollidingData data, String httpcode, String content) {
-        log.warn("滴滴V5推送撞库日志消息content:{}", content);
         JSONObject mqJson = new JSONObject();
         DiDiV5CollidingDataLog diDiV5CollidingDataLog = new DiDiV5CollidingDataLog();
         diDiV5CollidingDataLog.setApiCode(data.getApiCode());
@@ -209,7 +208,6 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
             mqJson.put("diDiV5CollidingResultResponseDTO", diDiV5CollidingResultResponseDTO);
         }
         mqJson.put("diDiV5CollidingDataLog", diDiV5CollidingDataLog);
-        log.warn("滴滴V5推送撞库日志消息体:{}", mqJson.toJSONString());
         rocketMqSwitch.syncSend(MarketingOutsideInterfaceConstants.TOPIC, MarketingOutsideInterfaceConstants.TAG_MARKETING_DIDI_V5_COLLIDING_DATA,
                 mqJson.toJSONString());
     }
