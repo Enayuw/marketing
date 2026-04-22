@@ -42,6 +42,14 @@ public class DiDiV5Client {
     @Resource
     private HttpProxyClient httpProxyClient;
 
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
+    public Result<String> collidingWithoutMock(String mediaName, DiDiV5CollidingRequestDTO requestDTO) {
+        collidingUrl = collidingUrl.replace("mediaName", mediaName);
+        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(requestDTO, collidingUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE,
+                JSON.toJSONString(requestDTO), true, false);
+        return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(JSONObject.toJSONString(resMap));
+    }
+
 
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     @Mockable(mockName = MockConstants.DIDI_V5_COLLIDING_DATA_RETURN)
