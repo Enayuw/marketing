@@ -192,6 +192,7 @@ public class DiDiCollidingDataRobServiceImpl implements DiDiCollidingDataRobServ
             diDiV5CollidingDataLog.setUserGroup(String.valueOf(diDiV5CollidingResultResponseDTO.getData().getUserGroup()));
             diDiV5CollidingDataLog.setNextTime(String.valueOf(diDiV5CollidingResultResponseDTO.getData().getNextTime()));
             diDiV5CollidingDataLog.setCouponType(diDiV5CollidingResultResponseDTO.getData().getCouponType());
+            diDiV5CollidingDataLog.setSourceType(data.getSourceType());
             mqJson.put("diDiV5CollidingResultResponseDTO", diDiV5CollidingResultResponseDTO);
 
             data.setUpdateTime(new Date());
