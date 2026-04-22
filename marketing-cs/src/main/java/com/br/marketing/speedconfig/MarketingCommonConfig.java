@@ -3549,6 +3549,12 @@ public class MarketingCommonConfig {
     private Map<String, String> zhongYuanIdentity;
 
     /**
+     * 中原消金渠道配置（JSON 字符串）：{"apiCode":"","publicKey":"","privateKey":""}
+     * publicKey：中原 RSA 公钥 X509 Base64；privateKey：合作方 RSA 私钥 PKCS8 Base64
+     */
+    private String zhongYuanAgentChannelRsa;
+
+    /**
      * 携程贷后apicode集合
      */
     private List<String> xieChengPostLoanApiCodeLists;
