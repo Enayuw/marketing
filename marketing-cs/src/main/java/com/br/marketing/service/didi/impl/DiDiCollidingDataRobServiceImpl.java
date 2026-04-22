@@ -17,33 +17,25 @@ import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.entity.DiDiCollidingDataRob;
-import com.br.marketing.entity.DiDiDataLoopCycle;
 import com.br.marketing.entity.DiDiV5CollidingDataLog;
 import com.br.marketing.mapper.DiDiV5CollidingDataRobMapper;
 import com.br.marketing.mapper.DiDiV5DataLoopCycleMapper;
-import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.service.didi.DiDiCollidingDataRobService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.ListUtils;
 import org.apache.curator.shaded.com.google.common.util.concurrent.RateLimiter;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 @Slf4j
@@ -77,41 +69,20 @@ public class DiDiCollidingDataRobServiceImpl implements DiDiCollidingDataRobServ
         DateTime startTime = DateUtil.parse(startTimeStr);
         DateTime endTime = DateUtil.parse(endTimeStr);
 
-        AtomicInteger leftLimit = new AtomicInteger();
-        if (DateUtil.compare(new Date(), endTime) < 0 && DateUtil.compare(new Date(), startTime) >= 0) {
-            leftLimit.set(collidingConfig.getInteger("collidingLimit"));
-        } else {
-            startTimeStr = LocalDate.now().format(DateTimeFormatter.ofPattern(DatePattern.NORM_DATE_PATTERN)) + " "
-                    + collidingConfig.getString("secondBatchStartTime");
-            endTimeStr = LocalDate.now().format(DateTimeFormatter.ofPattern(DatePattern.NORM_DATE_PATTERN)) + " "
-                    + collidingConfig.getString("secondBatchEndTime");
-            startTime = DateUtil.parse(startTimeStr);
-            endTime = DateUtil.parse(endTimeStr);
-            if (DateUtil.compare(new Date(), endTime) < 0 && DateUtil.compare(new Date(), startTime) >= 0) {
-                leftLimit.set(collidingConfig.getInteger("collidingLimit2"));
-            }
-        }
-
-        if (Objects.equals(0, leftLimit.get())) {
-            return;
-        }
-
         String mediaName = collidingConfig.getString("mediaName") != null ? collidingConfig.getString("mediaName") : "bairongC";
         String token = collidingConfig.getString("token") != null ? collidingConfig.getString("token") : "9Hqeoi36CJfdA7n4";
 
         // 处理非周期锁定的数据
-        processRobData(leftLimit, mediaName, token, rateLimiter,
+        processRobData(mediaName, token, rateLimiter,
                 pushPool, 2, startTime, endTime);
-        processRobData(leftLimit, mediaName, token, rateLimiter,
+        processRobData(mediaName, token, rateLimiter,
                 pushPool, 3, startTime, endTime);
         pushPool.shutdownAndAwaitTermination();
     }
 
-    private void processRobData(AtomicInteger leftLimit, String mediaName, String token, RateLimiter rateLimiter,
-                                TpDynamicExecutor pushPool,
-                                int priority, Date startTime, Date endTime) {
+    private void processRobData(String mediaName, String token, RateLimiter rateLimiter,
+                                TpDynamicExecutor pushPool, int priority, Date startTime, Date endTime) {
         // 处理非周期锁定的数据
-        List<CompletableFuture<Void>> futures3 = new ArrayList<>();
         long maxId = 0;
         while (true) {
             JSONObject collidingConfig = marketingCommonConfig.getDiDiV5Config();
@@ -123,9 +94,9 @@ public class DiDiCollidingDataRobServiceImpl implements DiDiCollidingDataRobServ
             if (DateUtil.compare(new Date(), endTime) >= 0 || DateUtil.compare(new Date(), startTime) < 0) {
                 break;
             }
-            if (leftLimit.get() <= 0) {
-                break;
-            }
+            Integer threadNum = collidingConfig.getInteger("threadNum");
+            pushPool.setCorePoolSize(threadNum);
+            pushPool.setMaximumPoolSize(threadNum);
             int limit = collidingConfig.getInteger("limit") != null ? collidingConfig.getInteger("limit") : 2000;
             List<DiDiCollidingDataRob> dataList;
             if (priority == 2) {
@@ -140,18 +111,8 @@ public class DiDiCollidingDataRobServiceImpl implements DiDiCollidingDataRobServ
             maxId = dataList.get(dataList.size() - 1).getId();
             boolean rateLimitSwitch = collidingConfig.getBoolean("rateLimitSwitch");
             Integer mockEnable = collidingConfig.getInteger("mockEnable");
-            dataList.forEach(data -> {
-                CompletableFuture<Void> future = CompletableFuture.runAsync(
-                        () -> collidingData(data, mediaName, token, rateLimiter, rateLimitSwitch, mockEnable),
-                        pushPool
-                );
-                futures3.add(future);
-            });
-            if (leftLimit.get() <= 0) {
-                break;
-            }
+            dataList.forEach(data -> pushPool.submit(() -> collidingData(data, mediaName, token, rateLimiter, rateLimitSwitch, mockEnable)));
         }
-        futures3.forEach(CompletableFuture::join);
     }
 
     private void collidingData(DiDiCollidingDataRob data, String mediaName, String token, RateLimiter rateLimiter,
