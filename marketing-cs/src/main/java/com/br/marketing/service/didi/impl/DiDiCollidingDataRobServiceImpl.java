@@ -95,8 +95,8 @@ public class DiDiCollidingDataRobServiceImpl implements DiDiCollidingDataRobServ
                 break;
             }
             Integer threadNum = collidingConfig.getInteger("threadNum");
-            pushPool.setCorePoolSize(threadNum);
             pushPool.setMaximumPoolSize(threadNum);
+            pushPool.setCorePoolSize(threadNum);
             int limit = collidingConfig.getInteger("limit") != null ? collidingConfig.getInteger("limit") : 2000;
             List<DiDiCollidingDataRob> dataList;
             if (priority == 2) {
