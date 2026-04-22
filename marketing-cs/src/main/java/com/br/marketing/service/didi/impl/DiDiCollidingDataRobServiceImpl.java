@@ -22,6 +22,7 @@ import com.br.marketing.mapper.DiDiV5CollidingDataRobMapper;
 import com.br.marketing.mapper.DiDiV5DataLoopCycleMapper;
 import com.br.marketing.service.didi.DiDiCollidingDataRobService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
@@ -95,8 +96,7 @@ public class DiDiCollidingDataRobServiceImpl implements DiDiCollidingDataRobServ
                 break;
             }
             Integer threadNum = collidingConfig.getInteger("threadNum");
-            pushPool.setMaximumPoolSize(threadNum);
-            pushPool.setCorePoolSize(threadNum);
+            ThreadPoolAdjustmentUtil.adjustThreadPoolSize(pushPool, threadNum);
             int limit = collidingConfig.getInteger("limit") != null ? collidingConfig.getInteger("limit") : 2000;
             List<DiDiCollidingDataRob> dataList;
             if (priority == 2) {
