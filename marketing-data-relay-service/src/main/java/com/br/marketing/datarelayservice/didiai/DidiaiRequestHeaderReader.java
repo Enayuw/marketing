@@ -55,6 +55,31 @@ public final class DidiaiRequestHeaderReader {
     }
 
     /**
+     * 解析当前请求对应的客户端 IP 地址。
+     *
+     * <p>若存在反向代理常见转发头 X-Forwarded-For（大小写不敏感尝试两种常见写法），则取其中第一个
+     * 逗号前的片段作为客户端地址，以适配多级代理场景；否则使用 HttpServletRequest.getRemoteAddr。
+     *
+     * @param request 当前 HTTP 请求，为空时返回 null
+     * @return 推断得到的 IPv4 或 IPv6 字符串；request 为空时返回 null
+     */
+    public static String resolveClientIp(HttpServletRequest request) {
+        if (request == null) {
+            return null;
+        }
+        String xff = request.getHeader("X-Forwarded-For");
+        if (StringUtils.isBlank(xff)) {
+            xff = request.getHeader("x-forwarded-for");
+        }
+        if (StringUtils.isNotBlank(xff)) {
+            int comma = xff.indexOf(',');
+            String first = comma > 0 ? xff.substring(0, comma) : xff;
+            return first.trim();
+        }
+        return request.getRemoteAddr();
+    }
+
+    /**
      * 按候选名称列表查找第一个非空的请求头取值。
      *
      * <p>处理步骤：

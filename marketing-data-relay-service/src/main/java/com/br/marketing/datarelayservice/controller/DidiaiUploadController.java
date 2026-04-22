@@ -5,15 +5,14 @@ import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.datarelayservice.client.DidiaiEncryptedRequestDTO;
 import com.br.marketing.datarelayservice.client.DidiaiResponseDTO;
 import com.br.marketing.datarelayservice.didiai.DidiaiRequestHeaderReader;
-import com.br.marketing.datarelayservice.enums.DidiaiErrorCodeEnum;
+import com.br.marketing.datarelayservice.didiai.DidiaiResponseUtils;
+import com.br.marketing.datarelayservice.didiai.DidiaiValidationUtils;
 import com.br.marketing.datarelayservice.service.DidiaiUploadService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.didiai.DidiaiApicodeResolveUtil;
 import com.br.marketing.util.didiai.DidiaiApicodeResolveUtil.ApiCodeResolveResult;
-import com.br.marketing.util.didiai.DidiaiApicodeResolveUtil.ResolveError;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -55,8 +54,11 @@ public class DidiaiUploadController {
      * <p>执行顺序简述：使用工具类按多种别名读取 appKey、timestamp、sign；三者任一缺失则立即返回参数校验失败；
      * 将时间戳解析为 long；解析客户端 IP 后调用接入服务完成后续处理。
      *
-     * @param body    反序列化后的密文请求体，其中密文字段可为 data、cipherText 或 cipher 之一，具体解析顺序由服务层实现
-     * @param request 当前 Servlet 请求，用于读取头信息与远端地址
+     * <p>请求体直接为 Base64 编码的 AES 密文字符串，不做 JSON 包装。Controller 层将裸密文包装为
+     * DidiaiEncryptedRequestDTO 后传递给 Service 层，保持 Service 层接口不变。
+     *
+     * @param rawCipherText 请求体中的裸密文字符串（Base64 编码的 AES 密文）
+     * @param request       当前 Servlet 请求，用于读取头信息与远端地址
      * @return 始终为 DidiaiResponseDTO，成功或失败均通过其中的 errorCode、errorMsg 及 data 表达
      * @throws NumberFormatException 当 timestamp 头非合法十进制整数字符串时抛出，由全局异常处理器转换为业务响应
      */
@@ -64,91 +66,59 @@ public class DidiaiUploadController {
     @PostMapping("/upload")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public DidiaiResponseDTO upload(
-            @RequestBody DidiaiEncryptedRequestDTO body, HttpServletRequest request) {
+            @RequestBody String rawCipherText, HttpServletRequest request) {
         String appKey = DidiaiRequestHeaderReader.readAppKey(request);
         String timestampStr = DidiaiRequestHeaderReader.readTimestamp(request);
         String sign = DidiaiRequestHeaderReader.readSign(request);
-        if (StringUtils.isBlank(appKey)) {
-            return DidiaiResponseDTO.fail(
-                    DidiaiErrorCodeEnum.MISSING_APP_KEY.getCode(),
-                    DidiaiErrorCodeEnum.MISSING_APP_KEY.getMessage());
-        }
-        if (StringUtils.isBlank(timestampStr)) {
-            return DidiaiResponseDTO.fail(
-                    DidiaiErrorCodeEnum.MISSING_TIMESTAMP.getCode(),
-                    DidiaiErrorCodeEnum.MISSING_TIMESTAMP.getMessage());
-        }
-        if (StringUtils.isBlank(sign)) {
-            return DidiaiResponseDTO.fail(
-                    DidiaiErrorCodeEnum.MISSING_SIGN.getCode(),
-                    DidiaiErrorCodeEnum.MISSING_SIGN.getMessage());
+        DidiaiResponseDTO headerValidationError =
+                DidiaiValidationUtils.validateRequiredHeaders(appKey, timestampStr, sign);
+        if (headerValidationError != null) {
+            return headerValidationError;
         }
         long ts = Long.parseLong(timestampStr.trim());
-        String clientIp = resolveClientIp(request);
+        String clientIp = DidiaiRequestHeaderReader.resolveClientIp(request);
         String testHeader = request.getHeader(HEADER_TEST_API_CODE);
-        ApiCodeResolveResult apiCodeResult =
-                DidiaiApicodeResolveUtil.resolveEffectiveApiCode(
-                        testHeader,
-                        appKey,
-                        marketingCommonConfig.getDidiaiAppkeyToApicodeMap(),
-                        marketingCommonConfig.getTestApicodeList());
+        ApiCodeResolveResult apiCodeResult = resolveApiCode(testHeader, appKey);
         if (!apiCodeResult.isSuccess()) {
-            return buildApiCodeErrorResponse(apiCodeResult.getError());
+            return DidiaiResponseUtils.buildApiCodeErrorResponse(apiCodeResult.getError());
         }
         String effectiveApiCode = apiCodeResult.getApiCode();
-        String cid =
-                DidiaiApicodeResolveUtil.resolveCid(
-                        effectiveApiCode, marketingCommonConfig.getDidiaiApicodeToCidMap());
+        String cid = resolveCid(effectiveApiCode);
         if (cid == null) {
-            return DidiaiResponseDTO.fail(
-                    DidiaiErrorCodeEnum.CID_NOT_CONFIGURED.getCode(),
-                    DidiaiErrorCodeEnum.CID_NOT_CONFIGURED.getMessage()
-                            + "，请在 didiaiApicodeToCidMap 中补充: "
-                            + effectiveApiCode);
+            return DidiaiResponseUtils.buildCidNotConfiguredResponse(effectiveApiCode);
         }
         String drsSuffix = DidiaiApicodeResolveUtil.cidToDrsTableSuffix(cid);
+        DidiaiEncryptedRequestDTO body = DidiaiResponseUtils.buildEncryptedRequestDTO(rawCipherText);
         return didiaiUploadService.handle(body, appKey, ts, sign, clientIp, effectiveApiCode, drsSuffix);
     }
 
     /**
-     * 根据 apiCode 解析失败原因构造对应的错误响应。
+     * 解析有效的 apiCode。
      *
-     * @param error 解析失败原因枚举
-     * @return 包含对应错误码和错误信息的响应
+     * <p>优先使用 Test-ApiCode 请求头（需在白名单中），否则根据 appKey 从配置映射中查找对应的 apiCode。
+     *
+     * @param testHeader Test-ApiCode 请求头值
+     * @param appKey     应用标识
+     * @return apiCode 解析结果，包含成功时的 apiCode 或失败时的错误原因
      */
-    private static DidiaiResponseDTO buildApiCodeErrorResponse(ResolveError error) {
-        if (error == ResolveError.TEST_APICODE_NOT_IN_WHITELIST) {
-            return DidiaiResponseDTO.fail(
-                    DidiaiErrorCodeEnum.TEST_APICODE_NOT_IN_WHITELIST.getCode(),
-                    DidiaiErrorCodeEnum.TEST_APICODE_NOT_IN_WHITELIST.getMessage());
-        }
-        return DidiaiResponseDTO.fail(
-                DidiaiErrorCodeEnum.APICODE_NOT_FOUND.getCode(),
-                DidiaiErrorCodeEnum.APICODE_NOT_FOUND.getMessage());
+    private ApiCodeResolveResult resolveApiCode(String testHeader, String appKey) {
+        return DidiaiApicodeResolveUtil.resolveEffectiveApiCode(
+                testHeader,
+                appKey,
+                marketingCommonConfig.getDidiaiAppkeyToApicodeMap(),
+                marketingCommonConfig.getTestApicodeList());
     }
 
     /**
-     * 解析当前请求对应的客户端 IP 地址。
+     * 根据 apiCode 解析对应的 cid。
      *
-     * <p>若存在反向代理常见转发头 X-Forwarded-For（大小写不敏感尝试两种常见写法），则取其中第一个
-     * 逗号前的片段作为客户端地址，以适配多级代理场景；否则使用 HttpServletRequest.getRemoteAddr。
+     * <p>从配置的 apiCode 到 cid 映射表中查找对应的 cid 值。
      *
-     * @param request 当前 HTTP 请求，为空时返回 null
-     * @return 推断得到的 IPv4 或 IPv6 字符串；request 为空时返回 null
+     * @param effectiveApiCode 已解析的有效 apiCode
+     * @return cid 值；未配置时返回 null
      */
-    private static String resolveClientIp(HttpServletRequest request) {
-        if (request == null) {
-            return null;
-        }
-        String xff = request.getHeader("X-Forwarded-For");
-        if (StringUtils.isBlank(xff)) {
-            xff = request.getHeader("x-forwarded-for");
-        }
-        if (StringUtils.isNotBlank(xff)) {
-            int comma = xff.indexOf(',');
-            String first = comma > 0 ? xff.substring(0, comma) : xff;
-            return first.trim();
-        }
-        return request.getRemoteAddr();
+    private String resolveCid(String effectiveApiCode) {
+        return DidiaiApicodeResolveUtil.resolveCid(
+                effectiveApiCode, marketingCommonConfig.getDidiaiApicodeToCidMap());
     }
 }
