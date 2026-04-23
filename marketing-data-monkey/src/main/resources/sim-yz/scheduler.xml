@@ -817,7 +817,7 @@
 
     <job:simple id="【monkey】-DidiV5CollidingRobJob"
                 class="com.br.marketing.monkey.job.didi.DidiV5CollidingRobJob"
-                cron="0 0 18 29 9 ? 2099-2099"
+                cron="0 0/1 * * * ? "
                 description="滴滴非周期数据撞库任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -862,7 +862,7 @@
 
     <job:simple id="【monkey】-DidiV5ConstructJob"
                 class="com.br.marketing.monkey.job.didi.DidiV5ConstructJob"
-                cron="0 0/1 * * * ? "
+                cron="0 30 18 * * ? *"
                 description="滴滴数据构造任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
