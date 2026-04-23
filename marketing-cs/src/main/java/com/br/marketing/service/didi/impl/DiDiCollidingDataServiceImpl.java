@@ -229,7 +229,6 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
             DiDiV5CollidingDataLog dataLog = JSONObject.parseObject(dataLogStr, DiDiV5CollidingDataLog.class);
             diDiV5CollidingDataLogMapper.insertSelective(dataLog);
             boolean isRob = "F".equals(dataLog.getSourceType());
-            Date pushTime = retryHttpCode.contains(dataLog.getHttpCode()) ? null : new Date();
 
             if ("false".equalsIgnoreCase(dataLog.getResult()) && "1".equalsIgnoreCase(dataLog.getFailReason())) {
                 JSONObject collidingConfig = marketingCommonConfig.getDiDiV5Config();
@@ -243,13 +242,15 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
                 diDiDataLoopCycle.setPackageId(retrieveFileId.toString());
                 diDiDataLoopCycle.setCollidingTime(new Date(Long.parseLong(dataLog.getNextTime())));
                 diDiV5DataLoopCycleMapper.insertSelective(diDiDataLoopCycle);
-            } else if (diDiV5CollidingResultResponseDTO.getData().getResult() && pushTime != null) {
-                if (isRob) {
-                    diDiV5CollidingDataRobMapper.updatePushTimeByIds(pushTime, Lists.newArrayList(dataLog.getDataId()));
-                } else {
-                    diDiV5DataLoopCycleMapper.updatePushTimeByIds(pushTime, Lists.newArrayList(dataLog.getDataId()));
-                }
+            } else if (diDiV5CollidingResultResponseDTO.getData().getResult()) {
                 cleanAndUpload(diDiV5CollidingResultResponseDTO, dataLog);
+            }
+            if (!retryHttpCode.contains(dataLog.getHttpCode())) {
+                if (isRob) {
+                    diDiV5CollidingDataRobMapper.updatePushTimeByIds(new Date(), Lists.newArrayList(dataLog.getDataId()));
+                } else {
+                    diDiV5DataLoopCycleMapper.updatePushTimeByIds(new Date(), Lists.newArrayList(dataLog.getDataId()));
+                }
             }
         } catch (Exception ex) {
             log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(), "数清据洗/上传失败,bodyString:" + bodyString,
