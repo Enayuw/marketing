@@ -43,7 +43,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/v1/task/dev/zhongyuan-agent")
 @Slf4j
-public class ZhongYuanAgentImportToolController {
+public class ZhongYuanAgentTestController {
 
     private static final String RSA_PADDING = RsaUtil.PK_CS1;
     private static final String AES_PADDING = AesZhongYuan.ECB_ALGORITHM_PADDING;
