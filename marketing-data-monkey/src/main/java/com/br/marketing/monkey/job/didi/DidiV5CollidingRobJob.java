@@ -30,16 +30,14 @@ public class DidiV5CollidingRobJob extends AbstractSimpleElasticJob {
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         long start = System.currentTimeMillis();
-        List<Integer> shardingItems = context.getShardingItems();
-        int shardingTotalCount = context.getShardingTotalCount();
-        log.warn("滴滴短信流量数据撞库任务开始，总分片数：{}，当前分片：{}", shardingTotalCount, shardingItems);
+        log.warn("滴滴非周期数据撞库任务开始");
         try {
             diDiCollidingDataRobService.colliding(context);
         } catch (Exception e) {
-            String title = String.format("滴滴短信流量数据撞库任务，分片%s单次运行异常", shardingItems);
+            String title = String.format("滴滴非周期数据撞库任务开始，单次运行异常");
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(), e.getMessage(), title));
         }
-        log.warn("滴滴短信流量数据撞库任务完成，分片{}运行耗时：{}s", shardingItems, (System.currentTimeMillis() - start) / 1000);
+        log.warn("滴滴非周期数据撞库任务开始，运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);
     }
 }
 
