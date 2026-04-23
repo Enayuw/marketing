@@ -34,6 +34,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Random;
+import java.util.UUID;
 
 
 @Service
@@ -100,7 +101,7 @@ public class ZhongYuanAgentServiceImpl implements ZhongYuanAgentService {
 
             JSONObject inner = parseInner(plainRequestData);
             JSONArray details = inner == null ? new JSONArray() : inner.getJSONArray("details");
-            if (details == null && inner.containsKey("list")) {
+            if (details == null && inner != null && inner.containsKey("list")) {
                 details = inner.getJSONArray("list");
             }
             if (details == null) {
@@ -123,10 +124,12 @@ public class ZhongYuanAgentServiceImpl implements ZhongYuanAgentService {
             String requestId = buildRequestId(apiCode);
             int dataItemCount = emptyDetails ? 1 : details.size();
 
+            String batchNo = UUID.randomUUID().toString();
+            String jsonDataWithBatchNo = mergeBatchNoIntoPlainJson(plainRequestData, batchNo);
             MarketingCustomerOriginalData original = new MarketingCustomerOriginalData();
             original.setApiCode(apiCode);
             original.setRequestId(requestId);
-            original.setJsonData(plainRequestData);
+            original.setJsonData(jsonDataWithBatchNo);
             original.setActualNum(dataItemCount);
             original.setDataType(DataProcessEnum.DataTypeEnum.UPLOAD.getCode());
             original.setAcceptType(DataProcessEnum.AcceptTypeEnum.CUSTOM.getCode());
@@ -138,8 +141,8 @@ public class ZhongYuanAgentServiceImpl implements ZhongYuanAgentService {
             Long originalDataId = zhongYuanAgentImportPersistService.insertAgentAndOriginal(agent, original);
             sendCustomerOriginalDataJsonParseMq(apiCode, originalDataId);
 
-            // 成功时 responseData 明文仅含合作方批次号 batchNo
-            String bizJson = JSON.toJSONString(Collections.singletonMap("batchNo", req.getRequestNo()));
+            // 成功时 responseData 明文仅含合作方批次号 batchNo（与落库 jsonData 中 batchNo 一致）
+            String bizJson = JSON.toJSONString(Collections.singletonMap("batchNo", batchNo));
 
             MtStandardResponse resp = new MtStandardResponse();
             resp.setErrorCode(ZhongYuanAgentMtResponseCode.SUCCESS.getCode());
@@ -182,6 +185,25 @@ public class ZhongYuanAgentServiceImpl implements ZhongYuanAgentService {
             return wrap;
         }
         return JSON.parseObject(plainRequestData);
+    }
+
+    /**
+     * 在原始明文 JSON 根上增加 {@code batchNo}；根为数组时包一层 {@code details} 再写 {@code batchNo}，与 {@link #parseInner} 语义一致。
+     */
+    private static String mergeBatchNoIntoPlainJson(String plainRequestData, String batchNo) {
+        if (!StringUtils.hasText(plainRequestData)) {
+            return JSON.toJSONString(Collections.singletonMap("batchNo", batchNo));
+        }
+        String t = plainRequestData.trim();
+        if (t.startsWith("[")) {
+            JSONObject wrap = new JSONObject();
+            wrap.put("details", JSON.parseArray(t));
+            wrap.put("batchNo", batchNo);
+            return wrap.toJSONString();
+        }
+        JSONObject obj = JSON.parseObject(plainRequestData);
+        obj.put("batchNo", batchNo);
+        return obj.toJSONString();
     }
 
     private String buildRequestId(String apiCode) {
