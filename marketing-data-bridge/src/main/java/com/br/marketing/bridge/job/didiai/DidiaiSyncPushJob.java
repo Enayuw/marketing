@@ -52,7 +52,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class DidiaiSyncPushJob extends AbstractSimpleElasticJob {
 
-    private static final String TITLE = "【滴滴AI-上传清洗推送任务】";
+    private static final String TITLE = "[DiDi-AI] ";
 
     @Resource
     private DrsCustomizeUploadDataMapper drsCustomizeUploadDataMapper;
@@ -77,11 +77,11 @@ public class DidiaiSyncPushJob extends AbstractSimpleElasticJob {
             return;
         }
         try {
-            log.warn(TITLE + "调度开始");
+            log.info(TITLE + "调度开始");
             runBatches();
-            log.warn(TITLE + "调度结束");
+            log.info(TITLE + "调度结束");
         } catch (Exception e) {
-            log.warn(
+            log.error(
                     AlertLog.buildWarnMessage(
                             AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), e.getMessage(), TITLE),
                     e);
@@ -132,6 +132,7 @@ public class DidiaiSyncPushJob extends AbstractSimpleElasticJob {
      * 处理逻辑：
      * - 分页查询 sync_status=0 的记录
      * - 每条记录使用其自身存储的 api_code 字段（而非配置遍历的 apiCode）
+     * - 如果 api_code 为空，打印错误日志并标记为处理异常，跳过该记录
      * - 确保推送到 b_marketing_sync_info 时 apiCode 与同步接入时一致
      *
      * @param tCid     分表后缀，如 "_9356"、"_22106"
@@ -148,6 +149,12 @@ public class DidiaiSyncPushJob extends AbstractSimpleElasticJob {
             }
             for (DrsCustomizeUploadData row : rows) {
                 String apiCode = resolveApiCodeFromRow(row);
+                if (apiCode == null) {
+                    log.error(TITLE + "记录 api_code 为空，无法处理 id={}, tCid={}", row.getId(), tCid);
+                    markFailSafe(tCid, Collections.singletonList(row.getId()), 4,
+                            new IllegalStateException("api_code 为空"));
+                    continue;
+                }
                 processOneRow(tCid, apiCode, row);
             }
             minId = rows.get(rows.size() - 1).getId();
@@ -158,19 +165,18 @@ public class DidiaiSyncPushJob extends AbstractSimpleElasticJob {
      * 从汇总表记录中解析 apiCode。
      *
      * 解析规则：
-     * - 优先使用记录中存储的 api_code 字段
-     * - 如果 api_code 为空，使用 DidiaiFixedConfig.UPLOAD_API_CODE 作为兜底
+     * - 使用记录中存储的 api_code 字段
+     * - 如果 api_code 为空，返回 null 由调用方处理
      *
      * @param row 汇总表当前行
-     * @return 业务接口编号
+     * @return 业务接口编号；api_code 为空时返回 null
      */
     private String resolveApiCodeFromRow(DrsCustomizeUploadData row) {
         String apiCode = row.getApiCode();
         if (StringUtils.isNotBlank(apiCode)) {
             return apiCode;
         }
-        log.warn(TITLE + "记录 api_code 为空，使用默认值 id={}", row.getId());
-        return DidiaiFixedConfig.UPLOAD_API_CODE;
+        return null;
     }
 
     /**
@@ -197,7 +203,7 @@ public class DidiaiSyncPushJob extends AbstractSimpleElasticJob {
                 drsCustomizeUploadDataMapper.updateSyncStatusByIds(tCid, idList, 1);
             } else {
                 drsCustomizeUploadDataMapper.updateSyncStatusByIds(tCid, idList, 3);
-                log.warn(TITLE + "远程入库失败 id={}", row.getId());
+                log.error(TITLE + "远程入库失败 id={}", row.getId());
             }
         } catch (Exception e) {
             markFailSafe(tCid, idList, 4, e);
@@ -228,7 +234,7 @@ public class DidiaiSyncPushJob extends AbstractSimpleElasticJob {
      */
     private boolean callMarketingPreUserSyncWithRetry(String apiCode, String jsonData, int maxRetries) {
         if (StringUtils.isBlank(marketingPreUserUploadUrl)) {
-            log.warn(TITLE + "未配置 api.marketing.uploadUrl，无法远程调用入库");
+            log.error(TITLE + "未配置 api.marketing.uploadUrl，无法远程调用入库");
             return false;
         }
         if (maxRetries <= 0) {
@@ -264,7 +270,7 @@ public class DidiaiSyncPushJob extends AbstractSimpleElasticJob {
             }
         }
         if (lastException != null) {
-            log.warn(TITLE + "远程入库最终失败 apiCode={}, err={}", apiCode, lastException.getMessage());
+            log.error(TITLE + "远程入库最终失败 apiCode={}, err={}", apiCode, lastException.getMessage());
         }
         return false;
     }
@@ -333,8 +339,8 @@ public class DidiaiSyncPushJob extends AbstractSimpleElasticJob {
         try {
             drsCustomizeUploadDataMapper.updateSyncStatusByIds(tCid, idList, status);
         } catch (Exception ex) {
-            log.warn(TITLE + "更新 sync_status 失败: {}", ex.getMessage());
+            log.error(TITLE + "更新 sync_status 失败: {}", ex.getMessage());
         }
-        log.warn(TITLE + "处理异常 idList={}, e={}", idList, e.getMessage(), e);
+        log.error(TITLE + "处理异常 idList={}, e={}", idList, e.getMessage(), e);
     }
 }
