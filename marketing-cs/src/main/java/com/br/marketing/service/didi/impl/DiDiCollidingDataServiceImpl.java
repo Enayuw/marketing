@@ -238,7 +238,7 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
                 DiDiDataLoopCycle diDiDataLoopCycle = new DiDiDataLoopCycle();
                 BeanUtils.copyProperties(dataLog, diDiDataLoopCycle);
                 diDiDataLoopCycle.setPackageId(String.valueOf(dataLog.getLocalId()));
-                diDiDataLoopCycle.setSourceType("F");
+                diDiDataLoopCycle.setSourceType("T");
                 diDiDataLoopCycle.setLockType(2);
                 diDiDataLoopCycle.setPackageId(retrieveFileId.toString());
                 diDiDataLoopCycle.setCollidingTime(new Date(Long.parseLong(dataLog.getNextTime())));
