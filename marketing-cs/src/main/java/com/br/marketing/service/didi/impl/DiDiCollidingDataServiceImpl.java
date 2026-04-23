@@ -241,6 +241,8 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
                 diDiDataLoopCycle.setLockType(2);
                 diDiDataLoopCycle.setPackageId(retrieveFileId.toString());
                 diDiDataLoopCycle.setCollidingTime(new Date(Long.parseLong(dataLog.getNextTime())));
+                diDiDataLoopCycle.setCreateTime(new Date());
+                diDiDataLoopCycle.setUpdateTime(new Date());
                 diDiV5DataLoopCycleMapper.insertSelective(diDiDataLoopCycle);
             } else if (diDiV5CollidingResultResponseDTO.getData().getResult()) {
                 cleanAndUpload(diDiV5CollidingResultResponseDTO, dataLog);

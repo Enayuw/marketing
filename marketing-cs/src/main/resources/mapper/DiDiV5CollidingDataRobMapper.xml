@@ -47,7 +47,7 @@
     </select>
 
     <select id="queryUploadedDataIdx" resultType="com.br.marketing.entity.DiDiCollidingDataRob">
-        SELECT id, package_id, api_code, cell
+        SELECT id, package_id, api_code, cell, source_type
         FROM b_didi_v5_colliding_data_rob
         WHERE push_time is null
           AND is_delete = 0
