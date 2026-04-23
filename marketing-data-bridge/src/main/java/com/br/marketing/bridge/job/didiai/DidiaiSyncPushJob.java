@@ -10,6 +10,7 @@ import com.br.marketing.constant.DidiaiFixedConfig;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.entity.DrsCustomizeUploadData;
 import com.br.marketing.mapper.DrsCustomizeUploadDataMapper;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.didiai.DidiaiPlaintextParser;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -28,14 +29,22 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
  * 滴滴 AI 定制化上传场景的离线补偿任务，由 Elastic-Job 定时触发。
  *
- * <p>从汇总表读取整包明文，拆行后经 {@link DidiaiOfflinePreUserAssembler#buildMarketingPreUserByCleaningMapping}
- * 做清洗映射（不经规则引擎 {@code commonClean}），再 HTTP 调用营销标准上传入口写入前置表并回写 {@code sync_status}。
+ * 功能说明：
+ * - 从 didiaiApicodeToCidMap 配置中读取所有 apiCode 到 cid 的映射
+ * - 遍历所有 cid 对应的分表（按 cid 去重，避免同一张表被多次扫描）
+ * - 从汇总表读取整包明文，拆行后经 DidiaiOfflinePreUserAssembler.buildMarketingPreUserByCleaningMapping
+ *   做清洗映射（不经规则引擎 commonClean）
+ * - HTTP 调用营销标准上传入口写入前置表并回写 sync_status
+ * - 每条记录使用其自身存储的 api_code 字段推送，确保与同步接入时一致
  *
  * @author yueping.bai
  */
@@ -51,9 +60,11 @@ public class DidiaiSyncPushJob extends AbstractSimpleElasticJob {
     @Resource
     private RestTemplate restTemplate;
 
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
     @Value("${api.marketing.uploadUrl:00}")
     private String marketingPreUserUploadUrl;
-//    private String marketingPreUserUploadUrl = "http://localhost:18704/marketingUserPre/receiveMarketingPreUser";
 
     /**
      * 调度框架回调的入口方法，每次触发时执行一轮完整的「分页扫表并逐行处理」。
@@ -78,12 +89,55 @@ public class DidiaiSyncPushJob extends AbstractSimpleElasticJob {
     }
 
     /**
-     * 分页查询待处理汇总记录并逐条处理。
+     * 遍历所有配置的 cid，分页查询各分表中待处理的汇总记录并逐条处理。
+     *
+     * 处理逻辑：
+     * - 从 didiaiApicodeToCidMap 配置中获取所有 cid
+     * - 按 cid 去重，避免同一张表被多次扫描（多个 apiCode 可能映射到同一个 cid）
+     * - 依次处理每张 b_drs_customize_upload_data_{cid} 表中 sync_status=0 的数据
      */
     private void runBatches() {
-        String tCid = DidiaiFixedConfig.UPLOAD_TCID;
-        String apiCode = DidiaiFixedConfig.UPLOAD_API_CODE;
+        Map<String, String> apicodeToCidMap = getApicodeToCidMap();
+        if (apicodeToCidMap == null || apicodeToCidMap.isEmpty()) {
+            log.warn(TITLE + "didiaiApicodeToCidMap 为空，跳过处理");
+            return;
+        }
         int pageSize = DidiaiFixedConfig.OFFLINE_JOB_PAGE_SIZE;
+        Set<String> processedCids = new HashSet<>();
+        for (String cid : apicodeToCidMap.values()) {
+            if (processedCids.contains(cid)) {
+                continue;
+            }
+            processedCids.add(cid);
+            String tCid = "_" + cid;
+            log.info(TITLE + "开始处理 cid={}, tCid={}", cid, tCid);
+            runBatchesForOneCid(tCid, pageSize);
+            log.info(TITLE + "完成处理 cid={}", cid);
+        }
+    }
+
+    /**
+     * 获取 apiCode 到 cid 的映射配置。
+     *
+     * @return apiCode 到 cid 的映射表；配置为空时返回空 Map
+     */
+    private Map<String, String> getApicodeToCidMap() {
+        Map<String, String> map = marketingCommonConfig.getDidiaiApicodeToCidMap();
+        return map != null ? map : Collections.emptyMap();
+    }
+
+    /**
+     * 处理单个 cid 对应分表中的所有待处理数据。
+     *
+     * 处理逻辑：
+     * - 分页查询 sync_status=0 的记录
+     * - 每条记录使用其自身存储的 api_code 字段（而非配置遍历的 apiCode）
+     * - 确保推送到 b_marketing_sync_info 时 apiCode 与同步接入时一致
+     *
+     * @param tCid     分表后缀，如 "_9356"、"_22106"
+     * @param pageSize 分页大小
+     */
+    private void runBatchesForOneCid(String tCid, int pageSize) {
         Long minId = 0L;
         while (true) {
             List<DrsCustomizeUploadData> rows =
@@ -93,10 +147,30 @@ public class DidiaiSyncPushJob extends AbstractSimpleElasticJob {
                 break;
             }
             for (DrsCustomizeUploadData row : rows) {
+                String apiCode = resolveApiCodeFromRow(row);
                 processOneRow(tCid, apiCode, row);
             }
             minId = rows.get(rows.size() - 1).getId();
         }
+    }
+
+    /**
+     * 从汇总表记录中解析 apiCode。
+     *
+     * 解析规则：
+     * - 优先使用记录中存储的 api_code 字段
+     * - 如果 api_code 为空，使用 DidiaiFixedConfig.UPLOAD_API_CODE 作为兜底
+     *
+     * @param row 汇总表当前行
+     * @return 业务接口编号
+     */
+    private String resolveApiCodeFromRow(DrsCustomizeUploadData row) {
+        String apiCode = row.getApiCode();
+        if (StringUtils.isNotBlank(apiCode)) {
+            return apiCode;
+        }
+        log.warn(TITLE + "记录 api_code 为空，使用默认值 id={}", row.getId());
+        return DidiaiFixedConfig.UPLOAD_API_CODE;
     }
 
     /**
@@ -131,7 +205,7 @@ public class DidiaiSyncPushJob extends AbstractSimpleElasticJob {
     }
 
     /**
-     * 将拆行后的明文列表经清洗映射组装为 {@link MarketingPreUserDTO}（不调用 {@code commonClean}）。
+     * 将拆行后的明文列表经清洗映射组装为 MarketingPreUserDTO（不调用 commonClean）。
      *
      * @param apiCode  业务接口编号
      * @param row      汇总表当前行
@@ -213,6 +287,17 @@ public class DidiaiSyncPushJob extends AbstractSimpleElasticJob {
         return restTemplate.postForObject(marketingPreUserUploadUrl, entity, ApiNoDataResult.class);
     }
 
+    /**
+     * 根据重试次数计算退避等待时间。
+     *
+     * 退避策略：
+     * - 第 1 次重试：100ms
+     * - 第 2 次重试：300ms
+     * - 第 3 次及以后：1000ms
+     *
+     * @param attempt 当前重试次数（从 1 开始）
+     * @return 退避等待时间（毫秒）
+     */
     private static long buildBackoffMillis(int attempt) {
         if (attempt <= 1) {
             return 100L;
@@ -223,6 +308,11 @@ public class DidiaiSyncPushJob extends AbstractSimpleElasticJob {
         return 1000L;
     }
 
+    /**
+     * 静默休眠指定时间，捕获中断异常并恢复中断状态。
+     *
+     * @param millis 休眠时间（毫秒）
+     */
     private static void sleepQuietly(long millis) {
         try {
             TimeUnit.MILLISECONDS.sleep(millis);
@@ -236,7 +326,7 @@ public class DidiaiSyncPushJob extends AbstractSimpleElasticJob {
      *
      * @param tCid   分表后缀
      * @param idList 主键列表
-     * @param status 目标 {@code sync_status}
+     * @param status 目标 sync_status 值
      * @param e      原始异常
      */
     private void markFailSafe(String tCid, List<Long> idList, int status, Exception e) {
