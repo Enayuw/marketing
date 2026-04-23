@@ -151,7 +151,8 @@ public class DiDiCollidingDataRobServiceImpl implements DiDiCollidingDataRobServ
             String resData;
             if (mockEnable.equals(1)) {
                 Thread.sleep(100);
-                resData = "{\"httpcode\":200,\"content\":{\"errorCode\":10000,\"errorMessage\":\"成功\",\"data\":{\"couponType\":\"60free\",\"result\":true,\"msgType\":null,\"failReason\":null,\"userGroup\":3,\"nextTime\":1769327333000}}}";
+                resData = "{\"httpcode\":200,\"content\":{\"errorCode\":10000,\"errorMessage\":\"成功\",\"data\":" +
+                        "{\"couponType\":\"60free\",\"result\":true,\"msgType\":null,\"failReason\":null,\"userGroup\":3,\"nextTime\":1769327333000}}}";
             } else if(mockEnable.equals(2)){
                 Result<String> response = diDiV5Client.colliding(mediaName, buildRequest(data.getCell(), token));
                 resData = response.getData();
