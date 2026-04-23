@@ -21,18 +21,40 @@
         WHERE push_time is null
         AND is_delete = 0
         AND colliding_time &lt; #{startTime}
-        ORDER BY colliding_time, id
+        ORDER BY id asc
         LIMIT #{limit}
     </select>
 
     <select id="queryUploadedData" resultType="com.br.marketing.entity.DiDiCollidingDataRob">
-        SELECT id, package_id, api_code, cell
+        SELECT id, package_id, api_code, cell, source_type
         FROM b_didi_v5_colliding_data_rob
         WHERE push_time is null
         AND is_delete = 0
         AND colliding_time BETWEEN #{startTime} AND #{endTime}
-        ORDER BY colliding_time, id
+        ORDER BY id asc
         LIMIT #{limit}
+    </select>
+
+    <select id="queryCollidingDataIdx" resultType="com.br.marketing.entity.DiDiCollidingDataRob">
+        SELECT id, package_id, api_code, cell, source_type
+        FROM b_didi_v5_colliding_data_rob
+        WHERE push_time is null
+          AND is_delete = 0
+          AND colliding_time &lt; #{startTime}
+          AND id > #{maxId}
+        ORDER BY id asc
+            LIMIT #{limit}
+    </select>
+
+    <select id="queryUploadedDataIdx" resultType="com.br.marketing.entity.DiDiCollidingDataRob">
+        SELECT id, package_id, api_code, cell, source_type
+        FROM b_didi_v5_colliding_data_rob
+        WHERE push_time is null
+          AND is_delete = 0
+          AND colliding_time BETWEEN #{startTime} AND #{endTime}
+          AND id > #{maxId}
+        ORDER BY id asc
+            LIMIT #{limit}
     </select>
 
     <update id="updatePushTimeByIds">

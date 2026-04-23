@@ -19,12 +19,10 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
+import com.br.marketing.entity.DiDiDataLoopCycle;
 import com.br.marketing.entity.DiDiV5CollidingData;
 import com.br.marketing.entity.DiDiV5CollidingDataLog;
-import com.br.marketing.mapper.DiDiV5CollidingDataLogMapper;
-import com.br.marketing.mapper.DiDiV5CollidingDataMapper;
-import com.br.marketing.mapper.DidiCallbackDataLogMapper;
-import com.br.marketing.mapper.LocalFileMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.service.clean.common.GeneralDataCleanService;
 import com.br.marketing.service.didi.DiDiCollidingDataService;
@@ -35,13 +33,13 @@ import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Service
@@ -62,7 +60,6 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
     @Resource
     private DidiCallbackDataLogMapper didiCallbackDataLogMapper;
 
-
     @Resource
     private DiDiV5Client diDiV5Client;
 
@@ -71,10 +68,18 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
 
     @Resource
     private GeneralDataCleanService generalDataCleanService;
+
     @Resource
     private PushInfoService pushInfoService;
+
     @Resource
     private LocalFileMapper localFileMapper;
+
+    @Resource
+    private DiDiV5DataLoopCycleMapper diDiV5DataLoopCycleMapper;
+
+    @Resource
+    private DiDiV5CollidingDataRobMapper diDiV5CollidingDataRobMapper;
 
 
     @Override
@@ -213,6 +218,8 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
     public Result<Boolean> saveDiDiCollidingDataLog(String bodyString) {
         log.warn(TITLE + "，开始");
         Result<Boolean> result = new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(false);
+        JSONObject didiConfig = marketingCommonConfig.getDiDiV5Config();
+        List<String> retryHttpCode = didiConfig.getJSONArray("retryHttpCode").toJavaList(String.class);
         try {
             JSONObject dto = JSONObject.parseObject(bodyString);
             String responseStr = dto.getString("diDiV5CollidingResultResponseDTO");
@@ -221,8 +228,31 @@ public class DiDiCollidingDataServiceImpl implements DiDiCollidingDataService {
             String dataLogStr = dto.getString("diDiV5CollidingDataLog");
             DiDiV5CollidingDataLog dataLog = JSONObject.parseObject(dataLogStr, DiDiV5CollidingDataLog.class);
             diDiV5CollidingDataLogMapper.insertSelective(dataLog);
-            if(diDiV5CollidingResultResponseDTO.getData().getResult()) {
+            boolean isRob = "F".equals(dataLog.getSourceType());
+
+            if ("false".equalsIgnoreCase(dataLog.getResult()) && "1".equalsIgnoreCase(dataLog.getFailReason())) {
+                JSONObject collidingConfig = marketingCommonConfig.getDiDiV5Config();
+                Long retrieveFileId = collidingConfig.getLong("retrieveFileId");
+
+                DiDiDataLoopCycle diDiDataLoopCycle = new DiDiDataLoopCycle();
+                BeanUtils.copyProperties(dataLog, diDiDataLoopCycle);
+                diDiDataLoopCycle.setPackageId(String.valueOf(dataLog.getLocalId()));
+                diDiDataLoopCycle.setSourceType("T");
+                diDiDataLoopCycle.setLockType(2);
+                diDiDataLoopCycle.setPackageId(retrieveFileId.toString());
+                diDiDataLoopCycle.setCollidingTime(new Date(Long.parseLong(dataLog.getNextTime())));
+                diDiDataLoopCycle.setCreateTime(new Date());
+                diDiDataLoopCycle.setUpdateTime(new Date());
+                diDiV5DataLoopCycleMapper.insertSelective(diDiDataLoopCycle);
+            } else if (diDiV5CollidingResultResponseDTO.getData().getResult()) {
                 cleanAndUpload(diDiV5CollidingResultResponseDTO, dataLog);
+            }
+            if (!retryHttpCode.contains(dataLog.getHttpCode())) {
+                if (isRob) {
+                    diDiV5CollidingDataRobMapper.updatePushTimeByIds(new Date(), Lists.newArrayList(dataLog.getDataId()));
+                } else {
+                    diDiV5DataLoopCycleMapper.updatePushTimeByIds(new Date(), Lists.newArrayList(dataLog.getDataId()));
+                }
             }
         } catch (Exception ex) {
             log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(), "数清据洗/上传失败,bodyString:" + bodyString,
