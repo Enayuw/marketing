@@ -34,7 +34,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Random;
-import java.util.UUID;
 
 
 @Service
@@ -101,7 +100,7 @@ public class ZhongYuanAgentServiceImpl implements ZhongYuanAgentService {
 
             JSONObject inner = parseInner(plainRequestData);
             JSONArray details = inner == null ? new JSONArray() : inner.getJSONArray("details");
-            if (details == null && inner != null && inner.containsKey("list")) {
+            if (details == null && inner.containsKey("list")) {
                 details = inner.getJSONArray("list");
             }
             if (details == null) {
@@ -140,7 +139,7 @@ public class ZhongYuanAgentServiceImpl implements ZhongYuanAgentService {
             sendCustomerOriginalDataJsonParseMq(apiCode, originalDataId);
 
             // 成功时 responseData 明文仅含合作方批次号 batchNo
-            String bizJson = JSON.toJSONString(Collections.singletonMap("batchNo", UUID.randomUUID().toString()));
+            String bizJson = JSON.toJSONString(Collections.singletonMap("batchNo", req.getRequestNo()));
 
             MtStandardResponse resp = new MtStandardResponse();
             resp.setErrorCode(ZhongYuanAgentMtResponseCode.SUCCESS.getCode());
