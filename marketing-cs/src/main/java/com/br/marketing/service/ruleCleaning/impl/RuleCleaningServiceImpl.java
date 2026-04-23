@@ -2568,48 +2568,79 @@ public class RuleCleaningServiceImpl implements RuleCleaningService {
     public List<List<RuleCleaningResult>> assembleCleanResult(String jsonData, Integer actualNum, List<MarketingDataCleanGeneralRuleConfig> ruleConfigList, MarketingPreUserDTO marketingPreUserDTO){
         List<List<RuleCleaningResult>> cleaningResults = new ArrayList<>();
         List<MarketingPreUserDetailDTO> preUserDetailDTOS = marketingPreUserDTO.getDataItems();
-        //获取字段映射关系
+        //获取字段映射关系（key：关联/标准字段 mappingField，value：原始 JSON 中的清洗字段 cleanFields）
         Map<String, String> cleaningToMappingFieldMap = new HashMap<>();
         for (MarketingDataCleanGeneralRuleConfig ruleConfig : ruleConfigList) {
             cleaningToMappingFieldMap.put(ruleConfig.getMappingField(),ruleConfig.getCleanFields());
         }
         JSONObject jsonObject = JSON.parseObject(jsonData);
-        List<RuleCleaningResult> cleaningResultItems = new ArrayList<>();
         if (cleaningToMappingFieldMap.containsKey("dataItems")){
             JSONArray dataItems = jsonObject.getJSONArray(cleaningToMappingFieldMap.get("dataItems"));
             cleaningToMappingFieldMap.remove("dataItems");
             int size = actualNum > dataItems.size() ? dataItems.size() : actualNum;
             for (int i = 0; i < size; i++) {
+                List<RuleCleaningResult> cleaningResultItems = new ArrayList<>();
                 JSONObject item = dataItems.getJSONObject(i);
+                String rawCustNum = resolveCustNumFromRawJson(item, cleaningToMappingFieldMap);
                 MarketingPreUserDetailDTO result = preUserDetailDTOS.stream()
-                        .filter(detail -> detail.getCustNum().equals(JsonParseUtils.findFirstValueByKey(item, "custNum").toString()))
+                        .filter(detail -> rawCustNum != null && rawCustNum.equals(detail.getCustNum()))
                         .findFirst().orElse(null);
                 for (Map.Entry<String,String> entry : cleaningToMappingFieldMap.entrySet()) {
                     RuleCleaningResult ruleCleaningResult = new RuleCleaningResult();
                     ruleCleaningResult.setCleanFields(entry.getValue());
-                    ruleCleaningResult.setCleanValue(JsonParseUtils.findFirstValueByKey(item, entry.getKey()));
+                    Object cleanVal = JsonParseUtils.findFirstValueByKey(item, entry.getValue());
+                    ruleCleaningResult.setCleanValue(ObjectUtil.isNotEmpty(cleanVal) ? cleanVal : "");
                     ruleCleaningResult.setMappingField(entry.getKey());
-                    ruleCleaningResult.setMappingValue((String)JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getValue()));
+                    Object mapVal = JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getKey());
+                    ruleCleaningResult.setMappingValue(mapVal != null ? mapVal.toString() : "");
                     cleaningResultItems.add(ruleCleaningResult);
                 }
                 cleaningResults.add(cleaningResultItems);
             }
         }else {
+            List<RuleCleaningResult> cleaningResultItems = new ArrayList<>();
+            String rawCustNum = resolveCustNumFromRawJson(jsonObject, cleaningToMappingFieldMap);
             MarketingPreUserDetailDTO result = preUserDetailDTOS.stream()
-                    .filter(detail -> detail.getCustNum().equals(JsonParseUtils.findFirstValueByKey(jsonObject, "custNum")))
+                    .filter(detail -> rawCustNum != null && rawCustNum.equals(detail.getCustNum()))
                     .findFirst().orElse(null);
             for (Map.Entry<String,String> entry : cleaningToMappingFieldMap.entrySet()) {
                 RuleCleaningResult ruleCleaningResult = new RuleCleaningResult();
                 ruleCleaningResult.setCleanFields(entry.getValue());
-                ruleCleaningResult.setCleanValue(JsonParseUtils.findFirstValueByKey(jsonObject, entry.getKey()));
+                Object cleanVal = JsonParseUtils.findFirstValueByKey(jsonObject, entry.getValue());
+                ruleCleaningResult.setCleanValue(ObjectUtil.isNotEmpty(cleanVal) ? cleanVal : "");
                 ruleCleaningResult.setMappingField(entry.getKey());
-                ruleCleaningResult.setMappingValue((String)JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getValue()));
+                Object mapVal = JsonParseUtils.findFirstValueByKey(JSON.toJSON(result), entry.getKey());
+                ruleCleaningResult.setMappingValue(mapVal != null ? mapVal.toString() : "");
                 cleaningResultItems.add(ruleCleaningResult);
             }
             cleaningResults.add(cleaningResultItems);
         }
 
         return cleaningResults;
+    }
+
+    /**
+     * 试跑结果对照：从原始 JSON 节点解析与清洗后 custNum 对应的原始值。
+     * 优先使用规则中 mappingField=custNum 对应的 cleanFields（如 jobId）；若无配置再回退查找字面量 custNum。
+     */
+    private static String resolveCustNumFromRawJson(Object rawNode, Map<String, String> mappingFieldToCleanFields) {
+        if (mappingFieldToCleanFields != null) {
+            String sourceKeys = mappingFieldToCleanFields.get("custNum");
+            if (StringUtils.isNotBlank(sourceKeys)) {
+                for (String key : sourceKeys.split(",")) {
+                    String trimmed = key.trim();
+                    if (StringUtils.isBlank(trimmed)) {
+                        continue;
+                    }
+                    Object v = JsonParseUtils.findFirstValueByKey(rawNode, trimmed);
+                    if (v != null) {
+                        return v.toString();
+                    }
+                }
+            }
+        }
+        Object o = JsonParseUtils.findFirstValueByKey(rawNode, "custNum");
+        return o == null ? null : o.toString();
     }
 
     /**
