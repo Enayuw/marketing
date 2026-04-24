@@ -43,7 +43,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class DiDiCollidingDataRobServiceImpl implements DiDiCollidingDataRobService {
 
-    private final static String REDIS_KEY= "lock:collidingData";
+    private final static String REDIS_KEY= "lock:collidingData:didiV5";
 
     @Resource
     private RedisChgService redisChgService;
@@ -84,19 +84,21 @@ public class DiDiCollidingDataRobServiceImpl implements DiDiCollidingDataRobServ
         pushPool.shutdownAndAwaitTermination();
     }
 
-    private long getLastId() {
-        String id = redisChgService.get(REDIS_KEY);
+    private long getLastId(int priority) {
+        String redisKey = REDIS_KEY + ":" + priority;
+        String id = redisChgService.get(redisKey);
         return id == null ? 0 : Long.parseLong(id);
     }
 
-    private void freshRedisId(long id) {
-        redisChgService.setex(REDIS_KEY, String.valueOf(id), 6 * 3600);
+    private void freshRedisId(long id, int priority) {
+        String redisKey = REDIS_KEY + ":" + priority;
+        redisChgService.setex(redisKey, String.valueOf(id), 6 * 3600);
     }
 
     private void processRobData(String mediaName, String token, RateLimiter rateLimiter,
                                 TpDynamicExecutor pushPool, int priority, Date startTime, Date endTime) {
         // 处理非周期锁定的数据
-        long maxId = getLastId();
+        long maxId = getLastId(priority);
         while (true) {
             JSONObject collidingConfig = marketingCommonConfig.getDiDiV5Config();
             boolean collidingSwitch = collidingConfig.getBoolean("collidingSwitch");
@@ -121,7 +123,7 @@ public class DiDiCollidingDataRobServiceImpl implements DiDiCollidingDataRobServ
                 break;
             }
             maxId = dataList.get(dataList.size() - 1).getId();
-            freshRedisId(maxId);
+            freshRedisId(maxId, priority);
             boolean rateLimitSwitch = collidingConfig.getBoolean("rateLimitSwitch");
             Integer mockEnable = collidingConfig.getInteger("mockEnable");
             dataList.forEach(data -> pushPool.submit(() -> collidingData(data, mediaName, token, rateLimiter, rateLimitSwitch, mockEnable)));
