@@ -2,7 +2,6 @@ package com.br.marketing.monkey.job.didi;
 
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.service.didi.DiDiCollidingDataNewService;
 import com.br.marketing.service.didi.DiDiCollidingDataRobService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -10,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.util.List;
 
 /**
  *
@@ -34,10 +32,10 @@ public class DidiV5CollidingRobJob extends AbstractSimpleElasticJob {
         try {
             diDiCollidingDataRobService.colliding(context);
         } catch (Exception e) {
-            String title = String.format("滴滴非周期数据撞库任务开始，单次运行异常");
+            String title = "滴滴非周期数据撞库任务，单次运行异常";
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(), e.getMessage(), title));
         }
-        log.warn("滴滴非周期数据撞库任务开始，运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);
+        log.warn("滴滴非周期数据撞库任务结束，运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);
     }
 }
 
