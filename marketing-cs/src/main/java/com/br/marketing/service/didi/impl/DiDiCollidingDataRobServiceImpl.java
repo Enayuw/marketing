@@ -6,6 +6,7 @@ import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
+import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.didi.DiDiV5Client;
 import com.br.marketing.client.didi.input.v5.DiDiV5CollidingRequestDTO;
 import com.br.marketing.client.didi.output.v5.DiDiV5CollidingResultResponseDTO;
@@ -42,11 +43,13 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class DiDiCollidingDataRobServiceImpl implements DiDiCollidingDataRobService {
 
-    @Resource
-    private MarketingCommonConfig marketingCommonConfig;
+    private final static String REDIS_KEY= "lock:collidingData:didiV5";
 
     @Resource
-    private DiDiV5DataLoopCycleMapper diDiV5DataLoopCycleMapper;
+    private RedisChgService redisChgService;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     @Resource
     private DiDiV5CollidingDataRobMapper diDiV5CollidingDataRobMapper;
@@ -81,10 +84,21 @@ public class DiDiCollidingDataRobServiceImpl implements DiDiCollidingDataRobServ
         pushPool.shutdownAndAwaitTermination();
     }
 
+    private long getLastId(int priority) {
+        String redisKey = REDIS_KEY + ":" + priority;
+        String id = redisChgService.get(redisKey);
+        return id == null ? 0 : Long.parseLong(id);
+    }
+
+    private void freshRedisId(long id, int priority) {
+        String redisKey = REDIS_KEY + ":" + priority;
+        redisChgService.setex(redisKey, String.valueOf(id), 6 * 3600);
+    }
+
     private void processRobData(String mediaName, String token, RateLimiter rateLimiter,
                                 TpDynamicExecutor pushPool, int priority, Date startTime, Date endTime) {
         // 处理非周期锁定的数据
-        long maxId = 0;
+        long maxId = getLastId(priority);
         while (true) {
             JSONObject collidingConfig = marketingCommonConfig.getDiDiV5Config();
             boolean collidingSwitch = collidingConfig.getBoolean("collidingSwitch");
@@ -109,6 +123,7 @@ public class DiDiCollidingDataRobServiceImpl implements DiDiCollidingDataRobServ
                 break;
             }
             maxId = dataList.get(dataList.size() - 1).getId();
+            freshRedisId(maxId, priority);
             boolean rateLimitSwitch = collidingConfig.getBoolean("rateLimitSwitch");
             Integer mockEnable = collidingConfig.getInteger("mockEnable");
             dataList.forEach(data -> pushPool.submit(() -> collidingData(data, mediaName, token, rateLimiter, rateLimitSwitch, mockEnable)));
