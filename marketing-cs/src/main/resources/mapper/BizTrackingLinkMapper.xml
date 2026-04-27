@@ -28,6 +28,8 @@
         l.biz_scene AS bizScene,
         l.description,
         l.status,
+        l.source_type AS sourceType,
+        l.template_id AS templateId,
         COUNT(ln.id) AS nodeCount,
         l.created_time AS createdTime,
         l.updated_time AS updatedTime
@@ -45,6 +47,9 @@
             </if>
             <if test="query.status != null">
                 AND l.status = #{query.status}
+            </if>
+            <if test="query.sourceType != null and query.sourceType != ''">
+                AND l.source_type = #{query.sourceType}
             </if>
         </where>
         GROUP BY l.id

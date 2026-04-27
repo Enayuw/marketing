@@ -24,15 +24,11 @@ import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  *
@@ -60,6 +56,7 @@ public class DidiV5CallRecordInsertDbImpl implements AssembleData<DidiCallBackDa
         callBackData.setPushStatus(0);
         callBackData.setCallbackType(1);
         callBackData.setIsConnect(cbo.getDetail().getIsConnect());
+        callBackData.setPushType(Objects.equals(1, callBackData.getIsConnect()) ? 1 : 0);
         callBackData.setCreateTime(new Date());
         callBackData.setUpdateTime(callBackData.getCreateTime());
         List<CallRecord> callRecordList = callRecordMapper.getLastCallRecordByCustNum(

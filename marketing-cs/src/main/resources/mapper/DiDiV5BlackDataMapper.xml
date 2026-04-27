@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.DiDiV5BlackDataMapper">
+  <update id="updatePushingByIds">
+    update b_didi_v5_black_data set push_status = 1
+    where id in
+    <foreach collection="ids" item="id" open="(" separator="," close=")">
+      #{id}
+    </foreach>
+  </update>
+
+
+  <select id="queryData" resultType="com.br.marketing.entity.DidiV5BlackData">
+    select * from b_didi_v5_black_data where push_status = 0 and status = 1 limit #{limit}
+  </select>
+
+  <select id="getPushStatusCountByLocalId" resultType="int">
+    SELECT count(*)
+    FROM b_didi_v5_black_data
+    WHERE push_status = #{pushStatus,jdbcType=INTEGER}
+      AND status = 1
+      AND local_id = #{fileId,jdbcType=BIGINT}
+  </select>
+
+  <select id="queryCollidingFileIds" resultType="java.lang.Long">
+    SELECT local_id
+    FROM b_didi_v5_black_data
+    WHERE status = 1
+    group by local_id
+  </select>
+
+</mapper>

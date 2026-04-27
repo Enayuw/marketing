@@ -53,8 +53,8 @@ springdoc:
     enabled: true
     path: /v3/api-docs
   swagger-ui:
-    config-url: /api/marketing-inner-api/v3/api-docs/swagger-config
-    url: /api/marketing-inner-api/v3/api-docs
+    config-url: /compass-api/api/marketing-inner-api/v3/api-docs/swagger-config
+    url: /compass-api/api/marketing-inner-api/v3/api-docs
     path: /swagger-ui.html
     disable-swagger-default-url: true
 
@@ -84,3 +84,10 @@ fdfs:
     max-total: 500
     max-wait-millis: 150000
     max-total-per-key: 100
+management:
+  endpoints:
+    web:
+      exposure:
+        include: []  # 空数组，不暴露任何 Actuator 端点
+      discovery:
+        enabled: false  # 可选：禁用端点发现，/actuator 根地址不会返回任何端点信息

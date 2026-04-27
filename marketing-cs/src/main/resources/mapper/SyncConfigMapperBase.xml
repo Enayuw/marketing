@@ -29,6 +29,9 @@
     <result column="type" property="type" jdbcType="INTEGER" />
     <result column="customized_type" property="customizedType" jdbcType="INTEGER" />
     <result column="execute_time" property="executeTime" jdbcType="VARCHAR" />
+    <result column="sync_start_time" property="syncStartTime" jdbcType="VARCHAR" />
+    <result column="is_pers" property="isPers" jdbcType="INTEGER" />
+    <result column="path_template_id" property="pathTemplateId" jdbcType="BIGINT" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -89,10 +92,11 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, data_type, src_path, target_path, callback_path, suffix, check_finish, 
-    check_success, `status`, remark, src_sftp_host, src_sftp_port, src_sftp_user, src_sftp_pwd, 
-    target_sftp_host, target_sftp_port, target_sftp_user, target_sftp_pwd, create_time, 
-    update_time, src_type, target_type, exclusion_time, `type`, customized_type, execute_time
+    id, api_code, data_type, src_path, target_path, callback_path, suffix, check_finish,
+    check_success, `status`, remark, src_sftp_host, src_sftp_port, src_sftp_user, src_sftp_pwd,
+    target_sftp_host, target_sftp_port, target_sftp_user, target_sftp_pwd, create_time,
+    update_time, src_type, target_type, exclusion_time, `type`, customized_type, execute_time,
+    sync_start_time, is_pers, path_template_id
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.SyncConfigExample" >
     select
@@ -109,7 +113,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     from b_sync_config
     where id = #{id,jdbcType=BIGINT}
@@ -128,24 +132,26 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_sync_config (api_code, data_type, src_path, 
-      target_path, callback_path, suffix, 
-      check_finish, check_success, `status`, 
-      remark, src_sftp_host, src_sftp_port, 
-      src_sftp_user, src_sftp_pwd, target_sftp_host, 
-      target_sftp_port, target_sftp_user, target_sftp_pwd, 
-      create_time, update_time, src_type, 
-      target_type, exclusion_time, `type`, 
-      customized_type, execute_time)
-    values (#{apiCode,jdbcType=VARCHAR}, #{dataType,jdbcType=INTEGER}, #{srcPath,jdbcType=VARCHAR}, 
-      #{targetPath,jdbcType=VARCHAR}, #{callbackPath,jdbcType=VARCHAR}, #{suffix,jdbcType=VARCHAR}, 
-      #{checkFinish,jdbcType=INTEGER}, #{checkSuccess,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, 
-      #{remark,jdbcType=VARCHAR}, #{srcSftpHost,jdbcType=VARCHAR}, #{srcSftpPort,jdbcType=INTEGER}, 
-      #{srcSftpUser,jdbcType=VARCHAR}, #{srcSftpPwd,jdbcType=VARCHAR}, #{targetSftpHost,jdbcType=VARCHAR}, 
-      #{targetSftpPort,jdbcType=INTEGER}, #{targetSftpUser,jdbcType=VARCHAR}, #{targetSftpPwd,jdbcType=VARCHAR}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{srcType,jdbcType=VARCHAR}, 
-      #{targetType,jdbcType=VARCHAR}, #{exclusionTime,jdbcType=VARCHAR}, #{type,jdbcType=INTEGER}, 
-      #{customizedType,jdbcType=INTEGER}, #{executeTime,jdbcType=VARCHAR})
+    insert into b_sync_config (api_code, data_type, src_path,
+    target_path, callback_path, suffix,
+    check_finish, check_success, `status`,
+    remark, src_sftp_host, src_sftp_port,
+    src_sftp_user, src_sftp_pwd, target_sftp_host,
+    target_sftp_port, target_sftp_user, target_sftp_pwd,
+    create_time, update_time, src_type,
+    target_type, exclusion_time, `type`,
+    customized_type, execute_time, sync_start_time,
+    is_pers, path_template_id)
+    values (#{apiCode,jdbcType=VARCHAR}, #{dataType,jdbcType=INTEGER}, #{srcPath,jdbcType=VARCHAR},
+    #{targetPath,jdbcType=VARCHAR}, #{callbackPath,jdbcType=VARCHAR}, #{suffix,jdbcType=VARCHAR},
+    #{checkFinish,jdbcType=INTEGER}, #{checkSuccess,jdbcType=INTEGER}, #{status,jdbcType=INTEGER},
+    #{remark,jdbcType=VARCHAR}, #{srcSftpHost,jdbcType=VARCHAR}, #{srcSftpPort,jdbcType=INTEGER},
+    #{srcSftpUser,jdbcType=VARCHAR}, #{srcSftpPwd,jdbcType=VARCHAR}, #{targetSftpHost,jdbcType=VARCHAR},
+    #{targetSftpPort,jdbcType=INTEGER}, #{targetSftpUser,jdbcType=VARCHAR}, #{targetSftpPwd,jdbcType=VARCHAR},
+    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{srcType,jdbcType=VARCHAR},
+    #{targetType,jdbcType=VARCHAR}, #{exclusionTime,jdbcType=VARCHAR}, #{type,jdbcType=INTEGER},
+    #{customizedType,jdbcType=INTEGER}, #{executeTime,jdbcType=VARCHAR}, #{syncStartTime,jdbcType=VARCHAR},
+    #{isPers,jdbcType=INTEGER}, #{pathTemplateId,jdbcType=BIGINT})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.SyncConfig" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -231,6 +237,15 @@
       <if test="executeTime != null" >
         execute_time,
       </if>
+      <if test="syncStartTime != null" >
+        sync_start_time,
+      </if>
+      <if test="isPers != null" >
+        is_pers,
+      </if>
+      <if test="pathTemplateId != null" >
+        path_template_id,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
@@ -310,6 +325,15 @@
       </if>
       <if test="executeTime != null" >
         #{executeTime,jdbcType=VARCHAR},
+      </if>
+      <if test="syncStartTime != null" >
+        #{syncStartTime,jdbcType=VARCHAR},
+      </if>
+      <if test="isPers != null" >
+        #{isPers,jdbcType=INTEGER},
+      </if>
+      <if test="pathTemplateId != null" >
+        #{pathTemplateId,jdbcType=BIGINT},
       </if>
     </trim>
   </insert>
@@ -403,6 +427,15 @@
       <if test="record.executeTime != null" >
         execute_time = #{record.executeTime,jdbcType=VARCHAR},
       </if>
+      <if test="record.syncStartTime != null" >
+        sync_start_time = #{record.syncStartTime,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isPers != null" >
+        is_pers = #{record.isPers,jdbcType=INTEGER},
+      </if>
+      <if test="record.pathTemplateId != null" >
+        path_template_id = #{record.pathTemplateId,jdbcType=BIGINT},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -411,32 +444,35 @@
   <update id="updateByExample" parameterType="map" >
     update b_sync_config
     set id = #{record.id,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      data_type = #{record.dataType,jdbcType=INTEGER},
-      src_path = #{record.srcPath,jdbcType=VARCHAR},
-      target_path = #{record.targetPath,jdbcType=VARCHAR},
-      callback_path = #{record.callbackPath,jdbcType=VARCHAR},
-      suffix = #{record.suffix,jdbcType=VARCHAR},
-      check_finish = #{record.checkFinish,jdbcType=INTEGER},
-      check_success = #{record.checkSuccess,jdbcType=INTEGER},
-      `status` = #{record.status,jdbcType=INTEGER},
-      remark = #{record.remark,jdbcType=VARCHAR},
-      src_sftp_host = #{record.srcSftpHost,jdbcType=VARCHAR},
-      src_sftp_port = #{record.srcSftpPort,jdbcType=INTEGER},
-      src_sftp_user = #{record.srcSftpUser,jdbcType=VARCHAR},
-      src_sftp_pwd = #{record.srcSftpPwd,jdbcType=VARCHAR},
-      target_sftp_host = #{record.targetSftpHost,jdbcType=VARCHAR},
-      target_sftp_port = #{record.targetSftpPort,jdbcType=INTEGER},
-      target_sftp_user = #{record.targetSftpUser,jdbcType=VARCHAR},
-      target_sftp_pwd = #{record.targetSftpPwd,jdbcType=VARCHAR},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      src_type = #{record.srcType,jdbcType=VARCHAR},
-      target_type = #{record.targetType,jdbcType=VARCHAR},
-      exclusion_time = #{record.exclusionTime,jdbcType=VARCHAR},
-      `type` = #{record.type,jdbcType=INTEGER},
-      customized_type = #{record.customizedType,jdbcType=INTEGER},
-      execute_time = #{record.executeTime,jdbcType=VARCHAR}
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    data_type = #{record.dataType,jdbcType=INTEGER},
+    src_path = #{record.srcPath,jdbcType=VARCHAR},
+    target_path = #{record.targetPath,jdbcType=VARCHAR},
+    callback_path = #{record.callbackPath,jdbcType=VARCHAR},
+    suffix = #{record.suffix,jdbcType=VARCHAR},
+    check_finish = #{record.checkFinish,jdbcType=INTEGER},
+    check_success = #{record.checkSuccess,jdbcType=INTEGER},
+    `status` = #{record.status,jdbcType=INTEGER},
+    remark = #{record.remark,jdbcType=VARCHAR},
+    src_sftp_host = #{record.srcSftpHost,jdbcType=VARCHAR},
+    src_sftp_port = #{record.srcSftpPort,jdbcType=INTEGER},
+    src_sftp_user = #{record.srcSftpUser,jdbcType=VARCHAR},
+    src_sftp_pwd = #{record.srcSftpPwd,jdbcType=VARCHAR},
+    target_sftp_host = #{record.targetSftpHost,jdbcType=VARCHAR},
+    target_sftp_port = #{record.targetSftpPort,jdbcType=INTEGER},
+    target_sftp_user = #{record.targetSftpUser,jdbcType=VARCHAR},
+    target_sftp_pwd = #{record.targetSftpPwd,jdbcType=VARCHAR},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    src_type = #{record.srcType,jdbcType=VARCHAR},
+    target_type = #{record.targetType,jdbcType=VARCHAR},
+    exclusion_time = #{record.exclusionTime,jdbcType=VARCHAR},
+    `type` = #{record.type,jdbcType=INTEGER},
+    customized_type = #{record.customizedType,jdbcType=INTEGER},
+    execute_time = #{record.executeTime,jdbcType=VARCHAR},
+    sync_start_time = #{record.syncStartTime,jdbcType=VARCHAR},
+    is_pers = #{record.isPers,jdbcType=INTEGER},
+    path_template_id = #{record.pathTemplateId,jdbcType=BIGINT}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -522,37 +558,49 @@
       <if test="executeTime != null" >
         execute_time = #{executeTime,jdbcType=VARCHAR},
       </if>
+      <if test="syncStartTime != null" >
+        sync_start_time = #{syncStartTime,jdbcType=VARCHAR},
+      </if>
+      <if test="isPers != null" >
+        is_pers = #{isPers,jdbcType=INTEGER},
+      </if>
+      <if test="pathTemplateId != null" >
+        path_template_id = #{pathTemplateId,jdbcType=BIGINT},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.SyncConfig" >
     update b_sync_config
     set api_code = #{apiCode,jdbcType=VARCHAR},
-      data_type = #{dataType,jdbcType=INTEGER},
-      src_path = #{srcPath,jdbcType=VARCHAR},
-      target_path = #{targetPath,jdbcType=VARCHAR},
-      callback_path = #{callbackPath,jdbcType=VARCHAR},
-      suffix = #{suffix,jdbcType=VARCHAR},
-      check_finish = #{checkFinish,jdbcType=INTEGER},
-      check_success = #{checkSuccess,jdbcType=INTEGER},
-      `status` = #{status,jdbcType=INTEGER},
-      remark = #{remark,jdbcType=VARCHAR},
-      src_sftp_host = #{srcSftpHost,jdbcType=VARCHAR},
-      src_sftp_port = #{srcSftpPort,jdbcType=INTEGER},
-      src_sftp_user = #{srcSftpUser,jdbcType=VARCHAR},
-      src_sftp_pwd = #{srcSftpPwd,jdbcType=VARCHAR},
-      target_sftp_host = #{targetSftpHost,jdbcType=VARCHAR},
-      target_sftp_port = #{targetSftpPort,jdbcType=INTEGER},
-      target_sftp_user = #{targetSftpUser,jdbcType=VARCHAR},
-      target_sftp_pwd = #{targetSftpPwd,jdbcType=VARCHAR},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP},
-      src_type = #{srcType,jdbcType=VARCHAR},
-      target_type = #{targetType,jdbcType=VARCHAR},
-      exclusion_time = #{exclusionTime,jdbcType=VARCHAR},
-      `type` = #{type,jdbcType=INTEGER},
-      customized_type = #{customizedType,jdbcType=INTEGER},
-      execute_time = #{executeTime,jdbcType=VARCHAR}
+        data_type = #{dataType,jdbcType=INTEGER},
+        src_path = #{srcPath,jdbcType=VARCHAR},
+        target_path = #{targetPath,jdbcType=VARCHAR},
+        callback_path = #{callbackPath,jdbcType=VARCHAR},
+        suffix = #{suffix,jdbcType=VARCHAR},
+        check_finish = #{checkFinish,jdbcType=INTEGER},
+        check_success = #{checkSuccess,jdbcType=INTEGER},
+        `status` = #{status,jdbcType=INTEGER},
+        remark = #{remark,jdbcType=VARCHAR},
+        src_sftp_host = #{srcSftpHost,jdbcType=VARCHAR},
+        src_sftp_port = #{srcSftpPort,jdbcType=INTEGER},
+        src_sftp_user = #{srcSftpUser,jdbcType=VARCHAR},
+        src_sftp_pwd = #{srcSftpPwd,jdbcType=VARCHAR},
+        target_sftp_host = #{targetSftpHost,jdbcType=VARCHAR},
+        target_sftp_port = #{targetSftpPort,jdbcType=INTEGER},
+        target_sftp_user = #{targetSftpUser,jdbcType=VARCHAR},
+        target_sftp_pwd = #{targetSftpPwd,jdbcType=VARCHAR},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        src_type = #{srcType,jdbcType=VARCHAR},
+        target_type = #{targetType,jdbcType=VARCHAR},
+        exclusion_time = #{exclusionTime,jdbcType=VARCHAR},
+        `type` = #{type,jdbcType=INTEGER},
+        customized_type = #{customizedType,jdbcType=INTEGER},
+        execute_time = #{executeTime,jdbcType=VARCHAR},
+        sync_start_time = #{syncStartTime,jdbcType=VARCHAR},
+        is_pers = #{isPers,jdbcType=INTEGER},
+        path_template_id = #{pathTemplateId,jdbcType=BIGINT}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

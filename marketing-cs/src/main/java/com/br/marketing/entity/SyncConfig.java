@@ -138,6 +138,22 @@ public class SyncConfig {
      */
     private String executeTime;
 
+    /**
+     * 同步开始时间，只同步该时间之后的文件
+     */
+    private String syncStartTime;
+
+    /**
+     * 是否持久化到业务表：0-否 1-是
+     * @see com.br.marketing.enums.clean.IsPersEnum
+     */
+    private Integer isPers;
+
+    /**
+     * 文件路径模板id
+     */
+    private Long pathTemplateId;
+
     public Long getId() {
         return id;
     }
@@ -352,5 +368,29 @@ public class SyncConfig {
 
     public void setExecuteTime(String executeTime) {
         this.executeTime = executeTime == null ? null : executeTime.trim();
+    }
+
+    public String getSyncStartTime() {
+        return syncStartTime;
+    }
+
+    public void setSyncStartTime(String syncStartTime) {
+        this.syncStartTime = syncStartTime == null ? null : syncStartTime.trim();
+    }
+
+    public Integer getIsPers() {
+        return isPers;
+    }
+
+    public void setIsPers(Integer isPers) {
+        this.isPers = isPers;
+    }
+
+    public Long getPathTemplateId() {
+        return pathTemplateId;
+    }
+
+    public void setPathTemplateId(Long pathTemplateId) {
+        this.pathTemplateId = pathTemplateId;
     }
 }

@@ -1,6 +1,5 @@
 package com.br.marketing.sync.aspect;
 
-import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -25,8 +24,7 @@ public class JobSwitchAspect {
     @Around("execution(* com.br.marketing.sync.job..*.process(..))")
     public void handleJobSwitch(ProceedingJoinPoint jp) throws Throwable {
         //开关默认关闭
-        boolean JobOnlineSwitch = StringUtils.isNotEmpty(marketingCommonConfig.getSyncJobOnlineSwitch()) ?
-                marketingCommonConfig.getSyncJobOnlineSwitch() : false;
+        boolean JobOnlineSwitch = Boolean.TRUE.equals(marketingCommonConfig.getSyncJobOnlineSwitch());
         //未开启开关，正常执行
         if (!JobOnlineSwitch) {
             jp.proceed();

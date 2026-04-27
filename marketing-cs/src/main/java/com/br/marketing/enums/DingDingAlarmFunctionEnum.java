@@ -25,5 +25,6 @@ public enum DingDingAlarmFunctionEnum {
     CARCLUES_ERROR_MESSAGE,
     P_OF_VIP_GROUP,
     XIECHENG_PPD_NOTICE,
+    TOCHENG_CPA_NOTICE
     ;
 }

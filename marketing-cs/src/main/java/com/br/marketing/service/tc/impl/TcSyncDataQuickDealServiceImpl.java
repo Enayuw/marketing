@@ -1,7 +1,6 @@
 package com.br.marketing.service.tc.impl;
 
 import cn.hutool.core.util.ObjectUtil;
-import com.alibaba.excel.util.CollectionUtils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
@@ -18,13 +17,13 @@ import com.br.marketing.entity.MarketingTcyrErrorInterfaceLog;
 import com.br.marketing.entity.MarketingTcyrSync;
 import com.br.marketing.entity.MarketingTcyrSyncFile;
 import com.br.marketing.entity.MarketingTcyrSyncRecord;
-import com.br.marketing.mapper.MarketingTcyrCustCellMappingMapper;
 import com.br.marketing.mapper.MarketingTcyrErrorInterfaceLogMapper;
 import com.br.marketing.mapper.MarketingTcyrSyncFileMapper;
 import com.br.marketing.mapper.MarketingTcyrSyncRecordMapper;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.service.clean.common.GeneralDataCleanService;
 import com.br.marketing.service.tc.TcSyncDataQuickDealService;
+import com.br.marketing.service.tccpa.TcCpaCustCellMappingService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
@@ -75,10 +74,10 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
     private MarketingTcyrSyncRecordMapper tcyrSyncRecordMapper;
 
     @Resource
-    private MarketingTcyrCustCellMappingMapper tcyrCustCellMappingMapper;
+    private MarketingTcyrErrorInterfaceLogMapper errorInterfaceLogMapper;
 
     @Resource
-    private MarketingTcyrErrorInterfaceLogMapper errorInterfaceLogMapper;
+    private TcCpaCustCellMappingService tcCpaCustCellMappingService;
 
 
     @Override
@@ -136,11 +135,21 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
             return;
         }
         MarketingTcyrSyncRecord syncRecord = tcyrSyncRecordMapper.selectByPrimaryKey(tcyrSyncFile.getSyncRecordId());
+        if (syncRecord == null) {
+            tcyrSyncFileMapper.updateQuickDealStatus(tcyrSyncFile.getId(), 3);
+            return;
+        }
+        String scene = StringUtils.isNotBlank(syncRecord.getScene())
+                ? syncRecord.getScene()
+                : resolveScene(syncRecord.getBatchNo());
+        if ("NEW".equals(scene)) {
+            tcyrSyncFileMapper.updateQuickDealAndSuccesCount(tcyrSyncFile.getId(), 2, 0L);
+            return;
+        }
         //2.csvFileQuickDeal流程
         AtomicLong successCount = new AtomicLong(0L);
         List<CompletableFuture<Void>> futures = new ArrayList<>();
 
-        //TODO 某一行异常 不影响其它
         try (BufferedReader reader = new BufferedReader(new FileReader(txtFile))) {
             String line;
             List<String> batchData = new ArrayList<>();
@@ -155,7 +164,7 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
                     List<String> batchDealData = new ArrayList<>(batchData);
                     futures.add(CompletableFuture.runAsync(() ->
                                     quickDealBatchLine(tcyrSyncFile.getApiCode(), syncRecord.getBatchNo(),
-                                            syncRecord.getData(), tcyrSyncFile.getId(),batchDealData, successCount,randomNumber
+                                            syncRecord.getData(), scene, tcyrSyncFile.getId(),batchDealData, successCount,randomNumber
                                     ),actionPool));
                     batchData.clear();
                 }
@@ -165,7 +174,7 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
                 List<String> batchDealData = new ArrayList<>(batchData);
                 futures.add(CompletableFuture.runAsync(() ->
                                 quickDealBatchLine(tcyrSyncFile.getApiCode(), syncRecord.getBatchNo(),
-                                        syncRecord.getData(), tcyrSyncFile.getId(),batchDealData, successCount,randomNumber
+                                        syncRecord.getData(), scene, tcyrSyncFile.getId(),batchDealData, successCount,randomNumber
                                 ),actionPool));
                 batchData.clear();
             }
@@ -184,7 +193,7 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
     /**
      * 批次数据处理，匹配封装->上传清洗->上传调用
      */
-    private void quickDealBatchLine(String apiCode, String batchNo, String customerData,
+    private void quickDealBatchLine(String apiCode, String batchNo, String customerData, String scene,
                                     Long syncFileId, List<String> batchData,
                                     AtomicLong successCount,Integer randomNumber) {
         long startTime = System.currentTimeMillis();
@@ -196,7 +205,9 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
             }
             // 2.上传清洗
             List<JSONObject> jsonObjectList = JSON.parseArray(JSON.toJSONString(tcyrSyncList), JSONObject.class);
-            Result callResult = generalDataCleanService.uploadClean(jsonObjectList, apiCode);
+            Result callResult = StringUtils.isNotBlank(scene)
+                    ? generalDataCleanService.uploadClean(jsonObjectList, apiCode, scene)
+                    : generalDataCleanService.uploadClean(jsonObjectList, apiCode);
             if (callResult!=null && callResult.isSuccess()) {
                 String requestId = apiCode+"_"+batchNo+"_"+System.currentTimeMillis()+"_"+randomNumber;
                 //3.调用定制化上传接口
@@ -247,10 +258,7 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
                     if (StringUtils.isEmpty(userKey)) {
                         return;
                     }
-                    String cell = tcyrCustCellMappingMapper.selectNumUserKeyCellBytikv_(userKey);
-                    if (StringUtils.isBlank(cell)) {
-                        cell = tcyrCustCellMappingMapper.selectStrUserKeyCellBytikv_(userKey);
-                    }
+                    String cell = tcCpaCustCellMappingService.selectCell(userKey);
                     if (StringUtils.isNotBlank(cell)) {
                         String terminal = lineData[1].trim();
                         MarketingTcyrSync syncItem = new MarketingTcyrSync();
@@ -277,31 +285,19 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
                 }
             });
         } else {
-            //List<String> userKeyList 1.id维度查 2、过滤出id查不到的元素 custNum维度查 3、封装数据
+            //1.id维度查  2、封装数据
             Map<String, String> userKeyToCellMap = new HashMap<>();
             List<String> userKeyList = batchData.stream()
                     .map(line -> line.split(","))
                     .filter(lineData -> lineData.length >= 2 && StringUtils.isNotBlank(lineData[0].trim()))
                     .map(lineData -> lineData[0].trim())
                     .collect(Collectors.toList());
-            // id维度批量查库处理
-            List<Map<String, Object>> cellList = tcyrCustCellMappingMapper.selectCellInfotikv_(userKeyList);
-            List<String> existUserKeyList = new ArrayList<>();
+            // 1.id维度批量查库处理
+            List<Map<String, Object>> cellList  = tcCpaCustCellMappingService.selectCellInfo(userKeyList);
             for (Map<String, Object> map : cellList) {
                 userKeyToCellMap.put(map.get("custNum").toString(), map.get("cell").toString());
-                existUserKeyList.add(map.get("custNum").toString());
             }
-            // custNum维度批量查看处理
-            Set<String> existSet = new HashSet<>(existUserKeyList);
-            List<String> notExistUserKeyList = userKeyList.stream().filter(userKey -> !existSet.contains(userKey))
-                    .collect(Collectors.toList());
-            if(!CollectionUtils.isEmpty(notExistUserKeyList)) {
-                List<Map<String,String>> cellList2 = tcyrCustCellMappingMapper.selectCellByStrCustNumtikv_(notExistUserKeyList);
-                for (Map<String, String> map : cellList2) {
-                    userKeyToCellMap.put(map.get("custNum"), map.get("cell"));
-                }
-            }
-            // 3遍历 batchData，命中才封装
+            // 2.遍历 batchData，命中才封装
             for (String line : batchData) {
                 String[] lineData = line.split(",");
                 if (lineData.length >= 2) {
@@ -344,9 +340,6 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
      */
     private UploadDataDTO initUploadData(String apiCode,String batchNo, List<MarketingPreUserDetailDTO> syncUsers,String requestId) {
         String taskId = batchNo;
-//        Random random = new Random();
-//        int randomNumber = 10000 + random.nextInt(90000);
-//        String requestId = apiCode+"_"+taskId+"_"+System.currentTimeMillis()+"_"+randomNumber;
         MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
         marketingPreUserDTO.setTaskId(taskId);
         marketingPreUserDTO.setRequestId(requestId);
@@ -410,5 +403,22 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
             }
         }
         return false;
+    }
+
+    private String resolveScene(String batchNo) {
+        Map<String, String> sceneMap = marketingCommonConfig.getTcBatchNoSuffixToSceneConfig();
+        if (StringUtils.isBlank(batchNo) || sceneMap == null || sceneMap.isEmpty()) {
+            return null;
+        }
+        for (Map.Entry<String, String> entry : sceneMap.entrySet()) {
+            String prefix = entry.getKey();
+            if (StringUtils.isBlank(prefix)) {
+                continue;
+            }
+            if (batchNo.startsWith(prefix)) {
+                return entry.getValue();
+            }
+        }
+        return null;
     }
 }

@@ -87,6 +87,13 @@ public class CustomerPushStatusQueryJob extends AbstractSimpleElasticJob {
                         log.warn(TITLE + "processToBeConfirmedList获取锁失败, {}", mainId);
                         continue;
                     }
+                    // 加锁后二次校验：其它 pod 可能已处理完并更新了状态，避免同一条数据重复执行 getCustomerStatus
+                    CustomerInfoPushMain current = customerInfoPushMainMapper.selectByPrimaryKey(mainId);
+                    if (current != null && isAlreadyConfirmed(current.getmStatus())) {
+                        redisChgService.unlock(key, lockValue);
+                        log.warn(TITLE + "mainId={} 已被其它实例确认，跳过", mainId);
+                        continue;
+                    }
                     log.warn(TITLE + "processToBeConfirmedList获取锁成功, {}", mainId);
                     pushRuleService.getCustomerStatus(customerInfoPushMain);
                     redisChgService.unlock(key, lockValue);
@@ -96,5 +103,13 @@ public class CustomerPushStatusQueryJob extends AbstractSimpleElasticJob {
                 }
             }
         }
+    }
+
+    /**
+     * 是否已处于终态（确认成功/确认失败），无需再查状态
+     */
+    private boolean isAlreadyConfirmed(Integer mStatus) {
+        return (PushRuleStatusEnum.CONFIRMED_SUCCESS.getValue().equals(mStatus)
+                || PushRuleStatusEnum.CONFIRMED_FAIL.getValue().equals(mStatus));
     }
 }

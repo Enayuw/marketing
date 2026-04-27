@@ -11,6 +11,7 @@
     <result column="custom_run_status" property="customRunStatus" jdbcType="INTEGER" />
     <result column="status" property="status" jdbcType="INTEGER" />
     <result column="sftp_path" property="sftpPath" jdbcType="VARCHAR" />
+    <result column="sftp_file_separator" property="sftpFileSeparator" jdbcType="VARCHAR" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
     <result column="opt_user_id" property="optUserId" jdbcType="BIGINT" />
     <result column="opt_user_name" property="optUserName" jdbcType="VARCHAR" />
@@ -77,7 +78,7 @@
   </sql>
   <sql id="Base_Column_List" >
     id, api_code, account_type, system_type, data_type, accept_type, custom_run_status,
-    `status`, sftp_path, is_del, opt_user_id, opt_user_name, create_time, update_time
+    `status`, sftp_path, sftp_file_separator, is_del, opt_user_id, opt_user_name, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingDataCleanGeneralConfigExample" >
     select
@@ -115,12 +116,12 @@
     </selectKey>
     insert into b_marketing_data_clean_general_config (api_code, account_type, system_type,
     data_type, accept_type, custom_run_status,
-    `status`, sftp_path, is_del,
+    `status`, sftp_path, sftp_file_separator, is_del,
     opt_user_id, opt_user_name, create_time,
     update_time)
     values (#{apiCode,jdbcType=VARCHAR}, #{accountType,jdbcType=VARCHAR}, #{systemType,jdbcType=INTEGER},
     #{dataType,jdbcType=INTEGER}, #{acceptType,jdbcType=INTEGER}, #{customRunStatus,jdbcType=INTEGER},
-    #{status,jdbcType=INTEGER}, #{sftpPath,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER},
+    #{status,jdbcType=INTEGER}, #{sftpPath,jdbcType=VARCHAR}, #{sftpFileSeparator,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER},
     #{optUserId,jdbcType=BIGINT}, #{optUserName,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP},
     #{updateTime,jdbcType=TIMESTAMP})
   </insert>
@@ -153,6 +154,9 @@
       </if>
       <if test="sftpPath != null" >
         sftp_path,
+      </if>
+      <if test="sftpFileSeparator != null" >
+        sftp_file_separator,
       </if>
       <if test="isDel != null" >
         is_del,
@@ -194,6 +198,9 @@
       </if>
       <if test="sftpPath != null" >
         #{sftpPath,jdbcType=VARCHAR},
+      </if>
+      <if test="sftpFileSeparator != null" >
+        #{sftpFileSeparator,jdbcType=VARCHAR},
       </if>
       <if test="isDel != null" >
         #{isDel,jdbcType=INTEGER},
@@ -248,6 +255,9 @@
       <if test="record.sftpPath != null" >
         sftp_path = #{record.sftpPath,jdbcType=VARCHAR},
       </if>
+      <if test="record.sftpFileSeparator != null" >
+        sftp_file_separator = #{record.sftpFileSeparator,jdbcType=VARCHAR},
+      </if>
       <if test="record.isDel != null" >
         is_del = #{record.isDel,jdbcType=INTEGER},
       </if>
@@ -279,6 +289,7 @@
     custom_run_status = #{record.customRunStatus,jdbcType=INTEGER},
     `status` = #{record.status,jdbcType=INTEGER},
     sftp_path = #{record.sftpPath,jdbcType=VARCHAR},
+    sftp_file_separator = #{record.sftpFileSeparator,jdbcType=VARCHAR},
     is_del = #{record.isDel,jdbcType=INTEGER},
     opt_user_id = #{record.optUserId,jdbcType=BIGINT},
     opt_user_name = #{record.optUserName,jdbcType=VARCHAR},
@@ -315,6 +326,9 @@
       <if test="sftpPath != null" >
         sftp_path = #{sftpPath,jdbcType=VARCHAR},
       </if>
+      <if test="sftpFileSeparator != null" >
+        sftp_file_separator = #{sftpFileSeparator,jdbcType=VARCHAR},
+      </if>
       <if test="isDel != null" >
         is_del = #{isDel,jdbcType=INTEGER},
       </if>
@@ -343,6 +357,7 @@
         custom_run_status = #{customRunStatus,jdbcType=INTEGER},
         `status` = #{status,jdbcType=INTEGER},
         sftp_path = #{sftpPath,jdbcType=VARCHAR},
+        sftp_file_separator = #{sftpFileSeparator,jdbcType=VARCHAR},
         is_del = #{isDel,jdbcType=INTEGER},
         opt_user_id = #{optUserId,jdbcType=BIGINT},
         opt_user_name = #{optUserName,jdbcType=VARCHAR},

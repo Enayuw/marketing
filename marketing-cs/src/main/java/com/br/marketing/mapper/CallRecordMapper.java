@@ -61,4 +61,30 @@ public interface CallRecordMapper extends CallRecordMapperBase {
 
     void updateSyncStatusById(@Param("id") Long id, @Param("syncStatus") int syncStatus);
 
+    /**
+     * 根据user_key查询通话明细的task_name
+     * @param apiCode apiCode
+     * @param userKey 用户唯一编号（case_num）
+     * @param startDate 开始日期
+     * @param endDate 结束日期
+     * @return task_name，如果不存在则返回null
+     */
+    String queryTaskNameByUserKey(@Param("apiCode") String apiCode, 
+                                   @Param("userKey") String userKey,
+                                   @Param("startDate") String startDate,
+                                   @Param("endDate") String endDate);
+
+    /**
+     * 批量查询task_name（打标）
+     * @param apiCode apiCode
+     * @param userKeyList 用户唯一编号列表（case_num）
+     * @param startDate 开始日期
+     * @param endDate 结束日期
+     * @return List<Map<String, String>>，每个Map包含case_num和task_name
+     */
+    List<Map<String, String>> queryTaskNameByUserKeyList(@Param("apiCode") String apiCode,
+                                                           @Param("userKeyList") List<String> userKeyList,
+                                                           @Param("startDate") String startDate,
+                                                           @Param("endDate") String endDate);
+
 }

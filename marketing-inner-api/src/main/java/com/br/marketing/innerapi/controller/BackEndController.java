@@ -2,6 +2,7 @@ package com.br.marketing.innerapi.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.br.marketing.vo.MarketingSyncUserVO;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.common.log.AlertLog;
@@ -115,6 +116,21 @@ public class BackEndController {
         } catch (Exception ex) {
             log.error("外呼查询上传逾期金额接口异常", ex);
             return new Result<String>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(ex.getMessage());
+        }
+    }
+
+    @Operation(summary = "查询最新变量接口")
+    @GetMapping("/queryLatestSyncUser")
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
+    public Result<MarketingSyncUserVO> queryLatestSyncUser(
+            @RequestParam String apiCode,
+            @RequestParam String custNum,
+            @RequestParam(required = false) String userType) {
+        try {
+            return pushRuleService.queryLatestSyncUser(apiCode, custNum, userType);
+        } catch (Exception ex) {
+            log.error("查询最新变量接口异常, apiCode={}, custNum={}", apiCode, custNum, ex);
+            return new Result<MarketingSyncUserVO>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(ex.getMessage());
         }
     }
 

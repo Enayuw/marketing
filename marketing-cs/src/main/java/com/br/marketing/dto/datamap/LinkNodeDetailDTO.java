@@ -25,6 +25,7 @@ public class LinkNodeDetailDTO {
     private Long nodeDictId;
     private String nodeAlias;
     private Integer status;
+    private String edgeType;
     
     // 节点字典信息
     private String nodeCode;

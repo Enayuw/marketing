@@ -39,16 +39,19 @@ import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import com.github.pagehelper.PageHelper;
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
+import org.mybatis.spring.MyBatisSystemException;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -1086,7 +1089,33 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
     @Override
     public void saveScoreResult(MarketingTaskResultPreview preview) {
-        marketingTaskResultPreviewMapper.insertSelective(preview);
+        try {
+            marketingTaskResultPreviewMapper.insertSelective(preview);
+        } catch (MyBatisSystemException e) {
+            // 检查线程是否被中断
+            if (Thread.currentThread().isInterrupted()) {
+                // 清除中断标志，以便重新插入数据库
+                boolean wasInterrupted = Thread.interrupted();
+                try {
+                    // 重新插入数据库
+                    marketingTaskResultPreviewMapper.insertSelective(preview);
+
+                    // 重新插入成功后，恢复中断标志
+                    if (wasInterrupted) {
+                        Thread.currentThread().interrupt();
+                    }
+                } catch (Exception retryEx) {
+                    // 重新插入失败，恢复中断标志
+                    if (wasInterrupted) {
+                        Thread.currentThread().interrupt();
+                    }
+                    throw retryEx;
+                }
+            } else {
+                // 线程未被中断，是其他原因导致的异常，直接抛出
+                throw e;
+            }
+        }
     }
 
     @Override

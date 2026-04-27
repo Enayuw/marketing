@@ -163,5 +163,9 @@ public interface MarketingUserMapper {
         );
 
         void createUserLabelTable(@Param("tableName") String tableName);
+
+        MarketingSyncUser selectLatestSyncUser(@Param("apiCode") String apiCode,
+                                               @Param("custNum") String custNum,
+                                               @Param("userType") String userType);
 }
 

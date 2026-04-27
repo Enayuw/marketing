@@ -19,6 +19,11 @@ public class AutoCheckResultLog {
     private String sceneCode;
 
     /**
+     * 关联表
+     */
+    private String tableName;
+
+    /**
      * 前一天八点数据
      */
     private String lastData;
@@ -39,9 +44,14 @@ public class AutoCheckResultLog {
     private String compareTime;
 
     /**
-     * 对比结果 0-不一致 1-有差异 2-一致
+     * 对比结果
      */
     private String result;
+
+    /**
+     * 批次id
+     */
+    private String batchId;
 
     /**
      * 0-未删除 1-删除
@@ -82,6 +92,14 @@ public class AutoCheckResultLog {
         this.sceneCode = sceneCode == null ? null : sceneCode.trim();
     }
 
+    public String getTableName() {
+        return tableName;
+    }
+
+    public void setTableName(String tableName) {
+        this.tableName = tableName == null ? null : tableName.trim();
+    }
+
     public String getLastData() {
         return lastData;
     }
@@ -120,6 +138,14 @@ public class AutoCheckResultLog {
 
     public void setResult(String result) {
         this.result = result == null ? null : result.trim();
+    }
+
+    public String getBatchId() {
+        return batchId;
+    }
+
+    public void setBatchId(String batchId) {
+        this.batchId = batchId == null ? null : batchId.trim();
     }
 
     public Byte getIsDeleted() {

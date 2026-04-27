@@ -111,6 +111,7 @@ import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.br.marketing.utils.PulsarConsumerSkipUtil;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.br.marketing.util.EsConditionTransferSqlUtil;
+import com.br.marketing.util.EsNewIndexRuleUtils;
 import com.br.marketing.util.GeneScriptUtil;
 import com.br.marketing.util.xiecheng.XieChengEsJsonHandler;
 import com.br.marketing.vo.*;
@@ -620,6 +621,10 @@ public class PushRuleServiceImpl implements PushRuleService {
         queryBaseBean.setBatchNumbers(Joiner.on(",").join(dto.getBatchNumberList()));
         queryBaseBean.setFileIds(Joiner.on(",").join(dto.getFileIdList()));
         queryBaseBean.setJsonData(dto.getmRuleCondition());
+        StraHisFileExample fileExampleForIndex = new StraHisFileExample();
+        fileExampleForIndex.createCriteria().andIdIn(dto.getFileIdList());
+        List<StraHisFile> straHisFilesForIndex = straHisFileMapper.selectByExample(fileExampleForIndex);
+        queryBaseBean.setUseNewIndexRule(EsNewIndexRuleUtils.resolveAsMap(straHisFilesForIndex, marketingCommonConfig));
         if (dto.getmPlanNum() != null && dto.getmPlanNum() <= 0) {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("推送数量不能小于等于0");
         }
@@ -2061,7 +2066,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(toPolicyThreadNum, toPolicyThreadNum, toPolicyQueueNum);
 
             for (Integer i = 0; i < parNum; i++) {
-                QueryBaseBean queryBaseBean = createQueryBaseBean(customerInfoPushMain, numList, fileIds, i);
+                QueryBaseBean queryBaseBean = createQueryBaseBean(customerInfoPushMain, numList, fileIds, i, straHisFiles);
                 Integer nowNum = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
                 partDataNum.put(i, nowNum);
                 if (customerInfoPushMain.getTagContent() != null) {
@@ -2113,7 +2118,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         for (Integer i = 0; i < parNum; i++) {
             res.add(actionEs.submit(new actionEs(pushJc, customerInfoPushMain
-                    , fileIds, numList, i.toString(), _3kEncrypt, isSigle, partDataNum.get(i), markWithEsFlag, lableObject)));
+                    , fileIds, numList, i.toString(), _3kEncrypt, isSigle, partDataNum.get(i), markWithEsFlag, lableObject, straHisFiles)));
         }
         log.warn("推送决策 任务id：{}；获取所有分组数据耗时：{}", customerInfoPushMain.getId(), System.currentTimeMillis() - startTime);
 
@@ -2222,13 +2227,15 @@ public class PushRuleServiceImpl implements PushRuleService {
     /**
      * 创建 QueryBaseBean
      */
-    private QueryBaseBean createQueryBaseBean(CustomerInfoPushMain customerInfoPushMain, List<String> numList, List<Long> fileIds, Integer part) {
+    private QueryBaseBean createQueryBaseBean(CustomerInfoPushMain customerInfoPushMain, List<String> numList,
+                                              List<Long> fileIds, Integer part, List<StraHisFile> straHisFiles) {
         QueryBaseBean queryBaseBean = new QueryBaseBean();
         queryBaseBean.setApiCode(customerInfoPushMain.getmApiCode());
         queryBaseBean.setBatchNumbers(Joiner.on(",").join(numList));
         queryBaseBean.setFileIds(Joiner.on(",").join(fileIds));
         queryBaseBean.setJsonData(customerInfoPushMain.getmRuleCondition());
         queryBaseBean.setPart(part.toString());
+        queryBaseBean.setUseNewIndexRule(EsNewIndexRuleUtils.resolveAsMap(straHisFiles, marketingCommonConfig));
         return queryBaseBean;
     }
 
@@ -2265,10 +2272,13 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         private Object lableObject;
 
+        private List<StraHisFile> straHisFiles;
+
         public actionEs(ThreadPoolExecutor pushJcPool
                 , CustomerInfoPushMain customerInfoPushMain
                 , List<Long> fileIds, List<String> numList
-                , String part, Integer _3kEncrypt, Boolean isPerOrTop, Integer partDataNum, Boolean markWithEsFlag, Object lableObject) {
+                , String part, Integer _3kEncrypt, Boolean isPerOrTop, Integer partDataNum, Boolean markWithEsFlag,
+                Object lableObject, List<StraHisFile> straHisFiles) {
             this.pushJcPool = pushJcPool;
             this.customerInfoPushMain = customerInfoPushMain;
             this.fileIds = fileIds;
@@ -2279,6 +2289,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             this.partDataNum = partDataNum;
             this.markWithEsFlag = markWithEsFlag;
             this.lableObject = lableObject;
+            this.straHisFiles = straHisFiles;
         }
 
         @Override
@@ -2288,6 +2299,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             queryBaseBean.setBatchNumbers(Joiner.on(",").join(numList));
             queryBaseBean.setFileIds(Joiner.on(",").join(fileIds));
             queryBaseBean.setJsonData(customerInfoPushMain.getmRuleCondition());
+            queryBaseBean.setUseNewIndexRule(EsNewIndexRuleUtils.resolveAsMap(straHisFiles, marketingCommonConfig));
             boolean scFlag = !ObjectUtils.isEmpty(lableObject);
             List<ScoreLable> scoreLables = null;
             if (scFlag) {
@@ -3129,6 +3141,15 @@ public class PushRuleServiceImpl implements PushRuleService {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("overAmt字段不存在！");
         }
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(overAmt);
+    }
+
+    @Override
+    public Result<MarketingSyncUserVO> queryLatestSyncUser(String apiCode, String custNum, String userType) {
+        MarketingSyncUser user = marketingUserMapper.selectLatestSyncUser(apiCode, custNum, userType);
+        if (user == null) {
+            return new Result<MarketingSyncUserVO>().setCode(ResultCode.FAIL.getValue()).setMessage("数据为空！");
+        }
+        return new Result<MarketingSyncUserVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(MarketingSyncUserVO.fromEntity(user));
     }
 
     public void sendJsonParseMq(String apiCode,Integer dataSourceType,Integer systemType,Integer dataType,Integer acceptType,String jsonData){

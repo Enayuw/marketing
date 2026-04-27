@@ -107,4 +107,6 @@ public interface RuleCleaningService {
     boolean ruleEffect(Long ruleId);
 
     List<MarketingDataCleanGeneralConfig> queryCleanConfigCommon(String apiCode, Integer systemType, Integer dataType, Integer acceptType);
+
+    String generateAviatorScriptRule(String question);
 }

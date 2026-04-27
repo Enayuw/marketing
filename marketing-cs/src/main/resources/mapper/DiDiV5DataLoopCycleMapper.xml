@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.DiDiV5DataLoopCycleMapper">
+
+    <select id="queryCollidingDataBySharding" resultType="com.br.marketing.entity.DiDiDataLoopCycle">
+        SELECT id, package_id, api_code, cell
+        FROM b_didi_v5_data_loop_cycle
+        WHERE push_time is null
+        AND is_delete = 0
+        AND colliding_time BETWEEN #{startTime} AND #{endTime}
+        ORDER BY id ASC
+        LIMIT #{limit}
+    </select>
+
+    <update id="updatePushTimeByIds">
+        update b_didi_v5_data_loop_cycle
+        set push_time = #{pushTime}
+        where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="selectUnpushedCells" resultType="java.lang.String">
+        SELECT DISTINCT cell
+        FROM b_didi_v5_data_loop_cycle
+        WHERE push_time is null AND is_delete = 0 and colliding_time > curdate()+1 and colliding_time &lt; curdate()+2
+        and cell in
+        <foreach item="cell" collection="cells" index="index" separator="," close=")" open="(">
+            #{cell}
+        </foreach>
+    </select>
+
+    <select id="queryCollidingDataAmount" resultType="java.lang.Integer">
+        SELECT count(1)
+        FROM b_didi_v5_data_loop_cycle
+        WHERE push_time is null
+          AND is_delete = 0
+          AND colliding_time BETWEEN #{startTime} AND #{endTime}
+    </select>
+</mapper>

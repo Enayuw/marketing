@@ -40,4 +40,26 @@
         ORDER BY update_time DESC
     </select>
 
+    <!-- 查询所有去重的节点列表（用于模板配置时选择） -->
+    <select id="selectDistinctNodes" resultType="com.br.marketing.dto.datamap.template.TemplateNodeDictVO">
+        SELECT
+            node_code AS nodeCode,
+            node_type AS nodeType,
+            node_name AS nodeName,
+            MAX(node_desc) AS nodeDesc
+        FROM biz_tracking_node_dict
+        WHERE is_active = 1
+        <if test="nodeType != null and nodeType != ''">
+            AND node_type = #{nodeType}
+        </if>
+        <if test="nodeName != null and nodeName != ''">
+            AND node_name LIKE CONCAT('%', #{nodeName}, '%')
+        </if>
+        <if test="nodeCode != null and nodeCode != ''">
+            AND node_code LIKE CONCAT('%', #{nodeCode}, '%')
+        </if>
+        GROUP BY node_code, node_type, node_name
+        ORDER BY node_type, node_name, node_code
+    </select>
+
 </mapper>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.DiDiV5CollidingDataRobMapper">
+
+    <insert id="insertToRobAndUpdateFront" parameterType="java.util.List">
+        INSERT INTO b_didi_v5_colliding_data_rob (
+        package_id, api_code, cell, source_type,
+        colliding_time, push_time, extend, is_delete,
+        create_date, create_time, update_time
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.packageId}, #{item.apiCode}, #{item.cell}, #{item.sourceType},
+            #{item.collidingTime}, #{item.pushTime}, #{item.extend}, #{item.isDelete},
+            #{item.createDate}, #{item.createTime}, #{item.updateTime})
+        </foreach>
+    </insert>
+
+    <select id="queryCollidingDataBySharding" resultType="com.br.marketing.entity.DiDiCollidingDataRob">
+        SELECT id, package_id, api_code, cell
+        FROM b_didi_v5_colliding_data_rob
+        WHERE push_time is null
+        AND is_delete = 0
+        AND colliding_time &lt; #{startTime}
+        ORDER BY id asc
+        LIMIT #{limit}
+    </select>
+
+    <select id="queryUploadedData" resultType="com.br.marketing.entity.DiDiCollidingDataRob">
+        SELECT id, package_id, api_code, cell, source_type
+        FROM b_didi_v5_colliding_data_rob
+        WHERE push_time is null
+        AND is_delete = 0
+        AND colliding_time BETWEEN #{startTime} AND #{endTime}
+        ORDER BY id asc
+        LIMIT #{limit}
+    </select>
+
+    <select id="queryCollidingDataIdx" resultType="com.br.marketing.entity.DiDiCollidingDataRob">
+        SELECT id, package_id, api_code, cell, source_type
+        FROM b_didi_v5_colliding_data_rob
+        WHERE push_time is null
+          AND is_delete = 0
+          AND colliding_time &lt; #{startTime}
+          AND id > #{maxId}
+        ORDER BY id asc
+            LIMIT #{limit}
+    </select>
+
+    <select id="queryUploadedDataIdx" resultType="com.br.marketing.entity.DiDiCollidingDataRob">
+        SELECT id, package_id, api_code, cell, source_type
+        FROM b_didi_v5_colliding_data_rob
+        WHERE push_time is null
+          AND is_delete = 0
+          AND colliding_time BETWEEN #{startTime} AND #{endTime}
+          AND id > #{maxId}
+        ORDER BY id asc
+            LIMIT #{limit}
+    </select>
+
+    <update id="updatePushTimeByIds">
+        update b_didi_v5_colliding_data_rob
+        set push_time = #{pushTime}
+        where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="selectUnpushedCells" resultType="java.lang.String">
+        SELECT DISTINCT cell
+        FROM b_didi_v5_colliding_data_rob
+        WHERE push_time is null
+          AND is_delete = 0
+          AND colliding_time &lt; curdate()+2
+          AND cell IN
+        <foreach collection="cells" item="cell" open="(" separator="," close=")">
+            #{cell}
+        </foreach>
+    </select>
+
+    <select id="queryCollidingDataAmount" resultType="java.lang.Integer">
+        SELECT count(1)
+        FROM b_didi_v5_colliding_data_rob
+        WHERE push_time is null
+          AND is_delete = 0
+          AND colliding_time &lt; #{startTime}
+    </select>
+</mapper>

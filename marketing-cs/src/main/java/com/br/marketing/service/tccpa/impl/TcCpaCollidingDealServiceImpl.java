@@ -5,13 +5,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.common.constants.rocketmq.MarketingTcCpaConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.config.RocketMqSwitch;
-import com.br.marketing.dto.tccpa.TcyrCpaSuccessMqDTO;
 import com.br.marketing.entity.MarketingTcyrCpaSuccessData;
 import com.br.marketing.entity.MarketingTcyrCpaSuccessFile;
 import com.br.marketing.entity.MarketingTcyrCpaSuccessRecord;
@@ -31,7 +28,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import javax.annotation.Resource;
 import java.io.BufferedReader;
 import java.io.File;
@@ -43,7 +39,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-
 
 @Service
 @Slf4j
@@ -71,9 +66,6 @@ public class TcCpaCollidingDealServiceImpl implements TcCpaCollidingDealService 
 
     @Autowired
     private RedisChgService redisChgService;
-
-    @Resource
-    private RocketMqSwitch rocketMqSwitch;
 
     @Override
     public void shardProcess(String apiCode) {
@@ -218,10 +210,6 @@ public class TcCpaCollidingDealServiceImpl implements TcCpaCollidingDealService 
                     tcyrCpaSuccessDataList.add(successDataItem);
                 }
                 tcyrCpaSuccessDataMapper.batchSave(tcyrCpaSuccessDataList);
-                Integer tcyrCpaAutoMqStatus = marketingCommonConfig.getTcyrCpaCollidingDealShardConfig().getInteger("tcyrCpaAutoMqStatus");
-                if (ObjectUtil.isNotEmpty(tcyrCpaAutoMqStatus) && tcyrCpaAutoMqStatus == 1) {
-                    collidingSuccessSyncSendMq(tcyrCpaSuccessDataList);
-                }
                 tcyrCpaSuccessDataList.clear();
             }catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(),
@@ -230,85 +218,4 @@ public class TcCpaCollidingDealServiceImpl implements TcCpaCollidingDealService 
         }
     }
 
-    /**
-     * 发送sendMq
-     * @param tcyrCpaSuccessDataList
-     */
-    private void collidingSuccessSyncSendMq(List<MarketingTcyrCpaSuccessData> tcyrCpaSuccessDataList) {
-        tcyrCpaSuccessDataList.forEach(item -> {
-            Long dataId = item.getId();
-            String requestId = item.getBatchNo()+"_"+item.getSyncFileId()+"_"+ dataId + "_"+System.currentTimeMillis();
-            String speedFixedRquestId = marketingCommonConfig.getTcyrCpaCollidingDealShardConfig().getString("fixedRequestId");
-            try {
-                TcyrCpaSuccessMqDTO cpaSuccessMqDTO = new TcyrCpaSuccessMqDTO();
-                cpaSuccessMqDTO.setDataId(dataId);
-                if(StringUtils.isNotEmpty(speedFixedRquestId)){
-                    cpaSuccessMqDTO.setRequestId(speedFixedRquestId);
-                }else {
-                    cpaSuccessMqDTO.setRequestId(requestId);
-                }
-                String msg = JSONObject.toJSONString(cpaSuccessMqDTO);
-                rocketMqSwitch.syncSend(MarketingTcCpaConstants.TOPIC_MARKETING_TCYR_CPA_COLLIDING_SUCCESS_QUEUE
-                        , MarketingTcCpaConstants.TAG_MARKETING_TCYR_CPA_COLLIDING_SUCCESS_QUEUE, msg);
-            }catch (Exception e) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_CPA_SERVICEERROR.getCode(), e.getMessage()
-                        , "同程CPA撞库成功-发送RocketMq消息异常！requestId:"+requestId), e);
-            }
-            requestId =  StringUtils.isNotEmpty(speedFixedRquestId) ? speedFixedRquestId : requestId;
-            log.warn("同程CPA撞库成功消息下发 requestId:{},dataId:{}", requestId, dataId);
-        });
-    }
-
-    /**
-     * 转义 SQL 字符串中的特殊字符
-     * @param str 需要转义的字符串
-     * @return 转义后的字符串
-     */
-    private String escapeSqlString(String str) {
-        if (str == null) {
-            return "";
-        }
-        return str.replace("'", "''").replace("\\", "\\\\");
-    }
-
-    private Boolean isLong(String userKey) {
-        try {
-            Long.parseLong(userKey);
-            return true;
-        }catch (Exception e) {
-            return false;
-        }
-    }
-
-    /**
-     * 带重试机制的获取锁
-     * @param lockKey 锁的key
-     * @param lockValue 锁的值
-     * @return 是否成功获取锁
-     */
-    private boolean acquireLockWithRetry(String lockKey, String lockValue) {
-        int maxRetryTimes = 3;
-        long retryIntervalMs = 3;
-        for (int retryCount = 0; retryCount <= maxRetryTimes; retryCount++) {
-            try {
-                redisChgService.lock(lockKey, lockValue);
-                return true;
-            } catch (Exception e) {
-                if (retryCount < maxRetryTimes) {
-                    log.warn("{}获取锁失败，apiCode:{}，重试次数:{}/{}，错误信息:{}",
-                            TITLE, lockKey, retryCount + 1, maxRetryTimes, e.getMessage());
-                    try {
-                        Thread.sleep(retryIntervalMs);
-                    } catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt();
-                        log.warn("{}重试等待被中断", TITLE);
-                        return false;
-                    }
-                } else {
-                    log.error("{}获取锁最终失败，apiCode:{}，已重试{}次，错误信息:{}", TITLE, lockKey, maxRetryTimes, e.getMessage());
-                }
-            }
-        }
-        return false;
-    }
 }

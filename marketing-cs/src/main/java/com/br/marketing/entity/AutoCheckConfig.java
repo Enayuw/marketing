@@ -19,6 +19,16 @@ public class AutoCheckConfig {
     private String sceneCode;
 
     /**
+     * 关联表
+     */
+    private String tableName;
+
+    /**
+     * 比较的字段
+     */
+    private String fieldName;
+
+    /**
      * 0-未删除 1-删除
      */
     private Byte isDeleted;
@@ -55,6 +65,22 @@ public class AutoCheckConfig {
 
     public void setSceneCode(String sceneCode) {
         this.sceneCode = sceneCode == null ? null : sceneCode.trim();
+    }
+
+    public String getTableName() {
+        return tableName;
+    }
+
+    public void setTableName(String tableName) {
+        this.tableName = tableName == null ? null : tableName.trim();
+    }
+
+    public String getFieldName() {
+        return fieldName;
+    }
+
+    public void setFieldName(String fieldName) {
+        this.fieldName = fieldName == null ? null : fieldName.trim();
     }
 
     public Byte getIsDeleted() {

@@ -36,11 +36,17 @@ public class TcCpaCollidingTaskDTO {
     @Schema(description = "撞库时间")
     private String collidingTime;
 
+    @Schema(description = "撞库量级")
+    private Integer collidingNum;
+
     @Schema(description = "剔除规则id集合")
     private List<String> deleteRuleIds;
 
     @Schema(description = "剔除量级")
     private Integer deleteNum;
+
+    @Schema(description = "剔除详情")
+    private String deleteInfo;
 
     @Schema(description = "补包releaseTime")
     private String releaseTimes;

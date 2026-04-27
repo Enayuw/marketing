@@ -11,9 +11,5 @@ public interface TcCpaCommonService {
 
     Integer calculateVolume(List<TcCpaDeleteRuleExecuteInfoDTO> executeInfos);
 
-    Integer convertFailMsgToLockBelong(Integer failMsg);
-
-    Integer convertLockBelongToFailMsg(Integer lockBelong);
-
     String getDeleteSqlFrag(String deleteRuleIdStr) throws IOException;
 }

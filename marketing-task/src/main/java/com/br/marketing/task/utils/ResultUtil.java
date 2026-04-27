@@ -1,5 +1,6 @@
 package com.br.marketing.task.utils;
 
+import java.sql.SQLException;
 import java.util.Date;
 
 import com.alibaba.fastjson.JSON;
@@ -22,12 +23,15 @@ import com.br.marketing.mapper.MarketingRetryEsMapper;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.MarketingTaskService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.EsNewIndexRuleUtils;
 import com.br.marketing.vo.BaseHead;
 import com.br.marketing.vo.BaseHeadConfigVO;
 import com.br.marketing.vo.StrategyProductDetailVO;
 
 import cn.hutool.core.lang.Pair;
 import lombok.extern.slf4j.Slf4j;
+import org.mybatis.spring.MyBatisSystemException;
+import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.util.DigestUtils;
 
 import java.io.IOException;
@@ -185,7 +189,8 @@ public class ResultUtil {
     public static void generateFile(JSONObject resultJson, String strategyId, Writer fw, String sep, Map<String, String> proFieldMap,
                                     MarketingSyncUser user, JSONObject meal, String cusBatchNumber, String fileId, String pushCustomer,
                                     BaseHeadConfigVO baseHeadInfo, StrategyProductDetailVO fieldInfo, MarketingTask marketingTask
-            , MarketingTaskService marketingTaskService, String part, MarketingCommonConfig marketingCommonConfig, MarketingRetryEsMapper marketingRetryEsMapper) throws IOException {
+            , MarketingTaskService marketingTaskService, String part, MarketingCommonConfig marketingCommonConfig,
+                                    MarketingRetryEsMapper marketingRetryEsMapper, Long straHisFileCreateTimeMillis) throws IOException {
         log.info("cus_num：{} 画像流水:{}", user.getCustNum(), resultJson);
         JSONObject esResult = new JSONObject();
         StringBuilder sb = new StringBuilder();
@@ -275,6 +280,7 @@ public class ResultUtil {
             }
             mh.setCondition(conditionList);
             mh.setReserveField(esResult.toJSONString());
+            mh.setUseNewIndexRule(EsNewIndexRuleUtils.resolve(straHisFileCreateTimeMillis, marketingCommonConfig));
             String id = UuidUtils.getUuid();
             MarketingHistoryEsServiceImpl service = new MarketingHistoryEsServiceImpl();
             // 模拟ES异常
@@ -317,7 +323,34 @@ public class ResultUtil {
         marketingRetryEs.setAppletDate(String.valueOf(LocalDate.now()));
         marketingRetryEs.setCreateTime(new Date());
         marketingRetryEs.setUpdateTime(new Date());
-        marketingRetryEsMapper.insertSelective(marketingRetryEs);
+
+        try {
+            marketingRetryEsMapper.insertSelective(marketingRetryEs);
+        } catch (MyBatisSystemException e) {
+            // 检查线程是否被中断
+            if (Thread.currentThread().isInterrupted()) {
+                // 清除中断标志，以便重新插入数据库
+                boolean wasInterrupted = Thread.interrupted();
+                try {
+                    // 重新插入数据库
+                    marketingRetryEsMapper.insertSelective(marketingRetryEs);
+
+                    // 重新插入成功后，恢复中断标志
+                    if (wasInterrupted) {
+                        Thread.currentThread().interrupt();
+                    }
+                } catch (Exception retryEx) {
+                    // 重新插入失败，恢复中断标志
+                    if (wasInterrupted) {
+                        Thread.currentThread().interrupt();
+                    }
+                    throw retryEx;
+                }
+            } else {
+                // 线程未被中断，是其他原因导致的异常，直接抛出
+                throw e;
+            }
+        }
     }
 
     private static Result buildResult(JSONObject hxJson, StringBuilder sb, String sep, JSONObject esResult, StrategyProductDetailVO fieldInfo) {

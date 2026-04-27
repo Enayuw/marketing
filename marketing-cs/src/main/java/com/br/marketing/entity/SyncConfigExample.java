@@ -1884,6 +1884,196 @@ public class SyncConfigExample {
             addCriterion("execute_time not between", value1, value2, "executeTime");
             return (Criteria) this;
         }
+
+        public Criteria andSyncStartTimeIsNull() {
+            addCriterion("sync_start_time is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStartTimeIsNotNull() {
+            addCriterion("sync_start_time is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStartTimeEqualTo(String value) {
+            addCriterion("sync_start_time =", value, "syncStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStartTimeNotEqualTo(String value) {
+            addCriterion("sync_start_time <>", value, "syncStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStartTimeGreaterThan(String value) {
+            addCriterion("sync_start_time >", value, "syncStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStartTimeGreaterThanOrEqualTo(String value) {
+            addCriterion("sync_start_time >=", value, "syncStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStartTimeLessThan(String value) {
+            addCriterion("sync_start_time <", value, "syncStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStartTimeLessThanOrEqualTo(String value) {
+            addCriterion("sync_start_time <=", value, "syncStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStartTimeLike(String value) {
+            addCriterion("sync_start_time like", value, "syncStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStartTimeNotLike(String value) {
+            addCriterion("sync_start_time not like", value, "syncStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStartTimeIn(List<String> values) {
+            addCriterion("sync_start_time in", values, "syncStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStartTimeNotIn(List<String> values) {
+            addCriterion("sync_start_time not in", values, "syncStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStartTimeBetween(String value1, String value2) {
+            addCriterion("sync_start_time between", value1, value2, "syncStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncStartTimeNotBetween(String value1, String value2) {
+            addCriterion("sync_start_time not between", value1, value2, "syncStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsPersIsNull() {
+            addCriterion("is_pers is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsPersIsNotNull() {
+            addCriterion("is_pers is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsPersEqualTo(Integer value) {
+            addCriterion("is_pers =", value, "isPers");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsPersNotEqualTo(Integer value) {
+            addCriterion("is_pers <>", value, "isPers");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsPersGreaterThan(Integer value) {
+            addCriterion("is_pers >", value, "isPers");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsPersGreaterThanOrEqualTo(Integer value) {
+            addCriterion("is_pers >=", value, "isPers");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsPersLessThan(Integer value) {
+            addCriterion("is_pers <", value, "isPers");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsPersLessThanOrEqualTo(Integer value) {
+            addCriterion("is_pers <=", value, "isPers");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsPersIn(List<Integer> values) {
+            addCriterion("is_pers in", values, "isPers");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsPersNotIn(List<Integer> values) {
+            addCriterion("is_pers not in", values, "isPers");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsPersBetween(Integer value1, Integer value2) {
+            addCriterion("is_pers between", value1, value2, "isPers");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsPersNotBetween(Integer value1, Integer value2) {
+            addCriterion("is_pers not between", value1, value2, "isPers");
+            return (Criteria) this;
+        }
+
+        public Criteria andPathTemplateIdIsNull() {
+            addCriterion("path_template_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPathTemplateIdIsNotNull() {
+            addCriterion("path_template_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPathTemplateIdEqualTo(Long value) {
+            addCriterion("path_template_id =", value, "pathTemplateId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPathTemplateIdNotEqualTo(Long value) {
+            addCriterion("path_template_id <>", value, "pathTemplateId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPathTemplateIdGreaterThan(Long value) {
+            addCriterion("path_template_id >", value, "pathTemplateId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPathTemplateIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("path_template_id >=", value, "pathTemplateId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPathTemplateIdLessThan(Long value) {
+            addCriterion("path_template_id <", value, "pathTemplateId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPathTemplateIdLessThanOrEqualTo(Long value) {
+            addCriterion("path_template_id <=", value, "pathTemplateId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPathTemplateIdIn(List<Long> values) {
+            addCriterion("path_template_id in", values, "pathTemplateId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPathTemplateIdNotIn(List<Long> values) {
+            addCriterion("path_template_id not in", values, "pathTemplateId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPathTemplateIdBetween(Long value1, Long value2) {
+            addCriterion("path_template_id between", value1, value2, "pathTemplateId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPathTemplateIdNotBetween(Long value1, Long value2) {
+            addCriterion("path_template_id not between", value1, value2, "pathTemplateId");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {
