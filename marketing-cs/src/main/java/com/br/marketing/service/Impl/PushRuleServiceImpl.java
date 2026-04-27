@@ -5295,7 +5295,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     private final String cidKey = "marketing:innerapi:transfer:cid:";
 
     @MqIdempotent
-    public synchronized Result<Boolean> pushPersonalTransferDataWrapper(String msg) {
+    public Result<Boolean> pushPersonalTransferDataWrapper(String msg) {
         Long infoId;
         // 兼容老消息（纯数字字符串）和新消息（JSON格式）
         if (msg.startsWith("{")) {
