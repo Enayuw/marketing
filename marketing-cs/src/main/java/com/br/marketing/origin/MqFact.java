@@ -32,7 +32,7 @@ import java.util.Set;
  */
 
 @Data
-public class MqFact extends InterfaceParams {
+public class MqFact extends BaseMqFact {
 
     /**
      *  mq中数据id

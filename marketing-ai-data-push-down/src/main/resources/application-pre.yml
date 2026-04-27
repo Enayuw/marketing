@@ -290,3 +290,8 @@ rocketmq:
     pull-batch-size: 5
     # 其他配置参考属性类
     namespace: ${ROCKETMQ_NAMESPACE:dev_local}
+
+# 雪花算法数据中心ID
+snowflake:
+  datacenter:
+    id: ${SNOWFLAKE_DATACENTER_ID:0}
