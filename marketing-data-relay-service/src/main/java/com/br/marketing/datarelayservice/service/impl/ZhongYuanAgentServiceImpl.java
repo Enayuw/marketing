@@ -125,7 +125,8 @@ public class ZhongYuanAgentServiceImpl implements ZhongYuanAgentService {
             int dataItemCount = emptyDetails ? 1 : details.size();
 
             String batchNo = UUID.randomUUID().toString();
-            String jsonDataWithBatchNo = mergeBatchNoIntoPlainJson(plainRequestData, batchNo);
+            String jsonDataWithBatchNo = mergeBatchNoIntoPlainJson(plainRequestData,
+                    batchNo, req.getRequestNo());
             MarketingCustomerOriginalData original = new MarketingCustomerOriginalData();
             original.setApiCode(apiCode);
             original.setRequestId(requestId);
@@ -188,22 +189,27 @@ public class ZhongYuanAgentServiceImpl implements ZhongYuanAgentService {
     }
 
     /**
-     * 在原始明文 JSON 根上增加 {@code batchNo}；根为数组时包一层 {@code details} 再写 {@code batchNo}，与 {@link #parseInner} 语义一致。
+     * 在原始明文 JSON 根上增加 {@code batchNo}、入参 {@code requestNo}（与二者同级）；根为数组时包一层 {@code details} 再写上述字段，与 {@link #parseInner} 语义一致。
      */
-    private static String mergeBatchNoIntoPlainJson(String plainRequestData, String batchNo) {
+    private static String mergeBatchNoIntoPlainJson(String plainRequestData, String batchNo, String requestNo) {
         if (!StringUtils.hasText(plainRequestData)) {
-            return JSON.toJSONString(Collections.singletonMap("batchNo", batchNo));
+            JSONObject root = new JSONObject();
+            root.put("batchNo", batchNo);
+            root.put("requestNo", requestNo);
+            return root.toJSONString();
         }
         String t = plainRequestData.trim();
         if (t.startsWith("[")) {
             JSONObject wrap = new JSONObject();
             wrap.put("details", JSON.parseArray(t));
             wrap.put("batchNo", batchNo);
+            wrap.put("requestNo", requestNo);
             wrap.put("operateType", "3");
             return wrap.toJSONString();
         }
         JSONObject obj = JSON.parseObject(plainRequestData);
         obj.put("batchNo", batchNo);
+        obj.put("requestNo", requestNo);
         obj.put("operateType", "3");
         return obj.toJSONString();
     }
