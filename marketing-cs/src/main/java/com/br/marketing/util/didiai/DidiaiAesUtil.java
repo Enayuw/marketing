@@ -13,13 +13,13 @@ import java.nio.charset.StandardCharsets;
  * <p>功能说明：
  *
  * <ul>
- *   <li>IV 由毫秒时间戳派生：先将时间戳转为十进制字符串，再整体字符顺序反转，若长度不足 16 个字符则在右侧补
- *       字符 0 直至总长为 16；若反转后超过 16 个字符则截取前 16 个字符；
- *   <li>密钥为 16 字节 AES 密钥，通常由 DidiaiKeyUtil 从 appSecret 派生；
+ *   <li>IV 为定长 16 字节：将毫秒时间戳的十进制字符串作字符级反转，再经 UTF-8 编码，拷贝入 16 字节缓冲左侧，剩余字节为
+ *       0x00（与对端/客户 {@code generateIv} 一致；禁止使用「在字符串侧补字符 '0' 再取 UTF-8」的旧规则）；</li>
+ *   <li>密钥为 16 字节 AES 材料，由 {@link DidiaiKeyUtil#toAes128KeyBytes(String)} 从 dataSecret 派生；</li>
  *   <li>密文在网络中常以 Base64 文本传输，解密时入参为 Base64 字符串，内部先解码再执行 CBC 解密。
  * </ul>
  *
- * <p>编码约定：明文与 IV 字符串均按 UTF-8 转为字节后参与加解密。
+ * <p>编码约定：明文字节为 UTF-8。
  *
  * @author yueping.bai
  */
@@ -32,48 +32,47 @@ public final class DidiaiAesUtil {
     private DidiaiAesUtil() {}
 
     /**
-     * 根据毫秒时间戳生成长度为 16 的 IV 字符串，用于 AES-CBC 模式下的 IvParameterSpec。
+     * 由毫秒时间戳派生 16 字节 IV，与对端/客户对 {@code timestamp} 字符串反序后 UTF-8 再 0x00 填充一致。
      *
-     * <p>参数说明：timestampMillis 为与请求头一致的毫秒级 Unix 时间戳。
+     * <p>参数说明：与请求头中 {@code timestamp} 的数值在十进制表示下相同（如 {@code 1777282809463L} 对应字符串
+     * {@code "1777282809463"}，再作 {@link StringBuilder#reverse()}）。
      *
-     * <p>返回值说明：长度恒为 16 的字符串，与对端约定算法一致时可直接用于加解密两侧。
+     * <p>返回值说明：长度恒为 16 的 IV 原始字节，可直接用于 {@link IvParameterSpec}。
      *
      * @param timestampMillis 毫秒时间戳
-     * @return 16 字符长度的 IV 字符串
+     * @return 定长 16 字节 IV
      */
-    public static String genIv(long timestampMillis) {
+    public static byte[] genIvBytes(long timestampMillis) {
         String reversed = new StringBuilder(Long.toString(timestampMillis)).reverse().toString();
-        if (reversed.length() >= IV_LEN) {
-            return reversed.substring(0, IV_LEN);
-        }
-        StringBuilder sb = new StringBuilder(reversed);
-        while (sb.length() < IV_LEN) {
-            sb.append('0');
-        }
-        return sb.toString();
+        byte[] b = reversed.getBytes(StandardCharsets.UTF_8);
+        byte[] iv = new byte[IV_LEN];
+        System.arraycopy(b, 0, iv, 0, Math.min(b.length, IV_LEN));
+        return iv;
     }
 
     /**
      * 将 Base64 密文解密为 UTF-8 明文字符串。
      *
-     * <p>参数说明：encryptedBase64 为 Base64 文本；keyBytes 为 16 字节 AES 密钥；iv 为 16 字符 IV 字符串。
+     * <p>参数说明：{@code encryptedBase64} 为 Base64 文本；{@code keyBytes} 为 16 字节 AES 密钥；{@code ivBytes} 为 16
+     * 字节 IV。
      *
      * <p>返回值说明：解密后的业务 JSON 或其它明文字符串。
      *
-     * <p>异常说明：当 Base64 非法、密钥长度不是 16、或密文被篡改导致填充错误时，由底层 Cipher 抛出异常，
-     * 此处不吞掉异常，由调用方转换为业务错误码。
+     * <p>异常说明：当 Base64 非法、密钥或 IV 长度与算法要求不符、或密文被篡改导致填充错误时，由底层 {@link Cipher} 抛出异常，
+     * 由调用方转换为业务错误码。
      *
      * @param encryptedBase64 Base64 编码的密文
      * @param keyBytes        16 字节 AES 密钥
-     * @param iv              16 字符 IV
+     * @param ivBytes         16 字节 IV
      * @return UTF-8 明文
      * @throws Exception 解密过程中任一环节失败时抛出
      */
-    public static String decrypt(String encryptedBase64, byte[] keyBytes, String iv) throws Exception {
+    public static String decrypt(String encryptedBase64, byte[] keyBytes, byte[] ivBytes)
+            throws Exception {
         byte[] cipherBytes = Base64.decodeBase64(encryptedBase64.getBytes(StandardCharsets.UTF_8));
         SecretKeySpec keySpec = new SecretKeySpec(keyBytes, AES);
         Cipher cipher = Cipher.getInstance(AES_CBC_PKCS5);
-        cipher.init(Cipher.DECRYPT_MODE, keySpec, new IvParameterSpec(iv.getBytes(StandardCharsets.UTF_8)));
+        cipher.init(Cipher.DECRYPT_MODE, keySpec, new IvParameterSpec(ivBytes));
         byte[] plain = cipher.doFinal(cipherBytes);
         return new String(plain, StandardCharsets.UTF_8);
     }
@@ -81,22 +80,22 @@ public final class DidiaiAesUtil {
     /**
      * 将 UTF-8 明文加密为 Base64 密文，便于与对端联调或编写本地加密用例。
      *
-     * <p>参数说明：plainUtf8 为待加密明文；keyBytes 与 iv 含义同 decrypt 方法。
+     * <p>参数说明：{@code plainUtf8} 为待加密明文；{@code keyBytes} 与 {@code ivBytes} 含义同 {@link #decrypt}。
      *
      * <p>返回值说明：Base64 编码后的密文字符串。
      *
-     * <p>异常说明：加密失败时抛出 Exception，由调用方处理。
+     * <p>异常说明：加密失败时由底层抛出 {@link Exception}，由调用方处理。
      *
      * @param plainUtf8 明文
      * @param keyBytes  16 字节 AES 密钥
-     * @param iv        16 字符 IV
+     * @param ivBytes   16 字节 IV
      * @return Base64 密文
      * @throws Exception 加密失败时抛出
      */
-    public static String encrypt(String plainUtf8, byte[] keyBytes, String iv) throws Exception {
+    public static String encrypt(String plainUtf8, byte[] keyBytes, byte[] ivBytes) throws Exception {
         SecretKeySpec keySpec = new SecretKeySpec(keyBytes, AES);
         Cipher cipher = Cipher.getInstance(AES_CBC_PKCS5);
-        cipher.init(Cipher.ENCRYPT_MODE, keySpec, new IvParameterSpec(iv.getBytes(StandardCharsets.UTF_8)));
+        cipher.init(Cipher.ENCRYPT_MODE, keySpec, new IvParameterSpec(ivBytes));
         byte[] encrypted = cipher.doFinal(plainUtf8.getBytes(StandardCharsets.UTF_8));
         return Base64.encodeBase64String(encrypted);
     }

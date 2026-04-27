@@ -3698,7 +3698,7 @@ public class MarketingCommonConfig {
 //                    Arrays.asList("7413678", "3700401", "3700405", "3760057", "3760058"));
 
     /**
-     * 滴滴 AI：appKey 与 appSecret 映射，用于验签与 AES；后续 Speed 配置。
+     * 滴滴 AI：appKey 与 appSecret 映射，用于 Header sign 的 HMAC 验签；与 didiaiDataSecretMap 分离。后续 Speed 配置。
      */
     private Map<String, String> didiaiAppSecretMap;
 //            = new HashMap<>(
@@ -3708,6 +3708,20 @@ public class MarketingCommonConfig {
 //                            "cwg/WMWxpIsvZg6x", "s7Dbf0jVxwb5czD3FGevpv+NSs03QopL",  // 营销
 //                            "4e/rp5B4T0YP2tre", "00griLDc0ExP8sH53l+gPS81liA3YOcd" // 贷后
 //                    ));
+
+    /**
+     * 滴滴 AI：appKey 与 dataSecret 映射，用于 HTTP Body 的 AES 加/解密；与 didiaiAppSecretMap（HMAC 验签）分离。
+     *
+     * <p>未在映射中配置某 appKey 时，实现侧可回退为同 appKey 的 appSecret 以保持兼容，直至 Speed 中补齐 dataSecret。
+     */
+    private Map<String, String> didiaiDataSecretMap;
+//            = new HashMap<>(
+//                    Map.of(
+//                            "appKey_upload", "dataSecret_upload",
+//                            "appKey_marketing", "dataSecret_marketing",
+//                            "cwg/WMWxpIsvZg6x", "IWL1ee4B8TLi/PWQ8VKoarWHu0RSu0eP",  // 营销
+//                                "4e/rp5B4T0YP2tre", "KYLbLk0tljpc0fEaVr+6ypmQwoRudm+8" // 贷后
+//    ));
 
     /**
      * 滴滴 AI：业务 apiCode 与分表 cid（无符号数字串）对应，物理表 b_drs_customize_upload_data_{cid}。

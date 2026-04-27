@@ -9,6 +9,7 @@ import com.br.marketing.datarelayservice.service.DidiaiUploadService;
 import com.br.marketing.util.didiai.DidiaiAesUtil;
 import com.br.marketing.constant.DidiaiFixedConfig;
 import com.br.marketing.util.didiai.DidiaiClientApps;
+import com.br.marketing.util.didiai.DidiaiDataSecretUtil;
 import com.br.marketing.util.didiai.DidiaiKeyUtil;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.didiai.DidiaiApicodeResolveUtil;
@@ -34,7 +35,7 @@ import java.util.Map;
  * <p>功能说明：
  * <ul>
  *   <li>接收调用方传入的明文业务 JSON（字符串形式）。</li>
- *   <li>在服务端按滴滴协议生成 timestamp，并使用 appSecret 派生 AES Key 与 IV，对明文进行 AES 加密。</li>
+ *   <li>在服务端按滴滴协议生成 timestamp，并使用 dataSecret 派生 AES Key 与 IV、appSecret 参与 HMAC，对明文进行加密与签名。</li>
  *   <li>对明文按约定拼接规则生成 HMAC 签名，并组装成与正式接口一致的入参。</li>
  *   <li>复用正式上传处理链路，得到与正式接口一致的响应结构，便于联调、自动化与问题复现。</li>
  * </ul>
@@ -43,7 +44,7 @@ import java.util.Map;
  * <ul>
  *   <li>本接口只用于联调，默认关闭；是否开启由代码内固定开关控制，避免生产环境误暴露。</li>
  *   <li>模拟使用的 appKey 通过请求头传入，名称与正式接口一致，由 DidiaiRequestHeaderReader 读取（支持 appKey、AppKey、app-key 等）；未传时使用默认 appKey；若仍为空则回退取 apps 列表首条。</li>
- *   <li>appKey 对应的 appSecret 从固定映射中获取；若未配置或未匹配则按“未知应用”返回。</li>
+ *   <li>appKey 对应 appSecret（及未单独配时的 dataSecret 回退）从 Speed/固定映射获取；若未配置或未匹配则按「未知应用」返回。</li>
  * </ul>
  *
  * <p>注意事项：
@@ -72,8 +73,8 @@ public class DidiaiSimUploadController {
      * <ul>
      *   <li>检查模拟接口开关是否开启；未开启直接返回失败响应。</li>
      *   <li>校验明文 body 不为空，且是合法 JSON（顶层可以是数组或对象）。</li>
-     *   <li>解析模拟使用的 appKey，并根据 appKey 获取 appSecret。</li>
-     *   <li>生成 timestamp，使用 appSecret 派生 AES Key 与 IV，对明文进行 AES 加密。</li>
+ *   <li>解析模拟使用的 appKey，并根据 appKey 获取 appSecret。</li>
+ *   <li>生成 timestamp，使用 dataSecret 派生 AES Key、协议 IV，使用 appSecret 对明文做 HMAC 签名，再 AES 加密 body。</li>
      *   <li>按约定规则对明文生成 HMAC 签名，组装密文请求体并调用正式上传服务。</li>
      * </ul>
      *
@@ -172,14 +173,15 @@ public class DidiaiSimUploadController {
      * <p>实现说明：
      * <ul>
      *   <li>生成当前毫秒时间戳，参与 IV 生成与签名输入。</li>
-     *   <li>使用 appSecret 派生 AES Key，并按协议生成 IV，对明文执行 AES 加密。</li>
-     *   <li>按约定规则对明文生成 HMAC 签名。</li>
+     *   <li>使用 dataSecret 派生 AES Key，按协议以 timestamp 生成 IV，对明文执行 AES 加密。</li>
+     *   <li>按约定规则以 appSecret 对明文生成 HMAC 签名。</li>
      *   <li>组装密文请求体对象，并将 appKey、timestamp、sign、clientIp 透传给正式处理链路。</li>
      * </ul>
      *
      * @param params 明文 JSON 字符串，已通过语法校验与 trim 规范化。
      * @param appKey 应用标识。
-     * @param appSecret 应用密钥字符串，用于派生 AES Key 并参与签名。
+     * @param appSecret 应用密钥字符串，用于 HMAC 签名；AES 用 {@link DidiaiDataSecretUtil#resolveDataSecret} 得到
+     *                  的 dataSecret（未单配时与 appSecret 相同）。
      * @param request HTTP 请求对象，用于提取客户端 IP；允许为空。
      * @return 正式上传服务返回的标准响应对象；若加密或签名失败则返回失败响应。
      * @throws RuntimeException 理论上不抛出；异常会被捕获并转为失败响应。
@@ -187,8 +189,15 @@ public class DidiaiSimUploadController {
     private DidiaiResponseDTO encryptSignAndForward(
             String params, String appKey, String appSecret, HttpServletRequest request) {
         long timestamp = System.currentTimeMillis();
-        byte[] aesKey = DidiaiKeyUtil.toAes128KeyBytes(appSecret);
-        String iv = DidiaiAesUtil.genIv(timestamp);
+        String dataSecret =
+                DidiaiDataSecretUtil.resolveDataSecret(marketingCommonConfig, appKey, appSecret);
+        if (StringUtils.isBlank(dataSecret)) {
+            return DidiaiResponseDTO.fail(
+                    DidiaiErrorCodeEnum.UNKNOWN_APP.getCode(),
+                    DidiaiErrorCodeEnum.UNKNOWN_APP.getMessage());
+        }
+        byte[] aesKey = DidiaiKeyUtil.toAes128KeyBytes(dataSecret);
+        byte[] iv = DidiaiAesUtil.genIvBytes(timestamp);
         String sign;
         String cipher;
         try {
@@ -272,7 +281,9 @@ public class DidiaiSimUploadController {
     /**
      * 根据 appKey 获取对应的 appSecret。
      *
-     * <p>说明：优先从 Speed 的 didiaiAppSecretMap 按 appKey 取密钥；未命中时再从 DidiaiClientApps 固定映射获取；均无时返回 null，由上层转换为“未知应用”错误响应。
+     * <p>说明：优先从 Speed 的 didiaiAppSecretMap 按 appKey 取验签用 appSecret；未命中时再从 DidiaiClientApps
+     * 固定映射获取；均无时返回 null。AES 用 dataSecret 见 didiaiDataSecretMap（在 encryptSignAndForward 内与正式链路一致
+     * 经 {@link DidiaiDataSecretUtil#resolveDataSecret} 回退至 appSecret）。
      *
      * @param appKey 应用标识。
      * @return 对应的 appSecret；未匹配到返回 null。

@@ -7,6 +7,7 @@ import com.br.marketing.datarelayservice.service.DidiaiBizService;
 import com.br.marketing.datarelayservice.service.DidiaiUploadService;
 import com.br.marketing.util.didiai.DidiaiAesUtil;
 import com.br.marketing.util.didiai.DidiaiClientApps;
+import com.br.marketing.util.didiai.DidiaiDataSecretUtil;
 import com.br.marketing.util.didiai.DidiaiKeyUtil;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.didiai.DidiaiSignUtil;
@@ -19,8 +20,8 @@ import java.util.Map;
 /**
  * DidiaiUploadService 接口的实现类。
  *
- * <p>职责边界：根据配置解析 appSecret；从请求体多字段中解析密文；使用时间与密钥派生 AES 参数并解密得到明文；
- * 使用约定算法校验签名；全部通过后调用 DidiaiBizService.ingest 方法。
+ * <p>职责边界：根据配置解析 appSecret（验签）与 dataSecret（AES，未单独配置时与 appSecret 同值）；从请求体多字段中解析密文；
+ * 使用时间与 dataSecret 派生 AES 参数并解密得到明文；使用约定算法校验签名；全部通过后调用 DidiaiBizService.ingest 方法。
  * 本类不对请求时间戳做「允许时钟偏差」窗口校验，时间戳仅用于 IV 与验签输入。
  *
  * @author yueping.bai
@@ -37,7 +38,7 @@ public class DidiaiUploadServiceImpl implements DidiaiUploadService {
     /**
      * 处理一次完整的滴滴 AI 上传请求，逻辑与接口声明一致。
      *
-     * <p>实现说明：依次检查 appKey 与 sign 非空；按 appKey 在配置中查找 appSecret；解析密文；解密失败或验签失败时
+     * <p>实现说明：依次检查 appKey 与 sign 非空；按 appKey 在配置中查找 appSecret 与 dataSecret；解析密文；解密失败或验签失败时
      * 返回对应错误枚举；成功则把明文与 appKey、clientIp 交给业务层。
      */
     @Override
@@ -66,6 +67,13 @@ public class DidiaiUploadServiceImpl implements DidiaiUploadService {
                     DidiaiErrorCodeEnum.UNKNOWN_APP.getCode(),
                     DidiaiErrorCodeEnum.UNKNOWN_APP.getMessage());
         }
+        String dataSecret =
+                DidiaiDataSecretUtil.resolveDataSecret(marketingCommonConfig, appKey, appSecret);
+        if (StringUtils.isBlank(dataSecret)) {
+            return DidiaiResponseDTO.fail(
+                    DidiaiErrorCodeEnum.UNKNOWN_APP.getCode(),
+                    DidiaiErrorCodeEnum.UNKNOWN_APP.getMessage());
+        }
 
         String cipher = resolveCipherText(body);
         if (StringUtils.isBlank(cipher)) {
@@ -74,8 +82,8 @@ public class DidiaiUploadServiceImpl implements DidiaiUploadService {
                     DidiaiErrorCodeEnum.MISSING_CIPHER.getMessage());
         }
 
-        byte[] aesKey = DidiaiKeyUtil.toAes128KeyBytes(appSecret);
-        String iv = DidiaiAesUtil.genIv(timestamp);
+        byte[] aesKey = DidiaiKeyUtil.toAes128KeyBytes(dataSecret);
+        byte[] iv = DidiaiAesUtil.genIvBytes(timestamp);
         String plaintext;
         try {
             plaintext = DidiaiAesUtil.decrypt(cipher, aesKey, iv);
@@ -96,9 +104,8 @@ public class DidiaiUploadServiceImpl implements DidiaiUploadService {
     }
 
     /**
-     * 从全局配置中的滴滴客户端 JSON 里，按 appKey 查找匹配的 appSecret。
-     *
-     * <p>配置结构约定为根对象下存在 apps 数组，元素为包含 appKey、appSecret 字符串字段的对象。
+     * 从 {@link MarketingCommonConfig#getDidiaiAppSecretMap()} 与 {@link DidiaiClientApps} 中按 appKey 解析验签用
+     * appSecret。
      *
      * @param appKey 非空的应用标识
      * @return 匹配到的 appSecret；配置缺失或没有匹配项时返回 null
