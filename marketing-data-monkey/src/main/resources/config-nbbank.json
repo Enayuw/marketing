@@ -24,9 +24,9 @@
             "clientIp":"127.0.0.1",
             "passwd":"nbcb1234",
             "apiVersion":"201809101526",
-            "isProxy":false,
-            "proxyIp":"",
-            "proxyPort":80
+            "isProxy":true,
+            "proxyIp":"10.100.131.56",
+            "proxyPort":3128
         }
     ]
 }
