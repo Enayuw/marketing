@@ -11,7 +11,7 @@
             "merchantName":"",
             "subMerchantName":"",
             "subMerchantId":"",
-            "isProxy":false,
+            "isProxy":true,
             "proxyIp":"10.100.131.56",
             "proxyPort":3128,
 			"keyMode": "CERT"
