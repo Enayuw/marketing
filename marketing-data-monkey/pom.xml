@@ -95,6 +95,7 @@
                     <include>mapper/**</include>
                     <include>**/*.yml</include>
                     <include>**/*.xml</include>
+                    <include>**/*.json</include>
                     <include>**/*.properties</include>
                 </includes>
             </resource>

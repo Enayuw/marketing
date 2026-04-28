@@ -4,7 +4,6 @@ import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
-import com.br.marketing.client.SftpClient;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -36,13 +35,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
-import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -52,6 +52,9 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class NingBoBankDataServiceImpl implements NingBoBankDataService {
+
+    @Value("${otherConfig.ningbo.sdkFilePath:config-nbbank.json}")
+    private String sdkFilePath;
 
     private final static String TITLE = "【宁波银行】";
 
@@ -330,9 +333,17 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
     /**
      * 从宁波银行下载文件
      */
-    private void downloadFileFromBank(Date collectDate, JSONObject config, String localFilePath, String filePrefix) {
-        try {
-            SDKRequest request = new SDKRequest();
+    private void downloadFileFromBank(Date collectDate, JSONObject config, String localFilePath, String filePrefix) throws Exception {
+        NBOpenSDK.setSDKLogLevel(SDKLogLevel.DEBUG);
+        ClassPathResource resource = new ClassPathResource(sdkFilePath);
+        if (!resource.exists()) {
+            throw new FileNotFoundException("SDK配置文件不存在: " + sdkFilePath);
+        }
+        try (InputStream inputStream = resource.getInputStream()) {
+            NBOpenSDK.init(inputStream);
+        }
+
+        SDKRequest request = new SDKRequest();
             RequestHead head = new RequestHead();
             head.setRqsJrnlNo(NBOpenSDK.getRandom());
             request.setHead(head);
@@ -350,10 +361,6 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
             if (response == null || response.getHead() == null || !"SUCCESS".equals(response.getHead().getRspCode())) {
                 throw new RuntimeException("SDK文件下载失败: " + (response != null ? response.toString() : "响应为空"));
             }
-
-        } catch (Exception e) {
-            throw new RuntimeException("调用宁波银行SDK下载文件失败", e);
-        }
     }
 
     @Override
@@ -405,6 +412,14 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
      */
     private SDKResponse uploadFileToBank(JSONObject config, String localFilePath, String remoteFileName) {
         try {
+            NBOpenSDK.setSDKLogLevel(SDKLogLevel.DEBUG);
+            ClassPathResource resource = new ClassPathResource(sdkFilePath);
+            if (!resource.exists()) {
+                throw new FileNotFoundException("SDK配置文件不存在: " + sdkFilePath);
+            }
+            try (InputStream inputStream = resource.getInputStream()) {
+                NBOpenSDK.init(inputStream);
+            }
             SDKRequest request = new SDKRequest();
             RequestHead head = new RequestHead();
             head.setRqsJrnlNo(NBOpenSDK.getRandom());
