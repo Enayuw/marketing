@@ -344,23 +344,23 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
         }
 
         SDKRequest request = new SDKRequest();
-            RequestHead head = new RequestHead();
-            head.setRqsJrnlNo(NBOpenSDK.getRandom());
-            request.setHead(head);
+        RequestHead head = new RequestHead();
+        head.setRqsJrnlNo(NBOpenSDK.getRandom());
+        request.setHead(head);
 
-            RequestFileData fileData = new RequestFileData();
-            fileData.setLocalFilePath(localFilePath);
-            fileData.setRemoteFileName("orginal_bank2br_" + DateUtil.format(collectDate, "yyyyMMdd") + ".txt");
-            fileData.setTranCode(config.getString("tranCode"));
-            fileData.setUid(config.getString("uid"));
-            request.setData(fileData);
+        RequestFileData fileData = new RequestFileData();
+        fileData.setLocalFilePath(localFilePath);
+        fileData.setRemoteFileName("orginal_bank2br_" + DateUtil.format(collectDate, "yyyyMMdd") + ".txt");
+        fileData.setTranCode(config.getString("tranCode"));
+        fileData.setUid(config.getString("uid"));
+        request.setData(fileData);
 
-            log.warn("开始下载宁波银行文件，保存路径: {}", localFilePath);
-            SDKResponse response = NBOpenSDK.getFile(request);
+        log.warn("开始下载宁波银行文件，保存路径: {}", localFilePath);
+        SDKResponse response = NBOpenSDK.getFile(request);
 
-            if (response == null || response.getHead() == null || !"SUCCESS".equals(response.getHead().getRspCode())) {
-                throw new RuntimeException("SDK文件下载失败: " + (response != null ? response.toString() : "响应为空"));
-            }
+        if (response == null || response.getHead() == null || !"SUCCESS".equals(response.getHead().getRspCode())) {
+            throw new RuntimeException("SDK文件下载失败: " + (response != null ? response.toString() : "响应为空"));
+        }
     }
 
     @Override
