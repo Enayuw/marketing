@@ -2,7 +2,7 @@
   "api": [
     {
       "appKey": "77667c76_3503_4c04_95f7_fc10938c7942",
-      "publicUrl": "http://3.3.4.210:6001",
+      "publicUrl": "https://open-test.nbcb.com.cn/sit/nbcb/api/",
       "platfromPublicKeyPath": "bankPubKey-test.cer",
       "merchantPrivateKeyPath": "77667c76_3503_4c04_95f7_fc10938c7942.sm2",
       "merchantPrivateKeyPwd": "cfca",
@@ -20,7 +20,7 @@
   "file": [
     {
       "uid": "OPEN-BR",
-      "publicFileUrl": "http://3.3.4.210:6001",
+      "publicFileUrl": "https://file-test.nbcb.com.cn/",
       "clientIp": "127.0.0.1",
       "passwd": "nb1234",
       "apiVersion": "201809101526",
