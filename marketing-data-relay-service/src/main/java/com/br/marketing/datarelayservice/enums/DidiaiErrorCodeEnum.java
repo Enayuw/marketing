@@ -95,7 +95,10 @@ public enum DidiaiErrorCodeEnum {
     APICODE_NOT_FOUND(40022, "未获取到对应的 apiCode"),
 
     /** Test-ApiCode 请求头传入的 apiCode 不在配置白名单中。 */
-    TEST_APICODE_NOT_IN_WHITELIST(40023, "测试 apiCode 不在配置白名单中，请检查");
+    TEST_APICODE_NOT_IN_WHITELIST(40023, "测试 apiCode 不在配置白名单中，请检查"),
+
+    /** 单条记录 properties 中缺少非空的 uid（映射至 custNum）。 */
+    UID_MISSING(40024, "缺少必传字段uid，请检查！");
 
     private final int code;
     private final String message;
