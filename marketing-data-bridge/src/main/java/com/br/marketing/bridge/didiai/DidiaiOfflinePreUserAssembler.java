@@ -17,6 +17,9 @@ import java.util.List;
  * <p>按设计文档「清洗映射」口径：不经规则引擎 {@code commonClean}，由代码将 Drs 明文行映射为
  * {@link MarketingPreUserDTO}（手机号 UTF-8 MD5 小写 hex、{@code reserveField1} 等见 {@code json-mapping-rule.md}）。
  *
+ * <p>顶层字段对齐设计 §31：接口 {@code requestId} 同时写入 {@code MarketingPreUserDTO#taskId} 与
+ * {@code MarketingPreUserDTO#requestId}（§23 透传）；接口 {@code taskId} 写入明细 {@code reserveField1.taskIdDD}。
+ *
  * @author yueping.bai
  */
 public final class DidiaiOfflinePreUserAssembler {
@@ -24,26 +27,26 @@ public final class DidiaiOfflinePreUserAssembler {
     private DidiaiOfflinePreUserAssembler() {}
 
     /**
-     * 从滴滴明文行构造标准上传批次：逐行做清洗映射后填入 {@code dataItems}，透传客户侧 {@code taskId}/{@code requestId}。
+     * 从滴滴明文行构造标准上传批次：逐行做清洗映射后填入 {@code dataItems}。
      *
-     * <p>按 §23 设计，{@code requestId} 直接透传客户明文首条的值，不做服务端生成。
+     * <p>按 §23，{@code requestId} 透传客户明文首条至顶层 {@code requestId}；按 §31，同一字符串同时写入顶层
+     * {@code taskId}；每行接口 {@code taskId} 写入 {@code reserveField1.taskIdDD}。
      *
      * @param apiCode 业务接口编号（当前未使用，保留参数以兼容调用方）
-     * @param row     汇总表当前行（当前未使用，保留参数以兼容调用方）
+     * @param row     汇总表当前行；当 {@code rows} 无法取出有效 {@code requestId} 时用于回退读取汇总表字段
      * @param rows    非空明文行列表
      * @return 非空的批次对象，可序列化后走标准上传
      */
     public static MarketingPreUserDTO buildMarketingPreUserByCleaningMapping(
             String apiCode, DrsCustomizeUploadData row, List<JSONObject> rows) {
-        String taskIdStr = resolveBatchTaskId(rows, row);
-        String requestIdStr = resolveBatchRequestId(rows, row);
+        String batchRequestId = resolveBatchRequestId(rows, row);
         List<MarketingPreUserDetailDTO> items = new ArrayList<>(rows.size());
         for (JSONObject r : rows) {
             items.add(mapPlainRowToDetailByCleaningMapping(r));
         }
         MarketingPreUserDTO dto = new MarketingPreUserDTO();
-        dto.setTaskId(taskIdStr);
-        dto.setRequestId(requestIdStr);
+        dto.setTaskId(batchRequestId);
+        dto.setRequestId(batchRequestId);
         dto.setDataItems(items);
         return dto;
     }
@@ -69,25 +72,6 @@ public final class DidiaiOfflinePreUserAssembler {
     }
 
     /**
-     * 解析本批次的任务号字符串：优先使用首行业务任务号；若无则依次尝试汇总表请求号、汇总表主键；仍无则使用固定占位字面量。
-     */
-    private static String resolveBatchTaskId(List<JSONObject> rows, DrsCustomizeUploadData row) {
-        if (rows != null && !rows.isEmpty()) {
-            Object tid = rows.get(0).get("taskId");
-            if (tid != null) {
-                return String.valueOf(tid);
-            }
-        }
-        if (row != null && StringUtils.isNotBlank(row.getRequestId())) {
-            return row.getRequestId();
-        }
-        if (row != null && row.getId() != null) {
-            return String.valueOf(row.getId());
-        }
-        return "didiai_batch";
-    }
-
-    /**
      * 将单条滴滴明文 JSON 清洗映射为一条营销标准明细。
      *
      * <p>映射规则对齐 {@code json-mapping-rule.md} 与设计 §22：
@@ -98,6 +82,7 @@ public final class DidiaiOfflinePreUserAssembler {
      *   <li>{@code properties.userName}（选填）→ {@code reserveField1.userName}
      *   <li>{@code properties.productName}（选填）→ {@code reserveField1.productName}
      *   <li>{@code properties.strategyCode}（选填）→ {@code reserveField1.strategyCode}
+     *   <li>接口字段 {@code taskId} → {@code reserveField1.taskIdDD}（§31）
      * </ul>
      */
     private static MarketingPreUserDetailDTO mapPlainRowToDetailByCleaningMapping(JSONObject r) {
@@ -122,6 +107,10 @@ public final class DidiaiOfflinePreUserAssembler {
         }
         JSONObject reserve = new JSONObject();
         reserve.put("userType", userType);
+        Object interfaceTaskId = r.get("taskId");
+        if (interfaceTaskId != null) {
+            reserve.put("taskIdDD", String.valueOf(interfaceTaskId));
+        }
         if (StringUtils.isNotBlank(strategyCode)) {
             reserve.put("strategyCode", strategyCode);
         }
