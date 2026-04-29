@@ -43,6 +43,8 @@ import javax.annotation.Resource;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -115,12 +117,13 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
             String separator = fieldConfig.getFileSeparator();
             String charset = fieldConfig.getFileCharset();
 
-            String tempFileName = filePrefix + DateUtil.format(DateUtil.date(), "yyyyMMdd") + ".txt";
+            String fileName = config.getString("fileName");
+            fileName = replaceDate(fileName, LocalDate.now());
             String tempDir = syncConfigService.getPath() + apiCode + File.separator;
-            String localFilePath = Paths.get(tempDir, tempFileName).toString();
+            String localFilePath = Paths.get(tempDir, fileName).toString();
 
             if (!mockEnable) {
-                downloadFileFromBank(collectDate, config, localFilePath, filePrefix);
+                downloadFileFromBank(config, localFilePath, fileName);
             }
             log.warn("文件地址：{}", localFilePath);
             File downloadedFile = new File(localFilePath);
@@ -131,7 +134,7 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
 
             processFileContentBatched(
                     localFilePath, charset, fieldMapping, currentTask.getId(),
-                    apiCode, collectDate, separator, limit, tempFileName
+                    apiCode, collectDate, separator, limit, fileName
             );
 
             // 更新任务状态为成功
@@ -330,10 +333,27 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
         return uploadDataDTO;
     }
 
+    private String replaceDate(String input, LocalDate date) {
+        if (input == null || date == null) {
+            return input;
+        }
+
+        if (input.contains("yyyy-MM-dd")) {
+            String newDate = date.format(DateTimeFormatter.ISO_LOCAL_DATE);
+            return input.replaceAll("yyyy-MM-dd", newDate);
+        }
+
+        if (input.contains("yyyyMMdd")) {
+            String newDate = date.format(DateTimeFormatter.BASIC_ISO_DATE);
+            return input.replaceAll("yyyyMMdd", newDate);
+        }
+        return input;
+    }
+
     /**
      * 从宁波银行下载文件
      */
-    private void downloadFileFromBank(Date collectDate, JSONObject config, String localFilePath, String filePrefix) throws Exception {
+    private void downloadFileFromBank(JSONObject config, String localFilePath, String fileName) throws Exception {
         NBOpenSDK.setSDKLogLevel(SDKLogLevel.DEBUG);
         ClassPathResource resource = new ClassPathResource(sdkFilePath);
         if (!resource.exists()) {
@@ -350,7 +370,8 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
 
         RequestFileData fileData = new RequestFileData();
         fileData.setLocalFilePath(localFilePath);
-        fileData.setRemoteFileName("orginal_bank2br_" + DateUtil.format(collectDate, "yyyyMMdd") + ".txt");
+
+        fileData.setRemoteFileName(fileName);
         fileData.setTranCode(config.getString("tranCode"));
         fileData.setUid(config.getString("uid"));
         request.setData(fileData);
