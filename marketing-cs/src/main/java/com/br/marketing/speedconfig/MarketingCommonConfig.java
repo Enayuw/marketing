@@ -1812,6 +1812,16 @@ public class MarketingCommonConfig {
     private String rongShuFileExecTime;
 
     /**
+     * 榕树新场景外呼黑名单 Job：参与执行的 apiCode 列表（测试/生产通过不同环境 Speed 区分）
+     */
+    private List<String> rongShuNewScenePushBlackListApiCodes;
+
+    /**
+     * 榕树新场景外呼黑名单：第三路转化 request_data 为「当前日期 − N 天」时的 N，默认 30
+     */
+    private Integer rongShuNewScenePushBlackListRegisterOffsetDays = 30;
+
+    /**
      * marketing-task跑分服务节点数量
      */
     private Integer numberOfScoreTaskNodes;

@@ -1444,4 +1444,17 @@
         order by create_time desc, id desc
         limit 1
     </select>
+
+    <!-- 榕树新场景外呼黑名单：request_data 与可选 apply_result，分页 2000 -->
+    <select id="listRongShuPushBlackTransferByRequestDataAndApplyResult"
+            resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select * from b_marketing_transfer_sync_${cid}
+        where api_code = #{apiCode}
+          and request_data = #{requestData}
+        <if test="applyResult != null and applyResult != ''">
+            and apply_result = #{applyResult}
+        </if>
+        order by id asc
+        limit #{limitStart},2000
+    </select>
 </mapper>
