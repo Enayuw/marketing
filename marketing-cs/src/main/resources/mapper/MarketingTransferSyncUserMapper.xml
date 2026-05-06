@@ -1445,7 +1445,7 @@
         limit 1
     </select>
 
-    <!-- 榕树新场景外呼黑名单：request_data 与可选 apply_result，分页 2000 -->
+    <!-- 榕树新场景外呼黑名单：request_data 与可选 apply_result，id 游标分页 2000 -->
     <select id="listRongShuPushBlackTransferByRequestDataAndApplyResult"
             resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select * from b_marketing_transfer_sync_${cid}
@@ -1454,21 +1454,10 @@
         <if test="applyResult != null and applyResult != ''">
             and apply_result = #{applyResult}
         </if>
+        <if test="minId != null and minId > 0">
+            and id > #{minId}
+        </if>
         order by id asc
-        limit #{limitStart},2000
-    </select>
-
-    <!-- 榕树新场景推决策-情况1 -->
-    <select id="listRongShuPushPolicyTransferScenario1" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
-        select * from b_marketing_transfer_sync_${cid}
-        where api_code = #{apiCode}
-          and request_data = #{requestData}
-          and if_apply = '0'
-          and user_type in
-          <foreach collection="userTypes" item="ut" open="(" separator="," close=")">
-              #{ut}
-          </foreach>
-        order by id asc
-        limit #{limitStart},2000
+        limit 2000
     </select>
 </mapper>

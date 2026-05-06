@@ -11,6 +11,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.common.enums.SoleFieldEnum;
+import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.dto.DataJoinLogDTO;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -19,6 +20,8 @@ import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
+import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
+import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -92,16 +95,27 @@ public class RongShuNewScenePushPolicyServiceImpl implements RongShuNewScenePush
             return;
         }
         String requestDataTMinus1 = LocalDate.now().minusDays(1).format(REQUEST_DATA_DAY_FMT);
+        TpDynamicExecutor threadPool = TpDynamicExecutorFactory
+                .getThreadPool(ThreadPoolNameEnum.RONGSHU_NEW_SCENE_POLICY.getName(), 5, 20);
         pushScenario1Transfer(tcId, apiCode, requestDataTMinus1, strategyCode);
         pushScenario2Upload(apiCode, strategyCode);
+        threadPool.shutdownAndAwaitTermination();
     }
 
     private void pushScenario1Transfer(String tcId, String apiCode, String requestData, String strategyCode) {
-        int limitStart = 0;
+        Long minId = null;
         for (; ; ) {
             List<MarketingTransferSyncUser> batch =
-                    marketingTransferSyncUserMapper.listRongShuPushPolicyTransferScenario1(
-                            tcId, apiCode, requestData, SCENARIO1_USER_TYPES, limitStart);
+                    marketingTransferSyncUserMapper.getRsToPolicyData(
+                            requestData,
+                            tcId,
+                            SCENARIO1_USER_TYPES,
+                            null,
+                            null,
+                            "0",
+                            null,
+                            minId,
+                            BATCH_SIZE);
             if (CollectionUtils.isEmpty(batch)) {
                 break;
             }
@@ -109,15 +123,15 @@ public class RongShuNewScenePushPolicyServiceImpl implements RongShuNewScenePush
             if (batch.size() < BATCH_SIZE) {
                 break;
             }
-            limitStart += BATCH_SIZE;
+            minId = batch.get(batch.size() - 1).getId();
         }
     }
 
     private void pushScenario2Upload(String apiCode, String strategyCode) {
-        int limitStart = 0;
+        Long minId = null;
         for (; ; ) {
             List<MarketingSyncUser> batch =
-                    marketingSyncInfoMapper.listRongShuPushPolicyUpload201SixAmWindow(apiCode, limitStart);
+                    marketingSyncInfoMapper.listRongShuPushPolicyUpload201SixAmWindow(apiCode, minId);
             if (CollectionUtils.isEmpty(batch)) {
                 break;
             }
@@ -125,7 +139,7 @@ public class RongShuNewScenePushPolicyServiceImpl implements RongShuNewScenePush
             if (batch.size() < BATCH_SIZE) {
                 break;
             }
-            limitStart += BATCH_SIZE;
+            minId = batch.get(batch.size() - 1).getId();
         }
     }
 
@@ -240,14 +254,13 @@ public class RongShuNewScenePushPolicyServiceImpl implements RongShuNewScenePush
         retryByRuleDTO.setData(pushs);
         retryByRuleDTO.setDetailLogList(logList);
         retryByRuleDTO.setIsSole(Boolean.TRUE);
-        retryByRuleDTO.setSoleField(SoleFieldEnum.CUST_NUM_SOLE.getValue());
+        retryByRuleDTO.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
         return retryByRuleDTO;
     }
 
     private JSONObject variablesFromTransfer(MarketingTransferSyncUser row) {
         JSONObject v = new JSONObject();
         v.put("userType", row.getUserType());
-        mergeReserveJson(v, row.getReserveField1());
         return v;
     }
 

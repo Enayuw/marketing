@@ -132,11 +132,11 @@ public class RongShuNewScenePushBlackListServiceImpl implements RongShuNewSceneP
     private List<MarketingTransferSyncUser> loadTransferByRequestDataAndApply(
             String cid, String apiCode, String requestData, String applyResult) {
         List<MarketingTransferSyncUser> all = new ArrayList<>();
-        int limitStart = 0;
+        Long minId = null;
         for (; ; ) {
             List<MarketingTransferSyncUser> batch = marketingTransferSyncUserMapper
                     .listRongShuPushBlackTransferByRequestDataAndApplyResult(
-                            cid, apiCode, requestData, applyResult, limitStart);
+                            cid, apiCode, requestData, applyResult, minId);
             if (CollectionUtils.isEmpty(batch)) {
                 break;
             }
@@ -144,7 +144,7 @@ public class RongShuNewScenePushBlackListServiceImpl implements RongShuNewSceneP
             if (batch.size() < TRANSFER_PAGE_SIZE) {
                 break;
             }
-            limitStart += TRANSFER_PAGE_SIZE;
+            minId = batch.get(batch.size() - 1).getId();
         }
         return all;
     }

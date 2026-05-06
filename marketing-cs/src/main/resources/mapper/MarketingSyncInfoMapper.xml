@@ -718,7 +718,7 @@
         limit 1
     </select>
 
-    <!-- 榕树新场景推决策-情况2：201，当天，约6点落库窗口 -->
+    <!-- 榕树新场景推决策-情况2：201，当天，约6点落库窗口（id 游标分页） -->
     <select id="listRongShuPushPolicyUpload201SixAmWindow" resultType="com.br.marketing.entity.MarketingSyncUser">
         select * from b_marketing_sync_${apiCode}
         where status = 1
@@ -727,8 +727,11 @@
           and applet_date = DATE_FORMAT(CURDATE(), '%Y-%m-%d')
           and create_time <![CDATA[>=]]> DATE_ADD(CURDATE(), INTERVAL 6 HOUR)
           and create_time <![CDATA[<]]> DATE_ADD(CURDATE(), INTERVAL 7 HOUR)
+        <if test="minId != null and minId > 0">
+          and id > #{minId}
+        </if>
         order by id asc
-        limit #{limitStart},2000
+        limit 2000
     </select>
 
 </mapper>

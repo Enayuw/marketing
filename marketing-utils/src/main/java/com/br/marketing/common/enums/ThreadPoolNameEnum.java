@@ -81,6 +81,8 @@ public enum ThreadPoolNameEnum {
 
     DIDI_V5_BLACK_DATA(71,"didi_v5_black_data","滴滴v5黑名单"),
 
+    RONGSHU_NEW_SCENE_POLICY(72,"rongshu_new_scene_policy_4022414", "榕树新场景断点推送决策"),
+
     ;
 
     private final Integer order;
