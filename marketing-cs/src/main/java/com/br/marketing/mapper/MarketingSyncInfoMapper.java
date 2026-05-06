@@ -326,5 +326,4 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
      * <p>说明：当分表不存在时，MySQL 会抛错（1146）。上层按需 try/catch 处理。</p>
      */
     CheckUploadSyncDataDto getLatestDataByApiCode(@Param("apiCode") String apiCode);
-
 }
