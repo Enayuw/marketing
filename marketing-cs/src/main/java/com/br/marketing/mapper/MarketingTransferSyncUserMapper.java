@@ -730,16 +730,4 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      */
     CheckTransferSyncDataDto getLatestDataByCidAndApiCode(@Param("cid") String cid, @Param("apiCode") String apiCode);
 
-    /**
-     * 榕树新场景外呼黑名单：按 request_data、可选 apply_result 分页查转化表。
-     *
-     * @param applyResult 非空时增加 apply_result 条件；第三路可传 null 仅按日期过滤
-     */
-    List<MarketingTransferSyncUser> listRongShuPushBlackTransferByRequestDataAndApplyResult(
-            @Param("cid") String cid,
-            @Param("apiCode") String apiCode,
-            @Param("requestData") String requestData,
-            @Param("applyResult") String applyResult,
-            @Param("minId") Long minId);
-
 }

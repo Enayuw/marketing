@@ -156,16 +156,12 @@ public class RongShuNewScenePushPolicyServiceImpl implements RongShuNewScenePush
             if (CollectionUtils.isEmpty(batch)) {
                 break;
             }
-            List<MarketingSyncUser> oneBatch = batch;
             futures.add(CompletableFuture.runAsync(
-                    () -> pushOneBatchFromSync(oneBatch, apiCode, strategyCode, SCENARIO_TYPE_UPLOAD), threadPool));
+                    () -> pushOneBatchFromSync(batch, apiCode, strategyCode, SCENARIO_TYPE_UPLOAD), threadPool));
             if (batch.size() < BATCH_SIZE) {
                 break;
             }
             minId = batch.get(batch.size() - 1).getId();
-        }
-        if (CollectionUtils.isEmpty(futures)) {
-            return;
         }
     }
 

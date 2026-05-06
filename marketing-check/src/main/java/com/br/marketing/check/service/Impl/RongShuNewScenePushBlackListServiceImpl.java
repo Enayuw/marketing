@@ -10,6 +10,7 @@ import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneParentDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.enums.ThreadPoolNameEnum;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
@@ -18,6 +19,8 @@ import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
+import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
+import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -29,6 +32,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 /**
  * 榕树新场景外呼黑名单推送实现（仅供定时 Job 调用）。
@@ -43,8 +48,6 @@ public class RongShuNewScenePushBlackListServiceImpl implements RongShuNewSceneP
 
     private static final String USER_TYPE_NEW_SCENE = "202";
     private static final String EXTEND_INFO_TAG = "RongShuNewSceneBlack";
-    private static final int BATCH_PUSH_SIZE = 500;
-    private static final int TRANSFER_PAGE_SIZE = 2000;
     private static final DateTimeFormatter EFFECTIVE_TIME_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final DateTimeFormatter REQUEST_DATA_DAY_FMT = DateTimeFormatter.ISO_LOCAL_DATE;
 
@@ -96,11 +99,47 @@ public class RongShuNewScenePushBlackListServiceImpl implements RongShuNewSceneP
         int offsetDays = registerOffsetDays();
         String pastRequestData = LocalDate.now().minusDays(offsetDays).format(REQUEST_DATA_DAY_FMT);
 
-        List<MarketingSyncUser> uploadRows = loadUploadUserType202Today(apiCode, todayStr);
-        pushBlackFromSyncUsers(uploadRows, apiCode, "upload202");
+        TpDynamicExecutor threadPool = TpDynamicExecutorFactory.getThreadPool(
+                ThreadPoolNameEnum.RONGSHU_NEW_SCENE_BLACKLIST.getName(), 5, 20);
+        try {
+            String uploadSourceTag = "upload202";
+            List<CompletableFuture<Void>> uploadFutures = new ArrayList<>();
+            Long uploadMinId = null;
+            for (; ; ) {
+                List<MarketingSyncUser> uploadBatch = marketingSyncInfoMapper.getMarketingSyncByCondition(
+                        apiCode, null, todayStr, USER_TYPE_NEW_SCENE, null, null, uploadMinId);
+                if (CollectionUtils.isEmpty(uploadBatch)) {
+                    break;
+                }
+                uploadFutures.add(CompletableFuture.runAsync(
+                        () -> pushBlackFromSyncUsers(uploadBatch, apiCode, uploadSourceTag), threadPool));
+                if (uploadBatch.size() < 2000) {
+                    break;
+                }
+                uploadMinId = uploadBatch.get(uploadBatch.size() - 1).getId();
+            }
 
-        List<MarketingTransferSyncUser> registerOffset = loadTransferByRequestDataAndApply(tcId, apiCode, pastRequestData, null);
-        pushBlackFromTransferUsers(registerOffset, apiCode, "transferRequestDataT-" + offsetDays);
+            CompletableFuture.allOf(uploadFutures.toArray(new CompletableFuture[0])).join();
+
+            String transferSourceTag = "transferRequestDataT-" + offsetDays;
+            List<CompletableFuture<Void>> transferFutures = new ArrayList<>();
+            Long transferMinId = null;
+            for (; ; ) {
+                List<MarketingTransferSyncUser> transferBatch = marketingTransferSyncUserMapper
+                        .getTransferByRequestDate(tcId, apiCode, pastRequestData, transferMinId);
+                if (CollectionUtils.isEmpty(transferBatch)) {
+                    break;
+                }
+                transferFutures.add(CompletableFuture.runAsync(
+                        () -> pushBlackFromTransferUsers(transferBatch, apiCode, transferSourceTag), threadPool));
+                if (transferBatch.size() < 2000) {
+                    break;
+                }
+                transferMinId = transferBatch.get(transferBatch.size() - 1).getId();
+            }
+        } finally {
+            threadPool.shutdownAndAwaitTermination();
+        }
     }
 
     private int registerOffsetDays() {
@@ -111,54 +150,14 @@ public class RongShuNewScenePushBlackListServiceImpl implements RongShuNewSceneP
         return n;
     }
 
-    private List<MarketingSyncUser> loadUploadUserType202Today(String apiCode, String appletDate) {
-        List<MarketingSyncUser> all = new ArrayList<>();
-        Long minId = null;
-        for (; ; ) {
-            List<MarketingSyncUser> batch = marketingSyncInfoMapper.getMarketingSyncByCondition(
-                    apiCode, null, appletDate, USER_TYPE_NEW_SCENE, null, null, minId);
-            if (CollectionUtils.isEmpty(batch)) {
-                break;
-            }
-            all.addAll(batch);
-            minId = batch.get(batch.size() - 1).getId();
-            if (batch.size() < 2000) {
-                break;
-            }
-        }
-        return all;
-    }
-
-    private List<MarketingTransferSyncUser> loadTransferByRequestDataAndApply(
-            String cid, String apiCode, String requestData, String applyResult) {
-        List<MarketingTransferSyncUser> all = new ArrayList<>();
-        Long minId = null;
-        for (; ; ) {
-            List<MarketingTransferSyncUser> batch = marketingTransferSyncUserMapper
-                    .listRongShuPushBlackTransferByRequestDataAndApplyResult(
-                            cid, apiCode, requestData, applyResult, minId);
-            if (CollectionUtils.isEmpty(batch)) {
-                break;
-            }
-            all.addAll(batch);
-            if (batch.size() < TRANSFER_PAGE_SIZE) {
-                break;
-            }
-            minId = batch.get(batch.size() - 1).getId();
-        }
-        return all;
-    }
-
     private void pushBlackFromSyncUsers(List<MarketingSyncUser> rows, String apiCode, String sourceTag) {
         if (CollectionUtils.isEmpty(rows)) {
             return;
         }
         List<BlackDetailDTO> details = new ArrayList<>();
         for (MarketingSyncUser row : rows) {
-            BlackDetailDTO one = buildBlackDetailFromCustNum(row.getCustNum(), row.getId(), apiCode, sourceTag);
-            if (one != null) {
-                details.add(one);
-            }
+            BlackDetailDTO one = buildBlackDetailFromCellMd5(row.getCellMd5(), row.getId(), apiCode, sourceTag);
+            details.add(one);
         }
         pushBlackInBatches(details, apiCode, sourceTag);
     }
@@ -175,6 +174,14 @@ public class RongShuNewScenePushBlackListServiceImpl implements RongShuNewSceneP
             }
         }
         pushBlackInBatches(details, apiCode, sourceTag);
+    }
+
+    private BlackDetailDTO buildBlackDetailFromCellMd5(String cellMd5, Long rowId, String apiCode, String sourceTag) {
+        BlackDetailDTO d = new BlackDetailDTO();
+        d.setDataId(rowId != null ? String.valueOf(rowId) : cellMd5);
+        d.setPhone(cellMd5);
+        d.setEffectiveDate(LocalDateTime.now().format(EFFECTIVE_TIME_FMT));
+        return d;
     }
 
     private BlackDetailDTO buildBlackDetailFromCustNum(String custNum, Long rowId, String apiCode, String sourceTag) {
@@ -213,40 +220,27 @@ public class RongShuNewScenePushBlackListServiceImpl implements RongShuNewSceneP
         if (CollectionUtils.isEmpty(blackDetailList)) {
             return;
         }
-        int pageSize = BATCH_PUSH_SIZE;
-        int totalCount = blackDetailList.size();
-        int pageCount = totalCount % pageSize == 0 ? totalCount / pageSize : totalCount / pageSize + 1;
-        for (int i = 1; i <= pageCount; i++) {
-            List<BlackDetailDTO> subList;
-            if (i == pageCount) {
-                subList = blackDetailList.subList((i - 1) * pageSize, totalCount);
-            } else {
-                subList = blackDetailList.subList((i - 1) * pageSize, pageSize * i);
-            }
-            BlackPhoneDTO<BlackDetailDTO> jsondata = new BlackPhoneDTO<>();
-            jsondata.setMethod("blackData");
-            jsondata.setData(subList);
-            ReqBlackPhoneDTO dto = new ReqBlackPhoneDTO();
-            dto.setApiCode(apiCode);
-            dto.setJsonData(JSON.toJSONString(jsondata));
-            ReqBlackPhoneParentDTO parentDTO = new ReqBlackPhoneParentDTO();
-            parentDTO.setDto(dto);
-            parentDTO.setBlackDetailDTOList(subList);
-            parentDTO.setExtendInfo(EXTEND_INFO_TAG);
-            Result<String> callResult = methodRetryHandlerService.callCustomerBlack(parentDTO, 0);
-            if (!ResultCode.SUCCESS.getValue().equals(callResult.getCode())) {
-                log.warn(
-                        AlertLog.buildWarnMessage(
-                                AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(),
-                                String.format(
-                                        "榕树新场景推送黑名单失败 apiCode=%s source=%s batch=%s/%s code=%s data=%s",
-                                        apiCode,
-                                        sourceTag,
-                                        i,
-                                        pageCount,
-                                        callResult.getCode(),
-                                        callResult.getData())));
-            }
+        BlackPhoneDTO<BlackDetailDTO> jsondata = new BlackPhoneDTO<>();
+        jsondata.setMethod("blackData");
+        jsondata.setData(blackDetailList);
+        ReqBlackPhoneDTO dto = new ReqBlackPhoneDTO();
+        dto.setApiCode(apiCode);
+        dto.setJsonData(JSON.toJSONString(jsondata));
+        ReqBlackPhoneParentDTO parentDTO = new ReqBlackPhoneParentDTO();
+        parentDTO.setDto(dto);
+        parentDTO.setBlackDetailDTOList(blackDetailList);
+        parentDTO.setExtendInfo(EXTEND_INFO_TAG);
+        Result<String> callResult = methodRetryHandlerService.callCustomerBlack(parentDTO, 0);
+        if (!ResultCode.SUCCESS.getValue().equals(callResult.getCode())) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(),
+                            String.format(
+                                    "榕树新场景推送黑名单失败 apiCode=%s source=%s code=%s data=%s",
+                                    apiCode,
+                                    sourceTag,
+                                    callResult.getCode(),
+                                    callResult.getData())));
         }
     }
 }
