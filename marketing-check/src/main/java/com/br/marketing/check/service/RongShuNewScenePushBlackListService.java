@@ -1,12 +1,14 @@
 package com.br.marketing.check.service;
 
 /**
- * 榕树新场景：上传 + 转化三路数据扫描并推送外呼黑名单（blackData）。
+ * 榕树新场景：定时 Job 侧「上传 + 转化 T-N」两路外呼黑名单推送（blackData）。
+ * <p>转化 applyResult=1（T 日永久拉黑）不在此接口，见实时或其它模块。</p>
  */
 public interface RongShuNewScenePushBlackListService {
 
     /**
-     * 按 Speed 配置的 apiCode 列表执行；单 apiCode 内依次处理上传 202、转化当天 applyResult=1、转化 T-N request_data。
+     * 按 Speed {@code rongShuNewScenePushBlackListApiCodes} 遍历 apiCode；
+     * 每个 apiCode：上传 userType=202（当天 applet_date）→ 转化 {@code request_data}=CURDATE()-N（无 apply 条件）。
      */
     void executePushBlackList();
 }

@@ -31,14 +31,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 榕树新场景外呼黑名单推送。
+ * 榕树新场景外呼黑名单推送实现（仅供定时 Job 调用）。
+ * <p>
+ * 仅覆盖两路：上传 userType=202（当天）、转化 {@code request_data}=T-N。
+ * 「T 日转化 applyResult=1 永久拉黑」不在此 Service / Job 内实现，由实时或其它链路单独处理。
+ * </p>
  */
 @Slf4j
 @Service
 public class RongShuNewScenePushBlackListServiceImpl implements RongShuNewScenePushBlackListService {
 
     private static final String USER_TYPE_NEW_SCENE = "202";
-    private static final String APPLY_RESULT_PASS = "1";
     private static final String EXTEND_INFO_TAG = "RongShuNewSceneBlack";
     private static final int BATCH_PUSH_SIZE = 500;
     private static final int TRANSFER_PAGE_SIZE = 2000;
@@ -95,9 +98,6 @@ public class RongShuNewScenePushBlackListServiceImpl implements RongShuNewSceneP
 
         List<MarketingSyncUser> uploadRows = loadUploadUserType202Today(apiCode, todayStr);
         pushBlackFromSyncUsers(uploadRows, apiCode, "upload202");
-
-        List<MarketingTransferSyncUser> applyToday = loadTransferByRequestDataAndApply(tcId, apiCode, todayStr, APPLY_RESULT_PASS);
-        pushBlackFromTransferUsers(applyToday, apiCode, "transferApply1");
 
         List<MarketingTransferSyncUser> registerOffset = loadTransferByRequestDataAndApply(tcId, apiCode, pastRequestData, null);
         pushBlackFromTransferUsers(registerOffset, apiCode, "transferRequestDataT-" + offsetDays);

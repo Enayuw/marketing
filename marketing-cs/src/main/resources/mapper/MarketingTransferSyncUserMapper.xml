@@ -1457,4 +1457,18 @@
         order by id asc
         limit #{limitStart},2000
     </select>
+
+    <!-- 榕树新场景推决策-情况1 -->
+    <select id="listRongShuPushPolicyTransferScenario1" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select * from b_marketing_transfer_sync_${cid}
+        where api_code = #{apiCode}
+          and request_data = #{requestData}
+          and if_apply = '0'
+          and user_type in
+          <foreach collection="userTypes" item="ut" open="(" separator="," close=")">
+              #{ut}
+          </foreach>
+        order by id asc
+        limit #{limitStart},2000
+    </select>
 </mapper>

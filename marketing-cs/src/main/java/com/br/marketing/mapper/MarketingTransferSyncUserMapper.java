@@ -742,4 +742,14 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
             @Param("applyResult") String applyResult,
             @Param("limitStart") Integer limitStart);
 
+    /**
+     * 榕树新场景推决策-情况1：request_data=T-1，if_apply=0，user_type in (1,201,202,3)
+     */
+    List<MarketingTransferSyncUser> listRongShuPushPolicyTransferScenario1(
+            @Param("cid") String cid,
+            @Param("apiCode") String apiCode,
+            @Param("requestData") String requestData,
+            @Param("userTypes") List<String> userTypes,
+            @Param("limitStart") Integer limitStart);
+
 }
