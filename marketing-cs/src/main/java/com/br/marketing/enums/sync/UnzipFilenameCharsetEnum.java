@@ -1,5 +1,6 @@
 package com.br.marketing.enums.sync;
 
+import com.br.marketing.common.utils.StringUtils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -17,7 +18,7 @@ public enum UnzipFilenameCharsetEnum {
     private final String charsetName;
 
     public static UnzipFilenameCharsetEnum fromName(String name) {
-        if (name == null || name.isEmpty()) {
+        if (StringUtils.isBlank(name)) {
             return null;
         }
         String t = name.trim();
@@ -31,7 +32,7 @@ public enum UnzipFilenameCharsetEnum {
 
     /** 与库表 DEFAULT 'GBK' 一致 */
     public static String defaultIfBlank(String charset) {
-        if (charset == null || charset.trim().isEmpty()) {
+        if (StringUtils.isBlank(charset)) {
             return GBK.getCharsetName();
         }
         return charset.trim();
