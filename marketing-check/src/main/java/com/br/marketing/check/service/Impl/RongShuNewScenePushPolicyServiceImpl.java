@@ -35,6 +35,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 /**
  * 榕树新场景推决策：先情况 1（转化）全部分批推送，再情况 2（上传 201 窗口）；去重由 sole 切面处理。
@@ -46,8 +48,9 @@ public class RongShuNewScenePushPolicyServiceImpl implements RongShuNewScenePush
     private static final int BATCH_SIZE = 2000;
     private static final DateTimeFormatter REQUEST_DATA_DAY_FMT = DateTimeFormatter.ISO_LOCAL_DATE;
     private static final List<String> SCENARIO1_USER_TYPES = Arrays.asList("1", "201", "202", "3");
-    private static final String LOG_STATUS_S1 = "RongShuNewScenePolicyS1";
-    private static final String LOG_STATUS_S2 = "RongShuNewScenePolicyS2";
+    private static final String SCENARIO2_USER_TYPE = "201";
+    private static final String SCENARIO_TYPE_TRANSFER = "1";
+    private static final String SCENARIO_TYPE_UPLOAD = "2";
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -97,12 +100,21 @@ public class RongShuNewScenePushPolicyServiceImpl implements RongShuNewScenePush
         String requestDataTMinus1 = LocalDate.now().minusDays(1).format(REQUEST_DATA_DAY_FMT);
         TpDynamicExecutor threadPool = TpDynamicExecutorFactory
                 .getThreadPool(ThreadPoolNameEnum.RONGSHU_NEW_SCENE_POLICY.getName(), 5, 20);
-        pushScenario1Transfer(tcId, apiCode, requestDataTMinus1, strategyCode);
-        pushScenario2Upload(apiCode, strategyCode);
-        threadPool.shutdownAndAwaitTermination();
+        try {
+            pushScenario1Transfer(tcId, apiCode, requestDataTMinus1, strategyCode, threadPool);
+            pushScenario2Upload(apiCode, strategyCode, threadPool);
+        } finally {
+            threadPool.shutdownAndAwaitTermination();
+        }
     }
 
-    private void pushScenario1Transfer(String tcId, String apiCode, String requestData, String strategyCode) {
+    private void pushScenario1Transfer(
+            String tcId,
+            String apiCode,
+            String requestData,
+            String strategyCode,
+            TpDynamicExecutor threadPool) {
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
         Long minId = null;
         for (; ; ) {
             List<MarketingTransferSyncUser> batch =
@@ -119,27 +131,41 @@ public class RongShuNewScenePushPolicyServiceImpl implements RongShuNewScenePush
             if (CollectionUtils.isEmpty(batch)) {
                 break;
             }
-            pushOneBatchFromTransfer(batch, apiCode, strategyCode, LOG_STATUS_S1, "rs_policy_s1");
+            futures.add(CompletableFuture.runAsync(
+                    () -> pushOneBatchFromTransfer(batch, apiCode, strategyCode, SCENARIO_TYPE_TRANSFER), threadPool));
             if (batch.size() < BATCH_SIZE) {
                 break;
             }
             minId = batch.get(batch.size() - 1).getId();
         }
+        if (CollectionUtils.isEmpty(futures)) {
+            return;
+        }
+
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
     }
 
-    private void pushScenario2Upload(String apiCode, String strategyCode) {
+    private void pushScenario2Upload(String apiCode, String strategyCode, TpDynamicExecutor threadPool) {
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+        String today = LocalDate.now().format(REQUEST_DATA_DAY_FMT);
         Long minId = null;
         for (; ; ) {
             List<MarketingSyncUser> batch =
-                    marketingSyncInfoMapper.listRongShuPushPolicyUpload201SixAmWindow(apiCode, minId);
+                    marketingSyncInfoMapper.getMarketingSyncByCondition(
+                            apiCode, null, today, SCENARIO2_USER_TYPE, null, null, minId);
             if (CollectionUtils.isEmpty(batch)) {
                 break;
             }
-            pushOneBatchFromSync(batch, apiCode, strategyCode, LOG_STATUS_S2, "rs_policy_s2");
+            List<MarketingSyncUser> oneBatch = batch;
+            futures.add(CompletableFuture.runAsync(
+                    () -> pushOneBatchFromSync(oneBatch, apiCode, strategyCode, SCENARIO_TYPE_UPLOAD), threadPool));
             if (batch.size() < BATCH_SIZE) {
                 break;
             }
             minId = batch.get(batch.size() - 1).getId();
+        }
+        if (CollectionUtils.isEmpty(futures)) {
+            return;
         }
     }
 
@@ -147,8 +173,7 @@ public class RongShuNewScenePushPolicyServiceImpl implements RongShuNewScenePush
             List<MarketingTransferSyncUser> rows,
             String apiCode,
             String strategyCode,
-            String logStatus,
-            String batchTag) {
+            String scenarioType) {
         ArrayList<DataJoinLogDTO> logList = new ArrayList<>();
         ArrayList<PushMarketingUserDetailDTO> pushs = new ArrayList<>();
         for (MarketingTransferSyncUser row : rows) {
@@ -174,21 +199,21 @@ public class RongShuNewScenePushPolicyServiceImpl implements RongShuNewScenePush
                             custNum,
                             row.getId(),
                             DistributeSourceTypeEnum.TRANSFER,
-                            logStatus,
+                            scenarioType,
                             null));
         }
         if (pushs.isEmpty()) {
             return;
         }
-        PolicyRetryByRuleSoleDTO sole = buildSoleDto(apiCode, strategyCode, pushs, logList, batchTag);
+        PolicyRetryByRuleSoleDTO sole = buildSoleDto(apiCode, strategyCode, pushs, logList, scenarioType);
         Result<?> result = methodRetryHandlerService.callPolicySoleData(sole, 0);
         if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
             log.warn(
                     AlertLog.buildWarnMessage(
                             AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
                             String.format(
-                                    "榕树新场景推决策调用失败 apiCode=%s tag=%s code=%s",
-                                    apiCode, batchTag, result.getCode())));
+                                    "榕树新场景推决策调用失败 apiCode=%s scenarioType=%s code=%s",
+                                    apiCode, scenarioType, result.getCode())));
         }
     }
 
@@ -196,8 +221,7 @@ public class RongShuNewScenePushPolicyServiceImpl implements RongShuNewScenePush
             List<MarketingSyncUser> rows,
             String apiCode,
             String strategyCode,
-            String logStatus,
-            String batchTag) {
+            String scenarioType) {
         ArrayList<DataJoinLogDTO> logList = new ArrayList<>();
         ArrayList<PushMarketingUserDetailDTO> pushs = new ArrayList<>();
         for (MarketingSyncUser row : rows) {
@@ -223,21 +247,21 @@ public class RongShuNewScenePushPolicyServiceImpl implements RongShuNewScenePush
                             custNum,
                             row.getId(),
                             DistributeSourceTypeEnum.TRANSFER,
-                            logStatus,
+                            scenarioType,
                             null));
         }
         if (pushs.isEmpty()) {
             return;
         }
-        PolicyRetryByRuleSoleDTO sole = buildSoleDto(apiCode, strategyCode, pushs, logList, batchTag);
+        PolicyRetryByRuleSoleDTO sole = buildSoleDto(apiCode, strategyCode, pushs, logList, scenarioType);
         Result<?> result = methodRetryHandlerService.callPolicySoleData(sole, 0);
         if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
             log.warn(
                     AlertLog.buildWarnMessage(
                             AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
                             String.format(
-                                    "榕树新场景推决策调用失败 apiCode=%s tag=%s code=%s",
-                                    apiCode, batchTag, result.getCode())));
+                                    "榕树新场景推决策调用失败 apiCode=%s scenarioType=%s code=%s",
+                                    apiCode, scenarioType, result.getCode())));
         }
     }
 
@@ -246,10 +270,10 @@ public class RongShuNewScenePushPolicyServiceImpl implements RongShuNewScenePush
             String strategyCode,
             ArrayList<PushMarketingUserDetailDTO> pushs,
             ArrayList<DataJoinLogDTO> logList,
-            String batchTag) {
+            String scenarioType) {
         PolicyRetryByRuleSoleDTO retryByRuleDTO = new PolicyRetryByRuleSoleDTO();
         retryByRuleDTO.setApiCode(apiCode);
-        retryByRuleDTO.setBatchNumber(DateFormatUtils.format(new Date(), "yyyyMMdd") + "_" + batchTag + "_" + apiCode);
+        retryByRuleDTO.setBatchNumber(DateFormatUtils.format(new Date(), "yyyyMMdd") + "_" + scenarioType + "_" + apiCode);
         retryByRuleDTO.setStrategyCode(strategyCode);
         retryByRuleDTO.setData(pushs);
         retryByRuleDTO.setDetailLogList(logList);

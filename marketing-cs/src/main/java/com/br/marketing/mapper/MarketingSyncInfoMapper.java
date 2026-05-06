@@ -327,8 +327,4 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
      */
     CheckUploadSyncDataDto getLatestDataByApiCode(@Param("apiCode") String apiCode);
 
-    /**
-     * 榕树新场景推决策-情况2：user_type=201，当天 applet_date，create_time 落在 [当天06:00, 当天07:00)
-     */
-    List<MarketingSyncUser> listRongShuPushPolicyUpload201SixAmWindow(@Param("apiCode") String apiCode, @Param("minId") Long minId);
 }
