@@ -127,10 +127,10 @@ api:
   customerService:
     apiCode: 4000296
   intelligentCustomerService:
-    baseUrl: http://k8s.brapp.com/compass-api/api/helios-app-api
+    baseUrl: http://k8stest.brapp.com/compass-api/api/helios-app-api
     pushUserUrl: ${api.intelligentCustomerService.baseUrl}/third/process/data  #推送智能客服接口
   robotAiApiService:
-    baseUrl: http://k8s.brapp.com/compass-api/api/robotai-api-service
+    baseUrl: http://k8stest.brapp.com/compass-api/api/robotai-api-service
     robotOutboundUrl: ${api.robotAiApiService.baseUrl}/api/robotOutbound  #转化推送智能客服
   yiQianBao:
     baseUrl: https://teststable4-www-pmgw.stg.1qianbao.com
