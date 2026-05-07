@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.common.log.AlertLog;
+import com.br.marketing.aspect.MqIdempotent;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.client.rulecleaning.DataCleanDTO;
@@ -17,6 +18,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.JsonParseUtils;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.context.MqIdempotentContext;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.dto.dataclean.mq.CommonMqDataJsonParse;
@@ -157,6 +159,7 @@ public class DataCleanServiceImpl implements DataCleanService {
                         false
                 );
 
+                MqIdempotentContext.setApiCode(apiCode);
             } else {
                 log.warn("数据ID: {} 的JSON数据为空", mqDataJsonParse.getDataId());
             }

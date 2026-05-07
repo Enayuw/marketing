@@ -3,7 +3,7 @@
 <mapper namespace="com.br.marketing.mapper.DiDiV5DataLoopCycleMapper">
 
     <select id="queryCollidingDataBySharding" resultType="com.br.marketing.entity.DiDiDataLoopCycle">
-        SELECT *
+        SELECT id, package_id, api_code, cell
         FROM b_didi_v5_data_loop_cycle
         WHERE push_time is null
         AND is_delete = 0

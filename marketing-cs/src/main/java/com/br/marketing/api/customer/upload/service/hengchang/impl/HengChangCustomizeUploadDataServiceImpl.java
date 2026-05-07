@@ -17,6 +17,7 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.dto.CustomerResponseDTO;
 import com.br.marketing.dto.MarketingPreUserDTO;
+import com.br.marketing.handle.SnowflakeRedisGeneratorHandle;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -38,6 +39,8 @@ public class HengChangCustomizeUploadDataServiceImpl implements HengChangCustomi
     private RabbitMqProducter rabbitMqProducter;
     @Resource
     private RocketMqSwitch rocketMqSwitch;
+    @Resource
+    private SnowflakeRedisGeneratorHandle snowflakeRedisGeneratorHandle;
 
     /**
      * 解密jsonData
@@ -162,6 +165,7 @@ public class HengChangCustomizeUploadDataServiceImpl implements HengChangCustomi
             JSONObject json = new JSONObject();
             json.put("tCid", tCid);
             json.put("sourceId", sourceId);
+            json.put("idempotentKey", snowflakeRedisGeneratorHandle.nextId());
             rocketMqSwitch.sendMessage(null, MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_MARKETING_HENGCHANG_DATA_CLEAN
                     , json.toJSONString(), MQConstants.ROUTING_KEY_MARKETING_HENGCHANG_DATA_CLEAN);
             log.warn("恒昌定制数据下发 tCid:{},sourceId:{}", tCid, sourceId);

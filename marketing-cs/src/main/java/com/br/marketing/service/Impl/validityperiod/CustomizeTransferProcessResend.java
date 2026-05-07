@@ -10,6 +10,7 @@ import javax.annotation.Resource;
 
 import com.br.marketing.common.constants.rocketmq.MarketingTransferConstants;
 import com.br.marketing.config.RocketMqSwitch;
+import com.br.marketing.handle.SnowflakeRedisGeneratorHandle;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import org.springframework.stereotype.Service;
 
@@ -58,6 +59,8 @@ public class CustomizeTransferProcessResend implements ValidityPeriodResendStrat
     private RocketMqTemplate template;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+    @Resource
+    private SnowflakeRedisGeneratorHandle snowflakeRedisGeneratorHandle;
 
     /**
      * 构建重推数据扩展字段
@@ -143,10 +146,12 @@ public class CustomizeTransferProcessResend implements ValidityPeriodResendStrat
      * @author guangchao.zhang
      * @date 2024/01/12
      */
-    protected static MqFact buildMqFact(MarketingTransferInfo info, ValidityPeriodResendRecord record) {
+    protected MqFact buildMqFact(MarketingTransferInfo info, ValidityPeriodResendRecord record) {
         MqFact mqFact = new MqFact();
         mqFact.setSourceId(info.getId());
         mqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
+        mqFact.setIdempotentKey(snowflakeRedisGeneratorHandle.nextId());
+
         JSONObject resendData = JSONObject.parseObject(record.getResendData());
         if (resendData != null && StringUtils.isNotEmpty((resendData.getString("includeRules")))) {
             Set<String> includeRules = Sets.newHashSet(Splitter.on(",").splitToList(resendData.getString("includeRules")));
