@@ -205,12 +205,14 @@ public class ZhongYuanAgentServiceImpl implements ZhongYuanAgentService {
             wrap.put("batchNo", batchNo);
             wrap.put("requestNo", requestNo);
             wrap.put("operateType", "3");
+            wrap.put("userType", "1");
             return wrap.toJSONString();
         }
         JSONObject obj = JSON.parseObject(plainRequestData);
         obj.put("batchNo", batchNo);
         obj.put("requestNo", requestNo);
         obj.put("operateType", "3");
+        obj.put("userType", "1");
         return obj.toJSONString();
     }
 
