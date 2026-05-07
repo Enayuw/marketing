@@ -145,7 +145,7 @@ public class DidiaiBizServiceImpl implements DidiaiBizService {
     }
 
     /**
-     * 根据单条校验错误文案选择对应错误码：bizLine 非法、uid 缺失、userType 缺失与其它字段缺失区分。
+     * 根据单条校验错误文案选择对应错误码：bizLine 非法、userType 缺失与其它字段缺失区分。
      *
      * @param err 由 {@link #validateOneRecord} 返回的中文错误短句
      * @return 与文案匹配的业务错误码枚举
@@ -153,9 +153,6 @@ public class DidiaiBizServiceImpl implements DidiaiBizService {
     private static DidiaiErrorCodeEnum resolveRowValidationErrorCode(String err) {
         if (err.contains("bizLine 非法")) {
             return DidiaiErrorCodeEnum.BIZ_LINE_INVALID;
-        }
-        if (err.contains("必传字段uid")) {
-            return DidiaiErrorCodeEnum.UID_MISSING;
         }
         if (err.contains("userType")) {
             return DidiaiErrorCodeEnum.USER_TYPE_MISSING;
@@ -319,7 +316,7 @@ public class DidiaiBizServiceImpl implements DidiaiBizService {
      * 校验单条业务 JSON 是否包含约定必填字段；对可选的 bizLine 仅做取值合法性校验。
      *
      * <p>规则说明：每条必须含非空 requestId、可解析的 taskId、非空 phone、非空 properties 对象；properties 内须含非空
-     * {@code uid}（映射 custNum）及非空 {@code userType}（映射百融 {@code reserveField1.userType}，不提供服务端常量兜底）。
+     * {@code userType}（映射百融 {@code reserveField1.userType}，不提供服务端常量兜底）。
      * bizLine 为可选扩展：
      * 若 dataItems 包装下外层提供了非空 wrapBizLine，则须为贷后或营销两种允许值之一；若未提供批次级 bizLine，则
      * properties 内 bizLine 可缺省，若填写则同样须为上述两种允许值之一。
@@ -348,10 +345,6 @@ public class DidiaiBizServiceImpl implements DidiaiBizService {
         JSONObject props = row.getJSONObject("properties");
         if (props == null) {
             return "第 " + (index + 1) + " 条缺少 properties";
-        }
-        String uid = StringUtils.trimToEmpty(props.getString("uid"));
-        if (StringUtils.isBlank(uid)) {
-            return "第 " + (index + 1) + " 条缺少必传字段uid，请检查！";
         }
         String userType = StringUtils.trimToEmpty(props.getString("userType"));
         if (StringUtils.isBlank(userType)) {
