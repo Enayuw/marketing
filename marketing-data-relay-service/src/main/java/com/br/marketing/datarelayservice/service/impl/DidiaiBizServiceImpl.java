@@ -17,6 +17,8 @@ import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 滴滴 AI 上传业务逻辑实现类。
@@ -71,7 +73,25 @@ public class DidiaiBizServiceImpl implements DidiaiBizService {
         if (persistErr != null) {
             return persistErr;
         }
-        return DidiaiResponseDTO.ok(firstRequestId, "true");
+        return DidiaiResponseDTO.ok(extractRequestIds(parsed.records));
+    }
+
+    /**
+     * 从解析后的 records 数组中提取 requestId 列表，保持与入参逐条对应顺序一致。
+     *
+     * @param records 解析得到的 JSON 数组
+     * @return requestId 列表；若 records 为空则返回空列表
+     */
+    private static List<String> extractRequestIds(JSONArray records) {
+        if (records == null || records.isEmpty()) {
+            return new ArrayList<>(0);
+        }
+        List<String> ids = new ArrayList<>(records.size());
+        for (int i = 0; i < records.size(); i++) {
+            JSONObject row = records.getJSONObject(i);
+            ids.add(row == null ? null : row.getString("requestId"));
+        }
+        return ids;
     }
 
     /**

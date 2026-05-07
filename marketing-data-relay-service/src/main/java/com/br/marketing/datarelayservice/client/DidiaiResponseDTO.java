@@ -3,6 +3,9 @@ package com.br.marketing.datarelayservice.client;
 import com.br.marketing.datarelayservice.enums.DidiaiErrorCodeEnum;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * 滴滴 AI 上传接口的统一 HTTP 响应体，与对端约定的 errorCode、errorMsg、data 结构一致。
@@ -23,28 +26,34 @@ public class DidiaiResponseDTO implements Serializable {
 
     private int errorCode;
     private String errorMsg;
-    private DidiaiDataBody data;
+    private List<DidiaiDataBody> data;
 
     /**
-     * 构造表示处理成功的响应对象，并填充 data 节点。
+     * 构造表示处理成功的响应对象，并填充 data 数组。
      *
-     * <p>参数说明：requestId 建议为批次内首条业务 requestId 或与对端约定的批次标识；status 为字符串，
-     * 常见取值为 true 或 false 的英文小写，与对端文档保持一致。
+     * <p>参数说明：requestIds 为与入参数组逐条对应的 requestId 列表；成功语义下每条 status 固定为字符串 "true"。
      *
-     * <p>返回值说明：已设置 errorCode 为成功枚举、errorMsg 为成功文案、data 非空的响应实例。
+     * <p>返回值说明：已设置 errorCode 为成功枚举、errorMsg 为成功文案、data 为与 requestIds 同长度的数组。
      *
-     * @param requestId 写入 data.requestId 的字符串
-     * @param status      写入 data.status 的字符串
+     * @param requestIds 与入参逐条对应的 requestId 列表
      * @return 成功响应 DTO
      */
-    public static DidiaiResponseDTO ok(String requestId, String status) {
+    public static DidiaiResponseDTO ok(List<String> requestIds) {
         DidiaiResponseDTO dto = new DidiaiResponseDTO();
         dto.setErrorCode(DidiaiErrorCodeEnum.SUCCESS.getCode());
         dto.setErrorMsg(DidiaiErrorCodeEnum.SUCCESS.getMessage());
-        DidiaiDataBody body = new DidiaiDataBody();
-        body.setRequestId(requestId);
-        body.setStatus(status);
-        dto.setData(body);
+        if (requestIds == null || requestIds.isEmpty()) {
+            dto.setData(Collections.emptyList());
+            return dto;
+        }
+        List<DidiaiDataBody> items = new ArrayList<>(requestIds.size());
+        for (String requestId : requestIds) {
+            DidiaiDataBody body = new DidiaiDataBody();
+            body.setRequestId(requestId);
+            body.setStatus("true");
+            items.add(body);
+        }
+        dto.setData(items);
         return dto;
     }
 
@@ -107,7 +116,7 @@ public class DidiaiResponseDTO implements Serializable {
      *
      * @return data 节点，可能为 null
      */
-    public DidiaiDataBody getData() {
+    public List<DidiaiDataBody> getData() {
         return data;
     }
 
@@ -116,14 +125,14 @@ public class DidiaiResponseDTO implements Serializable {
      *
      * @param data 成功时的业务载荷，失败时可传 null
      */
-    public void setData(DidiaiDataBody data) {
+    public void setData(List<DidiaiDataBody> data) {
         this.data = data;
     }
 
     /**
-     * 表示对端统一响应中 data 对象的字段集合，仅包含 requestId 与 status 两个字符串字段。
+     * 表示对端统一响应中 data 数组元素的字段集合，仅包含 requestId 与 status 两个字符串字段。
      *
-     * <p>功能说明：与 JSON 中的 data 对象一一对应，便于 Jackson 或 Fastjson 序列化为目标 JSON 结构。
+     * <p>功能说明：与 JSON 中的 data[i] 对象一一对应，便于 Jackson 或 Fastjson 序列化为目标 JSON 结构。
      *
      * @author yueping.bai
      */
