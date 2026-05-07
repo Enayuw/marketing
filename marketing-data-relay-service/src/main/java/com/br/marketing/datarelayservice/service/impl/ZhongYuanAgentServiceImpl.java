@@ -205,15 +205,38 @@ public class ZhongYuanAgentServiceImpl implements ZhongYuanAgentService {
             wrap.put("batchNo", batchNo);
             wrap.put("requestNo", requestNo);
             wrap.put("operateType", "3");
-            wrap.put("userType", "1");
+            addDefaultUserTypeOnDetails(wrap);
             return wrap.toJSONString();
         }
         JSONObject obj = JSON.parseObject(plainRequestData);
         obj.put("batchNo", batchNo);
         obj.put("requestNo", requestNo);
         obj.put("operateType", "3");
-        obj.put("userType", "1");
+        addDefaultUserTypeOnDetails(obj);
         return obj.toJSONString();
+    }
+
+    /**
+     * 在根对象的 {@code details} 数组中，每条与 {@code jobId} 同级补充 {@code userType}，缺省或空串时为 {@code "1"}。
+     */
+    private static void addDefaultUserTypeOnDetails(JSONObject root) {
+        if (root == null) {
+            return;
+        }
+        JSONArray details = root.getJSONArray("details");
+        if (details == null || details.isEmpty()) {
+            return;
+        }
+        for (int i = 0; i < details.size(); i++) {
+            Object el = details.get(i);
+            if (!(el instanceof JSONObject row)) {
+                continue;
+            }
+            Object ut = row.get("userType");
+            if (ut == null || (ut instanceof String && !StringUtils.hasText((String) ut))) {
+                row.put("userType", "1");
+            }
+        }
     }
 
     private String buildRequestId(String apiCode) {
