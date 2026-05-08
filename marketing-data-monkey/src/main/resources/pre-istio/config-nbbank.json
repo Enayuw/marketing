@@ -1,22 +1,4 @@
 {
-  "api": [
-    {
-      "appKey": "77667c76_3503_4c04_95f7_fc10938c7942",
-      "publicUrl": "http://3.3.12.210:6001",
-      "platfromPublicKeyPath": "bankPubKey-test.cer",
-      "merchantPrivateKeyPath": "77667c76_3503_4c04_95f7_fc10938c7942.sm2",
-      "merchantPrivateKeyPwd": "cfca",
-      "connectTimeout": 10000,
-      "readTimeout": 30000,
-      "merchantName": "",
-      "subMerchantName": "",
-      "subMerchantId": "",
-      "isProxy": true,
-      "proxyIp": "10.100.131.56",
-      "proxyPort": 3128,
-      "keyMode": "CERT"
-    }
-  ],
   "file": [
     {
       "uid": "OPEN-BR",
