@@ -3145,6 +3145,18 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public Result<MarketingSyncUserVO> queryLatestSyncUser(String apiCode, String custNum, String userType) {
+        if (!CollectionUtils.isEmpty(marketingCommonConfig.getQueryLatestSyncUserTransferApiCodes())
+                && marketingCommonConfig.getQueryLatestSyncUserTransferApiCodes().contains(apiCode)) {
+            String tcId = tableCreateService.getTcId(apiCode);
+            if (StringUtils.isBlank(tcId)) {
+                return new Result<MarketingSyncUserVO>().setCode(ResultCode.FAIL.getValue()).setMessage("数据为空！");
+            }
+            MarketingTransferSyncUser transferUser = marketingTransferSyncUserMapper.selectLatestTransferSyncUser(tcId, apiCode, custNum, userType);
+            if (transferUser == null) {
+                return new Result<MarketingSyncUserVO>().setCode(ResultCode.FAIL.getValue()).setMessage("数据为空！");
+            }
+            return new Result<MarketingSyncUserVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(MarketingSyncUserVO.fromTransferEntity(transferUser));
+        }
         MarketingSyncUser user = marketingUserMapper.selectLatestSyncUser(apiCode, custNum, userType);
         if (user == null) {
             return new Result<MarketingSyncUserVO>().setCode(ResultCode.FAIL.getValue()).setMessage("数据为空！");
