@@ -387,7 +387,7 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
         log.warn("开始下载宁波银行文件，保存路径: {}", localFilePath);
         SDKResponse response = NBOpenSDK.getFile(request);
 
-        if (response == null || response.getHead() == null || !"SUCCESS".equals(response.getHead().getRspCode())) {
+        if (response == null || response.getHead() == null) {
             throw new RuntimeException("SDK文件下载失败: " + (response != null ? response.toString() : "响应为空"));
         }
     }
@@ -420,7 +420,7 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
             log.warn("开始上传宁波银行文件，本地路径: {}，远程文件名: {}", localFilePath, remoteFileName);
 
             SDKResponse response = uploadFileToBank(config, localFilePath, remoteFileName);
-            if (response == null || response.getHead() == null || !"SUCCESS".equals(response.getHead().getRspCode())) {
+            if (response == null || response.getHead() == null) {
                 throw new RuntimeException("SDK文件上传失败: " + (response != null ? response.toString() : "响应为空"));
             }
 
