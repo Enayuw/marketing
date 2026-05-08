@@ -233,6 +233,11 @@ public class MarketingCommonConfig {
     private List<String> mrpTransferDataPushMqApiCodes;
 
     /**
+     * 查询最新变量接口走转化表的apiCode配置
+     */
+    private List<String> queryLatestSyncUserTransferApiCodes;
+
+    /**
      * 上传数据配置apiCode推送智能规则的mq
      */
     private List<String> mrpUploadDataPushMqApiCodes;
