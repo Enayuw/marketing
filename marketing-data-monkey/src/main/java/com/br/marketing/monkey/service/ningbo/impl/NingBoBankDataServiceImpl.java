@@ -55,6 +55,10 @@ import java.util.stream.Collectors;
 @Service
 public class NingBoBankDataServiceImpl implements NingBoBankDataService {
 
+    public static final String TIME_FORMATTER = "yyyy-MM-dd";
+
+    public static final String TIME_FORMATTER2 = "yyyyMMdd";
+
     @Value("${otherConfig.ningbo.sdkFilePath:config-nbbank.json}")
     private String sdkFilePath;
 
@@ -337,14 +341,14 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
             return input;
         }
 
-        if (input.contains("yyyy-MM-dd")) {
+        if (input.contains(TIME_FORMATTER)) {
             String newDate = date.format(DateTimeFormatter.ISO_LOCAL_DATE);
-            return input.replaceAll("yyyy-MM-dd", newDate);
+            return input.replaceAll(TIME_FORMATTER, newDate);
         }
 
-        if (input.contains("yyyyMMdd")) {
+        if (input.contains(TIME_FORMATTER2)) {
             String newDate = date.format(DateTimeFormatter.BASIC_ISO_DATE);
-            return input.replaceAll("yyyyMMdd", newDate);
+            return input.replaceAll(TIME_FORMATTER2, newDate);
         }
         return input;
     }
@@ -407,7 +411,7 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
                 log.warn("上传文件不存在或为空，文件路径: {}", localFilePath);
                 return;
             }
-            String remoteFileName = filePrefix + DateUtil.format(collectDate, "yyyyMMdd") + ".txt";
+            String remoteFileName = filePrefix + DateUtil.format(collectDate, TIME_FORMATTER2) + ".txt";
             log.warn("开始上传宁波银行文件，本地路径: {}，远程文件名: {}", localFilePath, remoteFileName);
 
             SDKResponse response = uploadFileToBank(config, localFilePath, remoteFileName);
