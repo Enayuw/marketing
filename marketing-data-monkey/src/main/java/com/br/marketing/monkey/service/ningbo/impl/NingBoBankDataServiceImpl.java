@@ -206,7 +206,7 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
                     List<String> linesToProcess = new ArrayList<>(batchLines);
                     int finalCurrentLineNum = currentLineNum;
                     CompletableFuture<Void> future = CompletableFuture.runAsync(
-                            () -> processBatchLines(linesToProcess, escapedSeparator, headerIndexMap,
+                            () -> processBatchLines(linesToProcess, escapedSeparator,
                                     fieldMapping, taskId, apiCode, collectDate,
                                     finalCurrentLineNum - linesToProcess.size() + 1, successCount, tempFileName),
                             executor
@@ -219,7 +219,7 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
             if (!batchLines.isEmpty()) {
                 int finalCurrentLineNum1 = currentLineNum;
                 CompletableFuture<Void> future = CompletableFuture.runAsync(
-                        () -> processBatchLines(batchLines, escapedSeparator, headerIndexMap,
+                        () -> processBatchLines(batchLines, escapedSeparator,
                                 fieldMapping, taskId, apiCode, collectDate,
                                 finalCurrentLineNum1 - batchLines.size() + 1, successCount, tempFileName),
                         executor
@@ -240,7 +240,7 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
      * 处理批次数据
      */
     private void processBatchLines(List<String> batchLines, String escapedSeparator,
-                                   Map<String, Integer> headerIndexMap, Map<String, String> fieldMapping,
+                                   Map<String, String> fieldMapping,
                                    Long taskId, String apiCode, Date collectDate,
                                    int startLineNum, AtomicInteger successCount, String tempFileName) {
         List<NingBoOriginalData> batchData = Lists.newArrayList();
@@ -260,24 +260,32 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
                 data.setApiCode(apiCode);
 
                 JSONObject reserveFields = new JSONObject();
-                for (Map.Entry<String, Integer> headerEntry : headerIndexMap.entrySet()) {
-                    String fileFieldName = headerEntry.getKey();
-                    int columnIndex = headerEntry.getValue();
-                    String value = (columnIndex < fields.length) ? fields[columnIndex].trim() : null;
-                    String dbFieldName = fieldMapping.get(fileFieldName);
 
-                    if (StringUtils.isNotBlank(dbFieldName)) {
-                        try {
-                            BeanUtils.setProperty(data, dbFieldName, value);
-                        } catch (Exception e) {
-                            reserveFields.put(fileFieldName, value);
+                List<String> dbFieldNames = new ArrayList<>(fieldMapping.values());
+
+                for (int columnIndex = 0; columnIndex < fields.length; columnIndex++) {
+                    String value = fields[columnIndex].trim();
+
+                    if (columnIndex < dbFieldNames.size()) {
+                        String dbFieldName = dbFieldNames.get(columnIndex);
+                        if (StringUtils.isNotBlank(dbFieldName)) {
+                            try {
+                                BeanUtils.setProperty(data, dbFieldName, value);
+                            } catch (Exception e) {
+                                reserveFields.put("column_" + columnIndex, value);
+                            }
+                        } else {
+                            if (StringUtils.isNotBlank(value)) {
+                                reserveFields.put("column_" + columnIndex, value);
+                            }
                         }
                     } else {
                         if (StringUtils.isNotBlank(value)) {
-                            reserveFields.put(fileFieldName, value);
+                            reserveFields.put("column_" + columnIndex, value);
                         }
                     }
                 }
+
                 if (!reserveFields.isEmpty()) {
                     data.setReserveField1(reserveFields.toJSONString());
                 }
