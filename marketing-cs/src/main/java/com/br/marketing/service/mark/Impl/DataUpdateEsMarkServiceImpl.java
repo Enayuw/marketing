@@ -16,13 +16,13 @@ import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.MarketingHistoryEsService;
-import com.br.marketing.es.util.es.EsHandleUtil;
 import com.br.marketing.es.util.es.EsIceType;
 import com.br.marketing.es.util.es.rpcclient.RpcClientProxy;
 import com.br.marketing.mapper.FlagDataMapper;
 import com.br.marketing.service.mark.DataMarkCommonService;
 import com.br.marketing.service.mark.DataUpdateEsMarkService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.EsNewIndexRuleUtils;
 import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
@@ -125,7 +125,7 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
     private void updateEsMarkData(List<FlagDataEsMark> flagDataList, StraHisFile straHisFile, ThreadPoolExecutor threadUpdatePool) {
         List<Long> ids = flagDataList.stream().map(FlagDataEsMark::getId).collect(Collectors.toList());
         try {
-            String index = EsHandleUtil.getDateFromBatchNumber(straHisFile.getBatchNumber());
+            String index = EsNewIndexRuleUtils.indexForModify(straHisFile.getBatchNumber(), straHisFile, marketingCommonConfig);
 
             List<String> cellLogList = flagDataList.stream().map(FlagDataEsMark::getCellLog).collect(Collectors.toList());
             Map<String, FlagDataEsMark> groupedByCellLog = flagDataList.stream()
@@ -150,6 +150,7 @@ public class DataUpdateEsMarkServiceImpl implements DataUpdateEsMarkService {
             queryBaseBean.setFileIds(String.valueOf(straHisFile.getId()));
             queryBaseBean.setJsonData(jsonData.toJSONString());
             queryBaseBean.setPageSize(2000);
+            queryBaseBean.setUseNewIndexRule(EsNewIndexRuleUtils.resolveAsMap(Collections.singletonList(straHisFile), marketingCommonConfig));
 
             // 查询 Elasticsearch 数据
             List<Map<String, MarketingHistory>> marketingHistoryMapList =

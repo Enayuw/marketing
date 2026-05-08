@@ -749,8 +749,10 @@ public class MethodRetryHandlerService {
             }
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
-        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
-                "调用推送决策接口失败 -- " + JSON.toJSONString(result)));
+
+        String msg = "apiCode：" + pushMarketingUserDTO.getApiCode()
+                + ",infoId：" + infoId + ",调用推送决策接口失败 -- " + JSON.toJSONString(result);
+        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), msg));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
     /**
@@ -783,8 +785,10 @@ public class MethodRetryHandlerService {
             }
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
-        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
-                "apiCode" + apiCode + "调用推送决策接口失败--" + JSON.toJSONString(result)));
+
+        String msg = "apiCode：" + apiCode
+                + ",infoId：" + infoId + ",调用推送决策接口失败 -- " + JSON.toJSONString(result);
+        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),msg));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 

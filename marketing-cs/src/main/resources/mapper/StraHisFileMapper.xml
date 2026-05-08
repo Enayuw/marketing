@@ -112,4 +112,11 @@
         where bmt.batch_number = #{batchNumber}
     </select>
 
+    <select id="getLastTaskByApiCode" resultType="com.br.marketing.entity.StraHisFile">
+        select *
+        from stra_his_file
+        where api_code = #{apiCode}
+        order by create_time desc limit 1
+    </select>
+
 </mapper>

@@ -13,6 +13,8 @@ import com.br.marketing.mapper.ScoreSearchConditionMapper;
 import com.br.marketing.mapper.ScoreSearchConditionMappingMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.service.IScoreResultService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.EsNewIndexRuleUtils;
 import com.google.common.base.Joiner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,6 +39,9 @@ public class ScoreResultServiceImpl implements IScoreResultService {
 
     @Autowired
     MarketingHistoryEsServiceImpl marketingHistoryEsService;
+
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
 
     @Override
     public Result<String> isFilterScoreByTransfer(String apiCode, String ruleLabel) {
@@ -88,6 +93,7 @@ public class ScoreResultServiceImpl implements IScoreResultService {
         queryBaseBean.setBatchNumbers(batchNumber);
         queryBaseBean.setFileIds(id.toString());
         queryBaseBean.setJsonData(s);
+        queryBaseBean.setUseNewIndexRule(EsNewIndexRuleUtils.resolveAsMap(straHisFiles, marketingCommonConfig));
         int total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
         if(total>0){
             return new Result<>().setCode(ResultCode.SUCCESS.getValue());

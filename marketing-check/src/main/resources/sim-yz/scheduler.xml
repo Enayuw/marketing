@@ -1397,4 +1397,19 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
+
+    <job:simple id="【check】-RsUpdateEsDataCycleJob"
+                class="com.br.marketing.check.job.rongshu.RsUpdateEsDataCycleJob"
+                cron="0 0 19 ? * SUN *"
+                description="榕树更新ES的数据Job"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="false"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
 </beans>

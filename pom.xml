@@ -31,7 +31,7 @@
         <commons-pool2.version>2.11.1</commons-pool2.version>
         <poi.version>5.2.5</poi.version>
         <log4j.version>2.23.1</log4j.version>
-        <rocketmq5x.version>1.0.2</rocketmq5x.version>
+        <rocketmq5x.version>1.0.5</rocketmq5x.version>
         <simpleclient.version>0.9.0</simpleclient.version>
         <br-encrypt.version>1.0.0</br-encrypt.version>
         <netty.version>4.1.124.Final</netty.version>

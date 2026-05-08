@@ -13,6 +13,7 @@ import com.br.common.encryption.Sha256Util;
 import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
+import com.br.marketing.aspect.MqIdempotent;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
@@ -53,6 +54,7 @@ import com.br.marketing.common.validators.user.UserValidator;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.commonentity.StatusConstants;
 import com.br.marketing.config.RocketMqSwitch;
+import com.br.marketing.context.MqIdempotentContext;
 import com.br.marketing.context.RuntimeDataContext;
 import com.br.marketing.dto.*;
 import com.br.marketing.dto.customer.PushCustomerRequestDTO;
@@ -109,6 +111,7 @@ import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.br.marketing.utils.PulsarConsumerSkipUtil;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.br.marketing.util.EsConditionTransferSqlUtil;
+import com.br.marketing.util.EsNewIndexRuleUtils;
 import com.br.marketing.util.GeneScriptUtil;
 import com.br.marketing.util.xiecheng.XieChengEsJsonHandler;
 import com.br.marketing.vo.*;
@@ -618,6 +621,10 @@ public class PushRuleServiceImpl implements PushRuleService {
         queryBaseBean.setBatchNumbers(Joiner.on(",").join(dto.getBatchNumberList()));
         queryBaseBean.setFileIds(Joiner.on(",").join(dto.getFileIdList()));
         queryBaseBean.setJsonData(dto.getmRuleCondition());
+        StraHisFileExample fileExampleForIndex = new StraHisFileExample();
+        fileExampleForIndex.createCriteria().andIdIn(dto.getFileIdList());
+        List<StraHisFile> straHisFilesForIndex = straHisFileMapper.selectByExample(fileExampleForIndex);
+        queryBaseBean.setUseNewIndexRule(EsNewIndexRuleUtils.resolveAsMap(straHisFilesForIndex, marketingCommonConfig));
         if (dto.getmPlanNum() != null && dto.getmPlanNum() <= 0) {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("推送数量不能小于等于0");
         }
@@ -2059,7 +2066,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(toPolicyThreadNum, toPolicyThreadNum, toPolicyQueueNum);
 
             for (Integer i = 0; i < parNum; i++) {
-                QueryBaseBean queryBaseBean = createQueryBaseBean(customerInfoPushMain, numList, fileIds, i);
+                QueryBaseBean queryBaseBean = createQueryBaseBean(customerInfoPushMain, numList, fileIds, i, straHisFiles);
                 Integer nowNum = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
                 partDataNum.put(i, nowNum);
                 if (customerInfoPushMain.getTagContent() != null) {
@@ -2111,7 +2118,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         for (Integer i = 0; i < parNum; i++) {
             res.add(actionEs.submit(new actionEs(pushJc, customerInfoPushMain
-                    , fileIds, numList, i.toString(), _3kEncrypt, isSigle, partDataNum.get(i), markWithEsFlag, lableObject)));
+                    , fileIds, numList, i.toString(), _3kEncrypt, isSigle, partDataNum.get(i), markWithEsFlag, lableObject, straHisFiles)));
         }
         log.warn("推送决策 任务id：{}；获取所有分组数据耗时：{}", customerInfoPushMain.getId(), System.currentTimeMillis() - startTime);
 
@@ -2220,13 +2227,15 @@ public class PushRuleServiceImpl implements PushRuleService {
     /**
      * 创建 QueryBaseBean
      */
-    private QueryBaseBean createQueryBaseBean(CustomerInfoPushMain customerInfoPushMain, List<String> numList, List<Long> fileIds, Integer part) {
+    private QueryBaseBean createQueryBaseBean(CustomerInfoPushMain customerInfoPushMain, List<String> numList,
+                                              List<Long> fileIds, Integer part, List<StraHisFile> straHisFiles) {
         QueryBaseBean queryBaseBean = new QueryBaseBean();
         queryBaseBean.setApiCode(customerInfoPushMain.getmApiCode());
         queryBaseBean.setBatchNumbers(Joiner.on(",").join(numList));
         queryBaseBean.setFileIds(Joiner.on(",").join(fileIds));
         queryBaseBean.setJsonData(customerInfoPushMain.getmRuleCondition());
         queryBaseBean.setPart(part.toString());
+        queryBaseBean.setUseNewIndexRule(EsNewIndexRuleUtils.resolveAsMap(straHisFiles, marketingCommonConfig));
         return queryBaseBean;
     }
 
@@ -2263,10 +2272,13 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         private Object lableObject;
 
+        private List<StraHisFile> straHisFiles;
+
         public actionEs(ThreadPoolExecutor pushJcPool
                 , CustomerInfoPushMain customerInfoPushMain
                 , List<Long> fileIds, List<String> numList
-                , String part, Integer _3kEncrypt, Boolean isPerOrTop, Integer partDataNum, Boolean markWithEsFlag, Object lableObject) {
+                , String part, Integer _3kEncrypt, Boolean isPerOrTop, Integer partDataNum, Boolean markWithEsFlag,
+                Object lableObject, List<StraHisFile> straHisFiles) {
             this.pushJcPool = pushJcPool;
             this.customerInfoPushMain = customerInfoPushMain;
             this.fileIds = fileIds;
@@ -2277,6 +2289,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             this.partDataNum = partDataNum;
             this.markWithEsFlag = markWithEsFlag;
             this.lableObject = lableObject;
+            this.straHisFiles = straHisFiles;
         }
 
         @Override
@@ -2286,6 +2299,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             queryBaseBean.setBatchNumbers(Joiner.on(",").join(numList));
             queryBaseBean.setFileIds(Joiner.on(",").join(fileIds));
             queryBaseBean.setJsonData(customerInfoPushMain.getmRuleCondition());
+            queryBaseBean.setUseNewIndexRule(EsNewIndexRuleUtils.resolveAsMap(straHisFiles, marketingCommonConfig));
             boolean scFlag = !ObjectUtils.isEmpty(lableObject);
             List<ScoreLable> scoreLables = null;
             if (scFlag) {
@@ -3020,6 +3034,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             mqDataJsonParse.setSystemType(DataProcessEnum.SystemTypeEnum.MARKETING.getCode());
             mqDataJsonParse.setDataType(DataProcessEnum.DataTypeEnum.UPLOAD.getCode());
             mqDataJsonParse.setAcceptType(DataProcessEnum.AcceptTypeEnum.GENERAL.getCode());
+
             rocketMqSwitch.sendMessage(apiCode, MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_MARKETING_CUSTOMER_DATA_JSON_PARSE,
                     JSON.toJSONString(mqDataJsonParse), MQConstants.ROUTING_KEY_MARKETING_CUSTOMER_DATA_JSON_PARSE);
             //存储标识
@@ -3816,6 +3831,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             mrpMqFact.setSourceId(infoId);
             mrpMqFact.setSource(TransferSource.INIT_DATA_SET_PROCESS.getCode());
             mrpMqFact.setApiCode(apiCode);
+            mrpMqFact.setIdempotentKey(snowflakeRedisGeneratorHandle.nextId());
+
             if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_MRP_UNIVERSAL_TRANSFER_RECEIVE)) {
                 String message = JSON.toJSONString(mrpMqFact);
                 rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
@@ -4024,6 +4041,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         MqFact mqFact = new MqFact();
         mqFact.setSourceId(infoId);
         mqFact.setSource(TransferSource.INIT_DATA_SET_PROCESS.getCode());
+        mqFact.setIdempotentKey(snowflakeRedisGeneratorHandle.nextId());
 
         List<String> initDataPushApiCode = marketingCommonConfig.getInitDataPushRule() == null ? new ArrayList<String>() :
                 marketingCommonConfig.getInitDataPushRule();
@@ -4631,22 +4649,27 @@ public class PushRuleServiceImpl implements PushRuleService {
                     , AlarmSendCodeEnum.TRANSFER_MUST_ERROR.getMessage()));
         }
 
+        JSONObject pushCustomerMqFact = new JSONObject();
+        pushCustomerMqFact.put("id", id);
+        pushCustomerMqFact.put("idempotentKey", snowflakeRedisGeneratorHandle.nextId());
+        String pushCustomerMessage = JSON.toJSONString(pushCustomerMqFact);
+
         if (pushCustomerApiCodes.contains(apiCode)
                 && (updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success)
                 || updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success_part))) {
             if (transferInfo.getRequestId().startsWith("black_")) {
                 if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_BLACK)) {
                     rocketMqSwitch.syncSend(MarketingOutsideInterfaceConstants.TOPIC
-                            , MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_BLACK, id.toString());
+                            , MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_BLACK, pushCustomerMessage);
                 } else {
-                    producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_BLACK, id.toString());
+                    producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_BLACK, pushCustomerMessage);
                 }
             } else {
                 if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_CUSTOMER)) {
                     rocketMqSwitch.syncSend(MarketingOutsideInterfaceConstants.TOPIC
-                            , MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_CUSTOMER, id.toString());
+                            , MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_CUSTOMER, pushCustomerMessage);
                 } else {
-                    producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER, id.toString());
+                    producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER, pushCustomerMessage);
                 }
             }
         }
@@ -4654,6 +4677,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             MqFact mqFact = new MqFact();
             mqFact.setSourceId(id);
             mqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
+            mqFact.setIdempotentKey(snowflakeRedisGeneratorHandle.nextId());
+
             if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)) {
                 String message = JSON.toJSONString(mqFact);
                 rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
@@ -4668,6 +4693,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             mrpMqFact.setSourceId(id);
             mrpMqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
             mrpMqFact.setApiCode(apiCode);
+            mrpMqFact.setIdempotentKey(snowflakeRedisGeneratorHandle.nextId());
             if (rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_MRP_UNIVERSAL_TRANSFER_RECEIVE)) {
                 String message = JSON.toJSONString(mrpMqFact);
                 rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
@@ -5267,6 +5293,34 @@ public class PushRuleServiceImpl implements PushRuleService {
             false);
 
     private final String cidKey = "marketing:innerapi:transfer:cid:";
+
+    @MqIdempotent
+    public Result<Boolean> pushPersonalTransferDataWrapper(String msg) {
+        Long infoId;
+        // 兼容老消息（纯数字字符串）和新消息（JSON格式）
+        if (msg.startsWith("{")) {
+            JSONObject jsonObject = JSON.parseObject(msg);
+            if (jsonObject != null && jsonObject.containsKey("id")) {
+                infoId = jsonObject.getLong("id");
+            } else {
+                log.warn("JSON消息中未找到id字段，msg: {}", msg);
+                throw new RuntimeException("消息格式错误，JSON中未找到id字段");
+            }
+        } else {
+            try {
+                infoId = JSON.parseObject(msg, new TypeReference<Long>() {}.getType());
+            } catch (Exception e) {
+                log.warn("解析数字消息失败，msg: {}", msg, e);
+                throw new RuntimeException("消息格式错误，无法解析为数字", e);
+            }
+        }
+
+        if (infoId == null) {
+            throw new RuntimeException("消息中未找到id字段");
+        }
+
+        return pushPersonalTransferData(infoId);
+    }
 
     @Override
     @Transactional
@@ -5945,9 +5999,32 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(isContiue);
     }
 
+    @MqIdempotent
     @Override
-    public Result<Boolean> consumerBlack(Long id) {
-        Integer soleNum = 20;
+    public Result<Boolean> consumerBlack(String msg) {
+        Long id;
+        // 兼容老消息（纯数字字符串）和新消息（JSON格式）
+        if (msg.startsWith("{")) {
+            JSONObject jsonObject = JSON.parseObject(msg);
+            if (jsonObject != null && jsonObject.containsKey("id")) {
+                id = jsonObject.getLong("id");
+            } else {
+                log.warn("JSON消息中未找到id字段，msg: {}", msg);
+                throw new RuntimeException("消息格式错误，JSON中未找到id字段");
+            }
+        } else {
+            try {
+                id = JSON.parseObject(msg, new TypeReference<Long>() {}.getType());
+            } catch (Exception e) {
+                log.warn("解析数字消息失败，msg: {}", msg, e);
+                throw new RuntimeException("消息格式错误，无法解析为数字", e);
+            }
+        }
+
+        if (id == null) {
+            throw new RuntimeException("消息中未找到id字段");
+        }
+
         Boolean isContinue = Boolean.FALSE;
         MarketingTransferInfo transferInfo = marketingTransferInfoMapper.selectByPrimaryKey(id);
         if (transferInfo == null) {
@@ -5956,15 +6033,18 @@ public class PushRuleServiceImpl implements PushRuleService {
                     .setDate(isContinue)
                     .setMessage("数据不存在");
         }
-        String tcId = tableCreateService.getTcId(transferInfo.getApiCode());
+
+        String apiCode = transferInfo.getApiCode();
+        MqIdempotentContext.setApiCode(apiCode);
+        String tcId = tableCreateService.getTcId(apiCode);
         if (tcId == null) {
             return new Result<>()
                     .setCode(ResultCode.SUCCESS.getValue())
                     .setDate(isContinue)
-                    .setMessage(String.format("apiCode:%s 未维护cid信息", transferInfo.getApiCode()));
+                    .setMessage(String.format("apiCode:%s 未维护cid信息", apiCode));
         }
         MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
-        example.createCriteria().andApiCodeEqualTo(transferInfo.getApiCode()).
+        example.createCriteria().andApiCodeEqualTo(apiCode).
                 andRequestIdEqualTo(transferInfo.getRequestId());
         example.settCid(tcId);
         List<MarketingTransferSyncUser> marketingTransferSyncUsers = marketingTransferSyncUserMapper.selectByExample(example);

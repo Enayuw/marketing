@@ -6,7 +6,7 @@ import java.util.Set;
 
 
 @Data
-public class MrpMqFact {
+public class MrpMqFact extends BaseMqFact{
 
     /**
      * apiCode信息

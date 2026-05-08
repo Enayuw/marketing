@@ -7,11 +7,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.api.customer.black.service.guomei.dto.GuoMeiBlackJsonDTO;
 import com.br.marketing.api.customer.upload.service.guomei.dto.GuMeUploadJsonDTO;
+import com.br.marketing.aspect.MqIdempotent;
 import com.br.marketing.client.marketingapi.input.PushTransferDataDetailDTO;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.context.MqIdempotentContext;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.dto.TransferDataDTO;
@@ -57,6 +59,7 @@ public class GuoMeiDataCleanServiceImpl implements GuoMeiDataCleanService {
      * @author senyang.zheng
      * @date 2024/10/28
      */
+    @MqIdempotent
     @Override
     public Result<Boolean> cleanData(String message) {
         JSONObject jsonObject = JSONObject.parseObject(message);
@@ -68,6 +71,7 @@ public class GuoMeiDataCleanServiceImpl implements GuoMeiDataCleanService {
             return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
         }
         try {
+            MqIdempotentContext.setApiCode(data.getApiCode());
             GuMeUploadJsonDTO uploadJson = JSON.parseObject(data.getRequestJsonData(), GuMeUploadJsonDTO.class);
             MarketingPreUserDTO userDTO = new MarketingPreUserDTO();
             userDTO.setTaskId(String.valueOf(uploadJson.getBatch()));
@@ -171,6 +175,7 @@ public class GuoMeiDataCleanServiceImpl implements GuoMeiDataCleanService {
      * @author senyang.zheng
      * @date 2024/10/30
      */
+    @MqIdempotent
     @Override
     public Result<Boolean> cleanBlackData(String message) {
         JSONObject jsonObject = JSONObject.parseObject(message);
@@ -182,6 +187,7 @@ public class GuoMeiDataCleanServiceImpl implements GuoMeiDataCleanService {
             return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
         }
         try {
+            MqIdempotentContext.setApiCode(data.getApiCode());
             GuoMeiBlackJsonDTO blackJson = JSON.parseObject(data.getRequestJsonData(), GuoMeiBlackJsonDTO.class);
             TransferDataDTO<TransferDataItemDTO> transferDataDTO = new TransferDataDTO<>();
             transferDataDTO.setRequestId(blackJson.getRequestId());

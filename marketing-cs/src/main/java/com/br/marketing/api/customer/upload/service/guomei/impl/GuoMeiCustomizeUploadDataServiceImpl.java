@@ -5,6 +5,7 @@ import com.br.marketing.common.constants.rocketmq.MarketingUploadConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.config.RocketMqSwitch;
+import com.br.marketing.handle.SnowflakeRedisGeneratorHandle;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import java.util.Collections;
 import java.util.Set;
@@ -41,6 +42,8 @@ public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUplo
     private RocketMqSwitch rocketMqSwitch;
     @Resource
     private RocketMqTemplate template;
+    @Resource
+    private SnowflakeRedisGeneratorHandle snowflakeRedisGeneratorHandle;
 
     /**
      * 解密jsonData
@@ -210,6 +213,7 @@ public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUplo
             JSONObject json = new JSONObject();
             json.put("tCid", tCid);
             json.put("sourceId", sourceId);
+            json.put("idempotentKey", snowflakeRedisGeneratorHandle.nextId());
             String msg = json.toJSONString();
             if(rocketMqSwitch.rocketMQSwitchFlag(null, MarketingUploadConstants.TAG_MARKETING_GUOMEI_DATA_CLEAN)){
                 rocketMqSwitch.syncSend(MarketingUploadConstants.TOPIC
