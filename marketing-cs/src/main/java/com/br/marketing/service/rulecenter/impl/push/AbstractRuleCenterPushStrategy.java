@@ -25,6 +25,7 @@ import com.br.marketing.service.rulecenter.impl.esquery.EsQueryResult;
 import com.br.marketing.service.rulecenter.impl.esquery.EsQueryExecutor;
 import com.br.marketing.service.rulecenter.impl.esquery.EsQueryParams;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.EsNewIndexRuleUtils;
 import com.br.marketing.util.GeneScriptUtil;
 import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
@@ -128,6 +129,7 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
         if (partitionIndex != null) {
             queryBaseBean.setPart(partitionIndex.toString());
         }
+        queryBaseBean.setUseNewIndexRule(EsNewIndexRuleUtils.resolveAsMap(context.getStraHisFiles(), marketingCommonConfig));
         return queryBaseBean;
     }
 
@@ -417,9 +419,10 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
                                                 Integer totalPage,
                                                 Boolean isPerOrTop,
                                                 Object labelObject,
-                                                Boolean markWithEsFlag) {
+                                                Boolean markWithEsFlag,
+                                                List<StraHisFile> straHisFiles) {
         return esQueryExecutor.initializeParams(customerInfoPushMain, part, numList, fileIds, pageSize, totalPage,
-                isPerOrTop, labelObject, markWithEsFlag);
+                isPerOrTop, labelObject, markWithEsFlag, straHisFiles);
     }
 
     /**
@@ -485,6 +488,7 @@ public abstract class AbstractRuleCenterPushStrategy implements IRuleCenterPushS
         RuleCenterPushContext context = new RuleCenterPushContext();
         context.setBatchNumbers(numList);
         context.setFileIds(fileIds);
+        context.setStraHisFiles(straHisFiles);
         context.setCustomerInfoPushMain(customerInfoPushMain);
         context.setSinglePartition(isSigle);
         context.setMarkWithEsFlag(markWithEsFlag);

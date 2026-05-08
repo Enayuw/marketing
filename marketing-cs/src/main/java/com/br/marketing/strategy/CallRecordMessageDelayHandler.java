@@ -6,6 +6,7 @@ import com.br.marketing.common.constants.rocketmq.MarketingDelayedConstants;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.handle.SnowflakeRedisGeneratorHandle;
 import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.TransferSource;
@@ -66,6 +67,8 @@ public class CallRecordMessageDelayHandler extends AbstractExternalInterfaceHand
 
     @Resource
     private DataLoadingHandlerService handlerService;
+    @Resource
+    private SnowflakeRedisGeneratorHandle snowflakeRedisGeneratorHandle;
 
     @Override
     JSONObject call(List<MqFact> mqFacts, ProcessHandlerContext context) {
@@ -102,6 +105,8 @@ public class CallRecordMessageDelayHandler extends AbstractExternalInterfaceHand
         mqFact.setIncludeRules(set);
         mqFact.setMessage(jsonObject.toJSONString());
         mqFact.setSource(TransferSource.CUSTOMER_CALL_RECORD.getCode());
+        mqFact.setIdempotentKey(snowflakeRedisGeneratorHandle.nextId());
+
         String message = JSON.toJSONString(mqFact);
         if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR)){
             rocketMqSwitch.syncSendDelaySecond(MarketingDelayedConstants.TOPIC

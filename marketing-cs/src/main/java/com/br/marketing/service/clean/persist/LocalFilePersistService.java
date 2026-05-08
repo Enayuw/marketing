@@ -73,7 +73,9 @@ public class LocalFilePersistService {
                 updateTaskFail(taskId, 0);
                 return;
             }
-            String normalizedHeader = HeaderToColumnUtil.normalizeHeaderSchema(fileHeader);
+            // 表头分列与数据行一致用 sftpFileSeparator；Excel 首行为 POI 按列拼成逗号串，仍按逗号归一化
+            String fieldSepForHeader = isExcelFile(task.getFileName()) ? null : task.getSftpFileSeparator();
+            String normalizedHeader = HeaderToColumnUtil.normalizeHeaderSchema(fileHeader, fieldSepForHeader);
             if (normalizedHeader.isEmpty()) {
                 log.warn("本地文件落库-归一化表头为空，taskId={}", taskId);
                 updateTaskFail(taskId, 0);

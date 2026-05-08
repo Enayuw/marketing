@@ -3549,6 +3549,12 @@ public class MarketingCommonConfig {
     private Map<String, String> zhongYuanIdentity;
 
     /**
+     * 中原消金渠道配置（JSON 字符串）：{"apiCode":"","publicKey":"","privateKey":""}
+     * publicKey：中原 RSA 公钥 X509 Base64；privateKey：合作方 RSA 私钥 PKCS8 Base64
+     */
+    private String zhongYuanAgentChannelRsa;
+
+    /**
      * 携程贷后apicode集合
      */
     private List<String> xieChengPostLoanApiCodeLists;
@@ -3660,6 +3666,11 @@ public class MarketingCommonConfig {
     private Map<String, String> syncUnzipEncoding;
 
     /**
+     * SFTP 配置页「文件后缀」下拉可选项（/rule/sftp/getSuffixConfigs）
+     */
+    private List<String> sftpFileSuffixOptions;
+
+    /**
      * * 同程批次号前缀对场景映射配置 3710208 匹配PL
      */
     private List<String> tcCpaBatchNoPrefixConfig;
@@ -3668,6 +3679,10 @@ public class MarketingCommonConfig {
      * * 同程批次号前缀对场景映射配置
      */
     private Map<String,String> tcBatchNoSuffixToSceneConfig;
+    /**
+     * 跑分写入 ES 新索引的上线时间,格式：yyyy-MM-dd HH:mm:ss
+     */
+    private String esNewIndexOnlineTime;
 
     /**
      * 同程易融cpa-failMsg配置

@@ -31,5 +31,8 @@ public interface StraHisFileMapper extends StraHisFileMapperBase {
 
     String getCondition(@Param("batchNumber") String batchNumber);
 
+    StraHisFile getLastTaskByApiCode(@Param("apiCode")String apiCode);
+
+
 
 }

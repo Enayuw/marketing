@@ -184,7 +184,7 @@ public class DataHighRiskMarkServiceImpl implements DataHighRiskMarkService {
         long start = System.currentTimeMillis();
         List<MarketingHistory> marketingHistories =
                     dataMarkCommonService.getScoreWithEs(apiCode, straHisFile.getBatchNumber(),
-                            straHisFile.getId(), cellLogs, esPageSize, false);
+                            straHisFile.getId(), cellLogs, esPageSize, false, Collections.singletonList(straHisFile));
         long afterEs = System.currentTimeMillis();
         log.warn("pp高风险打标job-查询es，耗时：{}s", (afterEs - start) / 1000);
         if (CollectionUtils.isEmpty(marketingHistories)){

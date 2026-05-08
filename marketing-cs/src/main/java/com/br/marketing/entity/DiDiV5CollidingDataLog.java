@@ -95,4 +95,9 @@ public class DiDiV5CollidingDataLog {
      * 券类型
      */
     private String couponType;
+
+    /**
+     * 数据源类型
+     */
+    private String sourceType;
 }

@@ -10,7 +10,6 @@ import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.MarketingHistoryEsService;
-import com.br.marketing.es.util.es.EsHandleUtil;
 import com.br.marketing.es.util.es.EsIceType;
 import com.br.marketing.es.util.es.rpcclient.RpcClientProxy;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
@@ -18,6 +17,7 @@ import com.br.marketing.mapper.QueryUserRealMessageMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.service.Impl.DynamicParameterServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.EsNewIndexRuleUtils;
 import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
@@ -252,7 +252,7 @@ public class QiFuDataCleanServiceImpl implements QiFuDataCleanService {
             //清洗es 存入log加密的cell
             String apiCode = userRealMessageList.get(0).getApiCode();
             String batchNumber = straHisFile.getBatchNumber();
-            String index = EsHandleUtil.getDateFromBatchNumber(batchNumber);
+            String index = EsNewIndexRuleUtils.indexForModify(batchNumber, straHisFile, marketingCommonConfig);
             List<String> cells = userRealMessageList.stream().map(QueryUserRealMessage::getCell).collect(Collectors.toList());
             Map<String, List<QueryUserRealMessage>> userRealMessageMap = userRealMessageList.stream().collect(Collectors.groupingBy(QueryUserRealMessage::getCell));
             JSONObject jsonData = new JSONObject();
@@ -272,6 +272,7 @@ public class QiFuDataCleanServiceImpl implements QiFuDataCleanService {
             queryBaseBean.setFileIds(String.valueOf(straHisFile.getId()));
             queryBaseBean.setJsonData(jsonData.toJSONString());
             queryBaseBean.setPageSize(2000);
+            queryBaseBean.setUseNewIndexRule(EsNewIndexRuleUtils.resolveAsMap(Collections.singletonList(straHisFile), marketingCommonConfig));
             List<Map<String, MarketingHistory>> marketingHistoryMapList =
                     marketingHistoryEsService.builderMarketingWithIdList(queryBaseBean, null, false);
             log.warn("奇富促动支ES中查询的数据量级为num={}", marketingHistoryMapList.size());

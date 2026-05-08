@@ -31,6 +31,7 @@ import com.br.marketing.es.util.UuidUtils;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.IJobManagerService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.EsNewIndexRuleUtils;
 import com.br.marketing.vo.ConditionOfScoreVO;
 import com.br.marketing.vo.scorepushcustomer.ScoreSortJsonVO;
 import io.lettuce.core.KeyValue;
@@ -188,7 +189,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                         public List<Future<Result<Integer>>> call() throws Exception {
                             try {
                                 List<Future<Result<Integer>>> futures = searchData(apiCode, straHisFile.getBatchNumber(), straHisFile.getId()
-                                        , conditionJb, vo, vo.getFirst(), dataBuild);
+                                        , conditionJb, vo, vo.getFirst(), dataBuild, Collections.singletonList(straHisFile));
                                 return futures;
                             } catch (Exception ex) {
                                 log.error(ex.getMessage(), ex);
@@ -242,7 +243,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
                 //region 无排序字段
                 List<Future<Result<Integer>>> futures = searchData(apiCode, straHisFile.getBatchNumber()
                         , straHisFile.getId(), conditionJb
-                        , null, true, dataBuild);
+                        , null, true, dataBuild, Collections.singletonList(straHisFile));
                 waitThreadPool(dataBuild);
                 for (Future<Result<Integer>> future : futures) {
                     try {
@@ -652,7 +653,8 @@ public class PushCustomerServiceImpl implements PushCustomerService {
             , Long fileId, JSONObject queryData
             , ScoreSortJsonVO scoreSortJsonVO
             , Boolean first
-            , ThreadPoolExecutor executors) {
+            , ThreadPoolExecutor executors
+            , List<StraHisFile> straHisFiles) {
 
         JSONObject condtionQuery = new JSONObject();
         if (queryData != null) {
@@ -669,6 +671,7 @@ public class PushCustomerServiceImpl implements PushCustomerService {
         queryBaseBean.setApiCode(apiCode);
         queryBaseBean.setBatchNumbers(batchNumber);
         queryBaseBean.setFileIds(fileId.toString());
+        queryBaseBean.setUseNewIndexRule(EsNewIndexRuleUtils.resolveAsMap(straHisFiles, marketingCommonConfig));
         if (condtionQuery.keySet().size() > 0) {
             queryBaseBean.setJsonData(JSON.toJSONString(condtionQuery));
         }
