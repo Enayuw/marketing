@@ -375,6 +375,12 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
             , @Param("ifApply") String ifApply, @Param("applyDt") String applyDt
             , @Param("minId") Long minId, @Param("pageSize") Integer pageSize);
 
+    List<MarketingTransferSyncUser> getRsToPolicyDataNew(@Param("requestDate") String requestDate, @Param("tcId") String tcId
+            , @Param("userTypes") List<String> userTypes
+            , @Param("ifActivity") String ifActivity, @Param("activityTime") String activityTime
+            , @Param("ifApply") String ifApply, @Param("applyDt") String applyDt
+            , @Param("minId") Long minId, @Param("pageSize") Integer pageSize, @Param("apiCode") String apiCode);
+
 
     /**
      * 获取桔子A规则的转化数据

@@ -117,7 +117,7 @@ public class RongShuNewScenePushPolicyServiceImpl implements RongShuNewScenePush
         Long minId = null;
         for (; ; ) {
             List<MarketingTransferSyncUser> batch =
-                    marketingTransferSyncUserMapper.getRsToPolicyData(
+                    marketingTransferSyncUserMapper.getRsToPolicyDataNew(
                             requestData,
                             tcId,
                             SCENARIO1_USER_TYPES,
@@ -126,7 +126,8 @@ public class RongShuNewScenePushPolicyServiceImpl implements RongShuNewScenePush
                             "0",
                             null,
                             minId,
-                            BATCH_SIZE);
+                            BATCH_SIZE,
+                            apiCode);
             if (CollectionUtils.isEmpty(batch)) {
                 break;
             }
