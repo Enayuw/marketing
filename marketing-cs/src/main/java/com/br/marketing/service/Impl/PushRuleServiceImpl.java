@@ -3155,7 +3155,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             if (transferUser == null) {
                 return new Result<MarketingSyncUserVO>().setCode(ResultCode.FAIL.getValue()).setMessage("数据为空！");
             }
-            return new Result<MarketingSyncUserVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(MarketingSyncUserVO.fromTransferEntity(transferUser));
+            MarketingSyncUserVO marketingSyncUserVO = MarketingSyncUserVO.fromTransferEntity(transferUser);
+
+            return new Result<MarketingSyncUserVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(marketingSyncUserVO);
         }
         MarketingSyncUser user = marketingUserMapper.selectLatestSyncUser(apiCode, custNum, userType);
         if (user == null) {
