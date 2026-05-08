@@ -153,7 +153,6 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
                     AlarmSendCodeEnum.NINGBO_BANK_SERVICEERROR.getCode(), e.getMessage(), "宁波银行数据下载异常"), e
             );
             ningBoDataTaskMapper.updateTaskStatus(currentTask.getId(), TaskStatusEnum.FAILED.getCode(), e.getMessage());
-            throw new RuntimeException("宁波银行数据下载任务执行失败", e);
         }
     }
 
@@ -229,7 +228,9 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
             log.warn("文件解析完成，成功处理{}条数据", successCount.get());
         } catch (IOException e) {
-            log.error("读取文件失败: {}", e.getMessage(), e);
+            log.warn(AlertLog.buildWarnMessage(
+                    AlarmSendCodeEnum.NINGBO_BANK_SERVICEERROR.getCode(), e.getMessage(), "文件读取失败"), e
+            );
             throw new RuntimeException("读取文件失败", e);
         } finally {
             executor.shutdownAndAwaitTermination();
@@ -440,7 +441,6 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
                     AlarmSendCodeEnum.NINGBO_BANK_SERVICEERROR.getCode(), e.getMessage(), "宁波银行数据上传异常"), e
             );
             ningBoDataTaskMapper.updateTaskStatus(currentTask.getId(), TaskStatusEnum.FAILED.getCode(), e.getMessage());
-            throw new RuntimeException("宁波银行数据上传任务执行失败", e);
         }
     }
 
