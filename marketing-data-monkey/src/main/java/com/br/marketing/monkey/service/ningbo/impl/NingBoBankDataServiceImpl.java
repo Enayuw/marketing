@@ -59,6 +59,10 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
 
     public static final String TIME_FORMATTER2 = "yyyyMMdd";
 
+    private static final Pattern DATE_PATTERN_1 = Pattern.compile(Pattern.quote("yyyy-MM-dd"));
+
+    private static final Pattern DATE_PATTERN_2 = Pattern.compile(Pattern.quote("yyyyMMdd"));
+
     @Value("${otherConfig.ningbo.sdkFilePath:config-nbbank.json}")
     private String sdkFilePath;
 
@@ -343,12 +347,12 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
 
         if (input.contains(TIME_FORMATTER)) {
             String newDate = date.format(DateTimeFormatter.ISO_LOCAL_DATE);
-            return input.replaceAll(TIME_FORMATTER, newDate);
+            return DATE_PATTERN_1.matcher(input).replaceAll(newDate);
         }
 
         if (input.contains(TIME_FORMATTER2)) {
             String newDate = date.format(DateTimeFormatter.BASIC_ISO_DATE);
-            return input.replaceAll(TIME_FORMATTER2, newDate);
+            return DATE_PATTERN_2.matcher(input).replaceAll(newDate);
         }
         return input;
     }
