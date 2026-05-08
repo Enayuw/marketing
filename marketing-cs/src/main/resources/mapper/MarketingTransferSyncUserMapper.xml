@@ -1444,5 +1444,4 @@
         order by create_time desc, id desc
         limit 1
     </select>
-
 </mapper>

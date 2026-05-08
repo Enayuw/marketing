@@ -46,7 +46,6 @@ import java.util.concurrent.CompletableFuture;
 public class RongShuNewScenePushBlackListServiceImpl implements RongShuNewScenePushBlackListService {
 
     private static final String USER_TYPE_NEW_SCENE = "202";
-    private static final String EXTEND_INFO_TAG = "RongShuNewSceneBlack";
     private static final DateTimeFormatter EFFECTIVE_TIME_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final DateTimeFormatter REQUEST_DATA_DAY_FMT = DateTimeFormatter.ISO_LOCAL_DATE;
 
@@ -155,8 +154,10 @@ public class RongShuNewScenePushBlackListServiceImpl implements RongShuNewSceneP
         }
         List<BlackDetailDTO> details = new ArrayList<>();
         for (MarketingSyncUser row : rows) {
-            BlackDetailDTO one = buildBlackDetailFromCellMd5(row.getCellMd5(), row.getId());
-            details.add(one);
+            BlackDetailDTO one = buildBlackDetailFromCellMd5(row.getCellMd5(), row.getId(), apiCode, sourceTag);
+            if (one != null) {
+                details.add(one);
+            }
         }
         pushBlackInBatches(details, apiCode, sourceTag);
     }
@@ -175,12 +176,36 @@ public class RongShuNewScenePushBlackListServiceImpl implements RongShuNewSceneP
         pushBlackInBatches(details, apiCode, sourceTag);
     }
 
-    private BlackDetailDTO buildBlackDetailFromCellMd5(String cellMd5, Long rowId) {
-        BlackDetailDTO d = new BlackDetailDTO();
-        d.setDataId(rowId != null ? String.valueOf(rowId) : cellMd5);
-        d.setPhone(cellMd5);
-        d.setEffectiveDate(LocalDateTime.now().format(EFFECTIVE_TIME_FMT));
-        return d;
+    private BlackDetailDTO buildBlackDetailFromCellMd5(String cellMd5, Long rowId, String apiCode, String sourceTag) {
+        if (StringUtils.isBlank(cellMd5)) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(),
+                            "榕树新场景黑名单 cell_md5 为空 apiCode=" + apiCode + " source=" + sourceTag));
+            return null;
+        }
+        try {
+            String phone = RpcClientProxy.decode(cellMd5, "cell", "md5", "");
+            if (StringUtils.isBlank(phone)) {
+                log.warn(
+                        AlertLog.buildWarnMessage(
+                                AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(),
+                                "榕树新场景黑名单 cell_md5 解密结果为空 apiCode=" + apiCode + " source=" + sourceTag + " cellMd5=" + cellMd5));
+                return null;
+            }
+            BlackDetailDTO d = new BlackDetailDTO();
+            d.setDataId(rowId != null ? String.valueOf(rowId) : cellMd5);
+            d.setPhone(phone);
+            d.setEffectiveDate(LocalDateTime.now().format(EFFECTIVE_TIME_FMT));
+            return d;
+        } catch (Exception ex) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(),
+                            "榕树新场景黑名单 cell_md5 解密异常 apiCode=" + apiCode + " source=" + sourceTag + " cellMd5=" + cellMd5 + " " + ex.getMessage()),
+                    ex);
+            return null;
+        }
     }
 
     private BlackDetailDTO buildBlackDetailFromCustNum(String custNum, Long rowId, String apiCode, String sourceTag) {
@@ -228,7 +253,6 @@ public class RongShuNewScenePushBlackListServiceImpl implements RongShuNewSceneP
         ReqBlackPhoneParentDTO parentDTO = new ReqBlackPhoneParentDTO();
         parentDTO.setDto(dto);
         parentDTO.setBlackDetailDTOList(blackDetailList);
-        parentDTO.setExtendInfo(EXTEND_INFO_TAG);
         Result<String> callResult = methodRetryHandlerService.callCustomerBlack(parentDTO, 0);
         if (!ResultCode.SUCCESS.getValue().equals(callResult.getCode())) {
             log.warn(
