@@ -66,8 +66,11 @@ public class ZhongYuanAgentServiceImpl implements ZhongYuanAgentService {
                 return fail(ZhongYuanAgentMtResponseCode.ERR_CONFIG, "未配置 zhongYuanAgentChannelRsa 或缺少 publicKey/privateKey", responseNo);
             }
 
-            PublicKey zyPublicKey = RsaUtil.getPublicKey(rsaCfg.getPublicKey().trim());
-            PrivateKey channelPrivateKey = RsaUtil.getPrivateKey(rsaCfg.getPrivateKey().trim());
+            String publicKey = rsaCfg.getPublicKey().trim().replace("*","=");
+            String privateKey = rsaCfg.getPrivateKey().trim().replace("*","=");
+
+            PublicKey zyPublicKey = RsaUtil.getPublicKey(publicKey);
+            PrivateKey channelPrivateKey = RsaUtil.getPrivateKey(privateKey);
 
             MtStandardRequest req = JSON.parseObject(jsonData, MtStandardRequest.class);
             if (req == null || !StringUtils.hasText(req.getRequestNo())) {
