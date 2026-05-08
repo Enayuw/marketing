@@ -378,7 +378,8 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
         RequestFileData fileData = new RequestFileData();
         fileData.setLocalFilePath(localFilePath);
 
-        fileData.setRemoteFileName(fileName);
+        String newDate = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        fileData.setRemoteFileName("/" + newDate + "/" + fileName);
         fileData.setTranCode(config.getString("downloadTranCode"));
         fileData.setUid(config.getString("uid"));
         request.setData(fileData);
