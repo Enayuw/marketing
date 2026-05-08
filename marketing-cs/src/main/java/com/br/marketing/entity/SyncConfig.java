@@ -1,5 +1,7 @@
 package com.br.marketing.entity;
 
+import com.br.marketing.enums.sync.SyncConfigIsUnzipEnum;
+
 import java.util.Date;
 
 public class SyncConfig {
@@ -153,6 +155,20 @@ public class SyncConfig {
      * 文件路径模板id
      */
     private Long pathTemplateId;
+
+    /**
+     * 是否需要解压：0-否 1-是
+     *
+     * @see SyncConfigIsUnzipEnum
+     */
+    private Integer isUnzip;
+
+    /**
+     * 解压文件名编码（默认 GBK）
+     *
+     * @see com.br.marketing.enums.sync.UnzipFilenameCharsetEnum
+     */
+    private String unzipFilenameCharset;
 
     public Long getId() {
         return id;
@@ -392,5 +408,21 @@ public class SyncConfig {
 
     public void setPathTemplateId(Long pathTemplateId) {
         this.pathTemplateId = pathTemplateId;
+    }
+
+    public Integer getIsUnzip() {
+        return isUnzip;
+    }
+
+    public void setIsUnzip(Integer isUnzip) {
+        this.isUnzip = isUnzip;
+    }
+
+    public String getUnzipFilenameCharset() {
+        return unzipFilenameCharset;
+    }
+
+    public void setUnzipFilenameCharset(String unzipFilenameCharset) {
+        this.unzipFilenameCharset = unzipFilenameCharset == null ? null : unzipFilenameCharset.trim();
     }
 }

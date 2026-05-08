@@ -80,6 +80,8 @@
              , type             as type
              , data_type        as dataType
              , suffix           as suffix
+             , is_unzip                    as isUnzip
+             , unzip_filename_charset      as unzipFilenameCharset
              , src_sftp_host    as srcSftpHost
              , src_sftp_port    as srcSftpPort
              , src_sftp_user    as srcSftpUser

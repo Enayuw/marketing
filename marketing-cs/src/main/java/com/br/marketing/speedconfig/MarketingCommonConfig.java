@@ -3660,6 +3660,11 @@ public class MarketingCommonConfig {
     private Map<String, String> syncUnzipEncoding;
 
     /**
+     * SFTP 配置页「文件后缀」下拉可选项（/rule/sftp/getSuffixConfigs）
+     */
+    private List<String> sftpFileSuffixOptions;
+
+    /**
      * * 同程批次号前缀对场景映射配置 3710208 匹配PL
      */
     private List<String> tcCpaBatchNoPrefixConfig;
