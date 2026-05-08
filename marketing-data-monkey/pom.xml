@@ -96,8 +96,6 @@
                     <include>**/*.yml</include>
                     <include>**/*.xml</include>
                     <include>**/*.json</include>
-                    <include>**/*.cer</include>
-                    <include>**/*.sm2</include>
                     <include>**/*.properties</include>
                 </includes>
             </resource>

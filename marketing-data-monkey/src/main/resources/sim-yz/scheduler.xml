@@ -937,7 +937,7 @@
 
     <job:simple id="【monkey】-NingBoDataDownloadJob"
                 class="com.br.marketing.monkey.job.ningbo.NingBoDataDownloadJob"
-                cron="0 0 18 29 9 ? 2099-2099"
+                cron="0 0/10 8-12 * * ?"
                 description="宁波银行文件下载"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -952,7 +952,7 @@
 
     <job:simple id="【monkey】-NingBoDataUploadJob"
                 class="com.br.marketing.monkey.job.ningbo.NingBoDataUploadJob"
-                cron="0 0 18 29 9 ? 2099-2099"
+                cron="0 30/10 20-23 * * ?"
                 description="宁波银行文件上传"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
