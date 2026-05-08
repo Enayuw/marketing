@@ -104,7 +104,6 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
         try {
             JSONObject config = commonConfig.getNingboBankConfig();
             String apiCode = config.getString("apiCode");
-            String filePrefix = config.getString("filePrefix");
             boolean mockEnable = config.getBoolean("mockEnable");
             int limit = config.getInteger("limit");
 
@@ -372,7 +371,7 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
         fileData.setLocalFilePath(localFilePath);
 
         fileData.setRemoteFileName(fileName);
-        fileData.setTranCode(config.getString("tranCode"));
+        fileData.setTranCode(config.getString("downloadTranCode"));
         fileData.setUid(config.getString("uid"));
         request.setData(fileData);
 
@@ -451,7 +450,7 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
             RequestFileData fileData = new RequestFileData();
             fileData.setLocalFileArray(fileBytes);
             fileData.setRemoteFileName(remoteFileName);
-            fileData.setTranCode(config.getString("tranCode"));
+            fileData.setTranCode(config.getString("uploadTranCode"));
             fileData.setUid(config.getString("uid"));
             request.setData(fileData);
 
