@@ -321,7 +321,7 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
             Result uploadResult = generalDataCleanService.uploadClean(jsonObjectList, apiCode);
 
             if (uploadResult == null || !uploadResult.isSuccess()) {
-                log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.NINGBO_BANK_SERVICEERROR.getCode(),
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.NINGBO_BANK_SERVICEERROR.getCode(),
                         TITLE + " 数据清洗失败", null));
             } else {
                 List<MarketingPreUserDetailDTO> transferDataItemDTOS = (List<MarketingPreUserDetailDTO>) uploadResult.getData();
@@ -331,7 +331,7 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
                         pushResult.getCode(), pushResult.isSuccess(), pushResult.getMessage());
             }
         } catch (Exception e) {
-            log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.NINGBO_BANK_SERVICEERROR.getCode(),
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.NINGBO_BANK_SERVICEERROR.getCode(),
                     TITLE + " 数据清洗异常", null), e);
         }
     }
