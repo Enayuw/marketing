@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.ningbo.NingBoDataTaskMapper" >
+    <resultMap id="BaseResultMap" type="com.br.marketing.entity.ningbo.NingBoDataTask" >
+        <id column="id" property="id" jdbcType="BIGINT" />
+        <result column="task_date" property="taskDate" jdbcType="DATE" />
+        <result column="task_type" property="taskType" jdbcType="TINYINT" />
+        <result column="status" property="status" jdbcType="TINYINT" />
+        <result column="result_message" property="resultMessage" jdbcType="VARCHAR" />
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    </resultMap>
+    <sql id="Example_Where_Clause" >
+        <where >
+            <foreach collection="oredCriteria" item="criteria" separator="or" >
+                <if test="criteria.valid" >
+                    <trim prefix="(" suffix=")" prefixOverrides="and" >
+                        <foreach collection="criteria.criteria" item="criterion" >
+                            <choose >
+                                <when test="criterion.noValue" >
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue" >
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue" >
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue" >
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Update_By_Example_Where_Clause" >
+        <where >
+            <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+                <if test="criteria.valid" >
+                    <trim prefix="(" suffix=")" prefixOverrides="and" >
+                        <foreach collection="criteria.criteria" item="criterion" >
+                            <choose >
+                                <when test="criterion.noValue" >
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue" >
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue" >
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue" >
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Base_Column_List" >
+        id, task_date, task_type, `status`, result_message, create_time, update_time
+    </sql>
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.ningbo.NingBoDataTaskExample" >
+        select
+        <if test="distinct" >
+            distinct
+        </if>
+        <include refid="Base_Column_List" />
+        from b_ningbo_data_task
+        <if test="_parameter != null" >
+            <include refid="Example_Where_Clause" />
+        </if>
+        <if test="orderByClause != null" >
+            order by ${orderByClause}
+        </if>
+    </select>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+        select
+        <include refid="Base_Column_List" />
+        from b_ningbo_data_task
+        where id = #{id,jdbcType=BIGINT}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+        delete from b_ningbo_data_task
+        where id = #{id,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteByExample" parameterType="com.br.marketing.entity.ningbo.NingBoDataTaskExample" >
+        delete from b_ningbo_data_task
+        <if test="_parameter != null" >
+            <include refid="Example_Where_Clause" />
+        </if>
+    </delete>
+    <insert id="insert" parameterType="com.br.marketing.entity.ningbo.NingBoDataTask" >
+        <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into b_ningbo_data_task (task_date, task_type, `status`,
+        result_message, create_time, update_time
+        )
+        values (#{taskDate,jdbcType=DATE}, #{taskType,jdbcType=TINYINT}, #{status,jdbcType=TINYINT},
+        #{resultMessage,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+        )
+    </insert>
+    <insert id="insertSelective" parameterType="com.br.marketing.entity.ningbo.NingBoDataTask" >
+        <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into b_ningbo_data_task
+        <trim prefix="(" suffix=")" suffixOverrides="," >
+            <if test="taskDate != null" >
+                task_date,
+            </if>
+            <if test="taskType != null" >
+                task_type,
+            </if>
+            <if test="status != null" >
+                `status`,
+            </if>
+            <if test="resultMessage != null" >
+                result_message,
+            </if>
+            <if test="createTime != null" >
+                create_time,
+            </if>
+            <if test="updateTime != null" >
+                update_time,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides="," >
+            <if test="taskDate != null" >
+                #{taskDate,jdbcType=DATE},
+            </if>
+            <if test="taskType != null" >
+                #{taskType,jdbcType=TINYINT},
+            </if>
+            <if test="status != null" >
+                #{status,jdbcType=TINYINT},
+            </if>
+            <if test="resultMessage != null" >
+                #{resultMessage,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null" >
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateTime != null" >
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+    </insert>
+    <select id="countByExample" parameterType="com.br.marketing.entity.ningbo.NingBoDataTaskExample" resultType="java.lang.Integer" >
+        select count(*) from b_ningbo_data_task
+        <if test="_parameter != null" >
+            <include refid="Example_Where_Clause" />
+        </if>
+    </select>
+    <update id="updateByExampleSelective" parameterType="map" >
+        update b_ningbo_data_task
+        <set >
+            <if test="record.id != null" >
+                id = #{record.id,jdbcType=BIGINT},
+            </if>
+            <if test="record.taskDate != null" >
+                task_date = #{record.taskDate,jdbcType=DATE},
+            </if>
+            <if test="record.taskType != null" >
+                task_type = #{record.taskType,jdbcType=TINYINT},
+            </if>
+            <if test="record.status != null" >
+                `status` = #{record.status,jdbcType=TINYINT},
+            </if>
+            <if test="record.resultMessage != null" >
+                result_message = #{record.resultMessage,jdbcType=VARCHAR},
+            </if>
+            <if test="record.createTime != null" >
+                create_time = #{record.createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.updateTime != null" >
+                update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        <if test="_parameter != null" >
+            <include refid="Update_By_Example_Where_Clause" />
+        </if>
+    </update>
+    <update id="updateByExample" parameterType="map" >
+        update b_ningbo_data_task
+        set id = #{record.id,jdbcType=BIGINT},
+        task_date = #{record.taskDate,jdbcType=DATE},
+        task_type = #{record.taskType,jdbcType=TINYINT},
+        `status` = #{record.status,jdbcType=TINYINT},
+        result_message = #{record.resultMessage,jdbcType=VARCHAR},
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+        <if test="_parameter != null" >
+            <include refid="Update_By_Example_Where_Clause" />
+        </if>
+    </update>
+    <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.ningbo.NingBoDataTask" >
+        update b_ningbo_data_task
+        <set >
+            <if test="taskDate != null" >
+                task_date = #{taskDate,jdbcType=DATE},
+            </if>
+            <if test="taskType != null" >
+                task_type = #{taskType,jdbcType=TINYINT},
+            </if>
+            <if test="status != null" >
+                `status` = #{status,jdbcType=TINYINT},
+            </if>
+            <if test="resultMessage != null" >
+                result_message = #{resultMessage,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null" >
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateTime != null" >
+                update_time = #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.ningbo.NingBoDataTask" >
+        update b_ningbo_data_task
+        set task_date = #{taskDate,jdbcType=DATE},
+            task_type = #{taskType,jdbcType=TINYINT},
+            `status` = #{status,jdbcType=TINYINT},
+            result_message = #{resultMessage,jdbcType=VARCHAR},
+            create_time = #{createTime,jdbcType=TIMESTAMP},
+            update_time = #{updateTime,jdbcType=TIMESTAMP}
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+</mapper>

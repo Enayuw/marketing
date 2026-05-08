@@ -933,4 +933,34 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
+
+    <job:simple id="【monkey】-NingBoDataDownloadJob"
+                class="com.br.marketing.monkey.job.ningbo.NingBoDataDownloadJob"
+                cron="0 0 18 29 9 ? 2099-2099"
+                description="宁波银行文件下载"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
+    <job:simple id="【monkey】-NingBoDataUploadJob"
+                class="com.br.marketing.monkey.job.ningbo.NingBoDataUploadJob"
+                cron="0 0 18 29 9 ? 2099-2099"
+                description="宁波银行文件上传"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
 </beans>
