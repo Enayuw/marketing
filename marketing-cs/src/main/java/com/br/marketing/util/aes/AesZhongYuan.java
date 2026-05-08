@@ -239,7 +239,10 @@ public class AesZhongYuan {
 	 * @return 解密后的字节数组
 	 * @throws Exception 抛出异常
 	 */
-	public static byte[] decryptBase64ContentWithBase64Key2Byte(String base64Content, String base64Key, String iv, String algorithmPadding) throws Exception {
+	public static byte[] decryptBase64ContentWithBase64Key2Byte(String base64Content,
+																String base64Key,
+																String iv,
+																String algorithmPadding) throws Exception {
 		byte[] keyBytes = Encodes.decodeBase64(base64Key);
 		byte[] content = Encodes.decodeBase64(base64Content);
 		return decrypt2Byte(content, keyBytes, iv, algorithmPadding);
@@ -254,7 +257,10 @@ public class AesZhongYuan {
 	 * @return 解密后的base64编码字符串
 	 * @throws Exception 抛出异常
 	 */
-	public static String decryptBase64ContentWithBase64Key2Base64String(String base64Content, String base64Key, String iv, String algorithmPadding) throws Exception {
+	public static String decryptBase64ContentWithBase64Key2Base64String(String base64Content,
+																		String base64Key,
+																		String iv,
+																		String algorithmPadding) throws Exception {
 		byte[] keyBytes = Encodes.decodeBase64(base64Key);
 		byte[] content = Encodes.decodeBase64(base64Content);
 		return decrypt2Base64String(content, keyBytes, iv, algorithmPadding);
@@ -269,7 +275,10 @@ public class AesZhongYuan {
 	 * @return 解密后的hex编码字符串
 	 * @throws Exception 抛出异常
 	 */
-	public static String decryptBase64ContentWithBase64Key2HexString(String base64Content, String base64Key, String iv, String algorithmPadding) throws Exception {
+	public static String decryptBase64ContentWithBase64Key2HexString(String base64Content,
+																	 String base64Key,
+																	 String iv,
+																	 String algorithmPadding) throws Exception {
 		byte[] keyBytes = Encodes.decodeBase64(base64Key);
 		byte[] content = Encodes.decodeBase64(base64Content);
 		return decrypt2HexString(content, keyBytes, iv, algorithmPadding);
@@ -284,7 +293,10 @@ public class AesZhongYuan {
 	 * @return 解密后的字节数组
 	 * @throws Exception 抛出异常
 	 */
-	public static byte[] decryptBase64ContentWithHexKey2Byte(String base64Content, String hexKey, String iv, String algorithmPadding) throws Exception {
+	public static byte[] decryptBase64ContentWithHexKey2Byte(String base64Content,
+															 String hexKey,
+															 String iv,
+															 String algorithmPadding) throws Exception {
 		byte[] keyBytes = Encodes.decodeHex(hexKey);
 		byte[] content = Encodes.decodeBase64(base64Content);
 		return decrypt2Byte(content, keyBytes, iv, algorithmPadding);
@@ -299,7 +311,10 @@ public class AesZhongYuan {
 	 * @return 解密后的base64编码字符串
 	 * @throws Exception 抛出异常
 	 */
-	public static String decryptBase64ContentWithHexKey2Base64String(String base64Content, String hexKey, String iv, String algorithmPadding) throws Exception {
+	public static String decryptBase64ContentWithHexKey2Base64String(String base64Content,
+																	 String hexKey,
+																	 String iv,
+																	 String algorithmPadding) throws Exception {
 		byte[] keyBytes = Encodes.decodeHex(hexKey);
 		byte[] content = Encodes.decodeBase64(base64Content);
 		return decrypt2Base64String(content, keyBytes, iv, algorithmPadding);
@@ -314,7 +329,10 @@ public class AesZhongYuan {
 	 * @return 解密后的hex编码字符串
 	 * @throws Exception 抛出异常
 	 */
-	public static String decryptBase64ContentWithHexKey2HexString(String base64Content, String hexKey, String iv, String algorithmPadding) throws Exception {
+	public static String decryptBase64ContentWithHexKey2HexString(String base64Content,
+																  String hexKey,
+																  String iv,
+																  String algorithmPadding) throws Exception {
 		byte[] keyBytes = Encodes.decodeHex(hexKey);
 		byte[] content = Encodes.decodeBase64(base64Content);
 		return decrypt2HexString(content, keyBytes, iv, algorithmPadding);
@@ -573,15 +591,18 @@ public class AesZhongYuan {
 	/**
 	 * 带Seed的AES密钥生成,返回字节数组.
 	 */
+	private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
 	public static byte[] generateAesKeyWithSeed(int keySize, String seed) {
 		try {
 			KeyGenerator keyGenerator = KeyGenerator.getInstance(AES);
 			if (StringUtils.isNotBlank(seed)) {
-				SecureRandom secureRandom = new SecureRandom();
-				secureRandom.setSeed(seed.getBytes());
+				// 使用 clone 或新的 SecureRandom，但基于系统熵池
+				SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG");
+				secureRandom.setSeed(seed.getBytes(StandardCharsets.UTF_8));
 				keyGenerator.init(keySize, secureRandom);
-			}else {
-				keyGenerator.init(keySize);
+			} else {
+				keyGenerator.init(keySize, SECURE_RANDOM);
 			}
 			SecretKey secretKey = keyGenerator.generateKey();
 			return secretKey.getEncoded();

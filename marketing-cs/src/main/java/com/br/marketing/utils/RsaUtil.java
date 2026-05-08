@@ -39,28 +39,6 @@ public class RsaUtil {
 	// OAEP (SHA-512 + MGF1)，安全性高
 	public static final String OAEP_WITH_SHA_512 = "RSA/ECB/OAEPWithSHA-512AndMGF1Padding";
 
-	public static void main(String[] args) throws Exception {
-		List<String> keyPair = initRsaKey(1024);
-		String publicKeyStr = keyPair.get(0);
-		String privateKeyStr = keyPair.get(1);
-		PublicKey publicKey = getPublicKey(publicKeyStr);
-		PrivateKey privateKey = getPrivateKey(privateKeyStr);
-
-		String plain = "99999";
-		byte[] plainBytes = plain.getBytes(StandardCharsets.UTF_8);
-		String cipherBase64 = encrypt2Base64String(plainBytes, publicKey, null, PK_CS1);
-
-		byte[] decryptedBytes = decryptBase64Content2Byte(cipherBase64, privateKey);
-		String decrypted = new String(decryptedBytes, StandardCharsets.UTF_8);
-
-		System.out.println("公钥(Base64)：" + publicKeyStr);
-		System.out.println("私钥(Base64)：" + privateKeyStr);
-		System.out.println("明文：" + plain);
-		System.out.println("密文(Base64)：" + cipherBase64);
-		System.out.println("解密明文：" + decrypted);
-		System.out.println("往返一致：" + plain.equals(decrypted));
-	}
-
 	/**
 	 * 生成RSA公钥私钥字符串，放到List中，用于日常生成公钥、私钥
 	 * @param size 长度：1024、2048、4096

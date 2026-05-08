@@ -20,7 +20,7 @@ public class Encodes {
 	 * Hex编码.
 	 */
 	public static String encodeHex(byte[] input) {
-		return new String(Hex.encodeHex(input));
+		return String.valueOf(Hex.encodeHex(input));
 	}
 
 	/**
@@ -38,15 +38,15 @@ public class Encodes {
 	 * Base64编码.
 	 */
 	public static String encodeBase64(byte[] input) {
-		return new String(Base64.encodeBase64(input));
+		return Base64.encodeBase64String(input);
 	}
-	
+
 	/**
 	 * Base64编码.
 	 */
 	public static String encodeBase642String(String input) {
 		try {
-			return new String(Base64.encodeBase64(input.getBytes(DEFAULT_URL_ENCODING)));
+			return Base64.encodeBase64String(input.getBytes(DEFAULT_URL_ENCODING));
 		}catch (UnsupportedEncodingException e) {
 			throw new RuntimeException(e);
 		}
