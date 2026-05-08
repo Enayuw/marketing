@@ -511,29 +511,18 @@
         limit #{pageSize}
     </select>
 
-    <select id="getRsToPolicyDataNew" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+    <select id="getRsToPolicyDataByRegisterTime" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select *
         from b_marketing_transfer_sync_${tcId}
-        where request_data = #{requestDate}
-        and user_type in
+        where api_code = #{apiCode}
+          and user_type in
         <foreach collection="userTypes" item="userType" open="(" separator="," close=")">
             #{userType}
         </foreach>
-        <if test="ifActivity != null ">
-            and reserve_field1->'$.ifActivity'=#{ifActivity}
-        </if>
-        <if test="apiCode != null and apiCode.trim() neq ''">
-            and api_code=#{apiCode}
-        </if>
-        <if test="activityTime != null ">
-            and replace(substring(reserve_field1->'$.activityTime',1,11),'"','')=#{activityTime}
-        </if>
         <if test="ifApply != null ">
             and if_apply=#{ifApply}
         </if>
-        <if test="applyDt != null ">
-            and STR_TO_DATE(apply_dt,'%Y-%m-%d') = #{applyDt}
-        </if>
+        <![CDATA[ and register_time >= #{registerStartTime} and register_time < #{registerEndTime} ]]>
         <if test="minId != null and minId>0">
             and id > #{minId}
         </if>
@@ -661,6 +650,17 @@
         select *
         from b_marketing_transfer_sync_${tCid}
         where api_code = #{apiCode} and request_data = #{requestDate}
+        <if test="minId != null and minId >0">
+            and id > #{minId}
+        </if>
+        order by id asc limit 2000;
+    </select>
+
+    <select id="getTransferByRegisterTimeDate" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select *
+        from b_marketing_transfer_sync_${tCid}
+        where api_code = #{apiCode}
+          <![CDATA[ and register_time >= #{registerStartTime} and register_time < #{registerEndTime} ]]>
         <if test="minId != null and minId >0">
             and id > #{minId}
         </if>

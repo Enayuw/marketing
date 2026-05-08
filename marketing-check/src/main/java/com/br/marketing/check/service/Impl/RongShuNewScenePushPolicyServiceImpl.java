@@ -45,7 +45,7 @@ import java.util.concurrent.CompletableFuture;
 public class RongShuNewScenePushPolicyServiceImpl implements RongShuNewScenePushPolicyService {
 
     private static final int BATCH_SIZE = 2000;
-    private static final DateTimeFormatter REQUEST_DATA_DAY_FMT = DateTimeFormatter.ISO_LOCAL_DATE;
+    private static final DateTimeFormatter DAY_FMT = DateTimeFormatter.ISO_LOCAL_DATE;
     private static final List<String> SCENARIO1_USER_TYPES = Arrays.asList("1", "201", "202", "3");
     private static final String SCENARIO2_USER_TYPE = "201";
     private static final String SCENARIO_TYPE_TRANSFER = "1";
@@ -96,11 +96,13 @@ public class RongShuNewScenePushPolicyServiceImpl implements RongShuNewScenePush
                             "榕树新场景推决策未解析到 tcId，跳过 apiCode=" + apiCode));
             return;
         }
-        String requestDataTMinus1 = LocalDate.now().minusDays(1).format(REQUEST_DATA_DAY_FMT);
+        LocalDate registerDateTMinus1 = LocalDate.now().minusDays(1);
+        String registerStartTime = registerDateTMinus1 + " 00:00:00";
+        String registerEndTime = registerDateTMinus1.plusDays(1) + " 00:00:00";
         TpDynamicExecutor threadPool = TpDynamicExecutorFactory
                 .getThreadPool(ThreadPoolNameEnum.RONGSHU_NEW_SCENE_POLICY.getName(), 5, 20);
         try {
-            pushScenario1Transfer(tcId, apiCode, requestDataTMinus1, strategyCode, threadPool);
+            pushScenario1Transfer(tcId, apiCode, registerStartTime, registerEndTime, strategyCode, threadPool);
             pushScenario2Upload(apiCode, strategyCode, threadPool);
         } finally {
             threadPool.shutdownAndAwaitTermination();
@@ -110,24 +112,23 @@ public class RongShuNewScenePushPolicyServiceImpl implements RongShuNewScenePush
     private void pushScenario1Transfer(
             String tcId,
             String apiCode,
-            String requestData,
+            String registerStartTime,
+            String registerEndTime,
             String strategyCode,
             TpDynamicExecutor threadPool) {
         List<CompletableFuture<Void>> futures = new ArrayList<>();
         Long minId = null;
         for (; ; ) {
             List<MarketingTransferSyncUser> batch =
-                    marketingTransferSyncUserMapper.getRsToPolicyDataNew(
-                            requestData,
+                    marketingTransferSyncUserMapper.getRsToPolicyDataByRegisterTime(
                             tcId,
                             SCENARIO1_USER_TYPES,
-                            null,
-                            null,
                             "0",
-                            null,
                             minId,
                             BATCH_SIZE,
-                            apiCode);
+                            apiCode,
+                            registerStartTime,
+                            registerEndTime);
             if (CollectionUtils.isEmpty(batch)) {
                 break;
             }
@@ -147,7 +148,7 @@ public class RongShuNewScenePushPolicyServiceImpl implements RongShuNewScenePush
 
     private void pushScenario2Upload(String apiCode, String strategyCode, TpDynamicExecutor threadPool) {
         List<CompletableFuture<Void>> futures = new ArrayList<>();
-        String today = LocalDate.now().format(REQUEST_DATA_DAY_FMT);
+        String today = LocalDate.now().format(DAY_FMT);
         Long minId = null;
         for (; ; ) {
             List<MarketingSyncUser> batch =

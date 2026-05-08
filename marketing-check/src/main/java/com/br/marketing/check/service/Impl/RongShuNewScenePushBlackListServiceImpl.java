@@ -37,7 +37,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * 榕树新场景外呼黑名单推送实现（仅供定时 Job 调用）。
  * <p>
- * 仅覆盖两路：上传 userType=202（当天）、转化 {@code request_data}=T-N。
+ * 仅覆盖两路：上传 userType=202（当天）、转化 {@code register_time}=T-N。
  * 「T 日转化 applyResult=1 永久拉黑」不在此 Service / Job 内实现，由实时或其它链路单独处理。
  * </p>
  */
@@ -95,7 +95,9 @@ public class RongShuNewScenePushBlackListServiceImpl implements RongShuNewSceneP
         }
         String todayStr = LocalDate.now().format(REQUEST_DATA_DAY_FMT);
         int offsetDays = registerOffsetDays();
-        String pastRequestData = LocalDate.now().minusDays(offsetDays).format(REQUEST_DATA_DAY_FMT);
+        LocalDate registerDate = LocalDate.now().minusDays(offsetDays);
+        String registerStartTime = registerDate + " 00:00:00";
+        String registerEndTime = registerDate.plusDays(1) + " 00:00:00";
 
         TpDynamicExecutor threadPool = TpDynamicExecutorFactory.getThreadPool(
                 ThreadPoolNameEnum.RONGSHU_NEW_SCENE_BLACKLIST.getName(), 5, 20);
@@ -119,12 +121,12 @@ public class RongShuNewScenePushBlackListServiceImpl implements RongShuNewSceneP
 
             CompletableFuture.allOf(uploadFutures.toArray(new CompletableFuture[0])).join();
 
-            String transferSourceTag = "transferRequestDataT-" + offsetDays;
+            String transferSourceTag = "transferRegisterTimeT-" + offsetDays;
             List<CompletableFuture<Void>> transferFutures = new ArrayList<>();
             Long transferMinId = null;
             for (; ; ) {
                 List<MarketingTransferSyncUser> transferBatch = marketingTransferSyncUserMapper
-                        .getTransferByRequestDate(tcId, apiCode, pastRequestData, transferMinId);
+                        .getTransferByRegisterTimeDate(tcId, apiCode, registerStartTime, registerEndTime, transferMinId);
                 if (CollectionUtils.isEmpty(transferBatch)) {
                     break;
                 }
