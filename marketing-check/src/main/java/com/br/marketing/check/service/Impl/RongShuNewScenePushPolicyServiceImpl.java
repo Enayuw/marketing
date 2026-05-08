@@ -36,7 +36,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 
 /**
  * 榕树新场景推决策：先情况 1（转化）全部分批推送，再情况 2（上传 201 窗口）；去重由 sole 切面处理。
@@ -51,6 +50,7 @@ public class RongShuNewScenePushPolicyServiceImpl implements RongShuNewScenePush
     private static final String SCENARIO2_USER_TYPE = "201";
     private static final String SCENARIO_TYPE_TRANSFER = "1";
     private static final String SCENARIO_TYPE_UPLOAD = "2";
+    public static final String CASTR_0323375 = "CASTR0323375";
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -67,10 +67,9 @@ public class RongShuNewScenePushPolicyServiceImpl implements RongShuNewScenePush
     public void executePushPolicy() {
         String strategyCode = marketingCommonConfig.getRongShuNewScenePushPolicyStrategyCode();
         if (StringUtils.isBlank(strategyCode)) {
-            log.warn("榕树新场景推决策：rongShuNewScenePushPolicyStrategyCode 为空，跳过执行");
-            return;
+            strategyCode = CASTR_0323375;
         }
-        List<String> apiCodes = marketingCommonConfig.getRongShuNewScenePushBlackListApiCodes();
+        List<String> apiCodes = marketingCommonConfig.getRongShuNewSceneApiCodes();
         if (CollectionUtils.isEmpty(apiCodes)) {
             log.warn("榕树新场景推决策：rongShuNewScenePushBlackListApiCodes 为空，跳过执行");
             return;

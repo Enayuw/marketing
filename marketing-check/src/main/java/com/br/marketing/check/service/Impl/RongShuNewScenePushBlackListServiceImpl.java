@@ -33,7 +33,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 
 /**
  * 榕树新场景外呼黑名单推送实现（仅供定时 Job 调用）。
@@ -64,7 +63,7 @@ public class RongShuNewScenePushBlackListServiceImpl implements RongShuNewSceneP
 
     @Override
     public void executePushBlackList() {
-        List<String> apiCodes = marketingCommonConfig.getRongShuNewScenePushBlackListApiCodes();
+        List<String> apiCodes = marketingCommonConfig.getRongShuNewSceneApiCodes();
         if (CollectionUtils.isEmpty(apiCodes)) {
             log.warn("榕树新场景外呼黑名单：rongShuNewScenePushBlackListApiCodes 为空，跳过执行");
             return;
@@ -156,7 +155,7 @@ public class RongShuNewScenePushBlackListServiceImpl implements RongShuNewSceneP
         }
         List<BlackDetailDTO> details = new ArrayList<>();
         for (MarketingSyncUser row : rows) {
-            BlackDetailDTO one = buildBlackDetailFromCellMd5(row.getCellMd5(), row.getId(), apiCode, sourceTag);
+            BlackDetailDTO one = buildBlackDetailFromCellMd5(row.getCellMd5(), row.getId());
             details.add(one);
         }
         pushBlackInBatches(details, apiCode, sourceTag);
@@ -176,7 +175,7 @@ public class RongShuNewScenePushBlackListServiceImpl implements RongShuNewSceneP
         pushBlackInBatches(details, apiCode, sourceTag);
     }
 
-    private BlackDetailDTO buildBlackDetailFromCellMd5(String cellMd5, Long rowId, String apiCode, String sourceTag) {
+    private BlackDetailDTO buildBlackDetailFromCellMd5(String cellMd5, Long rowId) {
         BlackDetailDTO d = new BlackDetailDTO();
         d.setDataId(rowId != null ? String.valueOf(rowId) : cellMd5);
         d.setPhone(cellMd5);

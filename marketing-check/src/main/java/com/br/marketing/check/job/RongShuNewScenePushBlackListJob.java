@@ -1,6 +1,8 @@
 package com.br.marketing.check.job;
 
+import com.br.common.log.AlertLog;
 import com.br.marketing.check.service.RongShuNewScenePushBlackListService;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
@@ -9,9 +11,6 @@ import org.springframework.stereotype.Component;
 
 /**
  * 榕树新场景外呼黑名单（blackData）：本 Job 只处理两路——上传 userType=202（当天）；转化 request_data=T-N（N Speed）。
- * <p>
- * 「T 日转化数据中 applyResult=1 永久拉黑」不在本 Job，由实时/单独链路实现，请勿在此处追加逻辑。
- * </p>
  */
 @Component
 @Slf4j
@@ -22,6 +21,16 @@ public class RongShuNewScenePushBlackListJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
-        rongShuNewScenePushBlackListService.executePushBlackList();
+        long start = System.currentTimeMillis();
+        try {
+            rongShuNewScenePushBlackListService.executePushBlackList();
+        } catch (Exception e) {
+            log.warn(
+                    AlertLog.buildWarnMessage(
+                            AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(),
+                            "榕树新场景推送外呼黑名单执行异常" + " " + e.getMessage()),
+                    e);
+        }
+        log.warn("榕树新场景推送外呼黑名单 execute time:{}", System.currentTimeMillis() - start);
     }
 }
