@@ -222,8 +222,8 @@ public class RongShuNewScenePushPolicyServiceImpl implements RongShuNewScenePush
         ArrayList<DataJoinLogDTO> logList = new ArrayList<>();
         ArrayList<PushMarketingUserDetailDTO> pushs = new ArrayList<>();
         for (MarketingSyncUser row : rows) {
-            String custNum = row.getCustNum();
-            if (StringUtils.isBlank(custNum)) {
+            String cellMd5 = row.getCellMd5();
+            if (StringUtils.isBlank(cellMd5)) {
                 log.warn(
                         AlertLog.buildWarnMessage(
                                 AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(),
@@ -231,8 +231,8 @@ public class RongShuNewScenePushPolicyServiceImpl implements RongShuNewScenePush
                 continue;
             }
             PushMarketingUserDetailDTO dto = new PushMarketingUserDetailDTO();
-            dto.setCaseNumber(custNum);
-            dto.setPhone(custNum);
+            dto.setCaseNumber(cellMd5);
+            dto.setPhone(cellMd5);
             dto.setVariables(variablesFromSync(row));
             pushs.add(dto);
             logList.add(
@@ -240,8 +240,8 @@ public class RongShuNewScenePushPolicyServiceImpl implements RongShuNewScenePush
                             dto,
                             DistributeTypeEnum.POLICYDATA,
                             apiCode,
-                            custNum,
-                            custNum,
+                            cellMd5,
+                            cellMd5,
                             row.getId(),
                             DistributeSourceTypeEnum.TRANSFER,
                             scenarioType,
