@@ -403,10 +403,19 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
 
     @Override
     public void uploadFile(Date collectDate) {
-        NingBoDataTask currentTask = ningBoDataTaskMapper.createOrUpdateRunningTask(collectDate, TaskTypeEnum.UPLOAD.getCode());
-        if (currentTask == null || Objects.equals(currentTask.getStatus(), TaskStatusEnum.SUCCESS.getCode())) {
+        NingBoDataTaskExample example = new NingBoDataTaskExample();
+        example.createCriteria().andTaskTypeEqualTo(TaskTypeEnum.UPLOAD.getCode())
+                .andTaskDateEqualTo(collectDate)
+                .andStatusGreaterThan(TaskStatusEnum.WAITING.getCode());
+        if (ningBoDataTaskMapper.countByExample(example) > 0) {
             return;
         }
+
+        NingBoDataTask currentTask = new NingBoDataTask();
+        currentTask.setTaskDate(collectDate);
+        currentTask.setStatus(1);
+        currentTask.setTaskType(TaskTypeEnum.UPLOAD.getCode());
+        ningBoDataTaskMapper.insertSelective(currentTask);
 
         try {
             JSONObject config = commonConfig.getNingboBankConfig();
@@ -415,17 +424,19 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
             }
             SyncConfig syncConfig = new SyncConfig();
             syncConfig.setApiCode(config.getString("apiCode"));
-            syncConfig.setDataType(DataTypeEnum.TRANSFER.getValue());
+            syncConfig.setDataType(DataTypeEnum.MARKETING_DATA_NO_HEADER.getValue());
+            syncConfig.setType(1);
             syncConfig = syncConfigMapper.queryConfigByConditaion(syncConfig);
 
-            String localFilePath = syncConfig.getSrcPath();
+            String localFilePath = syncConfig.getTargetPath();
             String filePrefix = config.getString("filePrefix");
-            File uploadFile = new File(localFilePath);
+            String remoteFileName = filePrefix + DateUtil.format(collectDate, TIME_FORMATTER2) + ".txt";
+            File uploadFile = new File(localFilePath + remoteFileName);
             if (!uploadFile.exists() || uploadFile.length() == 0) {
                 log.warn("上传文件不存在或为空，文件路径: {}", localFilePath);
                 return;
             }
-            String remoteFileName = filePrefix + DateUtil.format(collectDate, TIME_FORMATTER2) + ".txt";
+
             log.warn("开始上传宁波银行文件，本地路径: {}，远程文件名: {}", localFilePath, remoteFileName);
 
             SDKResponse response = uploadFileToBank(config, localFilePath, remoteFileName);
