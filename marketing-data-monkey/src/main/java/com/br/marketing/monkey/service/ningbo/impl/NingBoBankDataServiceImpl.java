@@ -428,10 +428,10 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
             syncConfig.setType(1);
             syncConfig = syncConfigMapper.queryConfigByConditaion(syncConfig);
 
-            String localFilePath = syncConfig.getTargetPath();
             String filePrefix = config.getString("filePrefix");
             String remoteFileName = filePrefix + DateUtil.format(collectDate, TIME_FORMATTER2) + ".txt";
-            File uploadFile = new File(localFilePath + remoteFileName);
+            String localFilePath = syncConfig.getTargetPath() + remoteFileName;
+            File uploadFile = new File(localFilePath);
             if (!uploadFile.exists() || uploadFile.length() == 0) {
                 log.warn("上传文件不存在或为空，文件路径: {}", localFilePath);
                 return;
