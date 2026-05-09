@@ -562,7 +562,7 @@ public class DataCleanServiceImpl implements DataCleanService {
      */
     public MarketingPreUserDTO dataClean(MarketingCustomerOriginalData originalData, List<MarketingDataCleanGeneralRuleConfig> ruleConfigList){
         JSONObject jsonData = JSON.parseObject(originalData.getJsonData());
-
+        List<String> tieDataApiCode = marketingCommonConfig.getTieDataApiCode();
         //层级字段处理
         String levelField = null;
         List<MarketingDataCleanGeneralRuleConfig> ruleConfigListTmp = new ArrayList<>(ruleConfigList);
@@ -603,7 +603,10 @@ public class DataCleanServiceImpl implements DataCleanService {
             //数据清洗
             dataCleanHandler(jsonObject, ruleConfigListTmp, marketingPreUserDetailDTO);
             dataCleanNotConfigHandler(jsonObject, ruleConfigListTmp, marketingPreUserDetailDTO);
-            flattenReserveField1NestedObjects(marketingPreUserDetailDTO);
+            //打平数据结构
+            if(tieDataApiCode.contains(originalData.getApiCode())){
+                flattenReserveField1NestedObjects(marketingPreUserDetailDTO);
+            }
             marketingPreUserDetailDTO.setFingerprint(ids.get(index.getAndIncrement()));
             syncUsers.add(marketingPreUserDetailDTO);
         });
