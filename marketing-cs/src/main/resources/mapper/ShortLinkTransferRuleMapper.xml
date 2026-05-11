@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.ShortLinkTransferRuleMapper" >
+
+    <select id="selectRuleApiCodeList" resultType="com.br.marketing.dto.linkgo.ShortLinkRuleApiCodeDTO">
+        select
+            rule_code as ruleCode,
+            api_code as apiCode
+        from b_short_link_transfer_rule
+        where rule_code in
+        <foreach collection="ruleCodes" item="ruleCode" open="(" close=")" separator=",">
+            #{ruleCode}
+        </foreach>
+    </select>
+</mapper>
