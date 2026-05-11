@@ -37,7 +37,7 @@ public class TcCustomizeWithoutSignController {
     @Operation(summary = "测试数据推送")
     @PostMapping("/marketDataPush")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
-    public TcResponseDTO marketDataPushWithoutSign(@RequestBody TcRequestDTO tcRequestDTO, HttpServletRequest request) {
+    public TcResponseDTO marketDataPushWithoutSign(@RequestBody TcRequestDTO tcRequestDTO) {
         tcRequestDTO.setTimestamp(String.valueOf(System.currentTimeMillis()));
         Map<String, Object> convert = objectMapper.convertValue(tcRequestDTO, Map.class);
         String signature = RSAUtil.generateContent(convert);
@@ -47,13 +47,13 @@ public class TcCustomizeWithoutSignController {
         //百融私钥加签
         String sign = RSAUtil.signByPrivateKey(tcPrivateKey, signature);
         tcRequestDTO.setSign(sign);
-        return tcCustomizeService.marketDataPush(tcRequestDTO, request.getHeader("Test-ApiCode"));
+        return tcCustomizeService.marketDataPush(tcRequestDTO, null);
     }
 
     @Operation(summary = "测试撤销营销")
     @PostMapping("/marketRevoke")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
-    public TcResponseDTO marketRevokeWithoutSign(@RequestBody TcRequestDTO tcRequestDTO, HttpServletRequest request) {
+    public TcResponseDTO marketRevokeWithoutSign(@RequestBody TcRequestDTO tcRequestDTO) {
         tcRequestDTO.setTimestamp(String.valueOf(System.currentTimeMillis()));
         Map<String, Object> convert = objectMapper.convertValue(tcRequestDTO, Map.class);
         String signature = RSAUtil.generateContent(convert);
@@ -62,13 +62,13 @@ public class TcCustomizeWithoutSignController {
         String tcPrivateKey = tcyrServerConfig.getString("tcPrivateKey").replace("*", "=");
         String sign = RSAUtil.signByPrivateKey(tcPrivateKey, signature);
         tcRequestDTO.setSign(sign);
-        return tcCustomizeService.marketRevoke(tcRequestDTO, request.getHeader("Test-ApiCode"));
+        return tcCustomizeService.marketRevoke(tcRequestDTO, null);
     }
 
     @Operation(summary = "测试转化通知")
     @PostMapping("/transformNotify")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
-    public TcResponseDTO transformNotifyWithoutSign(@RequestBody TcRequestDTO tcRequestDTO, HttpServletRequest request) {
+    public TcResponseDTO transformNotifyWithoutSign(@RequestBody TcRequestDTO tcRequestDTO) {
         tcRequestDTO.setTimestamp(String.valueOf(System.currentTimeMillis()));
         Map<String, Object> convert = objectMapper.convertValue(tcRequestDTO, Map.class);
         String signature = RSAUtil.generateContent(convert);
@@ -77,7 +77,7 @@ public class TcCustomizeWithoutSignController {
         String tcPrivateKey = tcyrServerConfig.getString("tcPrivateKey").replace("*", "=");
         String sign = RSAUtil.signByPrivateKey(tcPrivateKey, signature);
         tcRequestDTO.setSign(sign);
-        return tcCustomizeService.transformNotify(tcRequestDTO, request.getHeader("Test-ApiCode"));
+        return tcCustomizeService.transformNotify(tcRequestDTO, null);
     }
 
     @Operation(summary = "测试正负样本推送")

@@ -19,6 +19,24 @@
           AND is_del = 1
     </select>
 
+    <!-- 拆 apiCode 后：仅对已归因 api_code 的记录拉取文件（标准链路需先 fill） -->
+    <select id="searchTcyrSyncListApiCodeNotNull" resultType="com.br.marketing.entity.MarketingTcyrSyncRecord">
+        SELECT  id, api_code, request_no, batch_no, scene, `data`, `status`, msg, create_time, update_time,down_status,is_del
+        FROM b_marketing_tcyr_sync_record
+        WHERE api_code IS NOT NULL
+          AND status = #{status}
+          AND down_status = 0
+          AND is_del = 1
+    </select>
+
+    <select id="searchAllTcyrSyncListApiCodeNotNull" resultType="com.br.marketing.entity.MarketingTcyrSyncRecord">
+        SELECT  id, api_code, request_no, batch_no, scene, `data`, `status`, msg, create_time, update_time,down_status,is_del
+        FROM b_marketing_tcyr_sync_record
+        WHERE api_code IS NOT NULL
+          AND status = #{status}
+          AND is_del = 1
+    </select>
+
     <select id="selectLatestSceneByBatchNo" resultType="java.lang.String">
         SELECT scene
         FROM b_marketing_tcyr_sync_record
@@ -27,6 +45,25 @@
           AND is_del = 1
         ORDER BY id DESC
         LIMIT 1
+    </select>
+
+    <select id="selectLatestByBatchNo" resultType="com.br.marketing.entity.MarketingTcyrSyncRecord">
+        SELECT id, api_code, request_no, batch_no, scene, `data`, `status`, msg, create_time, update_time, down_status, is_del
+        FROM b_marketing_tcyr_sync_record
+        WHERE batch_no = #{batchNo}
+          AND is_del = 1
+        ORDER BY id DESC
+        LIMIT 1
+    </select>
+
+    <select id="selectPendingApiCodeMatchRecords" resultType="com.br.marketing.entity.MarketingTcyrSyncRecord">
+        SELECT id, api_code, request_no, batch_no, scene, `data`, `status`, msg, create_time, update_time, down_status, is_del
+        FROM b_marketing_tcyr_sync_record
+        WHERE api_code IS NULL
+          AND `status` = 1
+          AND is_del = 1
+        ORDER BY id ASC
+        LIMIT #{limit}
     </select>
 
     <select id="countTodayByApiCodeAndBatchPrefix" resultType="java.lang.Integer">

@@ -38,35 +38,35 @@ public class TcDataPushProcessor extends AbstractTcCustomizeProcessor {
 
     @Override
     protected void updateRecord(Long recordId, Integer status, String msg) {
-        MarketingTcyrSyncRecord record = new MarketingTcyrSyncRecord();
-        record.setId(recordId);
-        record.setStatus(status);
-        record.setMsg(msg);
-        tcyrSyncRecordMapper.updateByPrimaryKeySelective(record);
+        MarketingTcyrSyncRecord row = new MarketingTcyrSyncRecord();
+        row.setId(recordId);
+        row.setStatus(status);
+        row.setMsg(msg);
+        tcyrSyncRecordMapper.updateByPrimaryKeySelective(row);
     }
 
     @Override
     protected Long recordSave(TcRequestDTO tcRequestDTO, String batchNo, String apiCode, String brPrivateKey) {
-        MarketingTcyrSyncRecord record = new MarketingTcyrSyncRecord();
+        MarketingTcyrSyncRecord row = new MarketingTcyrSyncRecord();
         String scene = resolveSceneForRecord(batchNo);
-        record.setApiCode(apiCode);
-        record.setRequestNo(tcRequestDTO.getRequestNo());
-        record.setBatchNo(batchNo);
-        record.setScene(scene);
-        record.setData(tcRequestDTO.getData());
-        record.setStatus(0);
-        record.setDownStatus(0);
-        record.setIsDel(1);
-        record.setCreateTime(new Date());
-        record.setUpdateTime(new Date());
+        row.setApiCode(resolveApiCodeForRecord(apiCode));
+        row.setRequestNo(tcRequestDTO.getRequestNo());
+        row.setBatchNo(batchNo);
+        row.setScene(scene);
+        row.setData(tcRequestDTO.getData());
+        row.setStatus(0);
+        row.setDownStatus(0);
+        row.setIsDel(1);
+        row.setCreateTime(new Date());
+        row.setUpdateTime(new Date());
         try {
-            tcyrSyncRecordMapper.insertSelective(record);
-            return record.getId();
+            tcyrSyncRecordMapper.insertSelective(row);
+            return row.getId();
         } catch (DuplicateKeyException e) {
             //告警 todo
-            record.setRequestNo(tcRequestDTO.getRequestNo() + "_" + System.currentTimeMillis());
-            record.setStatus(2);
-            tcyrSyncRecordMapper.insertSelective(record);
+            row.setRequestNo(tcRequestDTO.getRequestNo() + "_" + System.currentTimeMillis());
+            row.setStatus(2);
+            tcyrSyncRecordMapper.insertSelective(row);
             return null;
         }
     }
@@ -101,6 +101,24 @@ public class TcDataPushProcessor extends AbstractTcCustomizeProcessor {
             }
         }
         return "NEW";
+    }
+
+    /**
+     * 标准 /marketDataPush：api_code 先置空，后续由 batchNo 匹配回填（3710228/3710229）。
+     * /cpa/marketDataPush 回落至标准 Processor：沿用传入的配置 api_code（与现网一致）。
+     */
+    private String resolveApiCodeForRecord(String passedApiCode) {
+        TcMarketDataPushContext.Entry entry = TcMarketDataPushContext.get();
+        if (TcMarketDataPushContext.Entry.STANDARD_SYNC.equals(entry)) {
+            return null;
+        }
+        if (TcMarketDataPushContext.Entry.CPA_SYNC_FALLBACK.equals(entry)) {
+            return passedApiCode;
+        }
+        if (StringUtils.isNotBlank(passedApiCode)) {
+            return passedApiCode;
+        }
+        return null;
     }
 
     /**

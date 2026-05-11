@@ -6,7 +6,6 @@ import com.br.marketing.entity.MarketingTcyrSyncRecord;
 import com.br.marketing.enums.TcSyncRecordStatusEnum;
 import com.br.marketing.mapper.MarketingTcyrSyncRecordMapper;
 import com.br.marketing.service.tc.TcSyncDataDownService;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
@@ -28,9 +27,6 @@ public class TcSyncDataDownFileShardJob extends AbstractSimpleElasticJob{
     private final static String TITLE = "【同程易融-downFileShard任务】";
 
     @Resource
-    private MarketingCommonConfig marketingCommonConfig;
-
-    @Resource
     private TcSyncDataDownService downService;
 
     @Resource
@@ -40,9 +36,8 @@ public class TcSyncDataDownFileShardJob extends AbstractSimpleElasticJob{
     public void process(JobExecutionMultipleShardingContext shardingContext) {
         log.warn("TITLE:{} 开始执行",TITLE);
         try {
-            List<MarketingTcyrSyncRecord> syncRecordList =tcyrSyncRecordMapper.searchTcyrSyncList(
-                            marketingCommonConfig.getTcyrApiCode(),
-                            TcSyncRecordStatusEnum.ACCESS_SUCCESS.getValue());
+            List<MarketingTcyrSyncRecord> syncRecordList = tcyrSyncRecordMapper.searchTcyrSyncListApiCodeNotNull(
+                    TcSyncRecordStatusEnum.ACCESS_SUCCESS.getValue());
             syncRecordList.forEach(syncRecord -> downService.dealTcyrTxtFileSync(syncRecord));
         }catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),

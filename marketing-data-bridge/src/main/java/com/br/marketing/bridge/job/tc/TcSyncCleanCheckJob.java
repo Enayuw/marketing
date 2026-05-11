@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * @Description 同程易融cleanCheck流程(上传请求失败二次处理)
@@ -26,6 +27,9 @@ public class TcSyncCleanCheckJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
-        cleanChekService.pocess(marketingCommonConfig.getTcyrApiCode());
+        List<String> apiCodes = TcyrShardJobApiCodes.resolve(marketingCommonConfig);
+        for (String apiCode : apiCodes) {
+            cleanChekService.pocess(apiCode);
+        }
     }
 }

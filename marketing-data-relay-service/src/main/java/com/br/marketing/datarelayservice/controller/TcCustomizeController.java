@@ -27,22 +27,22 @@ public class TcCustomizeController {
     @Operation(summary = "数据推送")
     @PostMapping("/marketDataPush")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
-    public TcResponseDTO marketDataPush(@RequestBody TcRequestDTO tcRequestDTO, HttpServletRequest request) {
-        return tcCustomizeService.marketDataPush(tcRequestDTO, request.getHeader("Test-ApiCode"));
+    public TcResponseDTO marketDataPush(@RequestBody TcRequestDTO tcRequestDTO) {
+        return tcCustomizeService.marketDataPush(tcRequestDTO, null);
     }
 
     @Operation(summary = "撤销营销")
     @PostMapping("/marketRevoke")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
-    public TcResponseDTO marketRevoke(@RequestBody TcRequestDTO tcRequestDTO, HttpServletRequest request) {
-        return tcCustomizeService.marketRevoke(tcRequestDTO, request.getHeader("Test-ApiCode"));
+    public TcResponseDTO marketRevoke(@RequestBody TcRequestDTO tcRequestDTO) {
+        return tcCustomizeService.marketRevoke(tcRequestDTO, null);
     }
 
     @Operation(summary = "转化通知")
     @PostMapping("/transformNotify")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
-    public TcResponseDTO transformNotify(@RequestBody TcRequestDTO tcRequestDTO, HttpServletRequest request) {
-        return tcCustomizeService.transformNotify(tcRequestDTO, request.getHeader("Test-ApiCode"));
+    public TcResponseDTO transformNotify(@RequestBody TcRequestDTO tcRequestDTO) {
+        return tcCustomizeService.transformNotify(tcRequestDTO, null);
     }
 
     @Operation(summary = "正负样本推送")

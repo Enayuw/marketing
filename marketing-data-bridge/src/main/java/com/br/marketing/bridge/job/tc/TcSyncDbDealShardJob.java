@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * @Description 同程易融db处理流程(file->原始数据表)
@@ -25,6 +26,9 @@ public class TcSyncDbDealShardJob extends AbstractSimpleElasticJob {
     private TcSyncDataDbDealService tcSyncDataDbDealService;
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
-        tcSyncDataDbDealService.shardProcess(marketingCommonConfig.getTcyrApiCode());
+        List<String> apiCodes = TcyrShardJobApiCodes.resolve(marketingCommonConfig);
+        for (String apiCode : apiCodes) {
+            tcSyncDataDbDealService.shardProcess(apiCode);
+        }
     }
 }

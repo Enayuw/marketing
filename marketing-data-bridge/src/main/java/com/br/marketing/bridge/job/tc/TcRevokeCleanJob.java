@@ -63,7 +63,7 @@ public class TcRevokeCleanJob extends AbstractSimpleElasticJob {
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
         try {
-            action(marketingCommonConfig.getTcyrApiCode());
+            action();
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(), e.getMessage(), TITLE), e);
         }
@@ -94,10 +94,10 @@ public class TcRevokeCleanJob extends AbstractSimpleElasticJob {
      * @author hedongshuo
      * @date 2025/5/8 14:45
      **/
-    private MarketingTcyrRevokeRecord fetchNextRevokeRecord(String apiCode) {
+    private MarketingTcyrRevokeRecord fetchNextRevokeRecord() {
         MarketingTcyrRevokeRecordExample example = new MarketingTcyrRevokeRecordExample();
         example.createCriteria()
-                .andApiCodeEqualTo(apiCode)
+                .andApiCodeIsNotNull()
                 .andStatusEqualTo(1)
                 .andIsCleanEqualTo(0)
                 .andIsDelEqualTo(1);

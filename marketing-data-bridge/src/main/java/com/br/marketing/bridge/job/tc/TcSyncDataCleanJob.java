@@ -60,7 +60,7 @@ public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext shardingContext) {
         try {
             log.warn(TITLE+"调度开始");
-            atciton(marketingCommonConfig.getTcyrApiCode());
+            atciton();
             log.warn(TITLE+"调度结束");
         }catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);
@@ -76,10 +76,11 @@ public class TcSyncDataCleanJob extends AbstractSimpleElasticJob {
      *    (3)调用uploadClean方法(List<Object>, apiCode)
      *    (4)调用定制化上传接口
      *    (5) 3、4都成功后，修改b_marketing_tcyr_syn is_clean=1
-     * @param apiCode
+     *    查询条件：接入成功且 api_code 非空（与 downFile 一致）。
      */
-    private void atciton(String apiCode) {
-        List<MarketingTcyrSyncRecord> syncRecordList = tcSyncDataCleanService.searchAllTcyrSyncList(apiCode, TcSyncRecordStatusEnum.ACCESS_SUCCESS.getValue());
+    private void atciton() {
+        List<MarketingTcyrSyncRecord> syncRecordList = tcSyncDataCleanService.searchAllTcyrSyncListApiCodeNotNull(
+                TcSyncRecordStatusEnum.ACCESS_SUCCESS.getValue());
 
         TpDynamicExecutor actionPool = TpDynamicExecutorFactory.getThreadPool(
                 ThreadPoolNameEnum.TCYR_DATA_CLEAN.getName(), 10, 10);
