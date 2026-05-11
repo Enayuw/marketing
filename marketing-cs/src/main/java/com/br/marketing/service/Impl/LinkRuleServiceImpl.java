@@ -7,9 +7,9 @@ import com.br.marketing.entity.DataExportTask;
 import com.br.marketing.mapper.DataExportTaskMapper;
 import com.br.marketing.mapper.ShortLinkTransferRuleMapper;
 import com.br.marketing.service.LinkRuleService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -41,8 +41,8 @@ public class LinkRuleServiceImpl implements LinkRuleService {
     @Resource
     private ShortLinkTransferRuleMapper shortLinkTransferRuleMapper;
 
-    @Value("#{${api.shortLink.tailor.apiCodeMap:{'3000256':true}}}")
-    private Map<String, Boolean> shortLinkTailorApiCodeMap;
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
 
     /**
@@ -163,7 +163,8 @@ public class LinkRuleServiceImpl implements LinkRuleService {
         if (!StringUtils.hasText(apiCode)) {
             log.warn("No apiCode found for short link ruleCode={}, use default extraScene", ruleCode);
         }
-        String extraScene = Boolean.TRUE.equals(shortLinkTailorApiCodeMap.get(apiCode))
+        List<String> shortLinkTailorApiCodes = marketingCommonConfig.getShortLinkTailorApiCodes();
+        String extraScene = shortLinkTailorApiCodes != null && shortLinkTailorApiCodes.contains(apiCode)
                 ? SPECIAL_EXTRA_SCENE
                 : DEFAULT_EXTRA_SCENE;
         return "{\"extraScene\":\"" + extraScene + "\"}";
