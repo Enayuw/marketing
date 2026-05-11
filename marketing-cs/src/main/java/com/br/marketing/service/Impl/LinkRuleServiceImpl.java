@@ -33,7 +33,7 @@ public class LinkRuleServiceImpl implements LinkRuleService {
 
     private static final Logger log = LoggerFactory.getLogger(LinkRuleServiceImpl.class);
     private static final String DEFAULT_EXTRA_SCENE = "文件提取_营销短链数据提取";
-    private static final String SPECIAL_EXTRA_SCENE = "文件提取_营销短链数据提取_特定客户";
+    private static final String SPECIAL_EXTRA_SCENE = "文件提取_营销短链数据提取_特殊客户";
 
     @Resource
     private DataExportTaskMapper dataExportTaskMapper;
