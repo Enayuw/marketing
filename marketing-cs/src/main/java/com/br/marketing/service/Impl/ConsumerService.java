@@ -6,6 +6,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.context.MqIdempotentContext;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
@@ -56,6 +57,10 @@ public class ConsumerService {
                 log.warn("服务下线，消费者休眠时间到");
             }
 
+            // 设置tag到ThreadLocal，供幂等性切面使用（RabbitMQ使用routing key作为tag）
+            String routingKey = message.getMessageProperties().getReceivedRoutingKey();
+            MqIdempotentContext.setTag(routingKey);
+            
             Result<Boolean> apply = method.apply(t);
             /**
              * code 为SUCCESS 认为消费成功
@@ -86,6 +91,9 @@ public class ConsumerService {
             } catch (IOException ioException) {
                 ioException.printStackTrace();
             }
+        } finally {
+            // 清理ThreadLocal（统一在 ConsumerService 中清理，避免重复清理）
+            MqIdempotentContext.clear();
         }
     }
 

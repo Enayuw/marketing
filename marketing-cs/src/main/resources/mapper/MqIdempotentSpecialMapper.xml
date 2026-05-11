@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.MqIdempotentSpecialMapper" >
+  <!-- 根据幂等键删除记录 -->
+  <delete id="deleteByIdempotentKey">
+    DELETE FROM b_mq_idempotent_special
+    WHERE idempotent_key = #{idempotentKey}
+  </delete>
+
+  <!-- 根据幂等键查询记录 -->
+  <select id="selectByIdempotentKey" resultType="com.br.marketing.entity.IdempotentRecordInfo">
+    SELECT id, api_code as apiCode, is_finished as isFinished
+    FROM b_mq_idempotent_special
+    WHERE idempotent_key = #{idempotentKey}
+    LIMIT 1
+  </select>
+</mapper>

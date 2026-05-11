@@ -62,7 +62,7 @@ public class TransferToFileByRongShuServiceImpl implements ITransferToFileServic
 
     private final static String FILE_HEADER = "requestId,requestTime,custNum,cell,userType,userType1" +
             ",registerTime,ifApply,applyDt,applyResult,auditTime,auditAmount,ifLent,lentTime,lentAmount" +
-            ",applyLoan,applyLoanTime,applyLoanAmount,ifActivity,activityTime,unlentAmount,caseEffective,isBlack";
+            ",applyLoan,applyLoanTime,applyLoanAmount,ifActivity,activityTime,unlentAmount,caseEffective,isBlack,taskId";
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -240,6 +240,7 @@ public class TransferToFileByRongShuServiceImpl implements ITransferToFileServic
                     String applyLoanAmount = "";
                     String unlentAmount = "";
                     String isBlack = "";
+                    String taskId = "";
                     if (StringUtils.isNotBlank(reserveField1)) {
                         JSONObject jsonObject = JSON.parseObject(reserveField1);
                         ifActivity = jsonObject.getString("ifActivity");
@@ -252,6 +253,7 @@ public class TransferToFileByRongShuServiceImpl implements ITransferToFileServic
                         if (StringUtils.isNotEmpty(isBlack) && !"1".equals(isBlack) && !"0".equals(isBlack)){
                             isBlack = "是".equals(isBlack) ? "1" : "0";
                         }
+                        taskId = jsonObject.getString("taskId");
                     }
                     StringBuilder sb = new StringBuilder();
                     String tableFieldUnlentAmount = emptyDefault(transferSyncUser.getUnlentAmount());
@@ -279,7 +281,8 @@ public class TransferToFileByRongShuServiceImpl implements ITransferToFileServic
                         .append(removeMillisecond(emptyDefault(activityTime)).concat(","))
                         .append(emptyDefault(finalAmount).concat(","))
                         .append(caseEffective.concat(","))
-                        .append(emptyDefault(isBlack))
+                        .append(emptyDefault(isBlack).concat(","))
+                        .append(emptyDefault(taskId))
                         .append("\r\n");
                     try {
                         fw.append(sb.toString());

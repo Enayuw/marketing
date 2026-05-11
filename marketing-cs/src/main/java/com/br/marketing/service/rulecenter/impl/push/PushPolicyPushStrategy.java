@@ -16,6 +16,7 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.CustomerInfoPushMain;
 import com.br.marketing.entity.ErrorMark;
 import com.br.marketing.entity.ErrorMarkExample;
+import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.enums.*;
 import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.bean.MarketingHistory;
@@ -87,7 +88,8 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
                 context.getSinglePartition(),
                 context.getPartitionDataCount().get(partitionIndex),
                 context.getMarkWithEsFlag(),
-                context.getLabelObject()
+                context.getLabelObject(),
+                context.getStraHisFiles()
         );
     }
 
@@ -113,11 +115,13 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
         private Integer partDataNum;
         private Boolean markWithEsFlag;
         private Object lableObject;
+        private List<StraHisFile> straHisFiles;
 
         public PushPolicyTask(ThreadPoolExecutor pushJcPool
                 , CustomerInfoPushMain customerInfoPushMain
                 , List<Long> fileIds, List<String> numList
-                , String part, Integer _3kEncrypt, Boolean isPerOrTop, Integer partDataNum, Boolean markWithEsFlag, Object lableObject) {
+                , String part, Integer _3kEncrypt, Boolean isPerOrTop, Integer partDataNum, Boolean markWithEsFlag,
+                Object lableObject, List<StraHisFile> straHisFiles) {
             this.pushJcPool = pushJcPool;
             this.customerInfoPushMain = customerInfoPushMain;
             this.fileIds = fileIds;
@@ -128,6 +132,7 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
             this.partDataNum = partDataNum;
             this.markWithEsFlag = markWithEsFlag;
             this.lableObject = lableObject;
+            this.straHisFiles = straHisFiles;
         }
 
         @Override
@@ -151,7 +156,7 @@ public class PushPolicyPushStrategy extends AbstractRuleCenterPushStrategy {
 
             // 使用统一的ES查询参数，传入标签对象和标记
             EsQueryParams esParams = createEsQueryParams(customerInfoPushMain, part, numList, fileIds,
-                    pageSize, totalPage, isPerOrTop, lableObject, markWithEsFlag);
+                    pageSize, totalPage, isPerOrTop, lableObject, markWithEsFlag, straHisFiles);
 
             //前置处理，es补推时，非异常数据不重复处理
             if (!esQueryExecutor.excuteBefore(esParams)) {

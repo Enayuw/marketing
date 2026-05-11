@@ -1,0 +1,528 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.ningbo.NingBoOriginalDataMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.ningbo.NingBoOriginalData" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="task_id" property="taskId" jdbcType="BIGINT" />
+    <result column="task_date" property="taskDate" jdbcType="DATE" />
+    <result column="bank_name" property="bankName" jdbcType="VARCHAR" />
+    <result column="bank_name2" property="bankName2" jdbcType="VARCHAR" />
+    <result column="first_name" property="firstName" jdbcType="VARCHAR" />
+    <result column="gender" property="gender" jdbcType="VARCHAR" />
+    <result column="cur_arear_amt" property="curArearAmt" jdbcType="DECIMAL" />
+    <result column="billing_no_repay_amt" property="billingNoRepayAmt" jdbcType="DECIMAL" />
+    <result column="stm_mindue_no_repay" property="stmMindueNoRepay" jdbcType="DECIMAL" />
+    <result column="over_due_amt" property="overDueAmt" jdbcType="DECIMAL" />
+    <result column="mo_phone" property="moPhone" jdbcType="VARCHAR" />
+    <result column="card_nbr" property="cardNbr" jdbcType="VARCHAR" />
+    <result column="pmt_due_date" property="pmtDueDate" jdbcType="VARCHAR" />
+    <result column="cycle_nbr" property="cycleNbr" jdbcType="VARCHAR" />
+    <result column="mths_odue" property="mthsOdue" jdbcType="INTEGER" />
+    <result column="over_due_day" property="overDueDay" jdbcType="INTEGER" />
+    <result column="ai_called_days" property="aiCalledDays" jdbcType="INTEGER" />
+    <result column="ai_call_conn_times" property="aiCallConnTimes" jdbcType="INTEGER" />
+    <result column="user_risk_level" property="userRiskLevel" jdbcType="VARCHAR" />
+    <result column="user_type" property="userType" jdbcType="VARCHAR" />
+    <result column="reserve_field1" property="reserveField1" jdbcType="VARCHAR" />
+    <result column="strategy_code" property="strategyCode" jdbcType="VARCHAR" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, task_id, task_date, bank_name, bank_name2, first_name, gender, cur_arear_amt,
+    billing_no_repay_amt, stm_mindue_no_repay, over_due_amt, mo_phone, card_nbr, pmt_due_date,
+    cycle_nbr, mths_odue, over_due_day, ai_called_days, ai_call_conn_times, user_risk_level,
+    user_type, reserve_field1, strategy_code, api_code, create_time
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.ningbo.NingBoOriginalDataExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_ningbo_original_data
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select
+    <include refid="Base_Column_List" />
+    from b_ningbo_original_data
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_ningbo_original_data
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.ningbo.NingBoOriginalDataExample" >
+    delete from b_ningbo_original_data
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.ningbo.NingBoOriginalData" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_ningbo_original_data (task_id, task_date, bank_name,
+      bank_name2, first_name, gender,
+      cur_arear_amt, billing_no_repay_amt, stm_mindue_no_repay,
+      over_due_amt, mo_phone, card_nbr,
+      pmt_due_date, cycle_nbr, mths_odue,
+      over_due_day, ai_called_days, ai_call_conn_times,
+      user_risk_level, user_type, reserve_field1,
+      strategy_code, api_code, create_time
+      )
+    values (#{taskId,jdbcType=BIGINT}, #{taskDate,jdbcType=DATE}, #{bankName,jdbcType=VARCHAR},
+      #{bankName2,jdbcType=VARCHAR}, #{firstName,jdbcType=VARCHAR}, #{gender,jdbcType=VARCHAR},
+      #{curArearAmt,jdbcType=DECIMAL}, #{billingNoRepayAmt,jdbcType=DECIMAL}, #{stmMindueNoRepay,jdbcType=DECIMAL},
+      #{overDueAmt,jdbcType=DECIMAL}, #{moPhone,jdbcType=VARCHAR}, #{cardNbr,jdbcType=VARCHAR},
+      #{pmtDueDate,jdbcType=VARCHAR}, #{cycleNbr,jdbcType=VARCHAR}, #{mthsOdue,jdbcType=INTEGER},
+      #{overDueDay,jdbcType=INTEGER}, #{aiCalledDays,jdbcType=INTEGER}, #{aiCallConnTimes,jdbcType=INTEGER},
+      #{userRiskLevel,jdbcType=VARCHAR}, #{userType,jdbcType=VARCHAR}, #{reserveField1,jdbcType=VARCHAR},
+      #{strategyCode,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.ningbo.NingBoOriginalData" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_ningbo_original_data
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="taskId != null" >
+        task_id,
+      </if>
+      <if test="taskDate != null" >
+        task_date,
+      </if>
+      <if test="bankName != null" >
+        bank_name,
+      </if>
+      <if test="bankName2 != null" >
+        bank_name2,
+      </if>
+      <if test="firstName != null" >
+        first_name,
+      </if>
+      <if test="gender != null" >
+        gender,
+      </if>
+      <if test="curArearAmt != null" >
+        cur_arear_amt,
+      </if>
+      <if test="billingNoRepayAmt != null" >
+        billing_no_repay_amt,
+      </if>
+      <if test="stmMindueNoRepay != null" >
+        stm_mindue_no_repay,
+      </if>
+      <if test="overDueAmt != null" >
+        over_due_amt,
+      </if>
+      <if test="moPhone != null" >
+        mo_phone,
+      </if>
+      <if test="cardNbr != null" >
+        card_nbr,
+      </if>
+      <if test="pmtDueDate != null" >
+        pmt_due_date,
+      </if>
+      <if test="cycleNbr != null" >
+        cycle_nbr,
+      </if>
+      <if test="mthsOdue != null" >
+        mths_odue,
+      </if>
+      <if test="overDueDay != null" >
+        over_due_day,
+      </if>
+      <if test="aiCalledDays != null" >
+        ai_called_days,
+      </if>
+      <if test="aiCallConnTimes != null" >
+        ai_call_conn_times,
+      </if>
+      <if test="userRiskLevel != null" >
+        user_risk_level,
+      </if>
+      <if test="userType != null" >
+        user_type,
+      </if>
+      <if test="reserveField1 != null" >
+        reserve_field1,
+      </if>
+      <if test="strategyCode != null" >
+        strategy_code,
+      </if>
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="taskId != null" >
+        #{taskId,jdbcType=BIGINT},
+      </if>
+      <if test="taskDate != null" >
+        #{taskDate,jdbcType=DATE},
+      </if>
+      <if test="bankName != null" >
+        #{bankName,jdbcType=VARCHAR},
+      </if>
+      <if test="bankName2 != null" >
+        #{bankName2,jdbcType=VARCHAR},
+      </if>
+      <if test="firstName != null" >
+        #{firstName,jdbcType=VARCHAR},
+      </if>
+      <if test="gender != null" >
+        #{gender,jdbcType=VARCHAR},
+      </if>
+      <if test="curArearAmt != null" >
+        #{curArearAmt,jdbcType=DECIMAL},
+      </if>
+      <if test="billingNoRepayAmt != null" >
+        #{billingNoRepayAmt,jdbcType=DECIMAL},
+      </if>
+      <if test="stmMindueNoRepay != null" >
+        #{stmMindueNoRepay,jdbcType=DECIMAL},
+      </if>
+      <if test="overDueAmt != null" >
+        #{overDueAmt,jdbcType=DECIMAL},
+      </if>
+      <if test="moPhone != null" >
+        #{moPhone,jdbcType=VARCHAR},
+      </if>
+      <if test="cardNbr != null" >
+        #{cardNbr,jdbcType=VARCHAR},
+      </if>
+      <if test="pmtDueDate != null" >
+        #{pmtDueDate,jdbcType=VARCHAR},
+      </if>
+      <if test="cycleNbr != null" >
+        #{cycleNbr,jdbcType=VARCHAR},
+      </if>
+      <if test="mthsOdue != null" >
+        #{mthsOdue,jdbcType=INTEGER},
+      </if>
+      <if test="overDueDay != null" >
+        #{overDueDay,jdbcType=INTEGER},
+      </if>
+      <if test="aiCalledDays != null" >
+        #{aiCalledDays,jdbcType=INTEGER},
+      </if>
+      <if test="aiCallConnTimes != null" >
+        #{aiCallConnTimes,jdbcType=INTEGER},
+      </if>
+      <if test="userRiskLevel != null" >
+        #{userRiskLevel,jdbcType=VARCHAR},
+      </if>
+      <if test="userType != null" >
+        #{userType,jdbcType=VARCHAR},
+      </if>
+      <if test="reserveField1 != null" >
+        #{reserveField1,jdbcType=VARCHAR},
+      </if>
+      <if test="strategyCode != null" >
+        #{strategyCode,jdbcType=VARCHAR},
+      </if>
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.ningbo.NingBoOriginalDataExample" resultType="java.lang.Integer" >
+    select count(*) from b_ningbo_original_data
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_ningbo_original_data
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.taskId != null" >
+        task_id = #{record.taskId,jdbcType=BIGINT},
+      </if>
+      <if test="record.taskDate != null" >
+        task_date = #{record.taskDate,jdbcType=DATE},
+      </if>
+      <if test="record.bankName != null" >
+        bank_name = #{record.bankName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.bankName2 != null" >
+        bank_name2 = #{record.bankName2,jdbcType=VARCHAR},
+      </if>
+      <if test="record.firstName != null" >
+        first_name = #{record.firstName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.gender != null" >
+        gender = #{record.gender,jdbcType=VARCHAR},
+      </if>
+      <if test="record.curArearAmt != null" >
+        cur_arear_amt = #{record.curArearAmt,jdbcType=DECIMAL},
+      </if>
+      <if test="record.billingNoRepayAmt != null" >
+        billing_no_repay_amt = #{record.billingNoRepayAmt,jdbcType=DECIMAL},
+      </if>
+      <if test="record.stmMindueNoRepay != null" >
+        stm_mindue_no_repay = #{record.stmMindueNoRepay,jdbcType=DECIMAL},
+      </if>
+      <if test="record.overDueAmt != null" >
+        over_due_amt = #{record.overDueAmt,jdbcType=DECIMAL},
+      </if>
+      <if test="record.moPhone != null" >
+        mo_phone = #{record.moPhone,jdbcType=VARCHAR},
+      </if>
+      <if test="record.cardNbr != null" >
+        card_nbr = #{record.cardNbr,jdbcType=VARCHAR},
+      </if>
+      <if test="record.pmtDueDate != null" >
+        pmt_due_date = #{record.pmtDueDate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.cycleNbr != null" >
+        cycle_nbr = #{record.cycleNbr,jdbcType=VARCHAR},
+      </if>
+      <if test="record.mthsOdue != null" >
+        mths_odue = #{record.mthsOdue,jdbcType=INTEGER},
+      </if>
+      <if test="record.overDueDay != null" >
+        over_due_day = #{record.overDueDay,jdbcType=INTEGER},
+      </if>
+      <if test="record.aiCalledDays != null" >
+        ai_called_days = #{record.aiCalledDays,jdbcType=INTEGER},
+      </if>
+      <if test="record.aiCallConnTimes != null" >
+        ai_call_conn_times = #{record.aiCallConnTimes,jdbcType=INTEGER},
+      </if>
+      <if test="record.userRiskLevel != null" >
+        user_risk_level = #{record.userRiskLevel,jdbcType=VARCHAR},
+      </if>
+      <if test="record.userType != null" >
+        user_type = #{record.userType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.reserveField1 != null" >
+        reserve_field1 = #{record.reserveField1,jdbcType=VARCHAR},
+      </if>
+      <if test="record.strategyCode != null" >
+        strategy_code = #{record.strategyCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_ningbo_original_data
+    set id = #{record.id,jdbcType=BIGINT},
+      task_id = #{record.taskId,jdbcType=BIGINT},
+      task_date = #{record.taskDate,jdbcType=DATE},
+      bank_name = #{record.bankName,jdbcType=VARCHAR},
+      bank_name2 = #{record.bankName2,jdbcType=VARCHAR},
+      first_name = #{record.firstName,jdbcType=VARCHAR},
+      gender = #{record.gender,jdbcType=VARCHAR},
+      cur_arear_amt = #{record.curArearAmt,jdbcType=DECIMAL},
+      billing_no_repay_amt = #{record.billingNoRepayAmt,jdbcType=DECIMAL},
+      stm_mindue_no_repay = #{record.stmMindueNoRepay,jdbcType=DECIMAL},
+      over_due_amt = #{record.overDueAmt,jdbcType=DECIMAL},
+      mo_phone = #{record.moPhone,jdbcType=VARCHAR},
+      card_nbr = #{record.cardNbr,jdbcType=VARCHAR},
+      pmt_due_date = #{record.pmtDueDate,jdbcType=VARCHAR},
+      cycle_nbr = #{record.cycleNbr,jdbcType=VARCHAR},
+      mths_odue = #{record.mthsOdue,jdbcType=INTEGER},
+      over_due_day = #{record.overDueDay,jdbcType=INTEGER},
+      ai_called_days = #{record.aiCalledDays,jdbcType=INTEGER},
+      ai_call_conn_times = #{record.aiCallConnTimes,jdbcType=INTEGER},
+      user_risk_level = #{record.userRiskLevel,jdbcType=VARCHAR},
+      user_type = #{record.userType,jdbcType=VARCHAR},
+      reserve_field1 = #{record.reserveField1,jdbcType=VARCHAR},
+      strategy_code = #{record.strategyCode,jdbcType=VARCHAR},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.ningbo.NingBoOriginalData" >
+    update b_ningbo_original_data
+    <set >
+      <if test="taskId != null" >
+        task_id = #{taskId,jdbcType=BIGINT},
+      </if>
+      <if test="taskDate != null" >
+        task_date = #{taskDate,jdbcType=DATE},
+      </if>
+      <if test="bankName != null" >
+        bank_name = #{bankName,jdbcType=VARCHAR},
+      </if>
+      <if test="bankName2 != null" >
+        bank_name2 = #{bankName2,jdbcType=VARCHAR},
+      </if>
+      <if test="firstName != null" >
+        first_name = #{firstName,jdbcType=VARCHAR},
+      </if>
+      <if test="gender != null" >
+        gender = #{gender,jdbcType=VARCHAR},
+      </if>
+      <if test="curArearAmt != null" >
+        cur_arear_amt = #{curArearAmt,jdbcType=DECIMAL},
+      </if>
+      <if test="billingNoRepayAmt != null" >
+        billing_no_repay_amt = #{billingNoRepayAmt,jdbcType=DECIMAL},
+      </if>
+      <if test="stmMindueNoRepay != null" >
+        stm_mindue_no_repay = #{stmMindueNoRepay,jdbcType=DECIMAL},
+      </if>
+      <if test="overDueAmt != null" >
+        over_due_amt = #{overDueAmt,jdbcType=DECIMAL},
+      </if>
+      <if test="moPhone != null" >
+        mo_phone = #{moPhone,jdbcType=VARCHAR},
+      </if>
+      <if test="cardNbr != null" >
+        card_nbr = #{cardNbr,jdbcType=VARCHAR},
+      </if>
+      <if test="pmtDueDate != null" >
+        pmt_due_date = #{pmtDueDate,jdbcType=VARCHAR},
+      </if>
+      <if test="cycleNbr != null" >
+        cycle_nbr = #{cycleNbr,jdbcType=VARCHAR},
+      </if>
+      <if test="mthsOdue != null" >
+        mths_odue = #{mthsOdue,jdbcType=INTEGER},
+      </if>
+      <if test="overDueDay != null" >
+        over_due_day = #{overDueDay,jdbcType=INTEGER},
+      </if>
+      <if test="aiCalledDays != null" >
+        ai_called_days = #{aiCalledDays,jdbcType=INTEGER},
+      </if>
+      <if test="aiCallConnTimes != null" >
+        ai_call_conn_times = #{aiCallConnTimes,jdbcType=INTEGER},
+      </if>
+      <if test="userRiskLevel != null" >
+        user_risk_level = #{userRiskLevel,jdbcType=VARCHAR},
+      </if>
+      <if test="userType != null" >
+        user_type = #{userType,jdbcType=VARCHAR},
+      </if>
+      <if test="reserveField1 != null" >
+        reserve_field1 = #{reserveField1,jdbcType=VARCHAR},
+      </if>
+      <if test="strategyCode != null" >
+        strategy_code = #{strategyCode,jdbcType=VARCHAR},
+      </if>
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.ningbo.NingBoOriginalData" >
+    update b_ningbo_original_data
+    set task_id = #{taskId,jdbcType=BIGINT},
+      task_date = #{taskDate,jdbcType=DATE},
+      bank_name = #{bankName,jdbcType=VARCHAR},
+      bank_name2 = #{bankName2,jdbcType=VARCHAR},
+      first_name = #{firstName,jdbcType=VARCHAR},
+      gender = #{gender,jdbcType=VARCHAR},
+      cur_arear_amt = #{curArearAmt,jdbcType=DECIMAL},
+      billing_no_repay_amt = #{billingNoRepayAmt,jdbcType=DECIMAL},
+      stm_mindue_no_repay = #{stmMindueNoRepay,jdbcType=DECIMAL},
+      over_due_amt = #{overDueAmt,jdbcType=DECIMAL},
+      mo_phone = #{moPhone,jdbcType=VARCHAR},
+      card_nbr = #{cardNbr,jdbcType=VARCHAR},
+      pmt_due_date = #{pmtDueDate,jdbcType=VARCHAR},
+      cycle_nbr = #{cycleNbr,jdbcType=VARCHAR},
+      mths_odue = #{mthsOdue,jdbcType=INTEGER},
+      over_due_day = #{overDueDay,jdbcType=INTEGER},
+      ai_called_days = #{aiCalledDays,jdbcType=INTEGER},
+      ai_call_conn_times = #{aiCallConnTimes,jdbcType=INTEGER},
+      user_risk_level = #{userRiskLevel,jdbcType=VARCHAR},
+      user_type = #{userType,jdbcType=VARCHAR},
+      reserve_field1 = #{reserveField1,jdbcType=VARCHAR},
+      strategy_code = #{strategyCode,jdbcType=VARCHAR},
+      api_code = #{apiCode,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

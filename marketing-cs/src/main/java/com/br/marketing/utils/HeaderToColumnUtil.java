@@ -7,6 +7,8 @@ import net.sourceforge.pinyin4j.format.HanyuPinyinToneType;
 import net.sourceforge.pinyin4j.format.HanyuPinyinVCharType;
 import net.sourceforge.pinyin4j.format.exception.BadHanyuPinyinOutputFormatCombination;
 
+import com.br.marketing.util.DataCleanDelimiterUtils;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -40,23 +42,34 @@ public final class HeaderToColumnUtil {
     }
 
     /**
-     * 归一化表头：trim 每段，统一逗号分隔（无空格）
+     * 归一化表头：trim 每段，统一为逗号分隔的规范串（内部存储与 MD5 均用逗号拼接）
+     *
+     * @param fieldDelimiterConfig 与数据行一致的分隔符，见 {@link DataCleanDelimiterUtils#resolveDelimiter}；null/空 视为逗号
      */
-    public static String normalizeHeaderSchema(String headerSchema) {
+    public static String normalizeHeaderSchema(String headerSchema, String fieldDelimiterConfig) {
         if (headerSchema == null || headerSchema.isEmpty()) {
             return "";
         }
-        return Arrays.stream(headerSchema.split(","))
+        return Arrays.stream(DataCleanDelimiterUtils.splitLine(headerSchema, fieldDelimiterConfig))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .collect(Collectors.joining(","));
     }
 
     /**
-     * MD5(归一化 header_schema)，小写十六进制
+     * 归一化表头：分隔符默认逗号（兼容旧调用）
      */
-    public static String headerSignMd5(String headerSchema) {
-        String normalized = normalizeHeaderSchema(headerSchema);
+    public static String normalizeHeaderSchema(String headerSchema) {
+        return normalizeHeaderSchema(headerSchema, null);
+    }
+
+    /**
+     * MD5(归一化 header_schema)，小写十六进制
+     *
+     * @param fieldDelimiterConfig 表头原始串的分隔，与 {@link #normalizeHeaderSchema(String, String)} 一致；null 表示逗号
+     */
+    public static String headerSignMd5(String headerSchema, String fieldDelimiterConfig) {
+        String normalized = normalizeHeaderSchema(headerSchema, fieldDelimiterConfig);
         if (normalized.isEmpty()) {
             return "";
         }
@@ -71,6 +84,13 @@ public final class HeaderToColumnUtil {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("MD5 not available", e);
         }
+    }
+
+    /**
+     * MD5(归一化 header_schema)，分隔符默认逗号
+     */
+    public static String headerSignMd5(String headerSchema) {
+        return headerSignMd5(headerSchema, null);
     }
 
     /**
@@ -168,12 +188,29 @@ public final class HeaderToColumnUtil {
      * 表头转建表用英文字段名，逗号分隔。
      * 中文表头转拼音加下划线（如 证件号码 -> zheng_jian_hao_ma），英文表头原值规范化（小写、非法字符替为下划线）。
      * 若转换后为空或重复，则使用 header_1, header_2 等兜底。
+     *
+     * @param fieldDelimiterConfig 原始表头串的分隔符，与数据行、{@link #normalizeHeaderSchema(String, String)} 一致；null 为逗号
      */
-    public static String headerSchemaToColumnSchemaEn(String headerSchema) {
+    public static String headerSchemaToColumnSchemaEn(String headerSchema, String fieldDelimiterConfig) {
         if (headerSchema == null || headerSchema.isEmpty()) {
             return "";
         }
-        List<String> rawParts = Arrays.stream(headerSchema.split(","))
+        String normalized = normalizeHeaderSchema(headerSchema, fieldDelimiterConfig);
+        return headerSchemaToColumnSchemaEnFromNormalized(normalized);
+    }
+
+    /**
+     * 入参已为逗号分隔的归一化表头（例如已调用 {@link #normalizeHeaderSchema(String, String)}）
+     */
+    public static String headerSchemaToColumnSchemaEn(String headerSchema) {
+        return headerSchemaToColumnSchemaEnFromNormalized(headerSchema);
+    }
+
+    private static String headerSchemaToColumnSchemaEnFromNormalized(String normalizedCommaSeparated) {
+        if (normalizedCommaSeparated == null || normalizedCommaSeparated.isEmpty()) {
+            return "";
+        }
+        List<String> rawParts = Arrays.stream(normalizedCommaSeparated.split(","))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .collect(Collectors.toList());
@@ -206,8 +243,12 @@ public final class HeaderToColumnUtil {
     /**
      * 返回归一化后的表头列数
      */
-    public static int headerColumnCount(String headerSchema) {
-        String n = normalizeHeaderSchema(headerSchema);
+    public static int headerColumnCount(String headerSchema, String fieldDelimiterConfig) {
+        String n = normalizeHeaderSchema(headerSchema, fieldDelimiterConfig);
         return n.isEmpty() ? 0 : n.split(",").length;
+    }
+
+    public static int headerColumnCount(String headerSchema) {
+        return headerColumnCount(headerSchema, null);
     }
 }

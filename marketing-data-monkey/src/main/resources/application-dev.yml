@@ -26,6 +26,8 @@ logging:
       name: ./logs/core.log
     root: INFO
 otherConfig:
+  ningbo:
+    sdkFilePath: config-nbbank.json
   alarm:
         secretKey: 412a281869db3e152d5a276ad444fade
         mails: xinke.liu@100credit.com,guang.chen@100credit.com,runtong.yuan@100credit.com

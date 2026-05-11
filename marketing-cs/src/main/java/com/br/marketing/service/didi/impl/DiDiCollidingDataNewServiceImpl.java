@@ -28,6 +28,7 @@ import com.google.api.client.util.Sets;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutorFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.curator.shaded.com.google.common.util.concurrent.RateLimiter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -133,6 +134,7 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
         while (true) {
             JSONObject collidingConfig2 = marketingCommonConfig.getDiDiV5Config();
             boolean collidingSwitch = collidingConfig2.getBoolean("collidingSwitch");
+            Integer partition = collidingConfig.getInteger("partition");
             if (collidingSwitch) {
                 break;
             }
@@ -154,11 +156,15 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
             }
             packageIds.addAll(dataList.stream().map(DiDiDataLoopCycle::getPackageId).map(Long::parseLong).collect(Collectors.toSet()));
             leftLimit.addAndGet(-dataList.size());
-
             markAsPushing(dataList);
-            dataList.forEach(data -> {
+            List<List<DiDiDataLoopCycle>> lists = ListUtils.partition(dataList, partition);
+            lists.forEach(list -> {
                 CompletableFuture<Void> future = CompletableFuture.runAsync(
-                        () -> collidingData(data, mediaName, token, rateLimiter, retryHttpCode),
+                        () -> {
+                            for (DiDiDataLoopCycle data : list) {
+                                collidingData(data, mediaName, token, rateLimiter, retryHttpCode);
+                            }
+                        },
                         pushPool
                 );
                 futures.add(future);
@@ -212,6 +218,7 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
             if (leftLimit.get() <= 0) {
                 break;
             }
+            Integer partition = collidingConfig.getInteger("partition");
             int limit = collidingConfig.getInteger("limit") != null ? collidingConfig.getInteger("limit") : 2000;
             int actualLimit = Math.min(leftLimit.get(), limit);
             List<DiDiCollidingDataRob> dataList;
@@ -231,9 +238,14 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
             leftLimit.addAndGet(-dataList.size());
 
             markRobAsPushing(dataList);
-            dataList.forEach(data -> {
+            List<List<DiDiCollidingDataRob>> lists = ListUtils.partition(dataList, partition);
+            lists.forEach(list -> {
                 CompletableFuture<Void> future = CompletableFuture.runAsync(
-                        () -> collidingData(data, mediaName, token, rateLimiter, retryHttpCode),
+                        () -> {
+                            for (DiDiCollidingDataRob data : list) {
+                                collidingData(data, mediaName, token, rateLimiter, retryHttpCode);
+                            }
+                        },
                         pushPool
                 );
                 futures3.add(future);
@@ -254,12 +266,48 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
      */
     private void markAsPushing(List<DiDiDataLoopCycle> dataList) {
         List<Long> ids = dataList.stream().map(DiDiDataLoopCycle::getId).toList();
-        diDiV5DataLoopCycleMapper.updatePushTimeByIds(new Date(), ids);
+        try {
+            diDiV5DataLoopCycleMapper.updatePushTimeByIds(new Date(), ids);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(), e.getMessage()
+                    , "滴滴V5数据送撞异常"), e);
+            try {
+                diDiV5DataLoopCycleMapper.updatePushTimeByIds(new Date(), ids);
+            } catch (Exception ex) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(), ex.getMessage()
+                        , "滴滴V5数据送撞2次异常"), ex);
+                try {
+                    diDiV5DataLoopCycleMapper.updatePushTimeByIds(new Date(), ids);
+                } catch (Exception exception) {
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(), exception.getMessage()
+                            , "滴滴V5数据送撞3次异常"), exception);
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
     }
 
     private void markRobAsPushing(List<DiDiCollidingDataRob> dataList) {
         List<Long> ids = dataList.stream().map(DiDiCollidingDataRob::getId).toList();
-        diDiV5CollidingDataRobMapper.updatePushTimeByIds(new Date(), ids);
+        try {
+            diDiV5CollidingDataRobMapper.updatePushTimeByIds(new Date(), ids);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(), e.getMessage()
+                    , "滴滴V5数据送撞异常"), e);
+            try {
+                diDiV5CollidingDataRobMapper.updatePushTimeByIds(new Date(), ids);
+            } catch (Exception ex) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(), ex.getMessage()
+                        , "滴滴V5数据送撞2次异常"), ex);
+                try {
+                    diDiV5CollidingDataRobMapper.updatePushTimeByIds(new Date(), ids);
+                } catch (Exception exception) {
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.DIDI_V5_SERVICEERROR.getCode(), exception.getMessage()
+                            , "滴滴V5数据送撞3次异常"), exception);
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
     }
 
 
@@ -399,8 +447,6 @@ public class DiDiCollidingDataNewServiceImpl implements DiDiCollidingDataNewServ
                 diDiDataLoopCycle.setCollidingTime(new Date(Long.parseLong(diDiV5CollidingDataLog.getNextTime())));
                 diDiV5DataLoopCycleMapper.insertSelective(diDiDataLoopCycle);
             }
-            data.setPushTime(new Date());
-            diDiV5CollidingDataRobMapper.updateByPrimaryKey(data);
         }
         mqJson.put("diDiV5CollidingDataLog", diDiV5CollidingDataLog);
         log.warn("滴滴V5推送撞库日志消息体:{}", mqJson.toJSONString());

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.ningbo.NingBoOriginalDataMapper" >
+    <insert id="batchSave" parameterType="list">
+        INSERT INTO b_ningbo_original_data (
+        task_id, task_date, bank_name, bank_name2, first_name, gender,
+        cur_arear_amt, billing_no_repay_amt, stm_mindue_no_repay, over_due_amt,
+        mo_phone, card_nbr, pmt_due_date, cycle_nbr, mths_odue, over_due_day,
+        ai_called_days, ai_call_conn_times, user_risk_level, user_type,
+        reserve_field1, strategy_code, api_code, create_time
+        ) VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.taskId,jdbcType=BIGINT},
+            #{item.taskDate,jdbcType=DATE},
+            #{item.bankName,jdbcType=VARCHAR},
+            #{item.bankName2,jdbcType=VARCHAR},
+            #{item.firstName,jdbcType=VARCHAR},
+            #{item.gender,jdbcType=VARCHAR},
+            #{item.curArearAmt,jdbcType=DECIMAL},
+            #{item.billingNoRepayAmt,jdbcType=DECIMAL},
+            #{item.stmMindueNoRepay,jdbcType=DECIMAL},
+            #{item.overDueAmt,jdbcType=DECIMAL},
+            #{item.moPhone,jdbcType=VARCHAR},
+            #{item.cardNbr,jdbcType=VARCHAR},
+            #{item.pmtDueDate,jdbcType=VARCHAR},
+            #{item.cycleNbr,jdbcType=VARCHAR},
+            #{item.mthsOdue,jdbcType=INTEGER},
+            #{item.overDueDay,jdbcType=INTEGER},
+            #{item.aiCalledDays,jdbcType=INTEGER},
+            #{item.aiCallConnTimes,jdbcType=INTEGER},
+            #{item.userRiskLevel,jdbcType=VARCHAR},
+            #{item.userType,jdbcType=VARCHAR},
+            #{item.reserveField1,jdbcType=LONGVARCHAR},
+            #{item.strategyCode,jdbcType=VARCHAR},
+            #{item.apiCode,jdbcType=VARCHAR},
+            NOW()
+            )
+        </foreach>
+    </insert>
+
+    <!-- 根据任务ID查询数据 -->
+    <select id="selectByTaskId" resultMap="BaseResultMap" parameterType="long">
+        SELECT *
+        FROM b_ningbo_original_data
+        WHERE task_id = #{taskId,jdbcType=BIGINT}
+        ORDER BY id
+    </select>
+
+    <!-- 根据日期范围查询数据 -->
+    <select id="selectByDateRange" resultMap="BaseResultMap" parameterType="map">
+        SELECT *
+        FROM b_ningbo_original_data
+        WHERE task_date BETWEEN #{startDate,jdbcType=VARCHAR} AND #{endDate,jdbcType=VARCHAR}
+        ORDER BY task_date, id
+    </select>
+
+    <!-- 根据手机号查询数据 -->
+    <select id="selectByMoPhone" resultMap="BaseResultMap" parameterType="string">
+        SELECT *
+        FROM b_ningbo_original_data
+        WHERE mo_phone = #{moPhone,jdbcType=VARCHAR}
+        ORDER BY task_date DESC
+    </select>
+
+    <!-- 根据任务ID删除数据 -->
+    <delete id="deleteByTaskId" parameterType="long">
+        DELETE FROM b_ningbo_original_data
+        WHERE task_id = #{taskId,jdbcType=BIGINT}
+    </delete>
+
+    <!-- 统计某任务的数据量 -->
+    <select id="countByTaskId" resultType="int" parameterType="long">
+        SELECT COUNT(*)
+        FROM b_ningbo_original_data
+        WHERE task_id = #{taskId,jdbcType=BIGINT}
+    </select>
+</mapper>

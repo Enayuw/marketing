@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.ningbo.FileReadConfigMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.ningbo.FileReadConfig" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="config_name" property="configName" jdbcType="VARCHAR" />
+    <result column="field_mapping" property="fieldMapping" jdbcType="VARCHAR" />
+    <result column="file_separator" property="fileSeparator" jdbcType="VARCHAR" />
+    <result column="file_charset" property="fileCharset" jdbcType="VARCHAR" />
+    <result column="status" property="status" jdbcType="TINYINT" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, api_code, config_name, field_mapping, file_separator, file_charset, `status`, 
+    create_time, update_time
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.ningbo.FileReadConfigExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_file_read_config
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from b_file_read_config
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_file_read_config
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.ningbo.FileReadConfigExample" >
+    delete from b_file_read_config
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.ningbo.FileReadConfig" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_file_read_config (api_code, config_name, field_mapping, 
+      file_separator, file_charset, `status`, 
+      create_time, update_time)
+    values (#{apiCode,jdbcType=VARCHAR}, #{configName,jdbcType=VARCHAR}, #{fieldMapping,jdbcType=VARCHAR}, 
+      #{fileSeparator,jdbcType=VARCHAR}, #{fileCharset,jdbcType=VARCHAR}, #{status,jdbcType=TINYINT}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.ningbo.FileReadConfig" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_file_read_config
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="configName != null" >
+        config_name,
+      </if>
+      <if test="fieldMapping != null" >
+        field_mapping,
+      </if>
+      <if test="fileSeparator != null" >
+        file_separator,
+      </if>
+      <if test="fileCharset != null" >
+        file_charset,
+      </if>
+      <if test="status != null" >
+        `status`,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="configName != null" >
+        #{configName,jdbcType=VARCHAR},
+      </if>
+      <if test="fieldMapping != null" >
+        #{fieldMapping,jdbcType=VARCHAR},
+      </if>
+      <if test="fileSeparator != null" >
+        #{fileSeparator,jdbcType=VARCHAR},
+      </if>
+      <if test="fileCharset != null" >
+        #{fileCharset,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=TINYINT},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.ningbo.FileReadConfigExample" resultType="java.lang.Integer" >
+    select count(*) from b_file_read_config
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_file_read_config
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.configName != null" >
+        config_name = #{record.configName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.fieldMapping != null" >
+        field_mapping = #{record.fieldMapping,jdbcType=VARCHAR},
+      </if>
+      <if test="record.fileSeparator != null" >
+        file_separator = #{record.fileSeparator,jdbcType=VARCHAR},
+      </if>
+      <if test="record.fileCharset != null" >
+        file_charset = #{record.fileCharset,jdbcType=VARCHAR},
+      </if>
+      <if test="record.status != null" >
+        `status` = #{record.status,jdbcType=TINYINT},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_file_read_config
+    set id = #{record.id,jdbcType=BIGINT},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      config_name = #{record.configName,jdbcType=VARCHAR},
+      field_mapping = #{record.fieldMapping,jdbcType=VARCHAR},
+      file_separator = #{record.fileSeparator,jdbcType=VARCHAR},
+      file_charset = #{record.fileCharset,jdbcType=VARCHAR},
+      `status` = #{record.status,jdbcType=TINYINT},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.ningbo.FileReadConfig" >
+    update b_file_read_config
+    <set >
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="configName != null" >
+        config_name = #{configName,jdbcType=VARCHAR},
+      </if>
+      <if test="fieldMapping != null" >
+        field_mapping = #{fieldMapping,jdbcType=VARCHAR},
+      </if>
+      <if test="fileSeparator != null" >
+        file_separator = #{fileSeparator,jdbcType=VARCHAR},
+      </if>
+      <if test="fileCharset != null" >
+        file_charset = #{fileCharset,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        `status` = #{status,jdbcType=TINYINT},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.ningbo.FileReadConfig" >
+    update b_file_read_config
+    set api_code = #{apiCode,jdbcType=VARCHAR},
+      config_name = #{configName,jdbcType=VARCHAR},
+      field_mapping = #{fieldMapping,jdbcType=VARCHAR},
+      file_separator = #{fileSeparator,jdbcType=VARCHAR},
+      file_charset = #{fileCharset,jdbcType=VARCHAR},
+      `status` = #{status,jdbcType=TINYINT},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

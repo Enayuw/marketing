@@ -74,6 +74,8 @@ logging:
       name: ./logs/core.log
     root: INFO
 otherConfig:
+  ningbo:
+    sdkFilePath: classpath:pre-17/config-nbbank.json
   alarm:
         secretKey: a9c57e4138807a9e18b439cd9dab275b
         appName: marketing

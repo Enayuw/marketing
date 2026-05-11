@@ -23,6 +23,7 @@ import com.br.marketing.mapper.MarketingRetryEsMapper;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.MarketingTaskService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.EsNewIndexRuleUtils;
 import com.br.marketing.vo.BaseHead;
 import com.br.marketing.vo.BaseHeadConfigVO;
 import com.br.marketing.vo.StrategyProductDetailVO;
@@ -188,7 +189,8 @@ public class ResultUtil {
     public static void generateFile(JSONObject resultJson, String strategyId, Writer fw, String sep, Map<String, String> proFieldMap,
                                     MarketingSyncUser user, JSONObject meal, String cusBatchNumber, String fileId, String pushCustomer,
                                     BaseHeadConfigVO baseHeadInfo, StrategyProductDetailVO fieldInfo, MarketingTask marketingTask
-            , MarketingTaskService marketingTaskService, String part, MarketingCommonConfig marketingCommonConfig, MarketingRetryEsMapper marketingRetryEsMapper) throws IOException {
+            , MarketingTaskService marketingTaskService, String part, MarketingCommonConfig marketingCommonConfig,
+                                    MarketingRetryEsMapper marketingRetryEsMapper, Long straHisFileCreateTimeMillis) throws IOException {
         log.info("cus_num：{} 画像流水:{}", user.getCustNum(), resultJson);
         JSONObject esResult = new JSONObject();
         StringBuilder sb = new StringBuilder();
@@ -278,6 +280,7 @@ public class ResultUtil {
             }
             mh.setCondition(conditionList);
             mh.setReserveField(esResult.toJSONString());
+            mh.setUseNewIndexRule(EsNewIndexRuleUtils.resolve(straHisFileCreateTimeMillis, marketingCommonConfig));
             mh.setCellOriginal(user.getCellOriginal());
             mh.setIdCardOriginal(user.getIdCardOriginal());
             mh.setNameOriginal(user.getNameOriginal());

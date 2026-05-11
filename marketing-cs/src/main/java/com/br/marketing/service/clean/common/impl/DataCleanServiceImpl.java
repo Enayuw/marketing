@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.common.log.AlertLog;
+import com.br.marketing.aspect.MqIdempotent;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.client.rulecleaning.DataCleanDTO;
@@ -17,6 +18,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.JsonParseUtils;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.context.MqIdempotentContext;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.dto.dataclean.mq.CommonMqDataJsonParse;
@@ -46,6 +48,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -157,6 +160,7 @@ public class DataCleanServiceImpl implements DataCleanService {
                         false
                 );
 
+                MqIdempotentContext.setApiCode(apiCode);
             } else {
                 log.warn("数据ID: {} 的JSON数据为空", mqDataJsonParse.getDataId());
             }
@@ -1031,14 +1035,18 @@ public class DataCleanServiceImpl implements DataCleanService {
         return arr;
     }
 
+    /** 输出固定 {@code maxCells} 列，尾部空 Excel 单元格补空串，与表头列数一致。 */
     private static String rowToCommaSeparated(Row row, DataFormatter formatter, int maxCells) {
+        if (maxCells <= 0) {
+            return "";
+        }
         StringBuilder sb = new StringBuilder();
-        int lastCellNum = maxCells > 0 ? Math.min(row.getLastCellNum(), maxCells) : row.getLastCellNum();
-        for (int c = 0; c < lastCellNum; c++) {
+        for (int c = 0; c < maxCells; c++) {
             if (c > 0) {
                 sb.append(',');
             }
-            sb.append(formatter.formatCellValue(row.getCell(c)));
+            Cell cell = row.getCell(c);
+            sb.append(cell == null ? "" : formatter.formatCellValue(cell));
         }
         return sb.toString();
     }
