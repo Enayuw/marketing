@@ -2,6 +2,7 @@ package com.br.marketing.service.Impl;
 
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.ScoreRuleCheckStatusEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
@@ -209,7 +210,8 @@ public class RuleConfigServiceImpl implements IRuleConfigService {
                     .andAutoBuildEqualTo(1)
                     .andStartTimeLessThanOrEqualTo(nowTime)
                     .andIsDelEqualTo(Constants.DATA_VALID)
-                    .andStatusEqualTo(Constants.STATUS_START);
+                    .andStatusEqualTo(Constants.STATUS_START)
+                    .andCheckStatusEqualTo(ScoreRuleCheckStatusEnum.OK.getValue());
             ruleConfigExample.setOrderByClause(" start_time asc ");
         }
         List<ScoreRuleConfig> scoreRuleConfigs = scoreRuleConfigMapper.selectByExample(ruleConfigExample);

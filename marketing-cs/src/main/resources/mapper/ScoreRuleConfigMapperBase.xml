@@ -26,6 +26,7 @@
     <result column="is_online" property="isOnline" jdbcType="INTEGER" />
     <result column="is_stack_validity" property="isStackValidity" jdbcType="INTEGER" />
     <result column="priority" property="priority" jdbcType="INTEGER" />
+    <result column="check_status" property="checkStatus" jdbcType="INTEGER" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -89,7 +90,7 @@
     id, rule_name, rule_name_short, start_time, strategy_product_json, strategy_id, product_info, 
     base_info, rule_type, is_del, create_time, exec_type, auto_build, cycle_day, cycle_end_day, 
     push_type, task_type, `status`, update_time, strategy_product_show, threek_encrypt_type, 
-    is_online, is_stack_validity, priority
+    is_online, is_stack_validity, priority, check_status
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.ScoreRuleConfigExample" >
     select
@@ -132,7 +133,7 @@
       cycle_day, cycle_end_day, push_type, 
       task_type, `status`, update_time, 
       strategy_product_show, threek_encrypt_type, 
-      is_online, is_stack_validity, priority
+      is_online, is_stack_validity, priority, check_status
       )
     values (#{ruleName,jdbcType=VARCHAR}, #{ruleNameShort,jdbcType=VARCHAR}, #{startTime,jdbcType=VARCHAR}, 
       #{strategyProductJson,jdbcType=VARCHAR}, #{strategyId,jdbcType=VARCHAR}, #{productInfo,jdbcType=VARCHAR}, 
@@ -141,7 +142,8 @@
       #{cycleDay,jdbcType=INTEGER}, #{cycleEndDay,jdbcType=VARCHAR}, #{pushType,jdbcType=INTEGER}, 
       #{taskType,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, #{updateTime,jdbcType=TIMESTAMP}, 
       #{strategyProductShow,jdbcType=VARCHAR}, #{threekEncryptType,jdbcType=INTEGER}, 
-      #{isOnline,jdbcType=INTEGER}, #{isStackValidity,jdbcType=INTEGER}, #{priority,jdbcType=INTEGER}
+      #{isOnline,jdbcType=INTEGER}, #{isStackValidity,jdbcType=INTEGER}, #{priority,jdbcType=INTEGER},
+      #{checkStatus,jdbcType=INTEGER}
       )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.ScoreRuleConfig" >
@@ -219,6 +221,9 @@
       <if test="priority != null" >
         priority,
       </if>
+      <if test="checkStatus != null" >
+        check_status,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="ruleName != null" >
@@ -289,6 +294,9 @@
       </if>
       <if test="priority != null" >
         #{priority,jdbcType=INTEGER},
+      </if>
+      <if test="checkStatus != null" >
+        #{checkStatus,jdbcType=INTEGER},
       </if>
     </trim>
   </insert>
@@ -373,6 +381,9 @@
       <if test="record.priority != null" >
         priority = #{record.priority,jdbcType=INTEGER},
       </if>
+      <if test="record.checkStatus != null" >
+        check_status = #{record.checkStatus,jdbcType=INTEGER},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -403,7 +414,8 @@
       threek_encrypt_type = #{record.threekEncryptType,jdbcType=INTEGER},
       is_online = #{record.isOnline,jdbcType=INTEGER},
       is_stack_validity = #{record.isStackValidity,jdbcType=INTEGER},
-      priority = #{record.priority,jdbcType=INTEGER}
+      priority = #{record.priority,jdbcType=INTEGER},
+      check_status = #{record.checkStatus,jdbcType=INTEGER}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -480,6 +492,9 @@
       <if test="priority != null" >
         priority = #{priority,jdbcType=INTEGER},
       </if>
+      <if test="checkStatus != null" >
+        check_status = #{checkStatus,jdbcType=INTEGER},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -507,7 +522,8 @@
       threek_encrypt_type = #{threekEncryptType,jdbcType=INTEGER},
       is_online = #{isOnline,jdbcType=INTEGER},
       is_stack_validity = #{isStackValidity,jdbcType=INTEGER},
-      priority = #{priority,jdbcType=INTEGER}
+      priority = #{priority,jdbcType=INTEGER},
+      check_status = #{checkStatus,jdbcType=INTEGER}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

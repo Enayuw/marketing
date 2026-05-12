@@ -126,6 +126,11 @@ spring:
 cluster:
   flag: ${CONF_CLUSTER}
 
+api:
+  product-management:
+    url: http://production.100credit.com/api/getProductionList.do?firstBusinessCode=A10&spreadStatus=5,2,3,4,0
+    productTypeUrl: http://production.100credit.com/api/getProductionTypes.do
+
 #elastic-job配置
 SERVER_LISTS: pd-zk-yz-01.brapp.com:2181,pd-zk-yz-02.brapp.com:2181,pd-zk-yz-03.brapp.com:2181
 NAMESPACE: marketing-yz-job

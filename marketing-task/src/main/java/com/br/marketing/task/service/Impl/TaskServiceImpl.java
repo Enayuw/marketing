@@ -9,7 +9,9 @@ import com.br.marketing.common.constants.ZookeeperPath;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.constants.rediskey.RedisKeyExpireConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.enums.MarketingTaskStatusEnum;
 import com.br.marketing.common.enums.RedisValueTypeEnum;
+import com.br.marketing.dto.score.ProductCatalogValidationResult;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.rpcclient.RpcClientProxy;
@@ -28,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.util.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -112,6 +115,12 @@ public class TaskServiceImpl implements ITaskService {
 
     @Resource
     MarketingRetryRedisMapper marketingRetryRedisMapper;
+
+    @Resource
+    private ProductCatalogValidationService productCatalogValidationService;
+
+    @Resource
+    private MarketingTaskModelCheckMapper marketingTaskModelCheckMapper;
 
 
     @Override
@@ -371,6 +380,18 @@ public class TaskServiceImpl implements ITaskService {
             }
         }
 
+        ProductCatalogValidationResult catalogValidation = productCatalogValidationService.validate(task);
+        if (!catalogValidation.isPassed()) {
+            log.error("跑分任务产管产品目录校验未通过,batchNumber={},taskId={},detail={}",
+                    task.getBatchNumber(), task.getId(), JSON.toJSONString(catalogValidation.getFailedItems()));
+            MarketingTask taskUpd = new MarketingTask();
+            taskUpd.setId(task.getId());
+            taskUpd.setStatus(MarketingTaskStatusEnum.ABNORMAL.getValue());
+            marketingTaskMapper.updateByPrimaryKeySelective(taskUpd);
+            persistProductCatalogValidationFailure(task, catalogValidation);
+            return new Result<>().setCode(ResultCode.FAIL.getValue());
+        }
+
         // 根据跑分状态表判断任务是否已经跑过
         // 一次行全量、一次性验证判断onceStatus;每个任务的周期、每日定时判断allStatus
         if (task.getMonitorType() >= 1 && task.getMonitorType() <= 4) {
@@ -388,6 +409,50 @@ public class TaskServiceImpl implements ITaskService {
         }
 
         return new Result<>().setCode(ResultCode.FAIL.getValue());
+    }
+
+    private void persistProductCatalogValidationFailure(MarketingTask task, ProductCatalogValidationResult catalogValidation) {
+        try {
+            MarketingTaskModelCheck record = new MarketingTaskModelCheck();
+            record.setApiCode(task.getApiCode());
+            record.setBatchNumber(task.getBatchNumber());
+            record.setCusBatch(task.getCusBatch());
+            fillModelCheckRuleFieldsFromScoreRuleConfig(task, record);
+            record.setModelCheckStatus(0);
+            record.setFailedModelInfo(JSON.toJSONString(catalogValidation.getFailedItems()));
+            record.setIsDel(1);
+            record.setCreateTime(new Date());
+            marketingTaskModelCheckMapper.insertSelective(record);
+        } catch (Exception e) {
+            log.error("写入产管校验结果表失败,batchNumber={}", task.getBatchNumber(), e);
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("任务批次：%s；产管产品/版本与当前许可不一致，任务已标记为异常(status=%d)。\r\n",
+                task.getBatchNumber(), MarketingTaskStatusEnum.ABNORMAL.getValue()));
+        sb.append("明细：").append(JSON.toJSONString(catalogValidation.getFailedItems()));
+        log.warn("{}", sb);
+    }
+
+    private void fillModelCheckRuleFieldsFromScoreRuleConfig(MarketingTask task, MarketingTaskModelCheck record) {
+        MarketingTaskExtendExample extendExample = new MarketingTaskExtendExample();
+        extendExample.createCriteria().andIsDelEqualTo(1).andTaskIdEqualTo(task.getId());
+        List<MarketingTaskExtend> extendList = marketingTaskExtendMapper.selectByExample(extendExample);
+        if (extendList == null || extendList.isEmpty()) {
+            log.warn("未找到任务扩展，无法写入产管校验规则名称，taskId={}", task.getId());
+            return;
+        }
+        MarketingTaskExtend extend = extendList.get(0);
+        if (extend.getRuleId() == null) {
+            log.warn("任务扩展无 ruleId，taskId={}", task.getId());
+            return;
+        }
+        ScoreRuleConfig rule = scoreRuleConfigMapper.selectByPrimaryKey(extend.getRuleId());
+        if (rule == null) {
+            log.warn("未找到跑分规则配置，ruleId={}", extend.getRuleId());
+            return;
+        }
+        record.setRuleName(rule.getRuleName());
+        record.setRuleNameShort(rule.getRuleNameShort());
     }
 
     private boolean getTaskLock(MarketingTask task, String lockValue) {

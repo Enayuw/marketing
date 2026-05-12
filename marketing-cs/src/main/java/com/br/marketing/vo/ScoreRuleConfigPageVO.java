@@ -98,6 +98,12 @@ public class ScoreRuleConfigPageVO {
     @Schema(description = "跑分优先级 0最高，9最低")
     private Integer priority;
 
+    /**
+     * 规则校验状态：0 正常；1 产管不通过暂停自动生成。对应 ScoreRuleCheckStatusEnum。
+     */
+    @Schema(description = "规则校验状态 0正常 1产管不通过暂停自动生成")
+    private Integer checkStatus;
+
     @Override
     public String toString() {
         return "ScoreRuleConfigPageVO{" +
@@ -119,6 +125,7 @@ public class ScoreRuleConfigPageVO {
                 ", productInfo='" + productInfo + '\'' +
                 ", isOnline=" + isOnline +
                 ", priority=" + priority +
+                ", checkStatus=" + checkStatus +
                 '}';
     }
 }
