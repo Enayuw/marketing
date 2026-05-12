@@ -18,7 +18,7 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 
 /**
- * 扫描待匹配 batch，调用灵霄 {@code tcapiCodeMatchOutPut}。
+ * 扫描待匹配 batch，调用灵霄 {@code tcapiCodeAssign}。
  */
 @Slf4j
 @Service
@@ -69,18 +69,20 @@ public class TcyrApiCodeMatchNotifyService {
             try {
                 long total = resolveTotal(row);
                 String pushTime = row.getCreateTime() != null ? sdf.format(row.getCreateTime()) : "";
-                boolean ok = middleHeavenTcyrApiCodeMatchClient.postTcApiCodeMatchOutPut(
+                boolean ok = middleHeavenTcyrApiCodeMatchClient.postTcApiCodeAssign(
                         lingxiaoTcyrProperties.getBaseUrl(),
-                        lingxiaoTcyrProperties.getMatchOutPutPath(),
+                        lingxiaoTcyrProperties.getAssignPath(),
                         lingxiaoTcyrProperties.getBearerToken(),
                         lingxiaoTcyrProperties.getConnectTimeoutMs(),
                         lingxiaoTcyrProperties.getReadTimeoutMs(),
                         candidates,
+                        marketingCommonConfig.getTcyrApiCodeAssignAuthorizedUsers(),
                         row.getBatchNo(),
                         total,
-                        pushTime);
+                        pushTime,
+                        row.getId());
                 if (ok) {
-                    log.warn("tcapiCodeMatchOutPut 已调用 batchNo={} total={}", row.getBatchNo(), total);
+                    log.warn("tcapiCodeAssign 已调用 batchNo={} total={}", row.getBatchNo(), total);
                 }
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),

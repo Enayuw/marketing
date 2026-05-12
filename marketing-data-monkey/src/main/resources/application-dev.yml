@@ -48,11 +48,12 @@ otherConfig:
         ftpPwd: 9PdaRcMRphcNctRy
         email:
           notice: nengwu.qu@100credit.com,chunliu.le@100credit.com,qianqian.cao@100credit.com,xinke.liu@100credit.com
-  # 灵霄宝殿：同程 tcapiCodeMatchOutPut（候选 apiCode 见 Speed tcyrMatchCandidateApiCodes）
+  # 灵霄宝殿：同程 tcapiCodeAssign（候选 apiCode 见 Speed tcyrMatchCandidateApiCodes）
   tcyr-lingxiao:
-    enabled: false
-    base-url: ""
-    match-out-put-path: /tcapiCodeMatchOutPut
+    enabled: true
+    # 灵霄 middle-heaven-roster-gods（与 middle-heaven-web api.rosterGods.baseUrl 一致）
+    base-url: 127.0.0.1:19003
+    assign-path: /open/dingtalk/api-code-card/tcapiCodeAssign
     bearer-token: ""
     batch-limit: 30
     connect-timeout-ms: 5000

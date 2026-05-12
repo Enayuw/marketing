@@ -247,7 +247,7 @@
     <job:simple id="【monkey】-TcyrApiCodeMatchNotifyJob"
                 class="com.br.marketing.monkey.job.tongcheng.TcyrApiCodeMatchNotifyJob"
                 cron="0 0/5 * * * ?"
-                description="同程易融：灵霄 tcapiCodeMatchOutPut 待匹配 batch 推送"
+                description="同程易融：灵霄 tcapiCodeAssign 待匹配 batch 推送"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
                 sharding-item-parameters="0=A"

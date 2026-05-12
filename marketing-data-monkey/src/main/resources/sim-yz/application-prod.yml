@@ -99,11 +99,11 @@ otherConfig:
         sftpPort: 9999
         sftpUser: BRmarketing
         sftpPwd: gKjTC62qUJMKigEyvn01@_2021.06.07
-  # 灵霄宝殿：同程 tcapiCodeMatchOutPut（候选 apiCode 见 Speed tcyrMatchCandidateApiCodes）
+  # 灵霄宝殿：同程 tcapiCodeAssign（候选 apiCode 见 Speed tcyrMatchCandidateApiCodes）
   tcyr-lingxiao:
-    enabled: false
-    base-url: ""
-    match-out-put-path: /tcapiCodeMatchOutPut
+    enabled: true
+    base-url: http://middle-heaven-roster-gods
+    assign-path: /open/dingtalk/api-code-card/tcapiCodeAssign
     bearer-token: ""
     batch-limit: 30
     connect-timeout-ms: 5000

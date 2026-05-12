@@ -32,6 +32,9 @@ server:
     max-http-form-post-size: 209715200
   shutdown: graceful  # 启用优雅关闭
 
+# 同程易融：灵霄 roster-gods 选码后回调本服务 POST 路径（灵霄配置 otherConfig.marketing.tcyr-api-code-fill-url 需指向）：
+#   http://{本服务host}:{server.port}/tcyr/inner/syncRecord/tcapiCodeFill
+
 mybatis-plus:
   mapper-locations: mapper/*.xml
   configuration:

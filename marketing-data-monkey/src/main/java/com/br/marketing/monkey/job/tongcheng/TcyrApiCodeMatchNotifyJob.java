@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 
 /**
- * 定时调用灵霄宝殿 {@code tcapiCodeMatchOutPut}，对 {@code b_marketing_tcyr_sync_record} 中
+ * 定时调用灵霄宝殿 {@code tcapiCodeAssign}，对 {@code b_marketing_tcyr_sync_record} 中
  * 已接入成功且尚未分配 apiCode 的批次发起 Agent 匹配。
  */
 @Component

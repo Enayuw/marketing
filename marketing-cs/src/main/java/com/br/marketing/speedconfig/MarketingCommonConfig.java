@@ -2957,9 +2957,14 @@ public class MarketingCommonConfig {
     private String tcyrCpaApiCode;
 
     /**
-     * 同程易融-tcapiCodeMatchOutPut 可选 apiCode 列表（如 3710038 拆分后的候选码），与 tcyrApiCode 等同程易融配置并列维护。
+     * 同程易融-tcapiCodeAssign 可选 apiCode 列表（如 3710038 拆分后的候选码），与 tcyrApiCode 等同程易融配置并列维护。
      */
     private List<String> tcyrMatchCandidateApiCodes;
+
+    /**
+     * 同程易融-tcapiCodeAssign：有权限在钉钉互动卡片上指定 apiCode 的用户标识集合（如钉钉 userid），随请求透传灵霄。
+     */
+    private List<String> tcyrApiCodeAssignAuthorizedUsers;
 
     /**
      * 同程易融-客户请求data->b_marketing_tcyr_sync extend字段时的排除字段
