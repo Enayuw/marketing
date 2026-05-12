@@ -7,7 +7,6 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.ZookeeperPath;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.common.constants.rediskey.RedisKeyExpireConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.MarketingTaskStatusEnum;
 import com.br.marketing.common.enums.RedisValueTypeEnum;
@@ -21,6 +20,7 @@ import com.br.marketing.service.Impl.datagroup.DataGroupHandlerServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.task.dto.ScoreTaskBatchDTO;
 import com.br.marketing.task.service.ITaskService;
+import com.br.marketing.task.service.ScoreBatchExpirePolicyService;
 import com.br.marketing.vo.CustomerScoreRuleVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.framework.CuratorFramework;
@@ -115,6 +115,9 @@ public class TaskServiceImpl implements ITaskService {
 
     @Resource
     MarketingRetryRedisMapper marketingRetryRedisMapper;
+
+    @Resource
+    private ScoreBatchExpirePolicyService scoreBatchExpirePolicyService;
 
     @Resource
     private ProductCatalogValidationService productCatalogValidationService;
@@ -356,7 +359,6 @@ public class TaskServiceImpl implements ITaskService {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
 
-
         // 先处理异常重试跑分数据
         MarketingRetryRedisExample marketingRetryRedisExample = new MarketingRetryRedisExample();
         marketingRetryRedisExample.createCriteria()
@@ -365,9 +367,10 @@ public class TaskServiceImpl implements ITaskService {
                 .andRetryStatusEqualTo(0);
         List<MarketingRetryRedis> marketingRetryRedis = marketingRetryRedisMapper.selectByExample(marketingRetryRedisExample);
         if (!CollectionUtils.isEmpty(marketingRetryRedis)) {
+            int scoreBatchExpireSeconds = scoreBatchExpirePolicyService.resolveAndEnsureExpireDay(customer);
             for (MarketingRetryRedis retryRedis : marketingRetryRedis) {
                 String key = retryRedis.getRedisKey();
-                boolean success = retrySetRedisOrDisableTask(retryRedis, String.valueOf(task.getFileId()), retryRedis.getPage(), task);
+                boolean success = retrySetRedisOrDisableTask(retryRedis, String.valueOf(task.getFileId()), retryRedis.getPage(), task, scoreBatchExpireSeconds);
                 if (!success) {
                     log.error("重试Redis异常，任务已暂停，后续流程不再执行，fileId={}, page={}", task.getBatchNumber(), retryRedis.getPage());
                     return new Result<>().setCode(ResultCode.FAIL.getValue());
@@ -493,7 +496,7 @@ public class TaskServiceImpl implements ITaskService {
     /**
      * 尝试写入Redis，失败重试3次，失败后暂停任务并跳出外层循环
      */
-    private boolean retrySetRedisOrDisableTask(MarketingRetryRedis retryRedis, String fileId, String page, MarketingTask blt) {
+    private boolean retrySetRedisOrDisableTask(MarketingRetryRedis retryRedis, String fileId, String page, MarketingTask blt, int scoreBatchExpireSeconds) {
         String key = retryRedis.getRedisKey();
         String redisValueType = retryRedis.getRedisValueType();
         int retryCount = 0;
@@ -512,7 +515,7 @@ public class TaskServiceImpl implements ITaskService {
                 } else {
                     redisChgService.set(key, "1");
                 }
-                redisChgService.expire(key, RedisKeyExpireConstant.SCORE_BATCH_EXPIRE_TIME);
+                redisChgService.expire(key, scoreBatchExpireSeconds);
                 // 成功
                 return true;
             } catch (Exception e) {

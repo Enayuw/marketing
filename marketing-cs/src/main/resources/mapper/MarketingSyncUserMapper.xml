@@ -1236,4 +1236,11 @@
         WHERE t.rn = 1
     </select>
 
+    <select id="countValidSyncForScoreBatchExpire" resultType="java.lang.Long">
+        select count(*)
+        from b_marketing_sync_${apiCode}
+        where status = 1
+          and is_repeat in (1, 2)
+    </select>
+
 </mapper>
