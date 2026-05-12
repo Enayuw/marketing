@@ -4,10 +4,10 @@
 
     <select id="selectRuleApiCodeList" resultType="com.br.marketing.dto.linkgo.ShortLinkRuleApiCodeDTO">
         select
-            rule_code as ruleCode,
+            link_rule_code as ruleCode,
             api_code as apiCode
         from b_short_link_transfer_rule
-        where rule_code in
+        where link_rule_code in
         <foreach collection="ruleCodes" item="ruleCode" open="(" close=")" separator=",">
             #{ruleCode}
         </foreach>
