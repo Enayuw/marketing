@@ -259,4 +259,11 @@ public interface MarketingTaskMapper extends MarketingTaskMapperBase {
 
 
     MarketingTaskVO getByFileId(@Param("fileId") Long fileId);
+
+    /**
+     * 跨天恢复跑分时，将任务生效日期窗口对齐到当天（与运维手工改 start_date/close_date 一致）
+     */
+    int updateDateWindowByBatchNumber(@Param("batchNumber") String batchNumber,
+                                      @Param("startDate") String startDate,
+                                      @Param("closeDate") String closeDate);
 }
