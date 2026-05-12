@@ -48,7 +48,7 @@ import java.util.concurrent.TimeUnit;
  * - HTTP 调用营销标准上传入口写入前置表并回写 sync_status
  * - 每条记录使用其自身存储的 api_code 字段推送，确保与同步接入时一致
  *
- * 日志：统一使用前缀 [DiDi-AI-Job]；输出级别为 WARN 及以上，不输出完整 jsonData，仅记录长度与摘要等可观测字段。
+ * 日志：统一使用前缀 [DiDi-AI-Job]；无待同步数据时仅输出调度首尾；有待处理行时输出条数、drsRequestId、uploadRequestId 等可观测字段，不输出完整 jsonData。
  *
  * @author yueping.bai
  */
@@ -126,9 +126,14 @@ public class DidiaiSyncPushJob extends AbstractSimpleElasticJob {
             }
             processedCids.add(cid);
             String tCid = "_" + cid;
-            log.warn(TITLE + "开始按 cid 批次处理 cid={}, tCid={}", cid, tCid);
-            runBatchesForOneCid(tCid, pageSize);
-            log.warn(TITLE + "完成按 cid 批次处理 cid={}", cid);
+            int processedRows = runBatchesForOneCid(cid, tCid, pageSize);
+            if (processedRows > 0) {
+                log.warn(
+                        TITLE + "完成处理待同步数据，cid={}，tCid={}，processedRows={}",
+                        cid,
+                        tCid,
+                        processedRows);
+            }
         }
     }
 
@@ -155,17 +160,25 @@ public class DidiaiSyncPushJob extends AbstractSimpleElasticJob {
      * 处理逻辑：
      * 每页内对每行解析 api_code，调用单行处理并累计成功、跳过、远程失败、异常四类数量。
      *
+     * @param cid      客户 cid，不含下划线前缀
      * @param tCid     物理分表后缀，含下划线前缀
      * @param pageSize 每页最大行数，来自离线任务分页配置
+     * @return 本调度周期内进入 {@link #processOneRow} 的汇总行数
      */
-    private void runBatchesForOneCid(String tCid, int pageSize) {
+    private int runBatchesForOneCid(String cid, String tCid, int pageSize) {
         Long minId = 0L;
+        int processedRows = 0;
+        boolean syncStarted = false;
         while (true) {
             List<DrsCustomizeUploadData> rows =
                     drsCustomizeUploadDataMapper.getDrsCustomizeUploadDataBySyncStatus(
                             tCid, 0, minId, pageSize);
             if (CollectionUtils.isEmpty(rows)) {
                 break;
+            }
+            if (!syncStarted) {
+                log.warn(TITLE + "开始处理待同步数据，cid={}，tCid={}", cid, tCid);
+                syncStarted = true;
             }
             int success = 0;
             int skipEmpty = 0;
@@ -193,6 +206,7 @@ public class DidiaiSyncPushJob extends AbstractSimpleElasticJob {
                             new IllegalStateException("api_code 为空"));
                     continue;
                 }
+                processedRows++;
                 RowProcessOutcome out = processOneRow(tCid, apiCode, row);
                 switch (out) {
                     case SUCCESS:
@@ -224,6 +238,7 @@ public class DidiaiSyncPushJob extends AbstractSimpleElasticJob {
                     lastId);
             minId = rows.get(rows.size() - 1).getId();
         }
+        return processedRows;
     }
 
     /**
@@ -276,6 +291,7 @@ public class DidiaiSyncPushJob extends AbstractSimpleElasticJob {
     private RowProcessOutcome processOneRow(String tCid, String apiCode, DrsCustomizeUploadData row) {
         List<Long> idList = Collections.singletonList(row.getId());
         long recordId = row.getId();
+        String drsRequestId = row.getRequestId();
         try {
             List<JSONObject> jsonRows =
                     DidiaiPlaintextParser.toCleanInputRows(row.getRequestJsonData());
@@ -283,13 +299,25 @@ public class DidiaiSyncPushJob extends AbstractSimpleElasticJob {
                 drsCustomizeUploadDataMapper.updateSyncStatusByIds(tCid, idList, 2);
                 log.warn(
                         TITLE
-                                + "明文无有效行，回写 sync_status=2，id={} tCid={} apiCode={}",
+                                + "明文无有效行，回写 sync_status=2，id={} tCid={} apiCode={} drsRequestId={}",
                         recordId,
                         tCid,
-                        apiCode);
+                        apiCode,
+                        drsRequestId);
                 return RowProcessOutcome.SKIP_EMPTY;
             }
+            int rowCount = jsonRows.size();
             MarketingPreUserDTO preUser = buildMarketingPreUserFromPlainRows(apiCode, row, jsonRows);
+            String uploadRequestId = preUser.getRequestId();
+            log.warn(
+                    TITLE
+                            + "数据组装完成，准备调用上传接口，drsId={}，tCid={}，apiCode={}，rowCount={}，drsRequestId={}，uploadRequestId={}",
+                    recordId,
+                    tCid,
+                    apiCode,
+                    rowCount,
+                    drsRequestId,
+                    uploadRequestId);
             String jsonData = JSON.toJSONString(preUser);
             boolean ok = callMarketingPreUserSyncWithRetry(
                     apiCode, jsonData, MAX_HTTP_ATTEMPTS, recordId, tCid);
@@ -297,19 +325,24 @@ public class DidiaiSyncPushJob extends AbstractSimpleElasticJob {
                 drsCustomizeUploadDataMapper.updateSyncStatusByIds(tCid, idList, 1);
                 log.warn(
                         TITLE
-                                + "回写 sync_status=1，id={} tCid={} apiCode={} {}",
+                                + "回写 sync_status=1，id={} tCid={} apiCode={} drsRequestId={} uploadRequestId={} rowCount={} {}",
                         recordId,
                         tCid,
                         apiCode,
+                        drsRequestId,
+                        uploadRequestId,
+                        rowCount,
                         describePayloadMeta(jsonData));
             } else {
                 drsCustomizeUploadDataMapper.updateSyncStatusByIds(tCid, idList, 3);
                 log.error(
                         TITLE
-                                + "远程入库未成功，回写 sync_status=3，id={} tCid={} apiCode={} {}",
+                                + "远程入库未成功，回写 sync_status=3，id={} tCid={} apiCode={} drsRequestId={} uploadRequestId={} {}",
                         recordId,
                         tCid,
                         apiCode,
+                        drsRequestId,
+                        uploadRequestId,
                         describePayloadMeta(jsonData));
             }
             return ok ? RowProcessOutcome.SUCCESS : RowProcessOutcome.REMOTE_FAIL;

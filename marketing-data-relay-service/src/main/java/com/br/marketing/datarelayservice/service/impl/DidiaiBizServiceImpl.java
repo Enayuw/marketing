@@ -55,15 +55,15 @@ public class DidiaiBizServiceImpl implements DidiaiBizService {
             String drsTableSuffix) {
         DidiaiResponseDTO entryErr = validatePlaintextEntry(plaintext);
         if (entryErr != null) {
-            return entryErr;
+            return failValidate(entryErr, effectiveApiCode, drsTableSuffix, null);
         }
         ParseResult parsed = parsePlaintextRecords(plaintext);
         if (parsed.errorResponse != null) {
-            return parsed.errorResponse;
+            return failValidate(parsed.errorResponse, effectiveApiCode, drsTableSuffix, null);
         }
         DidiaiResponseDTO batchErr = validateBatchAndRows(parsed.records, parsed.wrapBizLine);
         if (batchErr != null) {
-            return batchErr;
+            return failValidate(batchErr, effectiveApiCode, drsTableSuffix, parsed.records);
         }
         String apiCode = effectiveApiCode;
         String tCid = drsTableSuffix;
@@ -74,6 +74,37 @@ public class DidiaiBizServiceImpl implements DidiaiBizService {
             return persistErr;
         }
         return DidiaiResponseDTO.ok(extractRequestIds(parsed.records));
+    }
+
+    /**
+     * 记录业务校验失败并返回错误响应。
+     *
+     * @param response 失败响应
+     * @param apiCode  接口编号
+     * @param tCid     分表后缀
+     * @param records  已解析记录，可为 null
+     * @return 原失败响应
+     */
+    private static DidiaiResponseDTO failValidate(
+            DidiaiResponseDTO response, String apiCode, String tCid, JSONArray records) {
+        if (records == null || records.isEmpty()) {
+            log.warn(
+                    "[DiDi-AI-API] 业务校验失败，errorCode={}，apiCode={}，tCid={}",
+                    response.getErrorCode(),
+                    apiCode,
+                    tCid);
+        } else {
+            JSONObject first = records.getJSONObject(0);
+            String requestId = first == null ? null : first.getString("requestId");
+            log.warn(
+                    "[DiDi-AI-API] 业务校验失败，errorCode={}，apiCode={}，tCid={}，batchSize={}，requestId={}",
+                    response.getErrorCode(),
+                    apiCode,
+                    tCid,
+                    records.size(),
+                    requestId);
+        }
+        return response;
     }
 
     /**
@@ -179,10 +210,12 @@ public class DidiaiBizServiceImpl implements DidiaiBizService {
         try {
             drsCustomizeUploadDataMapper.createDrsCustomizeUploadDataTable(tCid);
         } catch (Exception e) {
-            log.warn("didiai create table failed: {}", e.getMessage());
-            return DidiaiResponseDTO.fail(
-                    DidiaiErrorCodeEnum.CREATE_DRS_TABLE_FAILED.getCode(),
-                    DidiaiErrorCodeEnum.CREATE_DRS_TABLE_FAILED.getMessage());
+            return failPersist(
+                    apiCode,
+                    tCid,
+                    parsed.records.size(),
+                    firstRequestId,
+                    DidiaiErrorCodeEnum.CREATE_DRS_TABLE_FAILED);
         }
         DrsCustomizeUploadData upload =
                 buildUploadRow(
@@ -196,17 +229,55 @@ public class DidiaiBizServiceImpl implements DidiaiBizService {
         try {
             int n = drsCustomizeUploadDataMapper.insertSelective(upload);
             if (n != 1) {
-                return DidiaiResponseDTO.fail(
-                        DidiaiErrorCodeEnum.PERSIST_DRS_ROW_FAILED.getCode(),
-                        DidiaiErrorCodeEnum.PERSIST_DRS_ROW_FAILED.getMessage());
+                return failPersist(
+                        apiCode,
+                        tCid,
+                        parsed.records.size(),
+                        firstRequestId,
+                        DidiaiErrorCodeEnum.PERSIST_DRS_ROW_FAILED);
             }
         } catch (Exception e) {
-            log.warn("didiai insert failed: {}", e.getMessage());
-            return DidiaiResponseDTO.fail(
-                    DidiaiErrorCodeEnum.PERSIST_DRS_ROW_FAILED.getCode(),
-                    DidiaiErrorCodeEnum.PERSIST_DRS_ROW_FAILED.getMessage());
+            return failPersist(
+                    apiCode,
+                    tCid,
+                    parsed.records.size(),
+                    firstRequestId,
+                    DidiaiErrorCodeEnum.PERSIST_DRS_ROW_FAILED);
         }
+        log.warn(
+                "[DiDi-AI-API] 汇总落库成功，apiCode={}，tCid={}，batchSize={}，requestId={}，drsId={}",
+                apiCode,
+                tCid,
+                parsed.records.size(),
+                firstRequestId,
+                upload.getId());
         return null;
+    }
+
+    /**
+     * 记录汇总落库失败并返回错误响应。
+     *
+     * @param apiCode   接口编号
+     * @param tCid      分表后缀
+     * @param batchSize 批次条数
+     * @param requestId 首条 requestId
+     * @param code      错误码枚举
+     * @return 失败响应
+     */
+    private static DidiaiResponseDTO failPersist(
+            String apiCode,
+            String tCid,
+            int batchSize,
+            String requestId,
+            DidiaiErrorCodeEnum code) {
+        log.warn(
+                "[DiDi-AI-API] 汇总落库失败，apiCode={}，tCid={}，batchSize={}，requestId={}，errorCode={}",
+                apiCode,
+                tCid,
+                batchSize,
+                requestId,
+                code.getCode());
+        return DidiaiResponseDTO.fail(code.getCode(), code.getMessage());
     }
 
     /**

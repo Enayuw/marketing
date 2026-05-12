@@ -13,6 +13,7 @@ import com.br.marketing.util.didiai.DidiaiApicodeResolveUtil;
 import com.br.marketing.util.didiai.DidiaiApicodeResolveUtil.ApiCodeResolveResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.nio.charset.StandardCharsets;
 
 /**
  * 滴滴 AI 定制化上传的 HTTP 接入控制器。
@@ -37,6 +39,7 @@ import javax.servlet.http.HttpServletRequest;
 @Tag(name = "DidiaiUploadController", description = "滴滴 AI 定制化上传")
 @RequestMapping("/marketing/v1/didiai")
 @RestController
+@Slf4j
 public class DidiaiUploadController {
 
     /** 与 UploadDataController 一致：非空时覆盖业务 apiCode，供生产验证。 */
@@ -73,23 +76,49 @@ public class DidiaiUploadController {
         DidiaiResponseDTO headerValidationError =
                 DidiaiValidationUtils.validateRequiredHeaders(appKey, timestampStr, sign);
         if (headerValidationError != null) {
-            return headerValidationError;
+            return failRoute(headerValidationError, appKey);
         }
         long ts = Long.parseLong(timestampStr.trim());
         String clientIp = DidiaiRequestHeaderReader.resolveClientIp(request);
         String testHeader = request.getHeader(HEADER_TEST_API_CODE);
         ApiCodeResolveResult apiCodeResult = resolveApiCode(testHeader, appKey);
         if (!apiCodeResult.isSuccess()) {
-            return DidiaiResponseUtils.buildApiCodeErrorResponse(apiCodeResult.getError());
+            return failRoute(
+                    DidiaiResponseUtils.buildApiCodeErrorResponse(apiCodeResult.getError()), appKey);
         }
         String effectiveApiCode = apiCodeResult.getApiCode();
         String cid = resolveCid(effectiveApiCode);
         if (cid == null) {
-            return DidiaiResponseUtils.buildCidNotConfiguredResponse(effectiveApiCode);
+            return failRoute(
+                    DidiaiResponseUtils.buildCidNotConfiguredResponse(effectiveApiCode), appKey);
         }
         String drsSuffix = DidiaiApicodeResolveUtil.cidToDrsTableSuffix(cid);
+        int cipherBytes =
+                rawCipherText == null ? 0 : rawCipherText.getBytes(StandardCharsets.UTF_8).length;
+        log.warn(
+                "[DiDi-AI-API] 接入请求，appKey={}，apiCode={}，tCid={}，clientIp={}，cipherBytes={}",
+                appKey,
+                effectiveApiCode,
+                drsSuffix,
+                clientIp,
+                cipherBytes);
         DidiaiEncryptedRequestDTO body = DidiaiResponseUtils.buildEncryptedRequestDTO(rawCipherText);
         return didiaiUploadService.handle(body, appKey, ts, sign, clientIp, effectiveApiCode, drsSuffix);
+    }
+
+    /**
+     * 记录接入路由失败并返回原错误响应。
+     *
+     * @param response 失败响应
+     * @param appKey   应用标识
+     * @return 原失败响应
+     */
+    private DidiaiResponseDTO failRoute(DidiaiResponseDTO response, String appKey) {
+        log.warn(
+                "[DiDi-AI-API] 接入路由失败，errorCode={}，appKey={}",
+                response.getErrorCode(),
+                appKey);
+        return response;
     }
 
     /**

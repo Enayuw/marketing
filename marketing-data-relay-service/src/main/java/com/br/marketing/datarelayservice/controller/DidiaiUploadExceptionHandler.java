@@ -35,7 +35,7 @@ public class DidiaiUploadExceptionHandler {
      */
     @ExceptionHandler(NumberFormatException.class)
     public DidiaiResponseDTO onBadTimestamp(NumberFormatException e) {
-        log.warn("didiai bad timestamp: {}", e.getMessage());
+        log.warn("[DiDi-AI-API] 接入异常，errorMsg={}", e.getMessage());
         return DidiaiResponseDTO.fail(
                 DidiaiErrorCodeEnum.BAD_TIMESTAMP.getCode(),
                 DidiaiErrorCodeEnum.BAD_TIMESTAMP.getMessage());
@@ -51,7 +51,7 @@ public class DidiaiUploadExceptionHandler {
      */
     @ExceptionHandler(MissingRequestHeaderException.class)
     public DidiaiResponseDTO onMissingHeader(MissingRequestHeaderException e) {
-        log.warn("didiai missing header: {}", e.getMessage());
+        log.warn("[DiDi-AI-API] 接入异常，errorMsg={}", e.getMessage());
         String name = e.getHeaderName();
         if ("appKey".equalsIgnoreCase(name) || "app-key".equalsIgnoreCase(name)) {
             return DidiaiResponseDTO.fail(
@@ -81,7 +81,7 @@ public class DidiaiUploadExceptionHandler {
      */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public DidiaiResponseDTO onNotReadable(HttpMessageNotReadableException e) {
-        log.warn("didiai body not readable: {}", e.getMessage());
+        log.warn("[DiDi-AI-API] 接入异常，errorMsg={}", e.getMessage());
         return DidiaiResponseDTO.fail(
                 DidiaiErrorCodeEnum.JSON_INVALID.getCode(),
                 DidiaiErrorCodeEnum.JSON_INVALID.getMessage());
@@ -97,7 +97,7 @@ public class DidiaiUploadExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public DidiaiResponseDTO onAny(Exception e) {
-        log.warn("didiai controller error: {}", e.getMessage(), e);
+        log.warn("[DiDi-AI-API] 接入异常，errorMsg={}", e.getMessage(), e);
         return DidiaiResponseDTO.fail(
                 DidiaiErrorCodeEnum.UNKNOWN_ERROR.getCode(),
                 StringUtils.defaultIfBlank(e.getMessage(), DidiaiErrorCodeEnum.UNKNOWN_ERROR.getMessage()));
