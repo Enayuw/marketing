@@ -67,11 +67,10 @@ public class RongShuNewScenePushBlackListServiceImpl implements RongShuNewSceneP
             log.warn("榕树新场景外呼黑名单：rongShuNewScenePushBlackListApiCodes 为空，跳过执行");
             return;
         }
-        for (String apiCodeRaw : apiCodes) {
-            if (StringUtils.isBlank(apiCodeRaw)) {
+        for (String apiCode : apiCodes) {
+            if (StringUtils.isBlank(apiCode)) {
                 continue;
             }
-            String apiCode = apiCodeRaw.trim();
             try {
                 pushBlackForOneApiCode(apiCode);
             } catch (Exception ex) {
@@ -228,7 +227,7 @@ public class RongShuNewScenePushBlackListServiceImpl implements RongShuNewSceneP
                 return null;
             }
             BlackDetailDTO d = new BlackDetailDTO();
-            d.setDataId(rowId != null ? String.valueOf(rowId) : custNum);
+            d.setDataId(String.valueOf(rowId));
             d.setPhone(phone);
             d.setEffectiveDate(LocalDateTime.now().format(EFFECTIVE_TIME_FMT));
             return d;

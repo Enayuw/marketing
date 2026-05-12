@@ -12,6 +12,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 /**
  * 榕树新场景转化审批通过数据推送客服黑名单
  */
@@ -39,6 +42,7 @@ public class RongShuNewSceneApplyResultCustomerBlacklistImpl implements Assemble
                 return null;
             }
             blackDetailDTO.setPhone(phone);
+            blackDetailDTO.setEffectiveDate(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
             return blackDetailDTO;
         } catch (Exception exception) {
             String msg = "apiCode=" + context.getApiCode() + " custNum=" + custNum;
