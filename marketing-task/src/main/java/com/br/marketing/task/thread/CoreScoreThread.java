@@ -71,7 +71,7 @@ public class CoreScoreThread implements Callable<String> {
     private MarketingCommonConfig marketingCommonConfig;
     private MarketingRetryRedisMapper marketingRetryRedisMapper;
     private ScoreTaskBatchDTO scoreTaskBatchDTO;
-    /** 跑分批次进度 Redis TTL（秒），由客户 extend_config_info / 同步表量级策略解析 */
+    /** 跑分批次进度 Redis TTL（秒），由客户 expire_day / 同步表量级策略解析 */
     private final int scoreBatchExpireSeconds;
     /** stra_his_file.createTime 毫秒时间戳，用于是否走 ES 新索引 */
     private Long straHisFileCreateTimeMillis;

@@ -1,6 +1,5 @@
 package com.br.marketing.task.service;
 
-import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyExpireConstant;
 import com.br.marketing.common.utils.StringUtils;
@@ -12,14 +11,17 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 /**
- * 跑分批次进度 Redis TTL：优先读客户 extend_config_info.expireDay（天）；
- * 未配置时在分布式锁内按同步表量级推导 10/30 天并回写扩展字段。
+ * 跑分批次进度 Redis TTL：优先读客户表 {@code expire_day}（天，varchar 存正整数）；
+ * 未配置时在分布式锁内按同步表量级推导 10/30 天并回写 {@code expire_day}。
  */
 @Service
 @Slf4j
 public class ScoreBatchExpirePolicyService {
+
+    private static final Pattern DIGITS_ONLY = Pattern.compile("^\\d+$");
 
     private static final String LOCK_KEY_PREFIX = "scoreBatchExpireInit:";
     private static final int LOCK_TTL_SECONDS = 120;
@@ -31,7 +33,6 @@ public class ScoreBatchExpirePolicyService {
     private static final int EXPIRE_DAY_LARGE = 30;
     private static final int EXPIRE_DAY_DEFAULT = 10;
     private static final int SECONDS_PER_DAY = 60 * 60 * 24;
-    private static final String JSON_KEY_EXPIRE_DAY = "expireDay";
 
     @Resource
     private MarketingSyncUserMapper marketingSyncUserMapper;
@@ -41,7 +42,7 @@ public class ScoreBatchExpirePolicyService {
     private RedisChgService redisChgService;
 
     /**
-     * @param customer 内存中的客户对象（含 apiCode），若发生回写会同步更新其 extendConfigInfo
+     * @param customer 内存中的客户对象（含 apiCode、expire_day 映射为 expireDay），若发生回写会同步更新其 expireDay
      * @return Redis EXPIRE 使用的秒数
      */
     public int resolveAndEnsureExpireDay(MarketingCustomer customer) {
@@ -49,7 +50,7 @@ public class ScoreBatchExpirePolicyService {
             return RedisKeyExpireConstant.SCORE_BATCH_EXPIRE_TIME;
         }
         String apiCode = customer.getApiCode();
-        Integer configured = readValidExpireDayDays(customer.getExtendConfigInfo());
+        Integer configured = parsePositiveIntDays(customer.getExpireDay());
         if (configured != null) {
             return configured * SECONDS_PER_DAY;
         }
@@ -81,10 +82,10 @@ public class ScoreBatchExpirePolicyService {
             if (fresh == null) {
                 return RedisKeyExpireConstant.SCORE_BATCH_EXPIRE_TIME;
             }
-            Integer afterWait = readValidExpireDayDays(fresh.getExtendConfigInfo());
-            if (afterWait != null) {
-                customer.setExtendConfigInfo(fresh.getExtendConfigInfo());
-                return afterWait * SECONDS_PER_DAY;
+            Integer afterLock = parsePositiveIntDays(fresh.getExpireDay());
+            if (afterLock != null) {
+                customer.setExpireDay(fresh.getExpireDay());
+                return afterLock * SECONDS_PER_DAY;
             }
             String syncApiCode = StringUtils.isNotBlank(apiCode) ? apiCode : fresh.getApiCode();
             if (StringUtils.isBlank(syncApiCode)) {
@@ -100,14 +101,12 @@ public class ScoreBatchExpirePolicyService {
                 return RedisKeyExpireConstant.SCORE_BATCH_EXPIRE_TIME;
             }
             int days = count >= LARGE_DATA_THRESHOLD ? EXPIRE_DAY_LARGE : EXPIRE_DAY_DEFAULT;
-            JSONObject json = parseExtendJsonObject(fresh.getExtendConfigInfo());
-            json.put(JSON_KEY_EXPIRE_DAY, days);
-            String newExt = json.toJSONString();
+            String dayStr = String.valueOf(days);
             MarketingCustomer upd = new MarketingCustomer();
             upd.setId(fresh.getId());
-            upd.setExtendConfigInfo(newExt);
+            upd.setExpireDay(dayStr);
             marketingCustomerMapper.updateByPrimaryKeySelective(upd);
-            customer.setExtendConfigInfo(newExt);
+            customer.setExpireDay(dayStr);
             return days * SECONDS_PER_DAY;
         } finally {
             if (locked) {
@@ -135,43 +134,34 @@ public class ScoreBatchExpirePolicyService {
             if (c2 == null) {
                 continue;
             }
-            Integer d = readValidExpireDayDays(c2.getExtendConfigInfo());
+            Integer d = parsePositiveIntDays(c2.getExpireDay());
             if (d != null) {
-                customer.setExtendConfigInfo(c2.getExtendConfigInfo());
+                customer.setExpireDay(c2.getExpireDay());
                 return d * SECONDS_PER_DAY;
             }
         }
         return RedisKeyExpireConstant.SCORE_BATCH_EXPIRE_TIME;
     }
 
-    private static Integer readValidExpireDayDays(String extendConfigInfo) {
-        if (StringUtils.isBlank(extendConfigInfo)) {
+    /**
+     * 解析 {@code expire_day}：非空、trim 后为纯数字且解析为 &gt; 0 的整数则返回天数，否则 null。
+     */
+    private static Integer parsePositiveIntDays(String expireDayColumn) {
+        if (StringUtils.isBlank(expireDayColumn)) {
+            return null;
+        }
+        String t = expireDayColumn.trim();
+        if (!DIGITS_ONLY.matcher(t).matches()) {
             return null;
         }
         try {
-            JSONObject o = JSONObject.parseObject(extendConfigInfo);
-            if (o == null) {
+            int v = Integer.parseInt(t);
+            if (v <= 0) {
                 return null;
             }
-            Integer d = o.getInteger(JSON_KEY_EXPIRE_DAY);
-            if (d != null && d > 0) {
-                return d;
-            }
-        } catch (Exception e) {
-            log.warn("scoreBatchExpire parse extendConfigInfo fail data={}", extendConfigInfo, e);
-        }
-        return null;
-    }
-
-    private static JSONObject parseExtendJsonObject(String extend) {
-        if (StringUtils.isBlank(extend)) {
-            return new JSONObject();
-        }
-        try {
-            JSONObject o = JSONObject.parseObject(extend);
-            return o != null ? o : new JSONObject();
-        } catch (Exception e) {
-            return new JSONObject();
+            return v;
+        } catch (NumberFormatException e) {
+            return null;
         }
     }
 }
