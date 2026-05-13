@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.ningbo.NingBoDataTaskMapper">
+    <select id="createOrUpdateRunningTask" resultMap="BaseResultMap" parameterType="map">
+        <![CDATA[
+        INSERT INTO b_ningbo_data_task (task_date, task_type, status, result_message, create_time, update_time)
+        VALUES (#{collectDate,jdbcType=DATE},
+                #{taskType,jdbcType=INTEGER},
+                1, -- 执行中
+                NULL,
+                NOW(),
+                NOW()) ON DUPLICATE KEY
+        UPDATE
+            status =
+        VALUES (status), result_message =
+        VALUES (result_message), update_time = NOW()
+        ]]>
+    </select>
+
+    <!-- 根据ID更新任务状态 -->
+    <update id="updateTaskStatus" parameterType="map">
+        UPDATE b_ningbo_data_task
+        SET status         = #{status,jdbcType=TINYINT},
+            result_message = #{resultMessage,jdbcType=VARCHAR},
+            update_time    = NOW()
+        WHERE id = #{id,jdbcType=BIGINT}
+    </update>
+
+    <select id="selectByDateAndType" resultMap="BaseResultMap" parameterType="map">
+        SELECT id, task_date, task_type, status, result_message, create_time, update_time
+        FROM b_ningbo_data_task
+        WHERE task_date = #{taskDate,jdbcType=DATE}
+          AND task_type = #{taskType,jdbcType=TINYINT}
+    </select>
+
+    <!-- 更新任务 -->
+    <update id="update" parameterType="com.br.marketing.entity.ningbo.NingBoDataTask">
+        UPDATE b_ningbo_data_task
+        SET status         = #{status,jdbcType=TINYINT},
+            result_message = #{resultMessage,jdbcType=VARCHAR},
+            update_time    = NOW()
+        WHERE id = #{id,jdbcType=BIGINT}
+    </update>
+</mapper>

@@ -30,6 +30,7 @@ import com.br.marketing.rule.service.XieChengCollidingService;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.EncAndDecUtil;
+import com.br.marketing.util.EsNewIndexRuleUtils;
 import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import com.br.marketing.util.xiecheng.XieChengEsJsonHandler;
 import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
@@ -91,6 +92,9 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
 
     @Resource
     ErrorMarkMapper errorMarkMapper;
+
+    @Resource
+    StraHisFileMapper straHisFileMapper;
     @Resource
     private ToPolicyByRuleService toPolicyByRuleService;
     private static final String TITLE = "【携程撞库数据推决策】";
@@ -112,6 +116,14 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
         for (CustomerInfoPushBatch customerInfoPushBatch : customerInfoPushBatches) {
             numList.add(customerInfoPushBatch.getmBatchNumber());
             fileIds.add(customerInfoPushBatch.getmFileId());
+        }
+        List<StraHisFile> straHisFilesForIndex;
+        if (fileIds.isEmpty()) {
+            straHisFilesForIndex = new ArrayList<>();
+        } else {
+            StraHisFileExample fileExampleForIndex = new StraHisFileExample();
+            fileExampleForIndex.createCriteria().andIdIn(fileIds);
+            straHisFilesForIndex = straHisFileMapper.selectByExample(fileExampleForIndex);
         }
         Result<Integer> integerResult = pushRuleService.checkThreekEnc(fileIds);
         Integer threeEncrypt = integerResult.getData();
@@ -147,7 +159,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
                     .andRetryTotalAttemptsLessThan(3);
             List<ErrorMark> esErrorList = errorMarkMapper.selectByExample(errorMarkExample);
             if(!CollectionUtils.isEmpty(esErrorList)){
-                repushQueryEsData(esErrorList,numList, fileIds, customerInfoPushMain, threeEncrypt,resList,threadPool);
+                repushQueryEsData(esErrorList,numList, fileIds, customerInfoPushMain, threeEncrypt,resList,threadPool, straHisFilesForIndex);
             }
         }else {
             while (true) {
@@ -176,7 +188,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
                 dataLoopCycleLists.forEach((List dataLoopCycleList) -> {
                     resList.add(threadPool.submit(
                             () -> pushPolicy(dataLoopCycleList, numList, fileIds,
-                                    customerInfoPushMain, threeEncrypt, markWithEsFlag, finalLableObject, null)));
+                                    customerInfoPushMain, threeEncrypt, markWithEsFlag, finalLableObject, null, straHisFilesForIndex)));
                 });
             }
         }
@@ -237,7 +249,8 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
 
     private Result<Integer> pushPolicy(List<XieChengCollidingDataLoopCycle> list, List<String> numList, List<Long> fileIds,
                                        CustomerInfoPushMain customerInfoPushMain, Integer threeEncrypt,
-                                       Boolean markWithEsFlag, Object lableObject, ErrorMark errorMark) {
+                                       Boolean markWithEsFlag, Object lableObject, ErrorMark errorMark,
+                                       List<StraHisFile> straHisFilesForIndex) {
         Result<Integer> result = new Result<>();
         try {
             List<String> cells = list.stream().map(XieChengCollidingDataLoopCycle::getCellSha256CodeList).collect(Collectors.toList());
@@ -264,6 +277,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             queryBaseBean.setBatchNumbers(Joiner.on(",").join(numList));
             queryBaseBean.setFileIds(Joiner.on(",").join(fileIds));
             queryBaseBean.setJsonData(jsonRule.toString());
+            queryBaseBean.setUseNewIndexRule(EsNewIndexRuleUtils.resolveAsMap(straHisFilesForIndex, marketingCommonConfig));
             boolean scFlag = !ObjectUtils.isEmpty(lableObject);
             List<ScoreLable> scoreLables = null;
             if (scFlag) {
@@ -375,7 +389,8 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
 
     private void repushQueryEsData(List<ErrorMark> esErrorList, List<String> numList, List<Long> fileIds,
                                    CustomerInfoPushMain customerInfoPushMain, Integer threeEncrypt,
-                                   List<Future<Result<Integer>>> resList, ThreadPoolExecutor threadPool) {
+                                   List<Future<Result<Integer>>> resList, ThreadPoolExecutor threadPool,
+                                   List<StraHisFile> straHisFilesForIndex) {
 
         for (ErrorMark errorMark : esErrorList) {
 
@@ -401,7 +416,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
 
             resList.add(threadPool.submit(
                     () -> pushPolicy(dataLoopCycleList, numList, fileIds,
-                            customerInfoPushMain, threeEncrypt, markWithEsFlag, finalLableObject, errorMark)));
+                            customerInfoPushMain, threeEncrypt, markWithEsFlag, finalLableObject, errorMark, straHisFilesForIndex)));
         }
     }
 

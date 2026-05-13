@@ -56,10 +56,9 @@ public class ConsumerApp {
             , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
             , key = MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER)}, containerFactory = "primaryContainerFactory")
     public void consumerPreUser(Channel channel, Message message) {
-        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
-        }.getType());
+        String o = new String(message.getBody(), StandardCharsets.UTF_8);
         /*消费逻辑*/
-        consumerService.consumerRun(channel, message, pushRuleService::pushPersonalTransferData, o, null);
+        consumerService.consumerRun(channel, message, pushRuleService::pushPersonalTransferDataWrapper, o, null);
     }
 
 
@@ -75,10 +74,9 @@ public class ConsumerApp {
             , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
             , key = MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_BLACK)}, containerFactory = "primaryContainerFactory")
     public void consumerBlack(Channel channel, Message message) {
-        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
-        }.getType());
+        String msg = new String(message.getBody(), StandardCharsets.UTF_8);
         /*消费逻辑*/
-        consumerService.consumerRun(channel, message, pushRuleService::consumerBlack, o, null);
+        consumerService.consumerRun(channel, message, pushRuleService::consumerBlack, msg, null);
     }
 
     /**

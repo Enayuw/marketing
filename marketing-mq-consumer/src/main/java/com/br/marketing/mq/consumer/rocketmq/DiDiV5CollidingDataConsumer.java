@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
 @RocketMQMessageListener(topic = MarketingOutsideInterfaceConstants.TOPIC,
         consumerGroup = MarketingOutsideInterfaceConstants.MARKETING_DIDI_V5_COLLIDING_DATA,
         selectorExpression = MarketingOutsideInterfaceConstants.TAG_MARKETING_DIDI_V5_COLLIDING_DATA,
-        consumeThreadNumber = 5, consumeThreadMax = 10, awaitTerminationMillisWhenShutdown = 10000)
+        consumeThreadNumber = 5, consumeThreadMax = 20, awaitTerminationMillisWhenShutdown = 10000)
 public class DiDiV5CollidingDataConsumer extends BaseMqMessageListener
         implements RocketMQListener<MessageExt>, RocketMQPushConsumerLifecycleListener {
 

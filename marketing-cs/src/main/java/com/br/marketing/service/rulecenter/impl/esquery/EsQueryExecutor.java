@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.entity.CustomerInfoPushMain;
 import com.br.marketing.entity.ErrorMark;
 import com.br.marketing.entity.ErrorMarkExample;
+import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.enums.MockSwitchEnum;
 import com.br.marketing.enums.PushRuleStatusEnum;
 import com.br.marketing.enums.RetryStatusEnum;
@@ -13,6 +14,8 @@ import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
 import com.br.marketing.mapper.ErrorMarkMapper;
 import com.br.marketing.service.ToPolicyByRuleService;
 import com.br.marketing.service.rulecenter.IEsActionService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.EsNewIndexRuleUtils;
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -45,6 +48,9 @@ public class EsQueryExecutor {
     @Autowired
     IEsActionService iEsActionService;
 
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
+
     /**
      * 初始化查询参数（设置重试逻辑）
      */
@@ -56,9 +62,11 @@ public class EsQueryExecutor {
                                           Integer totalPage,
                                           Boolean isPerOrTop,
                                           Object labelObject,
-                                          Boolean markWithEsFlag) {
+                                          Boolean markWithEsFlag,
+                                          List<StraHisFile> straHisFiles) {
         EsQueryParams params = new EsQueryParams(customerInfoPushMain, part, numList, fileIds,
                 pageSize, totalPage, isPerOrTop, labelObject, markWithEsFlag);
+        params.setStraHisFiles(straHisFiles);
 
         // 初始化重试逻辑
         initializeRetryLogic(params);
@@ -193,6 +201,7 @@ public class EsQueryExecutor {
         if (!StringUtils.isEmpty(params.getCustomIndexes())){
             queryBaseBean.setCustomIndexes(params.getCustomIndexes());
         }
+        queryBaseBean.setUseNewIndexRule(EsNewIndexRuleUtils.resolveAsMap(params.getStraHisFiles(), marketingCommonConfig));
 
         // 设置分页参数
         int totalYuShu = (params.getIsPerOrTop() ? params.getCustomerInfoPushMain().getmRealyNum() :

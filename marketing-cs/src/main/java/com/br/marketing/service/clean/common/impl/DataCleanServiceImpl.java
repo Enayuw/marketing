@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.common.log.AlertLog;
+import com.br.marketing.aspect.MqIdempotent;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.client.rulecleaning.DataCleanDTO;
@@ -17,6 +18,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.JsonParseUtils;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.context.MqIdempotentContext;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.dto.dataclean.mq.CommonMqDataJsonParse;
@@ -46,6 +48,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -157,6 +160,7 @@ public class DataCleanServiceImpl implements DataCleanService {
                         false
                 );
 
+                MqIdempotentContext.setApiCode(apiCode);
             } else {
                 log.warn("数据ID: {} 的JSON数据为空", mqDataJsonParse.getDataId());
             }
@@ -558,7 +562,7 @@ public class DataCleanServiceImpl implements DataCleanService {
      */
     public MarketingPreUserDTO dataClean(MarketingCustomerOriginalData originalData, List<MarketingDataCleanGeneralRuleConfig> ruleConfigList){
         JSONObject jsonData = JSON.parseObject(originalData.getJsonData());
-
+        List<String> tieDataApiCode = marketingCommonConfig.getTieDataApiCode();
         //层级字段处理
         String levelField = null;
         List<MarketingDataCleanGeneralRuleConfig> ruleConfigListTmp = new ArrayList<>(ruleConfigList);
@@ -599,6 +603,10 @@ public class DataCleanServiceImpl implements DataCleanService {
             //数据清洗
             dataCleanHandler(jsonObject, ruleConfigListTmp, marketingPreUserDetailDTO);
             dataCleanNotConfigHandler(jsonObject, ruleConfigListTmp, marketingPreUserDetailDTO);
+            //打平数据结构
+            if(tieDataApiCode.contains(originalData.getApiCode())){
+                flattenReserveField1NestedObjects(marketingPreUserDetailDTO);
+            }
             marketingPreUserDetailDTO.setFingerprint(ids.get(index.getAndIncrement()));
             syncUsers.add(marketingPreUserDetailDTO);
         });
@@ -1031,14 +1039,18 @@ public class DataCleanServiceImpl implements DataCleanService {
         return arr;
     }
 
+    /** 输出固定 {@code maxCells} 列，尾部空 Excel 单元格补空串，与表头列数一致。 */
     private static String rowToCommaSeparated(Row row, DataFormatter formatter, int maxCells) {
+        if (maxCells <= 0) {
+            return "";
+        }
         StringBuilder sb = new StringBuilder();
-        int lastCellNum = maxCells > 0 ? Math.min(row.getLastCellNum(), maxCells) : row.getLastCellNum();
-        for (int c = 0; c < lastCellNum; c++) {
+        for (int c = 0; c < maxCells; c++) {
             if (c > 0) {
                 sb.append(',');
             }
-            sb.append(formatter.formatCellValue(row.getCell(c)));
+            Cell cell = row.getCell(c);
+            sb.append(cell == null ? "" : formatter.formatCellValue(cell));
         }
         return sb.toString();
     }
@@ -1419,6 +1431,78 @@ public class DataCleanServiceImpl implements DataCleanService {
             return jsonObject;
         } catch (Exception e) {
             log.error("第{}行JSON构建失败: {}", rowIndex, e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * 定制上传：将 reserveField1 中任意层级的 JSON 对象打平到同一层，去掉中间节点（如 details、ivrParam）。
+     * 嵌套对象与「值为 JSON 对象的字符串」先展开；当前层的叶子字段后写入，同名键以当前层为准（保证清洗/映射后的取值覆盖子层原始值）。
+     */
+    private void flattenReserveField1NestedObjects(MarketingPreUserDetailDTO detailDTO) {
+        String reserveField1 = detailDTO.getReserveField1();
+        if (StringUtils.isEmpty(reserveField1)) {
+            return;
+        }
+        try {
+            JSONObject root = JSONObject.parseObject(reserveField1);
+            if (root == null || root.isEmpty()) {
+                return;
+            }
+            JSONObject flat = new JSONObject(true);
+            flattenJsonObjectIntoFlat(root, flat);
+            detailDTO.setReserveField1(flat.toJSONString());
+        } catch (Exception e) {
+            log.warn(TITLE + "reserveField1 打平失败，保留原值, apiCode相关明细 fingerprint 待查日志", e);
+        }
+    }
+
+    private void flattenJsonObjectIntoFlat(JSONObject src, JSONObject acc) {
+        if (src == null || src.isEmpty()) {
+            return;
+        }
+        // 1. 先展开子对象 / 可解析为对象的字符串，深度优先合并
+        for (String key : new ArrayList<>(src.keySet())) {
+            Object val = src.get(key);
+            if (val instanceof JSONObject) {
+                flattenJsonObjectIntoFlat((JSONObject) val, acc);
+            } else if (val instanceof String) {
+                JSONObject parsed = tryParseNestedJsonObject((String) val);
+                if (parsed != null) {
+                    flattenJsonObjectIntoFlat(parsed, acc);
+                }
+            }
+        }
+        // 2. 再写入当前层的叶子，覆盖同名键（外层清洗结果优先）
+        for (String key : new ArrayList<>(src.keySet())) {
+            Object val = src.get(key);
+            if (val instanceof JSONObject) {
+                continue;
+            }
+            if (val instanceof JSONArray) {
+                acc.put(key, ((JSONArray) val).toJSONString());
+                continue;
+            }
+            if (val instanceof String) {
+                if (tryParseNestedJsonObject((String) val) != null) {
+                    continue;
+                }
+            }
+            acc.put(key, val);
+        }
+    }
+
+    private JSONObject tryParseNestedJsonObject(String raw) {
+        if (StringUtils.isEmpty(raw)) {
+            return null;
+        }
+        String t = raw.trim();
+        if (t.length() < 2 || t.charAt(0) != '{' || t.charAt(t.length() - 1) != '}') {
+            return null;
+        }
+        try {
+            return JSON.parseObject(raw);
+        } catch (Exception e) {
             return null;
         }
     }

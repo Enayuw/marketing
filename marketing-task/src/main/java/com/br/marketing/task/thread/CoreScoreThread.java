@@ -71,6 +71,8 @@ public class CoreScoreThread implements Callable<String> {
     private MarketingCommonConfig marketingCommonConfig;
     private MarketingRetryRedisMapper marketingRetryRedisMapper;
     private ScoreTaskBatchDTO scoreTaskBatchDTO;
+    /** stra_his_file.createTime 毫秒时间戳，用于是否走 ES 新索引 */
+    private Long straHisFileCreateTimeMillis;
 
     public CoreScoreThread(List<MarketingSyncUser> list, Map<String, String> param
             , Long currentPage, boolean firstTime, MarketingCustomer customer, MarketingTask marketingTask
@@ -106,6 +108,12 @@ public class CoreScoreThread implements Callable<String> {
         this.marketingCommonConfig = marketingCommonConfig;
         this.marketingRetryRedisMapper = marketingRetryRedisMapper;
         this.scoreTaskBatchDTO = scoreTaskBatchDTO;
+        String ctMillis = param.get("straHisFileCreateTimeMillis");
+        if (StringUtils.isNotBlank(ctMillis)) {
+            this.straHisFileCreateTimeMillis = Long.parseLong(ctMillis.trim());
+        } else {
+            this.straHisFileCreateTimeMillis = null;
+        }
         Scheduler.ac.getBean(ProFieldsClient.class).setLoanPro(strategyStr, meal);
     }
 
@@ -333,7 +341,7 @@ public class CoreScoreThread implements Callable<String> {
                             , customer.getPushCustomer().toString()
                             , baseHeadConfigVO, fieldInfo, marketingTask
                             , marketingTaskService, part
-                            , marketingCommonConfig,marketingRetryEsMapper);
+                            , marketingCommonConfig, marketingRetryEsMapper, straHisFileCreateTimeMillis);
                 }
             }
         } catch (Exception e) {
@@ -350,7 +358,7 @@ public class CoreScoreThread implements Callable<String> {
                         , customer.getPushCustomer().toString()
                         , baseHeadConfigVO, fieldInfo, marketingTask
                         , marketingTaskService, part
-                        , marketingCommonConfig,marketingRetryEsMapper);
+                        , marketingCommonConfig, marketingRetryEsMapper, straHisFileCreateTimeMillis);
             }
         } catch (Exception e) {
             log.error("dealResult出错了", e);

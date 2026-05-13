@@ -4,6 +4,7 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.es.bean.MarketingCondition;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -25,16 +26,18 @@ import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.ShuHeCuFuJieData;
+import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.MarketingHistoryEsService;
-import com.br.marketing.es.util.es.EsHandleUtil;
 import com.br.marketing.es.util.es.EsIceType;
 import com.br.marketing.es.util.es.rpcclient.RpcClientProxy;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.mapper.ShuHeCuFuJieDataMapper;
+import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.service.ShuHeCuFuJieMatchDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.EsNewIndexRuleUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -58,6 +61,8 @@ public class ShuHeCuFuJieMatchDataServiceImpl implements ShuHeCuFuJieMatchDataSe
     private MarketingSyncUserMapper marketingSyncUserMapper;
     @Autowired
     private MarketingHistoryEsService marketingHistoryEsService;
+    @Resource
+    private StraHisFileMapper straHisFileMapper;
 
     /**
      * @param condition 跑分规则筛选条件
@@ -73,7 +78,8 @@ public class ShuHeCuFuJieMatchDataServiceImpl implements ShuHeCuFuJieMatchDataSe
         Integer threadSize = shuHeCuFuJieMatchDataConfig.getInteger("threadSize");
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadSize, threadSize);
         String redisKey = RedisKeyConstant.SHU_HE_CUFUJIE_MATCH_DATA_FLAG + ":" + date + ":" + batchNumber;
-        String index = EsHandleUtil.getDateFromBatchNumber(batchNumber);
+        final StraHisFile straHisFileForEs = fieldId != null ? straHisFileMapper.selectByPrimaryKey(fieldId) : null;
+        String index = EsNewIndexRuleUtils.indexForModify(batchNumber, straHisFileForEs, marketingCommonConfig);
         boolean mark = Boolean.TRUE;
         Long minId = StringUtils.isNotEmpty(redisChgService.get(redisKey)) ? Long.valueOf(redisChgService.get(redisKey))
             : shuHeCuFuJieDataMapper.shuHeCuFuJieMatchDataOfMinId(date);
@@ -153,6 +159,9 @@ public class ShuHeCuFuJieMatchDataServiceImpl implements ShuHeCuFuJieMatchDataSe
                     queryBaseBean.setFileIds(String.valueOf(fieldId));
                     queryBaseBean.setJsonData(jsonData.toJSONString());
                     queryBaseBean.setPageSize(2000);
+                    queryBaseBean.setUseNewIndexRule(EsNewIndexRuleUtils.resolveAsMap(
+                            straHisFileForEs != null ? Collections.singletonList(straHisFileForEs) : null,
+                            marketingCommonConfig));
                     List<Map<String, MarketingHistory>> marketingHistoryMapList =
                             marketingHistoryEsService.builderMarketingWithIdList(queryBaseBean, null, false);
                     for (Map<String, MarketingHistory> marketingHistoryMap : marketingHistoryMapList) {

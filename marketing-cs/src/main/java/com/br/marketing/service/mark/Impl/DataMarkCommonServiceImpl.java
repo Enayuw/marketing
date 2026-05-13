@@ -16,6 +16,7 @@ import com.br.marketing.mapper.DataMarkConfigMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.service.mark.DataMarkCommonService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.EsNewIndexRuleUtils;
 import com.br.marketing.util.ThreadPoolAdjustmentUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.expression.ExpressionParser;
@@ -62,11 +63,13 @@ public class DataMarkCommonServiceImpl implements DataMarkCommonService {
 
     @Override
     public List<MarketingHistory> getScoreWithEs(String apiCode, String batchNumber, Long id,
-                                                 List<String> cellLogs, Integer esPageSize, Boolean isPlainText) {
+                                                 List<String> cellLogs, Integer esPageSize, Boolean isPlainText,
+                                                 List<StraHisFile> straHisFiles) {
         QueryBaseBean queryBaseBean = new QueryBaseBean();
         queryBaseBean.setApiCode(apiCode);
         queryBaseBean.setBatchNumbers(batchNumber);
         queryBaseBean.setFileIds(id.toString());
+        queryBaseBean.setUseNewIndexRule(EsNewIndexRuleUtils.resolveAsMap(straHisFiles, marketingCommonConfig));
         JSONObject cellCondition = new JSONObject();
         cellCondition.put("type", "operation");
         cellCondition.put("key", "cell");

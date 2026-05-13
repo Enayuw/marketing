@@ -1,6 +1,7 @@
 package com.br.marketing.vo;
 
 import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.entity.MarketingTransferSyncUser;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -25,6 +26,7 @@ public class MarketingSyncUserVO {
     private String userType;
     private String operateType;
     private String registerDate;
+    private String registerTime;
     private String reserveField1;
     private String reserveField2;
     private String createTime;
@@ -36,12 +38,47 @@ public class MarketingSyncUserVO {
     private Integer isTask;
     private String taskTime;
     private Integer isRepeat;
+    private Long id;
+    private String cid;
+    private String requestId;
+    private String orgName;
+    private String source;
+    private String type;
+    private String customName;
+    private String ifRegister;
+    private String ifLogin;
+    private String loginTime;
+    private String ifApply;
+    private String applyDt;
+    private String applyTime;
+    private String applyResult;
+    private String refuseTime;
+    private String auditTime;
+    private String auditAmount;
+    private String ifLent;
+    private String lentTime;
+    private String lentAmount;
+    private String unlentAmount;
+    private String ifSettle;
+    private String settleTime;
+    private String activity;
+    private String caseStatus;
+    private String caseEffective;
+    private String ifTransform;
+    private String transformTime;
+    private String insertTime;
+    private String requestData;
+    private String requestTime;
+    private String tCid;
+    private String channel;
+    private Long fingerprint;
 
     public static MarketingSyncUserVO fromEntity(MarketingSyncUser user) {
         if (user == null) {
             return null;
         }
         MarketingSyncUserVO vo = new MarketingSyncUserVO();
+        vo.setId(user.getId());
         vo.setApiCode(user.getApiCode());
         vo.setCusBatch(user.getCusBatch());
         vo.setRequestBatch(user.getRequestBatch());
@@ -69,6 +106,59 @@ public class MarketingSyncUserVO {
         vo.setIsTask(user.getIsTask());
         vo.setTaskTime(formatDate(user.getTaskTime()));
         vo.setIsRepeat(user.getIsRepeat());
+        vo.setFingerprint(user.getFingerprint());
+        return vo;
+    }
+
+    public static MarketingSyncUserVO fromTransferEntity(MarketingTransferSyncUser user) {
+        if (user == null) {
+            return null;
+        }
+        MarketingSyncUserVO vo = new MarketingSyncUserVO();
+        vo.setId(user.getId());
+        vo.setCid(user.getCid());
+        vo.setApiCode(user.getApiCode());
+        vo.setRequestId(user.getRequestId());
+        vo.setRequestBatch(user.getRequestId());
+        vo.setOrgName(user.getOrgName());
+        vo.setCustNum(user.getCustNum());
+        vo.setSource(user.getSource());
+        vo.setUserType(user.getUserType());
+        vo.setType(user.getType());
+        vo.setCustomName(user.getCustomName());
+        vo.setIfRegister(user.getIfRegister());
+        vo.setRegisterTime(user.getRegisterTime());
+        vo.setRegisterDate(user.getRegisterTime());
+        vo.setIfLogin(user.getIfLogin());
+        vo.setLoginTime(user.getLoginTime());
+        vo.setIfApply(user.getIfApply());
+        vo.setApplyDt(user.getApplyDt());
+        vo.setApplyTime(user.getApplyTime());
+        vo.setApplyResult(user.getApplyResult());
+        vo.setRefuseTime(user.getRefuseTime());
+        vo.setAuditTime(user.getAuditTime());
+        vo.setAuditAmount(user.getAuditAmount());
+        vo.setIfLent(user.getIfLent());
+        vo.setLentTime(user.getLentTime());
+        vo.setLentAmount(user.getLentAmount());
+        vo.setUnlentAmount(user.getUnlentAmount());
+        vo.setIfSettle(user.getIfSettle());
+        vo.setSettleTime(user.getSettleTime());
+        vo.setActivity(user.getActivity());
+        vo.setCaseStatus(user.getCaseStatus());
+        vo.setCaseEffective(user.getCaseEffective());
+        vo.setIfTransform(user.getIfTransform());
+        vo.setTransformTime(user.getTransformTime());
+        vo.setInsertTime(user.getInsertTime());
+        vo.setReserveField1(user.getReserveField1());
+        vo.setReserveField2(user.getReserveField2());
+        vo.setCreateTime(formatDate(user.getCreateTime()));
+        vo.setUpdateTime(formatDate(user.getUpdateTime()));
+        vo.setRequestData(user.getRequestData());
+        vo.setRequestTime(user.getRequestTime());
+        vo.settCid(user.gettCid());
+        vo.setChannel(user.getChannel());
+        vo.setFingerprint(user.getFingerprint());
         return vo;
     }
 
@@ -207,6 +297,14 @@ public class MarketingSyncUserVO {
         this.registerDate = registerDate;
     }
 
+    public String getRegisterTime() {
+        return registerTime;
+    }
+
+    public void setRegisterTime(String registerTime) {
+        this.registerTime = registerTime;
+    }
+
     public String getReserveField1() {
         return reserveField1;
     }
@@ -293,6 +391,278 @@ public class MarketingSyncUserVO {
 
     public void setIsRepeat(Integer isRepeat) {
         this.isRepeat = isRepeat;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getCid() {
+        return cid;
+    }
+
+    public void setCid(String cid) {
+        this.cid = cid;
+    }
+
+    public String getRequestId() {
+        return requestId;
+    }
+
+    public void setRequestId(String requestId) {
+        this.requestId = requestId;
+    }
+
+    public String getOrgName() {
+        return orgName;
+    }
+
+    public void setOrgName(String orgName) {
+        this.orgName = orgName;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getCustomName() {
+        return customName;
+    }
+
+    public void setCustomName(String customName) {
+        this.customName = customName;
+    }
+
+    public String getIfRegister() {
+        return ifRegister;
+    }
+
+    public void setIfRegister(String ifRegister) {
+        this.ifRegister = ifRegister;
+    }
+
+    public String getIfLogin() {
+        return ifLogin;
+    }
+
+    public void setIfLogin(String ifLogin) {
+        this.ifLogin = ifLogin;
+    }
+
+    public String getLoginTime() {
+        return loginTime;
+    }
+
+    public void setLoginTime(String loginTime) {
+        this.loginTime = loginTime;
+    }
+
+    public String getIfApply() {
+        return ifApply;
+    }
+
+    public void setIfApply(String ifApply) {
+        this.ifApply = ifApply;
+    }
+
+    public String getApplyDt() {
+        return applyDt;
+    }
+
+    public void setApplyDt(String applyDt) {
+        this.applyDt = applyDt;
+    }
+
+    public String getApplyTime() {
+        return applyTime;
+    }
+
+    public void setApplyTime(String applyTime) {
+        this.applyTime = applyTime;
+    }
+
+    public String getApplyResult() {
+        return applyResult;
+    }
+
+    public void setApplyResult(String applyResult) {
+        this.applyResult = applyResult;
+    }
+
+    public String getRefuseTime() {
+        return refuseTime;
+    }
+
+    public void setRefuseTime(String refuseTime) {
+        this.refuseTime = refuseTime;
+    }
+
+    public String getAuditTime() {
+        return auditTime;
+    }
+
+    public void setAuditTime(String auditTime) {
+        this.auditTime = auditTime;
+    }
+
+    public String getAuditAmount() {
+        return auditAmount;
+    }
+
+    public void setAuditAmount(String auditAmount) {
+        this.auditAmount = auditAmount;
+    }
+
+    public String getIfLent() {
+        return ifLent;
+    }
+
+    public void setIfLent(String ifLent) {
+        this.ifLent = ifLent;
+    }
+
+    public String getLentTime() {
+        return lentTime;
+    }
+
+    public void setLentTime(String lentTime) {
+        this.lentTime = lentTime;
+    }
+
+    public String getLentAmount() {
+        return lentAmount;
+    }
+
+    public void setLentAmount(String lentAmount) {
+        this.lentAmount = lentAmount;
+    }
+
+    public String getUnlentAmount() {
+        return unlentAmount;
+    }
+
+    public void setUnlentAmount(String unlentAmount) {
+        this.unlentAmount = unlentAmount;
+    }
+
+    public String getIfSettle() {
+        return ifSettle;
+    }
+
+    public void setIfSettle(String ifSettle) {
+        this.ifSettle = ifSettle;
+    }
+
+    public String getSettleTime() {
+        return settleTime;
+    }
+
+    public void setSettleTime(String settleTime) {
+        this.settleTime = settleTime;
+    }
+
+    public String getActivity() {
+        return activity;
+    }
+
+    public void setActivity(String activity) {
+        this.activity = activity;
+    }
+
+    public String getCaseStatus() {
+        return caseStatus;
+    }
+
+    public void setCaseStatus(String caseStatus) {
+        this.caseStatus = caseStatus;
+    }
+
+    public String getCaseEffective() {
+        return caseEffective;
+    }
+
+    public void setCaseEffective(String caseEffective) {
+        this.caseEffective = caseEffective;
+    }
+
+    public String getIfTransform() {
+        return ifTransform;
+    }
+
+    public void setIfTransform(String ifTransform) {
+        this.ifTransform = ifTransform;
+    }
+
+    public String getTransformTime() {
+        return transformTime;
+    }
+
+    public void setTransformTime(String transformTime) {
+        this.transformTime = transformTime;
+    }
+
+    public String getInsertTime() {
+        return insertTime;
+    }
+
+    public void setInsertTime(String insertTime) {
+        this.insertTime = insertTime;
+    }
+
+    public String getRequestData() {
+        return requestData;
+    }
+
+    public void setRequestData(String requestData) {
+        this.requestData = requestData;
+    }
+
+    public String getRequestTime() {
+        return requestTime;
+    }
+
+    public void setRequestTime(String requestTime) {
+        this.requestTime = requestTime;
+    }
+
+    public String gettCid() {
+        return tCid;
+    }
+
+    public void settCid(String tCid) {
+        this.tCid = tCid;
+    }
+
+    public String getChannel() {
+        return channel;
+    }
+
+    public void setChannel(String channel) {
+        this.channel = channel;
+    }
+
+    public Long getFingerprint() {
+        return fingerprint;
+    }
+
+    public void setFingerprint(Long fingerprint) {
+        this.fingerprint = fingerprint;
     }
 
 }

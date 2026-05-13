@@ -415,6 +415,8 @@ public class TaskScoreServiceImpl {
             param.put("isRepair", marketingTask.getIsRepair());
             param.put("fileId", marketingTask.getFileId().toString());
             param.put("part", marketingTaskService.getPart(num).toString());
+            param.put("straHisFileCreateTimeMillis",
+                    file.getCreateTime() == null ? "" : String.valueOf(file.getCreateTime().getTime()));
             warrningExecutor.submit(new CoreScoreThread(
                     list, param, currentPage, true, customer
                     , marketingTask, noflagproductlist
@@ -749,6 +751,8 @@ public class TaskScoreServiceImpl {
                             param.put("fileId", fileId);
                             param.put("noflagproduct", noflagproduct);
                             param.put("part", marketingTaskService.getPart(sumNum, currentPage).toString());
+                            param.put("straHisFileCreateTimeMillis",
+                                    file.getCreateTime() == null ? "" : String.valueOf(file.getCreateTime().getTime()));
                             warrningExecutor.submit(new CoreScoreThread(
                                     list, param, currentPage
                                     , firstTime, customer, blt

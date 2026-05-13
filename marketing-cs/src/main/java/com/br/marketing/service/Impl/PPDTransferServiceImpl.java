@@ -14,6 +14,7 @@ import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.*;
+import com.br.marketing.handle.SnowflakeRedisGeneratorHandle;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
@@ -81,6 +82,9 @@ public class PPDTransferServiceImpl implements IPPDTransferService {
     @Value("${api.dass.aesKey:00}")
     private String aesKey;
 
+    @Resource
+    private SnowflakeRedisGeneratorHandle snowflakeRedisGeneratorHandle;
+
     @Override
     public Result actionPPDToDx(String apiCodes) {
 
@@ -121,6 +125,8 @@ public class PPDTransferServiceImpl implements IPPDTransferService {
                 MqFact mqFact = new MqFact();
                 mqFact.setIncludeRules(Sets.newHashSet("PPD_TransferData_ArtificialTransfer"));
                 mqFact.setSource(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode());
+                mqFact.setIdempotentKey(snowflakeRedisGeneratorHandle.nextId());
+
                 mqFact.setMessage(JSONObject.toJSONString(paramMessage));
                 if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
                     String message = JSON.toJSONString(mqFact);

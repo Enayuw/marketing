@@ -81,6 +81,8 @@ public enum ThreadPoolNameEnum {
 
     DIDI_V5_BLACK_DATA(71,"didi_v5_black_data","滴滴v5黑名单"),
 
+    NINGBO_BANK(81,"ningbo_bank_","宁波银行"),
+
     ;
 
     private final Integer order;

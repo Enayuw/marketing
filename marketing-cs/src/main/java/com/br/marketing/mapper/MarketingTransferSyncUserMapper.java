@@ -30,6 +30,14 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
             , @Param("userType") String userType, @Param("timeAddHour") String timeAddHour);
 
     /**
+     * 根据cust_num、apiCode获取最新转化数据
+     */
+    MarketingTransferSyncUser selectLatestTransferSyncUser(@Param("tcId") String tcId,
+                                                           @Param("apiCode") String apiCode,
+                                                           @Param("custNum") String custNum,
+                                                           @Param("userType") String userType);
+
+    /**
      * 根据cust_num获取1小时内最新数据
      *
      * @param cid

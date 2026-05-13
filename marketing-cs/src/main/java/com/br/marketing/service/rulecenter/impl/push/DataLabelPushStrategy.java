@@ -156,7 +156,8 @@ public class DataLabelPushStrategy extends AbstractRuleCenterPushStrategy {
                 partitionIndex.toString(),
                 context.getSinglePartition(),
                 context.getPartitionDataCount().get(partitionIndex),
-                context.getDataConditionList()
+                context.getDataConditionList(),
+                context.getStraHisFiles()
         );
     }
 
@@ -184,12 +185,14 @@ public class DataLabelPushStrategy extends AbstractRuleCenterPushStrategy {
         private Boolean isPerOrTop;
         private Integer partDataNum;
         private List<Map<String, String>> conditionList;
+        private List<StraHisFile> straHisFiles;
 
 
         public DataLabelTask(ThreadPoolExecutor pushJcPool
                 , CustomerInfoPushMain customerInfoPushMain
                 , List<Long> fileIds, List<String> numList
-                , String part, Boolean isPerOrTop, Integer partDataNum, List<Map<String, String>> conditionList) {
+                , String part, Boolean isPerOrTop, Integer partDataNum, List<Map<String, String>> conditionList,
+                List<StraHisFile> straHisFiles) {
             this.pushJcPool = pushJcPool;
             this.customerInfoPushMain = customerInfoPushMain;
             this.fileIds = fileIds;
@@ -198,6 +201,7 @@ public class DataLabelPushStrategy extends AbstractRuleCenterPushStrategy {
             this.isPerOrTop = isPerOrTop;
             this.partDataNum = partDataNum;
             this.conditionList = conditionList;
+            this.straHisFiles = straHisFiles;
         }
 
         @Override
@@ -218,7 +222,7 @@ public class DataLabelPushStrategy extends AbstractRuleCenterPushStrategy {
             // 使用统一的ES查询参数
             EsQueryParams esParams = createEsQueryParams(customerInfoPushMain, part, numList, fileIds,
                     pageSize, totalPage, isPerOrTop,
-                    null, null);
+                    null, null, straHisFiles);
 
             //前置处理，es补推时，非异常数据不重复处理
             if (!esQueryExecutor.excuteBefore(esParams)) {
