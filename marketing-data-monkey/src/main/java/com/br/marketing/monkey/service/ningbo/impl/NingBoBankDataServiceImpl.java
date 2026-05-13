@@ -163,7 +163,6 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
                                            Long taskId, String apiCode, Date collectDate,
                                            String separator, int limit, String tempFileName) {
         String escapedSeparator = Pattern.quote(separator);
-        Map<String, Integer> headerIndexMap;
         AtomicInteger successCount = new AtomicInteger(0);
         List<CompletableFuture<Void>> futures = new ArrayList<>();
 
@@ -173,24 +172,9 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
         try (BufferedReader reader = new BufferedReader(
                 new InputStreamReader(new FileInputStream(filePath),
                         StringUtils.isNotBlank(charset) ? charset : StandardCharsets.UTF_8.name()))) {
-
-            String headerLine = reader.readLine();
-            if (StringUtils.isBlank(headerLine)) {
-                log.warn("文件内容为空，无数据可解析");
-                return;
-            }
-
-            String[] headers = headerLine.split(escapedSeparator, -1);
-            headerIndexMap = new HashMap<>();
-            for (int i = 0; i < headers.length; i++) {
-                String header = headers[i].trim();
-                if (StringUtils.isNotBlank(header)) {
-                    headerIndexMap.put(header, i);
-                }
-            }
-
             List<String> batchLines = new ArrayList<>(limit);
-            int currentLineNum = 1;
+            int currentLineNum = 0;
+
             String line;
             while ((line = reader.readLine()) != null) {
                 JSONObject config = commonConfig.getNingboBankConfig();
