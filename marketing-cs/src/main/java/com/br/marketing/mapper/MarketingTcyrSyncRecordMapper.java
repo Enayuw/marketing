@@ -38,9 +38,19 @@ public interface MarketingTcyrSyncRecordMapper extends MarketingTcyrSyncRecordMa
     MarketingTcyrSyncRecord selectLatestByBatchNo(@Param("batchNo") String batchNo);
 
     /**
-     * 同程拆 apiCode：待灵霄 Agent 匹配的记录（batch_no 不重复，接入成功且 api_code 为空）。
+     * 同程拆 apiCode：待灵霄 Agent 匹配的记录（接入成功、api_code 为空、且未发起过选码卡片 assign_status IS NULL）。
      */
     List<MarketingTcyrSyncRecord> selectPendingApiCodeMatchRecords(@Param("limit") int limit);
+
+    /**
+     * CAS：将 assign_status 从 NULL 置为 1；影响行数为 1 表示可继续调灵霄发卡片。
+     */
+    int claimAssignCardDispatched(@Param("id") Long id);
+
+    /**
+     * 灵霄 tcapiCodeAssign 失败时回滚 assign_status 为 NULL，便于下次定时重试。
+     */
+    int resetAssignStatusAfterFailedDispatch(@Param("id") Long id);
 
     Integer countTodayByApiCodeAndBatchPrefix(@Param("apiCode") String apiCode, @Param("batchPrefix") String batchPrefix);
 

@@ -39,6 +39,11 @@ public class MarketingTcyrSyncRecord extends MarketingTcyrSyncRecordExample{
     private Integer status;
 
     /**
+     * 同程选码：见 {@link com.br.marketing.enums.TcyrAssignStatusEnum}；NULL-未发起；1-已发起；2-已回填。
+     */
+    private Integer assignStatus;
+
+    /**
      * 错误信息
      */
     private String msg;
@@ -117,6 +122,14 @@ public class MarketingTcyrSyncRecord extends MarketingTcyrSyncRecordExample{
 
     public void setStatus(Integer status) {
         this.status = status;
+    }
+
+    public Integer getAssignStatus() {
+        return assignStatus;
+    }
+
+    public void setAssignStatus(Integer assignStatus) {
+        this.assignStatus = assignStatus;
     }
 
     public String getMsg() {

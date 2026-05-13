@@ -63,10 +63,14 @@ public class TcyrApiCodeMatchNotifyService {
         }
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         for (MarketingTcyrSyncRecord row : rows) {
-            if (row == null || StringUtils.isBlank(row.getBatchNo())) {
+            if (row == null || StringUtils.isBlank(row.getBatchNo()) || row.getId() == null) {
                 continue;
             }
             try {
+                int claimed = marketingTcyrSyncRecordMapper.claimAssignCardDispatched(row.getId());
+                if (claimed <= 0) {
+                    continue;
+                }
                 long total = resolveTotal(row);
                 String pushTime = row.getCreateTime() != null ? sdf.format(row.getCreateTime()) : "";
                 boolean ok = middleHeavenTcyrApiCodeMatchClient.postTcApiCodeAssign(
@@ -83,8 +87,16 @@ public class TcyrApiCodeMatchNotifyService {
                         row.getId());
                 if (ok) {
                     log.warn("tcapiCodeAssign 已调用 batchNo={} total={}", row.getBatchNo(), total);
+                } else {
+                    marketingTcyrSyncRecordMapper.resetAssignStatusAfterFailedDispatch(row.getId());
+                    log.warn("tcapiCodeAssign 失败已回滚 assign_status batchNo={}", row.getBatchNo());
                 }
             } catch (Exception e) {
+                try {
+                    marketingTcyrSyncRecordMapper.resetAssignStatusAfterFailedDispatch(row.getId());
+                } catch (Exception ignored) {
+                    // ignore
+                }
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
                         "单条 batch 处理异常 batchNo=" + row.getBatchNo() + " err=" + e.getMessage(), TITLE), e);
             }

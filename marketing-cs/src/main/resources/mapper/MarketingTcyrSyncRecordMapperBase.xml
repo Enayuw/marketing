@@ -9,6 +9,7 @@
     <result column="scene" property="scene" jdbcType="VARCHAR" />
     <result column="data" property="data" jdbcType="VARCHAR" />
     <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="assign_status" property="assignStatus" jdbcType="TINYINT" />
     <result column="msg" property="msg" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
@@ -74,7 +75,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, request_no, batch_no, scene, `data`, `status`, msg, create_time, update_time, 
+    id, api_code, request_no, batch_no, scene, `data`, `status`, assign_status, msg, create_time, update_time, 
     down_status, is_del
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingTcyrSyncRecordExample" >
@@ -112,11 +113,11 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_marketing_tcyr_sync_record (api_code, request_no, batch_no, 
-      scene, `data`, `status`, msg, 
+      scene, `data`, `status`, assign_status, msg, 
       create_time, update_time, down_status, 
       is_del)
     values (#{apiCode,jdbcType=VARCHAR}, #{requestNo,jdbcType=VARCHAR}, #{batchNo,jdbcType=VARCHAR}, 
-      #{scene,jdbcType=VARCHAR}, #{data,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, #{msg,jdbcType=VARCHAR}, 
+      #{scene,jdbcType=VARCHAR}, #{data,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, #{assignStatus,jdbcType=TINYINT}, #{msg,jdbcType=VARCHAR}, 
       #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{downStatus,jdbcType=INTEGER}, 
       #{isDel,jdbcType=INTEGER})
   </insert>
@@ -143,6 +144,9 @@
       </if>
       <if test="status != null" >
         `status`,
+      </if>
+      <if test="assignStatus != null" >
+        assign_status,
       </if>
       <if test="msg != null" >
         msg,
@@ -178,6 +182,9 @@
       </if>
       <if test="status != null" >
         #{status,jdbcType=INTEGER},
+      </if>
+      <if test="assignStatus != null" >
+        #{assignStatus,jdbcType=TINYINT},
       </if>
       <if test="msg != null" >
         #{msg,jdbcType=VARCHAR},
@@ -226,6 +233,9 @@
       <if test="record.status != null" >
         `status` = #{record.status,jdbcType=INTEGER},
       </if>
+      <if test="record.assignStatus != null" >
+        assign_status = #{record.assignStatus,jdbcType=TINYINT},
+      </if>
       <if test="record.msg != null" >
         msg = #{record.msg,jdbcType=VARCHAR},
       </if>
@@ -255,6 +265,7 @@
       scene = #{record.scene,jdbcType=VARCHAR},
       `data` = #{record.data,jdbcType=VARCHAR},
       `status` = #{record.status,jdbcType=INTEGER},
+      assign_status = #{record.assignStatus,jdbcType=TINYINT},
       msg = #{record.msg,jdbcType=VARCHAR},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
@@ -285,6 +296,9 @@
       <if test="status != null" >
         `status` = #{status,jdbcType=INTEGER},
       </if>
+      <if test="assignStatus != null" >
+        assign_status = #{assignStatus,jdbcType=TINYINT},
+      </if>
       <if test="msg != null" >
         msg = #{msg,jdbcType=VARCHAR},
       </if>
@@ -311,6 +325,7 @@
       scene = #{scene,jdbcType=VARCHAR},
       `data` = #{data,jdbcType=VARCHAR},
       `status` = #{status,jdbcType=INTEGER},
+      assign_status = #{assignStatus,jdbcType=TINYINT},
       msg = #{msg,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},

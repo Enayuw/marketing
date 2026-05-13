@@ -5,6 +5,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingTcyrSyncRecord;
 import com.br.marketing.enums.TcSyncRecordStatusEnum;
+import com.br.marketing.enums.TcyrAssignStatusEnum;
 import com.br.marketing.mapper.MarketingTcyrSyncRecordMapper;
 import com.br.marketing.service.tc.TcyrSyncRecordApiCodeFillService;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +43,13 @@ public class TcyrSyncRecordApiCodeFillServiceImpl implements TcyrSyncRecordApiCo
         String existing = row.getApiCode();
         if (StringUtils.isNotBlank(existing)) {
             if (code.equals(existing.trim())) {
+                if (!TcyrAssignStatusEnum.isFilled(row.getAssignStatus())) {
+                    MarketingTcyrSyncRecord align = new MarketingTcyrSyncRecord();
+                    align.setId(row.getId());
+                    align.setAssignStatus(TcyrAssignStatusEnum.FILLED.getValue());
+                    align.setUpdateTime(new Date());
+                    marketingTcyrSyncRecordMapper.updateByPrimaryKeySelective(align);
+                }
                 return new Result<Void>().success().setMessage("已补齐，幂等跳过");
             }
             return new Result<Void>().setCode(ResultCode.FAIL.getValue())
@@ -51,6 +59,7 @@ public class TcyrSyncRecordApiCodeFillServiceImpl implements TcyrSyncRecordApiCo
         MarketingTcyrSyncRecord patch = new MarketingTcyrSyncRecord();
         patch.setId(row.getId());
         patch.setApiCode(code);
+        patch.setAssignStatus(TcyrAssignStatusEnum.FILLED.getValue());
         patch.setUpdateTime(new Date());
         int n = marketingTcyrSyncRecordMapper.updateByPrimaryKeySelective(patch);
         if (n <= 0) {

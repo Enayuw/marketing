@@ -505,6 +505,66 @@ public class MarketingTcyrSyncRecordExample {
             return (Criteria) this;
         }
 
+        public Criteria andAssignStatusIsNull() {
+            addCriterion("assign_status is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAssignStatusIsNotNull() {
+            addCriterion("assign_status is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAssignStatusEqualTo(Integer value) {
+            addCriterion("assign_status =", value, "assignStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andAssignStatusNotEqualTo(Integer value) {
+            addCriterion("assign_status <>", value, "assignStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andAssignStatusGreaterThan(Integer value) {
+            addCriterion("assign_status >", value, "assignStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andAssignStatusGreaterThanOrEqualTo(Integer value) {
+            addCriterion("assign_status >=", value, "assignStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andAssignStatusLessThan(Integer value) {
+            addCriterion("assign_status <", value, "assignStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andAssignStatusLessThanOrEqualTo(Integer value) {
+            addCriterion("assign_status <=", value, "assignStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andAssignStatusIn(List<Integer> values) {
+            addCriterion("assign_status in", values, "assignStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andAssignStatusNotIn(List<Integer> values) {
+            addCriterion("assign_status not in", values, "assignStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andAssignStatusBetween(Integer value1, Integer value2) {
+            addCriterion("assign_status between", value1, value2, "assignStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andAssignStatusNotBetween(Integer value1, Integer value2) {
+            addCriterion("assign_status not between", value1, value2, "assignStatus");
+            return (Criteria) this;
+        }
+
         public Criteria andMsgIsNull() {
             addCriterion("msg is null");
             return (Criteria) this;
