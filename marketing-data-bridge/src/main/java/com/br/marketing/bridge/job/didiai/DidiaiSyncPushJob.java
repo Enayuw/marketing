@@ -307,7 +307,7 @@ public class DidiaiSyncPushJob extends AbstractSimpleElasticJob {
                 return RowProcessOutcome.SKIP_EMPTY;
             }
             int rowCount = jsonRows.size();
-            MarketingPreUserDTO preUser = buildMarketingPreUserFromPlainRows(apiCode, row, jsonRows);
+            MarketingPreUserDTO preUser = buildMarketingPreUserFromPlainRows(apiCode, jsonRows);
             String uploadRequestId = preUser.getRequestId();
             log.warn(
                     TITLE
@@ -359,14 +359,13 @@ public class DidiaiSyncPushJob extends AbstractSimpleElasticJob {
      * 通过离线映射组装逻辑完成字段映射，不经过在线通用清洗流程。
      *
      * @param apiCode  业务接口编号，决定映射策略
-     * @param row      汇总表当前行，提供批次上下文
      * @param jsonRows 明文行列表，每项为一条待映射 JSON
      * @return 可供序列化并 POST 的营销前置用户 DTO
      */
     private static MarketingPreUserDTO buildMarketingPreUserFromPlainRows(
-            String apiCode, DrsCustomizeUploadData row, List<JSONObject> jsonRows) {
+            String apiCode, List<JSONObject> jsonRows) {
         return DidiaiOfflinePreUserAssembler.buildMarketingPreUserByCleaningMapping(
-                apiCode, row, jsonRows);
+                apiCode, jsonRows);
     }
 
     /**

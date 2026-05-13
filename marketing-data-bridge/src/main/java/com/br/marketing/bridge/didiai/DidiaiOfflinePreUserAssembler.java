@@ -3,7 +3,6 @@ package com.br.marketing.bridge.didiai;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
-import com.br.marketing.entity.DrsCustomizeUploadData;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.DigestUtils;
 
@@ -56,12 +55,11 @@ public final class DidiaiOfflinePreUserAssembler {
      * 每行客户入参 requestId 透传至明细 custNum；每行接口 taskId 写入 reserveField1.taskIdDD。
      *
      * @param apiCode 业务接口编号，用于生成顶层 taskId / requestId
-     * @param row     汇总表当前行（保留参数以兼容调用方；本节规则下不再依赖 row.requestId 生成顶层 requestId）
      * @param rows    非空明文行列表
      * @return 非空的批次对象，可序列化后走标准上传
      */
     public static MarketingPreUserDTO buildMarketingPreUserByCleaningMapping(
-            String apiCode, DrsCustomizeUploadData row, List<JSONObject> rows) {
+            String apiCode, List<JSONObject> rows) {
         if (StringUtils.isBlank(apiCode)) {
             throw new IllegalStateException(
                     "离线清洗映射失败：apiCode 为空，无法生成标准上传 taskId/requestId");
@@ -133,7 +131,7 @@ public final class DidiaiOfflinePreUserAssembler {
         long now = System.currentTimeMillis();
         long last = LAST_UUID_MILLIS.getAndSet(now);
         if (last == now) {
-            int seq = UUID_SEQUENCE.updateAndGet(v -> (v >= 99 ? 0 : v + 1));
+            int seq = UUID_SEQUENCE.updateAndGet(v -> (v >= 99) ? 0 : (v + 1));
             return now + String.format("%02d", seq);
         }
         UUID_SEQUENCE.set(0);

@@ -92,7 +92,7 @@ public final class DidiaiUploadDataBuilder {
         long now = System.currentTimeMillis();
         long last = LAST_UUID_MILLIS.getAndSet(now);
         if (last == now) {
-            int seq = UUID_SEQUENCE.updateAndGet(v -> (v >= 99 ? 0 : v + 1));
+            int seq = UUID_SEQUENCE.updateAndGet(v -> (v >= 99) ? 0 : (v + 1));
             return now + String.format("%02d", seq);
         }
         UUID_SEQUENCE.set(0);
