@@ -3698,4 +3698,9 @@ public class MarketingCommonConfig {
      * 宁波银行配置
      */
     private JSONObject ningboBankConfig;
+
+    /**
+     * 是否打平字段apiCode集合
+     */
+    private List<String> tieDataApiCode;
  }
