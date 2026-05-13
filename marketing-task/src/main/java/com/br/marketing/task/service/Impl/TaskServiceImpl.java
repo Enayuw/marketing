@@ -10,6 +10,7 @@ import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.MarketingTaskStatusEnum;
 import com.br.marketing.common.enums.RedisValueTypeEnum;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.score.ProductCatalogValidationResult;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
@@ -416,16 +417,15 @@ public class TaskServiceImpl implements ITaskService {
 
     private void persistProductCatalogValidationFailure(MarketingTask task, ProductCatalogValidationResult catalogValidation) {
         try {
-            MarketingTaskModelCheck record = new MarketingTaskModelCheck();
-            record.setApiCode(task.getApiCode());
-            record.setBatchNumber(task.getBatchNumber());
-            record.setCusBatch(task.getCusBatch());
-            fillModelCheckRuleFieldsFromScoreRuleConfig(task, record);
-            record.setModelCheckStatus(0);
-            record.setFailedModelInfo(JSON.toJSONString(catalogValidation.getFailedItems()));
-            record.setIsDel(1);
-            record.setCreateTime(new Date());
-            marketingTaskModelCheckMapper.insertSelective(record);
+            if (StringUtils.isBlank(task.getBatchNumber())) {
+                insertProductCatalogValidationFailureRow(task, catalogValidation);
+            } else {
+                MarketingTaskModelCheckExample existExample = new MarketingTaskModelCheckExample();
+                existExample.createCriteria().andBatchNumberEqualTo(task.getBatchNumber());
+                if (marketingTaskModelCheckMapper.countByExample(existExample) == 0) {
+                    insertProductCatalogValidationFailureRow(task, catalogValidation);
+                }
+            }
         } catch (Exception e) {
             log.error("写入产管校验结果表失败,batchNumber={}", task.getBatchNumber(), e);
         }
@@ -434,6 +434,19 @@ public class TaskServiceImpl implements ITaskService {
                 task.getBatchNumber(), MarketingTaskStatusEnum.ABNORMAL.getValue()));
         sb.append("明细：").append(JSON.toJSONString(catalogValidation.getFailedItems()));
         log.warn("{}", sb);
+    }
+
+    private void insertProductCatalogValidationFailureRow(MarketingTask task, ProductCatalogValidationResult catalogValidation) {
+        MarketingTaskModelCheck record = new MarketingTaskModelCheck();
+        record.setApiCode(task.getApiCode());
+        record.setBatchNumber(task.getBatchNumber());
+        record.setCusBatch(task.getCusBatch());
+        fillModelCheckRuleFieldsFromScoreRuleConfig(task, record);
+        record.setModelCheckStatus(0);
+        record.setFailedModelInfo(JSON.toJSONString(catalogValidation.getFailedItems()));
+        record.setIsDel(1);
+        record.setCreateTime(new Date());
+        marketingTaskModelCheckMapper.insertSelective(record);
     }
 
     private void fillModelCheckRuleFieldsFromScoreRuleConfig(MarketingTask task, MarketingTaskModelCheck record) {

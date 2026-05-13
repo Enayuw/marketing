@@ -1040,20 +1040,33 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     private void persistProductCatalogValidationFailureOnTaskBuild(
             MarketingTask task, CustomerScoreRuleVO ruleVO, ProductCatalogValidationResult catalogValidation) {
         try {
-            MarketingTaskModelCheck record = new MarketingTaskModelCheck();
-            record.setApiCode(task.getApiCode());
-            record.setBatchNumber(task.getBatchNumber());
-            record.setCusBatch(task.getCusBatch());
-            record.setRuleName(ruleVO.getRuleName());
-            record.setRuleNameShort(ruleVO.getRuleNameShort());
-            record.setModelCheckStatus(0);
-            record.setFailedModelInfo(JSON.toJSONString(catalogValidation.getFailedItems()));
-            record.setIsDel(1);
-            record.setCreateTime(new Date());
-            marketingTaskModelCheckMapper.insertSelective(record);
+            if (StringUtils.isBlank(task.getBatchNumber())) {
+                insertProductCatalogValidationFailureRowOnTaskBuild(task, ruleVO, catalogValidation);
+            } else {
+                MarketingTaskModelCheckExample existExample = new MarketingTaskModelCheckExample();
+                existExample.createCriteria().andBatchNumberEqualTo(task.getBatchNumber());
+                if (marketingTaskModelCheckMapper.countByExample(existExample) == 0) {
+                    insertProductCatalogValidationFailureRowOnTaskBuild(task, ruleVO, catalogValidation);
+                }
+            }
         } catch (Exception e) {
             log.error("写入产管校验结果表失败(任务生成阶段),batchNumber={}", task.getBatchNumber(), e);
         }
+    }
+
+    private void insertProductCatalogValidationFailureRowOnTaskBuild(
+            MarketingTask task, CustomerScoreRuleVO ruleVO, ProductCatalogValidationResult catalogValidation) {
+        MarketingTaskModelCheck record = new MarketingTaskModelCheck();
+        record.setApiCode(task.getApiCode());
+        record.setBatchNumber(task.getBatchNumber());
+        record.setCusBatch(task.getCusBatch());
+        record.setRuleName(ruleVO.getRuleName());
+        record.setRuleNameShort(ruleVO.getRuleNameShort());
+        record.setModelCheckStatus(0);
+        record.setFailedModelInfo(JSON.toJSONString(catalogValidation.getFailedItems()));
+        record.setIsDel(1);
+        record.setCreateTime(new Date());
+        marketingTaskModelCheckMapper.insertSelective(record);
     }
 
     private String createMarketingTaskBatchNumber(String apiCode, String time) {
