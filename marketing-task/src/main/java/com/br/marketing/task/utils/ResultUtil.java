@@ -450,12 +450,7 @@ public class ResultUtil {
                         case "custnum":
                             str = syncUser.getCustNum();
                             break;
-                        case "idcard":
-                            str = encrypt3k(head.getThreekEncryptType(), syncUser.getIdCard(),
-                                    syncUser.getIdCardOriginal());
-                            strId = syncUser.getIdCard();
-                            break;
-                        case "id":
+                        case "idcard", "id":
                             str = encrypt3k(head.getThreekEncryptType(), syncUser.getIdCard(),
                                     syncUser.getIdCardOriginal());
                             strId = syncUser.getIdCard();
