@@ -55,7 +55,7 @@ public class MarketingMockApiService {
         try {
             Map<String, String> params = new HashMap<>();
             params.put("cacheKey", cacheKey);
-            
+
             ThirdApiResultTransfer result = new ApiCallerUtil(restTemplate, null, interfaceLogDbpool)
                     .setUrl(redisUrl)
                     .setContentType(MediaType.APPLICATION_FORM_URLENCODED)

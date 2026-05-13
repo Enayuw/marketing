@@ -6,17 +6,23 @@ import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.entity.MonitorTypeEnum;
 import com.br.marketing.service.customertagsprocess.IUploadCheckService;
 import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
-import com.br.marketing.util.aes.AesUtil;
+import com.br.marketing.util.sm4.Sm4Util;
+
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 /**
- * 通用 AES 上传校验。
+ * SM4国密对称加密 上传校验策略
  * <p>
- * 与 {@link Sm4CheckServiceImpl} 一致：cell 解密失败则判失败；id、name 解密失败则按明文入库（系统内再加密）。
+ * 页面配置密钥、加密模式、填充模式等参数，与AES策略逻辑一致，
+ * 底层调用 Sm4Util (BouncyCastle) 进行解密。
+ * <p>
+ * 与 {@link Sm3CheckServiceImpl} 一致：cell 解密失败则判失败；id、name 解密失败则按明文入库（系统内再加密）。
  */
 @Service
-public class AesCommonStrategy implements IUploadCheckService {
+@Slf4j
+public class Sm4CheckServiceImpl implements IUploadCheckService {
 
     @Override
     public void check3key(MarketingPreUserDetailDTO user, Integer isCheck, CustomerTagsVO customerTagsVO) {
@@ -57,10 +63,10 @@ public class AesCommonStrategy implements IUploadCheckService {
         }
 
         dto.setText(content);
-        String plainText = AesUtil.decrypt(dto);
+        String plainText = Sm4Util.decrypt(dto);
         if (StringUtils.isBlank(plainText)) {
             if ("cell".equals(type)) {
-                user.setFailType(MonitorTypeEnum.FAIL_TYPE_4.getType());
+                user.setFailType(MonitorTypeEnum.FAIL_TYPE_SM4.getType());
                 user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
             }
             if ("id".equals(type)) {
