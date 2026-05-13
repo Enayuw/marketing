@@ -1,6 +1,7 @@
 package com.br.marketing.client.middleheaven;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.http.HttpBaseUrlHelper;
@@ -18,6 +19,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -40,7 +42,7 @@ public class MiddleHeavenTcyrApiCodeMatchClient {
      * @param connectTimeoutMs        连接超时
      * @param readTimeoutMs           读超时
      * @param apiCodes                候选 apiCode
-     * @param authorizedUsers         有权限在卡片上指定 apiCode 的用户标识集合（可为空）；JSON 字段 {@code authorizedUsers}
+     * @param authorizedUsers         有权限选码用户（Speed {@code List<JSONObject>}，每项须含 userId、mobile）；JSON {@code authorizedUsers}
      * @param batchNo                 批次号
      * @param total                   data.total
      * @param pushTime                推送时间展示串
@@ -49,7 +51,8 @@ public class MiddleHeavenTcyrApiCodeMatchClient {
      */
     public boolean postTcApiCodeAssign(String baseUrl, String path, String bearerToken,
                                               int connectTimeoutMs, int readTimeoutMs,
-                                              List<String> apiCodes, List<String> authorizedUsers,
+                                              List<String> apiCodes,
+                                              List<JSONObject> authorizedUsers,
                                               String batchNo, long total, String pushTime,
                                               Long syncRecordId) {
         String base = HttpBaseUrlHelper.ensureHttpScheme(StringUtils.trimToEmpty(baseUrl));
@@ -66,7 +69,7 @@ public class MiddleHeavenTcyrApiCodeMatchClient {
 
         Map<String, Object> body = new HashMap<>(16);
         body.put("apiCodes", apiCodes);
-        body.put("authorizedUsers", authorizedUsers != null ? authorizedUsers : Collections.emptyList());
+        body.put("authorizedUsers", sanitizeAuthorizedUsers(authorizedUsers));
         body.put("batchNo", batchNo);
         body.put("total", total);
         body.put("pushTime", pushTime == null ? "" : pushTime);
@@ -116,5 +119,42 @@ public class MiddleHeavenTcyrApiCodeMatchClient {
                     "tcapiCodeAssign 调用异常 batchNo=" + batchNo + " url=" + url, TITLE), ex);
             return false;
         }
+    }
+
+    /**
+     * 仅保留同时含 userId、mobile 的项（trim）；与 Speed 中 {@code List<JSONObject>}（如 tcyrCpaFailMsgConfig）一致。
+     */
+    private static List<JSONObject> sanitizeAuthorizedUsers(List<JSONObject> raw) {
+        if (raw == null || raw.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<JSONObject> out = new ArrayList<>(raw.size());
+        for (JSONObject o : raw) {
+            if (o == null) {
+                continue;
+            }
+            String userId = StringUtils.trimToNull(jsonGetStringIgnoreCase(o, "userId"));
+            String mobile = StringUtils.trimToNull(jsonGetStringIgnoreCase(o, "mobile"));
+            if (userId == null || mobile == null) {
+                continue;
+            }
+            JSONObject n = new JSONObject();
+            n.put("userId", userId);
+            n.put("mobile", mobile);
+            out.add(n);
+        }
+        return out;
+    }
+
+    private static String jsonGetStringIgnoreCase(JSONObject o, String key) {
+        if (o.containsKey(key)) {
+            return o.getString(key);
+        }
+        for (String k : o.keySet()) {
+            if (k != null && k.equalsIgnoreCase(key)) {
+                return o.getString(k);
+            }
+        }
+        return null;
     }
 }

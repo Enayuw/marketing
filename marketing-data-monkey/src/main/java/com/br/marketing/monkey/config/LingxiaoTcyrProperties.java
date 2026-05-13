@@ -14,7 +14,7 @@ import javax.annotation.PostConstruct;
  * 故本类使用 {@code @Value} 绑定，行为与原先一致。
  * 回调 marketing-inner 的地址在灵霄 roster-gods 配置 {@code otherConfig.marketing.tcyr-api-code-fill-url}，不由本服务传入。
  * 候选 apiCode 列表从 Speed {@link com.br.marketing.speedconfig.MarketingCommonConfig#getTcyrMatchCandidateApiCodes()} 读取；
- * 有权限选码的用户集合从 {@link com.br.marketing.speedconfig.MarketingCommonConfig#getTcyrApiCodeAssignAuthorizedUsers()} 读取并随 tcapiCodeAssign 请求体字段 {@code authorizedUsers} 透传灵霄；
+ * 有权限选码用户列表从 {@link com.br.marketing.speedconfig.MarketingCommonConfig#getTcyrApiCodeAssignAuthorizedUsers()} 读取（Speed 为 {@code List<JSONObject>}，与 tcyrCpaFailMsgConfig 等一致；每项须含 {@code userId}、{@code mobile}），随 tcapiCodeAssign 请求体字段 {@code authorizedUsers} 透传灵霄；
  * HTTP 调用见 {@link com.br.marketing.client.middleheaven.MiddleHeavenTcyrApiCodeMatchClient}。
  */
 @Data

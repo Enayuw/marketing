@@ -2962,9 +2962,9 @@ public class MarketingCommonConfig {
     private List<String> tcyrMatchCandidateApiCodes;
 
     /**
-     * 同程易融-tcapiCodeAssign：有权限在钉钉互动卡片上指定 apiCode 的用户标识集合（如钉钉 userid），随请求透传灵霄。
+     * 同程易融-tcapiCodeAssign：有权限选码用户列表（Speed 为 {@code List<JSONObject>}，与 tcyrCpaFailMsgConfig、transFileExtractionApiCodesConfig 一致）；每项须含 {@code userId}、{@code mobile}，透传灵霄字段 {@code authorizedUsers}。
      */
-    private List<String> tcyrApiCodeAssignAuthorizedUsers;
+    private List<JSONObject> tcyrApiCodeAssignAuthorizedUsers;
 
     /**
      * 同程易融-客户请求data->b_marketing_tcyr_sync extend字段时的排除字段
