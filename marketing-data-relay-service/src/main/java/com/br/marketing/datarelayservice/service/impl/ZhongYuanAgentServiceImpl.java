@@ -28,12 +28,12 @@ import javax.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.SecureRandom;
 import java.security.Signature;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Random;
 import java.util.UUID;
 
 
@@ -43,6 +43,7 @@ public class ZhongYuanAgentServiceImpl implements ZhongYuanAgentService {
 
     private static final String RSA_PADDING = "RSA/ECB/PKCS1Padding";
     private static final String AES_PADDING = AesZhongYuan.ECB_ALGORITHM_PADDING;
+    private static final SecureRandom REQUEST_ID_RANDOM = new SecureRandom();
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -244,7 +245,7 @@ public class ZhongYuanAgentServiceImpl implements ZhongYuanAgentService {
 
     private String buildRequestId(String apiCode) {
         String dateStr = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String random5Digits = String.format("%05d", new Random().nextInt(100000));
+        String random5Digits = String.format("%05d", REQUEST_ID_RANDOM.nextInt(100000));
         return dateStr + "_" + apiCode + "_" + random5Digits + System.currentTimeMillis();
     }
 
