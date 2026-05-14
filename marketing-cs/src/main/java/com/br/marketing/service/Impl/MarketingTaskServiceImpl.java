@@ -955,7 +955,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             log.warn("生成跑分任务时产管目录校验未通过，不入库。batchNumber={}, apiCode={}, ruleId={}, detail={}",
                     batchNumber, apiCode, ruleVO.getId(), JSON.toJSONString(catalogValidation.getFailedItems()));
             persistProductCatalogValidationFailureOnTaskBuild(task, ruleVO, catalogValidation);
-            if (Integer.valueOf(2).equals(ruleVO.getBuildType()) && ruleVO.getId() != null) {
+            if (ruleVO.getId() != null) {
                 try {
                     ScoreRuleConfig blockRule = new ScoreRuleConfig();
                     blockRule.setId(ruleVO.getId());
