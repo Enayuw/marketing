@@ -2931,9 +2931,15 @@ public class MarketingCommonConfig {
     private Integer switchMqMaxMsgCount;
 
     /**
-     * 同程易融服务配置
+     * 同程易融服务配置（正式链路）：含 tcPrivateKey、tcPublicKey、brPrivateKey 等。
      */
     private JSONObject tcyrServerConfig;
+
+    /**
+     * relay 免客户端签测试专用：结构与 tcyrServerConfig 一致（tcPrivateKey、tcPublicKey、brPrivateKey）。
+     * 仅 withoutSign 入口经 ThreadLocal 注入后供验签/回包使用；未配置或为空时回退 tcyrServerConfig。
+     */
+    private JSONObject tcyrRelayTestServerConfig;
 
     /**
      * 携程上报新接口

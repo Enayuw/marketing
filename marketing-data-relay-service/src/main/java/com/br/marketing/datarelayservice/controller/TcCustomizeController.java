@@ -2,9 +2,11 @@ package com.br.marketing.datarelayservice.controller;
 
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
+import com.br.marketing.datarelayservice.context.TcRelayServerConfigContext;
 import com.br.marketing.datarelayservice.service.TcCustomizeService;
 import com.br.marketing.dto.tc.TcRequestDTO;
 import com.br.marketing.dto.tc.TcResponseDTO;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,7 +17,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
-@Tag(name = "同程易融代运营", description = "同程易融代运营")
+@Tag(name = "同程易融代运营", description = "正式链路；验签使用 Speed tcyrServerConfig（经 ThreadLocal 注入）")
 @RequestMapping("/marketing/v1/api")
 @RestController
 @Slf4j
@@ -24,31 +26,54 @@ public class TcCustomizeController {
     @Resource
     private TcCustomizeService tcCustomizeService;
 
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
     @Operation(summary = "数据推送")
     @PostMapping("/marketDataPush")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public TcResponseDTO marketDataPush(@RequestBody TcRequestDTO tcRequestDTO) {
-        return tcCustomizeService.marketDataPush(tcRequestDTO, null);
+        try {
+            TcRelayServerConfigContext.setMain(marketingCommonConfig);
+            return tcCustomizeService.marketDataPush(tcRequestDTO, null);
+        } finally {
+            TcRelayServerConfigContext.clear();
+        }
     }
 
     @Operation(summary = "撤销营销")
     @PostMapping("/marketRevoke")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public TcResponseDTO marketRevoke(@RequestBody TcRequestDTO tcRequestDTO) {
-        return tcCustomizeService.marketRevoke(tcRequestDTO, null);
+        try {
+            TcRelayServerConfigContext.setMain(marketingCommonConfig);
+            return tcCustomizeService.marketRevoke(tcRequestDTO, null);
+        } finally {
+            TcRelayServerConfigContext.clear();
+        }
     }
 
     @Operation(summary = "转化通知")
     @PostMapping("/transformNotify")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public TcResponseDTO transformNotify(@RequestBody TcRequestDTO tcRequestDTO) {
-        return tcCustomizeService.transformNotify(tcRequestDTO, null);
+        try {
+            TcRelayServerConfigContext.setMain(marketingCommonConfig);
+            return tcCustomizeService.transformNotify(tcRequestDTO, null);
+        } finally {
+            TcRelayServerConfigContext.clear();
+        }
     }
 
     @Operation(summary = "正负样本推送")
     @PostMapping("/sampleDataPush")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public TcResponseDTO sampleDataPush(@RequestBody TcRequestDTO tcRequestDTO, HttpServletRequest request) {
-        return tcCustomizeService.sampleDataPush(tcRequestDTO, request.getHeader("Test-ApiCode"));
+        try {
+            TcRelayServerConfigContext.setMain(marketingCommonConfig);
+            return tcCustomizeService.sampleDataPush(tcRequestDTO, request.getHeader("Test-ApiCode"));
+        } finally {
+            TcRelayServerConfigContext.clear();
+        }
     }
 }
