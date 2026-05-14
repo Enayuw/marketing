@@ -29,7 +29,7 @@ public class ScoreBatchExpirePolicyService {
     private static final int LOCK_ACQUIRE_SLEEP_MS = 200;
     private static final int POST_LOCK_WAIT_MS = 300;
     private static final int POST_LOCK_READ_RETRIES = 3;
-    private static final long LARGE_DATA_THRESHOLD = 50_000_000L;
+    private static final long LARGE_DATA_THRESHOLD = 5000L;
     private static final int EXPIRE_DAY_LARGE = 30;
     private static final int EXPIRE_DAY_DEFAULT = 10;
     private static final int SECONDS_PER_DAY = 60 * 60 * 24;
