@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
+
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
@@ -62,9 +62,6 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
     private static final Pattern DATE_PATTERN_1 = Pattern.compile(Pattern.quote("yyyy-MM-dd"));
 
     private static final Pattern DATE_PATTERN_2 = Pattern.compile(Pattern.quote("yyyyMMdd"));
-
-    @Value("${otherConfig.ningbo.sdkFilePath:config-nbbank.json}")
-    private String sdkFilePath;
 
     private final static String TITLE = "【宁波银行】";
 
@@ -355,6 +352,7 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
      */
     private void downloadFileFromBank(JSONObject config, String localFilePath, String fileName) throws Exception {
         NBOpenSDK.setSDKLogLevel(SDKLogLevel.DEBUG);
+        String sdkFilePath = config.getString("sdkFilePath");
         ClassPathResource resource = new ClassPathResource(sdkFilePath);
         if (!resource.exists()) {
             throw new FileNotFoundException("SDK配置文件不存在: " + sdkFilePath);
@@ -412,8 +410,9 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
             syncConfig.setType(1);
             syncConfig = syncConfigMapper.queryConfigByConditaion(syncConfig);
 
-            String filePrefix = config.getString("filePrefix");
-            String remoteFileName = filePrefix + DateUtil.format(collectDate, TIME_FORMATTER2) + ".txt";
+            String remoteFileName = config.getString("uploadFileName");
+            remoteFileName = replaceDate(remoteFileName, LocalDate.now());
+
             String localFilePath = syncConfig.getTargetPath() + remoteFileName;
             File uploadFile = new File(localFilePath);
             if (!uploadFile.exists() || uploadFile.length() == 0) {
@@ -444,6 +443,7 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
      */
     private SDKResponse uploadFileToBank(JSONObject config, String localFilePath, String remoteFileName) {
         try {
+            String sdkFilePath = config.getString("sdkFilePath");
             NBOpenSDK.setSDKLogLevel(SDKLogLevel.DEBUG);
             ClassPathResource resource = new ClassPathResource(sdkFilePath);
             if (!resource.exists()) {
