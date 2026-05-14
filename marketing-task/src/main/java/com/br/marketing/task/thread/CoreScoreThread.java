@@ -259,6 +259,7 @@ public class CoreScoreThread implements Callable<String> {
 
     private void setScoreStatus(ScoreTaskBatchDTO scoreTaskBatchDTO) {
         String key = RedisKeyConstant.scoreBatch.concat(":").concat(fileId).concat(":").concat(String.valueOf(scoreTaskBatchDTO.getConditionIndex())).concat(":").concat(String.valueOf(scoreTaskBatchDTO.getGroupId()));
+        log.warn("setScoreStatus key:{}", key);
         int retryCount = 0;
         while (retryCount < 3) {
             try {

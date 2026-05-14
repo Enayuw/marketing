@@ -649,6 +649,7 @@ public class TaskScoreServiceImpl {
                     // 分组中元素数量
                     int groupNum = 1;
                     String groupSetKey = RedisKeyConstant.scoreBatch.concat(":").concat(String.valueOf(blt.getFileId())).concat(":").concat(String.valueOf(conditionIndex)).concat(":group");
+                    log.warn("------groupSetKey----:{}", groupSetKey);
                     Set<String> groupIdSet = new HashSet<>();
                     Map<String, ScoreTaskBatchDTO> scoreTaskBatchDTOMap = new HashMap<>();
                     if(isRestoreFlag) {
@@ -1189,6 +1190,7 @@ public class TaskScoreServiceImpl {
             Map<String, Object> batchDTOMap = redisChgService.hgetall(groupBatchKey);
             if(!CollectionUtils.isEmpty(batchDTOMap)) {
                 redisChgService.expire(groupBatchKey, scoreBatchExpireSeconds);
+                log.warn("groupBatchKey:{}", groupBatchKey);
                 for (Map.Entry<String, Object> entry : batchDTOMap.entrySet()) {
                     scoreTaskBatchDTOMap.put(entry.getKey(),JSON.parseObject(entry.getValue().toString(),ScoreTaskBatchDTO.class));
                 }
