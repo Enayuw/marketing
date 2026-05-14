@@ -5,7 +5,6 @@ import com.br.marketing.common.constants.rediskey.RedisKeyExpireConstant;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingCustomer;
 import com.br.marketing.mapper.MarketingCustomerMapper;
-import com.br.marketing.mapper.MarketingSyncUserMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +14,7 @@ import java.util.regex.Pattern;
 
 /**
  * 跑分批次进度 Redis TTL：优先读客户表 {@code expire_day}（天，varchar 存正整数）；
- * 未配置时在分布式锁内按同步表量级推导 10/30 天并回写 {@code expire_day}。
+ * 未配置时在分布式锁内回写默认 10 天到 {@code expire_day}。
  */
 @Service
 @Slf4j
@@ -29,13 +28,9 @@ public class ScoreBatchExpirePolicyService {
     private static final int LOCK_ACQUIRE_SLEEP_MS = 200;
     private static final int POST_LOCK_WAIT_MS = 300;
     private static final int POST_LOCK_READ_RETRIES = 3;
-    private static final long LARGE_DATA_THRESHOLD = 5000L;
-    private static final int EXPIRE_DAY_LARGE = 30;
     private static final int EXPIRE_DAY_DEFAULT = 10;
     private static final int SECONDS_PER_DAY = 60 * 60 * 24;
 
-    @Resource
-    private MarketingSyncUserMapper marketingSyncUserMapper;
     @Resource
     private MarketingCustomerMapper marketingCustomerMapper;
     @Resource
@@ -87,20 +82,7 @@ public class ScoreBatchExpirePolicyService {
                 customer.setExpireDay(fresh.getExpireDay());
                 return afterLock * SECONDS_PER_DAY;
             }
-            String syncApiCode = StringUtils.isNotBlank(apiCode) ? apiCode : fresh.getApiCode();
-            if (StringUtils.isBlank(syncApiCode)) {
-                log.warn("scoreBatchExpire skip count, apiCode blank after reload, customerId={}", customer.getId());
-                return RedisKeyExpireConstant.SCORE_BATCH_EXPIRE_TIME;
-            }
-            long count;
-            try {
-                Long cnt = marketingSyncUserMapper.countValidSyncForScoreBatchExpire(syncApiCode);
-                count = cnt == null ? 0L : cnt;
-            } catch (Exception e) {
-                log.error("scoreBatchExpire count failed apiCode={}", syncApiCode, e);
-                return RedisKeyExpireConstant.SCORE_BATCH_EXPIRE_TIME;
-            }
-            int days = count >= LARGE_DATA_THRESHOLD ? EXPIRE_DAY_LARGE : EXPIRE_DAY_DEFAULT;
+            int days = EXPIRE_DAY_DEFAULT;
             String dayStr = String.valueOf(days);
             MarketingCustomer upd = new MarketingCustomer();
             upd.setId(fresh.getId());
