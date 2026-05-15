@@ -367,7 +367,7 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
         JSONObject sdkConfig = new JSONObject();
         String passwd = config.getString("passwd").replaceAll("%", "=");
         sdkConfig.put("passwd", passwd);
-        NBOpenSDK.updateConfig(sdkFilePath);
+        NBOpenSDK.updateConfig(sdkConfig);
 
         SDKRequest request = new SDKRequest();
         RequestHead head = new RequestHead();
@@ -467,7 +467,7 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
             JSONObject sdkConfig = new JSONObject();
             String passwd = config.getString("passwd").replaceAll("%", "=");
             sdkConfig.put("passwd", passwd);
-            NBOpenSDK.updateConfig(sdkFilePath);
+            NBOpenSDK.updateConfig(sdkConfig);
 
             SDKRequest request = new SDKRequest();
             RequestHead head = new RequestHead();
