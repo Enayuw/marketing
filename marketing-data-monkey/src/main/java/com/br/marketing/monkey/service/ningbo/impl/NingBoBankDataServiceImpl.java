@@ -361,13 +361,12 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
         if (!resource.exists()) {
             throw new FileNotFoundException("SDK配置文件不存在: " + sdkFilePath);
         }
-        byte[] data;
         try (InputStream inputStream = resource.getInputStream()) {
-            data = inputStream.readAllBytes();
-        }
-        try (ByteArrayInputStream initStream = new ByteArrayInputStream(data)) {
-            if (!NBOpenSDK.init(initStream)) {
-                ByteArrayInputStream updateStream = new ByteArrayInputStream(data);
+            byte[] data = inputStream.readAllBytes();
+            try(ByteArrayInputStream initStream = new ByteArrayInputStream(data)) {
+                NBOpenSDK.init(initStream);
+            }
+            try(ByteArrayInputStream updateStream = new ByteArrayInputStream(data)) {
                 NBOpenSDK.updateConfig(updateStream);
             }
         }
@@ -464,14 +463,12 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
             if (!resource.exists()) {
                 throw new FileNotFoundException("SDK配置文件不存在: " + sdkFilePath);
             }
-            byte[] data;
             try (InputStream inputStream = resource.getInputStream()) {
-                data = inputStream.readAllBytes();
-            }
-
-            try (ByteArrayInputStream initStream = new ByteArrayInputStream(data)) {
-                if (!NBOpenSDK.init(initStream)) {
-                    ByteArrayInputStream updateStream = new ByteArrayInputStream(data);
+                byte[] data = inputStream.readAllBytes();
+                try(ByteArrayInputStream initStream = new ByteArrayInputStream(data)) {
+                    NBOpenSDK.init(initStream);
+                }
+                try(ByteArrayInputStream updateStream = new ByteArrayInputStream(data)) {
                     NBOpenSDK.updateConfig(updateStream);
                 }
             }
