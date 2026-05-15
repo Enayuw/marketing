@@ -96,7 +96,10 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
         NingBoDataTaskExample example = new NingBoDataTaskExample();
         example.createCriteria().andTaskTypeEqualTo(TaskTypeEnum.DOWNLOAD.getCode())
                 .andTaskDateEqualTo(collectDate)
-                .andStatusGreaterThan(TaskStatusEnum.WAITING.getCode());
+                .andStatusIn(Arrays.asList(
+                        TaskStatusEnum.RUNNING.getCode(),
+                        TaskStatusEnum.SUCCESS.getCode()
+                ));
         if (ningBoDataTaskMapper.countByExample(example) > 0) {
             return;
         }
@@ -388,7 +391,10 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
         NingBoDataTaskExample example = new NingBoDataTaskExample();
         example.createCriteria().andTaskTypeEqualTo(TaskTypeEnum.UPLOAD.getCode())
                 .andTaskDateEqualTo(collectDate)
-                .andStatusGreaterThan(TaskStatusEnum.WAITING.getCode());
+                .andStatusIn(Arrays.asList(
+                        TaskStatusEnum.RUNNING.getCode(),
+                        TaskStatusEnum.SUCCESS.getCode()
+                ));
         if (ningBoDataTaskMapper.countByExample(example) > 0) {
             return;
         }
