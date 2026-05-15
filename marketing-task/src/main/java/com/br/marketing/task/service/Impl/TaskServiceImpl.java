@@ -12,6 +12,7 @@ import com.br.marketing.common.enums.MarketingTaskStatusEnum;
 import com.br.marketing.common.enums.RedisValueTypeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.score.ProductCatalogValidationResult;
+import com.br.marketing.enums.ScoreStatusEnum;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.rpcclient.RpcClientProxy;
@@ -392,6 +393,7 @@ public class TaskServiceImpl implements ITaskService {
             taskUpd.setId(task.getId());
             taskUpd.setStatus(MarketingTaskStatusEnum.DISABLED.getValue());
             marketingTaskMapper.updateByPrimaryKeySelective(taskUpd);
+            updateStraHisFileStatusOnCatalogValidationFailure(task);
             persistProductCatalogValidationFailure(task, catalogValidation);
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
@@ -413,6 +415,36 @@ public class TaskServiceImpl implements ITaskService {
         }
 
         return new Result<>().setCode(ResultCode.FAIL.getValue());
+    }
+
+    private void updateStraHisFileStatusOnCatalogValidationFailure(MarketingTask task) {
+        try {
+            StraHisFile straHisFile = null;
+            if (task.getFileId() != null && task.getFileId() > 0) {
+                straHisFile = straHisFileMapper.selectByPrimaryKey(task.getFileId());
+            }
+            if (straHisFile == null && StringUtils.isNotBlank(task.getBatchNumber())) {
+                StraHisFileExample example = new StraHisFileExample();
+                example.createCriteria().andBatchNumberEqualTo(task.getBatchNumber());
+                List<StraHisFile> files = straHisFileMapper.selectByExample(example);
+                if (!CollectionUtils.isEmpty(files)) {
+                    straHisFile = files.get(0);
+                }
+            }
+            if (straHisFile == null) {
+                log.warn("产管校验未通过，未找到对应跑分记录stra_his_file,batchNumber={},taskId={}",
+                        task.getBatchNumber(), task.getId());
+                return;
+            }
+            StraHisFile updateFile = new StraHisFile();
+            updateFile.setId(straHisFile.getId());
+            updateFile.setStatus(ScoreStatusEnum.PAUSEED.getValue());
+            updateFile.setUpdateTime(new Date());
+            straHisFileMapper.updateByPrimaryKeySelective(updateFile);
+        } catch (Exception e) {
+            log.error("产管校验未通过，更新stra_his_file状态失败,batchNumber={},taskId={}",
+                    task.getBatchNumber(), task.getId(), e);
+        }
     }
 
     private void persistProductCatalogValidationFailure(MarketingTask task, ProductCatalogValidationResult catalogValidation) {
