@@ -1044,7 +1044,9 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 insertProductCatalogValidationFailureRowOnTaskBuild(task, ruleVO, catalogValidation);
             } else {
                 MarketingTaskModelCheckExample existExample = new MarketingTaskModelCheckExample();
-                existExample.createCriteria().andBatchNumberEqualTo(task.getBatchNumber());
+                existExample.createCriteria()
+                        .andBatchNumberEqualTo(task.getBatchNumber())
+                        .andFailedModelInfoEqualTo(JSON.toJSONString(catalogValidation.getFailedItems()));
                 if (marketingTaskModelCheckMapper.countByExample(existExample) == 0) {
                     insertProductCatalogValidationFailureRowOnTaskBuild(task, ruleVO, catalogValidation);
                 }
