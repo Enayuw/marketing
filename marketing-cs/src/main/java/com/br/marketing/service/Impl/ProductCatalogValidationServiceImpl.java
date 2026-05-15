@@ -109,7 +109,7 @@ public class ProductCatalogValidationServiceImpl implements ProductCatalogValida
         m.put("code", code);
         m.put("name", name);
         m.put("version", version);
-        m.put("reason", reason);
+//        m.put("reason", reason);
         return m;
     }
 }
