@@ -390,7 +390,7 @@ public class TaskServiceImpl implements ITaskService {
                     task.getBatchNumber(), task.getId(), JSON.toJSONString(catalogValidation.getFailedItems()));
             MarketingTask taskUpd = new MarketingTask();
             taskUpd.setId(task.getId());
-            taskUpd.setStatus(MarketingTaskStatusEnum.ABNORMAL.getValue());
+            taskUpd.setStatus(MarketingTaskStatusEnum.DISABLED.getValue());
             marketingTaskMapper.updateByPrimaryKeySelective(taskUpd);
             persistProductCatalogValidationFailure(task, catalogValidation);
             return new Result<>().setCode(ResultCode.FAIL.getValue());
@@ -430,8 +430,8 @@ public class TaskServiceImpl implements ITaskService {
             log.error("写入产管校验结果表失败,batchNumber={}", task.getBatchNumber(), e);
         }
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format("任务批次：%s；产管产品/版本与当前许可不一致，任务已标记为异常(status=%d)。\r\n",
-                task.getBatchNumber(), MarketingTaskStatusEnum.ABNORMAL.getValue()));
+        sb.append(String.format("任务批次：%s；产管产品/版本与当前许可不一致，任务已标记为禁用(status=%d)。\r\n",
+                task.getBatchNumber(), MarketingTaskStatusEnum.DISABLED.getValue()));
         sb.append("明细：").append(JSON.toJSONString(catalogValidation.getFailedItems()));
         log.warn("{}", sb);
     }

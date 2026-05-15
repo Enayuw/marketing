@@ -15,9 +15,7 @@ public enum MarketingTaskStatusEnum {
     /** 正常，可参与跑分调度 */
     ENABLED(1, "正常"),
     /** 禁用 */
-    DISABLED(2, "禁用"),
-    /** 异常（例如产管产品目录与任务配置不一致） */
-    ABNORMAL(3, "异常");
+    DISABLED(2, "禁用");
 
     private final Integer value;
     private final String desc;
