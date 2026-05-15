@@ -970,7 +970,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 }
             }
             return new Result<Long>().setCode(ResultCode.FAIL.getValue())
-                    .setMessage("产管产品/版本与当前许可不一致：" + JSON.toJSONString(catalogValidation.getFailedItems()));
+                    .setMessage(JSON.toJSONString(catalogValidation.getFailedItems()) + "\n" + "不在产管系统里");
         }
 
         marketingTaskMapper.insertSelective(task);
