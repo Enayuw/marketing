@@ -779,9 +779,10 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             customerScoreRuleVO.setBuildType(1);
 
             Result<Long> result = buildScoreTaskOfSelect(customerScoreRuleVO, userTypeList);
-            if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                resIds.add(result.getData());
+            if (!result.isSuccess()) {
+                return new Result<>().failure().setMessage(result.getMessage());
             }
+            resIds.add(result.getData());
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(resIds);
     }
