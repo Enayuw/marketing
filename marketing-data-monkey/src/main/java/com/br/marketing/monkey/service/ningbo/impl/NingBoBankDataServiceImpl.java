@@ -365,19 +365,11 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
         try (InputStream inputStream = resource.getInputStream()) {
             data = inputStream.readAllBytes();
         }
-        ByteArrayInputStream initStream = new ByteArrayInputStream(data);
-        ByteArrayInputStream updateStream = new ByteArrayInputStream(data);
-
-        try {
-            NBOpenSDK.init(initStream);
-        } finally {
-            initStream.close();
-        }
-
-        try {
-            NBOpenSDK.updateConfig(updateStream);
-        } finally {
-            updateStream.close();
+        try (ByteArrayInputStream initStream = new ByteArrayInputStream(data)) {
+            if (!NBOpenSDK.init(initStream)) {
+                ByteArrayInputStream updateStream = new ByteArrayInputStream(data);
+                NBOpenSDK.updateConfig(updateStream);
+            }
         }
 
         SDKRequest request = new SDKRequest();
@@ -476,19 +468,12 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
             try (InputStream inputStream = resource.getInputStream()) {
                 data = inputStream.readAllBytes();
             }
-            ByteArrayInputStream initStream = new ByteArrayInputStream(data);
-            ByteArrayInputStream updateStream = new ByteArrayInputStream(data);
 
-            try {
-                NBOpenSDK.init(initStream);
-            } finally {
-                initStream.close();
-            }
-
-            try {
-                NBOpenSDK.updateConfig(updateStream);
-            } finally {
-                updateStream.close();
+            try (ByteArrayInputStream initStream = new ByteArrayInputStream(data)) {
+                if (!NBOpenSDK.init(initStream)) {
+                    ByteArrayInputStream updateStream = new ByteArrayInputStream(data);
+                    NBOpenSDK.updateConfig(updateStream);
+                }
             }
 
             SDKRequest request = new SDKRequest();
