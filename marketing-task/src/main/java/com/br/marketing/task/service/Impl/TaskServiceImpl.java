@@ -420,10 +420,8 @@ public class TaskServiceImpl implements ITaskService {
     private void updateStraHisFileStatusOnCatalogValidationFailure(MarketingTask task) {
         try {
             StraHisFile straHisFile = null;
-            if (task.getFileId() != null && task.getFileId() > 0) {
-                straHisFile = straHisFileMapper.selectByPrimaryKey(task.getFileId());
-            }
-            if (straHisFile == null && StringUtils.isNotBlank(task.getBatchNumber())) {
+
+            if (StringUtils.isNotBlank(task.getBatchNumber())) {
                 StraHisFileExample example = new StraHisFileExample();
                 example.createCriteria().andBatchNumberEqualTo(task.getBatchNumber());
                 List<StraHisFile> files = straHisFileMapper.selectByExample(example);
