@@ -34,6 +34,7 @@ public class LinkRuleServiceImpl implements LinkRuleService {
     private static final Logger log = LoggerFactory.getLogger(LinkRuleServiceImpl.class);
     private static final String DEFAULT_EXTRA_SCENE = "文件提取_营销短链数据提取";
     private static final String SPECIAL_EXTRA_SCENE = "文件提取_营销短链数据提取_特殊客户";
+    private static final String SPECIAL_EXTRA_SCENE_TEMPLATE = SPECIAL_EXTRA_SCENE + "(%s)";
 
     @Resource
     private DataExportTaskMapper dataExportTaskMapper;
@@ -165,7 +166,7 @@ public class LinkRuleServiceImpl implements LinkRuleService {
         }
         List<String> shortLinkTailorApiCodes = marketingCommonConfig.getShortLinkTailorApiCodes();
         String extraScene = shortLinkTailorApiCodes != null && shortLinkTailorApiCodes.contains(apiCode)
-                ? SPECIAL_EXTRA_SCENE
+                ? String.format(SPECIAL_EXTRA_SCENE_TEMPLATE, apiCode)
                 : DEFAULT_EXTRA_SCENE;
         return "{\"extraScene\":\"" + extraScene + "\"}";
     }
