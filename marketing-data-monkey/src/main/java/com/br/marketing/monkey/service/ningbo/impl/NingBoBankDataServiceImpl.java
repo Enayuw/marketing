@@ -356,6 +356,7 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
     private void downloadFileFromBank(JSONObject config, String localFilePath, String fileName) throws Exception {
         NBOpenSDK.setSDKLogLevel(SDKLogLevel.DEBUG);
         String sdkFilePath = config.getString("sdkFilePath");
+        log.warn("初始化SDK, SDK配置文件路径: {}", sdkFilePath);
         ClassPathResource resource = new ClassPathResource(sdkFilePath);
         if (!resource.exists()) {
             throw new FileNotFoundException("SDK配置文件不存在: " + sdkFilePath);
@@ -450,6 +451,7 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
     private SDKResponse uploadFileToBank(JSONObject config, String localFilePath, String remoteFileName) {
         try {
             String sdkFilePath = config.getString("sdkFilePath");
+            log.warn("初始化SDK, SDK配置文件路径: {}", sdkFilePath);
             NBOpenSDK.setSDKLogLevel(SDKLogLevel.DEBUG);
             ClassPathResource resource = new ClassPathResource(sdkFilePath);
             if (!resource.exists()) {
