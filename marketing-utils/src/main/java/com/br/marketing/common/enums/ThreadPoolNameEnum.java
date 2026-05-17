@@ -81,6 +81,8 @@ public enum ThreadPoolNameEnum {
 
     DIDI_V5_BLACK_DATA(71,"didi_v5_black_data","滴滴v5黑名单"),
 
+    NINGBO_BANK(81,"ningbo_bank_","宁波银行"),
+
     RONGSHU_NEW_SCENE_POLICY(72,"rongshu_new_scene_policy_4022414", "榕树新场景断点推送决策"),
     RONGSHU_NEW_SCENE_BLACKLIST(73,"rongshu_new_scene_blacklist_4022414", "榕树新场景外呼黑名单推送"),
 

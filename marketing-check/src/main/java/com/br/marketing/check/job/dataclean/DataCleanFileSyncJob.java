@@ -22,6 +22,7 @@ import com.br.marketing.enums.clean.CleanPersistTaskStatusEnum;
 import com.br.marketing.enums.clean.DataProcessEnum;
 import com.br.marketing.enums.clean.IsPersEnum;
 import com.br.marketing.enums.clean.SftpVirtualHeaderScriptStatusEnum;
+import com.br.marketing.enums.sync.SyncConfigIsUnzipEnum;
 import com.br.marketing.mapper.MarketingCleanDataFileMapper;
 import com.br.marketing.mapper.MarketingCleanPersistTaskMapper;
 import com.br.marketing.mapper.SftpVirtualHeaderScriptConfigMapper;
@@ -139,6 +140,11 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
                 .andTypeEqualTo(1);
         List<SyncConfig> syncCycleConfigs = syncConfigMapper.selectByExample(syncConfigCycle);
         for (SyncConfig syncCycleConfig : syncCycleConfigs) {
+            if (!SyncConfigIsUnzipEnum.needUnzip(syncCycleConfig.getIsUnzip())
+                    && StringUtils.isNotBlank(syncCycleConfig.getSuffix())
+                    && StringUtils.lowerCase(syncCycleConfig.getSuffix()).contains(".zip")) {
+                continue;
+            }
             //填充b_marketing_clean_data_file表的表头及字段（targetPath 中 yyyyMMdd/yyyy-MM-dd 替换为当天日期后查询）
             String localPathForQuery = replaceDateInTargetPath(syncCycleConfig.getTargetPath());
             MarketingCleanDataFileExample fileExample = new MarketingCleanDataFileExample();

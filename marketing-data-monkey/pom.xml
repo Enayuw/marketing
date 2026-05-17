@@ -77,6 +77,13 @@
             <artifactId>bcprov-jdk15to18</artifactId>
             <version>1.71</version>
         </dependency>
+        <dependency>
+            <groupId>com.nbopen</groupId>
+            <artifactId>openBasicSDK</artifactId>
+            <version>1.9.4</version>
+            <scope>system</scope>
+            <systemPath>${pom.basedir}/libs/openBasicSDK-1.9.4.jar</systemPath>
+        </dependency>
     </dependencies>
     <build>
         <resources>
@@ -88,6 +95,7 @@
                     <include>mapper/**</include>
                     <include>**/*.yml</include>
                     <include>**/*.xml</include>
+                    <include>**/*.json</include>
                     <include>**/*.properties</include>
                 </includes>
             </resource>

@@ -100,6 +100,7 @@ public final class CleanDataFileReader {
 
     /**
      * Excel：第一个 sheet，第一行为表头，后续行作为数据（最多 maxDataRows 行），单元格用逗号拼接。
+     * 列数以表头行为准：数据行末尾空列也输出空段（与 POI {@link Row#getLastCellNum()} 仅反映“最后非空单元格”时避免表头列数多于数据行列数）。
      */
     static HeaderAndLines readExcel(File file, int maxDataRows) {
         String headerLine = "";
@@ -111,14 +112,20 @@ public final class CleanDataFileReader {
                 return new HeaderAndLines("", new ArrayList<>());
             }
             Row headerRow = sheet.getRow(0);
-            if (headerRow != null) {
-                headerLine = rowToCsvLine(headerRow);
+            if (headerRow == null) {
+                return new HeaderAndLines("", new ArrayList<>());
             }
-            int endRow = Math.min(sheet.getLastRowNum(), maxDataRows);
-            for (int r = 1; r <= endRow; r++) {
+            int columnCount = headerRow.getLastCellNum();
+            if (columnCount <= 0) {
+                return new HeaderAndLines("", new ArrayList<>());
+            }
+            headerLine = rowToCsvLine(headerRow, columnCount);
+            int lastSheetRow = sheet.getLastRowNum();
+            int lastDataRowIndex = Math.min(lastSheetRow, maxDataRows);
+            for (int r = 1; r <= lastDataRowIndex; r++) {
                 Row row = sheet.getRow(r);
                 if (row != null) {
-                    dataLines.add(rowToCsvLine(row));
+                    dataLines.add(rowToCsvLine(row, columnCount));
                 }
             }
         } catch (Exception e) {
@@ -127,9 +134,12 @@ public final class CleanDataFileReader {
         return new HeaderAndLines(headerLine, dataLines);
     }
 
-    private static String rowToCsvLine(Row row) {
-        List<String> cells = new ArrayList<>();
-        for (int c = 0; c < row.getLastCellNum(); c++) {
+    /**
+     * 将一行转为逗号分隔文本，固定 {@code columnCount} 列（不足的列补空串，多出的列丢弃）。
+     */
+    private static String rowToCsvLine(Row row, int columnCount) {
+        List<String> cells = new ArrayList<>(columnCount);
+        for (int c = 0; c < columnCount; c++) {
             Cell cell = row.getCell(c);
             cells.add(cellToString(cell));
         }

@@ -20,6 +20,7 @@ import com.br.marketing.mapper.rulecleaning.MarketingCustomerOriginalDataMapper;
 import com.br.marketing.rpcclient.rpcclientImpl.BrokerGrpcClient;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import com.br.marketing.rpcclient.rpcclientImpl.UserCenterGrpcClient;
+import com.br.marketing.service.clean.common.DataCleanService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerService;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
@@ -59,6 +60,14 @@ public class TestSre {
 
     @Autowired
     RedisChgService redisChgService;
+
+    @Resource
+    private DataCleanService dataCleanService;
+
+    @GetMapping("/testMq")
+    public void testMq(String msg){
+        dataCleanService.customerDataJsonParse(msg);
+    }
 
     @GetMapping("/testToPolicy")
     public void testToPolicy(String msg){

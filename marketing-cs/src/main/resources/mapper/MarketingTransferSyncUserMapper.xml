@@ -47,6 +47,17 @@
         order by create_time desc limit 1;
     </select>
 
+    <select id="selectLatestTransferSyncUser" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select *
+        from b_marketing_transfer_sync_${tcId}
+        where api_code = #{apiCode}
+          and cust_num = #{custNum}
+        <if test="userType != null and userType != ''">
+          and user_type = #{userType}
+        </if>
+        order by create_time desc, id desc limit 1;
+    </select>
+
     <select id="getNewestByCusnumInHour" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select * from b_marketing_transfer_sync_${cid}
         where cust_num=#{caseNum}

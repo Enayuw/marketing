@@ -233,6 +233,11 @@ public class MarketingCommonConfig {
     private List<String> mrpTransferDataPushMqApiCodes;
 
     /**
+     * 查询最新变量接口走转化表的apiCode配置
+     */
+    private List<String> queryLatestSyncUserTransferApiCodes;
+
+    /**
      * 上传数据配置apiCode推送智能规则的mq
      */
     private List<String> mrpUploadDataPushMqApiCodes;
@@ -3564,6 +3569,12 @@ public class MarketingCommonConfig {
     private Map<String, String> zhongYuanIdentity;
 
     /**
+     * 中原消金渠道配置（JSON 字符串）：{"apiCode":"","publicKey":"","privateKey":""}
+     * publicKey：中原 RSA 公钥 X509 Base64；privateKey：合作方 RSA 私钥 PKCS8 Base64
+     */
+    private String zhongYuanAgentChannelRsa;
+
+    /**
      * 携程贷后apicode集合
      */
     private List<String> xieChengPostLoanApiCodeLists;
@@ -3675,6 +3686,11 @@ public class MarketingCommonConfig {
     private Map<String, String> syncUnzipEncoding;
 
     /**
+     * SFTP 配置页「文件后缀」下拉可选项（/rule/sftp/getSuffixConfigs）
+     */
+    private List<String> sftpFileSuffixOptions;
+
+    /**
      * * 同程批次号前缀对场景映射配置 3710208 匹配PL
      */
     private List<String> tcCpaBatchNoPrefixConfig;
@@ -3692,4 +3708,9 @@ public class MarketingCommonConfig {
      * 同程易融cpa-failMsg配置
      */
     private List<JSONObject> tcyrCpaFailMsgConfig;
+
+    /**
+     * 宁波银行配置
+     */
+    private JSONObject ningboBankConfig;
  }
