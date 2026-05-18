@@ -83,6 +83,9 @@ public enum ThreadPoolNameEnum {
 
     NINGBO_BANK(81,"ningbo_bank_","宁波银行"),
 
+    RONGSHU_NEW_SCENE_POLICY(72,"rongshu_new_scene_policy_4022414", "榕树新场景断点推送决策"),
+    RONGSHU_NEW_SCENE_BLACKLIST(73,"rongshu_new_scene_blacklist_4022414", "榕树新场景外呼黑名单推送"),
+
     ;
 
     private final Integer order;

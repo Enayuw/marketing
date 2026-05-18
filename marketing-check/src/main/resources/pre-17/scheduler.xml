@@ -434,6 +434,36 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
+    <job:simple id="【check】-RongShuNewScenePushBlackListJob"
+                class="com.br.marketing.check.job.RongShuNewScenePushBlackListJob"
+                cron="0 0 18 29 9 ? 2050-2050"
+                description="榕树新场景外呼黑名单推送"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
+    <job:simple id="【check】-RongShuNewScenePushPolicyJob"
+                class="com.br.marketing.check.job.RongShuNewScenePushPolicyJob"
+                cron="0 0 18 29 9 ? 2050-2050"
+                description="榕树新场景推决策"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
     <job:simple id="【check】-fenqilePeriodPushDecisionJob"
                 class="com.br.marketing.check.job.fenqile.FenqilePeriodPushDecisionJob"
                 cron="0 30/29 9-23 * * ? *"

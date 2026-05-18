@@ -1817,6 +1817,21 @@ public class MarketingCommonConfig {
     private String rongShuFileExecTime;
 
     /**
+     * 榕树新场景apiCode
+     */
+    private List<String> rongShuNewSceneApiCodes;
+
+    /**
+     * 榕树新场景外呼黑名单：第三路转化 request_data 为「当前日期 − N 天」时的 N，默认 30
+     */
+    private Integer rongShuNewScenePushBlackListRegisterOffsetDays;
+
+    /**
+     * 榕树新场景推决策：触达策略编号，默认 CASTR0323375
+     */
+    private String rongShuNewScenePushPolicyStrategyCode;
+
+    /**
      * marketing-task跑分服务节点数量
      */
     private Integer numberOfScoreTaskNodes;
