@@ -372,7 +372,8 @@ public class TaskServiceImpl implements ITaskService {
             int scoreBatchExpireSeconds = scoreBatchExpirePolicyService.resolveAndEnsureExpireDay(customer);
             for (MarketingRetryRedis retryRedis : marketingRetryRedis) {
                 String key = retryRedis.getRedisKey();
-                boolean success = retrySetRedisOrDisableTask(retryRedis, String.valueOf(task.getFileId()), retryRedis.getPage(), task, scoreBatchExpireSeconds);
+                boolean success = retrySetRedisOrDisableTask(retryRedis, String.valueOf(task.getFileId()),
+                        retryRedis.getPage(), scoreBatchExpireSeconds);
                 if (!success) {
                     log.error("重试Redis异常，任务已暂停，后续流程不再执行，fileId={}, page={}", task.getBatchNumber(), retryRedis.getPage());
                     return new Result<>().setCode(ResultCode.FAIL.getValue());
@@ -461,8 +462,8 @@ public class TaskServiceImpl implements ITaskService {
         }
         StringBuilder sb = new StringBuilder();
         sb.append(String.format("任务批次：%s；产管产品/版本与当前许可不一致，任务已标记为禁用(status=%d)。\r\n",
-                task.getBatchNumber(), MarketingTaskStatusEnum.DISABLED.getValue()));
-        sb.append("明细：").append(JSON.toJSONString(catalogValidation.getFailedItems()));
+                task.getBatchNumber(), MarketingTaskStatusEnum.DISABLED.getValue()))
+                .append("明细：").append(JSON.toJSONString(catalogValidation.getFailedItems()));
         log.warn("{}", sb);
     }
 
@@ -539,7 +540,8 @@ public class TaskServiceImpl implements ITaskService {
     /**
      * 尝试写入Redis，失败重试3次，失败后暂停任务并跳出外层循环
      */
-    private boolean retrySetRedisOrDisableTask(MarketingRetryRedis retryRedis, String fileId, String page, MarketingTask blt, int scoreBatchExpireSeconds) {
+    private boolean retrySetRedisOrDisableTask(MarketingRetryRedis retryRedis, String fileId,
+                                               String page, int scoreBatchExpireSeconds) {
         String key = retryRedis.getRedisKey();
         String redisValueType = retryRedis.getRedisValueType();
         int retryCount = 0;

@@ -91,15 +91,13 @@ public class ScoreBatchExpirePolicyService {
             customer.setExpireDay(dayStr);
             return days * SECONDS_PER_DAY;
         } finally {
-            if (locked) {
-                try {
-                    String cur = redisChgService.get(lockKey);
-                    if (lockVal.equals(cur)) {
-                        redisChgService.del(lockKey);
-                    }
-                } catch (Exception e) {
-                    log.warn("scoreBatchExpire release lock warn key={}", lockKey, e);
+            try {
+                String cur = redisChgService.get(lockKey);
+                if (lockVal.equals(cur)) {
+                    redisChgService.del(lockKey);
                 }
+            } catch (Exception e) {
+                log.warn("scoreBatchExpire release lock warn key={}", lockKey, e);
             }
         }
     }

@@ -260,8 +260,6 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
             content.append("【sort】=【" + customerOld.getSort() + "】" + "->【" + marketingCustomer.getSort() + "】,");
             content.append("【status】=【" + customerOld.getStatus() + "】" + "->【" + marketingCustomer.getStatus() + "】,");
             content.append("【extendConfigInfo】=【" + customerOld.getExtendConfigInfo() + "】" + "->【" + marketingCustomer.getExtendConfigInfo() + "】,");
-            String expireDayNew = StringUtils.hasText(vo.getExpireDay()) ? vo.getExpireDay().trim() : customerOld.getExpireDay();
-            content.append("【expireDay】=【" + customerOld.getExpireDay() + "】" + "->【" + expireDayNew + "】,");
             content.append("【pushType】=【" + customerOld.getPushType() + "】" + "->【" + marketingCustomer.getPushType() + "】,");
             content.append("【pushThreadNum】=【" + customerOld.getPushThreadNum() + "】" + "->【" + marketingCustomer.getPushThreadNum() + "】,");
             content.append("【pushUrl】=【" + customerOld.getPushUrl() + "】" + "->【" + marketingCustomer.getPushUrl() + "】,");

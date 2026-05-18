@@ -654,7 +654,8 @@ public class TaskScoreServiceImpl {
                     Map<String, ScoreTaskBatchDTO> scoreTaskBatchDTOMap = new HashMap<>();
                     if(isRestoreFlag) {
                         // 恢复跑分，初始化跑批进度
-                        initScoreBatchProgressData(groupSetKey, groupIdSet, scoreTaskBatchDTOMap, fileId, conditionIndex, blt, scoreBatchExpireSeconds);
+                        initScoreBatchProgressData(groupSetKey, groupIdSet, scoreTaskBatchDTOMap, fileId,
+                                conditionIndex, blt, scoreBatchExpireSeconds);
                     }
 
                     Integer actNum = 0;
@@ -763,7 +764,8 @@ public class TaskScoreServiceImpl {
                                     , firstTime, customer, blt
                                     , noflagproductlist, flagproductlist, marketingTaskExtend
                                     , baseHeadConfigVO, fieldInfo, false
-                                    , marketingRetryEsMapper, marketingCommonConfig, marketingRetryRedisMapper, scoreTaskBatchDTO, scoreBatchExpireSeconds));
+                                    , marketingRetryEsMapper, marketingCommonConfig, marketingRetryRedisMapper,
+                                    scoreTaskBatchDTO, scoreBatchExpireSeconds));
                             if (warrningExecutor.isTerminated()) {
                                 threadpoolStatus = Boolean.FALSE;
                             }
@@ -1057,7 +1059,8 @@ public class TaskScoreServiceImpl {
      * @param groupId      分组ID
      * @param fileId       执行记录ID
      */
-    private void saveGroupId(String groupSetKey, Set<String> groupIdSet, String groupId, String fileId, MarketingTask task, int scoreBatchExpireSeconds) {
+    private void saveGroupId(String groupSetKey, Set<String> groupIdSet, String groupId, String fileId,
+                             MarketingTask task, int scoreBatchExpireSeconds) {
         if(groupIdSet.contains(groupId)) {
             return;
         }
@@ -1127,7 +1130,10 @@ public class TaskScoreServiceImpl {
      * @param conditionIndex
      * @param task
      */
-    public void initScoreBatchProgressData(String groupSetKey, Set<String> groupIdSet, Map<String, ScoreTaskBatchDTO> scoreTaskBatchDTOMap, String fileId, Integer conditionIndex, MarketingTask task, int scoreBatchExpireSeconds) {
+    public void initScoreBatchProgressData(String groupSetKey, Set<String> groupIdSet,
+                                           Map<String, ScoreTaskBatchDTO> scoreTaskBatchDTOMap, String fileId,
+                                           Integer conditionIndex, MarketingTask task,
+                                           int scoreBatchExpireSeconds) {
         int retryCount = 0;
         while (retryCount < 3) {
             try {
@@ -1181,7 +1187,10 @@ public class TaskScoreServiceImpl {
      * @param fileId 执行记录ID
      * @param conditionIndex 跑分条件序号
      */
-    private void initScoreTaskBatchDTOMapData(Map<String, ScoreTaskBatchDTO> scoreTaskBatchDTOMap, Set<String> groupIdSet, String fileId, Integer conditionIndex, int scoreBatchExpireSeconds) {
+    private void initScoreTaskBatchDTOMapData(Map<String, ScoreTaskBatchDTO> scoreTaskBatchDTOMap,
+                                              Set<String> groupIdSet,
+                                              String fileId, Integer conditionIndex,
+                                              int scoreBatchExpireSeconds) {
         if(CollectionUtils.isEmpty(groupIdSet)) {
             return;
         }

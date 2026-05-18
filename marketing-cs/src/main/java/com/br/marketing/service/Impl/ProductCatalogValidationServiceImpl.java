@@ -39,7 +39,7 @@ public class ProductCatalogValidationServiceImpl implements ProductCatalogValida
         }
 
         if (StringUtils.isBlank(task.getProductInfo())) {
-            return ProductCatalogValidationResult.fail(Collections.singletonList(failRow("", "", "", "product_info为空")));
+            return ProductCatalogValidationResult.fail(Collections.singletonList(failRow("", "", "")));
         }
 
         JSONArray arr;
@@ -47,10 +47,10 @@ public class ProductCatalogValidationServiceImpl implements ProductCatalogValida
             arr = JSONArray.parseArray(task.getProductInfo());
         } catch (Exception e) {
             log.warn("product_info 非合法 JSON，batchNumber={}", task.getBatchNumber(), e);
-            return ProductCatalogValidationResult.fail(Collections.singletonList(failRow("", "", "", "product_info解析失败")));
+            return ProductCatalogValidationResult.fail(Collections.singletonList(failRow("", "", "")));
         }
         if (arr == null || arr.isEmpty()) {
-            return ProductCatalogValidationResult.fail(Collections.singletonList(failRow("", "", "", "product_info无产品项")));
+            return ProductCatalogValidationResult.fail(Collections.singletonList(failRow("", "", "")));
         }
 
         Map<String, Set<String>> allowed;
@@ -58,7 +58,7 @@ public class ProductCatalogValidationServiceImpl implements ProductCatalogValida
             allowed = strategyCustomizerProductCatalogAssembler.buildAllowedProductCodeVersionMap();
         } catch (Exception e) {
             log.error("拉取产管产品目录失败，batchNumber={}", task.getBatchNumber(), e);
-            return ProductCatalogValidationResult.fail(Collections.singletonList(failRow("", "", "", "拉取产管许可列表失败:" + e.getMessage())));
+            return ProductCatalogValidationResult.fail(Collections.singletonList(failRow("", "", "")));
         }
 
         List<Map<String, String>> failed = new ArrayList<>();
@@ -72,16 +72,16 @@ public class ProductCatalogValidationServiceImpl implements ProductCatalogValida
             String code = firstNonBlank(o.getString("code"), o.getString("productName"));
             String version = trimToEmpty(o.getString("version"));
             if (StringUtils.isBlank(code)) {
-                failed.add(failRow("", name, version, "缺少code(或productName)"));
+                failed.add(failRow("", name, version));
                 continue;
             }
             Set<String> okVersions = allowed.get(code);
             if (okVersions == null || okVersions.isEmpty()) {
-                failed.add(failRow(code, name, version, "产品不在产管许可列表"));
+                failed.add(failRow(code, name, version));
                 continue;
             }
             if (!okVersions.contains(version)) {
-                failed.add(failRow(code, name, version, "版本不在产管许可列表"));
+                failed.add(failRow(code, name, version));
             }
         }
 
@@ -104,12 +104,11 @@ public class ProductCatalogValidationServiceImpl implements ProductCatalogValida
         return trimToEmpty(fallback);
     }
 
-    private static Map<String, String> failRow(String code, String name, String version, String reason) {
+    private static Map<String, String> failRow(String code, String name, String version) {
         Map<String, String> m = new HashMap<>(8);
         m.put("code", code);
         m.put("name", name);
         m.put("version", version);
-//        m.put("reason", reason);
         return m;
     }
 }
