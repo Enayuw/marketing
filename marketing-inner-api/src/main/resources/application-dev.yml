@@ -78,7 +78,7 @@ api:
     pushTransferUrl: ${api.robotAiApiService.base2Url}/robotOutbound
   customerService:
     apiCode: 4000296
-  productManagement:
+  product-management:
     url: http://production-pre.100credit.com/api/getProductionList.do?firstBusinessCode=A10&spreadStatus=5,2,3,4,0
     productTypeUrl: http://production-pre.100credit.com/api/getProductionTypes.do
   bi:

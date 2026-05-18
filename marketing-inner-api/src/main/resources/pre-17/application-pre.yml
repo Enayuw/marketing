@@ -213,7 +213,7 @@ api:
       tailor:
         # eg: "{'apiCode':'true',apiCode:'false'}"
         apiCodeMap: "{'7410846':'true','7410787':'true','7410784':'true','7410437':'true','7410780':'true','7410797':'true'}"
-  productManagement:
+  product-management:
     url: http://production-pre.100credit.com/api/getProductionList.do?firstBusinessCode=A10&spreadStatus=5,2,3,4,0
     productTypeUrl: http://production-pre.100credit.com/api/getProductionTypes.do
   bi:

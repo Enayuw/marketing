@@ -17,6 +17,7 @@
     <result column="sort" property="sort" jdbcType="TINYINT" />
     <result column="status" property="status" jdbcType="TINYINT" />
     <result column="extend_config_info" property="extendConfigInfo" jdbcType="VARCHAR" />
+    <result column="expire_day" property="expireDay" jdbcType="VARCHAR" />
     <result column="push_thread_num" property="pushThreadNum" jdbcType="INTEGER" />
     <result column="push_type" property="pushType" jdbcType="INTEGER" />
     <result column="push_url" property="pushUrl" jdbcType="VARCHAR" />
@@ -111,7 +112,7 @@
   </sql>
   <sql id="Base_Column_List" >
     id, cid, api_code, message, `type`, thread_num, task_time, finish_date, push_customer,
-    check_black_list, check_redis_number, save_log, sort, `status`, extend_config_info,
+    check_black_list, check_redis_number, save_log, sort, `status`, extend_config_info, expire_day,
     push_thread_num, push_type, push_url, `name`, short_name, create_time, update_time,
     is_check, is_charging, request_code, response_code, account_type, account_status,
     start_time, end_time, transport, meal_json, official_time, modify_user, encryption_key,
@@ -157,7 +158,7 @@
       `type`, thread_num, task_time,
       finish_date, push_customer, check_black_list,
       check_redis_number, save_log, sort,
-      `status`, extend_config_info, push_thread_num,
+      `status`, extend_config_info, expire_day, push_thread_num,
       push_type, push_url, `name`,
       short_name, create_time, update_time,
       is_check, is_charging, request_code,
@@ -172,7 +173,7 @@
       #{type,jdbcType=VARCHAR}, #{threadNum,jdbcType=INTEGER}, #{taskTime,jdbcType=TINYINT},
       #{finishDate,jdbcType=TINYINT}, #{pushCustomer,jdbcType=TINYINT}, #{checkBlackList,jdbcType=TINYINT},
       #{checkRedisNumber,jdbcType=TINYINT}, #{saveLog,jdbcType=TINYINT}, #{sort,jdbcType=TINYINT},
-      #{status,jdbcType=TINYINT}, #{extendConfigInfo,jdbcType=VARCHAR}, #{pushThreadNum,jdbcType=INTEGER},
+      #{status,jdbcType=TINYINT}, #{extendConfigInfo,jdbcType=VARCHAR}, #{expireDay,jdbcType=VARCHAR}, #{pushThreadNum,jdbcType=INTEGER},
       #{pushType,jdbcType=INTEGER}, #{pushUrl,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},
       #{shortName,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
       #{isCheck,jdbcType=TINYINT}, #{isCharging,jdbcType=TINYINT}, #{requestCode,jdbcType=VARCHAR},
@@ -232,6 +233,9 @@
       </if>
       <if test="extendConfigInfo != null" >
         extend_config_info,
+      </if>
+      <if test="expireDay != null" >
+        expire_day,
       </if>
       <if test="pushThreadNum != null" >
         push_thread_num,
@@ -375,6 +379,9 @@
       </if>
       <if test="extendConfigInfo != null" >
         #{extendConfigInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="expireDay != null" >
+        #{expireDay,jdbcType=VARCHAR},
       </if>
       <if test="pushThreadNum != null" >
         #{pushThreadNum,jdbcType=INTEGER},
@@ -531,6 +538,9 @@
       <if test="record.extendConfigInfo != null" >
         extend_config_info = #{record.extendConfigInfo,jdbcType=VARCHAR},
       </if>
+      <if test="record.expireDay != null" >
+        expire_day = #{record.expireDay,jdbcType=VARCHAR},
+      </if>
       <if test="record.pushThreadNum != null" >
         push_thread_num = #{record.pushThreadNum,jdbcType=INTEGER},
       </if>
@@ -652,6 +662,7 @@
       sort = #{record.sort,jdbcType=TINYINT},
       `status` = #{record.status,jdbcType=TINYINT},
       extend_config_info = #{record.extendConfigInfo,jdbcType=VARCHAR},
+      expire_day = #{record.expireDay,jdbcType=VARCHAR},
       push_thread_num = #{record.pushThreadNum,jdbcType=INTEGER},
       push_type = #{record.pushType,jdbcType=INTEGER},
       push_url = #{record.pushUrl,jdbcType=VARCHAR},
@@ -733,6 +744,9 @@
       </if>
       <if test="extendConfigInfo != null" >
         extend_config_info = #{extendConfigInfo,jdbcType=VARCHAR},
+      </if>
+      <if test="expireDay != null" >
+        expire_day = #{expireDay,jdbcType=VARCHAR},
       </if>
       <if test="pushThreadNum != null" >
         push_thread_num = #{pushThreadNum,jdbcType=INTEGER},
@@ -852,6 +866,7 @@
       sort = #{sort,jdbcType=TINYINT},
       `status` = #{status,jdbcType=TINYINT},
       extend_config_info = #{extendConfigInfo,jdbcType=VARCHAR},
+      expire_day = #{expireDay,jdbcType=VARCHAR},
       push_thread_num = #{pushThreadNum,jdbcType=INTEGER},
       push_type = #{pushType,jdbcType=INTEGER},
       push_url = #{pushUrl,jdbcType=VARCHAR},
@@ -881,7 +896,7 @@
       create_user = #{createUser,jdbcType=VARCHAR},
       is_output_data_product = #{isOutputDataProduct,jdbcType=TINYINT},
       apply_loan_type = #{applyLoanType,jdbcType=INTEGER},
-      api_type = #{apiType,jdbcType=VARCHAR}
+      api_type = #{apiType,jdbcType=VARCHAR},
       sms_category = #{smsCategory,jdbcType=VARCHAR},
       first_department = #{firstDepartment,jdbcType=VARCHAR},
       second_department = #{secondDepartment,jdbcType=VARCHAR}
