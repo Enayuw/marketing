@@ -74,6 +74,11 @@ public class MarketingCommonConfig {
     private HashMap<String,String> customerRuleMapping;
 
     /**
+     * 短链文件提取特定规则 apiCode 开关
+     */
+    private List<String> shortLinkTailorApiCodes;
+
+    /**
      * 配置走通用流程apiCode
      */
     private List<String> universalProcessApiCode;
