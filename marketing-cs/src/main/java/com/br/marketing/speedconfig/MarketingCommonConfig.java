@@ -3510,6 +3510,12 @@ public class MarketingCommonConfig {
      */
     private List<String> aiToPolicyOperateTypeList;
 
+
+    /**
+     * Ai上传数据入转化userType集合
+     */
+    private List<String> huaTaiSyncToTransferUserTypeList;
+
     /**
      * 哈罗-三方营销数据回传 配置
      */

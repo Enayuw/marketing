@@ -43,6 +43,7 @@ public enum InterfaceHandlerEnum {
     ZHONGAN_SMS_LOCK_DATA_INSERT(37, "众安短信明细锁定数据落库"),
     DIDI_SMS_CALLBACK(38, "滴滴短信明细锁定数据落库"),
     DIDI_CALL_RECORD(39, "滴滴通话明细锁定数据落库"),
+    HUATAI_SYNC_TO_TRANSFER(40,"华泰上传数据上传入转化"),
     ;
 
 
