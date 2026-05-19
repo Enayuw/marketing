@@ -129,6 +129,14 @@ otherConfig:
     proxy_username: spmarketing
     proxy_password: ek1EIgo9
     proxy_host_zw: 10.100.123.221
+  tcyr-lingxiao:
+    base-url: http://middle-heaven-roster-gods
+    assign-path: /open/dingtalk/api-code-card/tcapiCodeAssign
+    clean-notify-path: /open/dingtalk/api-code-card/tcDataCleanNotify
+    bearer-token:
+    connect-timeout-ms: 5000
+    read-timeout-ms: 15000
+    clean-notify-enabled: true
   mom:
     appSecretKey: d42726322ba9bda57b74043be21aa2c4
     appName: marketing_query_producer

@@ -157,4 +157,74 @@ public class MiddleHeavenTcyrApiCodeMatchClient {
         }
         return null;
     }
+
+    /**
+     * 同程数据开始清洗通知（gods {@code /open/dingtalk/api-code-card/tcDataCleanNotify}），请求体仅含 {@code batchNo}。
+     *
+     * @return 是否 HTTP 2xx；失败只打日志，由调用方决定是否影响主流程（通常不影响）
+     */
+    public boolean postTcDataCleanNotify(String baseUrl, String path, String bearerToken,
+                                         int connectTimeoutMs, int readTimeoutMs, String batchNo) {
+        if (StringUtils.isBlank(batchNo)) {
+            return false;
+        }
+        String base = HttpBaseUrlHelper.ensureHttpScheme(StringUtils.trimToEmpty(baseUrl));
+        if (StringUtils.isBlank(base)) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_INTERFACEERROR.getCode(),
+                    "baseUrl 未配置，无法调用 tcDataCleanNotify，batchNo=" + batchNo,
+                    "【同程易融-tcDataCleanNotify】"));
+            return false;
+        }
+        String p = StringUtils.defaultIfBlank(path, "/open/dingtalk/api-code-card/tcDataCleanNotify");
+        if (!p.startsWith("/")) {
+            p = "/" + p;
+        }
+        String url = base.endsWith("/") ? base.substring(0, base.length() - 1) + p : base + p;
+
+        Map<String, Object> body = new HashMap<>(4);
+        body.put("batchNo", batchNo.trim());
+        String json = JSON.toJSONString(body);
+
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(Math.max(1000, connectTimeoutMs));
+        factory.setReadTimeout(Math.max(1000, readTimeoutMs));
+        RestTemplate restTemplate = new RestTemplate(factory);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        if (StringUtils.isNotBlank(bearerToken)) {
+            headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + bearerToken.trim());
+        }
+        HttpEntity<String> entity = new HttpEntity<>(json, headers);
+
+        final String title = "【同程易融-tcDataCleanNotify】";
+        try {
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+            HttpStatus status = response.getStatusCode();
+            boolean ok = status != null && status.is2xxSuccessful();
+            if (!ok) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_INTERFACEERROR.getCode(),
+                        String.format("tcDataCleanNotify 非2xx batchNo=%s httpStatus=%s body=%s",
+                                batchNo, status, StringUtils.abbreviate(response.getBody(), 2000)),
+                        title));
+            }
+            return ok;
+        } catch (HttpStatusCodeException ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_INTERFACEERROR.getCode(),
+                    String.format("tcDataCleanNotify HTTP失败 batchNo=%s status=%s body=%s",
+                            batchNo, ex.getStatusCode(),
+                            StringUtils.abbreviate(ex.getResponseBodyAsString(), 2000)),
+                    title), ex);
+            return false;
+        } catch (RestClientException ex) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_INTERFACEERROR.getCode(),
+                    "tcDataCleanNotify 远程调用失败 batchNo=" + batchNo + " url=" + url + " err=" + ex.getMessage(),
+                    title), ex);
+            return false;
+        } catch (Exception ex) {
+            log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
+                    "tcDataCleanNotify 调用异常 batchNo=" + batchNo + " url=" + url, title), ex);
+            return false;
+        }
+    }
 }

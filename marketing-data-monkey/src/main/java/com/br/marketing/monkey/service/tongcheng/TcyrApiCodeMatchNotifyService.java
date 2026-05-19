@@ -6,7 +6,7 @@ import com.br.marketing.client.middleheaven.MiddleHeavenTcyrApiCodeMatchClient;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.MarketingTcyrSyncRecord;
 import com.br.marketing.mapper.MarketingTcyrSyncRecordMapper;
-import com.br.marketing.monkey.config.LingxiaoTcyrProperties;
+import com.br.marketing.config.biz.LingxiaoTcyrProperties;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;

@@ -23,6 +23,7 @@ import com.br.marketing.mapper.MarketingTcyrSyncRecordMapper;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.service.clean.common.GeneralDataCleanService;
 import com.br.marketing.service.tc.TcSyncDataQuickDealService;
+import com.br.marketing.service.tc.TcyrDataCleanNotifyService;
 import com.br.marketing.service.tccpa.TcCpaCustCellMappingService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.middleheaven.tpdynamicmetric.executor.TpDynamicExecutor;
@@ -79,6 +80,8 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
     @Resource
     private TcCpaCustCellMappingService tcCpaCustCellMappingService;
 
+    @Resource
+    private TcyrDataCleanNotifyService tcyrDataCleanNotifyService;
 
     @Override
     public void shardProcess(String apiCode) {
@@ -146,6 +149,8 @@ public class TcSyncDataQuickDealServiceImpl implements TcSyncDataQuickDealServic
             tcyrSyncFileMapper.updateQuickDealAndSuccesCount(tcyrSyncFile.getId(), 2, 0L);
             return;
         }
+        // record 开始清洗：异步通知 gods（失败不影响后续 quickDeal）
+        tcyrDataCleanNotifyService.notifyAsync(syncRecord.getBatchNo());
         //2.csvFileQuickDeal流程
         AtomicLong successCount = new AtomicLong(0L);
         List<CompletableFuture<Void>> futures = new ArrayList<>();

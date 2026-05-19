@@ -119,6 +119,15 @@ otherConfig:
     proxy_username: spmarketing
     proxy_password: ek1EIgo9
     proxy_host_zw: 10.100.123.221
+  # 灵霄 roster-gods：tcapiCodeAssign / tcDataCleanNotify 共用（见 marketing-cs LingxiaoTcyrProperties）
+  tcyr-lingxiao:
+    base-url: http://middle-heaven-roster-gods
+    assign-path: /open/dingtalk/api-code-card/tcapiCodeAssign
+    clean-notify-path: /open/dingtalk/api-code-card/tcDataCleanNotify
+    bearer-token:
+    connect-timeout-ms: 5000
+    read-timeout-ms: 15000
+    clean-notify-enabled: true
 
 
 api:
