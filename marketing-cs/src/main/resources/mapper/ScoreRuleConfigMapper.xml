@@ -15,6 +15,7 @@
         , src.product_info as productInfo
         , src.is_online as isOnline
         , src.priority as priority
+        , src.check_status as checkStatus
         , bmc.cid
         , group_concat(bmc.api_code) as api_code
         , case src.status
@@ -116,6 +117,7 @@
             src.is_online as isOnline,
             src.is_stack_validity as isStackValidity,
             src.priority as priority,
+            src.check_status as checkStatus,
             bmc.api_code as apiCode,
             bmc.cid as cid,
             bcr.condition_info as conditionInfo
@@ -166,6 +168,7 @@
         src.is_online as isOnline,
         src.is_stack_validity as isStackValidity,
         src.priority as priority,
+        src.check_status as checkStatus,
         bcr.customer_id as mid,
         bcr.condition_info as conditionInfo,
         bmc.api_code as apiCode,

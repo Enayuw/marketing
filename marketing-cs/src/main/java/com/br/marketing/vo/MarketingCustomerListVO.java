@@ -87,6 +87,12 @@ public class MarketingCustomerListVO {
     private String extendConfigInfo;
 
     /**
+     * 跑分批次进度 Redis 保留天数（varchar 存正整数，如 10、30）
+     */
+    @Schema(description = "跑分批次进度 Redis 保留天数（天）")
+    private String expireDay;
+
+    /**
      * api推送并发数
      */
     @Schema(description = "api推送并发数")

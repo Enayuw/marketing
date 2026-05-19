@@ -11,15 +11,13 @@ import com.br.marketing.enums.ZkScoreStatusEnum;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.mapper.TaskStatusMapper;
 import com.br.marketing.service.Impl.EntityOptServiceImpl;
+import com.br.marketing.service.Impl.ScoreCrossDayRestoreService;
 import org.apache.curator.framework.CuratorFramework;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -36,6 +34,9 @@ public class TaskOptServiceImpl {
 
     @Autowired
     private CuratorFramework client;
+
+    @Autowired
+    private ScoreCrossDayRestoreService scoreCrossDayRestoreService;
 
     public Result pauseTask(Long fileId, Integer isOrPause) {
         StraHisFile straHisFile = straHisFileMapper.selectByPrimaryKey(fileId);
@@ -68,10 +69,9 @@ public class TaskOptServiceImpl {
                 if (!ScoreStatusEnum.PAUSEED.getValue().equals(straHisFile.getStatus())) {
                     return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该任务不是已暂停状态");
                 }
-                String scoreDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(straHisFile.getCreateTime()).substring(0, 10);
-                String actionDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
-                if (!scoreDate.equals(actionDate)) {
-                    return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("跨天不允许恢复跑分");
+                Result crossDay = scoreCrossDayRestoreService.prepareForResume(straHisFile);
+                if (!ResultCode.SUCCESS.getValue().equals(crossDay.getCode())) {
+                    return crossDay;
                 }
                 StraHisFile updateFile = new StraHisFile();
                 updateFile.setId(fileId);

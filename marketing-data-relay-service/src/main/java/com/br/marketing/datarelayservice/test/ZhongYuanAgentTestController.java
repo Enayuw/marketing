@@ -32,12 +32,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 /**
- * 中原坐席导入联调辅助接口（仅用于 Postman / 本地造数），与正式接口分层如下：
- * <ul>
- *   <li>正式：{@link ZhongYuanAgentController} {@code POST /v1/task/importAgentCustomer}</li>
- *   <li>本类：{@code POST /v1/task/dev/zhongyuan-agent/sample-import-body}，入参仅为 {@code requestData} 明文 JSON，响应体仅为 {@link MtStandardRequest} JSON</li>
- *   <li>本类：{@code POST /v1/task/dev/zhongyuan-agent/decrypt-import-response}，入参为 {@link MtStandardResponse}（与 importAgentCustomer 成功回包一致），响应体为 {@code responseData} 解密后的明文 JSON 字符串</li>
- * </ul>
+ * 中原坐席导入联调辅助接口（仅用于 Postman / 本地造数）
  */
 @Tag(name = "中原坐席-联调工具")
 @RestController

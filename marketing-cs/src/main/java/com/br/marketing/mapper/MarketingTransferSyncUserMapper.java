@@ -383,6 +383,15 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
             , @Param("ifApply") String ifApply, @Param("applyDt") String applyDt
             , @Param("minId") Long minId, @Param("pageSize") Integer pageSize);
 
+    List<MarketingTransferSyncUser> getRsToPolicyDataByRegisterTime(@Param("tcId") String tcId
+            , @Param("userTypes") List<String> userTypes
+            , @Param("ifApply") String ifApply
+            , @Param("minId") Long minId
+            , @Param("pageSize") Integer pageSize
+            , @Param("apiCode") String apiCode
+            , @Param("registerStartTime") String registerStartTime
+            , @Param("registerEndTime") String registerEndTime);
+
 
     /**
      * 获取桔子A规则的转化数据
@@ -412,6 +421,10 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
 
     List<MarketingTransferSyncUser> getTransferByRequestDate(@Param("tCid") String tcId, @Param("apiCode") String apiCode
             , @Param("requestDate") String requestDate, @Param("minId") Long minId);
+
+    List<MarketingTransferSyncUser> getTransferByRegisterTimeDate(@Param("tCid") String tcId, @Param("apiCode") String apiCode
+            , @Param("registerStartTime") String registerStartTime, @Param("registerEndTime") String registerEndTime
+            , @Param("minId") Long minId);
 
     List<MarketingTransferSyncUser> getRongShuTransferDatatikv_(@Param("tCid") String tcId, @Param("apiCode") String apiCode
             , @Param("requestDate") String requestDate, @Param("minId") Long minId);

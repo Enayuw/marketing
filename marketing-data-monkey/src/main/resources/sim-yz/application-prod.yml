@@ -73,8 +73,6 @@ logging:
       name: ./logs/core.log
     root: INFO
 otherConfig:
-  ningbo:
-    sdkFilePath: classpath:sim-yz/config-nbbank.json
   huaXiangInterface:
         getReport: http://CLOUD-HX-RIBBON/huaxiang/v1/get_report
   sanxiangzhiliInterface:
