@@ -2,26 +2,18 @@ package com.br.marketing.service.Impl;
 
 import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.dto.linkgo.CreateTaskDataDTO;
-import com.br.marketing.dto.linkgo.ShortLinkRuleApiCodeDTO;
 import com.br.marketing.entity.DataExportTask;
 import com.br.marketing.mapper.DataExportTaskMapper;
-import com.br.marketing.mapper.ShortLinkTransferRuleMapper;
 import com.br.marketing.service.LinkRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Link rule service implementation
@@ -38,9 +30,6 @@ public class LinkRuleServiceImpl implements LinkRuleService {
 
     @Resource
     private DataExportTaskMapper dataExportTaskMapper;
-
-    @Resource
-    private ShortLinkTransferRuleMapper shortLinkTransferRuleMapper;
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -90,8 +79,6 @@ public class LinkRuleServiceImpl implements LinkRuleService {
                 return Boolean.FALSE;
             }
 
-            Map<String, String> ruleCodeApiCodeMap = buildRuleCodeApiCodeMap(taskDataList);
-
             for (CreateTaskDataDTO taskData : taskDataList) {
                 try {
                     String tmpTaskName = taskData.getRuleCode() + "_" + java.time.LocalDate.now().toString().replace("-", "");
@@ -110,7 +97,7 @@ public class LinkRuleServiceImpl implements LinkRuleService {
                     task.setFieldMapping(taskData.getFieldMapping());
                     task.setQueryCondition(taskData.getQueryCondition());
 
-                    task.setTaskRule(buildTaskRuleByRuleCode(taskData.getRuleCode(), ruleCodeApiCodeMap));
+                    task.setTaskRule(buildTaskRuleByApiCode(taskData.getApiCode()));
                     task.setStatus((byte) 1);
                     task.setCreateBy(taskData.getUserName());
                     task.setUpdateBy(taskData.getUserName());
@@ -138,32 +125,7 @@ public class LinkRuleServiceImpl implements LinkRuleService {
         }
     }
 
-    private Map<String, String> buildRuleCodeApiCodeMap(List<CreateTaskDataDTO> taskDataList) {
-        Set<String> ruleCodes = taskDataList.stream()
-                .map(CreateTaskDataDTO::getRuleCode)
-                .filter(StringUtils::hasText)
-                .collect(Collectors.toSet());
-        if (CollectionUtils.isEmpty(ruleCodes)) {
-            return Collections.emptyMap();
-        }
-        List<ShortLinkRuleApiCodeDTO> mappings = shortLinkTransferRuleMapper.selectRuleApiCodeList(ruleCodes);
-        if (CollectionUtils.isEmpty(mappings)) {
-            return Collections.emptyMap();
-        }
-        Map<String, String> ruleCodeApiCodeMap = new HashMap<>(mappings.size());
-        for (ShortLinkRuleApiCodeDTO mapping : mappings) {
-            if (StringUtils.hasText(mapping.getRuleCode()) && StringUtils.hasText(mapping.getApiCode())) {
-                ruleCodeApiCodeMap.put(mapping.getRuleCode(), mapping.getApiCode());
-            }
-        }
-        return ruleCodeApiCodeMap;
-    }
-
-    private String buildTaskRuleByRuleCode(String ruleCode, Map<String, String> ruleCodeApiCodeMap) {
-        String apiCode = ruleCodeApiCodeMap.get(ruleCode);
-        if (!StringUtils.hasText(apiCode)) {
-            log.warn("No apiCode found for short link ruleCode={}, use default extraScene", ruleCode);
-        }
+    private String buildTaskRuleByApiCode(String apiCode) {
         List<String> shortLinkTailorApiCodes = marketingCommonConfig.getShortLinkTailorApiCodes();
         String extraScene = shortLinkTailorApiCodes != null && shortLinkTailorApiCodes.contains(apiCode)
                 ? String.format(SPECIAL_EXTRA_SCENE_TEMPLATE, apiCode)
