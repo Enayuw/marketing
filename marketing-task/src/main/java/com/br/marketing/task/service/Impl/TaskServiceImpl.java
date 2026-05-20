@@ -199,7 +199,7 @@ public class TaskServiceImpl implements ITaskService {
             }
 
             Result<TaskStatus> taskStatusResult = canScore(scoreTask,jobNm);
-            if (!ResultCode.SUCCESS.getValue().equals(taskStatusResult.getCode())) {
+            if (!ResultCode.SUCCESS.getValue().equals(taskStatusResult.getCode()) || !validateProduct(scoreTask)) {
                 removeTaskLock(scoreTask, s);
                 continue;
             }
@@ -385,20 +385,6 @@ public class TaskServiceImpl implements ITaskService {
                 marketingRetryRedisMapper.updateByPrimaryKeySelective(retryRedis1);
             }
         }
-
-        ProductCatalogValidationResult catalogValidation = productCatalogValidationService.validate(task);
-        if (!catalogValidation.isPassed()) {
-            log.error("跑分任务产管产品目录校验未通过,batchNumber={},taskId={},detail={}",
-                    task.getBatchNumber(), task.getId(), JSON.toJSONString(catalogValidation.getFailedItems()));
-            MarketingTask taskUpd = new MarketingTask();
-            taskUpd.setId(task.getId());
-            taskUpd.setStatus(MarketingTaskStatusEnum.DISABLED.getValue());
-            marketingTaskMapper.updateByPrimaryKeySelective(taskUpd);
-            updateStraHisFileStatusOnCatalogValidationFailure(task);
-            persistProductCatalogValidationFailure(task, catalogValidation);
-            return new Result<>().setCode(ResultCode.FAIL.getValue());
-        }
-
         // 根据跑分状态表判断任务是否已经跑过
         // 一次行全量、一次性验证判断onceStatus;每个任务的周期、每日定时判断allStatus
         if (task.getMonitorType() >= 1 && task.getMonitorType() <= 4) {
@@ -416,6 +402,22 @@ public class TaskServiceImpl implements ITaskService {
         }
 
         return new Result<>().setCode(ResultCode.FAIL.getValue());
+    }
+
+    private Boolean validateProduct(MarketingTask task) {
+        ProductCatalogValidationResult catalogValidation = productCatalogValidationService.validate(task);
+        if (!catalogValidation.isPassed()) {
+            log.error("跑分任务产管产品目录校验未通过,batchNumber={},taskId={},detail={}",
+                    task.getBatchNumber(), task.getId(), JSON.toJSONString(catalogValidation.getFailedItems()));
+            MarketingTask taskUpd = new MarketingTask();
+            taskUpd.setId(task.getId());
+            taskUpd.setStatus(MarketingTaskStatusEnum.DISABLED.getValue());
+            marketingTaskMapper.updateByPrimaryKeySelective(taskUpd);
+            updateStraHisFileStatusOnCatalogValidationFailure(task);
+            persistProductCatalogValidationFailure(task, catalogValidation);
+            return false;
+        }
+        return true;
     }
 
     private void updateStraHisFileStatusOnCatalogValidationFailure(MarketingTask task) {
