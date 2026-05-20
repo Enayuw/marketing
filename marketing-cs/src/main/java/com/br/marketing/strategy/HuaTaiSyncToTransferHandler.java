@@ -2,6 +2,7 @@ package com.br.marketing.strategy;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.marketingapi.input.PushTransferDataDetailDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.context.ProcessHandlerContext;
@@ -9,6 +10,7 @@ import com.br.marketing.dto.TransferDataDTO;
 import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.rule.huatai.dto.HuaTaiTransferAssembleDTO;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -24,6 +26,9 @@ import java.util.concurrent.ThreadLocalRandom;
 @Service
 @Slf4j
 public class HuaTaiSyncToTransferHandler extends AbstractExternalInterfaceHandler<HuaTaiTransferAssembleDTO> {
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     @Resource
     private MethodRetryHandlerService methodRetryHandlerService;
@@ -87,14 +92,14 @@ public class HuaTaiSyncToTransferHandler extends AbstractExternalInterfaceHandle
         TransferDataItemDTO transferDataItemDTO = new TransferDataItemDTO();
         transferDataItemDTO.setApiCode(syncUser.getApiCode());
         transferDataItemDTO.setCustNum(syncUser.getCustNum());
-        transferDataItemDTO.setUserType("实时开户断点");
+        transferDataItemDTO.setUserType(marketingCommonConfig.getHuaTaiSyncToTransferUserType());
         transferDataItemDTO.setCaseEffective("0");
-        if (syncUser.getCreateTime() != null) {
-            transferDataItemDTO.setInsertTime(DATE_FORMAT.format(
-                    syncUser.getCreateTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()));
-        } else {
-            transferDataItemDTO.setInsertTime(DATE_FORMAT.format(LocalDateTime.now()));
-        }
+        transferDataItemDTO.setInsertTime(DATE_FORMAT.format(
+                syncUser.getCreateTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()));
+        JSONObject jsonObject = new JSONObject();
+        String phone = BrCipherMaker.getInstance().decode(syncUser.getCell());
+        jsonObject.put("cellExposed", phone);
+        transferDataItemDTO.setReserveField1(JSON.toJSONString(jsonObject));
         return transferDataItemDTO;
     }
 }

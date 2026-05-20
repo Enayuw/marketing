@@ -36,9 +36,7 @@ public class HuaTaiSyncToTransferPatLoanRule implements AssembleData<HuaTaiTrans
         }
         MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
         List<String> userTypes = marketingCommonConfig.getHuaTaiSyncToTransferUserTypeList();
-        return  !CollectionUtils.isEmpty(userTypes)
-                && userTypes.contains(syncUser.getUserType())
-                && "3".equals(syncUser.getOperateType());
+        return  !CollectionUtils.isEmpty(userTypes) && userTypes.contains(syncUser.getUserType());
     }
 
     @Override

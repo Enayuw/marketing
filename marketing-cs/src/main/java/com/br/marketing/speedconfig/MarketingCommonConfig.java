@@ -3512,9 +3512,14 @@ public class MarketingCommonConfig {
 
 
     /**
-     * Ai上传数据入转化userType集合
+     * 华泰上传数据入转化_需处理userType集合
      */
     private List<String> huaTaiSyncToTransferUserTypeList;
+
+    /**
+     * 华泰上传入转化_转化userType
+     */
+    private String huaTaiSyncToTransferUserType;
 
     /**
      * 哈罗-三方营销数据回传 配置
