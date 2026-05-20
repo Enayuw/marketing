@@ -10,6 +10,7 @@ import com.br.marketing.service.ProductCatalogValidationService;
 import com.br.marketing.strategy.customizer.StrategyCustomizerProductCatalogAssembler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.ResourceAccessException;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -55,7 +56,7 @@ public class ProductCatalogValidationServiceImpl implements ProductCatalogValida
 
         Map<String, Set<String>> allowed;
         try {
-            allowed = strategyCustomizerProductCatalogAssembler.buildAllowedProductCodeVersionMap();
+            allowed = fetchAllowedProductCodeVersionMapWithRetry();
         } catch (Exception e) {
             log.error("拉取产管产品目录失败，batchNumber={}", task.getBatchNumber(), e);
             return ProductCatalogValidationResult.fail(Collections.singletonList(failRow("", "", "")));
@@ -110,5 +111,28 @@ public class ProductCatalogValidationServiceImpl implements ProductCatalogValida
         m.put("name", name);
         m.put("version", version);
         return m;
+    }
+
+    private Map<String, Set<String>> fetchAllowedProductCodeVersionMapWithRetry() {
+        int maxRetries = 3;
+        long initialDelayMs = 500;
+        for (int attempt = 0; attempt < maxRetries; attempt++) {
+            try {
+                return strategyCustomizerProductCatalogAssembler.buildAllowedProductCodeVersionMap();
+            } catch (ResourceAccessException e) {
+                if (attempt == maxRetries - 1) {
+                    throw e;
+                }
+                long delay = initialDelayMs * (1L << attempt);
+                log.warn("拉取产管产品目录超时，第{}次重试，等待{}ms", attempt + 1, delay, e);
+                try {
+                    Thread.sleep(delay);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException("重试被中断", ie);
+                }
+            }
+        }
+        throw new RuntimeException("拉取产管产品目录失败，已重试" + maxRetries + "次");
     }
 }
