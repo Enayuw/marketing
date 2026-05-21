@@ -2951,9 +2951,15 @@ public class MarketingCommonConfig {
     private Integer switchMqMaxMsgCount;
 
     /**
-     * 同程易融服务配置
+     * 同程易融服务配置（正式链路）：含 tcPrivateKey、tcPublicKey、brPrivateKey 等。
      */
     private JSONObject tcyrServerConfig;
+
+    /**
+     * relay 免客户端签测试专用：结构与 tcyrServerConfig 一致（tcPrivateKey、tcPublicKey、brPrivateKey）。
+     * 仅 withoutSign 入口经 ThreadLocal 注入后供验签/回包使用；未配置或为空时回退 tcyrServerConfig。
+     */
+    private JSONObject tcyrRelayTestServerConfig;
 
     /**
      * 携程上报新接口
@@ -2975,6 +2981,18 @@ public class MarketingCommonConfig {
      * 同程易融apiCode
      */
     private String tcyrCpaApiCode;
+
+    /**
+     * 同程易融-tcapiCodeAssign 可选 apiCode 列表（如 3710038 拆分后的候选码），与 tcyrApiCode 等同程易融配置并列维护。
+     */
+    private List<String> tcyrMatchCandidateApiCodes;
+
+    /**
+     * 同程易融-tcapiCodeAssign：有权限选码用户列表（Speed 为 {@code List<JSONObject>}，
+     * 与 tcyrCpaFailMsgConfig、transFileExtractionApiCodesConfig 一致）；
+     * 每项须含 {@code userId}、{@code mobile}，透传灵霄 {@code authorizedUsers}。
+     */
+    private List<JSONObject> tcyrApiCodeAssignAuthorizedUsers;
 
     /**
      * 同程易融-客户请求data->b_marketing_tcyr_sync extend字段时的排除字段

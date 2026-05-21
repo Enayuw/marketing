@@ -61,7 +61,9 @@ public class TcTransferCleanJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext shardingContext) {
         try {
             log.warn(TITLE+"调度开始");
-            atciton(marketingCommonConfig.getTcyrApiCode());
+            for (String apiCode : TcyrShardJobApiCodes.resolve(marketingCommonConfig)) {
+                atciton(apiCode);
+            }
             log.warn(TITLE+"调度结束");
         }catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),e.getMessage(), TITLE), e);

@@ -2,40 +2,23 @@ package com.br.marketing.entity;
 
 import java.util.Date;
 
+/**
+ * 同程易融 CPA 大空白组数据表 {@code b_tcyr_cpa_blank_data}
+ */
 public class TcyrCpaBlankData {
-    /**
-     * 
-     */
+
     private Long id;
 
-    /**
-     * 任务id
-     */
     private Long taskId;
 
-    /**
-     * 用户唯一编号
-     */
     private String userKey;
 
-    /**
-     * 扩展字段
-     */
     private String extend;
 
-    /**
-     * 删除状态 1-可用 9-删除
-     */
     private Integer isDel;
 
-    /**
-     * 创建时间
-     */
     private Date createTime;
 
-    /**
-     * 修改时间
-     */
     private Date updateTime;
 
     public Long getId() {
@@ -67,7 +50,7 @@ public class TcyrCpaBlankData {
     }
 
     public void setExtend(String extend) {
-        this.extend = extend == null ? null : extend.trim();
+        this.extend = extend;
     }
 
     public Integer getIsDel() {

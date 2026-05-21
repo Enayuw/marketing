@@ -8,9 +8,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
- * @Description 同程易融快速处理流程(file->上传明细表)
+ * @Description 同程易融快速处理流程(file->上传明细表)。record 开始清洗时由
+ * {@link com.br.marketing.service.tc.impl.TcSyncDataQuickDealServiceImpl} 异步通知 gods {@code /open/dingtalk/api-code-card/tcDataCleanNotify}。
  * @Author zhiyong.zhang
  * @CreateTime 2025/07/03
  */
@@ -26,6 +28,9 @@ public class TcSyncQuickDealShardJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
-        quickDealService.shardProcess(marketingCommonConfig.getTcyrApiCode());
+        List<String> apiCodes = TcyrShardJobApiCodes.resolve(marketingCommonConfig);
+        for (String apiCode : apiCodes) {
+            quickDealService.shardProcess(apiCode);
+        }
     }
 }

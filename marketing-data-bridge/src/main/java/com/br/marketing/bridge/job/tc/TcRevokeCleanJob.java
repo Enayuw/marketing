@@ -63,41 +63,39 @@ public class TcRevokeCleanJob extends AbstractSimpleElasticJob {
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
         try {
-            action(marketingCommonConfig.getTcyrApiCode());
+            action();
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(), e.getMessage(), TITLE), e);
         }
     }
 
     /**
-     * 主方法
-     * @param apiCode
+     * 主方法：按 api_code 非空的待清洗撤销记录逐条处理。
      */
-    private void action(String apiCode) {
+    private void action() {
         while (true) {
             // 1.查询待撤销数据
-            MarketingTcyrRevokeRecord record = fetchNextRevokeRecord(apiCode);
+            MarketingTcyrRevokeRecord record = fetchNextRevokeRecord();
             if (record == null) {
                 break;
             }
             // 2.处理记录
-            processRevokeRecord(apiCode, record);
+            processRevokeRecord(record);
             // 适当休眠避免CPU过载
             sleepSafely(1000);
         }
     }
 
     /**
-     * @description 查询单条撤销记录
-     * @param apiCode
+     * @description 查询单条撤销记录（api_code 已归因）
      * @return
      * @author hedongshuo
      * @date 2025/5/8 14:45
      **/
-    private MarketingTcyrRevokeRecord fetchNextRevokeRecord(String apiCode) {
+    private MarketingTcyrRevokeRecord fetchNextRevokeRecord() {
         MarketingTcyrRevokeRecordExample example = new MarketingTcyrRevokeRecordExample();
         example.createCriteria()
-                .andApiCodeEqualTo(apiCode)
+                .andApiCodeIsNotNull()
                 .andStatusEqualTo(1)
                 .andIsCleanEqualTo(0)
                 .andIsDelEqualTo(1);
@@ -107,7 +105,11 @@ public class TcRevokeCleanJob extends AbstractSimpleElasticJob {
     }
 
     //处理单条记录
-    private void processRevokeRecord(String apiCode, MarketingTcyrRevokeRecord record) {
+    private void processRevokeRecord(MarketingTcyrRevokeRecord record) {
+        String apiCode = record.getApiCode();
+        if (StringUtils.isBlank(apiCode)) {
+            return;
+        }
         MarketingTcyrRevokeRecord updateRecord = new MarketingTcyrRevokeRecord();
         updateRecord.setId(record.getId());
         try {

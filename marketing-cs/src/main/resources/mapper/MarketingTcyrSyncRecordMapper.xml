@@ -3,7 +3,7 @@
 <mapper namespace="com.br.marketing.mapper.MarketingTcyrSyncRecordMapper" >
 
     <select id="searchAllTcyrSyncList" resultType="com.br.marketing.entity.MarketingTcyrSyncRecord">
-        SELECT  id, api_code, request_no, batch_no, scene, `data`, `status`, msg, create_time, update_time,down_status,is_del
+        SELECT  id, api_code, request_no, batch_no, scene, `data`, `status`, assign_status, msg, create_time, update_time,down_status,is_del
         FROM b_marketing_tcyr_sync_record
         WHERE api_code = #{apiCode}
           AND status = #{status}
@@ -11,11 +11,29 @@
     </select>
 
     <select id="searchTcyrSyncList" resultType="com.br.marketing.entity.MarketingTcyrSyncRecord">
-        SELECT  id, api_code, request_no, batch_no, scene, `data`, `status`, msg, create_time, update_time,down_status,is_del
+        SELECT  id, api_code, request_no, batch_no, scene, `data`, `status`, assign_status, msg, create_time, update_time,down_status,is_del
         FROM b_marketing_tcyr_sync_record
         WHERE api_code = #{apiCode}
           AND status = #{status}
           AND down_status = 0
+          AND is_del = 1
+    </select>
+
+    <!-- 拆 apiCode 后：仅对已归因 api_code 的记录拉取文件（标准链路需先 fill） -->
+    <select id="searchTcyrSyncListApiCodeNotNull" resultType="com.br.marketing.entity.MarketingTcyrSyncRecord">
+        SELECT  id, api_code, request_no, batch_no, scene, `data`, `status`, assign_status, msg, create_time, update_time,down_status,is_del
+        FROM b_marketing_tcyr_sync_record
+        WHERE api_code IS NOT NULL
+          AND status = #{status}
+          AND down_status = 0
+          AND is_del = 1
+    </select>
+
+    <select id="searchAllTcyrSyncListApiCodeNotNull" resultType="com.br.marketing.entity.MarketingTcyrSyncRecord">
+        SELECT  id, api_code, request_no, batch_no, scene, `data`, `status`, assign_status, msg, create_time, update_time,down_status,is_del
+        FROM b_marketing_tcyr_sync_record
+        WHERE api_code IS NOT NULL
+          AND status = #{status}
           AND is_del = 1
     </select>
 
@@ -28,6 +46,46 @@
         ORDER BY id DESC
         LIMIT 1
     </select>
+
+    <select id="selectLatestByBatchNo" resultType="com.br.marketing.entity.MarketingTcyrSyncRecord">
+        SELECT id, api_code, request_no, batch_no, scene, `data`, `status`, assign_status, msg, create_time, update_time, down_status, is_del
+        FROM b_marketing_tcyr_sync_record
+        WHERE batch_no = #{batchNo}
+          AND is_del = 1
+        ORDER BY id DESC
+        LIMIT 1
+    </select>
+
+    <select id="selectPendingApiCodeMatchRecords" resultType="com.br.marketing.entity.MarketingTcyrSyncRecord">
+        SELECT id, api_code, request_no, batch_no, scene, `data`, `status`, assign_status, msg, create_time, update_time, down_status, is_del
+        FROM b_marketing_tcyr_sync_record
+        WHERE api_code IS NULL
+          AND `status` = 1
+          AND assign_status IS NULL
+          AND is_del = 1
+        ORDER BY id ASC
+        LIMIT #{limit}
+    </select>
+
+    <update id="claimAssignCardDispatched">
+        UPDATE b_marketing_tcyr_sync_record
+        SET assign_status = 1,
+            update_time = NOW()
+        WHERE id = #{id}
+          AND assign_status IS NULL
+          AND api_code IS NULL
+          AND `status` = 1
+          AND is_del = 1
+    </update>
+
+    <update id="resetAssignStatusAfterFailedDispatch">
+        UPDATE b_marketing_tcyr_sync_record
+        SET assign_status = NULL,
+            update_time = NOW()
+        WHERE id = #{id}
+          AND assign_status = 1
+          AND api_code IS NULL
+    </update>
 
     <select id="countTodayByApiCodeAndBatchPrefix" resultType="java.lang.Integer">
         SELECT COUNT(1)

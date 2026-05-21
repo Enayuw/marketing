@@ -30,8 +30,14 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
 
     private final static Integer LOCK_BELONG_BR = 1;
 
+    /** 撞库失败 fail_msg：写入大空白组表 b_tcyr_cpa_blank_data（增量，与 lock/invalue 并行） */
+    private static final String FAIL_MSG_BLANK_GROUP = "4";
+
     @Resource
     private TcyrCpaLockDataMapper tcyrCpaLockDataMapper;
+
+    @Resource
+    private TcyrCpaBlankDataMapper tcyrCpaBlankDataMapper;
 
     @Resource
     private TcyrCpaCollectTaskMapper tcyrCpaCollectTaskMapper;
@@ -257,11 +263,18 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
         List<TcyrCpaLockData> lockData = new ArrayList<>();
         //进【b_tcyr_cpa_invalue_data】的数据
         List<TcyrCpaInvalueData> invalueData = new ArrayList<>();
+        //进【b_tcyr_cpa_blank_data】的数据（fail_msg=4，INSERT IGNORE 依赖 user_key 唯一索引）
+        List<TcyrCpaBlankData> blankData = new ArrayList<>();
         for (MarketingTcyrCpaFailData datum : batchData) {
             if (failMsgToLbMap.containsKey(datum.getFailMsg())) {
                 lockData.add(getTcyrCpaLockData(datum, taskId, failMsgToLbMap.get(datum.getFailMsg())));
             } else {
                 invalueData.add(getTcyrCpaInvalueData(datum, taskId));
+            }
+            if (FAIL_MSG_BLANK_GROUP.equals(datum.getFailMsg())
+                    && datum.getUserKey() != null
+                    && !datum.getUserKey().isBlank()) {
+                blankData.add(getTcyrCpaBlankData(datum, taskId));
             }
         }
         if (CollectionUtils.isNotEmpty(lockData)) {
@@ -269,6 +282,9 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
         }
         if (CollectionUtils.isNotEmpty(invalueData)) {
             tcyrCpaInvalueDataMapper.batchSave(invalueData);
+        }
+        if (CollectionUtils.isNotEmpty(blankData)) {
+            tcyrCpaBlankDataMapper.batchInsertIgnore(blankData);
         }
     }
 
@@ -300,5 +316,13 @@ public class TcCpaCollidingDataCollectServiceImpl implements TcCpaCollidingDataC
         return invalue;
     }
 
+    private TcyrCpaBlankData getTcyrCpaBlankData(MarketingTcyrCpaFailData failData, Long taskId) {
+        TcyrCpaBlankData row = new TcyrCpaBlankData();
+        row.setTaskId(taskId);
+        row.setUserKey(failData.getUserKey());
+        row.setExtend(failData.getExtend());
+        row.setIsDel(Constants.DATA_VALID);
+        return row;
+    }
 
 }

@@ -3,6 +3,7 @@ package com.br.marketing.datarelayservice.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
+import com.br.marketing.datarelayservice.context.TcRelayServerConfigContext;
 import com.br.marketing.datarelayservice.service.TcCustomizeService;
 import com.br.marketing.dto.tc.TcRequestDTO;
 import com.br.marketing.dto.tc.TcResponseDTO;
@@ -20,7 +21,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
-@Tag(name = "同程易融代运营测试", description = "同程易融代运营测试")
+@Tag(name = "同程易融代运营测试", description = "免客户端签；代签/验签使用 Speed tcyrRelayTestServerConfig（空则回退 tcyrServerConfig），经 ThreadLocal 与正式链路隔离")
 @RequestMapping("/marketing/v1/api/withoutSign")
 @RestController
 @Slf4j
@@ -37,62 +38,77 @@ public class TcCustomizeWithoutSignController {
     @Operation(summary = "测试数据推送")
     @PostMapping("/marketDataPush")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
-    public TcResponseDTO marketDataPushWithoutSign(@RequestBody TcRequestDTO tcRequestDTO, HttpServletRequest request) {
-        tcRequestDTO.setTimestamp(String.valueOf(System.currentTimeMillis()));
-        Map<String, Object> convert = objectMapper.convertValue(tcRequestDTO, Map.class);
-        String signature = RSAUtil.generateContent(convert);
-        JSONObject tcyrServerConfig = marketingCommonConfig.getTcyrServerConfig();
-        //同程私钥加签
-        String tcPrivateKey = tcyrServerConfig.getString("tcPrivateKey").replace("*", "=");
-        //百融私钥加签
-        String sign = RSAUtil.signByPrivateKey(tcPrivateKey, signature);
-        tcRequestDTO.setSign(sign);
-        return tcCustomizeService.marketDataPush(tcRequestDTO, request.getHeader("Test-ApiCode"));
+    public TcResponseDTO marketDataPushWithoutSign(@RequestBody TcRequestDTO tcRequestDTO) {
+        try {
+            TcRelayServerConfigContext.setTestOrFallback(marketingCommonConfig);
+            tcRequestDTO.setTimestamp(String.valueOf(System.currentTimeMillis()));
+            Map<String, Object> convert = objectMapper.convertValue(tcRequestDTO, Map.class);
+            String signature = RSAUtil.generateContent(convert);
+            JSONObject tcyrServerConfig = TcRelayServerConfigContext.resolve(marketingCommonConfig);
+            String tcPrivateKey = tcyrServerConfig.getString("tcPrivateKey").replace("*", "=");
+            String sign = RSAUtil.signByPrivateKey(tcPrivateKey, signature);
+            tcRequestDTO.setSign(sign);
+            return tcCustomizeService.marketDataPush(tcRequestDTO, null);
+        } finally {
+            TcRelayServerConfigContext.clear();
+        }
     }
 
     @Operation(summary = "测试撤销营销")
     @PostMapping("/marketRevoke")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
-    public TcResponseDTO marketRevokeWithoutSign(@RequestBody TcRequestDTO tcRequestDTO, HttpServletRequest request) {
-        tcRequestDTO.setTimestamp(String.valueOf(System.currentTimeMillis()));
-        Map<String, Object> convert = objectMapper.convertValue(tcRequestDTO, Map.class);
-        String signature = RSAUtil.generateContent(convert);
-        JSONObject tcyrServerConfig = marketingCommonConfig.getTcyrServerConfig();
-        //同程私钥加签
-        String tcPrivateKey = tcyrServerConfig.getString("tcPrivateKey").replace("*", "=");
-        String sign = RSAUtil.signByPrivateKey(tcPrivateKey, signature);
-        tcRequestDTO.setSign(sign);
-        return tcCustomizeService.marketRevoke(tcRequestDTO, request.getHeader("Test-ApiCode"));
+    public TcResponseDTO marketRevokeWithoutSign(@RequestBody TcRequestDTO tcRequestDTO) {
+        try {
+            TcRelayServerConfigContext.setTestOrFallback(marketingCommonConfig);
+            tcRequestDTO.setTimestamp(String.valueOf(System.currentTimeMillis()));
+            Map<String, Object> convert = objectMapper.convertValue(tcRequestDTO, Map.class);
+            String signature = RSAUtil.generateContent(convert);
+            JSONObject tcyrServerConfig = TcRelayServerConfigContext.resolve(marketingCommonConfig);
+            String tcPrivateKey = tcyrServerConfig.getString("tcPrivateKey").replace("*", "=");
+            String sign = RSAUtil.signByPrivateKey(tcPrivateKey, signature);
+            tcRequestDTO.setSign(sign);
+            return tcCustomizeService.marketRevoke(tcRequestDTO, null);
+        } finally {
+            TcRelayServerConfigContext.clear();
+        }
     }
 
     @Operation(summary = "测试转化通知")
     @PostMapping("/transformNotify")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
-    public TcResponseDTO transformNotifyWithoutSign(@RequestBody TcRequestDTO tcRequestDTO, HttpServletRequest request) {
-        tcRequestDTO.setTimestamp(String.valueOf(System.currentTimeMillis()));
-        Map<String, Object> convert = objectMapper.convertValue(tcRequestDTO, Map.class);
-        String signature = RSAUtil.generateContent(convert);
-        JSONObject tcyrServerConfig = marketingCommonConfig.getTcyrServerConfig();
-        //同程私钥加签
-        String tcPrivateKey = tcyrServerConfig.getString("tcPrivateKey").replace("*", "=");
-        String sign = RSAUtil.signByPrivateKey(tcPrivateKey, signature);
-        tcRequestDTO.setSign(sign);
-        return tcCustomizeService.transformNotify(tcRequestDTO, request.getHeader("Test-ApiCode"));
+    public TcResponseDTO transformNotifyWithoutSign(@RequestBody TcRequestDTO tcRequestDTO) {
+        try {
+            TcRelayServerConfigContext.setTestOrFallback(marketingCommonConfig);
+            tcRequestDTO.setTimestamp(String.valueOf(System.currentTimeMillis()));
+            Map<String, Object> convert = objectMapper.convertValue(tcRequestDTO, Map.class);
+            String signature = RSAUtil.generateContent(convert);
+            JSONObject tcyrServerConfig = TcRelayServerConfigContext.resolve(marketingCommonConfig);
+            String tcPrivateKey = tcyrServerConfig.getString("tcPrivateKey").replace("*", "=");
+            String sign = RSAUtil.signByPrivateKey(tcPrivateKey, signature);
+            tcRequestDTO.setSign(sign);
+            return tcCustomizeService.transformNotify(tcRequestDTO, null);
+        } finally {
+            TcRelayServerConfigContext.clear();
+        }
     }
 
     @Operation(summary = "测试正负样本推送")
     @PostMapping("/sampleDataPush")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public TcResponseDTO sampleDataPushWithoutSign(@RequestBody TcRequestDTO tcRequestDTO, HttpServletRequest request) {
-        tcRequestDTO.setTimestamp(String.valueOf(System.currentTimeMillis()));
-        Map<String, Object> convert = objectMapper.convertValue(tcRequestDTO, Map.class);
-        String signature = RSAUtil.generateContent(convert);
-        JSONObject tcyrServerConfig = marketingCommonConfig.getTcyrServerConfig();
-        //同程私钥加签
-        String tcPrivateKey = tcyrServerConfig.getString("tcPrivateKey").replace("*", "=");
-        String sign = RSAUtil.signByPrivateKey(tcPrivateKey, signature);
-        tcRequestDTO.setSign(sign);
-        return tcCustomizeService.sampleDataPush(tcRequestDTO, request.getHeader("Test-ApiCode"));
+        try {
+            TcRelayServerConfigContext.setTestOrFallback(marketingCommonConfig);
+            tcRequestDTO.setTimestamp(String.valueOf(System.currentTimeMillis()));
+            Map<String, Object> convert = objectMapper.convertValue(tcRequestDTO, Map.class);
+            String signature = RSAUtil.generateContent(convert);
+            JSONObject tcyrServerConfig = TcRelayServerConfigContext.resolve(marketingCommonConfig);
+            String tcPrivateKey = tcyrServerConfig.getString("tcPrivateKey").replace("*", "=");
+            String sign = RSAUtil.signByPrivateKey(tcPrivateKey, signature);
+            tcRequestDTO.setSign(sign);
+            return tcCustomizeService.sampleDataPush(tcRequestDTO, request.getHeader("Test-ApiCode"));
+        } finally {
+            TcRelayServerConfigContext.clear();
+        }
     }
 
 

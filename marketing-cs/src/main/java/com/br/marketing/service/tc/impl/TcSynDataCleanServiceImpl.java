@@ -43,4 +43,9 @@ public class TcSynDataCleanServiceImpl implements TcSyncDataCleanService {
         return tcyrSyncRecordMapper.searchAllTcyrSyncList(apiCode,status);
     }
 
+    @Override
+    public List<MarketingTcyrSyncRecord> searchAllTcyrSyncListApiCodeNotNull(Integer status) {
+        return tcyrSyncRecordMapper.searchAllTcyrSyncListApiCodeNotNull(status);
+    }
+
 }

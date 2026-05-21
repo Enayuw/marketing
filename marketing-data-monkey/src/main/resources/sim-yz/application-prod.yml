@@ -97,6 +97,15 @@ otherConfig:
         sftpPort: 9999
         sftpUser: BRmarketing
         sftpPwd: gKjTC62qUJMKigEyvn01@_2021.06.07
+  # 灵霄宝殿：同程 tcapiCodeAssign（候选 apiCode 见 Speed tcyrMatchCandidateApiCodes）
+  tcyr-lingxiao:
+    enabled: true
+    base-url: http://middle-heaven-roster-gods
+    assign-path: /open/dingtalk/api-code-card/tcapiCodeAssign
+    bearer-token: ""
+    batch-limit: 30
+    connect-timeout-ms: 5000
+    read-timeout-ms: 15000
   proxy:
     proxy_host: squid-proxy2.brapp.com
     proxy_port: 3128

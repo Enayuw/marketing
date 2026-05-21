@@ -17,4 +17,9 @@ public interface TcSyncDataCleanService {
     Integer updateCleanStatus(List<Long> idList, Integer cleanStatus);
 
     List<MarketingTcyrSyncRecord> searchAllTcyrSyncList(String apiCode, Integer status);
+
+    /**
+     * 上传数据清洗：仅处理已写入 api_code 的接入成功记录（与 downFile 一致）。
+     */
+    List<MarketingTcyrSyncRecord> searchAllTcyrSyncListApiCodeNotNull(Integer status);
 }

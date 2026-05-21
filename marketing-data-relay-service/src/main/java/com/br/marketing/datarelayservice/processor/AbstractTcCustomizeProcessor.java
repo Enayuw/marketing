@@ -8,6 +8,7 @@ import com.br.marketing.dto.tc.TcDataDto;
 import com.br.marketing.dto.tc.TcRequestDTO;
 import com.br.marketing.dto.tc.TcResponseDTO;
 import com.br.marketing.enums.TcCpaRecordStatusEnum;
+import com.br.marketing.datarelayservice.context.TcRelayServerConfigContext;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.tc.RSAUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,7 +36,7 @@ public abstract class AbstractTcCustomizeProcessor {
         log.warn("接收到同程易融{}请求数据，data:{}", bizCode, tcRequestDTO);
         TcResponseDTO resdto = new TcResponseDTO();
         Long recordId = null;
-        JSONObject tcyrServerConfig = marketingCommonConfig.getTcyrServerConfig();
+        JSONObject tcyrServerConfig = TcRelayServerConfigContext.resolve(marketingCommonConfig);
         String tcPublicKey = tcyrServerConfig.getString("tcPublicKey");
         String brPrivateKey = tcyrServerConfig.getString("brPrivateKey").replace("*", "=");
         try {

@@ -2,6 +2,7 @@ package com.br.marketing.datarelayservice.processor;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.dto.tc.TcRequestDTO;
+import com.br.marketing.entity.MarketingTcyrSyncRecord;
 import com.br.marketing.entity.MarketingTcyrRevokeRecord;
 import com.br.marketing.mapper.MarketingTcyrSyncRecordMapper;
 import com.br.marketing.mapper.MarketingTcyrRevokeRecordMapper;
@@ -29,32 +30,38 @@ public class TcRevokeProcessor extends AbstractTcCustomizeProcessor{
 
     @Override
     protected void updateRecord(Long recordId, Integer status, String msg) {
-        MarketingTcyrRevokeRecord record = new MarketingTcyrRevokeRecord();
-        record.setId(recordId);
-        record.setStatus(status);
-        record.setMsg(msg);
-        tcyrRevokeRecordMapper.updateByPrimaryKeySelective(record);
+        MarketingTcyrRevokeRecord row = new MarketingTcyrRevokeRecord();
+        row.setId(recordId);
+        row.setStatus(status);
+        row.setMsg(msg);
+        tcyrRevokeRecordMapper.updateByPrimaryKeySelective(row);
     }
 
     @Override
     protected Long recordSave(TcRequestDTO tcRequestDTO, String batchNo, String apiCode, String brPrivateKey) {
-        String scene = tcyrSyncRecordMapper.selectLatestSceneByBatchNo(apiCode, batchNo);
-        MarketingTcyrRevokeRecord record = new MarketingTcyrRevokeRecord();
-        record.setApiCode(apiCode);
-        record.setRequestNo(tcRequestDTO.getRequestNo());
-        record.setBatchNo(batchNo);
-        record.setData(appendSceneAndPushFlag(tcRequestDTO.getData(), scene));
-        record.setStatus(0);
-        record.setCreateTime(new Date());
-        record.setUpdateTime(new Date());
+        MarketingTcyrSyncRecord syncRecord = tcyrSyncRecordMapper.selectLatestByBatchNo(batchNo);
+        if (syncRecord == null || StringUtils.isBlank(syncRecord.getApiCode())) {
+            throw new IllegalStateException(
+                    "撤销营销：batchNo 在 b_marketing_tcyr_sync_record 中不存在或未分配 apiCode，batchNo=" + batchNo);
+        }
+        String resolvedApiCode = syncRecord.getApiCode();
+        String scene = syncRecord.getScene();
+        MarketingTcyrRevokeRecord row = new MarketingTcyrRevokeRecord();
+        row.setApiCode(resolvedApiCode);
+        row.setRequestNo(tcRequestDTO.getRequestNo());
+        row.setBatchNo(batchNo);
+        row.setData(appendSceneAndPushFlag(tcRequestDTO.getData(), scene));
+        row.setStatus(0);
+        row.setCreateTime(new Date());
+        row.setUpdateTime(new Date());
         try {
-            tcyrRevokeRecordMapper.insertSelective(record);
-            return record.getId();
+            tcyrRevokeRecordMapper.insertSelective(row);
+            return row.getId();
         } catch (DuplicateKeyException e) {
             //告警
-            record.setRequestNo(tcRequestDTO.getRequestNo() + "_" + System.currentTimeMillis());
-            record.setStatus(2);
-            tcyrRevokeRecordMapper.insertSelective(record);
+            row.setRequestNo(tcRequestDTO.getRequestNo() + "_" + System.currentTimeMillis());
+            row.setStatus(2);
+            tcyrRevokeRecordMapper.insertSelective(row);
             return null;
         }
     }
