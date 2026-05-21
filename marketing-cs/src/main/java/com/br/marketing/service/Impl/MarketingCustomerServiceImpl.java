@@ -170,6 +170,9 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
         marketingCustomer.setStatus(vo.getStatus());
         marketingCustomer.setAccountStatus(vo.getAccountStatus());
         marketingCustomer.setExtendConfigInfo(vo.getExtendConfigInfo());
+        if (StringUtils.hasText(vo.getExpireDay())) {
+            marketingCustomer.setExpireDay(vo.getExpireDay().trim());
+        }
         marketingCustomer.setType("all,once");
         //push_type如果为1,push_url、push_thread_num必须不为空
         marketingCustomer.setPushType(vo.getPushType() != null ? vo.getPushType() : 0);

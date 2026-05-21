@@ -492,5 +492,9 @@ public interface MarketingSyncUserMapper {
 
     List<MarketingSyncUser> getSyncUserByMD5(@Param("apiCode") String apiCode, @Param("cellMD5") List<String> cellMD5);
 
+    /**
+     * 跑分批次 Redis 过期策略：统计同步表有效数据量级（status=1 且 is_repeat in (1,2)）
+     */
+    long countValidSyncForScoreBatchExpire(@Param("apiCode") String apiCode);
 
 }

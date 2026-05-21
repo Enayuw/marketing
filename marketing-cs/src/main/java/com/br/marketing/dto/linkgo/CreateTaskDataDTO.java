@@ -16,6 +16,7 @@ public class CreateTaskDataDTO {
     private String fieldMapping;
     private String queryCondition;
     private Long estimatedRows;
+    private String apiCode;
     private String userName;
 
     public String getRuleCode() {
@@ -66,6 +67,14 @@ public class CreateTaskDataDTO {
         this.estimatedRows = estimatedRows;
     }
 
+    public String getApiCode() {
+        return apiCode;
+    }
+
+    public void setApiCode(String apiCode) {
+        this.apiCode = apiCode;
+    }
+
     public String getUserName() {
         return userName;
     }
@@ -83,6 +92,7 @@ public class CreateTaskDataDTO {
                 ", fieldMapping='" + fieldMapping + '\'' +
                 ", queryCondition='" + queryCondition + '\'' +
                 ", estimatedRows=" + estimatedRows +
+                ", apiCode='" + apiCode + '\'' +
                 ", userName='" + userName + '\'' +
                 '}';
     }

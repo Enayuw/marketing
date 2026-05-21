@@ -14,6 +14,7 @@ import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
 import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.enums.ScoreRuleCheckStatusEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.MQConstants;
@@ -22,6 +23,7 @@ import com.br.marketing.commonentity.CommonConstants;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.dto.OffLineCallBackDTO;
+import com.br.marketing.dto.score.ProductCatalogValidationResult;
 import com.br.marketing.dto.TaskExtendExtendFieldDTO;
 import com.br.marketing.dto.TaskSelectSaveDTO;
 import com.br.marketing.entity.*;
@@ -114,6 +116,12 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
     @Autowired
     private IRuleConfigService iRuleConfigService;
+
+    @Resource
+    private ProductCatalogValidationService productCatalogValidationService;
+
+    @Resource
+    private MarketingTaskModelCheckMapper marketingTaskModelCheckMapper;
 
     @Resource
     private MarketingSyncReportMapper marketingSyncReportMapper;
@@ -771,9 +779,10 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             customerScoreRuleVO.setBuildType(1);
 
             Result<Long> result = buildScoreTaskOfSelect(customerScoreRuleVO, userTypeList);
-            if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                resIds.add(result.getData());
+            if (!result.isSuccess()) {
+                return new Result<>().failure().setMessage(result.getMessage());
             }
+            resIds.add(result.getData());
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(resIds);
     }
@@ -941,6 +950,29 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         task.setCreateTime(LocalDateTime.now().format(ymdhms));
         task.setContextId(iApiToDbService.getTaskContextId());
         task.setScoreSeparator(scoreSeparator);
+
+        ProductCatalogValidationResult catalogValidation = productCatalogValidationService.validate(task);
+        if (!catalogValidation.isPassed()) {
+            log.warn("生成跑分任务时产管目录校验未通过，不入库。batchNumber={}, apiCode={}, ruleId={}, detail={}",
+                    batchNumber, apiCode, ruleVO.getId(), JSON.toJSONString(catalogValidation.getFailedItems()));
+            persistProductCatalogValidationFailureOnTaskBuild(task, ruleVO, catalogValidation);
+            if (ruleVO.getId() != null) {
+                try {
+                    ScoreRuleConfig blockRule = new ScoreRuleConfig();
+                    blockRule.setId(ruleVO.getId());
+                    blockRule.setCheckStatus(ScoreRuleCheckStatusEnum.CATALOG_BLOCK_AUTO.getValue());
+                    blockRule.setUpdateTime(new Date());
+                    scoreRuleConfigMapper.updateByPrimaryKeySelective(blockRule);
+                    log.warn("跑分规则已标记check_status={}暂停自动生成,ruleId={}",
+                            ScoreRuleCheckStatusEnum.CATALOG_BLOCK_AUTO.getValue(), ruleVO.getId());
+                } catch (Exception e) {
+                    log.error("更新跑分规则check_status失败,ruleId={}", ruleVO.getId(), e);
+                }
+            }
+            return new Result<Long>().setCode(ResultCode.FAIL.getValue())
+                    .setMessage(JSON.toJSONString(catalogValidation.getFailedItems()) + "\n" + "不在产管系统里");
+        }
+
         marketingTaskMapper.insertSelective(task);
         //endregion
 
@@ -1001,6 +1033,43 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         //endregion
 
         return new Result<Long>().setCode(ResultCode.SUCCESS.getValue()).setDate(task.getId());
+    }
+
+    /**
+     * 任务生成阶段产管校验未通过时写入 {@code b_marketing_task_model_check}（此时任务尚未入库，规则名来自跑分配置 VO）。
+     */
+    private void persistProductCatalogValidationFailureOnTaskBuild(
+            MarketingTask task, CustomerScoreRuleVO ruleVO, ProductCatalogValidationResult catalogValidation) {
+        try {
+            if (StringUtils.isBlank(task.getBatchNumber())) {
+                insertProductCatalogValidationFailureRowOnTaskBuild(task, ruleVO, catalogValidation);
+            } else {
+                MarketingTaskModelCheckExample existExample = new MarketingTaskModelCheckExample();
+                existExample.createCriteria()
+                        .andBatchNumberEqualTo(task.getBatchNumber())
+                        .andFailedModelInfoEqualTo(JSON.toJSONString(catalogValidation.getFailedItems()));
+                if (marketingTaskModelCheckMapper.countByExample(existExample) == 0) {
+                    insertProductCatalogValidationFailureRowOnTaskBuild(task, ruleVO, catalogValidation);
+                }
+            }
+        } catch (Exception e) {
+            log.error("写入产管校验结果表失败(任务生成阶段),batchNumber={}", task.getBatchNumber(), e);
+        }
+    }
+
+    private void insertProductCatalogValidationFailureRowOnTaskBuild(
+            MarketingTask task, CustomerScoreRuleVO ruleVO, ProductCatalogValidationResult catalogValidation) {
+        MarketingTaskModelCheck record = new MarketingTaskModelCheck();
+        record.setApiCode(task.getApiCode());
+        record.setBatchNumber(task.getBatchNumber());
+        record.setCusBatch(task.getCusBatch());
+        record.setRuleName(ruleVO.getRuleName());
+        record.setRuleNameShort(ruleVO.getRuleNameShort());
+        record.setModelCheckStatus(0);
+        record.setFailedModelInfo(JSON.toJSONString(catalogValidation.getFailedItems()));
+        record.setIsDel(1);
+        record.setCreateTime(new Date());
+        marketingTaskModelCheckMapper.insertSelective(record);
     }
 
     private String createMarketingTaskBatchNumber(String apiCode, String time) {
