@@ -1,9 +1,6 @@
 package com.br.marketing.service.Impl;
 
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 
@@ -48,6 +45,9 @@ public class MarketingTaskOptServiceImpl implements MarketingTaskOptService {
     @Autowired(required = false)
     private CuratorFramework client;
 
+    @Autowired
+    private ScoreCrossDayRestoreService scoreCrossDayRestoreService;
+
     @Override
     public Result pauseTask(Long fileId, Integer isOrPause) {
         StraHisFile straHisFile = straHisFileMapper.selectByPrimaryKey(fileId);
@@ -74,10 +74,9 @@ public class MarketingTaskOptServiceImpl implements MarketingTaskOptService {
                 if (!ScoreStatusEnum.PAUSEED.getValue().equals(straHisFile.getStatus())) {
                     return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该任务不是已暂停状态");
                 }
-                String scoreDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(straHisFile.getCreateTime()).substring(0, 10);
-                String actionDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
-                if (!scoreDate.equals(actionDate)) {
-                    return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("跨天不允许恢复跑分");
+                Result crossDay = scoreCrossDayRestoreService.prepareForResume(straHisFile);
+                if (!ResultCode.SUCCESS.getValue().equals(crossDay.getCode())) {
+                    return crossDay;
                 }
                 StraHisFile updateFile = new StraHisFile();
                 updateFile.setId(fileId);

@@ -20,7 +20,9 @@ public enum MonitorTypeEnum {
     FAIL_TYPE_2(2, "Sha256"),
     FAIL_TYPE_3(3, "IsCheck"),
     FAIL_TYPE_4(4, "AesCommon"),
-    FAIL_TYPE_5(5, "AesNwd");
+    FAIL_TYPE_5(5, "AesNwd"),
+    FAIL_TYPE_SM3(6, "SM3"),
+    FAIL_TYPE_SM4(7, "SM4");
     private int typeCode;
     private String type;
 

@@ -281,6 +281,9 @@ public class ResultUtil {
             mh.setCondition(conditionList);
             mh.setReserveField(esResult.toJSONString());
             mh.setUseNewIndexRule(EsNewIndexRuleUtils.resolve(straHisFileCreateTimeMillis, marketingCommonConfig));
+            mh.setCellOriginal(user.getCellOriginal());
+            mh.setIdCardOriginal(user.getIdCardOriginal());
+            mh.setNameOriginal(user.getNameOriginal());
             String id = UuidUtils.getUuid();
             MarketingHistoryEsServiceImpl service = new MarketingHistoryEsServiceImpl();
             // 模拟ES异常
@@ -370,7 +373,7 @@ public class ResultUtil {
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
-    private static String encrypt3k(Integer type, String content) {
+    private static String encrypt3k(Integer type, String content, String original) {
         if (StringUtils.isBlank(content)) {
             return "";
         }
@@ -385,6 +388,11 @@ public class ResultUtil {
         if (ScoreThreeKeyEncryptEnum.sha256.getValue().equals(type)) {
             return Sha256Util.getSHA256Encrypt(decode);
         }
+
+        if (ScoreThreeKeyEncryptEnum.general.getValue().equals(type)) {
+            return original;
+        }
+
         return content;
     }
 
@@ -442,20 +450,19 @@ public class ResultUtil {
                         case "custnum":
                             str = syncUser.getCustNum();
                             break;
-                        case "idcard":
-                            str = encrypt3k(head.getThreekEncryptType(), syncUser.getIdCard());
-                            strId = syncUser.getIdCard();
-                            break;
-                        case "id":
-                            str = encrypt3k(head.getThreekEncryptType(), syncUser.getIdCard());
+                        case "idcard", "id":
+                            str = encrypt3k(head.getThreekEncryptType(), syncUser.getIdCard(),
+                                    syncUser.getIdCardOriginal());
                             strId = syncUser.getIdCard();
                             break;
                         case "cell":
-                            str = encrypt3k(head.getThreekEncryptType(), syncUser.getCell());
+                            str = encrypt3k(head.getThreekEncryptType(), syncUser.getCell(),
+                                    syncUser.getCellOriginal());
                             strCell = syncUser.getCell();
                             break;
                         case "name":
-                            str = encrypt3k(head.getThreekEncryptType(), syncUser.getName());
+                            str = encrypt3k(head.getThreekEncryptType(), syncUser.getName(),
+                                    syncUser.getNameOriginal());
                             strNm = syncUser.getName();
                             break;
                         case "grouptype":
@@ -545,7 +552,7 @@ public class ResultUtil {
         }
     }
 
-    // 返回两个字符串 一个是加密后的值 一个是解密后的值 
+    // 返回两个字符串 一个是加密后的值 一个是解密后的值
     private static Pair<String, String> decryptAndEncrypt(String value, int encryptType, String dataKey) {
         String toValue = "";
         String logValue = "";
@@ -588,7 +595,7 @@ public class ResultUtil {
             return new Pair<String, String>(toValue, logValue);
         }
 
-        toValue = encrypt3k(encryptType, decryptValue);
+        toValue = encrypt3k(encryptType, decryptValue, decryptValue);
         return new Pair<String, String>(toValue, logValue);
     }
 }

@@ -2,9 +2,9 @@
   "file": [
     {
       "uid": "OPEN-BR",
-      "publicFileUrl": "http://8.99.15.248:6001",
+      "publicFileUrl": "http://3.3.12.210:6001",
       "clientIp": "127.0.0.1",
-      "passwd": "nb1234",
+      "passwd": "IieRILWCLFrDKKHumwRhyQ==",
       "apiVersion": "201809101526",
       "isProxy": true,
       "proxyIp": "10.100.131.56",

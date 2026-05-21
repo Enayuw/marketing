@@ -38,5 +38,11 @@ public class MarketingCustomerVO {
     @Schema(description = "合作客户简称")
     private String shortName;
 
+    /**
+     * 跑分批次进度 Redis 保留天数（天，varchar）
+     */
+    @Schema(description = "跑分批次进度 Redis 保留天数（天）")
+    private String expireDay;
+
 
 }

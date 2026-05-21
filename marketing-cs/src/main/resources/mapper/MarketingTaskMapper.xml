@@ -910,4 +910,12 @@
         where shf.id = #{fileId}
         order by shf.create_time desc;
     </select>
+
+    <update id="updateDateWindowByBatchNumber">
+        UPDATE b_marketing_task
+        SET start_date = #{startDate},
+            close_date = #{closeDate},
+            update_time = now()
+        WHERE batch_number = #{batchNumber}
+    </update>
 </mapper>

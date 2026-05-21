@@ -123,6 +123,11 @@ public class ScoreRuleConfig {
      */
     private Integer priority;
 
+    /**
+     * 规则校验状态，见 {@link com.br.marketing.common.enums.ScoreRuleCheckStatusEnum}
+     */
+    private Integer checkStatus;
+
     public Long getId() {
         return id;
     }
@@ -313,5 +318,13 @@ public class ScoreRuleConfig {
 
     public void setPriority(Integer priority) {
         this.priority = priority;
+    }
+
+    public Integer getCheckStatus() {
+        return checkStatus;
+    }
+
+    public void setCheckStatus(Integer checkStatus) {
+        this.checkStatus = checkStatus;
     }
 }

@@ -28,7 +28,8 @@ public enum DataTypeEnum {
     ,TC_CPA_PUSH_FILE(15,"同程CPA撞库文件")
     ,SYNC_FILES(16,"同步文件")
     ,MARKETING_DATA_NO_HEADER(17,"原始数据文件(无表头)")
-    ,TC_CUSTOMIZE_SCENE(18,"同程定制场景");
+    ,TC_CUSTOMIZE_SCENE(18,"同程定制场景")
+    ,SHORT_LINK_STATISTICS(19,"短链统计");
     private Integer value;
     private String desc;
 

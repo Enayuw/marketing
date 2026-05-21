@@ -83,6 +83,11 @@ public class CustomerListVo {
     private String extendConfigInfo;
 
     /**
+     * 跑分批次进度 Redis 保留天数（varchar 存正整数）
+     */
+    private String expireDay;
+
+    /**
      * api推送并发数
      */
     private Integer pushThreadNum;

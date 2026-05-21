@@ -1634,6 +1634,36 @@ public class ScoreRuleConfigExample {
             addCriterion("priority not between", value1, value2, "priority");
             return (Criteria) this;
         }
+
+        public Criteria andCheckStatusIsNull() {
+            addCriterion("check_status is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckStatusIsNotNull() {
+            addCriterion("check_status is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckStatusEqualTo(Integer value) {
+            addCriterion("check_status =", value, "checkStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckStatusNotEqualTo(Integer value) {
+            addCriterion("check_status <>", value, "checkStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckStatusIn(List<Integer> values) {
+            addCriterion("check_status in", values, "checkStatus");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckStatusNotIn(List<Integer> values) {
+            addCriterion("check_status not in", values, "checkStatus");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

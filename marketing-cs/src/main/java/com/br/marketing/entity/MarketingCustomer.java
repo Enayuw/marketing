@@ -79,6 +79,11 @@ public class MarketingCustomer {
     private String extendConfigInfo;
 
     /**
+     * 跑分批次进度 Redis 保留天数（库字段 expire_day，varchar 存数字如 10、30）
+     */
+    private String expireDay;
+
+    /**
      * api推送并发数
      */
     private Integer pushThreadNum;
@@ -361,6 +366,14 @@ public class MarketingCustomer {
 
     public void setExtendConfigInfo(String extendConfigInfo) {
         this.extendConfigInfo = extendConfigInfo == null ? null : extendConfigInfo.trim();
+    }
+
+    public String getExpireDay() {
+        return expireDay;
+    }
+
+    public void setExpireDay(String expireDay) {
+        this.expireDay = expireDay == null ? null : expireDay.trim();
     }
 
     public Integer getPushThreadNum() {

@@ -71,6 +71,8 @@ public class CoreScoreThread implements Callable<String> {
     private MarketingCommonConfig marketingCommonConfig;
     private MarketingRetryRedisMapper marketingRetryRedisMapper;
     private ScoreTaskBatchDTO scoreTaskBatchDTO;
+    /** 跑分批次进度 Redis TTL（秒），由客户 expire_day / 同步表量级策略解析 */
+    private final int scoreBatchExpireSeconds;
     /** stra_his_file.createTime 毫秒时间戳，用于是否走 ES 新索引 */
     private Long straHisFileCreateTimeMillis;
 
@@ -79,7 +81,8 @@ public class CoreScoreThread implements Callable<String> {
             , List<String> noflagproductlist, List<String> flagProductList, MarketingTaskExtend marketingTaskExtend
             , BaseHeadConfigVO baseHeadConfigVO, StrategyProductDetailVO fieldInfo
             , Boolean isRetry, MarketingRetryEsMapper marketingRetryEsMapper
-            , MarketingCommonConfig marketingCommonConfig, MarketingRetryRedisMapper marketingRetryRedisMapper,ScoreTaskBatchDTO scoreTaskBatchDTO) {
+            , MarketingCommonConfig marketingCommonConfig, MarketingRetryRedisMapper marketingRetryRedisMapper
+            , ScoreTaskBatchDTO scoreTaskBatchDTO, int scoreBatchExpireSeconds) {
         this.list = list;
         this.apiCode = param.get("apiCode");
         this.strategyId = param.get("strategyId");
@@ -108,6 +111,8 @@ public class CoreScoreThread implements Callable<String> {
         this.marketingCommonConfig = marketingCommonConfig;
         this.marketingRetryRedisMapper = marketingRetryRedisMapper;
         this.scoreTaskBatchDTO = scoreTaskBatchDTO;
+        this.scoreBatchExpireSeconds = scoreBatchExpireSeconds > 0
+                ? scoreBatchExpireSeconds : RedisKeyExpireConstant.SCORE_BATCH_EXPIRE_TIME;
         String ctMillis = param.get("straHisFileCreateTimeMillis");
         if (StringUtils.isNotBlank(ctMillis)) {
             this.straHisFileCreateTimeMillis = Long.parseLong(ctMillis.trim());
@@ -254,6 +259,7 @@ public class CoreScoreThread implements Callable<String> {
 
     private void setScoreStatus(ScoreTaskBatchDTO scoreTaskBatchDTO) {
         String key = RedisKeyConstant.scoreBatch.concat(":").concat(fileId).concat(":").concat(String.valueOf(scoreTaskBatchDTO.getConditionIndex())).concat(":").concat(String.valueOf(scoreTaskBatchDTO.getGroupId()));
+        log.warn("setScoreStatus key:{}", key);
         int retryCount = 0;
         while (retryCount < 3) {
             try {
@@ -261,7 +267,7 @@ public class CoreScoreThread implements Callable<String> {
                 checkMockRedisSwitch("writeRedis");
 
                 redisChgService.hset(key,String.valueOf(scoreTaskBatchDTO.getPreId()),JSON.toJSONString(scoreTaskBatchDTO));
-                redisChgService.expire(key, RedisKeyExpireConstant.SCORE_BATCH_EXPIRE_TIME);
+                redisChgService.expire(key, scoreBatchExpireSeconds);
                 return;
             } catch (Exception e) {
                 retryCount++;

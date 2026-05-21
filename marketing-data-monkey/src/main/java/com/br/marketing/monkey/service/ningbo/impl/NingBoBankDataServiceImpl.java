@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
+
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
@@ -62,9 +62,6 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
     private static final Pattern DATE_PATTERN_1 = Pattern.compile(Pattern.quote("yyyy-MM-dd"));
 
     private static final Pattern DATE_PATTERN_2 = Pattern.compile(Pattern.quote("yyyyMMdd"));
-
-    @Value("${otherConfig.ningbo.sdkFilePath:config-nbbank.json}")
-    private String sdkFilePath;
 
     private final static String TITLE = "【宁波银行】";
 
@@ -99,7 +96,10 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
         NingBoDataTaskExample example = new NingBoDataTaskExample();
         example.createCriteria().andTaskTypeEqualTo(TaskTypeEnum.DOWNLOAD.getCode())
                 .andTaskDateEqualTo(collectDate)
-                .andStatusGreaterThan(TaskStatusEnum.WAITING.getCode());
+                .andStatusIn(Arrays.asList(
+                        TaskStatusEnum.RUNNING.getCode(),
+                        TaskStatusEnum.SUCCESS.getCode()
+                ));
         if (ningBoDataTaskMapper.countByExample(example) > 0) {
             return;
         }
@@ -163,7 +163,6 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
                                            Long taskId, String apiCode, Date collectDate,
                                            String separator, int limit, String tempFileName) {
         String escapedSeparator = Pattern.quote(separator);
-        Map<String, Integer> headerIndexMap;
         AtomicInteger successCount = new AtomicInteger(0);
         List<CompletableFuture<Void>> futures = new ArrayList<>();
 
@@ -173,24 +172,9 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
         try (BufferedReader reader = new BufferedReader(
                 new InputStreamReader(new FileInputStream(filePath),
                         StringUtils.isNotBlank(charset) ? charset : StandardCharsets.UTF_8.name()))) {
-
-            String headerLine = reader.readLine();
-            if (StringUtils.isBlank(headerLine)) {
-                log.warn("文件内容为空，无数据可解析");
-                return;
-            }
-
-            String[] headers = headerLine.split(escapedSeparator, -1);
-            headerIndexMap = new HashMap<>();
-            for (int i = 0; i < headers.length; i++) {
-                String header = headers[i].trim();
-                if (StringUtils.isNotBlank(header)) {
-                    headerIndexMap.put(header, i);
-                }
-            }
-
             List<String> batchLines = new ArrayList<>(limit);
-            int currentLineNum = 1;
+            int currentLineNum = 0;
+
             String line;
             while ((line = reader.readLine()) != null) {
                 JSONObject config = commonConfig.getNingboBankConfig();
@@ -371,12 +355,20 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
      */
     private void downloadFileFromBank(JSONObject config, String localFilePath, String fileName) throws Exception {
         NBOpenSDK.setSDKLogLevel(SDKLogLevel.DEBUG);
+        String sdkFilePath = config.getString("sdkFilePath");
+        log.warn("初始化SDK, SDK配置文件路径: {}", sdkFilePath);
         ClassPathResource resource = new ClassPathResource(sdkFilePath);
         if (!resource.exists()) {
             throw new FileNotFoundException("SDK配置文件不存在: " + sdkFilePath);
         }
         try (InputStream inputStream = resource.getInputStream()) {
-            NBOpenSDK.init(inputStream);
+            byte[] data = inputStream.readAllBytes();
+            try(ByteArrayInputStream initStream = new ByteArrayInputStream(data)) {
+                NBOpenSDK.init(initStream);
+            }
+            try(ByteArrayInputStream updateStream = new ByteArrayInputStream(data)) {
+                NBOpenSDK.updateConfig(updateStream);
+            }
         }
 
         SDKRequest request = new SDKRequest();
@@ -403,10 +395,22 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
 
     @Override
     public void uploadFile(Date collectDate) {
-        NingBoDataTask currentTask = ningBoDataTaskMapper.createOrUpdateRunningTask(collectDate, TaskTypeEnum.UPLOAD.getCode());
-        if (currentTask == null || Objects.equals(currentTask.getStatus(), TaskStatusEnum.SUCCESS.getCode())) {
+        NingBoDataTaskExample example = new NingBoDataTaskExample();
+        example.createCriteria().andTaskTypeEqualTo(TaskTypeEnum.UPLOAD.getCode())
+                .andTaskDateEqualTo(collectDate)
+                .andStatusIn(Arrays.asList(
+                        TaskStatusEnum.RUNNING.getCode(),
+                        TaskStatusEnum.SUCCESS.getCode()
+                ));
+        if (ningBoDataTaskMapper.countByExample(example) > 0) {
             return;
         }
+
+        NingBoDataTask currentTask = new NingBoDataTask();
+        currentTask.setTaskDate(collectDate);
+        currentTask.setStatus(1);
+        currentTask.setTaskType(TaskTypeEnum.UPLOAD.getCode());
+        ningBoDataTaskMapper.insertSelective(currentTask);
 
         try {
             JSONObject config = commonConfig.getNingboBankConfig();
@@ -415,17 +419,20 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
             }
             SyncConfig syncConfig = new SyncConfig();
             syncConfig.setApiCode(config.getString("apiCode"));
-            syncConfig.setDataType(DataTypeEnum.TRANSFER.getValue());
+            syncConfig.setDataType(DataTypeEnum.MARKETING_DATA_NO_HEADER.getValue());
+            syncConfig.setType(1);
             syncConfig = syncConfigMapper.queryConfigByConditaion(syncConfig);
 
-            String localFilePath = syncConfig.getSrcPath();
-            String filePrefix = config.getString("filePrefix");
+            String remoteFileName = config.getString("uploadFileName");
+            remoteFileName = replaceDate(remoteFileName, LocalDate.now());
+
+            String localFilePath = syncConfig.getTargetPath() + remoteFileName;
             File uploadFile = new File(localFilePath);
             if (!uploadFile.exists() || uploadFile.length() == 0) {
                 log.warn("上传文件不存在或为空，文件路径: {}", localFilePath);
                 return;
             }
-            String remoteFileName = filePrefix + DateUtil.format(collectDate, TIME_FORMATTER2) + ".txt";
+
             log.warn("开始上传宁波银行文件，本地路径: {}，远程文件名: {}", localFilePath, remoteFileName);
 
             SDKResponse response = uploadFileToBank(config, localFilePath, remoteFileName);
@@ -449,14 +456,23 @@ public class NingBoBankDataServiceImpl implements NingBoBankDataService {
      */
     private SDKResponse uploadFileToBank(JSONObject config, String localFilePath, String remoteFileName) {
         try {
+            String sdkFilePath = config.getString("sdkFilePath");
+            log.warn("初始化SDK, SDK配置文件路径: {}", sdkFilePath);
             NBOpenSDK.setSDKLogLevel(SDKLogLevel.DEBUG);
             ClassPathResource resource = new ClassPathResource(sdkFilePath);
             if (!resource.exists()) {
                 throw new FileNotFoundException("SDK配置文件不存在: " + sdkFilePath);
             }
             try (InputStream inputStream = resource.getInputStream()) {
-                NBOpenSDK.init(inputStream);
+                byte[] data = inputStream.readAllBytes();
+                try(ByteArrayInputStream initStream = new ByteArrayInputStream(data)) {
+                    NBOpenSDK.init(initStream);
+                }
+                try(ByteArrayInputStream updateStream = new ByteArrayInputStream(data)) {
+                    NBOpenSDK.updateConfig(updateStream);
+                }
             }
+
             SDKRequest request = new SDKRequest();
             RequestHead head = new RequestHead();
             head.setRqsJrnlNo(NBOpenSDK.getRandom());

@@ -7,9 +7,12 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.ZookeeperPath;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.common.constants.rediskey.RedisKeyExpireConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.enums.MarketingTaskStatusEnum;
 import com.br.marketing.common.enums.RedisValueTypeEnum;
+import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.dto.score.ProductCatalogValidationResult;
+import com.br.marketing.enums.ScoreStatusEnum;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.rpcclient.RpcClientProxy;
@@ -19,6 +22,7 @@ import com.br.marketing.service.Impl.datagroup.DataGroupHandlerServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.task.dto.ScoreTaskBatchDTO;
 import com.br.marketing.task.service.ITaskService;
+import com.br.marketing.task.service.ScoreBatchExpirePolicyService;
 import com.br.marketing.vo.CustomerScoreRuleVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.framework.CuratorFramework;
@@ -28,6 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.util.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -113,6 +118,15 @@ public class TaskServiceImpl implements ITaskService {
     @Resource
     MarketingRetryRedisMapper marketingRetryRedisMapper;
 
+    @Resource
+    private ScoreBatchExpirePolicyService scoreBatchExpirePolicyService;
+
+    @Resource
+    private ProductCatalogValidationService productCatalogValidationService;
+
+    @Resource
+    private MarketingTaskModelCheckMapper marketingTaskModelCheckMapper;
+
 
     @Override
     public void buildScoreTask(List<Long> scoreRuleIds, String jobNm) {
@@ -185,7 +199,7 @@ public class TaskServiceImpl implements ITaskService {
             }
 
             Result<TaskStatus> taskStatusResult = canScore(scoreTask,jobNm);
-            if (!ResultCode.SUCCESS.getValue().equals(taskStatusResult.getCode())) {
+            if (!ResultCode.SUCCESS.getValue().equals(taskStatusResult.getCode()) || !validateProduct(scoreTask)) {
                 removeTaskLock(scoreTask, s);
                 continue;
             }
@@ -347,7 +361,6 @@ public class TaskServiceImpl implements ITaskService {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
 
-
         // 先处理异常重试跑分数据
         MarketingRetryRedisExample marketingRetryRedisExample = new MarketingRetryRedisExample();
         marketingRetryRedisExample.createCriteria()
@@ -356,9 +369,11 @@ public class TaskServiceImpl implements ITaskService {
                 .andRetryStatusEqualTo(0);
         List<MarketingRetryRedis> marketingRetryRedis = marketingRetryRedisMapper.selectByExample(marketingRetryRedisExample);
         if (!CollectionUtils.isEmpty(marketingRetryRedis)) {
+            int scoreBatchExpireSeconds = scoreBatchExpirePolicyService.resolveAndEnsureExpireDay(customer);
             for (MarketingRetryRedis retryRedis : marketingRetryRedis) {
                 String key = retryRedis.getRedisKey();
-                boolean success = retrySetRedisOrDisableTask(retryRedis, String.valueOf(task.getFileId()), retryRedis.getPage(), task);
+                boolean success = retrySetRedisOrDisableTask(retryRedis, String.valueOf(task.getFileId()),
+                        retryRedis.getPage(), scoreBatchExpireSeconds);
                 if (!success) {
                     log.error("重试Redis异常，任务已暂停，后续流程不再执行，fileId={}, page={}", task.getBatchNumber(), retryRedis.getPage());
                     return new Result<>().setCode(ResultCode.FAIL.getValue());
@@ -370,7 +385,6 @@ public class TaskServiceImpl implements ITaskService {
                 marketingRetryRedisMapper.updateByPrimaryKeySelective(retryRedis1);
             }
         }
-
         // 根据跑分状态表判断任务是否已经跑过
         // 一次行全量、一次性验证判断onceStatus;每个任务的周期、每日定时判断allStatus
         if (task.getMonitorType() >= 1 && task.getMonitorType() <= 4) {
@@ -388,6 +402,106 @@ public class TaskServiceImpl implements ITaskService {
         }
 
         return new Result<>().setCode(ResultCode.FAIL.getValue());
+    }
+
+    private Boolean validateProduct(MarketingTask task) {
+        ProductCatalogValidationResult catalogValidation = productCatalogValidationService.validate(task);
+        if (!catalogValidation.isPassed()) {
+            log.error("跑分任务产管产品目录校验未通过,batchNumber={},taskId={},detail={}",
+                    task.getBatchNumber(), task.getId(), JSON.toJSONString(catalogValidation.getFailedItems()));
+            MarketingTask taskUpd = new MarketingTask();
+            taskUpd.setId(task.getId());
+            taskUpd.setStatus(MarketingTaskStatusEnum.DISABLED.getValue());
+            marketingTaskMapper.updateByPrimaryKeySelective(taskUpd);
+            updateStraHisFileStatusOnCatalogValidationFailure(task);
+            persistProductCatalogValidationFailure(task, catalogValidation);
+            return false;
+        }
+        return true;
+    }
+
+    private void updateStraHisFileStatusOnCatalogValidationFailure(MarketingTask task) {
+        try {
+            StraHisFile straHisFile = null;
+
+            if (StringUtils.isNotBlank(task.getBatchNumber())) {
+                StraHisFileExample example = new StraHisFileExample();
+                example.createCriteria().andBatchNumberEqualTo(task.getBatchNumber());
+                List<StraHisFile> files = straHisFileMapper.selectByExample(example);
+                if (!CollectionUtils.isEmpty(files)) {
+                    straHisFile = files.get(0);
+                }
+            }
+            if (straHisFile == null) {
+                log.warn("产管校验未通过，未找到对应跑分记录stra_his_file,batchNumber={},taskId={}",
+                        task.getBatchNumber(), task.getId());
+                return;
+            }
+            StraHisFile updateFile = new StraHisFile();
+            updateFile.setId(straHisFile.getId());
+            updateFile.setStatus(ScoreStatusEnum.PAUSEED.getValue());
+            updateFile.setUpdateTime(new Date());
+            straHisFileMapper.updateByPrimaryKeySelective(updateFile);
+        } catch (Exception e) {
+            log.error("产管校验未通过，更新stra_his_file状态失败,batchNumber={},taskId={}",
+                    task.getBatchNumber(), task.getId(), e);
+        }
+    }
+
+    private void persistProductCatalogValidationFailure(MarketingTask task, ProductCatalogValidationResult catalogValidation) {
+        try {
+            if (StringUtils.isBlank(task.getBatchNumber())) {
+                insertProductCatalogValidationFailureRow(task, catalogValidation);
+            } else {
+                MarketingTaskModelCheckExample existExample = new MarketingTaskModelCheckExample();
+                existExample.createCriteria().andBatchNumberEqualTo(task.getBatchNumber());
+                if (marketingTaskModelCheckMapper.countByExample(existExample) == 0) {
+                    insertProductCatalogValidationFailureRow(task, catalogValidation);
+                }
+            }
+        } catch (Exception e) {
+            log.error("写入产管校验结果表失败,batchNumber={}", task.getBatchNumber(), e);
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("任务批次：%s；产管产品/版本与当前许可不一致，任务已标记为禁用(status=%d)。\r\n",
+                task.getBatchNumber(), MarketingTaskStatusEnum.DISABLED.getValue()))
+                .append("明细：").append(JSON.toJSONString(catalogValidation.getFailedItems()));
+        log.warn("{}", sb);
+    }
+
+    private void insertProductCatalogValidationFailureRow(MarketingTask task, ProductCatalogValidationResult catalogValidation) {
+        MarketingTaskModelCheck record = new MarketingTaskModelCheck();
+        record.setApiCode(task.getApiCode());
+        record.setBatchNumber(task.getBatchNumber());
+        record.setCusBatch(task.getCusBatch());
+        fillModelCheckRuleFieldsFromScoreRuleConfig(task, record);
+        record.setModelCheckStatus(0);
+        record.setFailedModelInfo(JSON.toJSONString(catalogValidation.getFailedItems()));
+        record.setIsDel(1);
+        record.setCreateTime(new Date());
+        marketingTaskModelCheckMapper.insertSelective(record);
+    }
+
+    private void fillModelCheckRuleFieldsFromScoreRuleConfig(MarketingTask task, MarketingTaskModelCheck record) {
+        MarketingTaskExtendExample extendExample = new MarketingTaskExtendExample();
+        extendExample.createCriteria().andIsDelEqualTo(1).andTaskIdEqualTo(task.getId());
+        List<MarketingTaskExtend> extendList = marketingTaskExtendMapper.selectByExample(extendExample);
+        if (extendList == null || extendList.isEmpty()) {
+            log.warn("未找到任务扩展，无法写入产管校验规则名称，taskId={}", task.getId());
+            return;
+        }
+        MarketingTaskExtend extend = extendList.get(0);
+        if (extend.getRuleId() == null) {
+            log.warn("任务扩展无 ruleId，taskId={}", task.getId());
+            return;
+        }
+        ScoreRuleConfig rule = scoreRuleConfigMapper.selectByPrimaryKey(extend.getRuleId());
+        if (rule == null) {
+            log.warn("未找到跑分规则配置，ruleId={}", extend.getRuleId());
+            return;
+        }
+        record.setRuleName(rule.getRuleName());
+        record.setRuleNameShort(rule.getRuleNameShort());
     }
 
     private boolean getTaskLock(MarketingTask task, String lockValue) {
@@ -428,7 +542,8 @@ public class TaskServiceImpl implements ITaskService {
     /**
      * 尝试写入Redis，失败重试3次，失败后暂停任务并跳出外层循环
      */
-    private boolean retrySetRedisOrDisableTask(MarketingRetryRedis retryRedis, String fileId, String page, MarketingTask blt) {
+    private boolean retrySetRedisOrDisableTask(MarketingRetryRedis retryRedis, String fileId,
+                                               String page, int scoreBatchExpireSeconds) {
         String key = retryRedis.getRedisKey();
         String redisValueType = retryRedis.getRedisValueType();
         int retryCount = 0;
@@ -447,7 +562,7 @@ public class TaskServiceImpl implements ITaskService {
                 } else {
                     redisChgService.set(key, "1");
                 }
-                redisChgService.expire(key, RedisKeyExpireConstant.SCORE_BATCH_EXPIRE_TIME);
+                redisChgService.expire(key, scoreBatchExpireSeconds);
                 // 成功
                 return true;
             } catch (Exception e) {

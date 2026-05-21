@@ -74,6 +74,11 @@ public class MarketingCommonConfig {
     private HashMap<String,String> customerRuleMapping;
 
     /**
+     * 短链文件提取特定规则 apiCode 开关
+     */
+    private List<String> shortLinkTailorApiCodes;
+
+    /**
      * 配置走通用流程apiCode
      */
     private List<String> universalProcessApiCode;
@@ -1815,6 +1820,21 @@ public class MarketingCommonConfig {
      * 榕树数据提取时间
      */
     private String rongShuFileExecTime;
+
+    /**
+     * 榕树新场景apiCode
+     */
+    private List<String> rongShuNewSceneApiCodes;
+
+    /**
+     * 榕树新场景外呼黑名单：第三路转化 request_data 为「当前日期 − N 天」时的 N，默认 30
+     */
+    private Integer rongShuNewScenePushBlackListRegisterOffsetDays;
+
+    /**
+     * 榕树新场景推决策：触达策略编号，默认 CASTR0323375
+     */
+    private String rongShuNewScenePushPolicyStrategyCode;
 
     /**
      * marketing-task跑分服务节点数量
@@ -3713,7 +3733,73 @@ public class MarketingCommonConfig {
     private List<JSONObject> tcyrCpaFailMsgConfig;
 
     /**
+     * 滴滴 AI：appKey 与 apiCode 映射，请求进来后根据 appKey 查此 Map 获取对应 apiCode。
+     *
+     * <p>示例：{@code "appKey_upload" -> "3700401", "appKey_marketing" -> "3700405"}
+     */
+    private Map<String, String> didiaiAppkeyToApicodeMap;
+//            = new HashMap<>(
+//                    Map.of(
+//                            "appKey_upload", "7413678",
+//                            "appKey_marketing", "7413678",
+//                            "cwg/WMWxpIsvZg6x", "3700405",  // 营销生产
+//                            "4e/rp5B4T0YP2tre", "3760058"  // 贷后生产
+//                    ));
+
+    /**
+     * 滴滴 AI：测试 apiCode 白名单。当请求头包含 Test-ApiCode 时，需验证其值在此列表中，否则返回错误。
+     *
+     * <p>示例：{@code ["7413678", "3700401", "3700405", "9999999"]}
+     */
+    private List<String> testApicodeList;
+//            = new ArrayList<>(
+//                    Arrays.asList("7413678", "3700401", "3700405", "3760057", "3760058"));
+
+    /**
+     * 滴滴 AI：appKey 与 appSecret 映射，用于 Header sign 的 HMAC 验签；与 didiaiDataSecretMap 分离。后续 Speed 配置。
+     */
+    private Map<String, String> didiaiAppSecretMap;
+//            = new HashMap<>(
+//                    Map.of(
+//                            "appKey_upload", "appSecret_upload",
+//                            "appKey_marketing", "appSecret_marketing",
+//                            "cwg/WMWxpIsvZg6x", "s7Dbf0jVxwb5czD3FGevpv+NSs03QopL",  // 营销
+//                            "4e/rp5B4T0YP2tre", "00griLDc0ExP8sH53l+gPS81liA3YOcd" // 贷后
+//                    ));
+
+    /**
+     * 滴滴 AI：appKey 与 dataSecret 映射，用于 HTTP Body 的 AES 加/解密；与 didiaiAppSecretMap（HMAC 验签）分离。
+     *
+     * <p>未在映射中配置某 appKey 时，实现侧可回退为同 appKey 的 appSecret 以保持兼容，直至 Speed 中补齐 dataSecret。
+     */
+    private Map<String, String> didiaiDataSecretMap;
+//            = new HashMap<>(
+//                    Map.of(
+//                            "appKey_upload", "dataSecret_upload",
+//                            "appKey_marketing", "dataSecret_marketing",
+//                            "cwg/WMWxpIsvZg6x", "IWL1ee4B8TLi/PWQ8VKoarWHu0RSu0eP",  // 营销
+//                                "4e/rp5B4T0YP2tre", "KYLbLk0tljpc0fEaVr+6ypmQwoRudm+8" // 贷后
+//    ));
+
+    /**
+     * 滴滴 AI：业务 apiCode 与分表 cid（无符号数字串）对应，物理表 b_drs_customize_upload_data_{cid}。
+     */
+    private Map<String, String> didiaiApicodeToCidMap;
+//            = new HashMap<>(
+//                    Map.of("7413678", "9356",
+//                            "3700401", "22106",
+//                            "3700405", "22106",
+//                            "3760057", "22106",
+//                            "3760058", "22106"
+//                    ));
+
+    /**
      * 宁波银行配置
      */
     private JSONObject ningboBankConfig;
+
+    /**
+     * 是否打平字段apiCode集合
+     */
+    private List<String> tieDataApiCode;
  }

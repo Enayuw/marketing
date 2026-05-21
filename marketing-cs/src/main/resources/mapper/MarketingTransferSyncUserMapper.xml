@@ -522,6 +522,25 @@
         limit #{pageSize}
     </select>
 
+    <select id="getRsToPolicyDataByRegisterTime" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select *
+        from b_marketing_transfer_sync_${tcId}
+        where api_code = #{apiCode}
+          and user_type in
+        <foreach collection="userTypes" item="userType" open="(" separator="," close=")">
+            #{userType}
+        </foreach>
+        <if test="ifApply != null ">
+            and if_apply=#{ifApply}
+        </if>
+        <![CDATA[ and register_time >= #{registerStartTime} and register_time < #{registerEndTime} ]]>
+        <if test="minId != null and minId>0">
+            and id > #{minId}
+        </if>
+        order by id asc
+        limit #{pageSize}
+    </select>
+
     <select id="getJuZiARuleData" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select * from
         b_marketing_transfer_sync_${tCid}
@@ -642,6 +661,17 @@
         select *
         from b_marketing_transfer_sync_${tCid}
         where api_code = #{apiCode} and request_data = #{requestDate}
+        <if test="minId != null and minId >0">
+            and id > #{minId}
+        </if>
+        order by id asc limit 2000;
+    </select>
+
+    <select id="getTransferByRegisterTimeDate" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select *
+        from b_marketing_transfer_sync_${tCid}
+        where api_code = #{apiCode}
+          <![CDATA[ and register_time >= #{registerStartTime} and register_time < #{registerEndTime} ]]>
         <if test="minId != null and minId >0">
             and id > #{minId}
         </if>

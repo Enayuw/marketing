@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.ServiceResultEnum;
+import com.br.marketing.common.enums.ScoreRuleCheckStatusEnum;
 import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
@@ -181,6 +182,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
             rule.setIsStackValidity(scoreRuleVO.getIsStackValidity());
         }
         rule.setPriority(scoreRuleVO.getPriority() == null ? 9 : scoreRuleVO.getPriority());
+        rule.setCheckStatus(ScoreRuleCheckStatusEnum.OK.getValue());
 
         // 2024-07-19 修改为多apiCode校验
         for (String apiCodeItem : apiCodeList) {
@@ -234,10 +236,15 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         ruleConfig.setId(rid);
         switch (status) {
             case 1:
-            case 2:
-                // TODO: 2021/9/7 禁用规则前要校验该规则是否正在使用
-            case 3:
+                ruleConfig.setCheckStatus(ScoreRuleCheckStatusEnum.OK.getValue());
                 ruleConfig.setStatus(status);
+                ruleConfig.setUpdateTime(new Date());
+                break;
+            case 2:
+            case 3:
+                // TODO: 2021/9/7 禁用规则前要校验该规则是否正在使用
+                ruleConfig.setStatus(status);
+                ruleConfig.setUpdateTime(new Date());
                 break;
             default:
                 throw new BusinessException("警告小主，非法的状态");
@@ -360,6 +367,8 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         rule.setPriority(scoreRuleVO.getPriority() == null ? 9 : scoreRuleVO.getPriority());
         // 默认开启
         rule.setStatus(1);
+        rule.setCheckStatus(ScoreRuleCheckStatusEnum.OK.getValue());
+        rule.setUpdateTime(new Date());
 
         // 2024-07-24 修改为多apiCode
         List<String> apiCodeList = new ArrayList<>();
