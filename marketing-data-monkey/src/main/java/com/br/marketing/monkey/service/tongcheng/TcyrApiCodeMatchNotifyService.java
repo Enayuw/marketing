@@ -3,6 +3,7 @@ package com.br.marketing.monkey.service.tongcheng;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.middleheaven.MiddleHeavenTcyrApiCodeMatchClient;
+import com.br.marketing.client.middleheaven.TcyrApiCodeAssignRequest;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.MarketingTcyrSyncRecord;
 import com.br.marketing.mapper.MarketingTcyrSyncRecordMapper;
@@ -73,18 +74,19 @@ public class TcyrApiCodeMatchNotifyService {
                 }
                 long total = resolveTotal(row);
                 String pushTime = row.getCreateTime() != null ? sdf.format(row.getCreateTime()) : "";
-                boolean ok = middleHeavenTcyrApiCodeMatchClient.postTcApiCodeAssign(
-                        lingxiaoTcyrProperties.getBaseUrl(),
-                        lingxiaoTcyrProperties.getAssignPath(),
-                        lingxiaoTcyrProperties.getBearerToken(),
-                        lingxiaoTcyrProperties.getConnectTimeoutMs(),
-                        lingxiaoTcyrProperties.getReadTimeoutMs(),
-                        candidates,
-                        marketingCommonConfig.getTcyrApiCodeAssignAuthorizedUsers(),
-                        row.getBatchNo(),
-                        total,
-                        pushTime,
-                        row.getId());
+                TcyrApiCodeAssignRequest assignRequest = new TcyrApiCodeAssignRequest();
+                assignRequest.setBaseUrl(lingxiaoTcyrProperties.getBaseUrl());
+                assignRequest.setPath(lingxiaoTcyrProperties.getAssignPath());
+                assignRequest.setBearerToken(lingxiaoTcyrProperties.getBearerToken());
+                assignRequest.setConnectTimeoutMs(lingxiaoTcyrProperties.getConnectTimeoutMs());
+                assignRequest.setReadTimeoutMs(lingxiaoTcyrProperties.getReadTimeoutMs());
+                assignRequest.setApiCodes(candidates);
+                assignRequest.setAuthorizedUsers(marketingCommonConfig.getTcyrApiCodeAssignAuthorizedUsers());
+                assignRequest.setBatchNo(row.getBatchNo());
+                assignRequest.setTotal(total);
+                assignRequest.setPushTime(pushTime);
+                assignRequest.setSyncRecordId(row.getId());
+                boolean ok = middleHeavenTcyrApiCodeMatchClient.postTcApiCodeAssign(assignRequest);
                 if (ok) {
                     log.warn("tcapiCodeAssign 已调用 batchNo={} total={}", row.getBatchNo(), total);
                 } else {

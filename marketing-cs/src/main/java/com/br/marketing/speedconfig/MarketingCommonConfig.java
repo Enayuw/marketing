@@ -2968,7 +2968,9 @@ public class MarketingCommonConfig {
     private List<String> tcyrMatchCandidateApiCodes;
 
     /**
-     * 同程易融-tcapiCodeAssign：有权限选码用户列表（Speed 为 {@code List<JSONObject>}，与 tcyrCpaFailMsgConfig、transFileExtractionApiCodesConfig 一致）；每项须含 {@code userId}、{@code mobile}，透传灵霄字段 {@code authorizedUsers}。
+     * 同程易融-tcapiCodeAssign：有权限选码用户列表（Speed 为 {@code List<JSONObject>}，
+     * 与 tcyrCpaFailMsgConfig、transFileExtractionApiCodesConfig 一致）；
+     * 每项须含 {@code userId}、{@code mobile}，透传灵霄 {@code authorizedUsers}。
      */
     private List<JSONObject> tcyrApiCodeAssignAuthorizedUsers;
 

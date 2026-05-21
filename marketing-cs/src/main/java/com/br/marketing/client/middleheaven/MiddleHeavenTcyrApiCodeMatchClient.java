@@ -33,51 +33,45 @@ import java.util.Map;
 @Service
 public class MiddleHeavenTcyrApiCodeMatchClient {
 
-    private static final String TITLE = "【同程易融-tcapiCodeAssign】";
+    private static final String TITLE_ASSIGN = "【同程易融-tcapiCodeAssign】";
+    private static final String TITLE_CLEAN_NOTIFY = "【同程易融-tcDataCleanNotify】";
+    private static final String DEFAULT_ASSIGN_PATH = "/open/dingtalk/api-code-card/tcapiCodeAssign";
+    private static final String DEFAULT_CLEAN_NOTIFY_PATH = "/open/dingtalk/api-code-card/tcDataCleanNotify";
 
     /**
-     * @param baseUrl                 灵霄 roster-gods 根地址（可省略 {@code http://}）
-     * @param path                    接口路径，以 / 开头
-     * @param bearerToken             可选 Bearer，空则不加头
-     * @param connectTimeoutMs        连接超时
-     * @param readTimeoutMs           读超时
-     * @param apiCodes                候选 apiCode
-     * @param authorizedUsers         有权限选码用户（Speed {@code List<JSONObject>}，每项须含 userId、mobile）；JSON {@code authorizedUsers}
-     * @param batchNo                 批次号
-     * @param total                   data.total
-     * @param pushTime                推送时间展示串
-     * @param syncRecordId            可选，透传灵霄 recordId
+     * @param request 灵霄 tcapiCodeAssign 请求（含连接参数与业务体字段）
      * @return 是否 HTTP 2xx
      */
-    public boolean postTcApiCodeAssign(String baseUrl, String path, String bearerToken,
-                                              int connectTimeoutMs, int readTimeoutMs,
-                                              List<String> apiCodes,
-                                              List<JSONObject> authorizedUsers,
-                                              String batchNo, long total, String pushTime,
-                                              Long syncRecordId) {
-        String base = HttpBaseUrlHelper.ensureHttpScheme(StringUtils.trimToEmpty(baseUrl));
-        if (StringUtils.isBlank(base)) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_INTERFACEERROR.getCode(),
-                    "baseUrl 未配置，无法调用 tcapiCodeAssign，batchNo=" + batchNo, TITLE));
+    public boolean postTcApiCodeAssign(TcyrApiCodeAssignRequest request) {
+        if (request == null) {
             return false;
         }
-        String p = StringUtils.defaultIfBlank(path, "/open/dingtalk/api-code-card/tcapiCodeAssign");
-        if (!p.startsWith("/")) {
-            p = "/" + p;
+        String batchNo = request.getBatchNo();
+        String base = HttpBaseUrlHelper.ensureHttpScheme(StringUtils.trimToEmpty(request.getBaseUrl()));
+        if (StringUtils.isBlank(base)) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_INTERFACEERROR.getCode(),
+                    "baseUrl 未配置，无法调用 tcapiCodeAssign，batchNo=" + batchNo, TITLE_ASSIGN));
+            return false;
         }
-        String url = base.endsWith("/") ? base.substring(0, base.length() - 1) + p : base + p;
+        String url = buildUrl(base, request.getPath(), DEFAULT_ASSIGN_PATH);
 
         Map<String, Object> body = new HashMap<>(16);
-        body.put("apiCodes", apiCodes);
-        body.put("authorizedUsers", sanitizeAuthorizedUsers(authorizedUsers));
+        body.put("apiCodes", request.getApiCodes());
+        body.put("authorizedUsers", sanitizeAuthorizedUsers(request.getAuthorizedUsers()));
         body.put("batchNo", batchNo);
-        body.put("total", total);
-        body.put("pushTime", pushTime == null ? "" : pushTime);
-        if (syncRecordId != null) {
-            body.put("recordId", String.valueOf(syncRecordId));
+        body.put("total", request.getTotal());
+        body.put("pushTime", request.getPushTime() == null ? "" : request.getPushTime());
+        if (request.getSyncRecordId() != null) {
+            body.put("recordId", String.valueOf(request.getSyncRecordId()));
         }
         String json = JSON.toJSONString(body);
 
+        return postJson(url, request.getBearerToken(), request.getConnectTimeoutMs(), request.getReadTimeoutMs(),
+                json, batchNo, "tcapiCodeAssign", TITLE_ASSIGN);
+    }
+
+    private boolean postJson(String url, String bearerToken, int connectTimeoutMs, int readTimeoutMs,
+                             String json, String batchNo, String apiLabel, String alertTitle) {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(Math.max(1000, connectTimeoutMs));
         factory.setReadTimeout(Math.max(1000, readTimeoutMs));
@@ -96,29 +90,37 @@ public class MiddleHeavenTcyrApiCodeMatchClient {
             boolean ok = status != null && status.is2xxSuccessful();
             if (!ok) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_INTERFACEERROR.getCode(),
-                        String.format("tcapiCodeAssign 非2xx batchNo=%s httpStatus=%s body=%s",
-                                batchNo, status,
+                        String.format("%s 非2xx batchNo=%s httpStatus=%s body=%s",
+                                apiLabel, batchNo, status,
                                 StringUtils.abbreviate(response.getBody(), 2000)),
-                        TITLE));
+                        alertTitle));
             }
             return ok;
         } catch (HttpStatusCodeException ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_INTERFACEERROR.getCode(),
-                    String.format("tcapiCodeAssign HTTP失败 batchNo=%s status=%s body=%s",
-                            batchNo, ex.getStatusCode(),
+                    String.format("%s HTTP失败 batchNo=%s status=%s body=%s",
+                            apiLabel, batchNo, ex.getStatusCode(),
                             StringUtils.abbreviate(ex.getResponseBodyAsString(), 2000)),
-                    TITLE), ex);
+                    alertTitle), ex);
             return false;
         } catch (RestClientException ex) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_INTERFACEERROR.getCode(),
-                    "tcapiCodeAssign 远程调用失败 batchNo=" + batchNo + " url=" + url + " err=" + ex.getMessage(),
-                    TITLE), ex);
+                    apiLabel + " 远程调用失败 batchNo=" + batchNo + " url=" + url + " err=" + ex.getMessage(),
+                    alertTitle), ex);
             return false;
         } catch (Exception ex) {
             log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
-                    "tcapiCodeAssign 调用异常 batchNo=" + batchNo + " url=" + url, TITLE), ex);
+                    apiLabel + " 调用异常 batchNo=" + batchNo + " url=" + url, alertTitle), ex);
             return false;
         }
+    }
+
+    private static String buildUrl(String base, String path, String defaultPath) {
+        String p = StringUtils.defaultIfBlank(path, defaultPath);
+        if (!p.startsWith("/")) {
+            p = "/" + p;
+        }
+        return base.endsWith("/") ? (base.substring(0, base.length() - 1) + p) : (base + p);
     }
 
     /**
@@ -172,59 +174,16 @@ public class MiddleHeavenTcyrApiCodeMatchClient {
         if (StringUtils.isBlank(base)) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_INTERFACEERROR.getCode(),
                     "baseUrl 未配置，无法调用 tcDataCleanNotify，batchNo=" + batchNo,
-                    "【同程易融-tcDataCleanNotify】"));
+                    TITLE_CLEAN_NOTIFY));
             return false;
         }
-        String p = StringUtils.defaultIfBlank(path, "/open/dingtalk/api-code-card/tcDataCleanNotify");
-        if (!p.startsWith("/")) {
-            p = "/" + p;
-        }
-        String url = base.endsWith("/") ? base.substring(0, base.length() - 1) + p : base + p;
+        String url = buildUrl(base, path, DEFAULT_CLEAN_NOTIFY_PATH);
 
         Map<String, Object> body = new HashMap<>(4);
         body.put("batchNo", batchNo.trim());
         String json = JSON.toJSONString(body);
 
-        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout(Math.max(1000, connectTimeoutMs));
-        factory.setReadTimeout(Math.max(1000, readTimeoutMs));
-        RestTemplate restTemplate = new RestTemplate(factory);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        if (StringUtils.isNotBlank(bearerToken)) {
-            headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + bearerToken.trim());
-        }
-        HttpEntity<String> entity = new HttpEntity<>(json, headers);
-
-        final String title = "【同程易融-tcDataCleanNotify】";
-        try {
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
-            HttpStatus status = response.getStatusCode();
-            boolean ok = status != null && status.is2xxSuccessful();
-            if (!ok) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_INTERFACEERROR.getCode(),
-                        String.format("tcDataCleanNotify 非2xx batchNo=%s httpStatus=%s body=%s",
-                                batchNo, status, StringUtils.abbreviate(response.getBody(), 2000)),
-                        title));
-            }
-            return ok;
-        } catch (HttpStatusCodeException ex) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_INTERFACEERROR.getCode(),
-                    String.format("tcDataCleanNotify HTTP失败 batchNo=%s status=%s body=%s",
-                            batchNo, ex.getStatusCode(),
-                            StringUtils.abbreviate(ex.getResponseBodyAsString(), 2000)),
-                    title), ex);
-            return false;
-        } catch (RestClientException ex) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_INTERFACEERROR.getCode(),
-                    "tcDataCleanNotify 远程调用失败 batchNo=" + batchNo + " url=" + url + " err=" + ex.getMessage(),
-                    title), ex);
-            return false;
-        } catch (Exception ex) {
-            log.error(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TONGCHENG_SERVICEERROR.getCode(),
-                    "tcDataCleanNotify 调用异常 batchNo=" + batchNo + " url=" + url, title), ex);
-            return false;
-        }
+        return postJson(url, bearerToken, connectTimeoutMs, readTimeoutMs, json, batchNo,
+                "tcDataCleanNotify", TITLE_CLEAN_NOTIFY);
     }
 }
