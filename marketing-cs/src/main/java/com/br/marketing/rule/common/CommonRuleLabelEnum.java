@@ -9,7 +9,8 @@ public enum CommonRuleLabelEnum {
     AI_TO_POLICY("AI_To_Policy"),
     AI_TO_POLICY_PATLOAN_OPERATYPE_FOUR("AI_To_Policy_PatLoan_OperaType_Four"),
     AI_TO_POLICY_PATLOAN_OPERATYPE_FIVE("AI_To_Policy_PatLoan_OperaType_Five"),
-    AI_TO_POLICY_PATLOAN_OPERATYPE_SIX("AI_To_Policy_PatLoan_OperaType_Six");
+    AI_TO_POLICY_PATLOAN_OPERATYPE_SIX("AI_To_Policy_PatLoan_OperaType_Six"),
+    HUATAI_SYNC_TO_TRANSFER("HuaTai_Sync_To_Transfer");
 
 
     CommonRuleLabelEnum(String code) {

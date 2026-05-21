@@ -9,7 +9,6 @@ import com.br.marketing.aspect.Mockable;
 import com.br.marketing.bo.SaveReachDeleteRecordReqBO;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.bo.ZaMarketDataBO;
-import com.br.marketing.client.HaloCallBackDataApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.dassservice.DassServiceClient;
 import com.br.marketing.client.dassservice.PushBlackListResponse;
@@ -41,6 +40,8 @@ import com.br.marketing.client.intelligentcustomerservice.input.PolicyRetryByRul
 import com.br.marketing.client.intelligentcustomerservice.input.PolicyRetryByRuleSoleDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserTaskInfoDTO;
+import com.br.marketing.client.marketingapi.MarketingApiService;
+import com.br.marketing.client.marketingapi.input.PushTransferDataDetailDTO;
 import com.br.marketing.client.qifu.QiFuClients;
 import com.br.marketing.client.qifu.ResponseData;
 import com.br.marketing.client.qifu.SaveReachDeleteRecordReq;
@@ -198,6 +199,9 @@ public class MethodRetryHandlerService {
 
     @Resource
     private PushRuleServiceImpl pushRuleService;
+
+    @Resource
+    private MarketingApiService marketingApiService;
 
     @Resource
     private GuoMeiClient guoMeiClient;
@@ -1533,4 +1537,14 @@ public class MethodRetryHandlerService {
         return result;
     }
 
+    /**
+     * 通用转化接口调用
+     * @param pushTransferDataDetailDTO
+     * @param retry
+     * @return
+     */
+    @RetryMethod(retryNowNum = 2, isOrNoDbRetry = true)
+    public Result pushTransferByRetry(PushTransferDataDetailDTO pushTransferDataDetailDTO,Integer retry) {
+        return marketingApiService.pushMarketingApiTransfer(pushTransferDataDetailDTO,1);
+    }
 }
