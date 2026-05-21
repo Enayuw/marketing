@@ -1483,10 +1483,8 @@ public class DataCleanServiceImpl implements DataCleanService {
                 acc.put(key, ((JSONArray) val).toJSONString());
                 continue;
             }
-            if (val instanceof String) {
-                if (tryParseNestedJsonObject((String) val) != null) {
-                    continue;
-                }
+            if (val instanceof String && tryParseNestedJsonObject((String) val) != null) {
+                continue;
             }
             acc.put(key, val);
         }
