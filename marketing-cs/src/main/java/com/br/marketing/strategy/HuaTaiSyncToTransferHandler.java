@@ -37,13 +37,10 @@ public class HuaTaiSyncToTransferHandler extends AbstractExternalInterfaceHandle
 
     @Override
     public JSONObject call(List<HuaTaiTransferAssembleDTO> resultList, ProcessHandlerContext context) {
-        if (CollectionUtils.isEmpty(resultList)) {
-            return null;
-        }
-        String apiCode = context.getApiCode();
-        List<TransferDataItemDTO> dataItems = collectTransferDataItems(resultList);
-        PushTransferDataDetailDTO pushDto = buildPushTransferData(apiCode, dataItems);
-        if(null != pushDto){
+        if (!CollectionUtils.isEmpty(resultList)) {
+            String apiCode = context.getApiCode();
+            List<TransferDataItemDTO> dataItems = collectTransferDataItems(resultList);
+            PushTransferDataDetailDTO pushDto = buildPushTransferData(apiCode, dataItems);
             Result pushResult = methodRetryHandlerService.pushTransferByRetry(pushDto, null);
             log.warn("华泰转化 push apiCode:{}, size:{}, code:{}, success:{}, msg:{}",
                     apiCode, dataItems.size(), pushResult.getCode(), pushResult.isSuccess(), pushResult.getMessage());
